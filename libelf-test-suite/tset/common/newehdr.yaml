@@ -1,0 +1,6 @@
+%YAML 1.1
+---
+ehdr: !Ehdr
+  e_ident: !Ident
+    ei_class: ELFCLASSNONE
+    ei_data:  ELFDATANONE

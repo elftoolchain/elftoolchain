@@ -1,0 +1,220 @@
+# LibElf Test Suite
+
+# Scenario file
+
+# $Id$
+
+all
+	^elf_begin
+	^elf_cntl
+	^elf_end
+	^elf_errmsg
+	^elf_errno
+	^elf_fill
+	^elf_flagarhdr
+	^elf_flagdata
+	^elf_flagehdr
+	^elf_flagelf
+	^elf_flagphdr
+	^elf_flagscn
+	^elf_flagshdr
+	^elf_getarhdr
+	^elf_getarsym
+	^elf_getbase
+	^elf_getident
+	^elf_getscn
+	^elf_getshnum
+	^elf_getshstrndx
+	^elf_hash
+	^elf_kind
+	^elf_memory
+	^elf_next
+	^elf_ndxscn
+	^elf_newscn
+	^elf_nextscn
+	^elf_rawfile
+	^elf_strptr
+	^elf_update
+	^elf_version
+	^elf32_getehdr
+	^elf32_getphdr
+	^elf32_getshdr
+	^elf32_newehdr
+	^elf32_xlatetof
+	^elf32_xlatetom
+	^elf64_getehdr
+	^elf64_getphdr
+	^elf64_getshdr
+	^elf64_newehdr
+	^elf64_xlatetof
+	^elf64_xlatetom
+	^fsize
+	^gelf_getclass
+	^gelf_getehdr
+	^gelf_newehdr
+	^gelf_xlate
+
+# elf_begin has a IC that needs to be invoked separately
+elf_begin
+	/tset/elf_begin/tc_elf_begin{4}
+	/tset/elf_begin/tc_elf_begin{0-3}
+
+elf_cntl
+	/tset/elf_cntl/tc_elf_cntl
+
+elf_end
+	/tset/elf_end/tc_elf_end
+
+elf_errmsg
+	/tset/elf_errmsg/tc_elf_errmsg
+
+elf_errno
+	/tset/elf_errno/tc_elf_errno
+
+elf_fill
+	/tset/elf_fill/tc_elf_fill
+
+elf_flagarhdr
+	/tset/elf_flagarhdr/tc_elf_flagarhdr
+
+elf_flagdata
+	/tset/elf_flagdata/tc_elf_flagdata
+
+elf_flagehdr
+	/tset/elf_flagehdr/tc_elf_flagehdr
+
+elf_flagelf
+	/tset/elf_flagelf/tc_elf_flagelf
+
+elf_flagphdr
+	/tset/elf_flagphdr/tc_elf_flagphdr
+
+elf_flagscn
+	/tset/elf_flagscn/tc_elf_flagscn
+
+elf_flagshdr
+	/tset/elf_flagshdr/tc_elf_flagshdr
+
+elf_getarhdr
+	/tset/elf_getarhdr/tc_elf_getarhdr
+
+elf_getarsym
+	/tset/elf_getarsym/tc_elf_getarsym
+
+elf_getbase
+	/tset/elf_getbase/tc_elf_getbase
+
+elf_getident
+	/tset/elf_getident/tc_elf_getident{0}
+	/tset/elf_getident/tc_elf_getident{1}
+
+elf_getscn
+	/tset/elf_getscn/tc_elf_getscn
+
+elf_getshnum
+	/tset/elf_getshnum/tc_elf_getshnum
+
+elf_getshstrndx
+	/tset/elf_getshstrndx/tc_elf_getshstrndx
+
+elf_hash
+	/tset/elf_hash/tc_elf_hash
+
+elf_kind
+	/tset/elf_kind/tc_elf_kind
+
+elf_memory
+	/tset/elf_memory/tc_elf_memory{0}
+	/tset/elf_memory/tc_elf_memory{1}
+	/tset/elf_memory/tc_elf_memory{2}
+	/tset/elf_memory/tc_elf_memory{3}
+	/tset/elf_memory/tc_elf_memory{4}
+	/tset/elf_memory/tc_elf_memory{5}
+
+elf_ndxscn
+	/tset/elf_ndxscn/tc_elf_ndxscn
+
+elf_next
+	/tset/elf_next/tc_elf_next
+
+elf_newscn
+	/tset/elf_newscn/tc_elf_newscn
+
+elf_nextscn
+	/tset/elf_nextscn/tc_elf_nextscn
+
+elf_rawfile
+	/tset/elf_rawfile/tc_elf_rawfile{0}
+	/tset/elf_rawfile/tc_elf_rawfile{1}
+	/tset/elf_rawfile/tc_elf_rawfile{2}
+	/tset/elf_rawfile/tc_elf_rawfile{3}
+
+elf_strptr
+	/tset/elf_strptr/tc_elf_strptr
+
+elf_update
+	/tset/elf_update/tc_elf_update
+
+elf_version
+	/tset/elf_version/tc_elf_version{0}
+	/tset/elf_version/tc_elf_version{1}
+	/tset/elf_version/tc_elf_version{2}
+	/tset/elf_version/tc_elf_version{3}
+	/tset/elf_version/tc_elf_version{4}
+
+elf32_getehdr
+	/tset/elf32_getehdr/tc_elf32_getehdr
+
+elf32_getphdr
+	/tset/elf32_getphdr/tc_elf32_getphdr
+
+elf32_getshdr
+	/tset/elf32_getshdr/tc_elf32_getshdr
+
+elf32_newehdr
+	/tset/elf32_newehdr/tc_elf32_newehdr
+
+elf32_xlatetof
+	/tset/elf32_xlatetof/tc_elf32_xlatetof
+
+elf32_xlatetom
+	/tset/elf32_xlatetom/tc_elf32_xlatetom
+
+elf64_getehdr
+	/tset/elf64_getehdr/tc_elf64_getehdr
+
+elf64_getphdr
+	/tset/elf64_getphdr/tc_elf64_getphdr
+
+elf64_getshdr
+	/tset/elf64_getshdr/tc_elf64_getshdr
+
+elf64_newehdr
+	/tset/elf64_newehdr/tc_elf64_newehdr
+
+elf64_xlatetof
+	/tset/elf64_xlatetof/tc_elf64_xlatetof
+
+elf64_xlatetom
+	/tset/elf64_xlatetom/tc_elf64_xlatetom
+
+fsize
+	/tset/elf_fsize/tc_elf_fsize{0}
+	/tset/elf_fsize/tc_elf_fsize{1}
+
+getehdr
+	^elf32_getehdr
+	^elf64_getehdr
+	^gelf_getehdr
+
+gelf_getclass
+	/tset/gelf_getclass/tc_gelf_getclass
+
+gelf_getehdr
+	/tset/gelf_getehdr/tc_gelf_getehdr
+
+gelf_newehdr
+	/tset/gelf_newehdr/tc_gelf_newehdr
+
+gelf_xlate
+	/tset/gelf_xlate/tc_gelf_xlate

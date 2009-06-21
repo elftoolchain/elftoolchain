@@ -1,0 +1,69 @@
+0000000000000000 N 
+0000000000000000 t 
+0000000000000000 d 
+0000000000000000 b 
+0000000000000000 N 
+0000000000000000 N 
+0000000000000000 N 
+0000000000000000 r 
+0000000000000000 N 
+0000000000000000 N 
+0000000000000000 N 
+0000000000000000 N 
+0000000000000000 r 
+0000000000000000 r 
+0000000000000000 n 
+0000000000000000 N 
+                 U __isthreaded
+                 U __stdoutp
+                 U __swbuf
+                 U add_to_inseg_list
+0000000000000816 t add_to_shstrtab
+0000000000000928 T add_unloadables
+                 U calloc
+0000000000004336 T copy_content
+0000000000001424 T copy_data
+0000000000001680 T copy_shdr
+0000000000003168 T create_scn
+                 U create_symtab
+                 U elf_errmsg
+                 U elf_errno
+                 U elf_getdata
+                 U elf_getshstrndx
+                 U elf_ndxscn
+                 U elf_newdata
+                 U elf_newscn
+                 U elf_nextscn
+                 U elf_setshstrndx
+                 U elf_strptr
+                 U err
+                 U errx
+                 U gelf_fsize
+                 U gelf_getehdr
+                 U gelf_getrel
+                 U gelf_getshdr
+                 U gelf_update_shdr
+0000000000002304 T insert_shtab
+0000000000000000 t insert_to_sec_list
+                 U insert_to_strtab
+0000000000002784 t is_append_section
+0000000000002736 t is_compress_section
+0000000000002848 t is_remove_section
+                 U lookup_keep_symlist
+0000000000002560 T lookup_sec_act
+                 U lookup_string
+                 U malloc
+                 U memcpy
+                 U memmove
+                 U memset
+0000000000004112 t print_data
+                 U putc
+0000000000002000 T resync_sections
+0000000000000000 a sections.c
+0000000000000112 T set_shstrtab
+                 U strcmp
+                 U strlen
+                 U strncmp
+                 U strncpy
+0000000000000560 T update_shdr
+                 U warnx
