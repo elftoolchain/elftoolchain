@@ -1,0 +1,79 @@
+.\" Copyright (c) 2009 Joseph Koshy.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" This software is provided by Joseph Koshy ``as is'' and
+.\" any express or implied warranties, including, but not limited to, the
+.\" implied warranties of merchantability and fitness for a particular purpose
+.\" are disclaimed.  in no event shall Joseph Koshy be liable
+.\" for any direct, indirect, incidental, special, exemplary, or consequential
+.\" damages (including, but not limited to, procurement of substitute goods
+.\" or services; loss of use, data, or profits; or business interruption)
+.\" however caused and on any theory of liability, whether in contract, strict
+.\" liability, or tort (including negligence or otherwise) arising in any way
+.\" out of the use of this software, even if advised of the possibility of
+.\" such damage.
+.\"
+.\" $Id$
+.\"
+.Dd April 28, 2009
+.Os
+.Dt ELFTC_DEMANGLE 3
+.Sh NAME
+.Nm elftc_demangle
+.Nd demangle a C++ name
+.Sh LIBRARY
+.Lb libelf
+.Sh SYNOPSIS
+.In libelf.h
+.Ft int
+.Fn elftc_demangle "const char *mangledname" "char *buffer" "size_t bufsize"
+.Sh DESCRIPTION
+Function
+.Fn elftc_demangle
+decodes a symbol name encoded according to the type encoding rules
+for the C++ language and returns a string denoting an equivalent
+C++ prototype.
+.Pp
+Argument
+.Ar mangledname
+specifies the encoded symbol name.
+Argument
+.Ar buffer
+denotes a programmer-specified area to place the prototype string in.
+Argument
+.Ar bufsize
+specifies the size of the programmer-specified area.
+.Sh RETURN VALUES
+Function
+.Fn elftc_demangle
+returns 0 on success.
+In case of an error it returns -1 and sets
+the ELF error number.
+.Sh ERRORS
+Function
+.Fn elftc_demangle
+may fail with the following errors:
+.Bl -tag -width "[ELF_E_RESOURCE]"
+.It Bq Er ELF_E_ARGUMENT
+Argument
+.Ar mangled_name
+was not a valid mangled name.
+.It Bq Er ELF_E_RESOURCE
+The output buffer specified by arguments
+.Ar buffer
+and
+.Ar bufsize
+are too small to hold the demangled name.
+.El
+.Sh SEE ALSO
+.Xr elf 3 ,
+.Xr elf_errno 3 ,
+.Xr elf_strptr 3
