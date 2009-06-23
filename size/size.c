@@ -834,7 +834,7 @@ Usage: size [options] file ...\n\
 void
 usage()
 {
-	(void) fprintf(stderr, usagemsg);
+	(void) fprintf(stderr, "%s", usagemsg);
 	exit(EX_USAGE);
 }
 

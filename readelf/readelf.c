@@ -1296,7 +1296,7 @@ dump_symtab(struct readelf *re, int i)
 	Elf_Data *d;
 	GElf_Sym sym;
 	const char *name;
-	int stab, j;
+	int elferr, stab, j;
 
 	s = &re->sl[i];
 	stab = s->link;
@@ -1354,7 +1354,7 @@ dump_hash(struct readelf *re)
 	uint32_t	 nbucket, nchain;
 	uint32_t	*bucket, *chain;
 	uint32_t	*bl, *c, maxl, total;
-	int		 i, j;
+	int		 elferr, i, j;
 
 	/* TODO: Add support for .gnu.hash section. */
 
