@@ -34,7 +34,7 @@
 .Sh SYNOPSIS
 .In libelf.h
 .Ft int
-.Fn elftc_demangle "const char *mangledname" "char *buffer" "size_t bufsize"
+.Fn elftc_demangle "const char *mangledname" "char *buffer" "size_t bufsize" "unsigned int flags"
 .Sh DESCRIPTION
 Function
 .Fn elftc_demangle
@@ -51,6 +51,9 @@ denotes a programmer-specified area to place the prototype string in.
 Argument
 .Ar bufsize
 specifies the size of the programmer-specified area.
+Argument
+.Ar flags
+specifies the mangling style and the flags that control demangle behaviour.
 .Sh RETURN VALUES
 Function
 .Fn elftc_demangle
@@ -62,11 +65,11 @@ Function
 .Fn elftc_demangle
 may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
-.It Bq Er ELF_E_ARGUMENT
+.It Bq Er EINVAL
 Argument
 .Ar mangled_name
 was not a valid mangled name.
-.It Bq Er ELF_E_RESOURCE
+.It Bq Er ENAMETOOLONG
 The output buffer specified by arguments
 .Ar buffer
 and
@@ -75,5 +78,4 @@ are too small to hold the demangled name.
 .El
 .Sh SEE ALSO
 .Xr elf 3 ,
-.Xr elf_errno 3 ,
 .Xr elf_strptr 3
