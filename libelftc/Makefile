@@ -2,7 +2,14 @@
 
 LIB=	elftc
 
-SRCS=	elftc_demangle.c
+SRCS=	elftc_demangle.c			\
+	elftc_bfdtarget.c			\
+	libelftc_dem_arm.c			\
+	libelftc_dem_gnu2.c			\
+	libelftc_dem_gnu3.c			\
+	libelftc_bfdtarget.c			\
+	libelftc_vstr.c
+INCS=	libelftc.h
 
 CFLAGS+=	-I. -I${.CURDIR}
 
