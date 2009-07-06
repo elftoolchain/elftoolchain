@@ -71,4 +71,14 @@ bool	is_cpp_mangled_gnu2(const char *);
 char	*cpp_demangle_ARM(const char *);
 bool	is_cpp_mangled_ARM(const char *);
 
+/*
+ * Symbols that are sometimes missing from system headers.
+ *
+ * TODO: Move these to a project-wide file.
+ */
+
+#ifndef	EM_AVR
+#define	EM_AVR		83
+#endif
+
 #endif	/* __LIBELFTC_H */
