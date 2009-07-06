@@ -228,32 +228,32 @@ struct elfcopy {
 	STAILQ_HEAD(, ar_obj) v_arobj;	/* archive object(member) list. */
 };
 
-void	add_section(struct elfcopy *ecp, const char *optarg);
-void	add_to_symop_list(struct elfcopy *ecp, const char *name,
-    const char *newname, unsigned int op);
-int	add_to_inseg_list(struct elfcopy *ecp, struct section *sec);
-void	copy_content(struct elfcopy *ecp);
-void	copy_data(struct section *s);
-void	copy_phdr(struct elfcopy *ecp);
-void	copy_shdr(struct elfcopy *ecp, struct section *s, const char *name,
-    int copy, int sec_flags);
-void	create_elf(struct elfcopy *ecp);
-void	create_scn(struct elfcopy *ecp);
-void	create_symtab(struct elfcopy *ecp);
-void	create_tempfile(char **fn, int *fd);
-struct section *insert_shtab(struct elfcopy *ecp);
-int	is_remove_reloc_sec(struct elfcopy *ecp, uint32_t sh_info);
-int	is_remove_section(struct elfcopy *ecp, const char *name);
-struct sec_action *lookup_sec_act(struct elfcopy *ecp,
-    const char *name, int add);
-struct symop *lookup_symop_list(struct elfcopy *ecp, const char *name,
-    unsigned int op);
-void	resync_sections(struct elfcopy *ecp);
-void	set_shstrtab(struct elfcopy *ecp);
-void	setup_phdr(struct elfcopy *ecp);
-void	update_shdr(struct elfcopy *ecp);
+void	add_section(struct elfcopy *_ecp, const char *_optarg);
+void	add_to_symop_list(struct elfcopy *_ecp, const char *_name,
+    const char *_newname, unsigned int _op);
+int	add_to_inseg_list(struct elfcopy *_ecp, struct section *_sec);
+void	copy_content(struct elfcopy *_ecp);
+void	copy_data(struct section *_s);
+void	copy_phdr(struct elfcopy *_ecp);
+void	copy_shdr(struct elfcopy *_ecp, struct section *_s, const char *_name,
+    int _copy, int _sec_flags);
+void	create_elf(struct elfcopy *_ecp);
+void	create_scn(struct elfcopy *_ecp);
+void	create_symtab(struct elfcopy *_ecp);
+void	create_tempfile(char **_fn, int *_fd);
+struct section *insert_shtab(struct elfcopy *_ecp);
+int	is_remove_reloc_sec(struct elfcopy *_ecp, uint32_t _sh_info);
+int	is_remove_section(struct elfcopy *_ecp, const char *_name);
+struct sec_action *lookup_sec_act(struct elfcopy *_ecp,
+    const char *_name, int _add);
+struct symop *lookup_symop_list(struct elfcopy *_ecp, const char *_name,
+    unsigned int _op);
+void	resync_sections(struct elfcopy *_ecp);
+void	set_shstrtab(struct elfcopy *_ecp);
+void	setup_phdr(struct elfcopy *_ecp);
+void	update_shdr(struct elfcopy *_ecp);
 
 #ifndef LIBELF_AR
-int	ac_detect_ar(int ifd);
-void	ac_create_ar(struct elfcopy *ecp, int ifd, int ofd);
+int	ac_detect_ar(int _ifd);
+void	ac_create_ar(struct elfcopy *_ecp, int _ifd, int _ofd);
 #endif	/* ! LIBELF_AR */
