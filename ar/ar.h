@@ -56,6 +56,18 @@
 } while (0)
 
 /*
+ * The 'ACV' wrapper is used for libarchive APIs that changed from
+ * returning 'void' to returning an 'int' in later versions of libarchive.
+ */
+#if	ARCHIVE_VERSION_NUMBER >= 2000000
+#define	ACV(CALL)	AC(CALL)
+#else
+#define	ACV(CALL)	do {				\
+		(CALL);					\
+	} while (0)
+#endif
+
+/*
  * In-memory representation of archive member(object).
  */
 struct ar_obj {

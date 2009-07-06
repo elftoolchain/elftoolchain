@@ -256,7 +256,7 @@ arscp_open(char *fname)
 	if ((r = archive_read_next_header(a, &entry)))
 		bsdar_warnc(bsdar, 0, "%s", archive_error_string(a));
 	AC(archive_read_close(a));
-	AC(archive_read_finish(a));
+	ACV(archive_read_finish(a));
 	if (r != ARCHIVE_OK)
 		return;
 	arscp_create(fname, fname);
@@ -312,7 +312,7 @@ arscp_create(char *in, char *out)
 		archive_write_set_format_ar_svr4(a);
 		AC(archive_write_open_fd(a, ofd));
 		AC(archive_write_close(a));
-		AC(archive_write_finish(a));
+		ACV(archive_write_finish(a));
 	}
 
 	/* Override previous target, if any. */
