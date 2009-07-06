@@ -200,5 +200,5 @@ read_archive(struct bsdar *bsdar, char mode)
 		}
 	}
 	AC(archive_read_close(a));
-	AC(archive_read_finish(a));
+	ACV(archive_read_finish(a));
 }

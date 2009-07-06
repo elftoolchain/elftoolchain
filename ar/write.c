@@ -340,7 +340,7 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 		TAILQ_INSERT_TAIL(&bsdar->v_obj, obj, objs);
 	}
 	AC(archive_read_close(a));
-	AC(archive_read_finish(a));
+	ACV(archive_read_finish(a));
 }
 
 /*
@@ -687,7 +687,7 @@ write_objs(struct bsdar *bsdar)
 	}
 
 	AC(archive_write_close(a));
-	AC(archive_write_finish(a));
+	ACV(archive_write_finish(a));
 }
 
 /*
