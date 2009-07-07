@@ -172,3 +172,14 @@ strlcat(char * __restrict dst, const char * __restrict src, size_t siz)
 #endif
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
+
+/*
+ * GNU hash section.
+ */
+#ifndef	SHT_GNU_HASH
+#define	SHT_GNU_HASH		0x6FFFFFF6U
+#endif
+
+#ifndef	DT_GNU_HASH
+#define	DT_GNU_HASH		0x6ffffef5
+#endif
