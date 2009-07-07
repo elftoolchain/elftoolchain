@@ -38,6 +38,7 @@ __RCSID("$Id$");
 #include <fcntl.h>
 #include <gelf.h>
 #include <getopt.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,496 +161,437 @@ static struct option longopts[] = {
 	{NULL, 0, NULL, 0}
 };
 
-static struct elf_define elf_osabi[] = {
-#ifdef ELFOSABI_SYSV
-	{"SYSV", ELFOSABI_SYSV},
-#endif
-#ifdef ELFOSABI_HPUX
-	{"HPUS", ELFOSABI_HPUX},
-#endif
-#ifdef ELFOSABI_NETBSD
-	{"NetBSD", ELFOSABI_NETBSD},
-#endif
-#ifdef ELFOSABI_LINUX
-	{"Linux", ELFOSABI_LINUX},
-#endif
-#ifdef ELFOSABI_HURD
-	{"HURD", ELFOSABI_HURD},
-#endif
-#ifdef ELFOSABI_86OPEN
-	{"86OPEN", ELFOSABI_86OPEN},
-#endif
-#ifdef ELFOSABI_SOLARIS
-	{"Solaris", ELFOSABI_SOLARIS},
-#endif
-#ifdef ELFOSABI_AIX
-	{"AIX", ELFOSABI_AIX},
-#endif
-#ifdef ELFOSABI_IRIX
-	{"IRIX", ELFOSABI_IRIX},
-#endif
-#ifdef ELFOSABI_FREEBSD
-	{"FreeBSD", ELFOSABI_FREEBSD},
-#endif
-#ifdef ELFOSABI_TRU64
-	{"TRU64", ELFOSABI_TRU64},
-#endif
-#ifdef ELFOSABI_MODESTO
-	{"MODESTO", ELFOSABI_MODESTO},
-#endif
-#ifdef ELFOSABI_OPENBSD
-	{"OpenBSD", ELFOSABI_OPENBSD},
-#endif
-#ifdef ELFOSABI_OPENVMS
-	{"OpenVMS", ELFOSABI_OPENVMS},
-#endif
-#ifdef ELFOSABI_NSK
-	{"NSK", ELFOSABI_NSK},
-#endif
-#ifdef ELFOSABI_ARM
-	{"ARM", ELFOSABI_ARM},
-#endif
-#ifdef ELFOSABI_STANDALONE
-	{"StandAlone", ELFOSABI_STANDALONE},
-#endif
-	{NULL, 0}
+static const char *
+elf_osabi(unsigned int abi)
+{
+	static char s_abi[32];
+
+	switch(abi) {
+	case ELFOSABI_SYSV: return "SYSV";
+	case ELFOSABI_HPUX: return "HPUS";
+	case ELFOSABI_NETBSD: return "NetBSD";
+	case ELFOSABI_LINUX: return "Linux";
+	case ELFOSABI_HURD: return "HURD";
+	case ELFOSABI_86OPEN: return "86OPEN";
+	case ELFOSABI_SOLARIS: return "Solaris";
+	case ELFOSABI_AIX: return "AIX";
+	case ELFOSABI_IRIX: return "IRIX";
+	case ELFOSABI_FREEBSD: return "FreeBSD";
+	case ELFOSABI_TRU64: return "TRU64";
+	case ELFOSABI_MODESTO: return "MODESTO";
+	case ELFOSABI_OPENBSD: return "OpenBSD";
+	case ELFOSABI_OPENVMS: return "OpenVMS";
+	case ELFOSABI_NSK: return "NSK";
+	case ELFOSABI_ARM: return "ARM";
+	case ELFOSABI_STANDALONE: return "StandAlone";
+	default:
+		snprintf(s_abi, sizeof(s_abi), "<unknown: %#x>", abi);
+		return (s_abi);
+	}
 };
 
-static struct elf_define elf_machine[] = {
-#ifdef EM_NONE
-	{"Unknown machine", EM_NONE},
-#endif
-#ifdef EM_M32
-	{"AT&T WE32100", EM_M32},
-#endif
-#ifdef EM_SPARC
-	{"Sun SPARC", EM_SPARC},
-#endif
-#ifdef EM_386
-	{"Intel i386", EM_386},
-#endif
-#ifdef EM_68K
-	{"Motorola 68000", EM_68K},
-#endif
-#ifdef EM_88K
-	{"Motorola 88000", EM_88K},
-#endif
-#ifdef EM_860
-	{"Intel i860", EM_860},
-#endif
-#ifdef EM_MIPS
-	{"MIPS R3000 Big-Endian only", EM_MIPS},
-#endif
-#ifdef EM_S370
-	{"IBM System/370", EM_S370},
-#endif
-#ifdef EM_MIPS_RS3_LE
-	{"MIPS R3000 Little-Endian", EM_MIPS_RS3_LE},
-#endif
-#ifdef EM_PARISC
-	{"HP PA-RISC", EM_PARISC},
-#endif
-#ifdef EM_VPP500
-	{"Fujitsu VPP500", EM_VPP500},
-#endif
-#ifdef EM_SPARC32PLUS
-	{"SPARC v8plus", EM_SPARC32PLUS},
-#endif
-#ifdef EM_960
-	{"Intel 80960", EM_960},
-#endif
-#ifdef EM_PPC
-	{"PowerPC 32-bit", EM_PPC},
-#endif
-#ifdef EM_PPC64
-	{"PowerPC 64-bit", EM_PPC64},
-#endif
-#ifdef EM_S390
-	{"IBM System/390", EM_S390},
-#endif
-#ifdef EM_V800
-	{"NEC V800", EM_V800},
-#endif
-#ifdef EM_FR20
-	{"Fujitsu FR20", EM_FR20},
-#endif
-#ifdef EM_RH32
-	{"TRW RH-32", EM_RH32},
-#endif
-#ifdef EM_RCE
-	{"Motorola RCE", EM_RCE},
-#endif
-#ifdef EM_ARM
-	{"ARM", EM_ARM},
-#endif
-#ifdef EM_SH
-	{"Hitachi SH", EM_SH},
-#endif
-#ifdef EM_SPARCV9
-	{"SPARC v9 64-bit", EM_SPARCV9},
-#endif
-#ifdef EM_TRICORE
-	{"Siemens TriCore embedded processor", EM_TRICORE},
-#endif
-#ifdef EM_ARC
-	{"Argonaut RISC Core", EM_ARC},
-#endif
-#ifdef EM_H8_300
-	{"Hitachi H8/300", EM_H8_300},
-#endif
-#ifdef EM_H8_300H
-	{"Hitachi H8/300H", EM_H8_300H},
-#endif
-#ifdef EM_H8_500
-	{"Hitachi H8/500", EM_H8_500},
-#endif
-#ifdef EM_IA_64
-	{"Intel IA-64 Processor", EM_IA_64},
-#endif
-#ifdef EM_MIPS_X
-	{"Stanford MIPS-X", EM_MIPS_X},
-#endif
-#ifdef EM_COLDFIRE
-	{"Motorola ColdFire", EM_COLDFIRE},
-#endif
-#ifdef EM_68HC12
-	{"Motorola M68HC12", EM_68HC12},
-#endif
-#ifdef EM_MMA
-	{"Fujitsu MMA", EM_MMA},
-#endif
-#ifdef EM_PCP
-	{"Siemens PCP", EM_PCP},
-#endif
-#ifdef EM_NCPU
-	{"Sony nCPU", EM_NCPU},
-#endif
-#ifdef EM_NDR1
-	{"Denso NDR1 microprocessor", EM_NDR1},
-#endif
-#ifdef EM_STARCORE
-	{"Motorola Star*Core processor", EM_STARCORE},
-#endif
-#ifdef EM_ME16
-	{"Toyota ME16 processor" ,EM_ME16},
-#endif
-#ifdef EM_ST100
-	{"STMicroelectronics ST100 processor", EM_ST100},
-#endif
-#ifdef EM_TINYJ
-	{"Advanced Logic Corp. TinyJ processor", EM_TINYJ},
-#endif
-#ifdef EM_X86_64
-	{"Advanced Micro Devices x86-64", EM_X86_64},
-#endif
-#ifdef EM_AMD64
-	{"Advanced Micro Devices x86-64", EM_AMD64},
-#endif
-#ifdef EM_PDSP
-	{"Sony DSP Processor", EM_PDSP},
-#endif
-#ifdef EM_FX66
-	{"Siemens FX66 microcontroller", EM_FX66},
-#endif
-#ifdef EM_ST9PLUS
-	{"STMicroelectronics ST9+ 8/16 microcontroller", EM_ST9PLUS},
-#endif
-#ifdef EM_ST7
-	{"STmicroelectronics ST7 8-bit microcontroller", EM_ST7},
-#endif
-#ifdef EM_68HC16
-	{"Motorola MC68HC16 microcontroller", EM_68HC16},
-#endif
-#ifdef EM_68HC11
-	{"Motorola MC68HC11 microcontroller", EM_68HC11},
-#endif
-#ifdef EM_68HC08
-	{"Motorola MC68HC08 microcontroller", EM_68HC08},
-#endif
-#ifdef EM_68HC05
-	{"Motorola MC68HC05 microcontroller", EM_68HC05},
-#endif
-#ifdef EM_SVX
-	{"Silicon Graphics SVx", EM_SVX},
-#endif
-#ifdef EM_ST19
-	{"STMicroelectronics ST19 8-bit mc", EM_ST19},
-#endif
-#ifdef EM_VAX
-	{"Digital VAX", EM_VAX},
-#endif
-#ifdef EM_CRIS
-	{"Axis Communications 32-bit embedded processor", EM_CRIS},
-#endif
-#ifdef EM_JAVELIN
-	{"Infineon Technologies 32-bit embedded processor", EM_JAVELIN},
-#endif
-#ifdef EM_FIREPATH
-	{"Element 14 64-bit DSP Processor", EM_FIREPATH},
-#endif
-#ifdef EM_ZSP
-	{"LSI Logic 16-bit DSP Processor", EM_ZSP},
-#endif
-#ifdef EM_MMIX
-	{"Donald Knuth's educational 64-bit proc", EM_MMIX},
-#endif
-#ifdef EM_HUANY
-	{"Harvard University machine-independent object files", EM_HUANY},
-#endif
-#ifdef EM_PRISM
-	{"SiTera Prism", EM_PRISM},
-#endif
-#ifdef EM_AVR
-	{"Atmel AVR 8-bit microcontroller", EM_AVR},
-#endif
-#ifdef EM_FR30
-	{"Fujitsu FR30", EM_FR30},
-#endif
-#ifdef EM_D10V
-	{"Mitsubishi D10V", EM_D10V},
-#endif
-#ifdef EM_D30V
-	{"Mitsubishi D30V", EM_D30V},
-#endif
-#ifdef EM_V850
-	{"NEC v850", EM_V850},
-#endif
-#ifdef EM_M32R
-	{"Mitsubishi M32R", EM_M32R},
-#endif
-#ifdef EM_MN10300
-	{"Matsushita MN10300", EM_MN10300},
-#endif
-#ifdef EM_MN10200
-	{"Matsushita MN10200", EM_MN10200},
-#endif
-#ifdef EM_PJ
-	{"picoJava", EM_PJ},
-#endif
-#ifdef EM_OPENRISC
-	{"OpenRISC 32-bit embedded processor", EM_OPENRISC},
-#endif
-#ifdef EM_ARC_A5
-	{"ARC Cores Tangent-A5", EM_ARC_A5},
-#endif
-#ifdef EM_XTENSA
-	{"Tensilica Xtensa Architecture", EM_XTENSA},
-#endif
-#ifdef EM_VIDEOCORE
-	{"Alphamosaic VideoCore processor", EM_VIDEOCORE},
-#endif
-#ifdef EM_TMM_GPP
-	{"Thompson Multimedia General Purpose Processor", EM_TMM_GPP},
-#endif
-#ifdef EM_NS32K
-	{"National Semiconductor 32000 series", EM_NS32K},
-#endif
-#ifdef EM_TPC
-	{"Tenor Network TPC processor", EM_TPC},
-#endif
-#ifdef EM_SNP1K
-	{"Trebia SNP 1000 processor", EM_SNP1K},
-#endif
-#ifdef EM_ST200
-	{"STMicroelectronics ST200 microcontroller", EM_ST200},
-#endif
-#ifdef EM_IP2K
-	{"Ubicom IP2xxx microcontroller family", EM_IP2K},
-#endif
-#ifdef EM_MAX
-	{"MAX Processor", EM_MAX},
-#endif
-#ifdef EM_CR
-	{"National Semiconductor CompactRISC microprocessor", EM_CR},
-#endif
-#ifdef EM_F2MC16
-	{"Texas Instruments embedded microcontroller msp430", EM_F2MC16},
-#endif
-#ifdef EM_BLACKFIN
-	{"Analog Devices Blackfin (DSP) processor", EM_BLACKFIN},
-#endif
-#ifdef EM_SE_C33
-	{"S1C33 Family of Seiko Epson processors", EM_SE_C33},
-#endif
-#ifdef EM_SEP
-	{"Sharp embedded microprocessor", EM_SEP},
-#endif
-#ifdef EM_ARCA
-	{"Arca RISC Microprocessor", EM_ARCA},
-#endif
-#ifdef EM_UNICORE
-	{"Microprocessor series from PKU-Unity Ltd", EM_UNICORE},
-#endif
-#ifdef EM_486
-	{"Intel i486", EM_486},
-#endif
-#ifdef EM_MIPS_RS4_BE
-	{"MIPS R4000 Big-Endian", EM_MIPS_RS4_BE},
-#endif
-#ifdef EM_ALPHA_STD
-	{"Digital Alpha", EM_ALPHA_STD},
-#endif
-#ifdef EM_ALPHA
-	{"Digital Alpha", EM_ALPHA},
-#endif
-	{NULL, 0}
-};
+static const char *
+elf_machine(unsigned int mach)
+{
+	static char s_mach[32];
 
-static struct elf_define elf_class[] = {
-	{"none", ELFCLASSNONE},
-	{"ELF32", ELFCLASS32},
-	{"ELF64", ELFCLASS64},
-	{NULL, 0}
-};
+	switch (mach) {
+	case EM_NONE: return "Unknown machine";
+	case EM_M32: return "AT&T WE32100";
+	case EM_SPARC: return "Sun SPARC";
+	case EM_386: return "Intel i386";
+	case EM_68K: return "Motorola 68000";
+	case EM_88K: return "Motorola 88000";
+	case EM_860: return "Intel i860";
+	case EM_MIPS: return "MIPS R3000 Big-Endian only";
+	case EM_S370: return "IBM System/370";
+	case EM_MIPS_RS3_LE: return "MIPS R3000 Little-Endian";
+	case EM_PARISC: return "HP PA-RISC";
+	case EM_VPP500: return "Fujitsu VPP500";
+	case EM_SPARC32PLUS: return "SPARC v8plus";
+	case EM_960: return "Intel 80960";
+	case EM_PPC: return "PowerPC 32-bit";
+	case EM_PPC64: return "PowerPC 64-bit";
+	case EM_S390: return "IBM System/390";
+	case EM_V800: return "NEC V800";
+	case EM_FR20: return "Fujitsu FR20";
+	case EM_RH32: return "TRW RH-32";
+	case EM_RCE: return "Motorola RCE";
+	case EM_ARM: return "ARM";
+	case EM_SH: return "Hitachi SH";
+	case EM_SPARCV9: return "SPARC v9 64-bit";
+	case EM_TRICORE: return "Siemens TriCore embedded processor";
+	case EM_ARC: return "Argonaut RISC Core";
+	case EM_H8_300: return "Hitachi H8/300";
+	case EM_H8_300H: return "Hitachi H8/300H";
+	case EM_H8S: return "Hitachi H8S";
+	case EM_H8_500: return "Hitachi H8/500";
+	case EM_IA_64: return "Intel IA-64 Processor";
+	case EM_MIPS_X: return "Stanford MIPS-X";
+	case EM_COLDFIRE: return "Motorola ColdFire";
+	case EM_68HC12: return "Motorola M68HC12";
+	case EM_MMA: return "Fujitsu MMA";
+	case EM_PCP: return "Siemens PCP";
+	case EM_NCPU: return "Sony nCPU";
+	case EM_NDR1: return "Denso NDR1 microprocessor";
+	case EM_STARCORE: return "Motorola Star*Core processor";
+	case EM_ME16: return "Toyota ME16 processor";
+	case EM_ST100: return "STMicroelectronics ST100 processor";
+	case EM_TINYJ: return "Advanced Logic Corp. TinyJ processor";
+	case EM_X86_64: return "Advanced Micro Devices x86-64";
+	case EM_PDSP: return "Sony DSP Processor";
+	case EM_FX66: return "Siemens FX66 microcontroller";
+	case EM_ST9PLUS: return "STMicroelectronics ST9+ 8/16 microcontroller";
+	case EM_ST7: return "STmicroelectronics ST7 8-bit microcontroller";
+	case EM_68HC16: return "Motorola MC68HC16 microcontroller";
+	case EM_68HC11: return "Motorola MC68HC11 microcontroller";
+	case EM_68HC08: return "Motorola MC68HC08 microcontroller";
+	case EM_68HC05: return "Motorola MC68HC05 microcontroller";
+	case EM_SVX: return "Silicon Graphics SVx";
+	case EM_ST19: return "STMicroelectronics ST19 8-bit mc";
+	case EM_VAX: return "Digital VAX";
+	case EM_CRIS: return "Axis Communications 32-bit embedded processor";
+	case EM_JAVELIN: return "Infineon Tech. 32bit embedded processor";
+	case EM_FIREPATH: return "Element 14 64-bit DSP Processor";
+	case EM_ZSP: return "LSI Logic 16-bit DSP Processor";
+	case EM_MMIX: return "Donald Knuth's educational 64-bit proc";
+	case EM_HUANY: return "Harvard University MI object files";
+	case EM_PRISM: return "SiTera Prism";
+	case EM_AVR: return "Atmel AVR 8-bit microcontroller";
+	case EM_FR30: return "Fujitsu FR30";
+	case EM_D10V: return "Mitsubishi D10V";
+	case EM_D30V: return "Mitsubishi D30V";
+	case EM_V850: return "NEC v850";
+	case EM_M32R: return "Mitsubishi M32R";
+	case EM_MN10300: return "Matsushita MN10300";
+	case EM_MN10200: return "Matsushita MN10200";
+	case EM_PJ: return "picoJava";
+	case EM_OPENRISC: return "OpenRISC 32-bit embedded processor";
+	case EM_ARC_A5: return "ARC Cores Tangent-A5";
+	case EM_XTENSA: return "Tensilica Xtensa Architecture";
+	case EM_VIDEOCORE: return "Alphamosaic VideoCore processor";
+	case EM_TMM_GPP: return "Thompson Multimedia General Purpose Processor";
+	case EM_NS32K: return "National Semiconductor 32000 series";
+	case EM_TPC: return "Tenor Network TPC processor";
+	case EM_SNP1K: return "Trebia SNP 1000 processor";
+	case EM_ST200: return "STMicroelectronics ST200 microcontroller";
+	case EM_IP2K: return "Ubicom IP2xxx microcontroller family";
+	case EM_MAX: return "MAX Processor";
+	case EM_CR: return "National Semiconductor CompactRISC microprocessor";
+	case EM_F2MC16: return "Fujitsu F2MC16";
+	case EM_MSP430: return "TI embedded microcontroller msp430";
+	case EM_BLACKFIN: return "Analog Devices Blackfin (DSP) processor";
+	case EM_SE_C33: return "S1C33 Family of Seiko Epson processors";
+	case EM_SEP: return "Sharp embedded microprocessor";
+	case EM_ARCA: return "Arca RISC Microprocessor";
+	case EM_UNICORE: return "Microprocessor series from PKU-Unity Ltd";
+	default:
+		snprintf(s_mach, sizeof(s_mach), "<unknown: %#x>", mach);
+		return (s_mach);
+	}
 
-static struct elf_define elf_endian[] = {
-	{"none", ELFDATANONE},
-	{"2's complement, little endian", ELFDATA2LSB},
-	{"2's complement, big endian", ELFDATA2MSB},
-	{NULL, 0}
-};
+}
 
-static struct elf_define elf_type[] = {
-	{"NONE (None)", ET_NONE},
-	{"REL (Relocatable file)", ET_REL},
-	{"EXEC (Executable file)", ET_EXEC},
-	{"DYN (Shared object file)", ET_DYN},
-	{"CORE (Core file)", ET_CORE},
-	{NULL, 0}
-};
+static const char *
+elf_class(unsigned int class)
+{
+	static char s_class[32];
 
-static struct elf_define elf_ver[] = {
-	{"(current)", EV_CURRENT},
-	{"(none)", EV_NONE},
-	{NULL, 0}
-};
+	switch (class) {
+	case ELFCLASSNONE: return "none";
+	case ELFCLASS32: return "ELF32";
+	case ELFCLASS64: return "ELF64";
+	default:
+		snprintf(s_class, sizeof(s_class), "<unknown: %#x>", class);
+		return (s_class);
+	}
+}
 
-static struct elf_define phdr_type[] = {
-	{"NULL", PT_NULL},
-	{"LOAD", PT_LOAD},
-	{"DYNAMIC", PT_DYNAMIC},
-	{"INTERP", PT_INTERP},
-	{"NOTE", PT_NOTE},
-	{"SHLIB", PT_SHLIB},
-	{"PHDR", PT_PHDR},
-	{"TLS", PT_TLS},
-	{"GNU_EH_FRAME", PT_GNU_EH_FRAME},
+static const char *
+elf_endian(unsigned int endian)
+{
+	static char s_endian[32];
+
+	switch (endian) {
+	case ELFDATANONE: return "none";
+	case ELFDATA2LSB: return "2's complement, little endian";
+	case ELFDATA2MSB: return "2's complement, big endian";
+	default:
+		snprintf(s_endian, sizeof(s_endian), "<unknown: %#x>", endian);
+		return (s_endian);
+	}
+}
+
+static const char *
+elf_type(unsigned int type)
+{
+	static char s_type[32];
+
+	switch (type) {
+	case ET_NONE: return "NONE (None)";
+	case ET_REL: return "REL (Relocatable file)";
+	case ET_EXEC: return "EXEC (Executable file)";
+	case ET_DYN: return "DYN (Shared object file)";
+	case ET_CORE: return "CORE (Core file)";
+	default:
+		if (type >= ET_LOPROC)
+			snprintf(s_type, sizeof(s_type), "<proc: %#x>", type);
+		else if (type >= ET_LOOS && type <= ET_HIOS)
+			snprintf(s_type, sizeof(s_type), "<os: %#x>", type);
+		else
+			snprintf(s_type, sizeof(s_type), "<unknown: %#x>",
+			    type);
+		return (s_type);
+	}		
+}
+
+static const char *
+elf_ver(unsigned int ver)
+{
+	static char s_ver[32];
+
+	switch (ver) {
+	case EV_CURRENT: return "(current)";
+	case EV_NONE: return "(none)";
+	default:
+		snprintf(s_ver, sizeof(s_ver), "<unknown: %#x>",
+		    ver);
+		return (s_ver);
+	}
+}
+
+static const char *
+phdr_type(unsigned int ptype)
+{
+	static char s_ptype[32];
+
+	switch (ptype) {
+	case PT_NULL: return "NULL";
+	case PT_LOAD: return "LOAD";
+	case PT_DYNAMIC: return "DYNAMIC";
+	case PT_INTERP: return "INTERP";
+	case PT_NOTE: return "NOTE";
+	case PT_SHLIB: return "SHLIB";
+	case PT_PHDR: return "PHDR";
+	case PT_TLS: return "TLS";
+	case PT_GNU_EH_FRAME: return "GNU_EH_FRAME";
 #ifdef PT_GNU_STACK
-	{"GNU_STACK", PT_GNU_STACK},
+	case PT_GNU_STACK: return "GNU_STACK";
 #endif
 #ifdef PT_GNU_RELRO
-	{"GNU_RELRO", PT_GNU_RELRO},
+	case PT_GNU_RELRO: return "GNU_RELRO";
 #endif
-	{NULL, 0}
-};
+	default:
+		if (ptype >= PT_LOPROC && ptype <= PT_HIPROC)
+			snprintf(s_ptype, sizeof(s_ptype), "LOPROC+%#x",
+			    ptype - PT_LOPROC);
+		else if (ptype >= PT_LOOS && ptype <= PT_HIOS)
+			snprintf(s_ptype, sizeof(s_ptype), "LOOS+%#x",
+			    ptype - PT_LOOS);
+		else
+			snprintf(s_ptype, sizeof(s_ptype), "<unknown: %#x>",
+			    ptype);
+		return (s_ptype);
+	}
+}
 
-static struct elf_define section_type[] = {
-	{"NULL", SHT_NULL},
-	{"PROGBITS", SHT_PROGBITS},
-	{"SYMTAB", SHT_SYMTAB},
-	{"STRTAB", SHT_STRTAB},
-	{"RELA", SHT_RELA},
-	{"HASH", SHT_HASH},
-	{"DYNAMIC", SHT_DYNAMIC},
-	{"NOTE", SHT_NOTE},
-	{"NOBITS", SHT_NOBITS},
-	{"REL", SHT_REL},
-	{"SHLIB", SHT_SHLIB},
-	{"DYNSYM", SHT_DYNSYM},
-	{"INIT_ARRAY", SHT_INIT_ARRAY},
-	{"FINI_ARRAY", SHT_FINI_ARRAY},
-	{"PREINIT_ARRAY", SHT_PREINIT_ARRAY},
-	{"GROUP", SHT_GROUP},
-	{"GNU_HASH", SHT_GNU_HASH},
-	{"VERDEF", SHT_GNU_verdef},
-	{"VERNEED", SHT_GNU_verneed},
-	{"VERSYM", SHT_GNU_versym},
-	{NULL, 0}
-};
+static const char *
+section_type(unsigned int stype)
+{
+	static char s_stype[32];
 
-static struct elf_define dt_type[] = {
-	{"NULL", DT_NULL},
-	{"NEEDED", DT_NEEDED},
-	{"PLTRELSZ", DT_PLTRELSZ},
-	{"PLTGOT", DT_PLTGOT},
-	{"HASH", DT_HASH},
-	{"STRTAB", DT_STRTAB},
-	{"SYMTAB", DT_SYMTAB},
-	{"RELA", DT_RELA},
-	{"RELASZ", DT_RELASZ},
-	{"RELAENT", DT_RELAENT},
-	{"STRSZ", DT_STRSZ},
-	{"SYMENT", DT_SYMENT},
-	{"INIT", DT_INIT},
-	{"FINI", DT_FINI},
-	{"SONAME", DT_SONAME},
-	{"RPATH", DT_RPATH},
-	{"SYMBOLIC", DT_SYMBOLIC},
-	{"REL", DT_REL},
-	{"RELSZ", DT_RELSZ},
-	{"RELENT", DT_RELENT},
-	{"PLTREL", DT_PLTREL},
-	{"DEBUG", DT_DEBUG},
-	{"TEXTREL", DT_TEXTREL},
-	{"JMPREL", DT_JMPREL},
-	{"BIND_NOW", DT_BIND_NOW},
-	{"INIT_ARRAY", DT_INIT_ARRAY},
-	{"FINI_ARRAY", DT_FINI_ARRAY},
-	{"INIT_ARRAYSZ", DT_INIT_ARRAYSZ},
-	{"FINI_ARRAYSZ", DT_FINI_ARRAYSZ},
-	{"RUNPATH", DT_RUNPATH},
-	{"FLAGS", DT_FLAGS},
-	{"ENCODING", DT_ENCODING},
-	{"PREINIT_ARRAY", DT_PREINIT_ARRAY},
-	{"PREINIT_ARRAYSZ", DT_PREINIT_ARRAYSZ},
-	{"MAXPOSTAGS", DT_MAXPOSTAGS},
-	{"SUNW_AUXILIARY", DT_SUNW_AUXILIARY},
-	{"SUNW_RTLDINF", DT_SUNW_RTLDINF},
-	{"SUNW_FILTER", DT_SUNW_FILTER},
-	{"SUNW_CAP", DT_SUNW_CAP},
-	{"CHECKSUM", DT_CHECKSUM},
-	{"PLTPADSZ", DT_PLTPADSZ},
-	{"MOVEENT", DT_MOVEENT},
-	{"MOVESZ", DT_MOVESZ},
-	{"FEATURE_1", DT_FEATURE_1},
-	{"POSFLAG_1", DT_POSFLAG_1},
-	{"SYMINSZ", DT_SYMINSZ},
-	{"SYMINENT", DT_SYMINENT},
-	{"CONFIG", DT_CONFIG},
-	{"DEPAUDIT", DT_DEPAUDIT},
-	{"AUDIT", DT_AUDIT},
-	{"PLTPAD", DT_PLTPAD},
-	{"MOVETAB", DT_MOVETAB},
-	{"SYMINFO", DT_SYMINFO},
-	{"VERSYM", DT_VERSYM},
-	{"RELACOUNT", DT_RELACOUNT},
-	{"RELCOUNT", DT_RELCOUNT},
-	{"FLAGS_1", DT_FLAGS_1},
-	{"VERDEF", DT_VERDEF},
-	{"VERDEFNUM", DT_VERDEFNUM},
-	{"VERNEED", DT_VERNEED},
-	{"VERNEEDNUM", DT_VERNEEDNUM},
-	{"DEPRECATED_SPARC_REGISTER", DT_DEPRECATED_SPARC_REGISTER},
-	{"AUXILIARY", DT_AUXILIARY},
-	{"USED", DT_USED},
-	{"FILTER", DT_FILTER},
-};
+	switch (stype) {
+	case SHT_NULL: return "NULL";
+	case SHT_PROGBITS: return "PROGBITS";
+	case SHT_SYMTAB: return "SYMTAB";
+	case SHT_STRTAB: return "STRTAB";
+	case SHT_RELA: return "RELA";
+	case SHT_HASH: return "HASH";
+	case SHT_DYNAMIC: return "DYNAMIC";
+	case SHT_NOTE: return "NOTE";
+	case SHT_NOBITS: return "NOBITS";
+	case SHT_REL: return "REL";
+	case SHT_SHLIB: return "SHLIB";
+	case SHT_DYNSYM: return "DYNSYM";
+	case SHT_INIT_ARRAY: return "INIT_ARRAY";
+	case SHT_FINI_ARRAY: return "FINI_ARRAY";
+	case SHT_PREINIT_ARRAY: return "PREINIT_ARRAY";
+	case SHT_GROUP: return "GROUP";
+	case SHT_SYMTAB_SHNDX: return "SYMTAB_SHNDX";
+	case SHT_SUNW_dof: return "SUNW_dof";
+	case SHT_SUNW_cap: return "SUNW_cap";
+	case SHT_GNU_HASH: return "GNU_HASH";
+	case SHT_SUNW_ANNOTATE: return "SUNW_ANNOTATE";
+	case SHT_SUNW_DEBUGSTR: return "SUNW_DEBUGSTR";
+	case SHT_SUNW_DEBUG: return "SUNW_DEBUG";
+	case SHT_SUNW_move: return "SUNW_move";
+	case SHT_SUNW_COMDAT: return "SUNW_COMDAT";
+	case SHT_SUNW_syminfo: return "SUNW_syminfo";
+	case SHT_SUNW_verdef: return "SUNW_verdef";
+	case SHT_SUNW_verneed: return "SUNW_verneed";
+	case SHT_SUNW_versym: return "SUNW_versym";
+	case SHT_AMD64_UNWIND: return "AMD64_UNWIND";
+	default:
+		if (stype >= SHT_LOOS && stype <= SHT_HIOS)
+			snprintf(s_stype, sizeof(s_stype), "LOOS+%#x",
+			    stype - SHT_LOOS);
+		else if (stype >= SHT_LOPROC && stype <= SHT_HIPROC)
+			snprintf(s_stype, sizeof(s_stype), "LOPROC+%#x",
+			    stype - SHT_LOPROC);
+		else if (stype >= SHT_LOUSER)
+			snprintf(s_stype, sizeof(s_stype), "LOUSER+%#x",
+			    stype - SHT_LOUSER);
+		else
+			snprintf(s_stype, sizeof(s_stype), "<unknown: %#x>",
+			    stype);
+		return (s_stype);
+	}
+}
 
-static struct elf_define st_bind[] = {
-	{"LOCAL", STB_LOCAL},
-	{"GLOBAL", STB_GLOBAL},
-	{"WEAK", STB_WEAK},
-};
+static const char *
+dt_type(unsigned int dtype)
+{
+	static char s_dtype[32];
 
-static struct elf_define st_type[] = {
-	{"NOTYPE", STT_NOTYPE},
-	{"OBJECT", STT_OBJECT},
-	{"FUNC", STT_FUNC},
-	{"SECTION", STT_SECTION},
-	{"FILE", STT_FILE},
-	{"COMMON", STT_COMMON},
-	{"TLS", STT_TLS},
-};
+	switch (dtype) {
+	case DT_NULL: return "NULL";
+	case DT_NEEDED: return "NEEDED";
+	case DT_PLTRELSZ: return "PLTRELSZ";
+	case DT_PLTGOT: return "PLTGOT";
+	case DT_HASH: return "HASH";
+	case DT_STRTAB: return "STRTAB";
+	case DT_SYMTAB: return "SYMTAB";
+	case DT_RELA: return "RELA";
+	case DT_RELASZ: return "RELASZ";
+	case DT_RELAENT: return "RELAENT";
+	case DT_STRSZ: return "STRSZ";
+	case DT_SYMENT: return "SYMENT";
+	case DT_INIT: return "INIT";
+	case DT_FINI: return "FINI";
+	case DT_SONAME: return "SONAME";
+	case DT_RPATH: return "RPATH";
+	case DT_SYMBOLIC: return "SYMBOLIC";
+	case DT_REL: return "REL";
+	case DT_RELSZ: return "RELSZ";
+	case DT_RELENT: return "RELENT";
+	case DT_PLTREL: return "PLTREL";
+	case DT_DEBUG: return "DEBUG";
+	case DT_TEXTREL: return "TEXTREL";
+	case DT_JMPREL: return "JMPREL";
+	case DT_BIND_NOW: return "BIND_NOW";
+	case DT_INIT_ARRAY: return "INIT_ARRAY";
+	case DT_FINI_ARRAY: return "FINI_ARRAY";
+	case DT_INIT_ARRAYSZ: return "INIT_ARRAYSZ";
+	case DT_FINI_ARRAYSZ: return "FINI_ARRAYSZ";
+	case DT_RUNPATH: return "RUNPATH";
+	case DT_FLAGS: return "FLAGS";
+	case DT_PREINIT_ARRAY: return "PREINIT_ARRAY";
+	case DT_PREINIT_ARRAYSZ: return "PREINIT_ARRAYSZ";
+	case DT_MAXPOSTAGS: return "MAXPOSTAGS";
+	case DT_SUNW_AUXILIARY: return "SUNW_AUXILIARY";
+	case DT_SUNW_RTLDINF: return "SUNW_RTLDINF";
+	case DT_SUNW_FILTER: return "SUNW_FILTER";
+	case DT_SUNW_CAP: return "SUNW_CAP";
+	case DT_CHECKSUM: return "CHECKSUM";
+	case DT_PLTPADSZ: return "PLTPADSZ";
+	case DT_MOVEENT: return "MOVEENT";
+	case DT_MOVESZ: return "MOVESZ";
+	case DT_FEATURE_1: return "FEATURE_1";
+	case DT_POSFLAG_1: return "POSFLAG_1";
+	case DT_SYMINSZ: return "SYMINSZ";
+	case DT_SYMINENT: return "SYMINENT";
+	case DT_GNU_HASH: return "GNU_HASH";
+	case DT_CONFIG: return "CONFIG";
+	case DT_DEPAUDIT: return "DEPAUDIT";
+	case DT_AUDIT: return "AUDIT";
+	case DT_PLTPAD: return "PLTPAD";
+	case DT_MOVETAB: return "MOVETAB";
+	case DT_SYMINFO: return "SYMINFO";
+	case DT_VERSYM: return "VERSYM";
+	case DT_RELACOUNT: return "RELACOUNT";
+	case DT_RELCOUNT: return "RELCOUNT";
+	case DT_FLAGS_1: return "FLAGS_1";
+	case DT_VERDEF: return "VERDEF";
+	case DT_VERDEFNUM: return "VERDEFNUM";
+	case DT_VERNEED: return "VERNEED";
+	case DT_VERNEEDNUM: return "VERNEEDNUM";
+	case DT_DEPRECATED_SPARC_REGISTER: return "DEPRECATED_SPARC_REGISTER";
+	case DT_AUXILIARY: return "AUXILIARY";
+	case DT_USED: return "USED";
+	case DT_FILTER: return "FILTER";
+	default:
+		snprintf(s_dtype, sizeof(s_dtype), "<unknown: %#x>", dtype);
+		return (s_dtype);
+	}
+}
+
+static const char *
+st_bind(unsigned int sbind)
+{
+	static char s_sbind[32];
+
+	switch (sbind) {
+	case STB_LOCAL: return "LOCAL";
+	case STB_GLOBAL: return "GLOBAl";
+	case STB_WEAK: return "WEAK";
+	default:
+		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
+			return "OS";
+		else if (sbind >= STB_LOPROC && sbind <= STB_HIPROC)
+			return "PROC";
+		else
+			snprintf(s_sbind, sizeof(s_sbind), "<unknown: %#x>",
+			    sbind);
+		return (s_sbind);
+	}
+}
+
+static const char *
+st_type(unsigned int stype)
+{
+	static char s_stype[32];
+
+	switch (stype) {
+	case STT_NOTYPE: return "NOTYPE";
+	case STT_OBJECT: return "OBJECT";
+	case STT_FUNC: return "FUNC";
+	case STT_SECTION: return "SECTION";
+	case STT_FILE: return "FILE";
+	case STT_COMMON: return "COMMON";
+	case STT_TLS: return "TLS";
+	default:
+		if (stype >= STT_LOOS && stype <= STT_HIOS)
+			snprintf(s_stype, sizeof(s_stype), "OS+%#x",
+			    stype - STT_LOOS);
+		else if (stype >= STT_LOPROC && stype <= STT_HIPROC)
+			snprintf(s_stype, sizeof(s_stype), "PROC+%#x",
+			    stype - STT_LOPROC);
+		else
+			snprintf(s_stype, sizeof(s_stype), "<unknown: %#x>",
+			    stype);
+		return (s_stype);
+	}
+}
+
+static const char *
+st_shndx(unsigned int shndx)
+{
+	static char s_shndx[32];
+
+	switch (shndx) {
+	case SHN_UNDEF: return "UND";
+	case SHN_ABS: return "ABS";
+	case SHN_COMMON: return "COM";
+	default:
+		if (shndx >= SHN_LOPROC && shndx <= SHN_HIPROC)
+			return "PRC";
+		else if (shndx >= SHN_LOOS && shndx <= SHN_HIOS)
+			return "OS";
+		else
+			snprintf(s_shndx, sizeof(s_shndx), "%u", shndx);
+		return (s_shndx);
+	}
+}
 
 static struct {
 	const char *ln;
@@ -670,7 +612,6 @@ static struct {
 
 static void		 add_dumpop(struct readelf *re, size_t sn, int op);
 static void		 dump_elf(struct readelf *re);
-static void		 dump_elf_type(struct readelf *re);
 static void		 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void		 dump_dynamic(struct readelf *re);
 static void		 dump_hash(struct readelf *re);
@@ -679,27 +620,13 @@ static void		 dump_symtab(struct readelf *re, int i);
 static void		 dump_symtabs(struct readelf *re);
 static struct dumpop 	*find_dumpop(struct readelf *re, size_t sn, int op);
 static void		 load_sections(struct readelf *re);
-static const char	*lookup_define(struct elf_define *define, int value);
 static void		 readelf_help(void);
 static void		 readelf_usage(void);
 static void		 readelf_version(void);
 
-static const char *
-lookup_define(struct elf_define *define, int value)
-{
-	int i;
-
-	for (i = 0; define[i].name != NULL; i++)
-		if (define[i].value == value)
-			return (define[i].name);
-
-	return (NULL);
-}
-
 static void
 dump_ehdr(struct readelf *re)
 {
-	const char	*name;
 	size_t		 shnum, shstrndx;
 	int		 i;
 
@@ -709,133 +636,87 @@ dump_ehdr(struct readelf *re)
 	printf("  Magic:   ");
 	for (i = 0; i < EI_NIDENT; i++)
 		printf("%.2x ", re->ehdr.e_ident[i]);
-	printf("\n");
+	putchar('\n');
 
 	/* EI_CLASS. */
-	printf("  Class:                             ");
-	if ((name = lookup_define(elf_class, re->ehdr.e_ident[EI_CLASS])) !=
-	    NULL)
-		printf("%s\n", name);
-	else
-		printf("<unknown: %x>\n", re->ehdr.e_ident[EI_CLASS]);
+	printf("%-37s%s\n", "  Class:", elf_class(re->ehdr.e_ident[EI_CLASS]));
 
 	/* EI_DATA. */
-	printf("  Data:                              ");
-	if ((name = lookup_define(elf_endian, re->ehdr.e_ident[EI_DATA])) !=
-	    NULL)
-		printf("%s\n", name);
-	else
-		printf("<unknown: %x>\n", re->ehdr.e_ident[EI_DATA]);
+	printf("%-37s%s\n", "  Data:", elf_endian(re->ehdr.e_ident[EI_DATA]));
 
 	/* EI_VERSION. */
-	printf("  Version:                           %d ",
-	    re->ehdr.e_ident[EI_VERSION]);
-	if ((name = lookup_define(elf_ver, re->ehdr.e_ident[EI_VERSION])) !=
-	    NULL)
-		printf("%s\n", name);
-	else
-		printf("(unknown)\n");
+	printf("%-37s%d %s\n", "  Version:", re->ehdr.e_ident[EI_VERSION],
+	    elf_ver(re->ehdr.e_ident[EI_VERSION]));
 
 	/* EI_OSABI. */
-	printf("  OS/ABI:                            ");
-	if ((name = lookup_define(elf_osabi, re->ehdr.e_ident[EI_OSABI])) !=
-	    NULL)
-		printf("%s\n", name);
-	else
-		printf("<unknown: %x>\n", re->ehdr.e_ident[EI_OSABI]);
+	printf("%-37s%s\n", "  OS/ABI:", elf_osabi(re->ehdr.e_ident[EI_OSABI]));
 
 	/* EI_ABIVERSION. */
-	printf("  ABI Version:                       %d\n",
-	    re->ehdr.e_ident[EI_ABIVERSION]);
+	printf("%-37s%d\n", "  ABI Version:", re->ehdr.e_ident[EI_ABIVERSION]);
 
 	/* e_type. */
-	printf("  Type:                              ");
-	dump_elf_type(re);
+	printf("%-37s%s\n", "  Type:", elf_type(re->ehdr.e_type));
 
 	/* e_machine. */
-	printf("  Machine:                           ");
-	if ((name = lookup_define(elf_machine, re->ehdr.e_machine)) != NULL)
-		printf("%s\n", name);
-	else
-		printf("<unknown: %x>\n", re->ehdr.e_machine);
+	printf("%-37s%s\n", "  Machine:", elf_machine(re->ehdr.e_machine));
 
 	/* e_version. */
-	printf("  Version:                           0x%x\n",
-	    re->ehdr.e_version);
+	printf("%-37s%#x\n", "  Version:", re->ehdr.e_version);
 
 	/* e_entry. */
-	printf("  Entry point address:               0x%lx\n",
-	    re->ehdr.e_entry);
+	printf("%-37s%#jx\n", "  Entry point address:",
+	    (uintmax_t)re->ehdr.e_entry);
 
 	/* e_phoff. */
-	printf("  Start of program headers:          %ju (bytes into file)\n",
-	    re->ehdr.e_phoff);
+	printf("%-37s%ju (bytes into file)\n", "  Start of program headers:",
+	    (uintmax_t)re->ehdr.e_phoff);
 
 	/* e_shoff. */
-	printf("  Start of section headers:          %ju (bytes into file)\n",
-	    re->ehdr.e_shoff);
+	printf("%-37s%ju (bytes into file)\n", "  Start of section headers:",
+	    (uintmax_t)re->ehdr.e_shoff);
 
 	/* e_flags. TODO: add machine flags parse. */
-	printf("  Flags:                             0x%x\n",
-	    re->ehdr.e_flags);
+	printf("%-37s%#x\n", "  Flags:", re->ehdr.e_flags);
 
 	/* e_ehsize. */
-	printf("  Size of this header:               %u (bytes)\n",
+	printf("%-37s%u (bytes)\n", "  Size of this header:",
 	    re->ehdr.e_ehsize);
 
 	/* e_phentsize. */
-	printf("  Size of program headers:           %u (bytes)\n",
+	printf("%-37s%u (bytes)\n", "  Size of program headers:",
 	    re->ehdr.e_phentsize);
 
 	/* e_phnum. */
-	printf("  Number of program headers:         %u\n",
-	    re->ehdr.e_phnum);
+	printf("%-37s%u\n", "  Number of program headers:", re->ehdr.e_phnum);
 
 	/* e_shentsize. */
-	printf("  Size of section headers:           %u (bytes)\n",
+	printf("%-37s%u (bytes)\n", "  Size of section headers:",
 	    re->ehdr.e_shentsize);
 
 	/* e_shnum. */
-	printf("  Number of section headers:         %u", re->ehdr.e_shnum);
+	printf("%-37s%u", "  Number of section headers:", re->ehdr.e_shnum);
 	if (re->ehdr.e_shnum == SHN_UNDEF) {
 		/* Extended section numbering is in use. */
 		if (elf_getshnum(re->elf, &shnum))
-			printf(" (%ju)", shnum);
+			printf(" (%ju)", (uintmax_t)shnum);
 	}
-	printf("\n");
+	putchar('\n');
 
 	/* e_shstrndx. */
-	printf("  Section header string table index: %u", re->ehdr.e_shstrndx);
+	printf("%-37s%u", "  Section header string table index:",
+	    re->ehdr.e_shstrndx);
 	if (re->ehdr.e_shstrndx == SHN_XINDEX) {
 		/* Extended section numbering is in use. */
 		if (elf_getshstrndx(re->elf, &shstrndx))
-			printf(" (%ju)", shstrndx);
+			printf(" (%ju)", (uintmax_t)shstrndx);
 	}
-	printf("\n");
-}
-
-static void
-dump_elf_type(struct readelf *re)
-{
-	const char *name;
-
-	if ((name = lookup_define(elf_type, re->ehdr.e_type)) != NULL)
-		printf("%s\n", name);
-	else {
-		if (re->ehdr.e_type >= ET_LOPROC)
-			printf("Processor Specific: (%x)\n", re->ehdr.e_type);
-		else if (re->ehdr.e_type >= ET_LOOS &&
-		    re->ehdr.e_type <= ET_HIOS)
-			printf("OS Specific: (%x)\n", re->ehdr.e_type);
-		else
-			printf("<unknown: %x>\n", re->ehdr.e_type);
-	}
+	putchar('\n');
 }
 
 static void
 dump_phdr(struct readelf *re)
 {
-	const char	*name, *rawfile;
+	const char	*rawfile;
 	GElf_Phdr	 phdr;
 	size_t		 phnum;
 	int		 i, j;
@@ -851,8 +732,7 @@ dump_phdr(struct readelf *re)
 		return;
 	}
 
-	printf("\nElf file type is ");
-	dump_elf_type(re);
+	printf("\nElf file type is %s", elf_type(re->ehdr.e_type));
 	printf("Entry point 0x%lx\n", re->ehdr.e_entry);
 	printf("There are %ju program headers, starting at offset %ju\n", phnum,
 	    re->ehdr.e_phoff);
@@ -878,21 +758,8 @@ dump_phdr(struct readelf *re)
 			warnx("gelf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
 		}
-		if ((name = lookup_define(phdr_type, phdr.p_type)) != NULL)
-			printf("  %-14.14s ", name);
-		else {
-			/* TODO: Add arch-specific segment type dump. */
-			if (phdr.p_type >= PT_LOPROC &&
-			    phdr.p_type <= PT_HIPROC)
-				printf("  LOPROC+%-7.6x ", phdr.p_type -
-				    PT_LOPROC);
-			else if (phdr.p_type >= PT_LOOS &&
-			    phdr.p_type <= PT_HIOS)
-				printf("  LOOS+%-9.6x ", phdr.p_type -
-				    PT_LOOS);
-			else
-				printf("  <unknown>: %3.3x", phdr.p_type);
-		}
+		/* TODO: Add arch-specific segment type dump. */
+		printf("  %-14.14s ", phdr_type(phdr.p_type));
 		if (re->ec == ELFCLASS32) {
 			printf("0x%6.6lx ", phdr.p_offset);
 			printf("0x%8.8lx ", phdr.p_vaddr);
@@ -983,24 +850,6 @@ dump_section_flags(struct readelf *re, struct section *s)
 }
 
 static void
-dump_section_type(struct readelf *re __unused, uint32_t type)
-{
-	const char *name;
-
-	if ((name = lookup_define(section_type, type)) != NULL)
-		printf("%-15.15s ", name);
-	else {
-		/* TODO: Add arch-specific types. */
-		if (type >= SHT_LOOS && type <= SHT_HIOS)
-			printf("LOOS+%-10x ", type - SHT_LOOS);
-		else if (type >= SHT_LOUSER && type <= SHT_HIUSER)
-			printf("LOUSER+%-8x", type - SHT_LOUSER);
-		else
-			printf("<unknown>: %-4x", type);
-	}
-}
-
-static void
 dump_shdr(struct readelf *re)
 {
 	struct section	*s;
@@ -1061,7 +910,7 @@ dump_shdr(struct readelf *re)
 			printf("  [%2d] %-17.17s ", i, s->name);
 		if (re->ec == ELFCLASS32) {
 			if (re->options & RE_T) {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf("%8.8lx %6.6lx %6.6lx %2.2lx  ", s->addr,
 				    s->off, s->sz, s->entsize);
 				printf("%2u %3u %2lu\n", s->link, s->info,
@@ -1069,7 +918,7 @@ dump_shdr(struct readelf *re)
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf("%8.8lx %6.6lx %6.6lx %2.2lx ", s->addr,
 				    s->off, s->sz, s->entsize);
 				dump_section_flags(re, s);
@@ -1078,7 +927,7 @@ dump_shdr(struct readelf *re)
 			}
 		} else if (re->options & RE_WW) {
 			if (re->options & RE_T) {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf("%16.16lx %6.6lx %6.6lx %2.2lx ",
 				    s->addr, s->off, s->sz, s->entsize);
 				printf(" %2u %3u %2lu\n", s->link, s->info,
@@ -1086,7 +935,7 @@ dump_shdr(struct readelf *re)
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf("%16.16lx %6.6lx %6.6lx %2.2lx ",
 				    s->addr, s->off, s->sz, s->entsize);
 				dump_section_flags(re, s);
@@ -1095,7 +944,7 @@ dump_shdr(struct readelf *re)
 			}
 		} else {
 			if (re->options & RE_T) {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf(" %16.16lx  %16.16lx  %u\n", s->addr,
 				    s->off, s->link);
 				printf("       %16.16lx %16.16lx  %-16u  %ju\n",
@@ -1103,7 +952,7 @@ dump_shdr(struct readelf *re)
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
-				dump_section_type(re, s->type);
+				printf("%-15.15s ", section_type(s->type));
 				printf(" %16.16lx  %8.8lx\n", s->addr,
 				    s->off);
 				printf("       %16.16lx  %16.16lx ", s->sz,
@@ -1159,7 +1008,7 @@ dump_dynamic(struct readelf *re)
 				printf(" 0x%8.8lx", dyn.d_tag);
 			else
 				printf(" 0x%16.16lx", dyn.d_tag);
-			printf(" %-20s", lookup_define(dt_type, dyn.d_tag));
+			printf(" %-20s", dt_type(dyn.d_tag));
 			/* Dump dynamic entry value. */
 			dump_dyn_val(re, &dyn, s->link);
 		}
@@ -1233,60 +1082,11 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		printf(" Library runpath: [%s]\n", name);
 		break;
 	case DT_PLTREL:
-		printf(" %s\n", lookup_define(dt_type, dyn->d_un.d_val));
+		printf(" %s\n", dt_type(dyn->d_un.d_val));
 		break;
 	default:
 		printf("\n");
 	}
-}
-
-static void
-dump_st_type(int stt)
-{
-	const char *name;
-
-	if ((name = lookup_define(st_type, stt)) != NULL)
-		printf(" %-7s", name);
-	else if (stt >= STT_LOOS && stt <= STT_HIOS)
-		printf(" %-7s", "os");
-	else if (stt >= STT_LOPROC && stt <= STT_HIPROC)
-		printf(" %-7s", "proc");
-	else
-		printf(" %-7s", "unknown");
-
-}
-
-static void
-dump_st_bind(int stb)
-{
-	const char *name;
-
-	if ((name = lookup_define(st_bind, stb)) != NULL)
-		printf(" %-6s", name);
-	else if (stb >= STB_LOOS && stb <= STB_HIOS)
-		printf(" %-6s", "os");
-	else if (stb >= STB_LOPROC && stb <= STB_HIPROC)
-		printf(" %-6s", "proc");
-	else
-		printf(" %-7s", "unknown");
-}
-
-static void
-dump_st_shndx(int shndx)
-{
-
-	if (shndx == SHN_UNDEF)
-		printf(" UND");
-	else if (shndx == SHN_ABS)
-		printf(" ABS");
-	else if (shndx == SHN_COMMON)
-		printf(" COM");
-	else if (shndx >= SHN_LOPROC && shndx <= SHN_HIPROC)
-		printf(" PRC");
-	else if (shndx >= SHN_LOOS && shndx <= SHN_HIOS)
-		printf("  OS");
-	else
-		printf(" %3d", shndx);
 }
 
 static void
@@ -1319,10 +1119,10 @@ dump_symtab(struct readelf *re, int i)
 		printf("%6d:", j);
 		printf(" %16.16lx", sym.st_value);
 		printf(" %5ju", sym.st_size);
-		dump_st_type(GELF_ST_TYPE(sym.st_info));
-		dump_st_bind(GELF_ST_BIND(sym.st_info));
+		printf(" %-7s", st_type(GELF_ST_TYPE(sym.st_info)));
+		printf(" %-6s", st_bind(GELF_ST_BIND(sym.st_info)));
 		printf(" DEFAULT "); /* FIXME */
-		dump_st_shndx(sym.st_shndx);
+		printf(" %3s", st_shndx(sym.st_shndx));
 		if ((name = elf_strptr(re->elf, stab, sym.st_name)) != NULL)
 			printf(" %s", name);
 		printf("\n");
