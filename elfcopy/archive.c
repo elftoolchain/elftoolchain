@@ -328,6 +328,15 @@ extract_arsym(struct elfcopy *ecp)
 		errx(EX_SOFTWARE, "%s", archive_error_string(a));	\
 } while (0)
 
+/* Earlier versions of libarchive had some functions that returned 'void'. */
+#if	ARCHIVE_VERSION_NUMBER >= 2000000
+#define	ACV(CALL) 	AC(CALL)
+#else
+#define	ACV(CALL)	do {						\
+		(CALL);							\
+	} while (0)
+#endif
+
 int
 ac_detect_ar(int ifd)
 {
@@ -422,7 +431,7 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 		}
 	}
 	AC(archive_read_close(a));
-	AC(archive_read_finish(a));
+	ACV(archive_read_finish(a));
 }
 
 static void
@@ -483,7 +492,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	}
 
 	AC(archive_write_close(a));
-	AC(archive_write_finish(a));
+	ACV(archive_write_finish(a));
 }
 
 /*
