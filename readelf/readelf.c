@@ -25,12 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-#if defined(__FBSDID)
-__FBSDID("$FreeBSD$");
-#elif defined(__RCSID)
-__RCSID("$Id$");
-#endif
-
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <ctype.h>
@@ -49,6 +43,8 @@ __RCSID("$Id$");
 #include <archive.h>
 #include <archive_entry.h>
 #endif	/* ! LIBELF_AR */
+
+#include "config.h"
 
 /*
  * readelf(1) options.
