@@ -729,9 +729,9 @@ dump_phdr(struct readelf *re)
 	}
 
 	printf("\nElf file type is %s", elf_type(re->ehdr.e_type));
-	printf("Entry point 0x%lx\n", re->ehdr.e_entry);
-	printf("There are %ju program headers, starting at offset %ju\n", phnum,
-	    re->ehdr.e_phoff);
+	printf("Entry point 0x%jx\n", (uintmax_t)re->ehdr.e_entry);
+	printf("There are %ju program headers, starting at offset %ju\n",
+	    (uintmax_t)phnum, (uintmax_t)re->ehdr.e_phoff);
 
 	/* Dump program headers. */
 	printf("\nProgram Headers:\n");
@@ -757,35 +757,36 @@ dump_phdr(struct readelf *re)
 		/* TODO: Add arch-specific segment type dump. */
 		printf("  %-14.14s ", phdr_type(phdr.p_type));
 		if (re->ec == ELFCLASS32) {
-			printf("0x%6.6lx ", phdr.p_offset);
-			printf("0x%8.8lx ", phdr.p_vaddr);
-			printf("0x%8.8lx ", phdr.p_paddr);
-			printf("0x%5.5lx ", phdr.p_filesz);
-			printf("0x%5.5lx ", phdr.p_memsz);
+			printf("0x%6.6jx ", (uintmax_t)phdr.p_offset);
+			printf("0x%8.8jx ", (uintmax_t)phdr.p_vaddr);
+			printf("0x%8.8jx ", (uintmax_t)phdr.p_paddr);
+			printf("0x%5.5jx ", (uintmax_t)phdr.p_filesz);
+			printf("0x%5.5jx ", (uintmax_t)phdr.p_memsz);
 			printf("%c%c%c ", phdr.p_flags & PF_R ? 'R' : ' ',
 			    phdr.p_flags & PF_W ? 'W' : ' ',
 			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#lx\n", phdr.p_align);
+			printf("%#jx\n", (uintmax_t)phdr.p_align);
 		} else if (re->options & RE_WW) {
-			printf("0x%6.6lx ", phdr.p_offset);
-			printf("0x%16.16lx ", phdr.p_vaddr);
-			printf("0x%16.16lx ", phdr.p_paddr);
-			printf("0x%6.6lx ", phdr.p_filesz);
-			printf("0x%6.6lx ", phdr.p_memsz);
+			printf("0x%6.6jx ", (uintmax_t)phdr.p_offset);
+			printf("0x%16.16jx ", (uintmax_t)phdr.p_vaddr);
+			printf("0x%16.16jx ", (uintmax_t)phdr.p_paddr);
+			printf("0x%6.6jx ", (uintmax_t)phdr.p_filesz);
+			printf("0x%6.6jx ", (uintmax_t)phdr.p_memsz);
 			printf("%c%c%c ", phdr.p_flags & PF_R ? 'R' : ' ',
 			    phdr.p_flags & PF_W ? 'W' : ' ',
 			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#lx\n", phdr.p_align);
+			printf("%#jx\n", (uintmax_t)phdr.p_align);
 		} else {
-			printf("0x%16.16lx ", phdr.p_offset);
-			printf("0x%16.16lx ", phdr.p_vaddr);
-			printf("0x%16.16lx\n", phdr.p_paddr);
-			printf("                 0x%16.16lx ", phdr.p_filesz);
-			printf("0x%16.16lx ", phdr.p_memsz);
+			printf("0x%16.16jx ", (uintmax_t)phdr.p_offset);
+			printf("0x%16.16jx ", (uintmax_t)phdr.p_vaddr);
+			printf("0x%16.16jx\n", (uintmax_t)phdr.p_paddr);
+			printf("                 0x%16.16jx ",
+			    (uintmax_t)phdr.p_filesz);
+			printf("0x%16.16jx ", (uintmax_t)phdr.p_memsz);
 			printf(" %c%c%c    ", phdr.p_flags & PF_R ? 'R' : ' ',
 			    phdr.p_flags & PF_W ? 'W' : ' ',
 			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#lx\n", phdr.p_align);
+			printf("%#jx\n", (uintmax_t)phdr.p_align);
 		}
 		if (phdr.p_type == PT_INTERP) {
 			if ((rawfile = elf_rawfile(re->elf, NULL)) == NULL) {
@@ -826,7 +827,8 @@ dump_section_flags(struct readelf *re, struct section *s)
 	p = 0;
 	nb = re->ec == ELFCLASS32 ? 8 : 16;
 	if (re->options & RE_T) {
-		snprintf(buf, BUF_SZ, "[%*.*lx]: ", nb, nb, s->flags);
+		snprintf(buf, BUF_SZ, "[%*.*jx]: ", nb, nb,
+		    (uintmax_t)s->flags);
 		p += nb + 4;
 	}
 	for (i = 0; section_flag[i].ln != NULL; i++) {
@@ -857,8 +859,8 @@ dump_shdr(struct readelf *re)
 		printf("\nThere are no sections in this file.\n");
 		return;
 	}
-	printf("There are %ju section headers, starting at offset 0x%lx:\n",
-	    re->shnum, re->ehdr.e_shoff);
+	printf("There are %ju section headers, starting at offset 0x%jx:\n",
+	    (uintmax_t)re->shnum, (uintmax_t)re->ehdr.e_shoff);
 	printf("\nSection Headers:\n");
 	if (re->ec == ELFCLASS32) {
 		if (re->options & RE_T) {
@@ -907,55 +909,61 @@ dump_shdr(struct readelf *re)
 		if (re->ec == ELFCLASS32) {
 			if (re->options & RE_T) {
 				printf("%-15.15s ", section_type(s->type));
-				printf("%8.8lx %6.6lx %6.6lx %2.2lx  ", s->addr,
-				    s->off, s->sz, s->entsize);
-				printf("%2u %3u %2lu\n", s->link, s->info,
-				    s->align);
+				printf("%8.8jx %6.6jx %6.6jx %2.2jx  ",
+				    (uintmax_t)s->addr, (uintmax_t)s->off,
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
+				printf("%2u %3u %2ju\n", s->link, s->info,
+				    (uintmax_t)s->align);
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
 				printf("%-15.15s ", section_type(s->type));
-				printf("%8.8lx %6.6lx %6.6lx %2.2lx ", s->addr,
-				    s->off, s->sz, s->entsize);
+				printf("%8.8jx %6.6jx %6.6jx %2.2jx ",
+				    (uintmax_t)s->addr, (uintmax_t)s->off,
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
 				dump_section_flags(re, s);
-				printf("%2u %3u %2lu\n", s->link, s->info,
-				    s->align);
+				printf("%2u %3u %2ju\n", s->link, s->info,
+				    (uintmax_t)s->align);
 			}
 		} else if (re->options & RE_WW) {
 			if (re->options & RE_T) {
 				printf("%-15.15s ", section_type(s->type));
-				printf("%16.16lx %6.6lx %6.6lx %2.2lx ",
-				    s->addr, s->off, s->sz, s->entsize);
-				printf(" %2u %3u %2lu\n", s->link, s->info,
-				    s->align);
+				printf("%16.16jx %6.6jx %6.6jx %2.2jx ",
+				    (uintmax_t)s->addr, (uintmax_t)s->off,
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
+				printf(" %2u %3u %2ju\n", s->link, s->info,
+				    (uintmax_t)s->align);
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
 				printf("%-15.15s ", section_type(s->type));
-				printf("%16.16lx %6.6lx %6.6lx %2.2lx ",
-				    s->addr, s->off, s->sz, s->entsize);
+				printf("%16.16jx %6.6jx %6.6jx %2.2jx ",
+				    (uintmax_t)s->addr, (uintmax_t)s->off,
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
 				dump_section_flags(re, s);
-				printf("%2u %3u %2lu\n", s->link, s->info,
-				    s->align);
+				printf("%2u %3u %2ju\n", s->link, s->info,
+				    (uintmax_t)s->align);
 			}
 		} else {
 			if (re->options & RE_T) {
 				printf("%-15.15s ", section_type(s->type));
-				printf(" %16.16lx  %16.16lx  %u\n", s->addr,
-				    s->off, s->link);
-				printf("       %16.16lx %16.16lx  %-16u  %ju\n",
-				    s->sz, s->entsize, s->info, s->align);
+				printf(" %16.16jx  %16.16jx  %u\n",
+				    (uintmax_t)s->addr, (uintmax_t)s->off,
+				    s->link);
+				printf("       %16.16jx %16.16jx  %-16u  %ju\n",
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize,
+				    s->info, (uintmax_t)s->align);
 				printf("%7s", "");
 				dump_section_flags(re, s);
 			} else {
 				printf("%-15.15s ", section_type(s->type));
-				printf(" %16.16lx  %8.8lx\n", s->addr,
-				    s->off);
-				printf("       %16.16lx  %16.16lx ", s->sz,
-				    s->entsize);
+				printf(" %16.16jx  %8.8jx\n",
+				    (uintmax_t)s->addr, (uintmax_t)s->off);
+				printf("       %16.16jx  %16.16jx ",
+				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
 				dump_section_flags(re, s);
-				printf("     %2u   %3u     %lu\n", s->link,
-				    s->info, s->align);
+				printf("     %2u   %3u     %ju\n", s->link,
+				    s->info, (uintmax_t)s->align);
 			}
 		}
 	}
@@ -988,7 +996,7 @@ dump_dynamic(struct readelf *re)
 		}
 		if (d->d_size <= 0)
 			return;
-		printf("\nDynamic section at offset 0x%lx", s->off);
+		printf("\nDynamic section at offset 0x%jx", (uintmax_t)s->off);
 		printf(" contains %ju entries:\n", s->sz / s->entsize);
 		if (re->ec == ELFCLASS32)
 			printf("%5s%12s%28s\n", "Tag", "Type", "Name/Value");
@@ -1001,9 +1009,9 @@ dump_dynamic(struct readelf *re)
 			}
 			/* Dump dynamic entry type. */
 			if (re->ec == ELFCLASS32)
-				printf(" 0x%8.8lx", dyn.d_tag);
+				printf(" 0x%8.8jx", (uintmax_t)dyn.d_tag);
 			else
-				printf(" 0x%16.16lx", dyn.d_tag);
+				printf(" 0x%16.16jx", (uintmax_t)dyn.d_tag);
 			printf(" %-20s", dt_type(dyn.d_tag));
 			/* Dump dynamic entry value. */
 			dump_dyn_val(re, &dyn, s->link);
@@ -1046,7 +1054,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_VERDEF:
 	case DT_VERNEED:
 	case DT_VERSYM:
-		printf(" 0x%lx\n", dyn->d_un.d_val);
+		printf(" 0x%jx\n", (uintmax_t)dyn->d_un.d_val);
 		break;
 	case DT_PLTRELSZ:
 	case DT_RELASZ:
@@ -1113,7 +1121,7 @@ dump_symtab(struct readelf *re, int i)
 			continue;
 		}
 		printf("%6d:", j);
-		printf(" %16.16lx", sym.st_value);
+		printf(" %16.16jx", (uintmax_t)sym.st_value);
 		printf(" %5ju", sym.st_size);
 		printf(" %-7s", st_type(GELF_ST_TYPE(sym.st_info)));
 		printf(" %-6s", st_bind(GELF_ST_BIND(sym.st_info)));
@@ -1244,7 +1252,7 @@ hex_dump(struct readelf *re)
 		addr = s->addr;
 		printf("\nHex dump of section '%s':\n", s->name);
 		while (sz > 0) {
-			printf("  0x%8.8lx ", addr);
+			printf("  0x%8.8jx ", (uintmax_t)addr);
 			nbytes = sz > 16? 16 : sz;
 			for (j = 0; j < 16; j++) {
 				if ((size_t)j < nbytes)
