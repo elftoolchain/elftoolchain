@@ -606,6 +606,386 @@ static struct {
 	{NULL, 0, 0}
 };
 
+static const char *
+r_type(unsigned int mach, unsigned int type)
+{
+	switch(mach) {
+	case EM_NONE: return "";
+	case EM_386:
+		switch(type) {
+		case 0: return "R_386_NONE";
+		case 1: return "R_386_32";
+		case 2: return "R_386_PC32";
+		case 3: return "R_386_GOT32";
+		case 4: return "R_386_PLT32";
+		case 5: return "R_386_COPY";
+		case 6: return "R_386_GLOB_DAT";
+		case 7: return "R_386_JMP_SLOT";
+		case 8: return "R_386_RELATIVE";
+		case 9: return "R_386_GOTOFF";
+		case 10: return "R_386_GOTPC";
+		case 14: return "R_386_TLS_TPOFF";
+		case 15: return "R_386_TLS_IE";
+		case 16: return "R_386_TLS_GOTIE";
+		case 17: return "R_386_TLS_LE";
+		case 18: return "R_386_TLS_GD";
+		case 19: return "R_386_TLS_LDM";
+		case 24: return "R_386_TLS_GD_32";
+		case 25: return "R_386_TLS_GD_PUSH";
+		case 26: return "R_386_TLS_GD_CALL";
+		case 27: return "R_386_TLS_GD_POP";
+		case 28: return "R_386_TLS_LDM_32";
+		case 29: return "R_386_TLS_LDM_PUSH";
+		case 30: return "R_386_TLS_LDM_CALL";
+		case 31: return "R_386_TLS_LDM_POP";
+		case 32: return "R_386_TLS_LDO_32";
+		case 33: return "R_386_TLS_IE_32";
+		case 34: return "R_386_TLS_LE_32";
+		case 35: return "R_386_TLS_DTPMOD32";
+		case 36: return "R_386_TLS_DTPOFF32";
+		case 37: return "R_386_TLS_TPOFF32";
+		default: return "";
+		}
+	case EM_ARM:
+		switch(type) {
+		case 0: return "R_ARM_NONE";
+		case 1: return "R_ARM_PC24";
+		case 2: return "R_ARM_ABS32";
+		case 3: return "R_ARM_REL32";
+		case 4: return "R_ARM_PC13";
+		case 5: return "R_ARM_ABS16";
+		case 6: return "R_ARM_ABS12";
+		case 7: return "R_ARM_THM_ABS5";
+		case 8: return "R_ARM_ABS8";
+		case 9: return "R_ARM_SBREL32";
+		case 10: return "R_ARM_THM_PC22";
+		case 11: return "R_ARM_THM_PC8";
+		case 12: return "R_ARM_AMP_VCALL9";
+		case 13: return "R_ARM_SWI24";
+		case 14: return "R_ARM_THM_SWI8";
+		case 15: return "R_ARM_XPC25";
+		case 16: return "R_ARM_THM_XPC22";
+		case 20: return "R_ARM_COPY";
+		case 21: return "R_ARM_GLOB_DAT";
+		case 22: return "R_ARM_JUMP_SLOT";
+		case 23: return "R_ARM_RELATIVE";
+		case 24: return "R_ARM_GOTOFF";
+		case 25: return "R_ARM_GOTPC";
+		case 26: return "R_ARM_GOT32";
+		case 27: return "R_ARM_PLT32";
+		case 100: return "R_ARM_GNU_VTENTRY";
+		case 101: return "R_ARM_GNU_VTINHERIT";
+		case 250: return "R_ARM_RSBREL32";
+		case 251: return "R_ARM_THM_RPC22";
+		case 252: return "R_ARM_RREL32";
+		case 253: return "R_ARM_RABS32";
+		case 254: return "R_ARM_RPC24";
+		case 255: return "R_ARM_RBASE";
+		default: return "";
+		}
+	case EM_IA_64:
+		switch(type) {
+		case 0: return "R_IA_64_NONE";
+		case 33: return "R_IA_64_IMM14";
+		case 34: return "R_IA_64_IMM22";
+		case 35: return "R_IA_64_IMM64";
+		case 36: return "R_IA_64_DIR32MSB";
+		case 37: return "R_IA_64_DIR32LSB";
+		case 38: return "R_IA_64_DIR64MSB";
+		case 39: return "R_IA_64_DIR64LSB";
+		case 42: return "R_IA_64_GPREL22";
+		case 43: return "R_IA_64_GPREL64I";
+		case 44: return "R_IA_64_GPREL32MSB";
+		case 45: return "R_IA_64_GPREL32LSB";
+		case 46: return "R_IA_64_GPREL64MSB";
+		case 47: return "R_IA_64_GPREL64LSB";
+		case 50: return "R_IA_64_LTOFF22";
+		case 51: return "R_IA_64_LTOFF64I";
+		case 58: return "R_IA_64_PLTOFF22";
+		case 59: return "R_IA_64_PLTOFF64I";
+		case 62: return "R_IA_64_PLTOFF64MSB";
+		case 63: return "R_IA_64_PLTOFF64LSB";
+		case 67: return "R_IA_64_FPTR64I";
+		case 68: return "R_IA_64_FPTR32MSB";
+		case 69: return "R_IA_64_FPTR32LSB";
+		case 70: return "R_IA_64_FPTR64MSB";
+		case 71: return "R_IA_64_FPTR64LSB";
+		case 72: return "R_IA_64_PCREL60B";
+		case 73: return "R_IA_64_PCREL21B";
+		case 74: return "R_IA_64_PCREL21M";
+		case 75: return "R_IA_64_PCREL21F";
+		case 76: return "R_IA_64_PCREL32MSB";
+		case 77: return "R_IA_64_PCREL32LSB";
+		case 78: return "R_IA_64_PCREL64MSB";
+		case 79: return "R_IA_64_PCREL64LSB";
+		case 82: return "R_IA_64_LTOFF_FPTR22";
+		case 83: return "R_IA_64_LTOFF_FPTR64I";
+		case 84: return "R_IA_64_LTOFF_FPTR32MSB";
+		case 85: return "R_IA_64_LTOFF_FPTR32LSB";
+		case 86: return "R_IA_64_LTOFF_FPTR64MSB";
+		case 87: return "R_IA_64_LTOFF_FPTR64LSB";
+		case 92: return "R_IA_64_SEGREL32MSB";
+		case 93: return "R_IA_64_SEGREL32LSB";
+		case 94: return "R_IA_64_SEGREL64MSB";
+		case 95: return "R_IA_64_SEGREL64LSB";
+		case 100: return "R_IA_64_SECREL32MSB";
+		case 101: return "R_IA_64_SECREL32LSB";
+		case 102: return "R_IA_64_SECREL64MSB";
+		case 103: return "R_IA_64_SECREL64LSB";
+		case 108: return "R_IA_64_REL32MSB";
+		case 109: return "R_IA_64_REL32LSB";
+		case 110: return "R_IA_64_REL64MSB";
+		case 111: return "R_IA_64_REL64LSB";
+		case 116: return "R_IA_64_LTV32MSB";
+		case 117: return "R_IA_64_LTV32LSB";
+		case 118: return "R_IA_64_LTV64MSB";
+		case 119: return "R_IA_64_LTV64LSB";
+		case 121: return "R_IA_64_PCREL21BI";
+		case 122: return "R_IA_64_PCREL22";
+		case 123: return "R_IA_64_PCREL64I";
+		case 128: return "R_IA_64_IPLTMSB";
+		case 129: return "R_IA_64_IPLTLSB";
+		case 133: return "R_IA_64_SUB";
+		case 134: return "R_IA_64_LTOFF22X";
+		case 135: return "R_IA_64_LDXMOV";
+		case 145: return "R_IA_64_TPREL14";
+		case 146: return "R_IA_64_TPREL22";
+		case 147: return "R_IA_64_TPREL64I";
+		case 150: return "R_IA_64_TPREL64MSB";
+		case 151: return "R_IA_64_TPREL64LSB";
+		case 154: return "R_IA_64_LTOFF_TPREL22";
+		case 166: return "R_IA_64_DTPMOD64MSB";
+		case 167: return "R_IA_64_DTPMOD64LSB";
+		case 170: return "R_IA_64_LTOFF_DTPMOD22";
+		case 177: return "R_IA_64_DTPREL14";
+		case 178: return "R_IA_64_DTPREL22";
+		case 179: return "R_IA_64_DTPREL64I";
+		case 180: return "R_IA_64_DTPREL32MSB";
+		case 181: return "R_IA_64_DTPREL32LSB";
+		case 182: return "R_IA_64_DTPREL64MSB";
+		case 183: return "R_IA_64_DTPREL64LSB";
+		case 186: return "R_IA_64_LTOFF_DTPREL22";
+		default: return "";
+		}
+	case EM_MIPS:
+		switch(type) {
+		case 0: return "R_MIPS_NONE";
+		case 1: return "R_MIPS_16";
+		case 2: return "R_MIPS_32";
+		case 3: return "R_MIPS_REL32";
+		case 4: return "R_MIPS_26";
+		case 5: return "R_MIPS_HI16";
+		case 6: return "R_MIPS_LO16";
+		case 7: return "R_MIPS_GPREL16";
+		case 8: return "R_MIPS_LITERAL";
+		case 9: return "R_MIPS_GOT16";
+		case 10: return "R_MIPS_PC16";
+		case 11: return "R_MIPS_CALL16";
+		case 12: return "R_MIPS_GPREL32";
+		case 21: return "R_MIPS_GOTHI16";
+		case 22: return "R_MIPS_GOTLO16";
+		case 30: return "R_MIPS_CALLHI16";
+		case 31: return "R_MIPS_CALLLO16";
+		default: return "";
+		}
+	case EM_PPC:
+		switch(type) {
+		case 0: return "R_PPC_NONE";
+		case 1: return "R_PPC_ADDR32";
+		case 2: return "R_PPC_ADDR24";
+		case 3: return "R_PPC_ADDR16";
+		case 4: return "R_PPC_ADDR16_LO";
+		case 5: return "R_PPC_ADDR16_HI";
+		case 6: return "R_PPC_ADDR16_HA";
+		case 7: return "R_PPC_ADDR14";
+		case 8: return "R_PPC_ADDR14_BRTAKEN";
+		case 9: return "R_PPC_ADDR14_BRNTAKEN";
+		case 10: return "R_PPC_REL24";
+		case 11: return "R_PPC_REL14";
+		case 12: return "R_PPC_REL14_BRTAKEN";
+		case 13: return "R_PPC_REL14_BRNTAKEN";
+		case 14: return "R_PPC_GOT16";
+		case 15: return "R_PPC_GOT16_LO";
+		case 16: return "R_PPC_GOT16_HI";
+		case 17: return "R_PPC_GOT16_HA";
+		case 18: return "R_PPC_PLTREL24";
+		case 19: return "R_PPC_COPY";
+		case 20: return "R_PPC_GLOB_DAT";
+		case 21: return "R_PPC_JMP_SLOT";
+		case 22: return "R_PPC_RELATIVE";
+		case 23: return "R_PPC_LOCAL24PC";
+		case 24: return "R_PPC_UADDR32";
+		case 25: return "R_PPC_UADDR16";
+		case 26: return "R_PPC_REL32";
+		case 27: return "R_PPC_PLT32";
+		case 28: return "R_PPC_PLTREL32";
+		case 29: return "R_PPC_PLT16_LO";
+		case 30: return "R_PPC_PLT16_HI";
+		case 31: return "R_PPC_PLT16_HA";
+		case 32: return "R_PPC_SDAREL16";
+		case 33: return "R_PPC_SECTOFF";
+		case 34: return "R_PPC_SECTOFF_LO";
+		case 35: return "R_PPC_SECTOFF_HI";
+		case 36: return "R_PPC_SECTOFF_HA";
+		case 67: return "R_PPC_TLS";
+		case 68: return "R_PPC_DTPMOD32";
+		case 69: return "R_PPC_TPREL16";
+		case 70: return "R_PPC_TPREL16_LO";
+		case 71: return "R_PPC_TPREL16_HI";
+		case 72: return "R_PPC_TPREL16_HA";
+		case 73: return "R_PPC_TPREL32";
+		case 74: return "R_PPC_DTPREL16";
+		case 75: return "R_PPC_DTPREL16_LO";
+		case 76: return "R_PPC_DTPREL16_HI";
+		case 77: return "R_PPC_DTPREL16_HA";
+		case 78: return "R_PPC_DTPREL32";
+		case 79: return "R_PPC_GOT_TLSGD16";
+		case 80: return "R_PPC_GOT_TLSGD16_LO";
+		case 81: return "R_PPC_GOT_TLSGD16_HI";
+		case 82: return "R_PPC_GOT_TLSGD16_HA";
+		case 83: return "R_PPC_GOT_TLSLD16";
+		case 84: return "R_PPC_GOT_TLSLD16_LO";
+		case 85: return "R_PPC_GOT_TLSLD16_HI";
+		case 86: return "R_PPC_GOT_TLSLD16_HA";
+		case 87: return "R_PPC_GOT_TPREL16";
+		case 88: return "R_PPC_GOT_TPREL16_LO";
+		case 89: return "R_PPC_GOT_TPREL16_HI";
+		case 90: return "R_PPC_GOT_TPREL16_HA";
+		case 101: return "R_PPC_EMB_NADDR32";
+		case 102: return "R_PPC_EMB_NADDR16";
+		case 103: return "R_PPC_EMB_NADDR16_LO";
+		case 104: return "R_PPC_EMB_NADDR16_HI";
+		case 105: return "R_PPC_EMB_NADDR16_HA";
+		case 106: return "R_PPC_EMB_SDAI16";
+		case 107: return "R_PPC_EMB_SDA2I16";
+		case 108: return "R_PPC_EMB_SDA2REL";
+		case 109: return "R_PPC_EMB_SDA21";
+		case 110: return "R_PPC_EMB_MRKREF";
+		case 111: return "R_PPC_EMB_RELSEC16";
+		case 112: return "R_PPC_EMB_RELST_LO";
+		case 113: return "R_PPC_EMB_RELST_HI";
+		case 114: return "R_PPC_EMB_RELST_HA";
+		case 115: return "R_PPC_EMB_BIT_FLD";
+		case 116: return "R_PPC_EMB_RELSDA";
+		default: return "";
+		}
+	case EM_SPARC:
+	case EM_SPARCV9:
+		switch(type) {
+		case 0: return "R_SPARC_NONE";
+		case 1: return "R_SPARC_8";
+		case 2: return "R_SPARC_16";
+		case 3: return "R_SPARC_32";
+		case 4: return "R_SPARC_DISP8";
+		case 5: return "R_SPARC_DISP16";
+		case 6: return "R_SPARC_DISP32";
+		case 7: return "R_SPARC_WDISP30";
+		case 8: return "R_SPARC_WDISP22";
+		case 9: return "R_SPARC_HI22";
+		case 10: return "R_SPARC_22";
+		case 11: return "R_SPARC_13";
+		case 12: return "R_SPARC_LO10";
+		case 13: return "R_SPARC_GOT10";
+		case 14: return "R_SPARC_GOT13";
+		case 15: return "R_SPARC_GOT22";
+		case 16: return "R_SPARC_PC10";
+		case 17: return "R_SPARC_PC22";
+		case 18: return "R_SPARC_WPLT30";
+		case 19: return "R_SPARC_COPY";
+		case 20: return "R_SPARC_GLOB_DAT";
+		case 21: return "R_SPARC_JMP_SLOT";
+		case 22: return "R_SPARC_RELATIVE";
+		case 23: return "R_SPARC_UA32";
+		case 24: return "R_SPARC_PLT32";
+		case 25: return "R_SPARC_HIPLT22";
+		case 26: return "R_SPARC_LOPLT10";
+		case 27: return "R_SPARC_PCPLT32";
+		case 28: return "R_SPARC_PCPLT22";
+		case 29: return "R_SPARC_PCPLT10";
+		case 30: return "R_SPARC_10";
+		case 31: return "R_SPARC_11";
+		case 32: return "R_SPARC_64";
+		case 33: return "R_SPARC_OLO10";
+		case 34: return "R_SPARC_HH22";
+		case 35: return "R_SPARC_HM10";
+		case 36: return "R_SPARC_LM22";
+		case 37: return "R_SPARC_PC_HH22";
+		case 38: return "R_SPARC_PC_HM10";
+		case 39: return "R_SPARC_PC_LM22";
+		case 40: return "R_SPARC_WDISP16";
+		case 41: return "R_SPARC_WDISP19";
+		case 42: return "R_SPARC_GLOB_JMP";
+		case 43: return "R_SPARC_7";
+		case 44: return "R_SPARC_5";
+		case 45: return "R_SPARC_6";
+		case 46: return "R_SPARC_DISP64";
+		case 47: return "R_SPARC_PLT64";
+		case 48: return "R_SPARC_HIX22";
+		case 49: return "R_SPARC_LOX10";
+		case 50: return "R_SPARC_H44";
+		case 51: return "R_SPARC_M44";
+		case 52: return "R_SPARC_L44";
+		case 53: return "R_SPARC_REGISTER";
+		case 54: return "R_SPARC_UA64";
+		case 55: return "R_SPARC_UA16";
+		case 56: return "R_SPARC_TLS_GD_HI22";
+		case 57: return "R_SPARC_TLS_GD_LO10";
+		case 58: return "R_SPARC_TLS_GD_ADD";
+		case 59: return "R_SPARC_TLS_GD_CALL";
+		case 60: return "R_SPARC_TLS_LDM_HI22";
+		case 61: return "R_SPARC_TLS_LDM_LO10";
+		case 62: return "R_SPARC_TLS_LDM_ADD";
+		case 63: return "R_SPARC_TLS_LDM_CALL";
+		case 64: return "R_SPARC_TLS_LDO_HIX22";
+		case 65: return "R_SPARC_TLS_LDO_LOX10";
+		case 66: return "R_SPARC_TLS_LDO_ADD";
+		case 67: return "R_SPARC_TLS_IE_HI22";
+		case 68: return "R_SPARC_TLS_IE_LO10";
+		case 69: return "R_SPARC_TLS_IE_LD";
+		case 70: return "R_SPARC_TLS_IE_LDX";
+		case 71: return "R_SPARC_TLS_IE_ADD";
+		case 72: return "R_SPARC_TLS_LE_HIX22";
+		case 73: return "R_SPARC_TLS_LE_LOX10";
+		case 74: return "R_SPARC_TLS_DTPMOD32";
+		case 75: return "R_SPARC_TLS_DTPMOD64";
+		case 76: return "R_SPARC_TLS_DTPOFF32";
+		case 77: return "R_SPARC_TLS_DTPOFF64";
+		case 78: return "R_SPARC_TLS_TPOFF32";
+		case 79: return "R_SPARC_TLS_TPOFF64";
+		default: return "";
+		}
+	case EM_X86_64:
+		switch(type) {
+		case 0: return "R_X86_64_NONE";
+		case 1: return "R_X86_64_64";
+		case 2: return "R_X86_64_PC32";
+		case 3: return "R_X86_64_GOT32";
+		case 4: return "R_X86_64_PLT32";
+		case 5: return "R_X86_64_COPY";
+		case 6: return "R_X86_64_GLOB_DAT";
+		case 7: return "R_X86_64_JMP_SLOT";
+		case 8: return "R_X86_64_RELATIVE";
+		case 9: return "R_X86_64_GOTPCREL";
+		case 10: return "R_X86_64_32";
+		case 11: return "R_X86_64_32S";
+		case 12: return "R_X86_64_16";
+		case 13: return "R_X86_64_PC16";
+		case 14: return "R_X86_64_8";
+		case 15: return "R_X86_64_PC8";
+		case 16: return "R_X86_64_DTPMOD64";
+		case 17: return "R_X86_64_DTPOFF64";
+		case 18: return "R_X86_64_TPOFF64";
+		case 19: return "R_X86_64_TLSGD";
+		case 20: return "R_X86_64_TLSLD";
+		case 21: return "R_X86_64_DTPOFF32";
+		case 22: return "R_X86_64_GOTTPOFF";
+		case 23: return "R_X86_64_TPOFF32";
+		default: return "";
+		}
+	default: return "";
+	}
+}
+
 static void	 add_dumpop(struct readelf *re, size_t sn, int op);
 static void	 dump_elf(struct readelf *re);
 static void	 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
@@ -634,6 +1014,61 @@ get_string(struct readelf *re, int strtab, size_t off)
 		return ("");
 
 	return (name);
+}
+
+/*
+ * Retrieve the name of a symbol using the section index of the symbol
+ * table and the index of the symbol within that table.
+ */
+static const char *
+get_symbol_name(struct readelf *re, int symtab, int i)
+{
+	struct section	*s;
+	const char	*name;
+	GElf_Sym	 sym;
+	Elf_Data	*data;
+	int		 elferr;
+
+	s = &re->sl[symtab];
+	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
+		return ("");
+	(void) elf_errno();
+	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return ("");
+	}
+	if (gelf_getsym(data, i, &sym) != &sym)
+		return ("");
+	if ((name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
+		return ("");
+
+	return (name);
+}
+
+static uint64_t
+get_symbol_value(struct readelf *re, int symtab, int i)
+{
+	struct section	*s;
+	GElf_Sym	 sym;
+	Elf_Data	*data;
+	int		 elferr;
+
+	s = &re->sl[symtab];
+	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
+		return (0);
+	(void) elf_errno();
+	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return (0);
+	}
+	if (gelf_getsym(data, i, &sym) != &sym)
+		return (0);
+
+	return (sym.st_value);
 }
 
 static void
@@ -1110,6 +1545,126 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 }
 
 static void
+dump_rel(struct readelf *re, struct section *s, Elf_Data *d)
+{
+	GElf_Rel r;
+	const char *symname;
+	uint64_t symval;
+	int i, len;
+
+#define	REL_HDR "r_offset", "r_info", "r_type", "st_value", "st_name"
+#define	REL_CT  (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	   \
+		r_type(re->ehdr.e_machine, GELF_R_TYPE(r.r_info)), \
+		(uintmax_t)symval, symname			   \
+
+	printf("\nRelocation section (%s):\n", s->name);
+	if (re->ec == ELFCLASS32)
+		printf("%-8s %-8s %-19s %-8s %s\n", REL_HDR);
+	else {
+		if (re->options & RE_WW)
+			printf("%-16s %-16s %-24s %-16s %s\n", REL_HDR);
+		else
+			printf("%-12s %-12s %-19s %-16s %s\n", REL_HDR);
+	}
+	len = d->d_size / s->entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getrel(d, i, &r) != &r) {
+			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
+		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
+		if (re->ec == ELFCLASS32)
+			printf("%8.8jx %8.8jx %-19.19s %8.8jx %s\n", REL_CT);
+		else {
+			if (re->options & RE_WW)
+				printf("%16.16jx %16.16jx %-24.24s"
+				    " %16.16jx %s\n", REL_CT);
+			else
+				printf("%12.12jx %12.12jx %-19.19s"
+				    " %16.16jx %s\n", REL_CT);
+		}
+	}
+
+#undef	REL_HDR
+#undef	REL_CT
+}
+
+static void
+dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
+{
+	GElf_Rela r;
+	const char *symname;
+	uint64_t symval;
+	int i, len;
+
+#define	RELA_HDR "r_offset", "r_info", "r_type", "st_value", \
+		"st_name + r_addend"
+#define	RELA_CT  (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	   \
+		r_type(re->ehdr.e_machine, GELF_R_TYPE(r.r_info)), \
+		(uintmax_t)symval, symname, (intmax_t)r.r_addend   \
+
+	printf("\nRelocation section with addend (%s):\n", s->name);
+	if (re->ec == ELFCLASS32)
+		printf("%-8s %-8s %-19s %-8s %s\n", RELA_HDR);
+	else {
+		if (re->options & RE_WW)
+			printf("%-16s %-16s %-24s %-16s %s\n", RELA_HDR);
+		else
+			printf("%-12s %-12s %-19s %-16s %s\n", RELA_HDR);
+	}
+	len = d->d_size / s->entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getrela(d, i, &r) != &r) {
+			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
+		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
+		if (re->ec == ELFCLASS32)
+			printf("%8.8jx %8.8jx %-19.19s %8.8jx %s + %jd\n",
+			    RELA_CT);
+		else {
+			if (re->options & RE_WW)
+				printf("%16.16jx %16.16jx %-24.24s"
+				    " %16.16jx %s + %jd\n", RELA_CT);
+			else
+				printf("%12.12jx %12.12jx %-19.19s"
+				    " %16.16jx %s + %jd\n", RELA_CT);
+		}
+	}
+
+#undef	RELA_HDR
+#undef	RELA_CT
+}
+
+static void
+dump_reloc(struct readelf *re)
+{
+	struct section *s;
+	Elf_Data *d;
+	int i, elferr;
+
+	for (i = 0; (size_t)i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->type == SHT_REL || s->type == SHT_RELA) {
+			(void) elf_errno();
+			if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+				elferr = elf_errno();
+				if (elferr != 0)
+					warnx("elf_getdata failed: %s",
+					    elf_errmsg(elferr));
+				continue;
+			}
+			if (s->type == SHT_REL)
+				dump_rel(re, s, d);
+			else
+				dump_rela(re, s, d);
+		}
+	}
+}
+
+static void
 dump_symtab(struct readelf *re, int i)
 {
 	struct section *s;
@@ -1534,6 +2089,8 @@ dump_elf(struct readelf *re)
 		dump_shdr(re);
 	if (re->options & RE_D)
 		dump_dynamic(re);
+	if (re->options & RE_R)
+		dump_reloc(re);
 	if (re->options & RE_S)
 		dump_symtabs(re);
 	if (re->options & RE_II)
