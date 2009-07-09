@@ -606,19 +606,35 @@ static struct {
 	{NULL, 0, 0}
 };
 
-static void		 add_dumpop(struct readelf *re, size_t sn, int op);
-static void		 dump_elf(struct readelf *re);
-static void		 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
-static void		 dump_dynamic(struct readelf *re);
-static void		 dump_hash(struct readelf *re);
-static void		 dump_phdr(struct readelf *re);
-static void		 dump_symtab(struct readelf *re, int i);
-static void		 dump_symtabs(struct readelf *re);
-static struct dumpop 	*find_dumpop(struct readelf *re, size_t sn, int op);
-static void		 load_sections(struct readelf *re);
-static void		 readelf_help(void);
-static void		 readelf_usage(void);
-static void		 readelf_version(void);
+static void	 add_dumpop(struct readelf *re, size_t sn, int op);
+static void	 dump_elf(struct readelf *re);
+static void	 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
+static void	 dump_dynamic(struct readelf *re);
+static void	 dump_hash(struct readelf *re);
+static void	 dump_phdr(struct readelf *re);
+static void	 dump_symtab(struct readelf *re, int i);
+static void	 dump_symtabs(struct readelf *re);
+static void	 dump_ver(struct readelf *re);
+static struct dumpop *find_dumpop(struct readelf *re, size_t sn, int op);
+static const char *get_string(struct readelf *re, int strtab, size_t off);
+static void	 load_sections(struct readelf *re);
+static void	 readelf_help(void);
+static void	 readelf_usage(void);
+static void	 readelf_version(void);
+
+/*
+ * Retrieve a string using string table section index and the string offset.
+ */
+static const char*
+get_string(struct readelf *re, int strtab, size_t off)
+{
+	const char *name;
+
+	if ((name = elf_strptr(re->elf, strtab, off)) == NULL)
+		return ("");
+
+	return (name);
+}
 
 static void
 dump_ehdr(struct readelf *re)
@@ -1224,6 +1240,148 @@ dump_hash(struct readelf *re)
 	free(bl);
 }
 
+/*
+ * Symbol versioning sections are the same for 32bit and 64bit
+ * ELF objects.
+ */
+#define Elf_Verdef	Elf32_Verdef
+#define	Elf_Verdaux	Elf32_Verdaux
+#define	Elf_Verneed	Elf32_Verneed
+#define	Elf_Vernaux	Elf32_Vernaux
+
+static void
+dump_ver(struct readelf *re)
+{
+	struct section *s, *vs_s, *vd_s, *vn_s;
+	Elf_Data *d;
+	Elf_Verneed *vn;
+	Elf_Vernaux *vna;
+	Elf_Verdef *vd;
+	Elf_Verdaux *vda;
+	uint16_t *vs;
+	uint8_t *buf, *end, *buf2;
+	const char **vname, **nv, *name;
+	int i, j, vname_sz;
+
+#define	SAVE_VERSION_NAME(ndx, name)					\
+	do {								\
+		while (ndx >= vname_sz) {				\
+			nv = realloc(vname, sizeof(*vname)*vname_sz*2);	\
+			if (nv == NULL) {				\
+				warn("realloc failed");			\
+				free(vname);				\
+				return;					\
+			}						\
+			vname = nv;					\
+			for (i = vname_sz; i < vname_sz * 2; i++)	\
+				vname[i] = NULL;			\
+			vname_sz *= 2;					\
+		}							\
+		vname[ndx] = name;					\
+	} while (0)
+
+	vname = NULL;
+	vs_s = vd_s = vn_s = NULL;
+	for (i = 0; (size_t)i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->type == SHT_SUNW_versym)
+			vs_s = s;
+		if (s->type == SHT_SUNW_verneed)
+			vn_s = s;
+		if (s->type == SHT_SUNW_verdef)
+			vd_s = s;
+	}
+
+	vname_sz = 16;
+	if ((vname = calloc(vname_sz, sizeof(*vname))) == NULL) {
+		warn("calloc failed");
+		return;
+	}
+
+	if (vd_s) {
+		printf("\nVersion definition section (%s):\n", vd_s->name);
+		if ((d = elf_getdata(vd_s->scn, NULL)) != NULL && d->d_size >
+		    0) {
+			buf = d->d_buf;
+			end = buf + d->d_size;
+			while (buf + sizeof(Elf_Verdef) <= end) {
+				vd = (Elf_Verdef *) (uintptr_t) buf;
+				printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
+				printf(" vd_version: %u vd_flags: %d"
+				    " vd_ndx: %u vd_cnt: %u", vd->vd_version,
+				    vd->vd_flags, vd->vd_ndx, vd->vd_cnt);
+				buf2 = buf + vd->vd_aux;
+				vda = (Elf_Verdaux *) (uintptr_t) buf2;
+				name = get_string(re, vd_s->link, vda->vda_name);
+				printf(" vda_name: %s\n", name);
+				SAVE_VERSION_NAME((int)vd->vd_ndx, name);
+				if (vd->vd_next == 0)
+					break;
+				buf += vd->vd_next;
+			}
+		}
+	}
+
+	if (vn_s) {
+		printf("\nVersion needed section (%s):\n", vn_s->name);
+		if ((d = elf_getdata(vn_s->scn, NULL)) != NULL && d->d_size >
+		    0) {
+			buf = d->d_buf;
+			end = buf + d->d_size;
+			while (buf + sizeof(Elf_Verneed) <= end) {
+				vn = (Elf_Verneed *) (uintptr_t) buf;
+				printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
+				printf(" vn_version: %u vn_file: %s vn_cnt: %u"
+				    "\n", vn->vn_version,
+				    get_string(re, vn_s->link, vn->vn_file),
+				    vn->vn_cnt);
+				buf2 = buf + vn->vn_aux;
+				j = 0;
+				while (buf2 + sizeof(Elf_Vernaux) <= end &&
+				    j < vn->vn_cnt) {
+					vna = (Elf32_Vernaux *) (uintptr_t) buf2;
+					printf("  0x%4.4lx",
+					    buf2 - (uint8_t *)d->d_buf);
+					name = get_string(re, vn_s->link,
+					    vna->vna_name);
+					printf("   vna_name: %s vna_flags: %u"
+					    " vna_other: %u\n", name,
+					    vna->vna_flags, vna->vna_other);
+					SAVE_VERSION_NAME((int)vna->vna_other,
+					    name);
+					if (vna->vna_next == 0)
+						break;
+					buf2 += vna->vna_next;
+				}
+				if (vn->vn_next == 0)
+					break;
+				buf += vn->vn_next;
+			}
+		}
+	}
+
+	vname[0] = "*local*";
+	vname[1] = "*global*";
+	if (vs_s) {
+		printf("\nVersion symbol section (%s:)\n", vs_s->name);
+		if ((d = elf_getdata(vs_s->scn, NULL)) != NULL && d->d_size >
+		    0) {
+			j = d->d_size / sizeof(Elf32_Half);
+			vs = d->d_buf;
+			for (i = 0; i < j; i++) {
+				if ((i & 3) == 0) {
+					if (i > 0)
+						putchar('\n');
+					printf("  %03x", i);
+				}
+				printf(" %3d %-12s ", vs[i], vname[vs[i]]);
+			}
+			putchar('\n');
+		}
+	}
+#undef	SAVE_VERSION_NAME
+}
+
 static void
 hex_dump(struct readelf *re)
 {
@@ -1382,6 +1540,8 @@ dump_elf(struct readelf *re)
 		dump_hash(re);
 	if (re->options & RE_X)
 		hex_dump(re);
+	if (re->options & RE_VV)
+		dump_ver(re);
 }
 
 #ifndef LIBELF_AR
