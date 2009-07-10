@@ -1245,6 +1245,23 @@ dump_shdr(struct readelf *re)
 	struct section	*s;
 	int		 i;
 
+#define	S_HDR	"[Nr] Name", "Type", "Addr", "Off", "Size", "ES",	\
+		"Flg", "Lk", "Inf", "Al"
+#define	S_HDRL	"[Nr] Name", "Type", "Address", "Offset", "Size",	\
+		"EntSize", "FLags", "Link", "Info", "Align"
+#define	ST_HDR	"[Nr] Name", "Type", "Addr", "Off", "Size", "ES",	\
+		"Lk", "Inf", "Al", "Flags"
+#define	ST_HDRL	"[Nr] Name", "Type", "Address", "Offset", "Link",	\
+		"Size", "EntSize", "Info", "Align", "Flags"
+#define	S_CT	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
+		(uintmax_t)s->off, (uintmax_t)s->sz,			\
+		(uintmax_t)s->entsize, section_flags(re, s),		\
+		s->link, s->info, (uintmax_t)s->align
+#define	ST_CT	section_type(s->type), (uintmax_t)s->addr,		\
+		(uintmax_t)s->off, (uintmax_t)s->sz,			\
+		(uintmax_t)s->entsize, s->link, s->info,		\
+		(uintmax_t)s->align, section_flags(re, s)
+
 	if (re->shnum == 0) {
 		printf("\nThere are no sections in this file.\n");
 		return;
@@ -1253,41 +1270,26 @@ dump_shdr(struct readelf *re)
 	    (uintmax_t)re->shnum, (uintmax_t)re->ehdr.e_shoff);
 	printf("\nSection Headers:\n");
 	if (re->ec == ELFCLASS32) {
-		if (re->options & RE_T) {
-			printf("  %s\n", "[Nr] Name");
-			printf("       %-16s%-9s%-7s%-7s%-5s%-3s%-4s%s\n",
-			    "Type", "Addr", "Off", "Size", "ES", "Lk", "Inf",
-			    "Al");
-			printf("       Flags\n");
-		} else
+		if (re->options & RE_T)
+			printf("  %s\n       %-16s%-9s%-7s%-7s%-5s%-3s%-4s%s\n"
+			    "%12s\n", ST_HDR);
+		else
 			printf("  %-23s%-16s%-9s%-7s%-7s%-3s%-4s%-3s%-4s%s\n",
-			    "[Nr] Name", "Type", "Addr", "Off", "Size", "ES",
-			    "Flg", "Lk", "Inf", "Al");
+			    S_HDR);
 	} else if (re->options & RE_WW) {
-		if (re->options & RE_T) {
-			printf("  %s\n", "[Nr] Name");
-			printf("       %-16s%-17s%-7s%-7s%-5s%-3s%-4s%s\n",
-			    "Type", "Address", "Off", "Size", "ES", "Lk", "Inf",
-			    "Al");
-			printf("       Flags\n");
-		} else
+		if (re->options & RE_T)
+			printf("  %s\n       %-16s%-17s%-7s%-7s%-5s%-3s%-4s%s\n"
+			    "%12s\n", ST_HDR);
+		else
 			printf("  %-23s%-16s%-17s%-7s%-7s%-3s%-4s%-3s%-4s%s\n",
-			    "[Nr] Name", "Type", "Address", "Off", "Size", "ES",
-			    "Flg", "Lk", "Inf", "Al");
+			    S_HDR);
 	} else {
-		if (re->options & RE_T) {
-			printf("  %s\n", "[Nr] Name");
-			printf("       %-18s%-17s%-18s%s\n", "Type", "Address",
-			    "Offset", "Link");
-			printf("       %-18s%-17s%-18s%s\n", "Size", "EntSize",
-			    "Info", "Align");
-			printf("       Flags\n");
-		} else {
-			printf("  %-23s%-17s%-18s%s\n", "[Nr] Name", "Type",
-			    "Address", "Offset");
-			printf("       %-18s%-17s%-7s%-6s%-6s%s\n", "Size",
-			    "EntSize", "FLags", "Link", "Info", "Align");
-		}
+		if (re->options & RE_T)
+			printf("  %s\n       %-18s%-17s%-18s%s\n       %-18s"
+			    "%-17s%-18s%s\n%12s\n", ST_HDRL);
+		else
+			printf("  %-23s%-17s%-18s%s\n       %-18s%-17s%-7s%"
+			    "-6s%-6s%s\n", S_HDRL);
 	}
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
@@ -1363,6 +1365,13 @@ dump_shdr(struct readelf *re)
 		    "  I (info), L (link order), G (group), x (unknown)\n"
 		    "  O (extra OS processing required)"
 		    " o (OS specific), p (processor specific)\n");
+
+#undef	S_HDR
+#undef	S_HDRL
+#undef	ST_HDR
+#undef	ST_HDRL
+#undef	S_CT
+#undef	ST_CT
 }
 
 static void
