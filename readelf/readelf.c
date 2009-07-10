@@ -75,7 +75,6 @@
  * readelf(1) run control flags.
  */
 #define	DISPLAY_FILENAME	0x0001
-#define	SECTIONS_LOADED		0x0002
 
 /*
  * Internal data structure for sections.
@@ -105,14 +104,21 @@ struct dumpop {
  * Structure encapsulates the global data for readelf(1).
  */
 struct readelf {
-	const char	*filename;	/* current processing file. */
-	int		 options;	/* command line options. */
-	int		 flags;		/* run control flags. */
-	Elf		*elf;		/* underlying ELF descriptor. */
-	GElf_Ehdr	 ehdr;		/* ELF header. */
-	int		 ec;		/* ELF class. */
-	size_t		 shnum;		/* #sections. */
-	struct section	*sl;		/* list of sections. */
+	const char	 *filename;	/* current processing file. */
+	int		  options;	/* command line options. */
+	int		  flags;	/* run control flags. */
+	Elf		 *elf;		/* underlying ELF descriptor. */
+	GElf_Ehdr	  ehdr;		/* ELF header. */
+	int		  ec;		/* ELF class. */
+	size_t		  shnum;	/* #sections. */
+	struct section	 *vd_s;		/* Verdef section. */
+	struct section	 *vn_s;		/* Verneed section. */
+	struct section	 *vs_s;		/* Versym section. */
+	uint16_t	 *vs;		/* Versym array. */
+	int		  vs_sz;	/* Versym array size. */
+	const char	**vname;	/* Version name array. */
+	int		  vname_sz;	/* Size version name array. */
+	struct section	 *sl;		/* list of sections. */
 	STAILQ_HEAD(, dumpop) v_dumpop; /* list of dump ops. */
 };
 
@@ -338,7 +344,7 @@ elf_type(unsigned int type)
 			snprintf(s_type, sizeof(s_type), "<unknown: %#x>",
 			    type);
 		return (s_type);
-	}		
+	}
 }
 
 static const char *
@@ -995,81 +1001,18 @@ static void	 dump_phdr(struct readelf *re);
 static void	 dump_symtab(struct readelf *re, int i);
 static void	 dump_symtabs(struct readelf *re);
 static void	 dump_ver(struct readelf *re);
+static void	 dump_verdef(struct readelf *re, int dump);
+static void	 dump_verneed(struct readelf *re, int dump);
+static void	 dump_versym(struct readelf *re);
 static struct dumpop *find_dumpop(struct readelf *re, size_t sn, int op);
 static const char *get_string(struct readelf *re, int strtab, size_t off);
+static const char *get_symbol_name(struct readelf *re, int symtab, int i);
+static uint64_t	 get_symbol_value(struct readelf *re, int symtab, int i);
 static void	 load_sections(struct readelf *re);
 static void	 readelf_help(void);
 static void	 readelf_usage(void);
 static void	 readelf_version(void);
-
-/*
- * Retrieve a string using string table section index and the string offset.
- */
-static const char*
-get_string(struct readelf *re, int strtab, size_t off)
-{
-	const char *name;
-
-	if ((name = elf_strptr(re->elf, strtab, off)) == NULL)
-		return ("");
-
-	return (name);
-}
-
-/*
- * Retrieve the name of a symbol using the section index of the symbol
- * table and the index of the symbol within that table.
- */
-static const char *
-get_symbol_name(struct readelf *re, int symtab, int i)
-{
-	struct section	*s;
-	const char	*name;
-	GElf_Sym	 sym;
-	Elf_Data	*data;
-	int		 elferr;
-
-	s = &re->sl[symtab];
-	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
-		return ("");
-	(void) elf_errno();
-	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
-		return ("");
-	}
-	if (gelf_getsym(data, i, &sym) != &sym)
-		return ("");
-	if ((name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
-		return ("");
-
-	return (name);
-}
-
-static uint64_t
-get_symbol_value(struct readelf *re, int symtab, int i)
-{
-	struct section	*s;
-	GElf_Sym	 sym;
-	Elf_Data	*data;
-	int		 elferr;
-
-	s = &re->sl[symtab];
-	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
-		return (0);
-	(void) elf_errno();
-	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
-		return (0);
-	}
-	if (gelf_getsym(data, i, &sym) != &sym)
-		return (0);
-
-	return (sym.st_value);
-}
+static void	 search_ver(struct readelf *re);
 
 static void
 dump_ehdr(struct readelf *re)
@@ -1168,8 +1111,6 @@ dump_phdr(struct readelf *re)
 	size_t		 phnum;
 	int		 i, j;
 
-	if ((re->flags & SECTIONS_LOADED) == 0)
-		return;
 	if (elf_getphnum(re->elf, &phnum) == 0) {
 		warnx("elf_getphnum failed: %s", elf_errmsg(-1));
 		return;
@@ -1304,8 +1245,6 @@ dump_shdr(struct readelf *re)
 	struct section	*s;
 	int		 i;
 
-	if ((re->flags & SECTIONS_LOADED) == 0)
-		return;
 	if (re->shnum == 0) {
 		printf("\nThere are no sections in this file.\n");
 		return;
@@ -1432,17 +1371,17 @@ dump_dynamic(struct readelf *re)
 	GElf_Dyn	 dyn;
 	Elf_Data	*d;
 	struct section	*s;
-	int		 i, j;
-
-	if ((re->flags & SECTIONS_LOADED) == 0 || re->shnum == 0)
-		return;
+	int		 elferr, i, j;
 
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type != SHT_DYNAMIC)
 			continue;
+		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
-			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s", elf_errmsg(-1));
 			return;
 		}
 		if (d->d_size <= 0)
@@ -1684,8 +1623,10 @@ dump_symtab(struct readelf *re, int i)
 	}
 	if (d->d_size <= 0)
 		return;
+	printf("Symbol table (%s):\n", s->name);
 	printf("%7s%9s%14s%5s%8s%6s%9s%5s\n", "Num:", "Value", "Size", "Type",
 	    "Bind", "Vis", "Ndx", "Name");
+
 	for (j = 0; (uint64_t)j < s->sz / s->entsize; j++) {
 		if (gelf_getsym(d, j, &sym) != &sym) {
 			warnx("gelf_getsym failed: %s", elf_errmsg(-1));
@@ -1700,7 +1641,11 @@ dump_symtab(struct readelf *re, int i)
 		printf(" %3s", st_shndx(sym.st_shndx));
 		if ((name = elf_strptr(re->elf, stab, sym.st_name)) != NULL)
 			printf(" %s", name);
-		printf("\n");
+		/* Append symbol version string for SHT_DYNSYM symbol table. */
+		if (s->type == SHT_DYNSYM && re->vname != NULL &&
+		    re->vs != NULL && re->vs[j] > 1)
+			printf("@%s (%d)", re->vname[re->vs[j]], re->vs[j]);
+		putchar('\n');
 	}
 
 }
@@ -1708,15 +1653,59 @@ dump_symtab(struct readelf *re, int i)
 static void
 dump_symtabs(struct readelf *re)
 {
-	int i;
+	GElf_Dyn dyn;
+	Elf_Data *d;
+	struct section *s;
+	uint64_t dyn_off;
+	int elferr, i;
 
-	if ((re->flags & SECTIONS_LOADED) == 0 || re->shnum == 0)
-		return;
+	/*
+	 * If -D is specified, only dump the symbol table specified by
+	 * the DT_SYMTAB entry in the .dynamic section.
+	 */
+	dyn_off = 0;
+	if (re->options & RE_DD) {
+		s = NULL;
+		for (i = 0; (size_t)i < re->shnum; i++)
+			if (re->sl[i].type == SHT_DYNAMIC) {
+				s = &re->sl[i];
+				break;
+			}
+		if (s == NULL)
+			return;
+		(void) elf_errno();
+		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s", elf_errmsg(-1));
+			return;
+		}
+		if (d->d_size <= 0)
+			return;
+
+		for (i = 0; (uint64_t)i < s->sz / s->entsize; i++) {
+			if (gelf_getdyn(d, i, &dyn) != &dyn) {
+				warnx("gelf_getdyn failed: %s", elf_errmsg(-1));
+				continue;
+			}
+			if (dyn.d_tag == DT_SYMTAB) {
+				dyn_off = dyn.d_un.d_val;
+				break;
+			}
+		}
+	}
 
 	for (i = 0; (size_t)i < re->shnum; i++) {
-		if (re->sl[i].type == SHT_SYMTAB ||
-		    re->sl[i].type == SHT_DYNSYM)
-			dump_symtab(re, i);
+		s = &re->sl[i];
+		if (s->type == SHT_SYMTAB || s->type == SHT_DYNSYM) {
+			if (re->options & RE_DD) {
+				if (dyn_off == s->addr) {
+					dump_symtab(re, i);
+					break;
+				}
+			} else
+				dump_symtab(re, i);
+		}
 	}
 }
 
@@ -1732,9 +1721,6 @@ dump_hash(struct readelf *re)
 	int		 elferr, i, j;
 
 	/* TODO: Add support for .gnu.hash section. */
-
-	if ((re->flags & SECTIONS_LOADED) == 0 || re->shnum == 0)
-		return;
 
 	/* Find .hash section. */
 	for (i = 0; (size_t)i < re->shnum; i++) {
@@ -1804,137 +1790,296 @@ dump_hash(struct readelf *re)
 #define	Elf_Verneed	Elf32_Verneed
 #define	Elf_Vernaux	Elf32_Vernaux
 
+#define	SAVE_VERSION_NAME(ndx, name)					\
+	do {								\
+		while (ndx >= re->vname_sz) {				\
+			nv = realloc(re->vname,				\
+			    sizeof(*re->vname)*re->vname_sz*2);		\
+			if (nv == NULL) {				\
+				warn("realloc failed");			\
+				free(re->vname);			\
+				return;					\
+			}						\
+			re->vname = nv;					\
+			for (i = re->vname_sz; i < re->vname_sz*2; i++) \
+				re->vname[i] = NULL;			\
+			re->vname_sz *= 2;				\
+		}							\
+		if (ndx > 1)						\
+			re->vname[ndx] = name;				\
+	} while (0)
+
+
 static void
-dump_ver(struct readelf *re)
+dump_verdef(struct readelf *re, int dump)
 {
-	struct section *s, *vs_s, *vd_s, *vn_s;
+	struct section *s;
+	Elf_Data *d;
+	Elf_Verdef *vd;
+	Elf_Verdaux *vda;
+	uint8_t *buf, *end, *buf2;
+	const char **nv, *name;
+	int elferr, i;
+
+	if ((s = re->vd_s) == NULL)
+		return;
+
+	if (re->vname == NULL) {
+		re->vname_sz = 16;
+		if ((re->vname = calloc(re->vname_sz, sizeof(*re->vname))) ==
+		    NULL) {
+			warn("calloc failed");
+			return;
+		}
+		re->vname[0] = "*local*";
+		re->vname[1] = "*global*";
+	}
+
+	if (dump)
+		printf("\nVersion definition section (%s):\n", s->name);
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return;
+	}
+	if (d->d_size == 0)
+		return;
+
+	buf = d->d_buf;
+	end = buf + d->d_size;
+	while (buf + sizeof(Elf_Verdef) <= end) {
+		vd = (Elf_Verdef *) (uintptr_t) buf;
+		if (dump) {
+			printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
+			printf(" vd_version: %u vd_flags: %d"
+			    " vd_ndx: %u vd_cnt: %u", vd->vd_version,
+			    vd->vd_flags, vd->vd_ndx, vd->vd_cnt);
+		}
+		buf2 = buf + vd->vd_aux;
+		vda = (Elf_Verdaux *) (uintptr_t) buf2;
+		name = get_string(re, s->link, vda->vda_name);
+		if (dump)
+			printf(" vda_name: %s\n", name);
+		SAVE_VERSION_NAME((int)vd->vd_ndx, name);
+		if (vd->vd_next == 0)
+			break;
+		buf += vd->vd_next;
+	}
+}
+
+static void
+dump_verneed(struct readelf *re, int dump)
+{
+	struct section *s;
 	Elf_Data *d;
 	Elf_Verneed *vn;
 	Elf_Vernaux *vna;
-	Elf_Verdef *vd;
-	Elf_Verdaux *vda;
-	uint16_t *vs;
 	uint8_t *buf, *end, *buf2;
-	const char **vname, **nv, *name;
-	int i, j, vname_sz;
+	const char **nv, *name;
+	int elferr, i, j;
 
-#define	SAVE_VERSION_NAME(ndx, name)					\
-	do {								\
-		while (ndx >= vname_sz) {				\
-			nv = realloc(vname, sizeof(*vname)*vname_sz*2);	\
-			if (nv == NULL) {				\
-				warn("realloc failed");			\
-				free(vname);				\
-				return;					\
-			}						\
-			vname = nv;					\
-			for (i = vname_sz; i < vname_sz * 2; i++)	\
-				vname[i] = NULL;			\
-			vname_sz *= 2;					\
-		}							\
-		vname[ndx] = name;					\
-	} while (0)
+	if ((s = re->vn_s) == NULL)
+		return;
 
-	vname = NULL;
-	vs_s = vd_s = vn_s = NULL;
+	if (re->vname == NULL) {
+		re->vname_sz = 16;
+		if ((re->vname = calloc(re->vname_sz, sizeof(*re->vname))) ==
+		    NULL) {
+			warn("calloc failed");
+			return;
+		}
+		re->vname[0] = "*local*";
+		re->vname[1] = "*global*";
+	}
+
+	if (dump)
+		printf("\nVersion needed section (%s):\n", s->name);
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return;
+	}
+	if (d->d_size == 0)
+		return;
+
+	buf = d->d_buf;
+	end = buf + d->d_size;
+	while (buf + sizeof(Elf_Verneed) <= end) {
+		vn = (Elf_Verneed *) (uintptr_t) buf;
+		if (dump) {
+			printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
+			printf(" vn_version: %u vn_file: %s vn_cnt: %u\n",
+			    vn->vn_version,
+			    get_string(re, s->link, vn->vn_file),
+			    vn->vn_cnt);
+		}
+		buf2 = buf + vn->vn_aux;
+		j = 0;
+		while (buf2 + sizeof(Elf_Vernaux) <= end && j < vn->vn_cnt) {
+			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
+			if (dump)
+				printf("  0x%4.4lx",
+				    buf2 - (uint8_t *)d->d_buf);
+			name = get_string(re, s->link, vna->vna_name);
+			if (dump)
+				printf("   vna_name: %s vna_flags: %u"
+				    " vna_other: %u\n", name,
+				    vna->vna_flags, vna->vna_other);
+			SAVE_VERSION_NAME((int)vna->vna_other, name);
+			if (vna->vna_next == 0)
+				break;
+			buf2 += vna->vna_next;
+		}
+		if (vn->vn_next == 0)
+			break;
+		buf += vn->vn_next;
+	}
+}
+
+static void
+dump_versym(struct readelf *re)
+{
+	int i;
+
+	if (re->vs_s == NULL || re->vname == NULL || re->vs == NULL)
+		return;
+	printf("\nVersion symbol section (%s:)\n", re->vs_s->name);
+	for (i = 0; i < re->vs_sz; i++) {
+		if ((i & 3) == 0) {
+			if (i > 0)
+				putchar('\n');
+			printf("  %03x", i);
+		}
+		printf(" %3d %-12s ", re->vs[i], re->vname[re->vs[i]]);
+	}
+	putchar('\n');
+}
+
+static void
+dump_ver(struct readelf *re)
+{
+
+	if (re->vs_s && re->vname && re->vs)
+		dump_versym(re);
+	if (re->vd_s)
+		dump_verdef(re, 1);
+	if (re->vn_s)
+		dump_verneed(re, 1);
+}
+
+static void
+search_ver(struct readelf *re)
+{
+	struct section *s;
+	Elf_Data *d;
+	int elferr, i;
+
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type == SHT_SUNW_versym)
-			vs_s = s;
+			re->vs_s = s;
 		if (s->type == SHT_SUNW_verneed)
-			vn_s = s;
+			re->vn_s = s;
 		if (s->type == SHT_SUNW_verdef)
-			vd_s = s;
+			re->vd_s = s;
 	}
-
-	vname_sz = 16;
-	if ((vname = calloc(vname_sz, sizeof(*vname))) == NULL) {
-		warn("calloc failed");
-		return;
-	}
-
-	if (vd_s) {
-		printf("\nVersion definition section (%s):\n", vd_s->name);
-		if ((d = elf_getdata(vd_s->scn, NULL)) != NULL && d->d_size >
-		    0) {
-			buf = d->d_buf;
-			end = buf + d->d_size;
-			while (buf + sizeof(Elf_Verdef) <= end) {
-				vd = (Elf_Verdef *) (uintptr_t) buf;
-				printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
-				printf(" vd_version: %u vd_flags: %d"
-				    " vd_ndx: %u vd_cnt: %u", vd->vd_version,
-				    vd->vd_flags, vd->vd_ndx, vd->vd_cnt);
-				buf2 = buf + vd->vd_aux;
-				vda = (Elf_Verdaux *) (uintptr_t) buf2;
-				name = get_string(re, vd_s->link, vda->vda_name);
-				printf(" vda_name: %s\n", name);
-				SAVE_VERSION_NAME((int)vd->vd_ndx, name);
-				if (vd->vd_next == 0)
-					break;
-				buf += vd->vd_next;
-			}
+	if (re->vd_s)
+		dump_verdef(re, 0);
+	if (re->vn_s)
+		dump_verneed(re, 0);
+	if (re->vs_s && re->vname != NULL) {
+		(void) elf_errno();
+		if ((d = elf_getdata(re->vs_s->scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s",
+				    elf_errmsg(elferr));
+			return;
 		}
+		if (d->d_size == 0)
+			return;
+		re->vs = d->d_buf;
+		re->vs_sz = d->d_size / sizeof(Elf32_Half);
 	}
+}
 
-	if (vn_s) {
-		printf("\nVersion needed section (%s):\n", vn_s->name);
-		if ((d = elf_getdata(vn_s->scn, NULL)) != NULL && d->d_size >
-		    0) {
-			buf = d->d_buf;
-			end = buf + d->d_size;
-			while (buf + sizeof(Elf_Verneed) <= end) {
-				vn = (Elf_Verneed *) (uintptr_t) buf;
-				printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
-				printf(" vn_version: %u vn_file: %s vn_cnt: %u"
-				    "\n", vn->vn_version,
-				    get_string(re, vn_s->link, vn->vn_file),
-				    vn->vn_cnt);
-				buf2 = buf + vn->vn_aux;
-				j = 0;
-				while (buf2 + sizeof(Elf_Vernaux) <= end &&
-				    j < vn->vn_cnt) {
-					vna = (Elf32_Vernaux *) (uintptr_t) buf2;
-					printf("  0x%4.4lx",
-					    buf2 - (uint8_t *)d->d_buf);
-					name = get_string(re, vn_s->link,
-					    vna->vna_name);
-					printf("   vna_name: %s vna_flags: %u"
-					    " vna_other: %u\n", name,
-					    vna->vna_flags, vna->vna_other);
-					SAVE_VERSION_NAME((int)vna->vna_other,
-					    name);
-					if (vna->vna_next == 0)
-						break;
-					buf2 += vna->vna_next;
-				}
-				if (vn->vn_next == 0)
-					break;
-				buf += vn->vn_next;
-			}
-		}
-	}
-
-	vname[0] = "*local*";
-	vname[1] = "*global*";
-	if (vs_s) {
-		printf("\nVersion symbol section (%s:)\n", vs_s->name);
-		if ((d = elf_getdata(vs_s->scn, NULL)) != NULL && d->d_size >
-		    0) {
-			j = d->d_size / sizeof(Elf32_Half);
-			vs = d->d_buf;
-			for (i = 0; i < j; i++) {
-				if ((i & 3) == 0) {
-					if (i > 0)
-						putchar('\n');
-					printf("  %03x", i);
-				}
-				printf(" %3d %-12s ", vs[i], vname[vs[i]]);
-			}
-			putchar('\n');
-		}
-	}
+#undef	Elf_Verdef
+#undef	Elf_Verdaux
+#undef	Elf_Verneed
+#undef	Elf_Vernaux
 #undef	SAVE_VERSION_NAME
+
+/*
+ * Retrieve a string using string table section index and the string offset.
+ */
+static const char*
+get_string(struct readelf *re, int strtab, size_t off)
+{
+	const char *name;
+
+	if ((name = elf_strptr(re->elf, strtab, off)) == NULL)
+		return ("");
+
+	return (name);
+}
+
+/*
+ * Retrieve the name of a symbol using the section index of the symbol
+ * table and the index of the symbol within that table.
+ */
+static const char *
+get_symbol_name(struct readelf *re, int symtab, int i)
+{
+	struct section	*s;
+	const char	*name;
+	GElf_Sym	 sym;
+	Elf_Data	*data;
+	int		 elferr;
+
+	s = &re->sl[symtab];
+	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
+		return ("");
+	(void) elf_errno();
+	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return ("");
+	}
+	if (gelf_getsym(data, i, &sym) != &sym)
+		return ("");
+	if ((name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
+		return ("");
+
+	return (name);
+}
+
+static uint64_t
+get_symbol_value(struct readelf *re, int symtab, int i)
+{
+	struct section	*s;
+	GElf_Sym	 sym;
+	Elf_Data	*data;
+	int		 elferr;
+
+	s = &re->sl[symtab];
+	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
+		return (0);
+	(void) elf_errno();
+	if ((data = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
+		return (0);
+	}
+	if (gelf_getsym(data, i, &sym) != &sym)
+		return (0);
+
+	return (sym.st_value);
 }
 
 static void
@@ -1945,17 +2090,17 @@ hex_dump(struct readelf *re)
 	uint8_t *buf;
 	size_t sz, nbytes;
 	uint64_t addr;
-	int i, j;
-
-	if ((re->flags & SECTIONS_LOADED) == 0)
-		return;
+	int elferr, i, j;
 
 	for (i = 1; (size_t)i < re->shnum; i++) {
 		if (find_dumpop(re, (size_t)i, HEX_DUMP) == NULL)
 			continue;
 		s =& re->sl[i];
+		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
-			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s", elf_errmsg(-1));
 			continue;
 		}
 		if (d->d_size <= 0)
@@ -1998,10 +2143,6 @@ load_sections(struct readelf *re)
 	GElf_Shdr	 sh;
 	size_t		 shstrndx, ndx;
 	int		 elferr;
-	
-
-	if (re->flags & SECTIONS_LOADED)
-		return;
 
 	/* Allocate storage for internal section list. */
 	if (!elf_getshnum(re->elf, &re->shnum)) {
@@ -2061,8 +2202,6 @@ load_sections(struct readelf *re)
 	elferr = elf_errno();
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
-
-	re->flags |= SECTIONS_LOADED;
 }
 
 static void
@@ -2079,8 +2218,10 @@ dump_elf(struct readelf *re)
 		return;
 	}
 
-	load_sections(re);
-
+	if (re->options & ~RE_H)
+		load_sections(re);
+	if ((re->options & RE_VV) || (re->options && RE_S))
+		search_ver(re);
 	if (re->options & RE_H)
 		dump_ehdr(re);
 	if (re->options & RE_L)
@@ -2283,7 +2424,7 @@ static void
 readelf_usage()
 {
 
-	fprintf(stderr, "usage: \n");
+	fprintf(stderr, "usage: readelf <options> object ...\n");
 	exit(EX_USAGE);
 }
 
