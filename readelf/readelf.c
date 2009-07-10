@@ -534,7 +534,7 @@ st_bind(unsigned int sbind)
 
 	switch (sbind) {
 	case STB_LOCAL: return "LOCAL";
-	case STB_GLOBAL: return "GLOBAl";
+	case STB_GLOBAL: return "GLOBAL";
 	case STB_WEAK: return "WEAK";
 	default:
 		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
@@ -1234,7 +1234,7 @@ dump_shdr(struct readelf *re)
 #define	S_HDR	"[Nr] Name", "Type", "Addr", "Off", "Size", "ES",	\
 		"Flg", "Lk", "Inf", "Al"
 #define	S_HDRL	"[Nr] Name", "Type", "Address", "Offset", "Size",	\
-		"EntSize", "FLags", "Link", "Info", "Align"
+		"EntSize", "Flags", "Link", "Info", "Align"
 #define	ST_HDR	"[Nr] Name", "Type", "Addr", "Off", "Size", "ES",	\
 		"Lk", "Inf", "Al", "Flags"
 #define	ST_HDRL	"[Nr] Name", "Type", "Address", "Offset", "Link",	\
@@ -1586,7 +1586,8 @@ dump_symtab(struct readelf *re, int i)
 	}
 	if (d->d_size <= 0)
 		return;
-	printf("Symbol table (%s):\n", s->name);
+	printf("Symbol table (%s)", s->name);
+	printf(" contains %ju entries:\n", s->sz / s->entsize);
 	printf("%7s%9s%14s%5s%8s%6s%9s%5s\n", "Num:", "Value", "Size", "Type",
 	    "Bind", "Vis", "Ndx", "Name");
 
@@ -1720,7 +1721,7 @@ dump_svr4_hash(struct section *s)
 		errx(EX_SOFTWARE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		c[bl[i]]++;
-	printf("Histogram for bucket list length (total of %u buckets):\n",
+	printf("\nHistogram for bucket list length (total of %u buckets):\n",
 	    nbucket);
 	printf(" Length\tNumber\t\t%% of total\tCoverage\n");
 	total = 0;
@@ -2060,7 +2061,7 @@ dump_versym(struct readelf *re)
 
 	if (re->vs_s == NULL || re->vname == NULL || re->vs == NULL)
 		return;
-	printf("\nVersion symbol section (%s:)\n", re->vs_s->name);
+	printf("\nVersion symbol section (%s):\n", re->vs_s->name);
 	for (i = 0; i < re->vs_sz; i++) {
 		if ((i & 3) == 0) {
 			if (i > 0)
