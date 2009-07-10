@@ -996,6 +996,9 @@ static void	 add_dumpop(struct readelf *re, size_t sn, int op);
 static void	 dump_elf(struct readelf *re);
 static void	 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void	 dump_dynamic(struct readelf *re);
+static void	 dump_svr4_hash(struct section *s);
+static void	 dump_svr4_hash64(struct readelf *re, struct section *s);
+static void	 dump_gnu_hash(struct readelf *re, struct section *s);
 static void	 dump_hash(struct readelf *re);
 static void	 dump_phdr(struct readelf *re);
 static void	 dump_symtab(struct readelf *re, int i);
@@ -1111,6 +1114,16 @@ dump_phdr(struct readelf *re)
 	size_t		 phnum;
 	int		 i, j;
 
+#define	PH_HDR	"Type", "Offset", "VirtAddr", "PhysAddr", "FileSiz",	\
+		"MemSiz", "Flg", "Align"
+#define	PH_CT	phdr_type(phdr.p_type), (uintmax_t)phdr.p_offset,	\
+		(uintmax_t)phdr.p_vaddr, (uintmax_t)phdr.p_paddr,	\
+		(uintmax_t)phdr.p_filesz, (uintmax_t)phdr.p_memsz,	\
+		phdr.p_flags & PF_R ? 'R' : ' ',			\
+		phdr.p_flags & PF_W ? 'W' : ' ',			\
+		phdr.p_flags & PF_X ? 'E' : ' ',			\
+		(uintmax_t)phdr.p_align
+
 	if (elf_getphnum(re->elf, &phnum) == 0) {
 		warnx("elf_getphnum failed: %s", elf_errmsg(-1));
 		return;
@@ -1121,65 +1134,35 @@ dump_phdr(struct readelf *re)
 	}
 
 	printf("\nElf file type is %s", elf_type(re->ehdr.e_type));
-	printf("Entry point 0x%jx\n", (uintmax_t)re->ehdr.e_entry);
+	printf("\nEntry point 0x%jx\n", (uintmax_t)re->ehdr.e_entry);
 	printf("There are %ju program headers, starting at offset %ju\n",
 	    (uintmax_t)phnum, (uintmax_t)re->ehdr.e_phoff);
 
 	/* Dump program headers. */
 	printf("\nProgram Headers:\n");
 	if (re->ec == ELFCLASS32)
-		printf("  %-15s%-9s%-11s%-11s%-8s%-8s%-4s%s\n", "Type",
-		    "Offset", "VirtAddr", "PhysAddr", "FileSiz", "MemSiz",
-		    "Flg", "Align");
+		printf("  %-15s%-9s%-11s%-11s%-8s%-8s%-4s%s\n", PH_HDR);
 	else if (re->options & RE_WW)
-		printf("  %-15s%-9s%-19s%-19s%-9s%-9s%-4s%s\n", "Type",
-		    "Offset", "VirtAddr", "PhysAddr", "FileSiz", "MemSiz",
-		    "Flg", "Align");
-	else {
-		printf("  %-15s%-19s%-19s%s\n","Type", "Offset", "VirtAddr",
-		    "PhysAddr");
-		printf("                 %-19s%-20s%-7s%s\n", "FileSiz",
-		    "MemSiz","Flags", "Align");
-	}
+		printf("  %-15s%-9s%-19s%-19s%-9s%-9s%-4s%s\n", PH_HDR);
+	else
+		printf("  %-15s%-19s%-19s%s\n                 %-19s%-20s"
+		    "%-7s%s\n", PH_HDR);
 	for (i = 0; (size_t)i < phnum; i++) {
 		if (gelf_getphdr(re->elf, i, &phdr) != &phdr) {
 			warnx("gelf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
 		}
 		/* TODO: Add arch-specific segment type dump. */
-		printf("  %-14.14s ", phdr_type(phdr.p_type));
-		if (re->ec == ELFCLASS32) {
-			printf("0x%6.6jx ", (uintmax_t)phdr.p_offset);
-			printf("0x%8.8jx ", (uintmax_t)phdr.p_vaddr);
-			printf("0x%8.8jx ", (uintmax_t)phdr.p_paddr);
-			printf("0x%5.5jx ", (uintmax_t)phdr.p_filesz);
-			printf("0x%5.5jx ", (uintmax_t)phdr.p_memsz);
-			printf("%c%c%c ", phdr.p_flags & PF_R ? 'R' : ' ',
-			    phdr.p_flags & PF_W ? 'W' : ' ',
-			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#jx\n", (uintmax_t)phdr.p_align);
-		} else if (re->options & RE_WW) {
-			printf("0x%6.6jx ", (uintmax_t)phdr.p_offset);
-			printf("0x%16.16jx ", (uintmax_t)phdr.p_vaddr);
-			printf("0x%16.16jx ", (uintmax_t)phdr.p_paddr);
-			printf("0x%6.6jx ", (uintmax_t)phdr.p_filesz);
-			printf("0x%6.6jx ", (uintmax_t)phdr.p_memsz);
-			printf("%c%c%c ", phdr.p_flags & PF_R ? 'R' : ' ',
-			    phdr.p_flags & PF_W ? 'W' : ' ',
-			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#jx\n", (uintmax_t)phdr.p_align);
-		} else {
-			printf("0x%16.16jx ", (uintmax_t)phdr.p_offset);
-			printf("0x%16.16jx ", (uintmax_t)phdr.p_vaddr);
-			printf("0x%16.16jx\n", (uintmax_t)phdr.p_paddr);
-			printf("                 0x%16.16jx ",
-			    (uintmax_t)phdr.p_filesz);
-			printf("0x%16.16jx ", (uintmax_t)phdr.p_memsz);
-			printf(" %c%c%c    ", phdr.p_flags & PF_R ? 'R' : ' ',
-			    phdr.p_flags & PF_W ? 'W' : ' ',
-			    phdr.p_flags & PF_X ? 'E' : ' ');
-			printf("%#jx\n", (uintmax_t)phdr.p_align);
-		}
+		if (re->ec == ELFCLASS32)
+			printf("  %-14.14s 0x%6.6jx 0x%8.8jx 0x%8.8jx "
+			    "0x%5.5jx 0x%5.5jx %c%c%c %#jx\n", PH_CT);
+		else if (re->options & RE_WW)
+			printf("  %-14.14s 0x%6.6jx 0x%16.16jx 0x%16.16jx "
+			    "0x%6.6jx 0x%6.6jx %c%c%c %#jx\n", PH_CT);
+		else
+			printf("  %-14.14s 0x%16.16jx 0x%16.16jx 0x%16.16jx\n"
+			    "                 0x%16.16jx 0x%16.16jx  %c%c%c"
+			    "    %#jx\n", PH_CT);
 		if (phdr.p_type == PT_INTERP) {
 			if ((rawfile = elf_rawfile(re->elf, NULL)) == NULL) {
 				warnx("elf_rawfile failed: %s", elf_errmsg(-1));
@@ -1207,14 +1190,16 @@ dump_phdr(struct readelf *re)
 				printf("%s ", re->sl[j].name);
 		printf("\n");
 	}
+#undef	PH_HDR
+#undef	PH_CT
 }
 
-static void
-dump_section_flags(struct readelf *re, struct section *s)
+static char *
+section_flags(struct readelf *re, struct section *s)
 {
 #define BUF_SZ 256
-	char	buf[BUF_SZ];
-	int	i, p, nb;
+	static char	buf[BUF_SZ];
+	int		i, p, nb;
 
 	p = 0;
 	nb = re->ec == ELFCLASS32 ? 8 : 16;
@@ -1236,7 +1221,8 @@ dump_section_flags(struct readelf *re, struct section *s)
 	if (re->options & RE_T && p > nb + 4)
 		p -= 2;
 	buf[p] = '\0';
-	printf("%3s%c", buf, re->options & RE_T ? '\n' : ' ');
+
+	return (buf);
 }
 
 static void
@@ -1257,10 +1243,14 @@ dump_shdr(struct readelf *re)
 		(uintmax_t)s->off, (uintmax_t)s->sz,			\
 		(uintmax_t)s->entsize, section_flags(re, s),		\
 		s->link, s->info, (uintmax_t)s->align
-#define	ST_CT	section_type(s->type), (uintmax_t)s->addr,		\
+#define	ST_CT	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
 		(uintmax_t)s->off, (uintmax_t)s->sz,			\
 		(uintmax_t)s->entsize, s->link, s->info,		\
 		(uintmax_t)s->align, section_flags(re, s)
+#define	ST_CTL	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
+		(uintmax_t)s->off, s->link, (uintmax_t)s->sz,		\
+		(uintmax_t)s->entsize, s->info, (uintmax_t)s->align,	\
+		section_flags(re, s)
 
 	if (re->shnum == 0) {
 		printf("\nThere are no sections in this file.\n");
@@ -1293,70 +1283,33 @@ dump_shdr(struct readelf *re)
 	}
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
-		if (re->options & RE_T) {
-			printf("  [%2d] %s\n", i, s->name);
-			printf("%7s", "");
-		} else
-			printf("  [%2d] %-17.17s ", i, s->name);
 		if (re->ec == ELFCLASS32) {
-			if (re->options & RE_T) {
-				printf("%-15.15s ", section_type(s->type));
-				printf("%8.8jx %6.6jx %6.6jx %2.2jx  ",
-				    (uintmax_t)s->addr, (uintmax_t)s->off,
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
-				printf("%2u %3u %2ju\n", s->link, s->info,
-				    (uintmax_t)s->align);
-				printf("%7s", "");
-				dump_section_flags(re, s);
-			} else {
-				printf("%-15.15s ", section_type(s->type));
-				printf("%8.8jx %6.6jx %6.6jx %2.2jx ",
-				    (uintmax_t)s->addr, (uintmax_t)s->off,
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
-				dump_section_flags(re, s);
-				printf("%2u %3u %2ju\n", s->link, s->info,
-				    (uintmax_t)s->align);
-			}
+			if (re->options & RE_T)
+				printf("  [%2d] %s\n       %-15.15s %8.8jx"
+				    " %6.6jx %6.6jx %2.2jx  %2u %3u %2ju\n"
+				    "       %s\n", ST_CT);
+			else
+				printf("  [%2d] %-17.17s %-15.15s %8.8jx"
+				    " %6.6jx %6.6jx %2.2jx %3s %2u %3u %2ju\n",
+				    S_CT);
 		} else if (re->options & RE_WW) {
-			if (re->options & RE_T) {
-				printf("%-15.15s ", section_type(s->type));
-				printf("%16.16jx %6.6jx %6.6jx %2.2jx ",
-				    (uintmax_t)s->addr, (uintmax_t)s->off,
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
-				printf(" %2u %3u %2ju\n", s->link, s->info,
-				    (uintmax_t)s->align);
-				printf("%7s", "");
-				dump_section_flags(re, s);
-			} else {
-				printf("%-15.15s ", section_type(s->type));
-				printf("%16.16jx %6.6jx %6.6jx %2.2jx ",
-				    (uintmax_t)s->addr, (uintmax_t)s->off,
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
-				dump_section_flags(re, s);
-				printf("%2u %3u %2ju\n", s->link, s->info,
-				    (uintmax_t)s->align);
-			}
+			if (re->options & RE_T)
+				printf("  [%2d] %s\n       %-15.15s %16.16jx"
+				    " %6.6jx %6.6jx %2.2jx  %2u %3u %2ju\n"
+				    "       %s\n", ST_CT);
+			else
+				printf("  [%2d] %-17.17s %-15.15s %16.16jx"
+				    " %6.6jx %6.6jx %2.2jx %3s %2u %3u %2ju\n",
+				    S_CT);
 		} else {
-			if (re->options & RE_T) {
-				printf("%-15.15s ", section_type(s->type));
-				printf(" %16.16jx  %16.16jx  %u\n",
-				    (uintmax_t)s->addr, (uintmax_t)s->off,
-				    s->link);
-				printf("       %16.16jx %16.16jx  %-16u  %ju\n",
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize,
-				    s->info, (uintmax_t)s->align);
-				printf("%7s", "");
-				dump_section_flags(re, s);
-			} else {
-				printf("%-15.15s ", section_type(s->type));
-				printf(" %16.16jx  %8.8jx\n",
-				    (uintmax_t)s->addr, (uintmax_t)s->off);
-				printf("       %16.16jx  %16.16jx ",
-				    (uintmax_t)s->sz, (uintmax_t)s->entsize);
-				dump_section_flags(re, s);
-				printf("     %2u   %3u     %ju\n", s->link,
-				    s->info, (uintmax_t)s->align);
-			}
+			if (re->options & RE_T)
+				printf("  [%2d] %s\n       %-15.15s  %16.16jx"
+				    "  %16.16jx  %u\n       %16.16jx %16.16jx"
+				    "  %-16u  %ju\n       %s\n", ST_CTL);
+			else
+				printf("  [%2d] %-17.17s %-15.15s  %16.16jx"
+				    "  %8.8jx\n       %16.16jx  %16.16jx "
+				    "%3s      %2u   %3u     %ju\n", S_CT);
 		}
 	}
 	if ((re->options & RE_T) == 0)
@@ -1372,6 +1325,7 @@ dump_shdr(struct readelf *re)
 #undef	ST_HDRL
 #undef	S_CT
 #undef	ST_CT
+#undef	ST_CTL
 }
 
 static void
@@ -1704,6 +1658,7 @@ dump_symtabs(struct readelf *re)
 		}
 	}
 
+	/* Find and dump symbol tables. */
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type == SHT_SYMTAB || s->type == SHT_DYNSYM) {
@@ -1719,26 +1674,14 @@ dump_symtabs(struct readelf *re)
 }
 
 static void
-dump_hash(struct readelf *re)
+dump_svr4_hash(struct section *s)
 {
 	Elf_Data	*d;
-	struct section	*s;
 	uint32_t	*buf;
 	uint32_t	 nbucket, nchain;
 	uint32_t	*bucket, *chain;
 	uint32_t	*bl, *c, maxl, total;
 	int		 elferr, i, j;
-
-	/* TODO: Add support for .gnu.hash section. */
-
-	/* Find .hash section. */
-	for (i = 0; (size_t)i < re->shnum; i++) {
-		s = &re->sl[i];
-		if (s->type == SHT_HASH)
-			break;
-	}
-	if ((size_t)i >= re->shnum)
-		return;
 
 	/* Read and parse the content of .hash section. */
 	(void) elf_errno();
@@ -1788,6 +1731,167 @@ dump_hash(struct readelf *re)
 	}
 	free(c);
 	free(bl);
+}
+
+static void
+dump_svr4_hash64(struct readelf *re, struct section *s)
+{
+	Elf_Data	*d, dst;
+	uint64_t	*buf;
+	uint64_t	 nbucket, nchain;
+	uint64_t	*bucket, *chain;
+	uint64_t	*bl, *c, maxl, total;
+	int		 elferr, i, j;
+
+	/*
+	 * ALPHA uses 64-bit hash entries. Since libelf assumes that
+	 * .hash section contains only 32-bit entry, an explicit
+	 * gelf_xlatetom is needed here.
+	 */
+	(void) elf_errno();
+	if ((d = elf_rawdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_rawdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
+	d->d_type = ELF_T_XWORD;
+	memcpy(&dst, d, sizeof(Elf_Data));
+	if (gelf_xlatetom(re->elf, &dst, d,
+		re->ehdr.e_ident[EI_DATA]) != &dst) {
+		warnx("gelf_xlatetom failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (dst.d_size < 2 * sizeof(uint64_t)) {
+		warnx(".hash section too small");
+		return;
+	}
+	buf = dst.d_buf;
+	nbucket = buf[0];
+	nchain = buf[1];
+	if (nbucket <= 0 || nchain <= 0) {
+		warnx("Malformed .hash section");
+		return;
+	}
+	if (d->d_size != (nbucket + nchain + 2) * sizeof(uint32_t)) {
+		warnx("Malformed .hash section");
+		return;
+	}
+	bucket = &buf[2];
+	chain = &buf[2 + nbucket];
+
+	maxl = 0;
+	if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
+		errx(EX_SOFTWARE, "calloc failed");
+	for (i = 0; (uint32_t)i < nbucket; i++)
+		for (j = bucket[i]; j > 0 && (uint32_t)j < nchain; j = chain[j])
+			if (++bl[i] > maxl)
+				maxl = bl[i];
+	if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
+		errx(EX_SOFTWARE, "calloc failed");
+	for (i = 0; (uint64_t)i < nbucket; i++)
+		c[bl[i]]++;
+	printf("Histogram for bucket list length (total of %ju buckets):\n",
+	    (uintmax_t)nbucket);
+	printf(" Length\tNumber\t\t%% of total\tCoverage\n");
+	total = 0;
+	for (i = 0; (uint64_t)i <= maxl; i++) {
+		total += c[i] * i;
+		printf("%7u\t%-10ju\t(%5.1f%%)\t%5.1f%%\n", i, (uintmax_t)c[i],
+		    c[i] * 100.0 / nbucket, total * 100.0 / (nchain - 1));
+	}
+	free(c);
+	free(bl);
+}
+
+static void
+dump_gnu_hash(struct readelf *re, struct section *s)
+{
+	struct section	*ds;
+	Elf_Data	*d;
+	uint32_t	*buf;
+	uint32_t	*bucket, *chain;
+	uint32_t	 nbucket, nchain, symndx, maskwords, shift2;
+	uint32_t	*bl, *c, maxl, total;
+	int		 elferr, dynsymcount, i, j;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
+	if (d->d_size < 4 * sizeof(uint32_t)) {
+		warnx(".gnu.hash section too small");
+		return;
+	}
+	buf = d->d_buf;
+	nbucket = buf[0];
+	symndx = buf[1];
+	maskwords = buf[2];
+	shift2 = buf[3];
+	buf += 4;
+	ds = &re->sl[s->link];
+	dynsymcount = ds->sz / ds->entsize;
+	nchain = dynsymcount - symndx;
+	if (d->d_size != 4 * sizeof(uint32_t) + maskwords *
+	    (re->ec == ELFCLASS32 ? sizeof(uint32_t) : sizeof(uint64_t)) +
+	    (nbucket + nchain) * sizeof(uint32_t)) {
+		warnx("Malformed .gnu.hash section");
+		return;
+	}
+	bucket = buf + (re->ec == ELFCLASS32 ? maskwords : maskwords * 2);
+	chain = bucket + nbucket;
+
+	maxl = 0;
+	if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
+		errx(EX_SOFTWARE, "calloc failed");
+	for (i = 0; (uint32_t)i < nbucket; i++)
+		for (j = bucket[i]; j > 0 && (uint32_t)j - symndx < nchain;
+		     j++) {
+			if (++bl[i] > maxl)
+				maxl = bl[i];
+			if (chain[j - symndx] & 1)
+				break;
+		}
+	if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
+		errx(EX_SOFTWARE, "calloc failed");
+	for (i = 0; (uint32_t)i < nbucket; i++)
+		c[bl[i]]++;
+	printf("Histogram for bucket list length (total of %u buckets):\n",
+	    nbucket);
+	printf(" Length\tNumber\t\t%% of total\tCoverage\n");
+	total = 0;
+	for (i = 0; (uint32_t)i <= maxl; i++) {
+		total += c[i] * i;
+		printf("%7u\t%-10u\t(%5.1f%%)\t%5.1f%%\n", i, c[i],
+		    c[i] * 100.0 / nbucket, total * 100.0 / (nchain - 1));
+	}
+	free(c);
+	free(bl);
+}
+
+static void
+dump_hash(struct readelf *re)
+{
+	struct section	*s;
+	int		 i;
+
+	for (i = 0; (size_t)i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->type == SHT_HASH || s->type == SHT_GNU_HASH) {
+			if (s->type == SHT_GNU_HASH)
+				dump_gnu_hash(re, s);
+			else if (re->ehdr.e_machine == EM_ALPHA &&
+			    s->entsize == 8)
+				dump_svr4_hash64(re, s);
+			else
+				dump_svr4_hash(s);
+		}
+	}
 }
 
 /*
@@ -2217,7 +2321,7 @@ static void
 dump_elf(struct readelf *re)
 {
 
-	/* Fetch ELF header. No need to continue if this fails. */
+	/* Fetch ELF header. No need to continue if it fails. */
 	if (gelf_getehdr(re->elf, &re->ehdr) == NULL) {
 		warnx("gelf_getehdr failed: %s", elf_errmsg(-1));
 		return;
@@ -2226,7 +2330,6 @@ dump_elf(struct readelf *re)
 		warnx("gelf_getclass failed: %s", elf_errmsg(-1));
 		return;
 	}
-
 	if (re->options & ~RE_H)
 		load_sections(re);
 	if ((re->options & RE_VV) || (re->options && RE_S))
