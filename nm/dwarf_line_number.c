@@ -819,18 +819,18 @@ get_include_dir(char *p, struct vector_str *v)
 		return (0);
 
 	for (;;) {
+		if (*p == 0) {
+			++rtn;
+
+			break;
+		}
+
 		len = strlen(p);
 		if (vector_str_push(v, p, len) == false)
 			return (0);
 
 		p += len + 1;
 		rtn += len + 1;
-
-		if (*p == 0) {
-			++rtn;
-
-			break;
-		}
 	}
 
 	return (rtn);
@@ -1093,8 +1093,8 @@ state_op_ext(unsigned char *p, struct state_register *regi,
 	int i, rtn = 0;
 	unsigned char opcode;
 
-	if (p == NULL || regi == NULL || comp_dir == NULL || dir == NULL ||
-	    file == NULL || out == NULL)
+	if (p == NULL || regi == NULL || dir == NULL || file == NULL || 
+	    out == NULL)
 		return (0);
 
 	if ((i = decode_ULEB128(p, &op_len)) == 0)
