@@ -3,6 +3,9 @@
 #
 # Run all the tests.
 
+# setup cleanup trap
+trap 'rm -rf /tmp/bsdar-*; exit' 0 2 3 15
+
 # load functions.
 . func.sh
 

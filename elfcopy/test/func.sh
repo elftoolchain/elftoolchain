@@ -4,8 +4,8 @@ init() {
     THISDIR=`/bin/pwd`
 
     # keep a record of total tests and number of tests passed.
-    TOTALCT=/tmp/bsdar-test-total
-    PASSEDCT=/tmp/bsdar-test-passed
+    TOTALCT=/tmp/elfcopy-test-total
+    PASSEDCT=/tmp/elfcopy-test-passed
     echo 0 > ${TOTALCT}
     echo 0 > ${PASSEDCT}
 }
@@ -21,9 +21,9 @@ inittest() {
 
     TC=$1
     TCDIR=$2
-    TESTDIR=/tmp/bsdar-${TC}
-    OUTDIR=/tmp/bsdar-${TC}-out
-    RLTDIR=/tmp/bsdar-${TC}-rlt
+    TESTDIR=/tmp/${TC}
+    OUTDIR=/tmp/${TC}-out
+    RLTDIR=/tmp/${TC}-rlt
     rm -rf ${TESTDIR}
     rm -rf ${OUTDIR}
     rm -rf ${RLTDIR}
