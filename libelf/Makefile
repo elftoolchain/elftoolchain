@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	${.CURDIR}/..
+
 LIB=	elf
 
 SRCS=	elf.c							\
@@ -145,19 +147,6 @@ MLINKS+= \
 	gelf_xlatetof.3	elf${E}_xlatetom.3
 .endfor
 
-# Determine the target operating system that we are building for.
-.if ${unix:MFreeBSD*}
-OS_TARGET=freebsd
-.elif ${unix:MNetBSD*}
-OS_TARGET=netbsd
-.else
-.error Unsupported target operating system.
-.endif
-
-.if exists(${.CURDIR}/os.${OS_TARGET}.mk)
-.include "os.${OS_TARGET}.mk"
-.endif
-
 LIBELF_TEST_HOOKS?=	1
 .if defined(LIBELF_TEST_HOOKS) && (${LIBELF_TEST_HOOKS} > 0)
 CFLAGS+=	-DLIBELF_TEST_HOOKS=1
@@ -167,9 +156,4 @@ libelf_convert.c:	elf_types.m4 libelf_convert.m4
 libelf_fsize.c:		elf_types.m4 libelf_fsize.m4
 libelf_msize.c:		elf_types.m4 libelf_msize.m4
 
-.include <bsd.lib.mk>
-
-# Keep the .SUFFIXES line after the include of bsd.lib.mk
-.SUFFIXES:	.m4 .c
-.m4.c:
-	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
+.include "${TOP}/mk/elftoolchain.lib.mk"
