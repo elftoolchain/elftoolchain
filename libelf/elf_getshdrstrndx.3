@@ -25,45 +25,30 @@
 .\"
 .Dd August 5, 2009
 .Os
-.Dt ELF_GETSHSTRNDX 3
+.Dt ELF_GETSHDRSTRNDX 3
 .Sh NAME
-.Nm elf_getshstrndx ,
-.Nm elf_setshstrndx
-.Nd retrieve/update the index of the section name string table
+.Nm elf_getshdrstrndx
+.Nd retrieve the index of the section name string table
 .Sh LIBRARY
 .Lb libelf
 .Sh SYNOPSIS
 .In libelf.h
 .Ft int
-.Fn elf_getshstrndx "Elf *elf" "size_t *ndxptr"
-.Ft int
-.Fn elf_setshstrndx "Elf *elf" "size_t ndx"
+.Fn elf_getshdrstrndx "Elf *elf" "size_t *ndxptr"
 .Sh DESCRIPTION
 Function
-.Fn elf_getshstrndx
+.Fn elf_getshdrstrndx
 retrieves the section index of the string table containing section
 names from descriptor
 .Ar elf
 and stores it into the location pointed to by argument
 .Ar ndxptr .
-Function
-.Fn elf_getshstrndx
-is deprecated.
-Please use
-.Xr elf_getshdrstrndx 3
-instead.
 .Pp
-Function
-.Fn elf_setshstrndx
-sets the index of the section name string table to argument
-.Ar ndx .
-.Pp
-These routines allow applications to process both normal ELF
+This function allow applications to process both normal ELF
 objects and ELF objects that use extended section numbering uniformly.
 .Pp
 .Sh RETURN VALUES
-These functions return a non-zero value if successful, or zero in case
-of an error.
+These functions return zero if successful, or -1 in case of an error.
 .Sh ERRORS
 These functions can fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
