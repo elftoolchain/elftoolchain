@@ -1,0 +1,139 @@
+/*-
+ * Copyright (c) 2009 Kai Wang
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#include <stdlib.h>
+#include "_libdwarf.h"
+
+static int
+ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t off,
+    Dwarf_Ranges *rg, Dwarf_Unsigned *cnt)
+{
+	Dwarf_Unsigned start, end;
+	int i;
+
+	i = 0;
+	while (off < d->d_size) {
+
+		start = dbg->read(&d, &off, cu->cu_pointer_size);
+		end = dbg->read(&d, &off, cu->cu_pointer_size);
+
+		if (rg != NULL) {
+			rg[i].rg_start = start;
+			rg[i].rg_end = end;
+		}
+
+		i++;
+
+		if (start == 0 && end == 0)
+			break;
+	}
+
+	if (cnt != NULL)
+		*cnt = i;
+
+	return (DWARF_E_NONE);
+}
+
+int
+ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
+{
+	Dwarf_Rangelist rl;
+
+	STAILQ_FOREACH(rl, &dbg->dbg_rllist, rl_next)
+		if (rl->rl_offset == off)
+			break;
+
+	if (rl == NULL)
+		return (DWARF_E_NO_ENTRY);
+
+	if (ret_rl != NULL)
+		*ret_rl = rl;
+
+	return (DWARF_E_NONE);
+}
+
+void
+ranges_cleanup(Dwarf_Debug dbg)
+{
+	Dwarf_Rangelist rl, trl;
+
+	if (STAILQ_EMPTY(&dbg->dbg_rllist))
+		return;
+
+	STAILQ_FOREACH_SAFE(rl, &dbg->dbg_rllist, rl_next, trl) {
+		STAILQ_REMOVE(&dbg->dbg_rllist, rl, _Dwarf_Rangelist, rl_next);
+		if (rl->rl_rgarray)
+			free(rl->rl_rgarray);
+		free(rl);
+	}
+}
+
+int
+ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
+{
+	Elf_Data *d;
+	Dwarf_Rangelist rl;
+	Dwarf_Unsigned cnt;
+	int ret;
+
+	d = dbg->dbg_s[DWARF_debug_ranges].s_data;
+
+	if (ranges_find(dbg, off, NULL) != DWARF_E_NO_ENTRY)
+		return (DWARF_E_NONE);
+
+	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+
+	rl->rl_cu = cu;
+	rl->rl_offset = off;
+
+	ret = ranges_parse(dbg, cu, d, off, NULL, &cnt);
+	if (ret != DWARF_E_NONE) {
+		free(rl);
+		return (ret);
+	}
+
+	rl->rl_rglen = cnt;
+	if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
+	    NULL) {
+		free(rl);
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+
+	ret = ranges_parse(dbg, cu, d, off, rl->rl_rgarray, NULL);
+	if (ret != DWARF_E_NONE) {
+		free(rl->rl_rgarray);
+		free(rl);
+		return (ret);
+	}
+
+	STAILQ_INSERT_TAIL(&dbg->dbg_rllist, rl, rl_next);
+
+	return (DWARF_E_NONE);
+}
