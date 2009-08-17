@@ -1966,7 +1966,7 @@ dump_verdef(struct readelf *re, int dump)
 	while (buf + sizeof(Elf_Verdef) <= end) {
 		vd = (Elf_Verdef *) (uintptr_t) buf;
 		if (dump) {
-			printf("  0x%4.4x", buf - (uint8_t *)d->d_buf);
+			printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
 			printf(" vd_version: %u vd_flags: %d"
 			    " vd_ndx: %u vd_cnt: %u", vd->vd_version,
 			    vd->vd_flags, vd->vd_ndx, vd->vd_cnt);
@@ -2025,7 +2025,7 @@ dump_verneed(struct readelf *re, int dump)
 	while (buf + sizeof(Elf_Verneed) <= end) {
 		vn = (Elf_Verneed *) (uintptr_t) buf;
 		if (dump) {
-			printf("  0x%4.4x", buf - (uint8_t *)d->d_buf);
+			printf("  0x%4.4lx", buf - (uint8_t *)d->d_buf);
 			printf(" vn_version: %u vn_file: %s vn_cnt: %u\n",
 			    vn->vn_version,
 			    get_string(re, s->link, vn->vn_file),
@@ -2036,7 +2036,8 @@ dump_verneed(struct readelf *re, int dump)
 		while (buf2 + sizeof(Elf_Vernaux) <= end && j < vn->vn_cnt) {
 			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
 			if (dump)
-				printf("  0x%4.4x", buf2 - (uint8_t *)d->d_buf);
+				printf("  0x%4.4lx",
+				    buf2 - (uint8_t *)d->d_buf);
 			name = get_string(re, s->link, vna->vna_name);
 			if (dump)
 				printf("   vna_name: %s vna_flags: %u"
