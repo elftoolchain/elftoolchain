@@ -82,16 +82,17 @@ apply_relocations(Dwarf_Debug dbg, Elf_Data *reld, int secindx)
 static int
 relocate(Dwarf_Debug dbg, Dwarf_Error *error)
 {
-	Elf_Scn *scn = NULL;
+	Elf_Scn *scn;
+	Elf_Data *d;
 	GElf_Shdr shdr;
-	int i;
-	int ret = DWARF_E_NONE;
+	int elferr, i;
 
 	/* Look for sections which relocate the debug sections. */
+	scn = NULL;
 	while ((scn = elf_nextscn(dbg->dbg_elf, scn)) != NULL) {
 		if (gelf_getshdr(scn, &shdr) == NULL) {
-			DWARF_SET_ELF_ERROR(error, elf_errno());
-			return DWARF_E_ELF;
+			DWARF_SET_ELF_ERROR(error);
+			return (DWARF_E_ELF);
 		}
 
 		if (shdr.sh_type != SHT_RELA || shdr.sh_size == 0)
@@ -100,22 +101,23 @@ relocate(Dwarf_Debug dbg, Dwarf_Error *error)
 		for (i = 0; i < DWARF_DEBUG_SNAMES; i++) {
 			if (dbg->dbg_s[i].s_shnum == shdr.sh_info &&
 			    dbg->dbg_s[DWARF_symtab].s_shnum == shdr.sh_link) {
-				Elf_Data *rd;
-
-				/* Get the relocation data. */
-				if ((rd = elf_getdata(scn, NULL)) == NULL) {
-					DWARF_SET_ELF_ERROR(error, elf_errno());
-					return DWARF_E_ELF;
+				if ((d = elf_getdata(scn, NULL)) == NULL) {
+					elferr = elf_errno();
+					if (elferr != 0) {
+						_DWARF_SET_ERROR(error,
+						    DWARF_E_ELF, elferr);
+						return (DWARF_E_ELF);
+					} else
+						return (DWARF_E_NONE);
 				}
 
-				/* Apply the relocations. */
-				apply_relocations(dbg, rd, i);
+				apply_relocations(dbg, d, i);
 				break;
 			}
 		}
 	}
 
-	return ret;
+	return (DWARF_E_NONE);
 }
 
 static int
@@ -140,7 +142,7 @@ init_info(Dwarf_Debug dbg, Dwarf_Error *error)
 		/* Allocate memory for the first compilation unit. */
 		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return DWARF_E_MEMORY;
+			return (DWARF_E_MEMORY);
 		}
 
 		/* Save a pointer to containing dbg. */
@@ -256,14 +258,13 @@ elf_read(Dwarf_Debug dbg, Dwarf_Error *error)
 	GElf_Shdr shdr;
 	Elf_Scn *scn;
 	char *sname;
-	int i;
-	int ret;
+	int elferr, i, ret;
 
 	ret = DWARF_E_NONE;
 
 	/* Get a copy of the ELF header. */
 	if (gelf_getehdr(dbg->dbg_elf, &dbg->dbg_ehdr) == NULL) {
-		DWARF_SET_ELF_ERROR(error, elf_errno());
+		DWARF_SET_ELF_ERROR(error);
 		return (DWARF_E_ELF);
 	}
 
@@ -292,7 +293,7 @@ elf_read(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	/* Get the section index to the string table. */
 	if (elf_getshstrndx(dbg->dbg_elf, &dbg->dbg_stnum) == 0) {
-		DWARF_SET_ELF_ERROR(error, elf_errno());
+		DWARF_SET_ELF_ERROR(error);
 		return (DWARF_E_ELF);
 	}
 
@@ -301,35 +302,39 @@ elf_read(Dwarf_Debug dbg, Dwarf_Error *error)
 	while ((scn = elf_nextscn(dbg->dbg_elf, scn)) != NULL) {
 		/* Get a copy of the section header: */
 		if (gelf_getshdr(scn, &shdr) == NULL) {
-			DWARF_SET_ELF_ERROR(error, elf_errno());
+			DWARF_SET_ELF_ERROR(error);
 			return (DWARF_E_ELF);
 		}
 
 		/* Get a pointer to the section name: */
 		if ((sname = elf_strptr(dbg->dbg_elf, dbg->dbg_stnum,
 		    shdr.sh_name)) == NULL) {
-			DWARF_SET_ELF_ERROR(error, elf_errno());
+			DWARF_SET_ELF_ERROR(error);
 			return (DWARF_E_ELF);
 		}
 
 		/*
-		 * Look up the section name to check if it's
-		 * one we need for DWARF.
+		 * Look up the section name to check if it's one we need
+		 * for DWARF.
 		 */
 		for (i = 0; i < DWARF_DEBUG_SNAMES; i++) {
-			if (strcmp(sname, debug_snames[i]) == 0) {
-				dbg->dbg_s[i].s_sname = sname;
-				dbg->dbg_s[i].s_shnum = elf_ndxscn(scn);
-				dbg->dbg_s[i].s_scn = scn;
-				memcpy(&dbg->dbg_s[i].s_shdr, &shdr,
-				    sizeof(shdr));
-				if ((dbg->dbg_s[i].s_data =
-				    elf_getdata(scn, NULL)) == NULL) {
-					DWARF_SET_ELF_ERROR(error, elf_errno());
+			if (strcmp(sname, debug_snames[i]))
+				continue;
+
+			dbg->dbg_s[i].s_sname = sname;
+			dbg->dbg_s[i].s_shnum = elf_ndxscn(scn);
+			dbg->dbg_s[i].s_scn = scn;
+			memcpy(&dbg->dbg_s[i].s_shdr, &shdr, sizeof(shdr));
+			if ((dbg->dbg_s[i].s_data = elf_getdata(scn, NULL)) ==
+			    NULL) {
+				elferr = elf_errno();
+				if (elferr != 0) {
+					_DWARF_SET_ERROR(error, DWARF_E_ELF,
+					    elferr);
 					return (DWARF_E_ELF);
 				}
-				break;
 			}
+			break;
 		}
 	}
 

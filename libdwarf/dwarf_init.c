@@ -89,12 +89,12 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 	}
 
 	if (elf_version(EV_CURRENT) == EV_NONE) {
-		DWARF_SET_ELF_ERROR(error, elf_errno());
+		DWARF_SET_ELF_ERROR(error);
 		return (DW_DLV_ERROR);
 	}
 
 	if ((elf = elf_begin(fd, c, NULL)) == NULL) {
-		DWARF_SET_ELF_ERROR(error, elf_errno());
+		DWARF_SET_ELF_ERROR(error);
 		return (DW_DLV_ERROR);
 	}
 

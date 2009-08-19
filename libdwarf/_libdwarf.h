@@ -68,38 +68,29 @@ struct _libdwarf_globals {
 
 extern struct _libdwarf_globals _libdwarf;
 
-#define	DWARF_SET_ERROR(_e, _err)			\
-	do {						\
-		Dwarf_Error _de;			\
-							\
-		_de.err_error = _err;			\
-		_de.elf_error = 0;			\
-		_de.err_func  = __func__;		\
-		_de.err_line  = __LINE__;		\
-		_de.err_msg[0] = '\0';			\
-							\
-		if (_e)					\
-			*_e = _de;			\
-							\
-		if (_libdwarf.errhand)			\
-			_libdwarf.errhand(_de,		\
-			    _libdwarf.errarg);		\
-							\
-		if (_e == NULL &&			\
-		    _libdwarf.errhand == NULL)		\
-			abort();			\
+#define	_DWARF_SET_ERROR(_e, _err, _elf_err)				\
+	do {								\
+		Dwarf_Error _de;					\
+									\
+		_de.err_error = _err;					\
+		_de.elf_error = _elf_err;				\
+		_de.err_func  = __func__;				\
+		_de.err_line  = __LINE__;				\
+		_de.err_msg[0] = '\0';					\
+									\
+		if (_e)							\
+			*_e = _de;					\
+									\
+		if (_libdwarf.errhand)					\
+			_libdwarf.errhand(_de, _libdwarf.errarg);	\
+									\
+		if (_e == NULL && _libdwarf.errhand == NULL)		\
+			abort();					\
 	} while (0)
 
-#define	DWARF_SET_ELF_ERROR(_e, _err)			\
-	do {						\
-		if (_e) {				\
-			_e->err_error = DWARF_E_ELF;	\
-			_e->elf_error = _err;		\
-			_e->err_func  = __func__;	\
-			_e->err_line  = __LINE__;	\
-			_e->err_msg[0] = '\0';		\
-		}					\
-	} while (0)
+#define	DWARF_SET_ERROR(_e, _err)	_DWARF_SET_ERROR(_e, _err, 0)
+#define	DWARF_SET_ELF_ERROR(_e)						\
+	_DWARF_SET_ERROR(_e, DWARF_E_ELF, elf_errno())
 
 struct _Dwarf_AttrDef {
 	uint64_t	ad_attrib;		/* DW_AT_XXX */
