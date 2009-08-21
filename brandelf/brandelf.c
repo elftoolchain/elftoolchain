@@ -55,12 +55,27 @@ struct ELFtypes {
 };
 /* XXX - any more types? */
 static struct ELFtypes elftypes[] = {
-	{ "NetBSD",	ELFOSABI_NETBSD},
-	{ "Linux",	ELFOSABI_LINUX },
-	{ "Solaris",	ELFOSABI_SOLARIS },
+	{ "86Open",	ELFOSABI_86OPEN },
+	{ "AIX",	ELFOSABI_AIX },
+	{ "ARM",	ELFOSABI_ARM },
+#if	defined(ELFOSABI_AROS)
+	{ "AROS",	ELFOSABI_AROS },
+#endif
 	{ "FreeBSD",	ELFOSABI_FREEBSD },
+	{ "HP/UX",	ELFOSABI_HPUX},
+	{ "Hurd",	ELFOSABI_HURD },
+	{ "IRIX",	ELFOSABI_IRIX },
+	{ "Linux",	ELFOSABI_LINUX },
+	{ "Modesto",	ELFOSABI_MODESTO },
+	{ "NSK",	ELFOSABI_NSK },
+	{ "NetBSD",	ELFOSABI_NETBSD},
+	{ "None",	ELFOSABI_NONE},
 	{ "OpenBSD",	ELFOSABI_OPENBSD },
-	{ "SVR4",	ELFOSABI_SYSV }
+	{ "OpenVMS",	ELFOSABI_OPENVMS },
+	{ "Standalone",	ELFOSABI_STANDALONE },
+	{ "SVR4",	ELFOSABI_SYSV },
+	{ "Solaris",	ELFOSABI_SOLARIS },
+	{ "Tru64",	ELFOSABI_TRU64 }
 };
 
 int
