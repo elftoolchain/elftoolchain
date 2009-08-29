@@ -116,7 +116,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 
 	ret = DWARF_E_NONE;
 
-	if ((ds = _dwarf_find_section(dbg, "._debug_loc")) == NULL) {
+	if ((ds = _dwarf_find_section(dbg, ".debug_loc")) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DWARF_E_NO_ENTRY);
 	}
