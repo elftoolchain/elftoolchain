@@ -10,6 +10,7 @@ SRCS=	\
 	dwarf_cu.c		\
 	dwarf_dealloc.c		\
 	dwarf_die.c		\
+	dwarf_dump.c		\
 	dwarf_errmsg.c		\
 	dwarf_finish.c		\
 	dwarf_form.c		\
