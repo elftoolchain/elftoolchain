@@ -4,7 +4,12 @@
 
 # OS specific build instructions
 
+# Determine the host operating system flavor.
+OS_HOST != uname -s
+
 # Determine the target operating system that we are building for.
+# We rely on the make(1) builtin variable 'unix' being set
+# correctly in cross-build environments (see <sys.mk>).
 .if ${unix:MFreeBSD*}
 OS_TARGET=freebsd
 .elif ${unix:MNetBSD*}
