@@ -35,6 +35,8 @@ _dwarf_find_section(Dwarf_Debug dbg, const char *name)
 	Dwarf_Section *ds;
 	Dwarf_Half i;
 
+	assert(name != NULL);
+
 	for (i = 0; i < dbg->dbg_seccnt; i++) {
 		ds = &dbg->dbg_section[i];
 		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
@@ -108,8 +110,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		}			
 	}
 
-	if ((s = _dwarf_find_section(dbg, ".debug_abbrev")) == NULL ||
-	    _dwarf_find_section(dbg, ".debug_info" == NULL)) {
+	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
+	    ((s = _dwarf_find_section(dbg, ".debug_info")) == NULL)) {
 		free(dbg->dbg_section);
 		DWARF_SET_ERROR(error, DWARF_E_DEBUG_INFO);
 		return (DWARF_E_DEBUG_INFO);
