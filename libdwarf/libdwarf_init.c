@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007 John Birrell (jb@freebsd.org)
+ * Copyright (c) 2009 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,352 +24,117 @@
  * SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "_libdwarf.h"
 
-static const char *debug_snames[DWARF_DEBUG_SNAMES] = {
-	".debug_abbrev",
-	".debug_aranges",
-	".debug_frame",
-	".debug_info",
-	".debug_line",
-	".debug_pubnames",
-	".eh_frame",
-	".debug_macinfo",
-	".debug_str",
-	".debug_loc",
-	".debug_pubtypes",
-	".debug_ranges",
-	".debug_static_func",
-	".debug_static_vars",
-	".debug_types",
-	".debug_weaknames",
-	".symtab",
-	".strtab"
-};
-
-static int
-apply_relocations(Dwarf_Debug dbg, Elf_Data *reld, int secindx)
+Dwarf_Section *
+_dwarf_find_section(Dwarf_Debug dbg, const char *name)
 {
-	Elf_Data *d;
-	GElf_Rela rela;
-	int indx = 0;
-	int ret = DWARF_E_NONE;
-	uint64_t offset;
+	Dwarf_Section *ds;
+	Dwarf_Half i;
 
-	/* Point to the data to be relocated: */
-	d = dbg->dbg_s[secindx].s_data;
-
-	/* Enter a loop to process each relocation addend: */
-	while (gelf_getrela(reld, indx++, &rela) != NULL) {
-		GElf_Sym sym;
-		Elf64_Xword symindx = ELF64_R_SYM(rela.r_info);
-
-		if (gelf_getsym(dbg->dbg_s[DWARF_symtab].s_data, symindx, &sym) == NULL) {
-			printf("Couldn't find symbol index %lu for relocation\n",(u_long) symindx);
-			continue;
-		}
-
-		offset = rela.r_offset;
-
-		dbg->write(&d, &offset, rela.r_addend, dbg->dbg_pointer_size);
+	for (i = 0; i < dbg->dbg_seccnt; i++) {
+		ds = &dbg->dbg_section[i];
+		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
+		    return (ds);
 	}
 
-	return ret;
+	return (NULL);
 }
 
 static int
-relocate(Dwarf_Debug dbg, Dwarf_Error *error)
+_dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 {
-	Elf_Scn *scn;
-	Elf_Data *d;
-	GElf_Shdr shdr;
-	int elferr, i;
+	const Dwarf_Obj_Access_Methods *m;
+	Dwarf_Obj_Access_Section sec;
+	void *obj;
+	Dwarf_Section *s;
+	Dwarf_Unsigned cnt;
+	Dwarf_Half i;
+	int ret;
 
-	/* Look for sections which relocate the debug sections. */
-	scn = NULL;
-	while ((scn = elf_nextscn(dbg->dbg_elf, scn)) != NULL) {
-		if (gelf_getshdr(scn, &shdr) == NULL) {
-			DWARF_SET_ELF_ERROR(error);
-			return (DWARF_E_ELF);
-		}
+	assert(dbg != NULL);
+	assert(dbg->dbg_iface != NULL);
 
-		if (shdr.sh_type != SHT_RELA || shdr.sh_size == 0)
-			continue;
+	m = dbg->dbg_iface->methods;
+	obj = dbg->dbg_iface->object;
 
-		for (i = 0; i < DWARF_DEBUG_SNAMES; i++) {
-			if (dbg->dbg_s[i].s_shnum == shdr.sh_info &&
-			    dbg->dbg_s[DWARF_symtab].s_shnum == shdr.sh_link) {
-				if ((d = elf_getdata(scn, NULL)) == NULL) {
-					elferr = elf_errno();
-					if (elferr != 0) {
-						_DWARF_SET_ERROR(error,
-						    DWARF_E_ELF, elferr);
-						return (DWARF_E_ELF);
-					} else
-						return (DWARF_E_NONE);
-				}
+	assert(m != NULL);
+	assert(obj != NULL);
 
-				apply_relocations(dbg, d, i);
-				break;
-			}
-		}
+	if (m->get_byte_order(obj) == DW_OBJECT_MSB) {
+		dbg->read = _dwarf_read_msb;
+		dbg->write = _dwarf_write_msb;
+		dbg->decode = _dwarf_decode_msb;
+	} else {
+		dbg->read = _dwarf_read_lsb;
+		dbg->write = _dwarf_write_lsb;
+		dbg->decode = _dwarf_decode_lsb;
 	}
 
-	return (DWARF_E_NONE);
-}
+	dbg->dbg_pointer_size = m->get_pointer_size(obj);
 
-static int
-init_info(Dwarf_Debug dbg, Dwarf_Error *error)
-{
-	Dwarf_CU cu;
-	Elf_Data *d = NULL;
-	Elf_Scn *scn;
-	int dwarf_size, i;
-	int level = 0;
-	int relocated = 0;
-	int ret = DWARF_E_NONE;
-	uint64_t length;
-	uint64_t next_offset;
-	uint64_t offset = 0;
+	cnt = m->get_section_count(obj);
 
-	scn = dbg->dbg_s[DWARF_debug_info].s_scn;
-
-	d = dbg->dbg_s[DWARF_debug_info].s_data;
-
-	while (offset < d->d_size) {
-		/* Allocate memory for the first compilation unit. */
-		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
-		}
-
-		/* Save a pointer to containing dbg. */
-		cu->cu_dbg = dbg;
-
-		/* Save the offet to this compilation unit: */
-		cu->cu_offset = offset;
-
-		length = dbg->read(&d, &offset, 4);
-		if (length == 0xffffffff) {
-			length = dbg->read(&d, &offset, 8);
-			dwarf_size = 8;
-		} else
-			dwarf_size = 4;
-
-		/*
-		 * Check if there is enough ELF data for this CU.
-		 * This assumes that libelf gives us the entire
-		 * section in one Elf_Data object.
-		 */
-		if (length > d->d_size - offset) {
-			free(cu);
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_CU);
-			return (DWARF_E_INVALID_CU);
-		}
-
-		/* Relocate the DWARF sections if necessary: */
-		if (!relocated) {
-			if ((ret = relocate(dbg, error)) != DWARF_E_NONE)
-				return ret;
-			relocated = 1;
-		}
-
-		/* Compute the offset to the next compilation unit: */
-		next_offset = offset + length;
-
-		/* Initialise the compilation unit. */
-		cu->cu_length 		= length;
-		cu->cu_header_length	= (dwarf_size == 4) ? 4 : 12;
-		cu->cu_version		= dbg->read(&d, &offset, 2);
-		cu->cu_abbrev_offset	= dbg->read(&d, &offset, dwarf_size);
-		cu->cu_pointer_size	= dbg->read(&d, &offset, 1);
-		cu->cu_next_offset	= next_offset;
-
-		/* Initialise the list of abbrevs. */
-		STAILQ_INIT(&cu->cu_abbrev);
-
-		/* Initialise the list of dies. */
-		STAILQ_INIT(&cu->cu_die);
-
-		/* Initialise the hash table of dies. */
-		for (i = 0; i < DWARF_DIE_HASH_SIZE; i++)
-			STAILQ_INIT(&cu->cu_die_hash[i]);
-
-		/* Add the compilation unit to the list. */
-		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
-
-		if (cu->cu_version != 2 && cu->cu_version != 3) {
-			DWARF_SET_ERROR(error, DWARF_E_CU_VERSION);
-			ret = DWARF_E_CU_VERSION;
-			break;
-		}
-
-		/* Parse the .debug_abbrev info for this CU: */
-		if ((ret = abbrev_init(dbg, cu, error)) != DWARF_E_NONE)
-			break;
-
-		level = 0;
-
-		while (offset < next_offset && offset < d->d_size) {
-			Dwarf_Abbrev ab;
-			Dwarf_AttrDef ad;
-			Dwarf_Die die;
-			uint64_t abnum;
-			uint64_t die_offset = offset;;
-
-			abnum = read_uleb128(&d, &offset);
-
-			if (abnum == 0) {
-				level--;
-				continue;
-			}
-
-			if ((ab = abbrev_find(cu, abnum)) == NULL) {
-				DWARF_SET_ERROR(error, DWARF_E_MISSING_ABBREV);
-				return DWARF_E_MISSING_ABBREV;
-			}
-
-			if ((ret = die_add(cu, level, die_offset, abnum, ab,
-			    &die, error)) != DWARF_E_NONE)
-				return ret;
-
-			STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
-				if ((ret = attr_init(dbg, &d, &offset,
-				    dwarf_size, cu, die, ad, ad->ad_form, 0,
-				    error)) != DWARF_E_NONE)
-					return ret;
-			}
-
-			if (ab->ab_children == DW_CHILDREN_yes)
-				level++;
-		}
-
-		offset = next_offset;
-	}
-
-	return ret;
-}
-
-int
-elf_read(Dwarf_Debug dbg, Dwarf_Error *error)
-{
-	GElf_Shdr shdr;
-	Elf_Scn *scn;
-	char *sname;
-	int elferr, i, ret;
-
-	ret = DWARF_E_NONE;
-
-	/* Get a copy of the ELF header. */
-	if (gelf_getehdr(dbg->dbg_elf, &dbg->dbg_ehdr) == NULL) {
-		DWARF_SET_ELF_ERROR(error);
-		return (DWARF_E_ELF);
-	}
-
-	/* Check the ELF data format: */
-	switch (dbg->dbg_ehdr.e_ident[EI_DATA]) {
-	case ELFDATA2MSB:
-		dbg->read = read_msb;
-		dbg->write = write_msb;
-		dbg->decode = decode_msb;
-		break;
-
-	case ELFDATA2LSB:
-	case ELFDATANONE:
-	default:
-		dbg->read = read_lsb;
-		dbg->write = write_lsb;
-		dbg->decode = decode_lsb;
-		break;
-	}
-
-	/* Set default pointer size. */
-	if (gelf_getclass(dbg->dbg_elf) == ELFCLASS32)
-		dbg->dbg_pointer_size = 4;
-	else
-		dbg->dbg_pointer_size = 8;
-
-	/* Get the section index to the string table. */
-	if (elf_getshstrndx(dbg->dbg_elf, &dbg->dbg_stnum) == 0) {
-		DWARF_SET_ELF_ERROR(error);
-		return (DWARF_E_ELF);
-	}
-
-	/* Look for the debug sections. */
-	scn = NULL;
-	while ((scn = elf_nextscn(dbg->dbg_elf, scn)) != NULL) {
-		/* Get a copy of the section header: */
-		if (gelf_getshdr(scn, &shdr) == NULL) {
-			DWARF_SET_ELF_ERROR(error);
-			return (DWARF_E_ELF);
-		}
-
-		/* Get a pointer to the section name: */
-		if ((sname = elf_strptr(dbg->dbg_elf, dbg->dbg_stnum,
-		    shdr.sh_name)) == NULL) {
-			DWARF_SET_ELF_ERROR(error);
-			return (DWARF_E_ELF);
-		}
-
-		/*
-		 * Look up the section name to check if it's one we need
-		 * for DWARF.
-		 */
-		for (i = 0; i < DWARF_DEBUG_SNAMES; i++) {
-			if (strcmp(sname, debug_snames[i]))
-				continue;
-
-			dbg->dbg_s[i].s_sname = sname;
-			dbg->dbg_s[i].s_shnum = elf_ndxscn(scn);
-			dbg->dbg_s[i].s_scn = scn;
-			memcpy(&dbg->dbg_s[i].s_shdr, &shdr, sizeof(shdr));
-			if ((dbg->dbg_s[i].s_data = elf_getdata(scn, NULL)) ==
-			    NULL) {
-				elferr = elf_errno();
-				if (elferr != 0) {
-					_DWARF_SET_ERROR(error, DWARF_E_ELF,
-					    elferr);
-					return (DWARF_E_ELF);
-				}
-			}
-			break;
-		}
-	}
-
-	/* Check if any of the required sections are missing: */
-	if (dbg->dbg_s[DWARF_debug_abbrev].s_scn == NULL ||
-	    dbg->dbg_s[DWARF_debug_info].s_scn == NULL) {
-		/* Missing debug information. */
+	if (cnt == 0) {
 		DWARF_SET_ERROR(error, DWARF_E_DEBUG_INFO);
 		return (DWARF_E_DEBUG_INFO);
 	}
 
-	/* Initialise the loclist. */
-	TAILQ_INIT(&dbg->dbg_loclist);
+	dbg->dbg_seccnt = cnt;
 
-	/* Initialise rangelist list. */
-	STAILQ_INIT(&dbg->dbg_rllist);
+	if ((dbg->dbg_section = calloc(cnt, sizeof(Dwarf_Section))) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
 
-	/* Initialise the compilation-units. */
-	ret = init_info(dbg, error);
+	for (i = 0; i < cnt; i++) {
+		if (m->get_section_info(obj, i, &sec, &ret) != DW_DLV_OK) {
+			free(dbg->dbg_section);
+			DWARF_SET_ERROR(error, ret);
+			return (ret);
+		}
+
+		dbg->dbg_section[i].ds_size = sec.size;
+		dbg->dbg_section[i].ds_name = sec.name;
+		
+		if (m->load_section(obj, i, &dbg->dbg_section[i].ds_data, &ret)
+		    != DW_DLV_OK) {
+			free(dbg->dbg_section);
+			DWARF_SET_ERROR(error, ret);
+			return (ret);
+		}			
+	}
+
+	if ((s = _dwarf_find_section(dbg, ".debug_abbrev")) == NULL ||
+	    _dwarf_find_section(dbg, ".debug_info" == NULL)) {
+		free(dbg->dbg_section);
+		DWARF_SET_ERROR(error, DWARF_E_DEBUG_INFO);
+		return (DWARF_E_DEBUG_INFO);
+	}
+
+	ret = _dwarf_info_init(dbg, s, error);
 	if (ret != DWARF_E_NONE)
 		return (ret);
 
 #define	INIT_NAMETBL(NDX, TBL)						\
 	do {								\
-		if (dbg->dbg_s[DWARF_debug_##NDX].s_scn != NULL) {	\
-			ret = nametbl_init(dbg, &dbg->dbg_##TBL,	\
-			    dbg->dbg_s[DWARF_debug_##NDX].s_data,	\
-			    error);					\
+		if ((s = _dwarf_find_section(dbg, ".debug_##NDX")) !=	\
+		    NULL) {						\
+			ret = _dwarf_nametbl_init(dbg, &dbg->dbg_##TBL,	\
+			    s, error);					\
 			if (ret != DWARF_E_NONE)			\
 				return (ret);				\
 		}							\
 	} while (0)
 
 
-	/* Initialise several name lookup sections, if exist. */
+	/*
+	 * Initialise name lookup sections, if exist.
+	 */
+
 	INIT_NAMETBL(pubnames, globals);
 	INIT_NAMETBL(pubtypes, pubtypes);
 	INIT_NAMETBL(weaknames, weaks);
@@ -379,28 +144,69 @@ elf_read(Dwarf_Debug dbg, Dwarf_Error *error)
 
 #undef	INIT_NAMETBL
 
-	/* Initialise call frame data. */
-	ret = frame_init(dbg, error);
+	/*
+	 * Initialise call frame data.
+	 */
+	ret = _dwarf_frame_init(dbg, error);
 	if (ret != DWARF_E_NONE)
 		return (ret);
 
-	/* Initialise address range data. */
-	STAILQ_INIT(&dbg->dbg_aslist);
-	if (dbg->dbg_s[DWARF_debug_aranges].s_scn != NULL) {
-		ret = arange_init(dbg, dbg->dbg_s[DWARF_debug_aranges].s_data,
-		    error);
+	/*
+	 * Initialise address range data.
+	 */
+	if ((s = _dwarf_find_section(dbg, ".debug_aranges")) != NULL) {
+		ret = _dwarf_arange_init(dbg, s, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}
 
-	/* Initialise macinfo data. */
-	STAILQ_INIT(&dbg->dbg_mslist);
-	if (dbg->dbg_s[DWARF_debug_macinfo].s_scn != NULL) {
-		ret = macinfo_init(dbg, dbg->dbg_s[DWARF_debug_macinfo].s_data,
-		    error);
+	/*
+	 * Initialise macinfo data.
+	 */
+	if ((s = _dwarf_find_section(dbg, ".debug_macinfo")) != NULL) {
+		ret = _dwarf_macinfo_init(dbg, s, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}
 
 	return (ret);
 }
+
+int
+_dwarf_init(Dwarf_Debug dbg, Dwarf_Error* error)
+{
+	int ret;
+
+	ret = DWARF_E_NONE;
+
+	STAILQ_INIT(&dbg->dbg_cu);
+	STAILQ_INIT(&dbg->dbg_rllist);
+	STAILQ_INIT(&dbg->dbg_aslist);
+	STAILQ_INIT(&dbg->dbg_mslist);
+	TAILQ_INIT(&dbg->dbg_loclist);
+
+	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
+		ret = _dwarf_consumer_init(dbg, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+	}
+
+	return (DWARF_E_NONE);
+}
+
+#if 0
+Dwarf_P_Debug
+_dwarf_producer_init(Dwarf_Error *error)
+{
+	Dwarf_P_Debug dbg;
+
+	dbg = calloc(1, sizeof(struct _Dwarf_Debug));
+	if (dbg == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (NULL);
+	}
+
+	return (dbg);
+}
+#endif
+

@@ -30,7 +30,7 @@
 #include "_libdwarf.h"
 
 static int
-lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
+_dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
     Dwarf_Error *error)
 {
 	Dwarf_LineFile lf;
@@ -57,9 +57,9 @@ lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 		snprintf(lf->lf_fullpath, slen, "%s/%s", compdir, lf->lf_fname);
 	}
 	src += strlen(lf->lf_fname) + 1;
-	lf->lf_dirndx = decode_uleb128(&src);
-	lf->lf_mtime = decode_uleb128(&src);
-	lf->lf_size = decode_uleb128(&src);
+	lf->lf_dirndx = _dwarf_decode_uleb128(&src);
+	lf->lf_mtime = _dwarf_decode_uleb128(&src);
+	lf->lf_size = _dwarf_decode_uleb128(&src);
 	STAILQ_INSERT_TAIL(&li->li_lflist, lf, lf_next);
 	li->li_lflen++;
 
@@ -69,8 +69,8 @@ lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 }
 
 static int
-lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p, uint8_t *pe,
-    const char *compdir, Dwarf_Error *error)
+_dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
+    uint8_t *pe, const char *compdir, Dwarf_Error *error)
 {
 	Dwarf_Debug dbg;
 	Dwarf_Line ln, tln;
@@ -133,7 +133,7 @@ lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p, uint8_t *pe,
 			 */
 
 			p++;
-			opsize = decode_uleb128(&p);
+			opsize = _dwarf_decode_uleb128(&p);
 			switch (*p) {
 			case DW_LNE_end_sequence:
 				p++;
@@ -147,7 +147,8 @@ lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p, uint8_t *pe,
 				break;
 			case DW_LNE_define_file:
 				p++;
-				ret = lineno_add_file(li, &p, compdir, error);
+				ret = _dwarf_lineno_add_file(li, &p, compdir,
+				    error);
 				if (ret != DWARF_E_NONE)
 					goto prog_fail;
 				break;
@@ -170,16 +171,17 @@ lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p, uint8_t *pe,
 				epilogue_begin = 0;
 				break;
 			case DW_LNS_advance_pc:
-				address += decode_uleb128(&p) * li->li_minlen;
+				address += _dwarf_decode_uleb128(&p) *
+				    li->li_minlen;
 				break;
 			case DW_LNS_advance_line:
-				line += decode_sleb128(&p);
+				line += _dwarf_decode_sleb128(&p);
 				break;
 			case DW_LNS_set_file:
-				file = decode_uleb128(&p);
+				file = _dwarf_decode_uleb128(&p);
 				break;
 			case DW_LNS_set_column:
-				column = decode_uleb128(&p);
+				column = _dwarf_decode_uleb128(&p);
 				break;
 			case DW_LNS_negate_stmt:
 				is_stmt = !is_stmt;
@@ -200,7 +202,7 @@ lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p, uint8_t *pe,
 				epilogue_begin = 1;
 				break;
 			case DW_LNS_set_isa:
-				isa = decode_uleb128(&p);
+				isa = _dwarf_decode_uleb128(&p);
 				break;
 			default:
 				/* Unrecognized extened opcodes. What to do? */
@@ -241,14 +243,14 @@ prog_fail:
 }
 
 int
-lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
+_dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 {
 	Dwarf_Debug dbg;
+	Dwarf_Section *ds;
 	Dwarf_CU cu;
 	Dwarf_Attribute at;
 	Dwarf_LineInfo li;
 	Dwarf_LineFile lf, tlf;
-	Elf_Data *d;
 	const char *compdir;
 	uint64_t length, hdroff, endoff;
 	uint8_t *p;
@@ -259,7 +261,8 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 
 	dbg = cu->cu_dbg;
 	assert(dbg != NULL);
-	if (dbg->dbg_s[DWARF_debug_line].s_scn == NULL)
+
+	if ((ds = _dwarf_find_section(dbg, ".debug_line")) == NULL)
 		return (DWARF_E_NONE);
 
 	/*
@@ -267,7 +270,7 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 * will use the dir to create full pathnames, if need.
 	 */
 	compdir = NULL;
-	at = attr_find(die, DW_AT_comp_dir);
+	at = _dwarf_attr_find(die, DW_AT_comp_dir);
 	if (at != NULL) {
 		switch (at->at_form) {
 		case DW_FORM_strp:
@@ -281,16 +284,14 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 		}
 	}
 
-	d = dbg->dbg_s[DWARF_debug_line].s_data;
-
-	length = dbg->read(&d, &offset, 4);
+	length = dbg->read(ds->ds_data, &offset, 4);
 	if (length == 0xffffffff) {
 		dwarf_size = 8;
-		length = dbg->read(&d, &offset, 8);
+		length = dbg->read(ds->ds_data, &offset, 8);
 	} else
 		dwarf_size = 4;
 
-	if (length > d->d_size - offset) {
+	if (length > ds->ds_size - offset) {
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_LINE);
 		return (DWARF_E_INVALID_LINE);
 	}
@@ -305,14 +306,14 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 */
 	li->li_length = length;
 	endoff = offset + length;
-	li->li_version = dbg->read(&d, &offset, 2); /* FIXME: verify version */
-	li->li_hdrlen = dbg->read(&d, &offset, dwarf_size);
+	li->li_version = dbg->read(ds->ds_data, &offset, 2); /* FIXME: verify version */
+	li->li_hdrlen = dbg->read(ds->ds_data, &offset, dwarf_size);
 	hdroff = offset;
-	li->li_minlen = dbg->read(&d, &offset, 1);
-	li->li_defstmt = dbg->read(&d, &offset, 1);
-	li->li_lbase = dbg->read(&d, &offset, 1);
-	li->li_lrange = dbg->read(&d, &offset, 1);
-	li->li_opbase = dbg->read(&d, &offset, 1);
+	li->li_minlen = dbg->read(ds->ds_data, &offset, 1);
+	li->li_defstmt = dbg->read(ds->ds_data, &offset, 1);
+	li->li_lbase = dbg->read(ds->ds_data, &offset, 1);
+	li->li_lrange = dbg->read(ds->ds_data, &offset, 1);
+	li->li_opbase = dbg->read(ds->ds_data, &offset, 1);
 	STAILQ_INIT(&li->li_lflist);
 	STAILQ_INIT(&li->li_lnlist);
 		
@@ -333,13 +334,13 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 * element is not used.
 	 */
 	for (i = 1; i < li->li_opbase; i++)
-		li->li_oplen[i] = dbg->read(&d, &offset, 1);
+		li->li_oplen[i] = dbg->read(ds->ds_data, &offset, 1);
 
 	/*
 	 * Check how many strings in the include dir string array.
 	 */
 	length = 0;
-	p = (uint8_t *) d->d_buf + offset;
+	p = ds->ds_data + offset;
 	while (*p != '\0') {
 		while (*p++ != '\0')
 			;
@@ -347,7 +348,7 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	}
 
 	/* Sanity check. */
-	if (p - (uint8_t *)d->d_buf > (int)d->d_size) {
+	if (p - ds->ds_data > (int) ds->ds_size) {
 		ret = DWARF_E_INVALID_LINE;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
@@ -361,7 +362,7 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 
 	/* Fill in include dir array. */
 	i = 0;
-	p = (uint8_t *) d->d_buf + offset;
+	p = ds->ds_data + offset;
 	while (*p != '\0') {
 		li->li_incdirs[i++] = (char *)p;
 		while (*p++ != '\0')
@@ -374,10 +375,10 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 * Process file list.
 	 */
 	while (*p != '\0') {
-		ret = lineno_add_file(li, &p, compdir, error);
+		ret = _dwarf_lineno_add_file(li, &p, compdir, error);
 		if (ret != DWARF_E_NONE)
 			goto fail_cleanup;
-		if (p - (uint8_t *)d->d_buf > (int)d->d_size) {
+		if (p - ds->ds_data > (int) ds->ds_size) {
 			ret = DWARF_E_INVALID_LINE;
 			DWARF_SET_ERROR(error, ret);
 			goto fail_cleanup;
@@ -387,7 +388,7 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	p++;
 
 	/* Sanity check. */
-	if (p - (uint8_t *)d->d_buf - hdroff != li->li_hdrlen) {
+	if (p - ds->ds_data - hdroff != li->li_hdrlen) {
 		ret = DWARF_E_INVALID_LINE;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
@@ -396,8 +397,8 @@ lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	/*
 	 * Process line number program.
 	 */
-	ret = lineno_run_program(cu, li, p, (uint8_t *)d->d_buf + endoff,
-	    compdir, error);
+	ret = _dwarf_lineno_run_program(cu, li, p, ds->ds_data + endoff, compdir,
+	    error);
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 

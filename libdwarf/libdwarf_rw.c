@@ -27,12 +27,14 @@
 #include "_libdwarf.h"
 
 uint64_t
-read_lsb(Elf_Data **dp, uint64_t *offsetp, int bytes_to_read)
+_dwarf_read_lsb(uint8_t *data, uint64_t *offsetp, int bytes_to_read)
 {
-	uint64_t ret = 0;
+	uint64_t ret;
+	uint8_t *src;
 
-	uint8_t *src = (uint8_t *) (*dp)->d_buf + *offsetp;
+	src = data + *offsetp;
 
+	ret = 0;
 	switch (bytes_to_read) {
 	case 8:
 		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
@@ -46,7 +48,69 @@ read_lsb(Elf_Data **dp, uint64_t *offsetp, int bytes_to_read)
 		break;
 	default:
 		return 0;
+	}
+
+	*offsetp += bytes_to_read;
+
+	return (ret);
+}
+
+uint64_t
+_dwarf_decode_lsb(uint8_t **data, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = *data;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 8:
+		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
+		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
+	case 4:
+		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
+	case 2:
+		ret |= ((uint64_t) src[1]) << 8;
+	case 1:
+		ret |= src[0];
 		break;
+	default:
+		return 0;
+	}
+
+	*data += bytes_to_read;
+
+	return ret;
+}
+
+uint64_t
+_dwarf_read_msb(uint8_t *data, uint64_t *offsetp, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = data + *offsetp;
+
+	switch (bytes_to_read) {
+	case 1:
+		ret = src[0];
+		break;
+	case 2:
+		ret = src[1] | ((uint64_t) src[0]) << 8;
+		break;
+	case 4:
+		ret = src[3] | ((uint64_t) src[2]) << 8;
+		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
+		break;
+	case 8:
+		ret = src[7] | ((uint64_t) src[6]) << 8;
+		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
+		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
+		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
+		break;
+	default:
+		return 0;
 	}
 
 	*offsetp += bytes_to_read;
@@ -55,40 +119,14 @@ read_lsb(Elf_Data **dp, uint64_t *offsetp, int bytes_to_read)
 }
 
 uint64_t
-decode_lsb(uint8_t **dp, int bytes_to_read)
+_dwarf_decode_msb(uint8_t **data, int bytes_to_read)
 {
-	uint64_t ret = 0;
+	uint64_t ret;
+	uint8_t *src;
 
-	uint8_t *src = *dp;
+	src = *data;
 
-	switch (bytes_to_read) {
-	case 8:
-		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
-		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
-	case 4:
-		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
-	case 2:
-		ret |= ((uint64_t) src[1]) << 8;
-	case 1:
-		ret |= src[0];
-		break;
-	default:
-		return 0;
-		break;
-	}
-
-	*dp += bytes_to_read;
-
-	return ret;
-}
-
-uint64_t
-read_msb(Elf_Data **dp, uint64_t *offsetp, int bytes_to_read)
-{
-	uint64_t ret = 0;
-
-	uint8_t *src = (uint8_t *) (*dp)->d_buf + *offsetp;
-
+	ret = 0;
 	switch (bytes_to_read) {
 	case 1:
 		ret = src[0];
@@ -111,49 +149,18 @@ read_msb(Elf_Data **dp, uint64_t *offsetp, int bytes_to_read)
 		break;
 	}
 
-	*offsetp += bytes_to_read;
-
-	return ret;
-}
-
-uint64_t
-decode_msb(uint8_t **dp, int bytes_to_read)
-{
-	uint64_t ret = 0;
-
-	uint8_t *src = *dp;
-
-	switch (bytes_to_read) {
-	case 1:
-		ret = src[0];
-		break;
-	case 2:
-		ret = src[1] | ((uint64_t) src[0]) << 8;
-		break;
-	case 4:
-		ret = src[3] | ((uint64_t) src[2]) << 8;
-		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
-		break;
-	case 8:
-		ret = src[7] | ((uint64_t) src[6]) << 8;
-		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
-		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
-		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
-		break;
-	default:
-		return 0;
-		break;
-	}
-
-	*dp += bytes_to_read;
+	*data += bytes_to_read;
 
 	return ret;
 }
 
 void
-write_lsb(Elf_Data **dp, uint64_t *offsetp, uint64_t value, int bytes_to_write)
+_dwarf_write_lsb(uint8_t *data, uint64_t *offsetp, uint64_t value,
+    int bytes_to_write)
 {
-	uint8_t *dst = (uint8_t *) (*dp)->d_buf + *offsetp;
+	uint8_t *dst;
+
+	dst = data + *offsetp;
 
 	switch (bytes_to_write) {
 	case 8:
@@ -171,16 +178,18 @@ write_lsb(Elf_Data **dp, uint64_t *offsetp, uint64_t value, int bytes_to_write)
 		break;
 	default:
 		return;
-		break;
 	}
 
 	*offsetp += bytes_to_write;
 }
 
 void
-write_msb(Elf_Data **dp, uint64_t *offsetp, uint64_t value, int bytes_to_write)
+_dwarf_write_msb(uint8_t *data, uint64_t *offsetp, uint64_t value,
+    int bytes_to_write)
 {
-	uint8_t *dst = (uint8_t *) (*dp)->d_buf + *offsetp;
+	uint8_t *dst;
+
+	dst = data + *offsetp;
 
 	switch (bytes_to_write) {
 	case 8:
@@ -201,20 +210,20 @@ write_msb(Elf_Data **dp, uint64_t *offsetp, uint64_t value, int bytes_to_write)
 		break;
 	default:
 		return;
-		break;
 	}
 
 	*offsetp += bytes_to_write;
 }
 
 int64_t
-read_sleb128(Elf_Data **dp, uint64_t *offsetp)
+_dwarf_read_sleb128(uint8_t *data, uint64_t *offsetp)
 {
 	int64_t ret = 0;
 	uint8_t b;
 	int shift = 0;
+	uint8_t *src;
 
-	uint8_t *src = (uint8_t *) (*dp)->d_buf + *offsetp;
+	src = data + *offsetp;
 
 	do {
 		b = *src++;
@@ -229,17 +238,18 @@ read_sleb128(Elf_Data **dp, uint64_t *offsetp)
 	if (shift < 32 && (b & 0x40) != 0)
 		ret |= (-1 << shift);
 
-	return ret;
+	return (ret);
 }
 
 uint64_t
-read_uleb128(Elf_Data **dp, uint64_t *offsetp)
+_dwarf_read_uleb128(uint8_t *data, uint64_t *offsetp)
 {
 	uint64_t ret = 0;
 	uint8_t b;
 	int shift = 0;
+	uint8_t *src;
 
-	uint8_t *src = (uint8_t *) (*dp)->d_buf + *offsetp;
+	src = data + *offsetp;
 
 	do {
 		b = *src++;
@@ -251,11 +261,11 @@ read_uleb128(Elf_Data **dp, uint64_t *offsetp)
 		shift += 7;
 	} while ((b & 0x80) != 0);
 
-	return ret;
+	return (ret);
 }
 
 int64_t
-decode_sleb128(uint8_t **dp)
+_dwarf_decode_sleb128(uint8_t **dp)
 {
 	int64_t ret = 0;
 	uint8_t b;
@@ -276,11 +286,11 @@ decode_sleb128(uint8_t **dp)
 
 	*dp = src;
 
-	return ret;
+	return (ret);
 }
 
 uint64_t
-decode_uleb128(uint8_t **dp)
+_dwarf_decode_uleb128(uint8_t **dp)
 {
 	uint64_t ret = 0;
 	uint8_t b;
@@ -298,39 +308,35 @@ decode_uleb128(uint8_t **dp)
 
 	*dp = src;
 
-	return ret;
+	return (ret);
 }
 
 char *
-read_string(Elf_Data **dp, uint64_t *offsetp)
+_dwarf_read_string(void *data, Dwarf_Unsigned size, uint64_t *offsetp)
 {
-	char *ret;
+	char *ret, *src;
 
-	char *src = (char *) (*dp)->d_buf + *offsetp;
+	ret = src = (char *) data + *offsetp;
 
-	ret = src;
-
-	while (*src != '\0' && *offsetp < (*dp)->d_size) {
+	while (*src != '\0' && *offsetp < size) {
 		src++;
 		(*offsetp)++;
 	}
 
-	if (*src == '\0' && *offsetp < (*dp)->d_size)
+	if (*src == '\0' && *offsetp < size)
 		(*offsetp)++;
 
-	return ret;
+	return (ret);
 }
 
 uint8_t *
-read_block(Elf_Data **dp, uint64_t *offsetp, uint64_t length)
+_dwarf_read_block(void *data, uint64_t *offsetp, uint64_t length)
 {
-	uint8_t *ret;
+	uint8_t *ret, *src;
 
-	uint8_t *src = (char *) (*dp)->d_buf + *offsetp;
-
-	ret = src;
+	ret = src = (uint8_t *) data + *offsetp;
 
 	(*offsetp) += length;
 
-	return ret;
+	return (ret);
 }

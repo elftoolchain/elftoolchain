@@ -28,17 +28,17 @@
 #include "_libdwarf.h"
 
 static int
-ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t off,
-    Dwarf_Ranges *rg, Dwarf_Unsigned *cnt)
+_dwarf_ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
+    uint64_t off, Dwarf_Ranges *rg, Dwarf_Unsigned *cnt)
 {
 	Dwarf_Unsigned start, end;
 	int i;
 
 	i = 0;
-	while (off < d->d_size) {
+	while (off < ds->ds_size) {
 
-		start = dbg->read(&d, &off, cu->cu_pointer_size);
-		end = dbg->read(&d, &off, cu->cu_pointer_size);
+		start = dbg->read(ds->ds_data, &off, cu->cu_pointer_size);
+		end = dbg->read(ds->ds_data, &off, cu->cu_pointer_size);
 
 		if (rg != NULL) {
 			rg[i].rg_start = start;
@@ -58,7 +58,7 @@ ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t off,
 }
 
 int
-ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
+_dwarf_ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
 {
 	Dwarf_Rangelist rl;
 
@@ -76,7 +76,7 @@ ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
 }
 
 void
-ranges_cleanup(Dwarf_Debug dbg)
+_dwarf_ranges_cleanup(Dwarf_Debug dbg)
 {
 	Dwarf_Rangelist rl, trl;
 
@@ -92,16 +92,19 @@ ranges_cleanup(Dwarf_Debug dbg)
 }
 
 int
-ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
+_dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
 {
-	Elf_Data *d;
+	Dwarf_Section *ds;
 	Dwarf_Rangelist rl;
 	Dwarf_Unsigned cnt;
 	int ret;
 
-	d = dbg->dbg_s[DWARF_debug_ranges].s_data;
+	if ((ds = _dwarf_find_section(dbg, ".debug_ranges")) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		return (DWARF_E_NO_ENTRY);
+	}
 
-	if (ranges_find(dbg, off, NULL) != DWARF_E_NO_ENTRY)
+	if (_dwarf_ranges_find(dbg, off, NULL) != DWARF_E_NO_ENTRY)
 		return (DWARF_E_NONE);
 
 	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
@@ -112,7 +115,7 @@ ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
 	rl->rl_cu = cu;
 	rl->rl_offset = off;
 
-	ret = ranges_parse(dbg, cu, d, off, NULL, &cnt);
+	ret = _dwarf_ranges_parse(dbg, cu, ds, off, NULL, &cnt);
 	if (ret != DWARF_E_NONE) {
 		free(rl);
 		return (ret);
@@ -126,7 +129,7 @@ ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
 		return (DWARF_E_MEMORY);
 	}
 
-	ret = ranges_parse(dbg, cu, d, off, rl->rl_rgarray, NULL);
+	ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray, NULL);
 	if (ret != DWARF_E_NONE) {
 		free(rl->rl_rgarray);
 		free(rl);

@@ -30,7 +30,7 @@
 #include "_libdwarf.h"
 
 int
-die_add(Dwarf_CU cu, int level, uint64_t offset, uint64_t abnum,
+_dwarf_die_add(Dwarf_CU cu, int level, uint64_t offset, uint64_t abnum,
     Dwarf_Abbrev ab, Dwarf_Die *diep, Dwarf_Error *error)
 {
 	Dwarf_Die die;
@@ -73,7 +73,7 @@ die_add(Dwarf_CU cu, int level, uint64_t offset, uint64_t abnum,
 
 /* Find die at offset 'off' within the same CU. */
 Dwarf_Die
-die_find(Dwarf_Die die, Dwarf_Unsigned off)
+_dwarf_die_find(Dwarf_Die die, Dwarf_Unsigned off)
 {
 	Dwarf_CU cu;
 	Dwarf_Die die1;

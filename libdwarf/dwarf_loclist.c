@@ -54,8 +54,8 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		switch (at->at_form) {
 		case DW_FORM_data4:
 		case DW_FORM_data8:
-			ret = loclist_find(at->at_cu->cu_dbg, at->u[0].u64,
-			    &ll);
+			ret = _dwarf_loclist_find(at->at_cu->cu_dbg,
+			    at->u[0].u64, &ll);
 			if (ret == DWARF_E_NO_ENTRY) {
 				/* Malformed Attr? */
 				DWARF_SET_ERROR(error, ret);
@@ -116,8 +116,8 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 		switch (at->at_form) {
 		case DW_FORM_data4:
 		case DW_FORM_data8:
-			ret = loclist_find(at->at_cu->cu_dbg, at->u[0].u64,
-			    &ll);
+			ret = _dwarf_loclist_find(at->at_cu->cu_dbg,
+			    at->u[0].u64, &ll);
 			if (ret == DWARF_E_NO_ENTRY) {
 				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 				return (DW_DLV_NO_ENTRY);
@@ -158,6 +158,7 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 {
 	Dwarf_Loclist ll, next_ll;
 	Dwarf_Locdesc *ld;
+	Dwarf_Section *ds;
 	int i, ret;
 
 	if (dbg == NULL || hipc == NULL || lopc == NULL || data == NULL ||
@@ -166,7 +167,7 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = loclist_find(dbg, offset, &ll);
+	ret = _dwarf_loclist_find(dbg, offset, &ll);
 	if (ret == DWARF_E_NO_ENTRY) {
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 		return (DW_DLV_NO_ENTRY);
@@ -186,16 +187,16 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		}
 	}
 
-	assert(dbg->dbg_s[DWARF_debug_loc].s_data != NULL);
-	*data = (uint8_t *)dbg->dbg_s[DWARF_debug_loc].s_data->d_buf +
-	    ll->ll_offset;
+	ds = _dwarf_find_section(dbg, ".debug_loc");
+	assert(ds != NULL);
+	*data = (uint8_t *) ds->ds_data + ll->ll_offset;
 	*entry_len = ll->ll_length;
 
 	next_ll = TAILQ_NEXT(ll, ll_next);
 	if (next_ll != NULL)
 		*next_entry = next_ll->ll_offset;
 	else
-		*next_entry = dbg->dbg_s[DWARF_debug_loc].s_data->d_size;
+		*next_entry = ds->ds_size;
 
 	return (DW_DLV_OK);
 }
@@ -214,7 +215,7 @@ dwarf_loclist_from_expr(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len,
+	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len,
 	    dbg->dbg_pointer_size, error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
@@ -244,7 +245,8 @@ dwarf_loclist_from_expr_a(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len, addr_size, error);
+	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len, addr_size,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -290,7 +292,7 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, attr)) == NULL) {
+	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
@@ -307,8 +309,8 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 	case DW_FORM_block1:
 	case DW_FORM_block2:
 	case DW_FORM_block4:
-		ret = loc_fill_locexpr(dbg, &lbuf, at->u[1].u8p, at->u[0].u64,
-		    die->die_cu->cu_pointer_size, error);
+		ret = _dwarf_loc_fill_locexpr(dbg, &lbuf, at->u[1].u8p,
+		    at->u[0].u64, die->die_cu->cu_pointer_size, error);
 		*lenp = 1;
 		break;
 	default:

@@ -250,7 +250,8 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = frame_get_internal_table(fde, pc_requested, &rt, &pc, error);
+	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -291,7 +292,8 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	dbg = fde->fde_dbg;
 	assert(dbg != NULL);
 
-	ret = frame_get_internal_table(fde, pc_requested, &rt, &pc, error);
+	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -337,7 +339,8 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = frame_get_internal_table(fde, pc_requested, &rt, &pc, error);
+	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -368,7 +371,8 @@ dwarf_get_fde_info_for_cfa_reg3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = frame_get_internal_table(fde, pc_requested, &rt, &pc, error);
+	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -402,11 +406,12 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	dbg = fde->fde_dbg;
 	assert(dbg != NULL);
 
-	ret = frame_get_internal_table(fde, pc_requested, &rt, &pc, error);
+	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
+	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
-	ret = frame_regtable_copy(dbg, &reg_table, rt, error);
+	ret = _dwarf_frame_regtable_copy(dbg, &reg_table, rt, error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -428,7 +433,7 @@ dwarf_expand_frame_instructions(Dwarf_Debug dbg, Dwarf_Ptr instruction,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = frame_get_fop(dbg, instruction, len, ret_oplist, ret_opcnt,
+	ret = _dwarf_frame_get_fop(dbg, instruction, len, ret_oplist, ret_opcnt,
 	    error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
@@ -446,7 +451,7 @@ dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *oplist, Dwarf_Signed opcnt,
 		return (DW_DLV_ERROR);
 	}
 
-	frame_free_fop(oplist, opcnt);
+	_dwarf_frame_free_fop(oplist, opcnt);
 
 	return (DW_DLV_OK);
 }

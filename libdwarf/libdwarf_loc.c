@@ -37,7 +37,7 @@
  * the opcode and oprand in it.
  */
 static int
-loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
+_dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
     uint8_t *p, int len)
 {
 	int count;
@@ -197,7 +197,7 @@ loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_plus_uconst:
 		case DW_OP_regx:
 		case DW_OP_piece:
-			operand1 = decode_uleb128(&p);
+			operand1 = _dwarf_decode_uleb128(&p);
 			break;
 
 		/* Operations with a signed LEB128 operand. */
@@ -235,7 +235,7 @@ loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_breg30:
 		case DW_OP_breg31:
 		case DW_OP_fbreg:
-			operand1 = decode_sleb128(&p);
+			operand1 = _dwarf_decode_sleb128(&p);
 			break;
 
 		/*
@@ -243,8 +243,8 @@ loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		 * followed by a signed LEB128 operand.
 		 */
 		case DW_OP_bregx:
-			operand1 = decode_uleb128(&p);
-			operand2 = decode_sleb128(&p);
+			operand1 = _dwarf_decode_uleb128(&p);
+			operand2 = _dwarf_decode_sleb128(&p);
 			break;
 
 		/* Target address size operand. */
@@ -268,8 +268,8 @@ loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 }
 
 int
-loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in, uint64_t in_len,
-    uint8_t pointer_size, Dwarf_Error *error)
+_dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
+    uint64_t in_len, uint8_t pointer_size, Dwarf_Error *error)
 {
 	int num;
 
@@ -278,7 +278,8 @@ loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in, uint64_t in
 	assert(in_len > 0);
 
 	/* Compute the number of locations. */
-	if ((num = loc_fill_loc(dbg, NULL, pointer_size, in, in_len)) < 0) {
+	if ((num = _dwarf_loc_fill_loc(dbg, NULL, pointer_size, in, in_len)) <
+	    0) {
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_EXPR);
 		return (DWARF_E_INVALID_EXPR);
 	}
@@ -292,13 +293,13 @@ loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in, uint64_t in
 		return (DWARF_E_MEMORY);
 	}
 
-	(void) loc_fill_loc(dbg, llbuf, pointer_size, in, in_len);
+	(void) _dwarf_loc_fill_loc(dbg, llbuf, pointer_size, in, in_len);
 
 	return (DWARF_E_NONE);
 }
 
 int
-loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
+_dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
     uint64_t in_len, uint8_t pointer_size, Dwarf_Error *error)
 {
 	Dwarf_Locdesc *llbuf;
@@ -312,7 +313,8 @@ loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 	llbuf->ld_hipc = (pointer_size == 4 ? ~0U : ~0ULL);
 	llbuf->ld_s = NULL;
 
-	ret = loc_fill_locdesc(dbg, llbuf, in, in_len, pointer_size, error);
+	ret = _dwarf_loc_fill_locdesc(dbg, llbuf, in, in_len, pointer_size,
+	    error);
 	if (ret != DWARF_E_NONE) {
 		free(llbuf);
 		return (ret);
@@ -324,7 +326,7 @@ loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 }
 
 int
-loc_add(Dwarf_Die die, Dwarf_Attribute at, Dwarf_Error *error)
+_dwarf_loc_add(Dwarf_Die die, Dwarf_Attribute at, Dwarf_Error *error)
 {
 	Dwarf_Debug dbg;
 	Dwarf_CU cu;
@@ -340,8 +342,8 @@ loc_add(Dwarf_Die die, Dwarf_Attribute at, Dwarf_Error *error)
 	dbg = cu->cu_dbg;
 	assert(dbg != NULL);
 
-	ret = loc_fill_locexpr(dbg, &at->at_ld, at->u[1].u8p, at->u[0].u64,
-	    cu->cu_pointer_size, error);
+	ret = _dwarf_loc_fill_locexpr(dbg, &at->at_ld, at->u[1].u8p,
+	    at->u[0].u64, cu->cu_pointer_size, error);
 
 	return (ret);
 }

@@ -29,7 +29,7 @@
 #include "_libdwarf.h"
 
 static int
-macinfo_parse(Dwarf_Debug dbg, Elf_Data *d, uint64_t *off,
+_dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
     Dwarf_Macro_Details *dmd, Dwarf_Unsigned *cnt, Dwarf_Error *error)
 {
 	Dwarf_Unsigned lineno, fileindex;
@@ -37,12 +37,12 @@ macinfo_parse(Dwarf_Debug dbg, Elf_Data *d, uint64_t *off,
 	int i, type;
 
 	i = 0;
-	while (*off < d->d_size) {
+	while (*off < ds->ds_size) {
 
 		if (dmd != NULL)
 			dmd[i].dmd_offset = *off;
 
-		type = dbg->read(&d, off, 1);
+		type = dbg->read(ds->ds_data, off, 1);
 
 		if (dmd != NULL) {
 			dmd[i].dmd_type = type;
@@ -55,8 +55,8 @@ macinfo_parse(Dwarf_Debug dbg, Elf_Data *d, uint64_t *off,
 		case DW_MACINFO_define:
 		case DW_MACINFO_undef:
 		case DW_MACINFO_vendor_ext:
-			lineno = read_uleb128(&d, off);
-			p = (char *)d->d_buf;
+			lineno = _dwarf_read_uleb128(ds->ds_data, off);
+			p = (char *) ds->ds_data;
 			if (dmd != NULL) {
 				dmd[i].dmd_lineno = lineno;
 				dmd[i].dmd_macro = p + *off;
@@ -66,8 +66,8 @@ macinfo_parse(Dwarf_Debug dbg, Elf_Data *d, uint64_t *off,
 				;
 			break;
 		case DW_MACINFO_start_file:
-			lineno = read_uleb128(&d, off);
-			fileindex = read_uleb128(&d, off);
+			lineno = _dwarf_read_uleb128(ds->ds_data, off);
+			fileindex = _dwarf_read_uleb128(ds->ds_data, off);
 			if (dmd != NULL) {
 				dmd[i].dmd_lineno = lineno;
 				dmd[i].dmd_fileindex = fileindex;
@@ -93,7 +93,7 @@ macinfo_parse(Dwarf_Debug dbg, Elf_Data *d, uint64_t *off,
 }
 
 void
-macinfo_cleanup(Dwarf_Debug dbg)
+_dwarf_macinfo_cleanup(Dwarf_Debug dbg)
 {
 	Dwarf_MacroSet ms, tms;
 
@@ -109,7 +109,7 @@ macinfo_cleanup(Dwarf_Debug dbg)
 }
 
 int
-macinfo_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
+_dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 {
 	Dwarf_MacroSet ms;
 	Dwarf_Unsigned cnt;
@@ -117,11 +117,11 @@ macinfo_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 	int ret;
 
 	offset = 0;
-	while (offset < d->d_size) {
+	while (offset < ds->ds_size) {
 
 		entry_off = offset;
 
-		ret = macinfo_parse(dbg, d, &offset, NULL, &cnt, error);
+		ret = _dwarf_macinfo_parse(dbg, ds, &offset, NULL, &cnt, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 
@@ -146,7 +146,8 @@ macinfo_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 
 		offset = entry_off;
 
-		ret = macinfo_parse(dbg, d, &offset, ms->ms_mdlist, NULL, error);
+		ret = _dwarf_macinfo_parse(dbg, ds, &offset, ms->ms_mdlist,
+		    NULL, error);
 
 		if (ret != DWARF_E_NONE) {
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -159,7 +160,7 @@ macinfo_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 
 fail_cleanup:
 
-	macinfo_cleanup(dbg);
+	_dwarf_macinfo_cleanup(dbg);
 
 	return (ret);
 }

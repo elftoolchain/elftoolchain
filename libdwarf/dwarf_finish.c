@@ -116,38 +116,40 @@ dwarf_finish(Dwarf_Debug dbg, Dwarf_Error *error __unused)
 	/* Free loclist list. */
 	TAILQ_FOREACH_SAFE(ll, &dbg->dbg_loclist, ll_next, tll) {
 		TAILQ_REMOVE(&dbg->dbg_loclist, ll, ll_next);
-		loclist_cleanup(ll);
+		_dwarf_loclist_cleanup(ll);
 	}
 
 	/* Free rangelist. */
-	ranges_cleanup(dbg);
+	_dwarf_ranges_cleanup(dbg);
 
 	/* Free name lookup tables. */
 	if (dbg->dbg_globals)
-		nametbl_cleanup(dbg->dbg_globals);
+		_dwarf_nametbl_cleanup(dbg->dbg_globals);
 	if (dbg->dbg_pubtypes)
-		nametbl_cleanup(dbg->dbg_pubtypes);
+		_dwarf_nametbl_cleanup(dbg->dbg_pubtypes);
 	if (dbg->dbg_weaks)
-		nametbl_cleanup(dbg->dbg_weaks);
+		_dwarf_nametbl_cleanup(dbg->dbg_weaks);
 	if (dbg->dbg_funcs)
-		nametbl_cleanup(dbg->dbg_funcs);
+		_dwarf_nametbl_cleanup(dbg->dbg_funcs);
 	if (dbg->dbg_vars)
-		nametbl_cleanup(dbg->dbg_vars);
+		_dwarf_nametbl_cleanup(dbg->dbg_vars);
 	if (dbg->dbg_types)
-		nametbl_cleanup(dbg->dbg_types);
+		_dwarf_nametbl_cleanup(dbg->dbg_types);
 
 	/* Free call frame data. */
-	frame_cleanup(dbg);
+	_dwarf_frame_cleanup(dbg);
 
 	/* Free address range data. */
-	arange_cleanup(dbg);
+	_dwarf_arange_cleanup(dbg);
 
 	/* Free macinfo data. */
-	macinfo_cleanup(dbg);
+	_dwarf_macinfo_cleanup(dbg);
 
+#if 0
 	/* Free resources associated with the ELF file. */
 	if (dbg->dbg_elf_close)
 		elf_end(dbg->dbg_elf);
+#endif
 
 	free(dbg);
 
