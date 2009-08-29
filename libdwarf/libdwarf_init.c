@@ -123,7 +123,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 #define	INIT_NAMETBL(NDX, TBL)						\
 	do {								\
-		if ((s = _dwarf_find_section(dbg, ".debug_##NDX")) !=	\
+		if ((s = _dwarf_find_section(dbg, ".debug_" NDX)) !=	\
 		    NULL) {						\
 			ret = _dwarf_nametbl_init(dbg, &dbg->dbg_##TBL,	\
 			    s, error);					\
@@ -137,12 +137,12 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	 * Initialise name lookup sections, if exist.
 	 */
 
-	INIT_NAMETBL(pubnames, globals);
-	INIT_NAMETBL(pubtypes, pubtypes);
-	INIT_NAMETBL(weaknames, weaks);
-	INIT_NAMETBL(static_func, funcs);
-	INIT_NAMETBL(static_vars, vars);
-	INIT_NAMETBL(types, types);
+	INIT_NAMETBL("pubnames", globals);
+	INIT_NAMETBL("pubtypes", pubtypes);
+	INIT_NAMETBL("weaknames", weaks);
+	INIT_NAMETBL("static_func", funcs);
+	INIT_NAMETBL("static_vars", vars);
+	INIT_NAMETBL("types", types);
 
 #undef	INIT_NAMETBL
 
