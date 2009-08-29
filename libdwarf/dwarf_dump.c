@@ -825,7 +825,7 @@ dwarf_dump_info(Dwarf_Debug dbg)
 	}
 }
 
-
+#if 0
 void
 dwarf_dump_shstrtab(Dwarf_Debug dbg)
 {
@@ -838,7 +838,9 @@ dwarf_dump_shstrtab(Dwarf_Debug dbg)
 		indx += strlen(name) + 1;
 	}
 }
+#endif
 
+#if 0
 void
 dwarf_dump_strtab(Dwarf_Debug dbg)
 {
@@ -851,7 +853,9 @@ dwarf_dump_strtab(Dwarf_Debug dbg)
 		indx += strlen(name) + 1;
 	}
 }
+#endif
 
+#if 0
 void
 dwarf_dump_dbgstr(Dwarf_Debug dbg)
 {
@@ -864,7 +868,9 @@ dwarf_dump_dbgstr(Dwarf_Debug dbg)
 		indx += strlen(name) + 1;
 	}
 }
+#endif
 
+#if 0
 void
 dwarf_dump_symtab(Dwarf_Debug dbg)
 {
@@ -880,13 +886,16 @@ dwarf_dump_symtab(Dwarf_Debug dbg)
 			printf("'%s' sym.st_name %u indx %d sym.st_size %lu\n",name,sym.st_name,indx,(u_long) sym.st_size);
 	}
 }
+#endif
 
 void
 dwarf_dump(Dwarf_Debug dbg)
 {
+#if 0
 	dwarf_dump_strtab(dbg);
 	dwarf_dump_shstrtab(dbg);
 	dwarf_dump_dbgstr(dbg);
 	dwarf_dump_symtab(dbg);
+#endif
 	dwarf_dump_info(dbg);
 }
