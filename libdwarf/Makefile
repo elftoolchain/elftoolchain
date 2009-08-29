@@ -1,4 +1,4 @@
-# $FreeBSD: src/lib/libdwarf/Makefile,v 1.1 2008/05/22 02:14:23 jb Exp $
+# $FreeBSD$
 
 LIB=	dwarf
 
@@ -10,7 +10,6 @@ SRCS=	\
 	dwarf_cu.c		\
 	dwarf_dealloc.c		\
 	dwarf_die.c		\
-	dwarf_dump.c		\
 	dwarf_errmsg.c		\
 	dwarf_finish.c		\
 	dwarf_form.c		\
@@ -32,7 +31,10 @@ SRCS=	\
 	libdwarf_arange.c	\
 	libdwarf_attr.c		\
 	libdwarf_die.c		\
+	libdwarf_elf_access.c	\
+	libdwarf_elf_init.c	\
 	libdwarf_frame.c	\
+	libdwarf_info.c		\
 	libdwarf_init.c		\
 	libdwarf_lineno.c	\
 	libdwarf_loc.c		\
@@ -49,7 +51,7 @@ GENSRCS=	dwarf_pubnames.c dwarf_pubtypes.c dwarf_weaks.c \
 CLEANFILES=	${GENSRCS}
 CFLAGS+=	-I. -I${.CURDIR} -g
 
-SHLIB_MAJOR=	2
+SHLIB_MAJOR=	3
 
 WARNS?=	6
 

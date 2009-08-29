@@ -47,16 +47,16 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	dbg->dbg_elf		= elf;
-	dbg->dbg_elf_close 	= 0;
-	dbg->dbg_mode		= mode;
-	STAILQ_INIT(&dbg->dbg_cu);
+	dbg->dbg_mode = mode;
+	dbg->dbg_elf_close = 0;
 
 	*ret_dbg = dbg;
 
-	/* Read the ELF sections. */
-	ret = elf_read(dbg, error);
+	ret = _dwarf_elf_init(dbg, elf, error);
+	if (ret != DWARF_E_NONE)
+		return (DW_DLV_ERROR);
 
+	ret = _dwarf_init(dbg, error);
 	if (ret != DWARF_E_NONE)
 		return (DW_DLV_ERROR);
 
@@ -82,9 +82,10 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 
 	/* Translate the DWARF mode to ELF mode. */
 	switch (mode) {
-	default:
 	case DW_DLC_READ:
 		c = ELF_C_READ;
+		break;
+	default:
 		break;
 	}
 

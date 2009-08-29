@@ -24,12 +24,13 @@
  * SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "_libdwarf.h"
 
 static int
-attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
+_dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
     Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
@@ -65,7 +66,7 @@ attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	 */
 	if (die->die_ab->ab_tag == DW_TAG_compile_unit &&
 	    at->at_attrib == DW_AT_stmt_list) {
-		ret = lineno_init(die, at->u[0].u64, error);
+		ret = _dwarf_lineno_init(die, at->u[0].u64, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}
@@ -87,8 +88,8 @@ attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		switch (at->at_form) {
 		case DW_FORM_data4:
 		case DW_FORM_data8:
-			ret = loclist_add(die->die_cu->cu_dbg, die->die_cu,
-			    at->u[0].u64, error);
+			ret = _dwarf_loclist_add(die->die_cu->cu_dbg,
+			    die->die_cu, at->u[0].u64, error);
 			if (ret != DWARF_E_NONE)
 				return (ret);
 			break;
@@ -96,7 +97,7 @@ attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		case DW_FORM_block1:
 		case DW_FORM_block2:
 		case DW_FORM_block4:
-			ret = loc_add(die, at, error);
+			ret = _dwarf_loc_add(die, at, error);
 			if (ret != DWARF_E_NONE)
 				return (ret);
 			break;
@@ -109,7 +110,7 @@ attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 
 	/* If the attribute points to a range list, find and save it. */
 	if (at->at_attrib == DW_AT_ranges) {
-		ret = ranges_add(die->die_cu->cu_dbg, die->die_cu,
+		ret = _dwarf_ranges_add(die->die_cu->cu_dbg, die->die_cu,
 		    at->u[0].u64, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
@@ -122,7 +123,7 @@ attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 }
 
 Dwarf_Attribute
-attr_find(Dwarf_Die die, Dwarf_Half attr)
+_dwarf_attr_find(Dwarf_Die die, Dwarf_Half attr)
 {
 	Dwarf_Attribute at;
 
@@ -135,12 +136,13 @@ attr_find(Dwarf_Die die, Dwarf_Half attr)
 }
 
 int
-attr_init(Dwarf_Debug dbg, Elf_Data **dp, uint64_t *offsetp, int dwarf_size,
-    Dwarf_CU cu, Dwarf_Die die, Dwarf_AttrDef ad, uint64_t form,
-    int indirect, Dwarf_Error *error)
+_dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
+    int dwarf_size, Dwarf_CU cu, Dwarf_Die die, Dwarf_AttrDef ad,
+    uint64_t form, int indirect, Dwarf_Error *error)
 {
-	int ret;
 	struct _Dwarf_Attribute atref;
+	Dwarf_Section *str;
+	int ret;
 
 	ret = DWARF_E_NONE;
 	memset(&atref, 0, sizeof(atref));
@@ -151,72 +153,74 @@ attr_init(Dwarf_Debug dbg, Elf_Data **dp, uint64_t *offsetp, int dwarf_size,
 
 	switch (form) {
 	case DW_FORM_addr:
-		atref.u[0].u64 = dbg->read(dp, offsetp, cu->cu_pointer_size);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp,
+		    cu->cu_pointer_size);
 		break;
 	case DW_FORM_block:
-		atref.u[0].u64 = read_uleb128(dp, offsetp);
-		atref.u[1].u8p = read_block(dp, offsetp, atref.u[0].u64);
+		atref.u[0].u64 = _dwarf_read_uleb128(ds->ds_data, offsetp);
+		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
+		    atref.u[0].u64);
 		break;
 	case DW_FORM_block1:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 1);
-		atref.u[1].u8p = read_block(dp, offsetp, atref.u[0].u64);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 1);
+		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
+		    atref.u[0].u64);
 		break;
 	case DW_FORM_block2:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 2);
-		atref.u[1].u8p = read_block(dp, offsetp, atref.u[0].u64);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 2);
+		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
+		    atref.u[0].u64);
 		break;
 	case DW_FORM_block4:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 4);
-		atref.u[1].u8p = read_block(dp, offsetp, atref.u[0].u64);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 4);
+		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
+		    atref.u[0].u64);
 		break;
 	case DW_FORM_data1:
 	case DW_FORM_flag:
 	case DW_FORM_ref1:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 1);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 1);
 		break;
 	case DW_FORM_data2:
 	case DW_FORM_ref2:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 2);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 2);
 		break;
 	case DW_FORM_data4:
 	case DW_FORM_ref4:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 4);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 4);
 		break;
 	case DW_FORM_data8:
 	case DW_FORM_ref8:
-		atref.u[0].u64 = dbg->read(dp, offsetp, 8);
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, 8);
 		break;
 	case DW_FORM_indirect:
-		form = read_uleb128(dp, offsetp);
-		return (attr_init(dbg, dp, offsetp, dwarf_size, cu, die, ad,
-		    form, 1, error));
+		form = _dwarf_read_uleb128(ds->ds_data, offsetp);
+		return (_dwarf_attr_init(dbg, ds, offsetp, dwarf_size, cu, die,
+		    ad, form, 1, error));
 	case DW_FORM_ref_addr:
 		if (cu->cu_version == 2)
-			atref.u[0].u64 = dbg->read(dp, offsetp, cu->cu_pointer_size);
+			atref.u[0].u64 = dbg->read(ds->ds_data, offsetp,
+			    cu->cu_pointer_size);
 		else if (cu->cu_version == 3)
-			atref.u[0].u64 = dbg->read(dp, offsetp, dwarf_size);
+			atref.u[0].u64 = dbg->read(ds->ds_data, offsetp,
+			    dwarf_size);
 		break;
 	case DW_FORM_ref_udata:
 	case DW_FORM_udata:
-		atref.u[0].u64 = read_uleb128(dp, offsetp);
+		atref.u[0].u64 = _dwarf_read_uleb128(ds->ds_data, offsetp);
 		break;
 	case DW_FORM_sdata:
-		atref.u[0].s64 = read_sleb128(dp, offsetp);
+		atref.u[0].s64 = _dwarf_read_sleb128(ds->ds_data, offsetp);
 		break;
 	case DW_FORM_string:
-		atref.u[0].s = read_string(dp, offsetp);
+		atref.u[0].s = _dwarf_read_string(ds->ds_data, ds->ds_size,
+		    offsetp);
 		break;
 	case DW_FORM_strp:
-		atref.u[0].u64 = dbg->read(dp, offsetp, dwarf_size);
-		/*
-		 * Note that here we can not use elf_strptr because .debug_str
-		 * generated by gcc has section type SHT_PROGBITS, which is
-		 * unacceptable by elf_strptr. This works because we are
-		 * in elf read mode and there is only one Elf_Data for the
-		 * section.
-		 */
-		atref.u[1].s = (char *)
-		    dbg->dbg_s[DWARF_debug_str].s_data->d_buf + atref.u[0].u64;
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, dwarf_size);
+		str = _dwarf_find_section(dbg, ".debug_str");
+		assert(str != NULL);
+		atref.u[1].s = (char *) ds->ds_data + atref.u[0].u64;
 		break;
 	default:
 		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
@@ -225,7 +229,7 @@ attr_init(Dwarf_Debug dbg, Elf_Data **dp, uint64_t *offsetp, int dwarf_size,
 	}
 
 	if (ret == DWARF_E_NONE)
-		ret = attr_add(die, &atref, NULL, error);
+		ret = _dwarf_attr_add(die, &atref, NULL, error);
 
 	return (ret);
 }

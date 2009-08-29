@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2009 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -40,7 +41,7 @@ dwarf_attr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Attribute *atp,
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, attr)) == NULL) {
+	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
@@ -103,7 +104,7 @@ dwarf_hasattr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Bool *ret_bool,
 		return (DW_DLV_ERROR);
 	}
 
-	*ret_bool = (attr_find(die, attr) != NULL);
+	*ret_bool = (_dwarf_attr_find(die, attr) != NULL);
 
 	return (DW_DLV_OK);
 }
@@ -118,7 +119,7 @@ dwarf_lowpc(Dwarf_Die die, Dwarf_Addr *ret_lowpc, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_low_pc)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_low_pc)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_lowpc = at->u[0].u64;
@@ -136,7 +137,7 @@ dwarf_highpc(Dwarf_Die die, Dwarf_Addr *ret_highpc, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_high_pc)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_high_pc)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_highpc = at->u[0].u64;
@@ -154,7 +155,7 @@ dwarf_bytesize(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_byte_size)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_byte_size)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_size = at->u[0].u64;
@@ -172,7 +173,7 @@ dwarf_bitsize(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_bit_size)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_bit_size)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_size = at->u[0].u64;
@@ -190,7 +191,7 @@ dwarf_bitoffset(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_bit_offset)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_bit_offset)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_size = at->u[0].u64;
@@ -208,7 +209,7 @@ dwarf_srclang(Dwarf_Die die, Dwarf_Unsigned *ret_lang, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_language)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_language)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_lang = at->u[0].u64;
@@ -226,7 +227,7 @@ dwarf_arrayorder(Dwarf_Die die, Dwarf_Unsigned *ret_order, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((at = attr_find(die, DW_AT_ordering)) == NULL)
+	if ((at = _dwarf_attr_find(die, DW_AT_ordering)) == NULL)
 		return (DW_DLV_NO_ENTRY);
 
 	*ret_order = at->u[0].u64;

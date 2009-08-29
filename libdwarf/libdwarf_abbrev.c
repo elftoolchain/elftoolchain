@@ -26,11 +26,12 @@
  * $FreeBSD: src/lib/libdwarf/dwarf_abbrev.c,v 1.1 2008/05/22 02:14:23 jb Exp $
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include "_libdwarf.h"
 
 static int
-abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
+_dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
     uint64_t aboff, Dwarf_Abbrev *abp, Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
@@ -62,8 +63,8 @@ abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 }
 
 static int
-attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form, uint64_t adoff,
-    Dwarf_AttrDef *adp, Dwarf_Error *error)
+_dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
+    uint64_t adoff, Dwarf_AttrDef *adp, Dwarf_Error *error)
 {
 	Dwarf_AttrDef ad;
 	
@@ -95,10 +96,10 @@ attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form, uint64_t adoff,
 }
 
 int
-abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
+_dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
-	Elf_Data *d;
+	Dwarf_Section *ds;
 	int ret;
 	uint64_t attr;
 	uint64_t entry;
@@ -111,32 +112,33 @@ abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 
 	ret = DWARF_E_NONE;
 
-	d = dbg->dbg_s[DWARF_debug_abbrev].s_data;
+	ds = _dwarf_find_section(dbg, ".debug_abbrev");
+	assert(ds != NULL);
 
 	offset = cu->cu_abbrev_offset;
-	while (offset < d->d_size) {
+	while (offset < ds->ds_size) {
 		aboff = offset;
 
-		entry = read_uleb128(&d, &offset);
+		entry = _dwarf_read_uleb128(ds->ds_data, &offset);
 		/* Check if this is the end of the data: */
 		if (entry == 0)
 			break;
 
-		tag = read_uleb128(&d, &offset);
+		tag = _dwarf_read_uleb128(ds->ds_data, &offset);
 
-		children = dbg->read(&d, &offset, 1);
+		children = dbg->read(ds->ds_data, &offset, 1);
 
-		if ((ret = abbrev_add(cu, entry, tag, children, aboff, &ab,
-		    error)) != DWARF_E_NONE)
+		if ((ret = _dwarf_abbrev_add(cu, entry, tag, children, aboff,
+		    &ab, error)) != DWARF_E_NONE)
 			break;
 
 		do {
 			adoff = offset;
-			attr = read_uleb128(&d, &offset);
-			form = read_uleb128(&d, &offset);
+			attr = _dwarf_read_uleb128(ds->ds_data, &offset);
+			form = _dwarf_read_uleb128(ds->ds_data, &offset);
 			if (attr != 0)
-				if ((ret = attrdef_add(ab, attr, form, adoff,
-				    NULL, error)) != DWARF_E_NONE)
+				if ((ret = _dwarf_attrdef_add(ab, attr, form,
+				    adoff, NULL, error)) != DWARF_E_NONE)
 					return (ret);
 		} while (attr != 0);
 
@@ -147,7 +149,7 @@ abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 }
 
 Dwarf_Abbrev
-abbrev_find(Dwarf_CU cu, uint64_t entry)
+_dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry)
 {
 	Dwarf_Abbrev ab;
 

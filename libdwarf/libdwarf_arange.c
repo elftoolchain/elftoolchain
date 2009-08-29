@@ -29,7 +29,7 @@
 #include "_libdwarf.h"
 
 void
-arange_cleanup(Dwarf_Debug dbg)
+_dwarf_arange_cleanup(Dwarf_Debug dbg)
 {
 	Dwarf_ArangeSet as, tas;
 	Dwarf_Arange ar, tar;
@@ -52,7 +52,7 @@ arange_cleanup(Dwarf_Debug dbg)
 }
 
 int
-arange_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
+_dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
 	Dwarf_ArangeSet as;
@@ -63,7 +63,7 @@ arange_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 	ret = DWARF_E_NONE;
 
 	offset = 0;
-	while (offset < d->d_size) {
+	while (offset < ds->ds_size) {
 
 		if ((as = malloc(sizeof(struct _Dwarf_ArangeSet))) == NULL) {
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -73,22 +73,22 @@ arange_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 		STAILQ_INSERT_TAIL(&dbg->dbg_aslist, as, as_next);
 
 		/* Read in the table header. */
-		length = dbg->read(&d, &offset, 4);
+		length = dbg->read(ds->ds_data, &offset, 4);
 		if (length == 0xffffffff) {
 			dwarf_size = 8;
-			length = dbg->read(&d, &offset, 8);
+			length = dbg->read(ds->ds_data, &offset, 8);
 		} else
 			dwarf_size = 4;
 
 		as->as_length = length;
-		as->as_version = dbg->read(&d, &offset, 2);
+		as->as_version = dbg->read(ds->ds_data, &offset, 2);
 		if (as->as_version != 2) {
 			DWARF_SET_ERROR(error, DWARF_E_INVALID_ARANGE);
 			ret = DWARF_E_INVALID_ARANGE;
 			goto fail_cleanup;
 		}
 
-		as->as_cu_offset = dbg->read(&d, &offset, dwarf_size);
+		as->as_cu_offset = dbg->read(ds->ds_data, &offset, dwarf_size);
 		STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
 			if (cu->cu_offset == as->as_cu_offset)
 				break;
@@ -100,16 +100,16 @@ arange_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 		}
 		as->as_cu = cu;
 
-		as->as_addrsz = dbg->read(&d, &offset, 1);
-		as->as_segsz = dbg->read(&d, &offset, 1);
+		as->as_addrsz = dbg->read(ds->ds_data, &offset, 1);
+		as->as_segsz = dbg->read(ds->ds_data, &offset, 1);
 
 		/* Skip the padding bytes.  */
 		offset = roundup(offset, 2 * as->as_addrsz);
 
 		/* Read in address range descriptors. */
-		while (offset < d->d_size) {
-			addr = dbg->read(&d, &offset, as->as_addrsz);
-			range = dbg->read(&d, &offset, as->as_addrsz);
+		while (offset < ds->ds_size) {
+			addr = dbg->read(ds->ds_data, &offset, as->as_addrsz);
+			range = dbg->read(ds->ds_data, &offset, as->as_addrsz);
 			if (addr == 0 && range == 0)
 				break;
 			if ((ar = malloc(sizeof(struct _Dwarf_Arange))) ==
@@ -146,7 +146,7 @@ arange_init(Dwarf_Debug dbg, Elf_Data *d, Dwarf_Error *error)
 
 fail_cleanup:
 
-	arange_cleanup(dbg);
+	_dwarf_arange_cleanup(dbg);
 
 	return (ret);
 }

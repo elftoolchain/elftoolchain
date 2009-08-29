@@ -29,7 +29,7 @@
 #include "_libdwarf.h"
 
 void
-nametbl_cleanup(Dwarf_NameSec ns)
+_dwarf_nametbl_cleanup(Dwarf_NameSec ns)
 {
 	Dwarf_NameTbl nt, tnt;
 	Dwarf_NamePair np, tnp;
@@ -53,7 +53,7 @@ nametbl_cleanup(Dwarf_NameSec ns)
 }
 
 int
-nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
+_dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
     Dwarf_Error *error)
 {
 	Dwarf_CU cu;
@@ -75,7 +75,7 @@ nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
 	ns->ns_len = 0;
 
 	offset = 0;
-	while (offset < d->d_size) {
+	while (offset < ds->ds_size) {
 
 		/* Allocate a new name table. */
 		if ((nt = malloc(sizeof(struct _Dwarf_NameTbl))) == NULL) {
@@ -87,18 +87,18 @@ nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
 		STAILQ_INSERT_TAIL(&ns->ns_ntlist, nt, nt_next);
 
 		/* Read in the table header. */
-		length = dbg->read(&d, &offset, 4);
+		length = dbg->read(ds->ds_data, &offset, 4);
 		if (length == 0xffffffff) {
 			dwarf_size = 8;
-			length = dbg->read(&d, &offset, 8);
+			length = dbg->read(ds->ds_data, &offset, 8);
 		} else
 			dwarf_size = 4;
 
 		nt->nt_length = length;
 		/* FIXME: verify version */
-		nt->nt_version = dbg->read(&d, &offset, 2);
-		nt->nt_cu_offset = dbg->read(&d, &offset, dwarf_size);
-		nt->nt_cu_length = dbg->read(&d, &offset, dwarf_size);
+		nt->nt_version = dbg->read(ds->ds_data, &offset, 2);
+		nt->nt_cu_offset = dbg->read(ds->ds_data, &offset, dwarf_size);
+		nt->nt_cu_length = dbg->read(ds->ds_data, &offset, dwarf_size);
 
 		/* Find the referenced CU. */
 		STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
@@ -108,8 +108,8 @@ nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
 		nt->nt_cu = cu;	/* FIXME: Check if NULL here */
 
 		/* Add name pairs. */
-		while (offset < d->d_size) {
-			cuoff = dbg->read(&d, &offset, dwarf_size);
+		while (offset < ds->ds_size) {
+			cuoff = dbg->read(ds->ds_data, &offset, dwarf_size);
 			if (cuoff == 0)
 				break;
 			if ((np = malloc(sizeof(struct _Dwarf_NamePair))) ==
@@ -120,7 +120,7 @@ nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
 			}
 			np->np_nt = nt;
 			np->np_offset = cuoff;
-			p = (char *) d->d_buf;
+			p = (char *) ds->ds_data;
 			np->np_name = &p[offset];
 			while (p[offset++] != '\0')
 				;
@@ -152,7 +152,7 @@ nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Elf_Data *d,
 
 fail_cleanup:
 
-	nametbl_cleanup(ns);
+	_dwarf_nametbl_cleanup(ns);
 
 	return (ret);
 }

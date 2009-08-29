@@ -32,32 +32,30 @@ int
 dwarf_get_str(Dwarf_Debug dbg, Dwarf_Off offset, char **string,
     Dwarf_Signed *ret_strlen, Dwarf_Error *error)
 {
-	Elf_Data *d;
+	Dwarf_Section *ds;
 
 	if (dbg == NULL || offset < 0 || string == NULL || ret_strlen == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	if (dbg->dbg_s[DWARF_debug_str].s_scn == NULL) {
+	ds = _dwarf_find_section(dbg, ".debug_str");
+	if (ds == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	d = dbg->dbg_s[DWARF_debug_str].s_data;
-	assert(d != NULL);
-
-	if ((Dwarf_Unsigned)offset > d->d_size) {
+	if ((Dwarf_Unsigned) offset > ds->ds_size) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	if ((Dwarf_Unsigned)offset == d->d_size) {
+	if ((Dwarf_Unsigned) offset == ds->ds_size) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	*string = (char *)d->d_buf + offset;
+	*string = (char *) ds->ds_data + offset;
 	*ret_strlen = strlen(*string);
 
 	return (DW_DLV_OK);

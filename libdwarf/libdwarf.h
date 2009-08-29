@@ -42,7 +42,6 @@ typedef int64_t		Dwarf_Signed;
 typedef uint64_t	Dwarf_Addr;
 typedef void		*Dwarf_Ptr;
 
-/* Forward definitions. */
 typedef struct _Dwarf_Abbrev	*Dwarf_Abbrev;
 typedef struct _Dwarf_Arange	*Dwarf_Arange;
 typedef struct _Dwarf_ArangeSet	*Dwarf_ArangeSet;
@@ -51,6 +50,7 @@ typedef struct _Dwarf_AttrDef	*Dwarf_AttrDef;
 typedef struct _Dwarf_CU	*Dwarf_CU;
 typedef struct _Dwarf_Cie	*Dwarf_Cie;
 typedef struct _Dwarf_Debug	*Dwarf_Debug;
+typedef struct _Dwarf_Debug	*Dwarf_P_Debug;
 typedef struct _Dwarf_Die	*Dwarf_Die;
 typedef struct _Dwarf_Fde	*Dwarf_Fde;
 typedef struct _Dwarf_FrameSec	*Dwarf_FrameSec;
@@ -68,6 +68,33 @@ typedef struct _Dwarf_NamePair	*Dwarf_Weak;
 typedef struct _Dwarf_NameTbl	*Dwarf_NameTbl;
 typedef struct _Dwarf_NameSec	*Dwarf_NameSec;
 typedef struct _Dwarf_Rangelist	*Dwarf_Rangelist;
+
+typedef enum {
+	DW_OBJECT_MSB,
+	DW_OBJECT_LSB
+} Dwarf_Endianness;
+
+typedef struct {
+	Dwarf_Addr addr;
+	Dwarf_Unsigned size;
+	const char *name;
+} Dwarf_Obj_Access_Section;
+
+typedef struct {
+	int (*get_section_info)(void* obj, Dwarf_Half index,
+	    Dwarf_Obj_Access_Section* ret_section, int *error);
+	Dwarf_Endianness (*get_byte_order)(void* obj);
+	Dwarf_Small (*get_length_size)(void* obj);
+	Dwarf_Small (*get_pointer_size)(void* obj);
+	Dwarf_Unsigned (*get_section_count)(void* obj);
+	int (*load_section)(void* obj, Dwarf_Half index, Dwarf_Small** ret_data,
+	    int* error);
+} Dwarf_Obj_Access_Methods;
+
+typedef struct {
+	void *object;
+	const Dwarf_Obj_Access_Methods *methods;
+} Dwarf_Obj_Access_Interface;
 
 typedef struct {
         Dwarf_Small	lr_atom;
@@ -120,6 +147,7 @@ typedef struct {
 /*
  * Frame operation only for DWARF 2.
  */
+
 #define DW_FRAME_CFA_COL 0
 
 typedef struct {
@@ -145,6 +173,7 @@ typedef struct {
 /*
  * Frame operation for DWARF 3 and DWARF 2.
  */
+
 typedef struct {
 	Dwarf_Small	fp_base_op;
 	Dwarf_Small	fp_extended_op;
@@ -212,6 +241,9 @@ typedef struct _Dwarf_Error {
 	char		err_msg[1024];	/* Formatted error message. */
 } Dwarf_Error;
 
+/*
+ * Dwarf error handler.
+ */
 typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 
 #define	dwarf_errno(error)	error.err_error
@@ -226,7 +258,9 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define	DW_DLV_ERROR		1
 #define DW_DLE_DEBUG_INFO_NULL	DWARF_E_DEBUG_INFO
 
-#define DW_DLC_READ        	0	/* read only access */
+#define DW_DLC_READ        	0
+#define DW_DLC_WRITE		1
+#define	DW_DLC_RDWR		2
 
 /* Function prototype definitions. */
 __BEGIN_DECLS

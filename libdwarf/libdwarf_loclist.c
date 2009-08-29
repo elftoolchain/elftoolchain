@@ -29,9 +29,9 @@
 #include "_libdwarf.h"
 
 static int
-loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t *off,
-    Dwarf_Locdesc **ld, uint64_t *ldlen, Dwarf_Unsigned *total_len,
-    Dwarf_Error *error)
+_dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
+    uint64_t *off, Dwarf_Locdesc **ld, uint64_t *ldlen,
+    Dwarf_Unsigned *total_len, Dwarf_Error *error)
 {
 	uint64_t start, end;
 	int i, len, ret;
@@ -39,9 +39,9 @@ loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t *off,
 	if (total_len != NULL)
 		*total_len = 0;
 
-	for (i = 0; *off < d->d_size; i++) {
-		start = dbg->read(&d, off, cu->cu_pointer_size);
-		end = dbg->read(&d, off, cu->cu_pointer_size);
+	for (i = 0; *off < ds->ds_size; i++) {
+		start = dbg->read(ds->ds_data, off, cu->cu_pointer_size);
+		end = dbg->read(ds->ds_data, off, cu->cu_pointer_size);
 		if (ld != NULL) {
 			ld[i]->ld_lopc = start;
 			ld[i]->ld_hipc = end;
@@ -62,8 +62,8 @@ loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t *off,
 			continue;
 
 		/* Otherwise it's normal entry. */
-		len = dbg->read(&d, off, 2);
-		if (*off + len > d->d_size) {
+		len = dbg->read(ds->ds_data, off, 2);
+		if (*off + len > ds->ds_size) {
 			DWARF_SET_ERROR(error, DWARF_E_INVALID_LOCLIST);
 			return (DWARF_E_INVALID_LOCLIST);
 		}
@@ -72,9 +72,9 @@ loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t *off,
 			*total_len += len;
 
 		if (ld != NULL) {
-			ret = loc_fill_locdesc(dbg, ld[i],
-			    (uint8_t *)d->d_buf + *off, len,
-			    cu->cu_pointer_size, error);
+			ret = _dwarf_loc_fill_locdesc(dbg, ld[i],
+			    ds->ds_data + *off, len, cu->cu_pointer_size,
+			    error);
 			if (ret != DWARF_E_NONE)
 				return (ret);
 		}
@@ -89,7 +89,7 @@ loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Elf_Data *d, uint64_t *off,
 }
 
 int
-loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
+_dwarf_loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
 {
 	Dwarf_Loclist ll;
 
@@ -107,19 +107,22 @@ loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
 }
 
 int
-loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
+_dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
 {
-	Elf_Data *d;
+	Dwarf_Section *ds;
 	Dwarf_Loclist ll, tll;
 	uint64_t ldlen;
 	int i, ret;
 
 	ret = DWARF_E_NONE;
 
-	d = dbg->dbg_s[DWARF_debug_loc].s_data;
+	if ((ds = _dwarf_find_section(dbg, "._debug_loc")) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		return (DWARF_E_NO_ENTRY);
+	}
 
 	/* First we search if we have already added this loclist. */
-	if (loclist_find(dbg, lloff, NULL) != DWARF_E_NO_ENTRY)
+	if (_dwarf_loclist_find(dbg, lloff, NULL) != DWARF_E_NO_ENTRY)
 		return (ret);
 
 	if ((ll = malloc(sizeof(struct _Dwarf_Loclist))) == NULL) {
@@ -130,8 +133,8 @@ loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
 	ll->ll_offset = lloff;
 
 	/* Get the number of locdesc the first round. */
-	ret = loclist_add_locdesc(dbg, cu, d, &lloff, NULL, &ldlen, NULL,
-	    error);
+	ret = _dwarf_loclist_add_locdesc(dbg, cu, ds, &lloff, NULL, &ldlen,
+	    NULL, error);
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
@@ -156,8 +159,8 @@ loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
 	lloff = ll->ll_offset;
 
 	/* Fill in locdesc. */
-	ret = loclist_add_locdesc(dbg, cu, d, &lloff, ll->ll_ldlist, NULL,
-	    &ll->ll_length, error);
+	ret = _dwarf_loclist_add_locdesc(dbg, cu, ds, &lloff, ll->ll_ldlist,
+	    NULL, &ll->ll_length, error);
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
@@ -175,13 +178,13 @@ loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
 
 fail_cleanup:
 
-	loclist_cleanup(ll);
+	_dwarf_loclist_cleanup(ll);
 
 	return (ret);
 }
 
 void
-loclist_cleanup(Dwarf_Loclist ll)
+_dwarf_loclist_cleanup(Dwarf_Loclist ll)
 {
 	int i;
 
