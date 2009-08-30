@@ -45,14 +45,16 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 	uint64_t operand2;
 	uint8_t *pe;
 
-	count = 0;
+	count = -1;
 	pe = p + len;
 	/*
 	 * Process each byte. If an error occurs, then the
 	 * count will be set to -1.
 	 */
 	while (p < pe) {
+
 		count++;
+
 		operand1 = 0;
 		operand2 = 0;
 
@@ -285,7 +287,7 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 	}
 
 	llbuf->ld_cents = num;
-	if (num == 0)
+	if (num <= 0)
 		return (DWARF_E_NONE);
 
 	if ((llbuf->ld_s = calloc(num, sizeof(Dwarf_Loc))) == NULL) {
