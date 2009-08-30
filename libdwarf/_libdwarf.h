@@ -39,26 +39,6 @@
 #include "dwarf.h"
 #include "libdwarf.h"
 
-#define DWARF_debug_abbrev		0
-#define DWARF_debug_aranges		1
-#define DWARF_debug_frame		2
-#define DWARF_debug_info		3
-#define DWARF_debug_line		4
-#define DWARF_debug_pubnames		5
-#define DWARF_eh_frame			6
-#define DWARF_debug_macinfo		7
-#define DWARF_debug_str			8
-#define DWARF_debug_loc			9
-#define DWARF_debug_pubtypes		10
-#define DWARF_debug_ranges		11
-#define DWARF_debug_static_func		12
-#define DWARF_debug_static_vars		13
-#define DWARF_debug_types		14
-#define DWARF_debug_weaknames		15
-#define DWARF_symtab			16
-#define DWARF_strtab			17
-#define DWARF_DEBUG_SNAMES		18
-
 #define DWARF_DIE_HASH_SIZE		8191
 
 struct _libdwarf_globals {
