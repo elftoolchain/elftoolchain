@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2009 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -32,7 +34,6 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
     Dwarf_Debug *ret_dbg, Dwarf_Error *error)
 {
 	Dwarf_Debug dbg;
-	int ret;
 
 	_libdwarf.errhand = errhand;
 	_libdwarf.errarg = errarg;
@@ -42,23 +43,21 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	if ((dbg = calloc(sizeof(struct _Dwarf_Debug), 1)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+	if (_dwarf_alloc(&dbg, mode, error) != DWARF_E_NONE)
+		return (DW_DLV_ERROR);
+
+	if (_dwarf_elf_init(dbg, elf, 0, error) != DWARF_E_NONE) {
+		free(dbg);
 		return (DW_DLV_ERROR);
 	}
 
-	dbg->dbg_mode = mode;
-	dbg->dbg_elf_close = 0;
+	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+		_dwarf_elf_deinit(dbg);
+		free(dbg);
+		return (DW_DLV_ERROR);
+	}
 
 	*ret_dbg = dbg;
-
-	ret = _dwarf_elf_init(dbg, elf, error);
-	if (ret != DWARF_E_NONE)
-		return (DW_DLV_ERROR);
-
-	ret = _dwarf_init(dbg, error);
-	if (ret != DWARF_E_NONE)
-		return (DW_DLV_ERROR);
 
 	return (DW_DLV_OK);
 }
@@ -67,9 +66,8 @@ int
 dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
     Dwarf_Debug *ret_dbg, Dwarf_Error *error)
 {
-	Dwarf_Error lerror;
+	Dwarf_Debug dbg;
 	Elf *elf;
-	int ret;
 
 	_libdwarf.errhand = errhand;
 	_libdwarf.errarg = errarg;
@@ -89,21 +87,50 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = dwarf_elf_init(elf, mode, errhand, errarg, ret_dbg, error);
+	if (_dwarf_alloc(&dbg, mode, error) != DWARF_E_NONE)
+		return (DW_DLV_ERROR);
 
-	if (*ret_dbg != NULL)
-		/* Remember to close the ELF file. */
-		(*ret_dbg)->dbg_elf_close = 1;
-
-	if (ret != DWARF_E_NONE) {
-		if (*ret_dbg != NULL) {
-			dwarf_finish(*ret_dbg, &lerror);
-			*ret_dbg = NULL;
-		} else
-			elf_end(elf);
-
+	if (_dwarf_elf_init(dbg, elf, 1, error) != DWARF_E_NONE) {
+		free(dbg);
 		return (DW_DLV_ERROR);
 	}
+
+	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+		_dwarf_elf_deinit(dbg);
+		free(dbg);
+		return (DW_DLV_ERROR);
+	}
+
+	*ret_dbg = dbg;
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_object_init(Dwarf_Obj_Access_Interface *iface, Dwarf_Handler errhand,
+    Dwarf_Ptr errarg, Dwarf_Debug *ret_dbg, Dwarf_Error *error)
+{
+	Dwarf_Debug dbg;
+
+	_libdwarf.errhand = errhand;
+	_libdwarf.errarg = errarg;
+
+	if (iface == NULL || ret_dbg == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	if (_dwarf_alloc(&dbg, DW_DLC_READ, error) != DWARF_E_NONE)
+		return (DW_DLV_ERROR);
+
+	dbg->dbg_iface = iface;
+
+	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+		free(dbg);
+		return (DW_DLV_ERROR);
+	}
+
+	*ret_dbg = dbg;
 
 	return (DW_DLV_OK);
 }
