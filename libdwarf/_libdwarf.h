@@ -336,7 +336,10 @@ struct _Dwarf_Debug {
 	Dwarf_Regtable3	*dbg_internal_reg_table;
 };
 
-/* Internal function prototype definitions. */
+/*
+ * Internal function prototypes.
+ */
+
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_die_add(Dwarf_CU, int, uint64_t, uint64_t, Dwarf_Abbrev,
@@ -397,7 +400,7 @@ int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,
 int		_dwarf_nametbl_init(Dwarf_Debug, Dwarf_NameSec *,
 		    Dwarf_Section *, Dwarf_Error *);
 void		_dwarf_nametbl_cleanup(Dwarf_NameSec);
-Dwarf_P_Debug	_dwarf_producer_init(Dwarf_Error *error);
+Dwarf_P_Debug	_dwarf_producer_init(Dwarf_Error *);
 int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);

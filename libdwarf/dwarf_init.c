@@ -69,7 +69,6 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 {
 	Dwarf_Error lerror;
 	Elf *elf;
-	Elf_Cmd	c;
 	int ret;
 
 	_libdwarf.errhand = errhand;
@@ -80,21 +79,12 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	/* Translate the DWARF mode to ELF mode. */
-	switch (mode) {
-	case DW_DLC_READ:
-		c = ELF_C_READ;
-		break;
-	default:
-		break;
-	}
-
 	if (elf_version(EV_CURRENT) == EV_NONE) {
 		DWARF_SET_ELF_ERROR(error);
 		return (DW_DLV_ERROR);
 	}
 
-	if ((elf = elf_begin(fd, c, NULL)) == NULL) {
+	if ((elf = elf_begin(fd, ELF_C_READ, NULL)) == NULL) {
 		DWARF_SET_ELF_ERROR(error);
 		return (DW_DLV_ERROR);
 	}
