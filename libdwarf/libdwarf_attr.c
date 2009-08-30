@@ -26,6 +26,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "_libdwarf.h"
 
@@ -47,7 +48,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
 	/* Save a pointer to the attribute name if this is one. */
-	if (at->at_attrib == DW_AT_name)
+	if (at->at_attrib == DW_AT_name) {
 		switch (at->at_form) {
 		case DW_FORM_strp:
 			die->die_name = at->u[1].s;
@@ -58,6 +59,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		default:
 			break;
 		}
+	}
 
 	/*
 	 * If current die is DW_TAG_compile_unit and current attr

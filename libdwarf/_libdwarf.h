@@ -297,6 +297,7 @@ typedef struct {
 	Elf_Data	**eo_data;
 	Dwarf_Unsigned	eo_seccnt;
 	size_t		eo_strndx;
+	int		eo_elfend;
 	Dwarf_Obj_Access_Methods eo_methods;
 } Dwarf_Elf_Object;
 
@@ -304,7 +305,6 @@ struct _Dwarf_Debug {
 	Dwarf_Obj_Access_Interface *dbg_iface;
 	Dwarf_Section	*dbg_section;
 	Dwarf_Unsigned	dbg_seccnt;
-	int		dbg_elf_close;	/* True if elf_end() required. */
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
 	STAILQ_HEAD(, _Dwarf_CU) dbg_cu;/* List of compilation units. */
@@ -342,6 +342,8 @@ struct _Dwarf_Debug {
 
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
+int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
+void		_dwarf_deinit(Dwarf_Debug);
 int		_dwarf_die_add(Dwarf_CU, int, uint64_t, uint64_t, Dwarf_Abbrev,
 		    Dwarf_Die *, Dwarf_Error *);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
@@ -355,7 +357,8 @@ uint64_t	_dwarf_decode_lsb(uint8_t **, int);
 uint64_t	_dwarf_decode_msb(uint8_t **, int);
 int64_t		_dwarf_decode_sleb128(uint8_t **);
 uint64_t	_dwarf_decode_uleb128(uint8_t **);
-int		_dwarf_elf_init(Dwarf_Debug, Elf *, Dwarf_Error *);
+void		_dwarf_elf_deinit(Dwarf_Debug);
+int		_dwarf_elf_init(Dwarf_Debug, Elf *, int, Dwarf_Error *);
 int		_dwarf_elf_load_section(void *, Dwarf_Half, Dwarf_Small **,
 		    int *);
 Dwarf_Endianness _dwarf_elf_get_byte_order(void *);

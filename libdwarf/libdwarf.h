@@ -432,8 +432,12 @@ int		dwarf_loclist_from_expr_dealloc(Dwarf_Locdesc *, Dwarf_Error *);
 int		dwarf_lowpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
-int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *, Dwarf_Half *,
-		    Dwarf_Unsigned *, Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Error *);
+int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
+		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Half *,
+		    Dwarf_Unsigned *, Dwarf_Error *);
+int		dwarf_object_finish(Dwarf_Debug, Dwarf_Error *);
+int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
+		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *,
 		    Dwarf_Error *);
 int		dwarf_pubtype_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
