@@ -174,8 +174,38 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	return (ret);
 }
 
+static int
+_dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
+{
+
+	if (pf & DW_DLC_SIZE_32 && pf & DW_DLC_SIZE_64) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DWARF_E_ARGUMENT);
+	}
+
+	if (pf & DW_DLC_ISA_IA64 && pf & DW_DLC_ISA_MIPS) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DWARF_E_ARGUMENT);
+	}
+
+	if (pf & DW_DLC_TARGET_BIGENDIAN && pf & DW_DLC_TARGET_LITTLEENDIAN) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DWARF_E_ARGUMENT);
+	}
+
+	if (pf & DW_DLC_STREAM_RELOCATIONS &&
+	    pf & DW_DLC_SYMBOLIC_RELOCATIONS) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DWARF_E_ARGUMENT);
+	}
+
+	dbg->dbg_pro_flags = pf;
+
+	return (DWARF_E_NONE);
+}
+
 int
-_dwarf_init(Dwarf_Debug dbg, Dwarf_Error* error)
+_dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 {
 	int ret;
 
@@ -189,6 +219,14 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Error* error)
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
 		ret = _dwarf_consumer_init(dbg, error);
+		if (ret != DWARF_E_NONE) {
+			_dwarf_deinit(dbg);
+			return (ret);
+		}
+	}
+
+	if (dbg->dbg_mode == DW_DLC_WRITE || dbg->dbg_mode == DW_DLC_RDWR) {
+		ret = _dwarf_producer_init(dbg, pro_flags, error);
 		if (ret != DWARF_E_NONE) {
 			_dwarf_deinit(dbg);
 			return (ret);
@@ -327,20 +365,3 @@ _dwarf_alloc(Dwarf_Debug *ret_dbg, int mode, Dwarf_Error *error)
 
 	return (DWARF_E_NONE);
 }
-
-#if 0
-Dwarf_P_Debug
-_dwarf_producer_init(Dwarf_Error *error)
-{
-	Dwarf_P_Debug dbg;
-
-	dbg = calloc(1, sizeof(struct _Dwarf_Debug));
-	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (NULL);
-	}
-
-	return (dbg);
-}
-#endif
-

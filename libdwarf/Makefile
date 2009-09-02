@@ -43,7 +43,8 @@ SRCS=	\
 	libdwarf_macinfo.c	\
 	libdwarf_nametbl.c	\
 	libdwarf_ranges.c	\
-	libdwarf_rw.c
+	libdwarf_rw.c		\
+	pro_init.c
 
 INCS=	dwarf.h libdwarf.h
 

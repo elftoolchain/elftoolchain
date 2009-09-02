@@ -334,6 +334,10 @@ struct _Dwarf_Debug {
 	Dwarf_Half	dbg_frame_undefined_value;
 
 	Dwarf_Regtable3	*dbg_internal_reg_table;
+
+	Dwarf_Unsigned	dbg_pro_flags;
+	Dwarf_Callback_Func dbg_func;
+	Dwarf_Callback_Func_b dbg_func_b;
 };
 
 /*
@@ -369,7 +373,7 @@ int		_dwarf_elf_get_section_info(void *, Dwarf_Half,
 		    Dwarf_Obj_Access_Section *, int *);
 Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
-int		_dwarf_init(Dwarf_Debug, Dwarf_Error*);
+int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
 uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
 uint64_t	_dwarf_read_msb(uint8_t *, uint64_t *, int);
 int64_t		_dwarf_read_sleb128(uint8_t *, uint64_t *);
@@ -403,7 +407,6 @@ int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,
 int		_dwarf_nametbl_init(Dwarf_Debug, Dwarf_NameSec *,
 		    Dwarf_Section *, Dwarf_Error *);
 void		_dwarf_nametbl_cleanup(Dwarf_NameSec);
-Dwarf_P_Debug	_dwarf_producer_init(Dwarf_Error *);
 int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
