@@ -51,7 +51,7 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, 0, error) != DWARF_E_NONE) {
 		_dwarf_elf_deinit(dbg);
 		free(dbg);
 		return (DW_DLV_ERROR);
@@ -95,7 +95,7 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, 0, error) != DWARF_E_NONE) {
 		_dwarf_elf_deinit(dbg);
 		free(dbg);
 		return (DW_DLV_ERROR);
@@ -125,7 +125,7 @@ dwarf_object_init(Dwarf_Obj_Access_Interface *iface, Dwarf_Handler errhand,
 
 	dbg->dbg_iface = iface;
 
-	if (_dwarf_init(dbg, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, 0, error) != DWARF_E_NONE) {
 		free(dbg);
 		return (DW_DLV_ERROR);
 	}

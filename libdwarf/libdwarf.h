@@ -96,6 +96,14 @@ typedef struct {
 	const Dwarf_Obj_Access_Methods *methods;
 } Dwarf_Obj_Access_Interface;
 
+typedef int (*Dwarf_Callback_Func)(char* name, int size, Dwarf_Unsigned type,
+    Dwarf_Unsigned flags, Dwarf_Unsigned link, Dwarf_Unsigned info, int *index,
+    int *error);
+
+typedef int (*Dwarf_Callback_Func_b)(char* name, int size, Dwarf_Unsigned type,
+    Dwarf_Unsigned flags, Dwarf_Unsigned link, Dwarf_Unsigned info,
+    Dwarf_Unsigned *index, int *error);
+
 typedef struct {
         Dwarf_Small	lr_atom;
         Dwarf_Unsigned	lr_number;
@@ -256,11 +264,28 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define DW_DLV_NO_ENTRY		-1
 #define DW_DLV_OK		0
 #define	DW_DLV_ERROR		1
+#define DW_DLV_BADADDR		NULL
 #define DW_DLE_DEBUG_INFO_NULL	DWARF_E_DEBUG_INFO
 
+/*
+ * Access modes.
+ */
 #define DW_DLC_READ        	0
 #define DW_DLC_WRITE		1
 #define	DW_DLC_RDWR		2
+
+/*
+ * Flags used by libdwarf producer.
+ */
+#define DW_DLC_SIZE_64			0x40000000
+#define DW_DLC_SIZE_32			0x20000000
+#define DW_DLC_OFFSET_SIZE_64		0x10000000
+#define DW_DLC_ISA_MIPS			0x00000000
+#define DW_DLC_ISA_IA64			0x01000000
+#define DW_DLC_STREAM_RELOCATIONS	0x02000000
+#define DW_DLC_SYMBOLIC_RELOCATIONS	0x04000000
+#define DW_DLC_TARGET_BIGENDIAN		0x08000000
+#define DW_DLC_TARGET_LITTLEENDIAN	0x00100000
 
 /* Function prototype definitions. */
 __BEGIN_DECLS
@@ -440,6 +465,10 @@ int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *,
 		    Dwarf_Error *);
+Dwarf_P_Debug	dwarf_producer_init(Dwarf_Unsigned, Dwarf_Callback_Func,
+		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
+Dwarf_P_Debug	dwarf_producer_init_b(Dwarf_Unsigned, Dwarf_Callback_Func_b,
+		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
 int		dwarf_pubtype_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_pubtype_die_offset(Dwarf_Type, Dwarf_Off *,
 		    Dwarf_Error *);
