@@ -20,6 +20,7 @@ SRCS=	\
 	dwarf_lineno.c		\
 	dwarf_loclist.c		\
 	dwarf_macinfo.c		\
+	dwarf_pro_init.c	\
 	dwarf_pubnames.c	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\
@@ -43,8 +44,7 @@ SRCS=	\
 	libdwarf_macinfo.c	\
 	libdwarf_nametbl.c	\
 	libdwarf_ranges.c	\
-	libdwarf_rw.c		\
-	pro_init.c
+	libdwarf_rw.c
 
 INCS=	dwarf.h libdwarf.h
 
