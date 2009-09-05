@@ -107,7 +107,10 @@ struct _Dwarf_Abbrev {
 };
 
 struct _Dwarf_Die {
-	int		die_level;	/* Parent-child level. */
+	Dwarf_Die	die_parent;	/* Parent DIE. */
+	Dwarf_Die	die_child;	/* First child DIE. */
+	Dwarf_Die	die_left;	/* Left sibling DIE. */
+	Dwarf_Die	die_right;	/* Right sibling DIE. */
 	uint64_t	die_offset;	/* DIE offset in section. */
 	uint64_t	die_abnum;	/* Abbrev number. */
 	Dwarf_Abbrev	die_ab;		/* Abbrev pointer. */
@@ -348,9 +351,11 @@ int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
 void		_dwarf_deinit(Dwarf_Debug);
-int		_dwarf_die_add(Dwarf_CU, int, uint64_t, uint64_t, Dwarf_Abbrev,
+int		_dwarf_die_add(Dwarf_CU, uint64_t, uint64_t, Dwarf_Abbrev,
 		    Dwarf_Die *, Dwarf_Error *);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
+int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
+		    uint64_t, uint64_t, Dwarf_Error *);
 void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);

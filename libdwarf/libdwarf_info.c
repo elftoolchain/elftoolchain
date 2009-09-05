@@ -30,7 +30,7 @@ int
 _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
-	int dwarf_size, i, ret, level;
+	int dwarf_size, i, ret;
 	uint64_t length;
 	uint64_t next_offset;
 	uint64_t offset;
@@ -77,10 +77,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		cu->cu_pointer_size	= dbg->read(ds->ds_data, &offset, 1);
 		cu->cu_next_offset	= next_offset;
 
-		/* Initialise the list of abbrevs. */
 		STAILQ_INIT(&cu->cu_abbrev);
-
-		/* Initialise the list of dies. */
 		STAILQ_INIT(&cu->cu_die);
 
 		/* Initialise the hash table of dies. */
@@ -96,45 +93,18 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			break;
 		}
 
-		/* Parse the .debug_abbrev info for this CU: */
+		/*
+		 * Parse the .debug_abbrev info for this CU.
+		 */
 		if ((ret = _dwarf_abbrev_init(dbg, cu, error)) != DWARF_E_NONE)
 			break;
 
-		level = 0;
-
-		while (offset < next_offset && offset < ds->ds_size) {
-			Dwarf_Abbrev ab;
-			Dwarf_AttrDef ad;
-			Dwarf_Die die;
-			uint64_t abnum;
-			uint64_t die_offset = offset;
-
-			abnum = _dwarf_read_uleb128(ds->ds_data, &offset);
-
-			if (abnum == 0) {
-				level--;
-				continue;
-			}
-
-			if ((ab = _dwarf_abbrev_find(cu, abnum)) == NULL) {
-				DWARF_SET_ERROR(error, DWARF_E_MISSING_ABBREV);
-				return DWARF_E_MISSING_ABBREV;
-			}
-
-			if ((ret = _dwarf_die_add(cu, level, die_offset, abnum,
-			    ab, &die, error)) != DWARF_E_NONE)
-				return ret;
-
-			STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
-				if ((ret = _dwarf_attr_init(dbg, ds, &offset,
-				    dwarf_size, cu, die, ad, ad->ad_form, 0,
-				    error)) != DWARF_E_NONE)
-					return ret;
-			}
-
-			if (ab->ab_children == DW_CHILDREN_yes)
-				level++;
-		}
+		/*
+		 * Parse the list of DIE for this CU.
+		 */
+		if ((ret = _dwarf_die_parse(dbg, ds, cu, dwarf_size, offset,
+		    next_offset, error)) != DWARF_E_NONE)
+			break;
 
 		offset = next_offset;
 	}

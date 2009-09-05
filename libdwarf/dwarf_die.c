@@ -41,8 +41,7 @@ dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if ((next = STAILQ_NEXT(die, die_next)) == NULL ||
-	    next->die_level != die->die_level + 1) {
+	if ((next = die->die_child) == NULL) {
 		*ret_die = NULL;
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
@@ -56,7 +55,6 @@ int
 dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
     Dwarf_Error *error)
 {
-	Dwarf_Die next;
 	Dwarf_CU cu;
 	int ret;
 
@@ -71,6 +69,7 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 	}
 
 	ret = DW_DLV_OK;
+
 	if (die == NULL) {
 		*caller_ret_die = STAILQ_FIRST(&cu->cu_die);
 		if (*caller_ret_die == NULL) {
@@ -78,19 +77,8 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 			ret = DW_DLV_NO_ENTRY;
 		}
 	} else {
-		next = die;
-		while ((next = STAILQ_NEXT(next, die_next)) != NULL) {
-			if (next->die_level < die->die_level) {
-				next = NULL;
-				break;
-			}
-			if (next->die_level == die->die_level) {
-				*caller_ret_die = next;
-				break;
-			}
-		}
-		if (next == NULL) {
-			*caller_ret_die = NULL;
+		*caller_ret_die = die->die_right;
+		if (*caller_ret_die == NULL) {
 			DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 			ret = DW_DLV_NO_ENTRY;
 		}
