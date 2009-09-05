@@ -30,8 +30,8 @@
 #include "_libdwarf.h"
 
 int
-_dwarf_die_add(Dwarf_CU cu, int level, uint64_t offset, uint64_t abnum,
-    Dwarf_Abbrev ab, Dwarf_Die *diep, Dwarf_Error *error)
+_dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
+    Dwarf_Die *diep, Dwarf_Error *error)
 {
 	Dwarf_Die die;
 	uint64_t key;
@@ -41,25 +41,20 @@ _dwarf_die_add(Dwarf_CU cu, int level, uint64_t offset, uint64_t abnum,
 		return (DWARF_E_ARGUMENT);
 	}
 
-	if ((die = malloc(sizeof(struct _Dwarf_Die))) == NULL) {
+	if ((die = calloc(1, sizeof(struct _Dwarf_Die))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
 
-	/* Initialise the abbrev structure. */
-	die->die_level	= level;
+	STAILQ_INIT(&die->die_attr);
+	STAILQ_INSERT_TAIL(&cu->cu_die, die, die_next);
+
 	die->die_offset	= offset;
 	die->die_abnum	= abnum;
 	die->die_ab	= ab;
 	die->die_cu	= cu;
 	die->die_name	= NULL;
 	die->die_attrarray = NULL;
-
-	/* Initialise the list of attribute values. */
-	STAILQ_INIT(&die->die_attr);
-
-	/* Add the die to the list in the compilation unit. */
-	STAILQ_INSERT_TAIL(&cu->cu_die, die, die_next);
 
 	/* Add the die to the hash table in the compilation unit. */
 	key = offset % DWARF_DIE_HASH_SIZE;
@@ -85,4 +80,77 @@ _dwarf_die_find(Dwarf_Die die, Dwarf_Unsigned off)
 	}
 
 	return (NULL);
+}
+
+int
+_dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
+    int dwarf_size, uint64_t offset, uint64_t next_offset, Dwarf_Error *error)
+{
+	Dwarf_Abbrev ab;
+	Dwarf_AttrDef ad;
+	Dwarf_Die die;
+	Dwarf_Die parent;
+	Dwarf_Die left;
+	uint64_t abnum;
+	uint64_t die_offset;
+	int ret;
+
+	die = NULL;
+	parent = NULL;
+	left = NULL;
+
+	while (offset < next_offset && offset < ds->ds_size) {
+
+		die_offset = offset;
+
+		abnum = _dwarf_read_uleb128(ds->ds_data, &offset);
+
+		if (abnum == 0) {
+			/*
+			 * Return to previous DIE level.
+			 */
+			left = parent;
+			if (parent == NULL)
+				break;
+
+			parent = parent->die_parent;
+			continue;
+		}
+		
+		if ((ab = _dwarf_abbrev_find(cu, abnum)) == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MISSING_ABBREV);
+			return (DWARF_E_MISSING_ABBREV);
+		}
+
+		if ((ret = _dwarf_die_add(cu, die_offset, abnum, ab, &die,
+		    error)) != DWARF_E_NONE)
+			return (ret);
+
+		STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
+			if ((ret = _dwarf_attr_init(dbg, ds, &offset,
+			    dwarf_size, cu, die, ad, ad->ad_form, 0,
+			    error)) != DWARF_E_NONE)
+				return (ret);
+		}
+
+		die->die_parent = parent;
+		die->die_left = left;
+
+		if (left)
+			left->die_right = die;
+		else if (parent)
+			parent->die_child = die; /* First child. */
+
+		left = die;
+
+		if (ab->ab_children == DW_CHILDREN_yes) {
+			/*
+			 * Advance to next DIE level.
+			 */
+			parent = die;
+			left = NULL;
+		}			
+	}
+
+	return (DWARF_E_NONE);
 }

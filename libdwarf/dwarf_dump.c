@@ -700,8 +700,8 @@ dwarf_dump_die(Dwarf_Die die)
 {
 	Dwarf_Attribute at;
 
-	printf("<%d><%llx>: Abbrev number: %llu (%s)\n",
-	    die->die_level, (unsigned long long) die->die_offset,
+	printf("<%llx>: Abbrev number: %llu (%s)\n",
+	    (unsigned long long) die->die_offset,
 	    (unsigned long long) die->die_abnum,
 	    get_tag_desc(die->die_ab->ab_tag));
 
