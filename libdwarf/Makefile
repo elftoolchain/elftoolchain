@@ -21,6 +21,7 @@ SRCS=	\
 	dwarf_loclist.c		\
 	dwarf_macinfo.c		\
 	dwarf_pro_init.c	\
+	dwarf_pro_die.c		\
 	dwarf_pubnames.c	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\

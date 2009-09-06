@@ -199,7 +199,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DWARF_E_ARGUMENT);
 	}
 
-	dbg->dbg_pro_flags = pf;
+	dbg->dbgp_flags = pf;
 
 	return (DWARF_E_NONE);
 }
@@ -215,6 +215,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 	STAILQ_INIT(&dbg->dbg_rllist);
 	STAILQ_INIT(&dbg->dbg_aslist);
 	STAILQ_INIT(&dbg->dbg_mslist);
+	STAILQ_INIT(&dbg->dbgp_dielist);
 	TAILQ_INIT(&dbg->dbg_loclist);
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {

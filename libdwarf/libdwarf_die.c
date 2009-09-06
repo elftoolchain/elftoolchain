@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2009 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -26,20 +28,16 @@
  * $FreeBSD: src/lib/libdwarf/dwarf_die.c,v 1.1 2008/05/22 02:14:23 jb Exp $
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include "_libdwarf.h"
 
 int
-_dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
-    Dwarf_Die *diep, Dwarf_Error *error)
+_dwarf_die_alloc(Dwarf_Die *ret_die, Dwarf_Error *error)
 {
 	Dwarf_Die die;
-	uint64_t key;
 
-	if (cu == NULL || ab == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
-	}
+	assert(ret_die != NULL);
 
 	if ((die = calloc(1, sizeof(struct _Dwarf_Die))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -47,14 +45,34 @@ _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
 	}
 
 	STAILQ_INIT(&die->die_attr);
-	STAILQ_INSERT_TAIL(&cu->cu_die, die, die_next);
+
+	*ret_die = die;
+
+	return (DWARF_E_NONE);
+}
+
+int
+_dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
+    Dwarf_Die *diep, Dwarf_Error *error)
+{
+	Dwarf_Die die;
+	uint64_t key;
+	int ret;
+
+	if (cu == NULL || ab == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DWARF_E_ARGUMENT);
+	}
+
+	if ((ret = _dwarf_die_alloc(&die, error)) != DWARF_E_NONE)
+		return (ret);
 
 	die->die_offset	= offset;
 	die->die_abnum	= abnum;
 	die->die_ab	= ab;
 	die->die_cu	= cu;
-	die->die_name	= NULL;
-	die->die_attrarray = NULL;
+
+	STAILQ_INSERT_TAIL(&cu->cu_die, die, die_next);
 
 	/* Add the die to the hash table in the compilation unit. */
 	key = offset % DWARF_DIE_HASH_SIZE;
@@ -116,7 +134,7 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 			parent = parent->die_parent;
 			continue;
 		}
-		
+
 		if ((ab = _dwarf_abbrev_find(cu, abnum)) == NULL) {
 			DWARF_SET_ERROR(error, DWARF_E_MISSING_ABBREV);
 			return (DWARF_E_MISSING_ABBREV);
@@ -149,8 +167,120 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 			 */
 			parent = die;
 			left = NULL;
-		}			
+		}
 	}
 
 	return (DWARF_E_NONE);
+}
+
+void
+_dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
+    Dwarf_P_Die left_sibling, Dwarf_P_Die right_sibling)
+{
+
+	assert(die != NULL);
+
+	if (parent) {
+
+		/*
+		 * Disconnect from old parent.
+		 */
+		if (die->die_parent) {
+			if (die->die_parent == parent)
+				return;
+			die->die_parent->die_child = NULL;
+			die->die_parent = NULL;
+		}
+
+		/*
+		 * Connect to new parent.
+		 */
+		die->die_parent = parent;
+		parent->die_child = die;
+
+		return;
+	}
+
+	if (child) {
+
+		/*
+		 * Disconnect from old child.
+		 */
+		if (die->die_child) {
+			if (die->die_child == child)
+				return;
+			die->die_child->die_parent = NULL;
+			die->die_child = NULL;
+		}
+
+		/*
+		 * Connect to new child.
+		 */
+		die->die_child = child;
+		child->die_parent = die;
+
+		return;
+	}
+
+	if (left_sibling) {
+
+		/*
+		 * Disconnect from old left sibling.
+		 */
+		if (die->die_left) {
+			if (die->die_left == left_sibling)
+				return;
+			die->die_left->die_right = NULL;
+			die->die_left = NULL;
+		}
+
+		/*
+		 * Connect to new right sibling.
+		 */
+		die->die_left = left_sibling;
+		left_sibling->die_right = die;
+
+		return;
+	}
+
+	if (right_sibling) {
+
+		/*
+		 * Disconnect from old right sibling.
+		 */
+		if (die->die_right) {
+			if (die->die_right == right_sibling)
+				return;
+			die->die_right->die_left = NULL;
+			die->die_right = NULL;
+		}
+
+		/*
+		 * Connect to new right sibling.
+		 */
+		die->die_right = right_sibling;
+		right_sibling->die_left = die;
+
+		return;
+	}
+}
+
+int
+_dwarf_die_count_links(Dwarf_P_Die parent, Dwarf_P_Die child,
+    Dwarf_P_Die left_sibling, Dwarf_P_Die right_sibling)
+{
+	int count;
+
+	count = 0;
+
+	if (parent)
+		count++;
+	if (child)
+		count++;
+	if (left_sibling)
+		count++;
+	if (right_sibling)
+		count++;
+
+	return (count);
 }

@@ -52,6 +52,7 @@ typedef struct _Dwarf_Cie	*Dwarf_Cie;
 typedef struct _Dwarf_Debug	*Dwarf_Debug;
 typedef struct _Dwarf_Debug	*Dwarf_P_Debug;
 typedef struct _Dwarf_Die	*Dwarf_Die;
+typedef struct _Dwarf_Die	*Dwarf_P_Die;
 typedef struct _Dwarf_Fde	*Dwarf_Fde;
 typedef struct _Dwarf_FrameSec	*Dwarf_FrameSec;
 typedef struct _Dwarf_Line	*Dwarf_Line;
@@ -103,6 +104,8 @@ typedef int (*Dwarf_Callback_Func)(char* name, int size, Dwarf_Unsigned type,
 typedef int (*Dwarf_Callback_Func_b)(char* name, int size, Dwarf_Unsigned type,
     Dwarf_Unsigned flags, Dwarf_Unsigned link, Dwarf_Unsigned info,
     Dwarf_Unsigned *index, int *error);
+
+typedef Dwarf_Unsigned Dwarf_Tag;
 
 typedef struct {
         Dwarf_Small	lr_atom;
@@ -265,6 +268,7 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define DW_DLV_OK		0
 #define	DW_DLV_ERROR		1
 #define DW_DLV_BADADDR		NULL
+#define DW_DLV_NOCOUNT		((Dwarf_Signed) -1)
 #define DW_DLE_DEBUG_INFO_NULL	DWARF_E_DEBUG_INFO
 
 /*
@@ -294,6 +298,8 @@ const char	*get_sht_desc(uint32_t);
 const char	*get_attr_desc(uint32_t);
 const char	*get_form_desc(uint32_t);
 const char	*get_tag_desc(uint32_t);
+Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Error *);
 int		dwarf_arrayorder(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
@@ -317,6 +323,8 @@ int		dwarf_die_abbrev_code(Dwarf_Die);
 int		dwarf_die_CU_offset(Dwarf_Die, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_die_CU_offset_range(Dwarf_Die, Dwarf_Off *, Dwarf_Off *,
 		    Dwarf_Error *);
+Dwarf_P_Die	dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
+		    Dwarf_P_Die, Dwarf_P_Die, Dwarf_Error *);
 int		dwarf_elf_init(Elf *, int, Dwarf_Handler, Dwarf_Ptr,
 		    Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_expand_frame_instructions(Dwarf_Debug, Dwarf_Ptr,
@@ -457,6 +465,8 @@ int		dwarf_loclist_from_expr_dealloc(Dwarf_Locdesc *, Dwarf_Error *);
 int		dwarf_lowpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
+Dwarf_P_Die	dwarf_new_die(Dwarf_P_Debug, Dwarf_Tag, Dwarf_P_Die,
+		    Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die, Dwarf_Error *);
 int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
 		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Half *,
 		    Dwarf_Unsigned *, Dwarf_Error *);
