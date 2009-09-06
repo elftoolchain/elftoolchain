@@ -26,80 +26,79 @@
 
 #include "_libdwarf.h"
 
-Dwarf_P_Debug
-dwarf_producer_init(Dwarf_Unsigned flags, Dwarf_Callback_Func func,
-    Dwarf_Handler errhand, Dwarf_Ptr errarg, Dwarf_Error *error)
+Dwarf_Unsigned
+dwarf_add_die_to_debug(Dwarf_P_Debug dbg, Dwarf_P_Die first_die,
+    Dwarf_Error *error)
 {
-	Dwarf_P_Debug dbg;
-	int mode;
 
-	_libdwarf.errhand = errhand;
-	_libdwarf.errarg = errarg;
-
-	if (flags & DW_DLC_WRITE)
-		mode = DW_DLC_WRITE;
-	else if (flags & DW_DLC_RDWR)
-		mode = DW_DLC_RDWR;
-	else {
+	if (dbg == NULL || first_die == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DW_DLV_BADADDR);
+		return (DW_DLV_NOCOUNT);
 	}
 
-	if (func == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DW_DLV_BADADDR);
-	}
+	dbg->dbgp_root_die = first_die;
 
-	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DWARF_E_NONE)
-		return (DW_DLV_BADADDR);
-
-	dbg->dbg_mode = mode;
-
-	if (_dwarf_init(dbg, flags, error) != DWARF_E_NONE) {
-		free(dbg);
-		return (DW_DLV_BADADDR);
-	}
-
-	dbg->dbgp_func = func;
-
-	return (dbg);
+	return (0);
 }
 
-Dwarf_P_Debug
-dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
-    Dwarf_Handler errhand, Dwarf_Ptr errarg, Dwarf_Error *error)
+Dwarf_P_Die
+dwarf_new_die(Dwarf_P_Debug dbg, Dwarf_Tag new_tag,
+    Dwarf_P_Die parent, Dwarf_P_Die child, Dwarf_P_Die left_sibling,
+    Dwarf_P_Die right_sibling, Dwarf_Error *error)
 {
-	Dwarf_P_Debug dbg;
-	int mode;
+	Dwarf_P_Die die;
+	int count;
 
-	_libdwarf.errhand = errhand;
-	_libdwarf.errarg = errarg;
-
-	if (flags & DW_DLC_WRITE)
-		mode = DW_DLC_WRITE;
-	else if (flags & DW_DLC_RDWR)
-		mode = DW_DLC_RDWR;
-	else {
+	if (dbg == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
-	if (func == NULL) {
+	count = _dwarf_die_count_links(parent, child, left_sibling,
+	    right_sibling);
+
+	if (count > 1) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DWARF_E_NONE)
+	if (_dwarf_die_alloc(&die, error) != DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
 
-	dbg->dbg_mode = mode;
+	die->die_tag = new_tag;
 
-	if (_dwarf_init(dbg, flags, error) != DWARF_E_NONE) {
-		free(dbg);
+	STAILQ_INSERT_TAIL(&dbg->dbgp_dielist, die, die_pro_next);
+
+	if (count == 0)
+		return (die);
+
+	_dwarf_die_link(die, parent, child, left_sibling, right_sibling);
+
+	return (die);
+}
+
+Dwarf_P_Die
+dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent,
+    Dwarf_P_Die child, Dwarf_P_Die left_sibling, Dwarf_P_Die right_sibling,
+    Dwarf_Error *error)
+{
+	int count;
+
+	if (die == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
-	dbg->dbgp_func_b = func;
+	count = _dwarf_die_count_links(parent, child, left_sibling,
+	    right_sibling);
 
-	return (dbg);
+	if (count > 1) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	} else if (count == 0)
+		return (die);
+
+	_dwarf_die_link(die, parent, child, left_sibling, right_sibling);
+
+	return (die);
 }

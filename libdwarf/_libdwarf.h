@@ -114,12 +114,14 @@ struct _Dwarf_Die {
 	uint64_t	die_offset;	/* DIE offset in section. */
 	uint64_t	die_abnum;	/* Abbrev number. */
 	Dwarf_Abbrev	die_ab;		/* Abbrev pointer. */
+	Dwarf_Tag	die_tag;	/* DW_TAG_ */
 	Dwarf_CU	die_cu;		/* Compilation unit pointer. */
 	char		*die_name;	/* Ptr to the name string. */
 	Dwarf_Attribute	*die_attrarray;	/* Array of attributes. */
 	STAILQ_HEAD(, _Dwarf_Attribute)	die_attr; /* List of attributes. */
 	STAILQ_ENTRY(_Dwarf_Die) die_next; /* Next die in list. */
 	STAILQ_ENTRY(_Dwarf_Die) die_hash; /* Next die in hash table. */
+	STAILQ_ENTRY(_Dwarf_Die) die_pro_next; /* Next die in pro-die list. */
 };
 
 struct _Dwarf_Loclist {
@@ -338,9 +340,15 @@ struct _Dwarf_Debug {
 
 	Dwarf_Regtable3	*dbg_internal_reg_table;
 
-	Dwarf_Unsigned	dbg_pro_flags;
-	Dwarf_Callback_Func dbg_func;
-	Dwarf_Callback_Func_b dbg_func_b;
+	/*
+	 * Fields used by libdwarf producer.
+	 */
+
+	Dwarf_Unsigned	dbgp_flags;
+	Dwarf_Callback_Func dbgp_func;
+	Dwarf_Callback_Func_b dbgp_func_b;
+	Dwarf_Die	dbgp_root_die;
+	STAILQ_HEAD(, _Dwarf_Die) dbgp_dielist;
 };
 
 /*
@@ -353,7 +361,12 @@ int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
 void		_dwarf_deinit(Dwarf_Debug);
 int		_dwarf_die_add(Dwarf_CU, uint64_t, uint64_t, Dwarf_Abbrev,
 		    Dwarf_Die *, Dwarf_Error *);
+int		_dwarf_die_alloc(Dwarf_Die *, Dwarf_Error *);
+int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
+		    Dwarf_P_Die, Dwarf_P_Die);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
+void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
+		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
 		    uint64_t, uint64_t, Dwarf_Error *);
 void		_dwarf_arange_cleanup(Dwarf_Debug);
