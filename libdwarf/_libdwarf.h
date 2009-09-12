@@ -81,7 +81,8 @@ struct _Dwarf_AttrDef {
 
 struct _Dwarf_Attribute {
 	struct _Dwarf_CU	*at_cu;		/* Ptr to containing CU. */
-	struct _Dwarf_AttrDef	*at_ad;		/* Ptr to its definition. */
+	uint64_t		at_attrib;	/* DW_AT_XXX */
+	uint64_t		at_form;	/* DW_FORM_XXX */
 	int			at_indirect;	/* Has indirect form. */
 	union {
 		uint64_t	u64;
@@ -91,8 +92,6 @@ struct _Dwarf_Attribute {
 	} u[2];					/* Value. */
 	Dwarf_Locdesc		*at_ld;		/* at value is locdesc. */
 	STAILQ_ENTRY(_Dwarf_Attribute) at_next;	/* Next attribute. */
-#define	at_attrib	at_ad->ad_attrib
-#define	at_form		at_ad->ad_form
 };
 
 struct _Dwarf_Abbrev {
