@@ -137,7 +137,7 @@ dwarf_global_formref(Dwarf_Attribute at, Dwarf_Off *return_offset,
 	case DW_FORM_ref8:
 	case DW_FORM_ref_udata:
 		*return_offset = (Dwarf_Off) at->u[0].u64 +
-			at->at_cu->cu_offset;
+			at->at_die->die_cu->cu_offset;
 		ret = DW_DLV_OK;
 		break;
 	default:

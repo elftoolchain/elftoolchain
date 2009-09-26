@@ -54,7 +54,7 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		switch (at->at_form) {
 		case DW_FORM_data4:
 		case DW_FORM_data8:
-			ret = _dwarf_loclist_find(at->at_cu->cu_dbg,
+			ret = _dwarf_loclist_find(at->at_die->die_dbg,
 			    at->u[0].u64, &ll);
 			if (ret == DWARF_E_NO_ENTRY) {
 				/* Malformed Attr? */
@@ -116,7 +116,7 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 		switch (at->at_form) {
 		case DW_FORM_data4:
 		case DW_FORM_data8:
-			ret = _dwarf_loclist_find(at->at_cu->cu_dbg,
+			ret = _dwarf_loclist_find(at->at_die->die_dbg,
 			    at->u[0].u64, &ll);
 			if (ret == DWARF_E_NO_ENTRY) {
 				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);

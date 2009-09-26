@@ -30,6 +30,24 @@
 #include <string.h>
 #include "_libdwarf.h"
 
+int
+_dwarf_attr_alloc(Dwarf_Die die, Dwarf_Attribute *atp, Dwarf_Error *error)
+{
+	Dwarf_Attribute at;
+
+	assert(die != NULL);
+	assert(atp != NULL);
+
+	if ((at = calloc(1, sizeof(struct _Dwarf_Attribute))) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+
+	*atp = at;
+
+	return (DWARF_E_NONE);
+}
+
 static int
 _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
     Dwarf_Error *error)
@@ -37,14 +55,11 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	Dwarf_Attribute at;
 	int ret;
 
-	if ((at = malloc(sizeof(struct _Dwarf_Attribute))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
-	}
+	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DWARF_E_NONE)
+		return (ret);
 
 	memcpy(at, atref, sizeof(struct _Dwarf_Attribute));
 
-	/* Add the attribute value to the list in the die. */
 	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
 	/* Save a pointer to the attribute name if this is one. */
@@ -148,9 +163,9 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 
 	ret = DWARF_E_NONE;
 	memset(&atref, 0, sizeof(atref));
-	atref.at_cu = cu;
-	atref.at_form = ad->ad_form;
+	atref.at_die = die;
 	atref.at_attrib = ad->ad_attrib;
+	atref.at_form = ad->ad_form;
 	atref.at_indirect = indirect;
 	atref.at_ld = NULL;
 
