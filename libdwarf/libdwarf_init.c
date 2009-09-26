@@ -234,6 +234,12 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 		}
 	}
 
+	/*
+	 * Initialise internal string table.
+	 */
+	if ((ret = _dwarf_strtab_init(dbg, error)) != DWARF_E_NONE)
+		return (ret);
+
 	return (DWARF_E_NONE);
 }
 
@@ -348,6 +354,8 @@ _dwarf_deinit(Dwarf_Debug dbg)
 	_dwarf_arange_cleanup(dbg);
 
 	_dwarf_macinfo_cleanup(dbg);
+
+	_dwarf_strtab_cleanup(dbg);
 }
 
 int
