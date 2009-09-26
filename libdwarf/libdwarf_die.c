@@ -71,6 +71,7 @@ _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
 	die->die_abnum	= abnum;
 	die->die_ab	= ab;
 	die->die_cu	= cu;
+	die->die_dbg	= cu->cu_dbg;
 
 	STAILQ_INSERT_TAIL(&cu->cu_die, die, die_next);
 

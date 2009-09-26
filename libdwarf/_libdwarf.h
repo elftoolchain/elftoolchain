@@ -80,7 +80,7 @@ struct _Dwarf_AttrDef {
 };
 
 struct _Dwarf_Attribute {
-	struct _Dwarf_CU	*at_cu;		/* Ptr to containing CU. */
+	Dwarf_Die		at_die;		/* Ptr to containing DIE. */
 	uint64_t		at_attrib;	/* DW_AT_XXX */
 	uint64_t		at_form;	/* DW_FORM_XXX */
 	int			at_indirect;	/* Has indirect form. */
@@ -91,6 +91,7 @@ struct _Dwarf_Attribute {
 		uint8_t		*u8p;		/* Block. */
 	} u[2];					/* Value. */
 	Dwarf_Locdesc		*at_ld;		/* at value is locdesc. */
+	uint64_t		at_relsym;	/* Relocation symbol index. */
 	STAILQ_ENTRY(_Dwarf_Attribute) at_next;	/* Next attribute. */
 };
 
@@ -114,6 +115,7 @@ struct _Dwarf_Die {
 	uint64_t	die_abnum;	/* Abbrev number. */
 	Dwarf_Abbrev	die_ab;		/* Abbrev pointer. */
 	Dwarf_Tag	die_tag;	/* DW_TAG_ */
+	Dwarf_Debug	die_dbg;	/* Dwarf_Debug pointer. */
 	Dwarf_CU	die_cu;		/* Compilation unit pointer. */
 	char		*die_name;	/* Ptr to the name string. */
 	Dwarf_Attribute	*die_attrarray;	/* Array of attributes. */
@@ -311,6 +313,7 @@ struct _Dwarf_Debug {
 	Dwarf_Unsigned	dbg_seccnt;
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
+	int		dbg_offset_size;  /* DWARF offset size. */
 	STAILQ_HEAD(, _Dwarf_CU) dbg_cu;/* List of compilation units. */
 	Dwarf_CU	dbg_cu_current; /* Ptr to the current CU. */
 	TAILQ_HEAD(, _Dwarf_Loclist) dbg_loclist; /* List of location list. */
@@ -325,6 +328,9 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_ArangeSet) dbg_aslist; /* List of arange set. */
 	Dwarf_Arange	*dbg_arange_array; /* Array of arange. */
 	Dwarf_Unsigned	dbg_arange_cnt;	/* Length of the arange array. */
+	char		*dbg_strtab;
+	Dwarf_Unsigned	dbg_strtab_cap;
+	Dwarf_Unsigned	dbg_strtab_size;
 	STAILQ_HEAD(, _Dwarf_MacroSet) dbg_mslist; /* List of macro set. */
 	STAILQ_HEAD(, _Dwarf_Rangelist) dbg_rllist; /* List of rangelist. */
 	uint64_t	(*read)(uint8_t *, uint64_t *, int);
@@ -357,6 +363,17 @@ struct _Dwarf_Debug {
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
+void		_dwarf_arange_cleanup(Dwarf_Debug);
+int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
+int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
+Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
+int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
+		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
+		    Dwarf_Error *);
+uint64_t	_dwarf_decode_lsb(uint8_t **, int);
+uint64_t	_dwarf_decode_msb(uint8_t **, int);
+int64_t		_dwarf_decode_sleb128(uint8_t **);
+uint64_t	_dwarf_decode_uleb128(uint8_t **);
 void		_dwarf_deinit(Dwarf_Debug);
 int		_dwarf_die_add(Dwarf_CU, uint64_t, uint64_t, Dwarf_Abbrev,
 		    Dwarf_Die *, Dwarf_Error *);
@@ -368,16 +385,6 @@ void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
 		    uint64_t, uint64_t, Dwarf_Error *);
-void		_dwarf_arange_cleanup(Dwarf_Debug);
-int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
-Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
-int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
-		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
-		    Dwarf_Error *);
-uint64_t	_dwarf_decode_lsb(uint8_t **, int);
-uint64_t	_dwarf_decode_msb(uint8_t **, int);
-int64_t		_dwarf_decode_sleb128(uint8_t **);
-uint64_t	_dwarf_decode_uleb128(uint8_t **);
 void		_dwarf_elf_deinit(Dwarf_Debug);
 int		_dwarf_elf_init(Dwarf_Debug, Elf *, int, Dwarf_Error *);
 int		_dwarf_elf_load_section(void *, Dwarf_Half, Dwarf_Small **,
@@ -428,5 +435,10 @@ int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
 int		_dwarf_ranges_find(Dwarf_Debug, uint64_t, Dwarf_Rangelist *);
+int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
+		    Dwarf_Error *);
+void		_dwarf_strtab_cleanup(Dwarf_Debug);
+char		*_dwarf_strtab_get_table(Dwarf_Debug);
+int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
 
 #endif /* !__LIBDWARF_H_ */

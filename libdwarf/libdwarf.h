@@ -46,6 +46,7 @@ typedef struct _Dwarf_Abbrev	*Dwarf_Abbrev;
 typedef struct _Dwarf_Arange	*Dwarf_Arange;
 typedef struct _Dwarf_ArangeSet	*Dwarf_ArangeSet;
 typedef struct _Dwarf_Attribute	*Dwarf_Attribute;
+typedef struct _Dwarf_Attribute *Dwarf_P_Attribute;
 typedef struct _Dwarf_AttrDef	*Dwarf_AttrDef;
 typedef struct _Dwarf_CU	*Dwarf_CU;
 typedef struct _Dwarf_Cie	*Dwarf_Cie;
@@ -298,8 +299,35 @@ const char	*get_sht_desc(uint32_t);
 const char	*get_attr_desc(uint32_t);
 const char	*get_form_desc(uint32_t);
 const char	*get_tag_desc(uint32_t);
+Dwarf_P_Attribute dwarf_add_AT_name(Dwarf_P_Die, char *, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_comp_dir(Dwarf_P_Die, char *, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_producer(Dwarf_P_Die, char *, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_const_value_signedint(Dwarf_P_Die, Dwarf_Signed,
+		    Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_const_value_unsignedint(Dwarf_P_Die,
+		    Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_const_value_string(Dwarf_P_Die, char *,
+		    Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_targ_address(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Half, Dwarf_Unsigned, Dwarf_Signed, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_targ_address_b(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Half, Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_dataref(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_ref_address(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Half, Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_unsigned_const(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Half, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_signed_const(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Half, Dwarf_Signed, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_reference(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
+		    Dwarf_P_Die, Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_flag(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
+		    Dwarf_Small, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
 		    Dwarf_Error *);
+Dwarf_P_Attribute dwarf_add_AT_string(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
+		    char *, Dwarf_Error *);
 int		dwarf_arrayorder(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
