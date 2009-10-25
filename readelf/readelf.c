@@ -72,6 +72,20 @@
 #define	RE_X	0x00100000
 
 /*
+ * dwarf dump options.
+ */
+#define	DW_A	0x00000001
+#define	DW_FF	0x00000002
+#define	DW_F	0x00000004
+#define	DW_I	0x00000008
+#define	DW_L	0x00000010
+#define	DW_M	0x00000020
+#define	DW_O	0x00000040
+#define	DW_P	0x00000080
+#define	DW_R	0x00000100
+#define	DW_S	0x00000200
+
+/*
  * readelf(1) run control flags.
  */
 #define	DISPLAY_FILENAME	0x0001
@@ -107,6 +121,7 @@ struct readelf {
 	const char	 *filename;	/* current processing file. */
 	int		  options;	/* command line options. */
 	int		  flags;	/* run control flags. */
+	int		  dop;		/* dwarf dump options. */
 	Elf		 *elf;		/* underlying ELF descriptor. */
 	GElf_Ehdr	  ehdr;		/* ELF header. */
 	int		  ec;		/* ELF class. */
@@ -2521,6 +2536,61 @@ find_dumpop(struct readelf *re, size_t sn, int op)
 	return (NULL);
 }
 
+static struct {
+	const char *ln;
+	char sn;
+	int value;
+} dwarf_op[] = {
+	{"line", 'l', DW_L},
+	{"info", 'i', DW_I},
+	{"abbrev", 'a', DW_A},
+	{"pubnames", 'p', DW_P},
+	{"ranges", 'r', DW_R},
+	{"macro", 'm', DW_M},
+	{"frames", 'f', DW_F},
+	{"", 'F', DW_FF},
+	{"str", 's', DW_S},
+	{"loc", 'o', DW_O},
+	{NULL, 0, 0}
+};
+
+static void
+parse_dwarf_op_short(struct readelf *re, const char *op)
+{
+	int i;
+
+	for (; *op != '\0'; op++) {
+		for (i = 0; dwarf_op[i].ln != NULL; i++) {
+			if (dwarf_op[i].sn == *op) {
+				re->dop |= dwarf_op[i].value;
+				break;
+			}
+		}
+	}
+}
+
+static void
+parse_dwarf_op_long(struct readelf *re, const char *op)
+{
+	char *p, *token, *bp;
+	int i;
+
+	if ((p = strdup(op)) == NULL)
+		err(EX_SOFTWARE, "strdup failed");
+	bp = p;
+	
+	while ((token = strsep(&p, ",")) != NULL) {
+		for (i = 0; dwarf_op[i].ln != NULL; i++) {
+			if (!strcmp(token, dwarf_op[i].ln)) {
+				re->dop |= dwarf_op[i].value;
+				break;
+			}
+		}
+	}
+
+	free(bp);
+}
+
 static void
 readelf_version()
 {
@@ -2632,7 +2702,7 @@ main(int argc, char **argv)
 			break;
 		case 'w':
 			re->options |= RE_W;
-			/* TODO: Parse -w optarg. */
+			parse_dwarf_op_short(re, optarg);
 			break;
 		case 'x':
 			re->options |= RE_X;
@@ -2641,7 +2711,7 @@ main(int argc, char **argv)
 			break;
 		case OPTION_DEBUG_DUMP:
 			re->options |= RE_W;
-			/* TODO: Parse debug-dump optarg. */
+			parse_dwarf_op_long(re, optarg);
 		}
 	}
 
