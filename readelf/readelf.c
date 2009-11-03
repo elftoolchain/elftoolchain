@@ -28,10 +28,12 @@
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <ctype.h>
+#include <dwarf.h>
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <getopt.h>
+#include <libdwarf.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -123,6 +125,7 @@ struct readelf {
 	int		  flags;	/* run control flags. */
 	int		  dop;		/* dwarf dump options. */
 	Elf		 *elf;		/* underlying ELF descriptor. */
+	Dwarf_Debug	  dbg;		/* DWARF handle. */
 	GElf_Ehdr	  ehdr;		/* ELF header. */
 	int		  ec;		/* ELF class. */
 	size_t		  shnum;	/* #sections. */
@@ -135,6 +138,8 @@ struct readelf {
 	int		  vname_sz;	/* Size version name array. */
 	struct section	 *sl;		/* list of sections. */
 	STAILQ_HEAD(, dumpop) v_dumpop; /* list of dump ops. */
+	uint64_t	(*dw_read)(Elf_Data *, uint64_t *, int);
+	uint64_t	(*dw_decode)(uint8_t **, int);
 };
 
 struct elf_define {
@@ -1008,6 +1013,7 @@ r_type(unsigned int mach, unsigned int type)
 }
 
 static void	 add_dumpop(struct readelf *re, size_t sn, int op);
+static void	 dump_dwarf(struct readelf *re);
 static void	 dump_elf(struct readelf *re);
 static void	 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void	 dump_dynamic(struct readelf *re);
@@ -1031,6 +1037,14 @@ static void	 readelf_help(void);
 static void	 readelf_usage(void);
 static void	 readelf_version(void);
 static void	 search_ver(struct readelf *re);
+static uint64_t	_dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp,
+		    int bytes_to_read);
+static uint64_t	_dwarf_read_msb(Elf_Data *d, uint64_t *offsetp,
+		    int bytes_to_read);
+uint64_t	_dwarf_decode_lsb(uint8_t **data, int bytes_to_read);
+uint64_t	_dwarf_decode_msb(uint8_t **data, int bytes_to_read);
+int64_t		_dwarf_decode_sleb128(uint8_t **dp);
+static uint64_t	_dwarf_decode_uleb128(uint8_t **dp);
 
 static void
 dump_ehdr(struct readelf *re)
@@ -2144,6 +2158,295 @@ search_ver(struct readelf *re)
 #undef	Elf_Vernaux
 #undef	SAVE_VERSION_NAME
 
+static void
+dump_dwarf_line(struct readelf *re)
+{
+	struct section *s;
+	Dwarf_Die die;
+	Dwarf_Error de;
+	Dwarf_Half tag, version, pointer_size;
+	Dwarf_Unsigned offset, endoff, length, hdrlen, dirndx, mtime, fsize;
+	Dwarf_Small minlen, defstmt, lrange, opbase, oplen;
+	Elf_Data *d;
+	char *pn;
+	uint64_t address, file, line, column, isa, opsize, udelta;
+	int64_t sdelta;
+	uint8_t *p, *pe;
+	int8_t lbase;
+	int is_stmt, basic_block, end_sequence;
+	int prologue_end, epilogue_begin;
+	int i, dwarf_size, elferr, ret;
+
+	printf("\nDump of debug contents of section .debug_line:\n");
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && !strcmp(s->name, ".debug_line"))
+			break;
+	}
+	if ((size_t) i >= re->shnum)
+		return;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
+	    NULL, &de)) ==  DW_DLV_OK) {
+		die = NULL;
+		while (dwarf_siblingof(re->dbg, die, &die, &de) == DW_DLV_OK) {
+			if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+				warnx("dwarf_tag failed: %s",
+				    dwarf_errmsg(de));
+				return;
+			}
+			/* XXX: What about DW_TAG_partial_unit? */
+			if (tag == DW_TAG_compile_unit)
+				break;
+		}
+		if (die == NULL) {
+			warnx("could not find DW_TAG_compile_unit die");
+			return;
+		}
+		if (dwarf_attrval_unsigned(die, DW_AT_stmt_list, &offset,
+		    &de) != DW_DLV_OK)
+			continue;
+
+		length = re->dw_read(d, &offset, 4);
+		if (length == 0xffffffff) {
+			dwarf_size = 8;
+			length = re->dw_read(d, &offset, 8);
+		} else
+			dwarf_size = 4;
+
+		if (length > d->d_size - offset) {
+			warnx("invalid .dwarf_line section");
+			continue;
+		}
+
+		endoff = offset + length;
+		version = re->dw_read(d, &offset, 2);
+		hdrlen = re->dw_read(d, &offset, dwarf_size);
+		minlen = re->dw_read(d, &offset, 1);
+		defstmt = re->dw_read(d, &offset, 1);
+		lbase = re->dw_read(d, &offset, 1);
+		lrange = re->dw_read(d, &offset, 1);
+		opbase = re->dw_read(d, &offset, 1);
+
+		printf("\n");
+		printf("  Length:\t\t\t%ju\n", (uintmax_t) length);
+		printf("  DWARF version:\t\t%u\n", version);
+		printf("  Prologue Length:\t\t%ju\n", (uintmax_t) hdrlen);
+		printf("  Minimum Instruction Length:\t%u\n", minlen);
+		printf("  Initial value of 'is_stmt':\t%u\n", defstmt);
+		printf("  Line Base:\t\t\t%d\n", lbase);
+		printf("  Line Range:\t\t\t%u\n", lrange);
+		printf("  Opcode Base:\t\t\t%u\n", opbase);
+		(void) dwarf_get_address_size(re->dbg, &pointer_size, &de);
+		printf("  (Pointer size:\t\t%u)\n", pointer_size);
+
+		printf("\n");
+		printf(" Opcodes:\n");
+		for (i = 1; i < opbase; i++) {
+			oplen = re->dw_read(d, &offset, 1);
+			printf("  Opcode %d has %u args\n", i, oplen);
+		}
+
+		printf("\n");
+		printf(" The Directory Table:\n");
+		p = (uint8_t *) d->d_buf + offset;
+		while (*p != '\0') {
+			printf("  %s\n", (char *) p);
+			p += strlen((char *) p) + 1;
+		}
+
+		p++;
+		printf("\n");
+		printf(" The File Name Table:\n");
+		printf("  Entry\tDir\tTime\tSize\tName\n");
+		i = 0;
+		while (*p != '\0') {
+			i++;
+			pn = (char *) p;
+			p += strlen(pn) + 1;
+			dirndx = _dwarf_decode_uleb128(&p);
+			mtime = _dwarf_decode_uleb128(&p);
+			fsize = _dwarf_decode_uleb128(&p);
+			printf("  %d\t%ju\t%ju\t%ju\t%s\n", i,
+			    (uintmax_t) dirndx, (uintmax_t) mtime,
+			    (uintmax_t) fsize, pn);
+		}
+
+#define	RESET_REGISTERS						\
+	do {							\
+		address	       = 0;				\
+		file	       = 1;				\
+		line	       = 1;				\
+		column	       = 0;				\
+		is_stmt	       = defstmt;			\
+		basic_block    = 0;				\
+		end_sequence   = 0;				\
+		prologue_end   = 0;				\
+		epilogue_begin = 0;				\
+	} while(0)
+
+#define	LINE(x) (lbase + (((x) - opbase) % lrange))
+#define	ADDRESS(x) ((((x) - opbase) / lrange) * minlen)
+
+		p++;
+		pe = (uint8_t *) d->d_buf + endoff;
+		printf("\n");
+		printf(" Line Number Statements:\n");
+
+		RESET_REGISTERS;
+
+		while (p < pe) {
+
+			if (*p == 0) {
+				/*
+				 * Extended Opcodes.
+				 */
+				p++;
+				opsize = _dwarf_decode_uleb128(&p);
+				printf("  Extended opcode %u: ", *p);
+				switch (*p) {
+				case DW_LNE_end_sequence:
+					p++;
+					end_sequence = 1;
+					RESET_REGISTERS;
+					printf("End of Sequence\n");
+					break;
+				case DW_LNE_set_address:
+					p++;
+					address = re->dw_decode(&p,
+					    pointer_size);
+					printf("set Address to %#jx\n",
+					    (uintmax_t) address);
+					break;
+				case DW_LNE_define_file:
+					p++;
+					pn = (char *) p;
+					p += strlen(pn) + 1;
+					dirndx = _dwarf_decode_uleb128(&p);
+					mtime = _dwarf_decode_uleb128(&p);
+					fsize = _dwarf_decode_uleb128(&p);
+					printf("define new file: %s\n", pn);
+					break;
+				default:
+					/* Unrecognized extened opcodes. */
+					p += opsize;
+					printf("unknown opcode\n");
+				}
+			} else if (*p > 0 && *p < opbase) {
+				/*
+				 * Standard Opcodes.
+				 */
+				switch(*p++) {
+				case DW_LNS_copy:
+					basic_block = 0;
+					prologue_end = 0;
+					epilogue_begin = 0;
+					printf("  Copy\n");
+					break;
+				case DW_LNS_advance_pc:
+					udelta = _dwarf_decode_uleb128(&p) *
+					    minlen;
+					address += udelta;
+					printf("  Advance PC by %ju to %#jx\n",
+					    (uintmax_t) udelta,
+					    (uintmax_t) address);
+					break;
+				case DW_LNS_advance_line:
+					sdelta = _dwarf_decode_sleb128(&p);
+					line += sdelta;
+					printf("  Advance Line by %jd to %ju\n",
+					    (intmax_t) sdelta,
+					    (uintmax_t) line);
+					break;
+				case DW_LNS_set_file:
+					file = _dwarf_decode_uleb128(&p);
+					printf("  Set File to %ju\n",
+					    (uintmax_t) file);
+					break;
+				case DW_LNS_set_column:
+					column = _dwarf_decode_uleb128(&p);
+					printf("  Set Column to %ju\n",
+					    (uintmax_t) column);
+					break;
+				case DW_LNS_negate_stmt:
+					is_stmt = !is_stmt;
+					printf("  Set is_stmt to %d\n", is_stmt);
+					break;
+				case DW_LNS_set_basic_block:
+					basic_block = 1;
+					printf("  Set basic block flag\n");
+					break;
+				case DW_LNS_const_add_pc:
+					address += ADDRESS(255);
+					printf("  Advance PC by constant %ju"
+					    " to %#jx\n",
+					    (uintmax_t) ADDRESS(255),
+					    (uintmax_t) address);
+					break;
+				case DW_LNS_fixed_advance_pc:
+					udelta = re->dw_decode(&p, 2);
+					address += udelta;
+					printf("  Advance PC by fixed value "
+					    "%ju to %#jx\n",
+					    (uintmax_t) udelta,
+					    (uintmax_t) address);
+					break;
+				case DW_LNS_set_prologue_end:
+					prologue_end = 1;
+					printf("  Set prologue end flag\n");
+					break;
+				case DW_LNS_set_epilogue_begin:
+					epilogue_begin = 1;
+					printf("  Set epilogue begin flag\n");
+					break;
+				case DW_LNS_set_isa:
+					isa = _dwarf_decode_uleb128(&p);
+					printf("  Set isa to %ju\n", isa);
+					break;
+				default:
+					/* Unrecognized extended opcodes. */
+					printf("  Unknown extended opcode %u\n",
+					    *(p - 1));
+					break;
+				}
+
+			} else {
+				/*
+				 * Special Opcodes.
+				 */
+				line += LINE(*p);
+				address += ADDRESS(*p);
+				basic_block = 0;
+				prologue_end = 0;
+				epilogue_begin = 0;
+				printf("  Special opcode %u: advance Address "
+				    "by %ju to %#jx and Line by %jd to %ju\n",
+				    *p - opbase, (uintmax_t) ADDRESS(*p),
+				    (uintmax_t) address, (intmax_t) LINE(*p),
+				    (uintmax_t) line);
+				p++;
+			}
+
+
+		}
+	}
+
+#undef	RESET_REGISTERS
+#undef	LINE
+#undef	ADDRESS
+}
+
 /*
  * Retrieve a string using string table section index and the string offset.
  */
@@ -2370,6 +2673,34 @@ dump_elf(struct readelf *re)
 		hex_dump(re);
 	if (re->options & RE_VV)
 		dump_ver(re);
+	if (re->options & RE_W)
+		dump_dwarf(re);
+}
+
+static void
+dump_dwarf(struct readelf *re)
+{
+	Dwarf_Error de;
+
+	if (gelf_getehdr(re->elf, &re->ehdr) == NULL) {
+		warnx("gelf_getehdr failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (re->ehdr.e_ident[EI_DATA] == ELFDATA2MSB) {
+		re->dw_read = _dwarf_read_msb;
+		re->dw_decode = _dwarf_decode_msb;
+	} else {
+		re->dw_read = _dwarf_read_lsb;
+		re->dw_decode = _dwarf_decode_lsb;
+	}
+
+	if (dwarf_elf_init(re->elf, DW_DLC_READ, NULL, NULL, &re->dbg, &de))
+		errx(EX_SOFTWARE, "dwarf_elf_init failed: %s",
+		    dwarf_errmsg(de));
+	if (re->dop & DW_L)
+		dump_dwarf_line(re);
+
+	dwarf_finish(re->dbg, &de);
 }
 
 #ifndef LIBELF_AR
@@ -2589,6 +2920,185 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 	}
 
 	free(bp);
+}
+
+/*
+ * Dwarf helper functions.
+ */
+
+static uint64_t
+_dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = (uint8_t *) d->d_buf + *offsetp;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 8:
+		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
+		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
+	case 4:
+		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
+	case 2:
+		ret |= ((uint64_t) src[1]) << 8;
+	case 1:
+		ret |= src[0];
+		break;
+	default:
+		return (0);
+	}
+
+	*offsetp += bytes_to_read;
+
+	return (ret);
+}
+
+uint64_t
+_dwarf_decode_lsb(uint8_t **data, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = *data;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 8:
+		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
+		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
+	case 4:
+		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
+	case 2:
+		ret |= ((uint64_t) src[1]) << 8;
+	case 1:
+		ret |= src[0];
+		break;
+	default:
+		return 0;
+	}
+
+	*data += bytes_to_read;
+
+	return ret;
+}
+
+static uint64_t
+_dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = (uint8_t *) d->d_buf + *offsetp;
+
+	switch (bytes_to_read) {
+	case 1:
+		ret = src[0];
+		break;
+	case 2:
+		ret = src[1] | ((uint64_t) src[0]) << 8;
+		break;
+	case 4:
+		ret = src[3] | ((uint64_t) src[2]) << 8;
+		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
+		break;
+	case 8:
+		ret = src[7] | ((uint64_t) src[6]) << 8;
+		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
+		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
+		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
+		break;
+	default:
+		return (0);
+	}
+
+	*offsetp += bytes_to_read;
+
+	return (ret);
+}
+
+uint64_t
+_dwarf_decode_msb(uint8_t **data, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = *data;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 1:
+		ret = src[0];
+		break;
+	case 2:
+		ret = src[1] | ((uint64_t) src[0]) << 8;
+		break;
+	case 4:
+		ret = src[3] | ((uint64_t) src[2]) << 8;
+		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
+		break;
+	case 8:
+		ret = src[7] | ((uint64_t) src[6]) << 8;
+		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
+		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
+		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
+		break;
+	default:
+		return 0;
+		break;
+	}
+
+	*data += bytes_to_read;
+
+	return ret;
+}
+
+int64_t
+_dwarf_decode_sleb128(uint8_t **dp)
+{
+	int64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+
+		ret |= ((b & 0x7f) << shift);
+
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	if (shift < 32 && (b & 0x40) != 0)
+		ret |= (-1 << shift);
+
+	*dp = src;
+
+	return (ret);
+}
+
+static uint64_t
+_dwarf_decode_uleb128(uint8_t **dp)
+{
+	uint64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+
+		ret |= ((b & 0x7f) << shift);
+
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	*dp = src;
+
+	return (ret);
 }
 
 static void
