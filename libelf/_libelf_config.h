@@ -159,21 +159,7 @@
 
 #if defined(__linux__)
 
-/*
- * We include <asm/elf.h> in order to access the symbols `ELF_ARCH',
- * `ELF_DATA' and `ELF_CLASS'.  However, a few symbols in this
- * file will collide with those in <elf.h> so these need to be
- * explicitly #undef'ed.
- */
-
-#undef R_386_NUM
-#undef R_X86_64_NUM
-
-#include <asm/elf.h>
-
-#define	LIBELF_ARCH		ELF_ARCH
-#define	LIBELF_BYTEORDER	ELF_DATA
-#define	LIBELF_CLASS		ELF_CLASS
+#include "native-elf-format.h"
 
 #endif	/* defined(__linux__) */
 
