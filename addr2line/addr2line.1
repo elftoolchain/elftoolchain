@@ -30,20 +30,13 @@
 .Nd translate program addresses to source file names and line numbers
 .Sh SYNOPSIS
 .Nm
-.Op Fl -basename
-.Op Fl -demangle
-.Op Fl -exe Ns = Ns Ar executable
-.Op Fl -functions
-.Op Fl -help
-.Op Fl -target Ns = Ns Ar target
-.Op Fl -version
-.Op Fl C
-.Op Fl H
-.Op Fl V
-.Op Fl b Ar target
-.Op Fl e Ar executable
-.Op Fl f
-.Op Fl s
+.Op Fl b Ar target | Fl -target Ns = Ns Ar target
+.Op Fl e Ar executable | Fl -exe Ns = Ns Ar executable
+.Op Fl f | Fl -functions
+.Op Fl s | Fl -basename
+.Op Fl C | Fl -demangle
+.Op Fl H | Fl -help
+.Op Fl V | Fl -version
 .Op Ar hexaddress Ns ...
 .Sh DESCRIPTION
 .Nm
@@ -62,46 +55,28 @@ are encoded using the conventions accepted by
 The
 .Nm
 utility recognizes the following options:
-.Bl -tag -width ".Fl e Ns = Ns Ar executable"
-.It Fl -basename
-Display only the base name for each file name.
-.It Fl -demangle
-Demangle C++ names.
-.It Fl -exe Ns = Ns Ar executable
+.Bl -tag -width indent
+.It Fl b Ar target | Fl -target Ns = Ns Ar target
+This option is recognized by
+.Nm
+but is ignored.
+It is supported for compatibility with GNU binutils.
+.It Fl e Ar executable | Fl -exe Ns = Ns Ar executable
 Use argument
 .Ar executable
 to translate addresses.
 The default is
 .Pa a.out .
-.It Fl -functions
+.It Fl f | Fl -functions
 Display function names in addition to file and line number information.
-.It Fl -help
+.It Fl s | -basename
+Display only the base name for each file name.
+.It Fl C | Fl -demangle
+Demangle C++ names.
+.It Fl H | Fl -help
 Print a help message.
-.It Fl -target Ns = Ns Ar target
-This option is recognized by
-.Nm
-but is ignored.
-It is supported for compatibility with GNU binutils.
-.It Fl -version
+.It Fl V | Fl -version
 Print the program version and exit.
-.It Fl b
-Identical to
-.Fl -target .
-.It Fl e
-Identical to
-.Fl -exe .
-.It Fl f
-Identical to
-.Fl -functions .
-.It Fl s
-Identical to
-.Fl -basename .
-.It Fl H
-Identical to
-.Fl -help .
-.It Fl V
-Identical to
-.Fl -version .
 .El
 .Sh OUTPUT FORMAT
 If option
