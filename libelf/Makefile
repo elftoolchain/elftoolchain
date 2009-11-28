@@ -46,6 +46,7 @@ SRCS=	elf.c							\
 	libelf_align.c						\
 	libelf_allocate.c					\
 	libelf_ar.c						\
+	libelf_ar_util.c					\
 	libelf_checksum.c					\
 	libelf_data.c						\
 	libelf_ehdr.c						\
