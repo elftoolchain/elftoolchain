@@ -31,7 +31,7 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl b Ar target | Fl -target Ns = Ns Ar target
-.Op Fl e Ar executable | Fl -exe Ns = Ns Ar executable
+.Op Fl e Ar pathname | Fl -exe Ns = Ns Ar pathname
 .Op Fl f | Fl -functions
 .Op Fl s | Fl -basename
 .Op Fl C | Fl -demangle
@@ -39,8 +39,10 @@
 .Op Fl V | Fl -version
 .Op Ar hexaddress Ns ...
 .Sh DESCRIPTION
+The
 .Nm
-translates program addresses specified by the command line arguments
+utility translates program addresses specified by the command line
+arguments
 .Ar hexaddress
 to their corresponding source file names and line numbers.
 If no arguments are given to
@@ -52,6 +54,14 @@ Program addresses specified by arguments
 are encoded using the conventions accepted by
 .Xr strtoull 3 .
 .Pp
+By default,
+.Nm
+will use the executable
+.Dq Pa a.out .
+The
+.Fl e
+option may be used to specified a different ELF object.
+.Pp
 The
 .Nm
 utility recognizes the following options:
@@ -61,12 +71,14 @@ This option is recognized by
 .Nm
 but is ignored.
 It is supported for compatibility with GNU binutils.
-.It Fl e Ar executable | Fl -exe Ns = Ns Ar executable
-Use argument
-.Ar executable
+.It Fl e Ar pathname | Fl -exe Ns = Ns Ar pathname
+Use the ELF object specified by argument
+.Ar pathname
 to translate addresses.
-The default is
-.Pa a.out .
+If this option is not specified,
+.Nm
+will use the file
+.Dq Pa a.out .
 .It Fl f | Fl -functions
 Display function names in addition to file and line number information.
 .It Fl s | -basename
@@ -79,20 +91,16 @@ Print a help message.
 Print the program version and exit.
 .El
 .Sh OUTPUT FORMAT
-If option
-.Fl -functions
-or
+If the 
 .Fl f
-was not specified,
+option was not specified,
 .Nm
 will print the file name and line number for each address specified
 on a separate line.
 .Pp
-If option
-.Fl -functions
-or
+If the
 .Fl f
-was specified,
+option was specified,
 .Nm
 will print a line containing the name of the function corresponding
 to program address
@@ -111,7 +119,9 @@ If the line number could not be determined,
 .Nm
 will print a zero in its place.
 .Sh EXAMPLES
-To map address 080483c4 to a source file name and line number use:
+To map address 080483c4 in the default executable
+.Pa a.out
+to a source file name and line number use:
 .D1 "% addr2line 080483c4"
 .Pp
 To map address 080483c4 in executable
@@ -124,7 +134,7 @@ To have
 act as a filter reading addresses from its standard input use:
 .D1 "% addr2line"
 .Pp
-To print the function name corresponding to an address, in addition to
+To print the function name corresponding to an address in addition to
 its source file and line number use:
 .D1 "% addr2line -f 080483c4"
 .Sh EXIT STATUS
