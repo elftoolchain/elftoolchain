@@ -2447,6 +2447,130 @@ dump_dwarf_line(struct readelf *re)
 #undef	ADDRESS
 }
 
+static void
+dump_dwarf_info(struct readelf *re)
+{
+	struct section *s;
+	Dwarf_Die die;
+	Dwarf_Error de;
+	Dwarf_Half tag, version, pointer_size;
+	Dwarf_Off cu_offset, cu_length;
+	Dwarf_Unsigned abbrev_off;
+	Elf_Data *d;
+	int i, elferr, ret;
+
+	printf("\nDump of debug contents of section .debug_info:\n");
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && !strcmp(s->name, ".debug_info"))
+			break;
+	}
+	if ((size_t) i >= re->shnum)
+		return;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, &version, &abbrev_off,
+	    &pointer_size, NULL, &de)) ==  DW_DLV_OK) {
+		die = NULL;
+		while (dwarf_siblingof(re->dbg, die, &die, &de) == DW_DLV_OK) {
+			if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+				warnx("dwarf_tag failed: %s",
+				    dwarf_errmsg(de));
+				return;
+			}
+			/* XXX: What about DW_TAG_partial_unit? */
+			if (tag == DW_TAG_compile_unit)
+				break;
+		}
+		if (die == NULL) {
+			warnx("could not find DW_TAG_compile_unit die");
+			return;
+		}
+
+		if (dwarf_die_CU_offset_range(die, &cu_offset, &cu_length,
+		    &de) != DW_DLV_OK) {
+			warnx("dwarf_die_CU_offset failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+
+		printf("  Compilation Unit @ %jd:\n", (intmax_t) cu_offset);
+		printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
+		printf("    Version:\t\t%u\n", version);
+		printf("    Abbrev Offset:\t%ju\n", (uintmax_t) abbrev_off);
+		printf("    Pointer Size:\t%u\n", pointer_size);
+
+		
+	}
+	
+}
+
+static void
+dump_dwarf_str(struct readelf *re)
+{
+	struct section *s;
+	Elf_Data *d;
+	char *p;
+	int elferr, end, i, j;
+
+	printf("\nContents of section .debug_str:\n");
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && !strcmp(s->name, ".debug_str"))
+			break;
+	}
+	if ((size_t) i >= re->shnum)
+		return;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	for (i = 0, p = d->d_buf; (size_t) i < d->d_size; i += 16) {
+		printf("  0x%08x", (unsigned int) i);
+		if ((size_t) i + 16 > d->d_size)
+			end = d->d_size;
+		else
+			end = i + 16;
+		for (j = i; j < i + 16; j++) {
+			if ((j - i) % 4 == 0)
+				putchar(' ');
+			if (j >= end) {
+				printf("  ");
+				continue;
+			}
+			printf("%02x", (uint8_t) p[j]);
+		}
+		putchar(' ');
+		for (j = i; j < end; j++) {
+			if (isprint(p[j]))
+				putchar(p[j]);
+			else if (p[j] == 0)
+				putchar('.');
+			else
+				putchar(' ');
+		}
+		putchar('\n');
+	}
+}
+
 /*
  * Retrieve a string using string table section index and the string offset.
  */
@@ -2699,12 +2823,15 @@ dump_dwarf(struct readelf *re)
 		    dwarf_errmsg(de));
 	if (re->dop & DW_L)
 		dump_dwarf_line(re);
+	if (re->dop & DW_I)
+		dump_dwarf_info(re);
+	if (re->dop & DW_S)
+		dump_dwarf_str(re);
 
 	dwarf_finish(re->dbg, &de);
 }
 
 #ifndef LIBELF_AR
-
 /*
  * Convenient wrapper for general libarchive error handling.
  */
@@ -2735,8 +2862,7 @@ ac_detect_ar(int fd)
 
 static void
 ac_dump_ar(struct readelf *re, int fd)
-{
-	struct archive		*a;
+{	struct archive		*a;
 	struct archive_entry	*entry;
 	const char		*name;
 	void			*buff;
