@@ -8,6 +8,6 @@ WARNS?=	6
 DPADD=	${LIBELF} ${LIBELFTC} ${LIBDWARF}
 LDADD=	-lelftc -ldwarf -lelf
 
-NO_MAN=
+MAN1=	addr2line.1
 
 .include <bsd.prog.mk>
