@@ -10,6 +10,7 @@ LDADD=	-lelf -ldwarf
 .if !defined(LIBELF_AR)
 LDADD+=	-larchive -lbz2 -lz
 .endif
-NO_MAN=
+
+MAN1=	readelf.1
 
 .include <bsd.prog.mk>
