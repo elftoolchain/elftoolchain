@@ -1,4 +1,4 @@
-# $FreeBSD$
+# $Id$
 
 PROG=	nm
 SRCS=	nm.c vector_str.c cpp_demangle.c cpp_demangle_arm.c \
