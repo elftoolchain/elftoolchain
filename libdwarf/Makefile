@@ -60,7 +60,10 @@ SHLIB_MAJOR=	3
 
 WARNS?=	6
 
-WITHOUT_MAN=	yes
+MAN=	dwarf_init.3
+
+MLINKS+= \
+	dwarf_init.3	dwarf_elf_init.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
 dwarf_pubtypes.c:	dwarf_nametbl.m4 dwarf_pubtypes.m4
