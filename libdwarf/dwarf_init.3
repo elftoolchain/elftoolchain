@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 6, 2009
+.Dd December 12, 2009
 .Os
 .Dt DWARF_INIT 3
 .Sh NAME
@@ -100,15 +100,19 @@ Permit writing of DWARF information.
 Argument
 .Ar errhand
 denotes a function to be called in case of an error.
-Argument
-.Ar errarg
-is passed to the error handler function denoted by argument
-.Ar errhand
-if it is invoked.
+If this argument is
+.Dv NULL
+then a default error handling scheme is used.
 See
 .Xr dwarf 3
 for a description of the error handling scheme used by the
 DWARF(3) library.
+.Pp
+Argument
+.Ar errarg
+is passed to the error handler function denoted by argument
+.Ar errhand
+when it is invoked.
 .Pp
 Argument
 .Ar ret
@@ -126,12 +130,6 @@ The
 .Vt Dwarf_Debug
 instance returned by these functions should be freed using
 .Fn dwarf_finish .
-.Pp
-As an exception to the general rule for memory management
-in the Dwarf library, if these functions fail, the
-.Vt Dwarf_Error
-instance returned should be freed using
-.Xr free 3 .
 .Sh RETURN VALUES
 These functions return the following values:
 .Bl -tag -width ".Bq Er DW_DLV_NO_ENTRY"
@@ -151,8 +149,22 @@ The current implementation does not support access modes
 .Li DW_DLC_RDWR
 and
 .Li DW_DLC_WRITE .
+.Sh EXAMPLES
+To initialize a
+.Vt Dwarf_Debug
+instance from a open file descriptor referencing an ELF object, and
+with the default error handler, use:
+.Bd -literal
+	Dwarf_Error de;
+	Dwarf_Debug dbg;
+
+	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de) !=
+		DW_DLV_OK)
+		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
+.Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
+.Xr dwarf_errmsg 3 ,
 .Xr dwarf_finish 3 ,
 .Xr elf_begin 3 ,
 .Xr elf_memory 3
