@@ -60,7 +60,8 @@ SHLIB_MAJOR=	3
 
 WARNS?=	6
 
-MAN=	dwarf_init.3
+MAN=	dwarf_finish.3					\
+	dwarf_init.3
 
 MLINKS+= \
 	dwarf_init.3	dwarf_elf_init.3
