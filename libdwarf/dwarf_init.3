@@ -66,6 +66,13 @@ For function
 argument
 .Ar fd
 denotes an open file descriptor referencing a compilation object.
+Function
+.Fn dwarf_init
+implicitly allocates an
+.Vt Elf
+descriptor for argument
+.Ar fd .
+.Pp
 For function
 .Fn dwarf_elf_init ,
 argument
@@ -166,5 +173,6 @@ with the default error handler, use:
 .Xr dwarf 3 ,
 .Xr dwarf_errmsg 3 ,
 .Xr dwarf_finish 3 ,
+.Xr dwarf_get_elf 3 ,
 .Xr elf_begin 3 ,
 .Xr elf_memory 3
