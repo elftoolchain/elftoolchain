@@ -153,9 +153,9 @@ did not contain debug information.
 .El
 .Sh IMPLEMENTATION NOTES
 The current implementation does not support access modes
-.Li DW_DLC_RDWR
+.Dv DW_DLC_RDWR
 and
-.Li DW_DLC_WRITE .
+.Dv DW_DLC_WRITE .
 .Sh EXAMPLES
 To initialize a
 .Vt Dwarf_Debug
@@ -165,8 +165,7 @@ with the default error handler, use:
 	Dwarf_Error de;
 	Dwarf_Debug dbg;
 
-	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de) !=
-		DW_DLV_OK)
+	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de) != DW_DLV_OK)
 		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
 .Ed
 .Sh SEE ALSO
