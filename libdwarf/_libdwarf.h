@@ -303,7 +303,6 @@ typedef struct {
 	Elf_Data	**eo_data;
 	Dwarf_Unsigned	eo_seccnt;
 	size_t		eo_strndx;
-	int		eo_elfend;
 	Dwarf_Obj_Access_Methods eo_methods;
 } Dwarf_Elf_Object;
 
@@ -386,7 +385,7 @@ void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
 		    uint64_t, uint64_t, Dwarf_Error *);
 void		_dwarf_elf_deinit(Dwarf_Debug);
-int		_dwarf_elf_init(Dwarf_Debug, Elf *, int, Dwarf_Error *);
+int		_dwarf_elf_init(Dwarf_Debug, Elf *, Dwarf_Error *);
 int		_dwarf_elf_load_section(void *, Dwarf_Half, Dwarf_Small **,
 		    int *);
 Dwarf_Endianness _dwarf_elf_get_byte_order(void *);

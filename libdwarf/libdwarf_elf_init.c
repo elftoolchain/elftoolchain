@@ -138,7 +138,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 }
 
 int
-_dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, int close_elf, Dwarf_Error *error)
+_dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 {
 	Dwarf_Obj_Access_Interface *iface;
 	Dwarf_Elf_Object *e;
@@ -163,7 +163,6 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, int close_elf, Dwarf_Error *error)
 	}
 
 	e->eo_elf = elf;
-	e->eo_elfend = close_elf;
 	e->eo_methods.get_section_info = _dwarf_elf_get_section_info;
 	e->eo_methods.get_byte_order = _dwarf_elf_get_byte_order;
 	e->eo_methods.get_length_size = _dwarf_elf_get_length_size;
@@ -310,8 +309,6 @@ _dwarf_elf_deinit(Dwarf_Debug dbg)
 		free(e->eo_data);
 	if (e->eo_shdr)
 		free(e->eo_shdr);
-	if (e->eo_elfend)
-		elf_end(e->eo_elf);
 
 	free(e);
 	free(iface);
