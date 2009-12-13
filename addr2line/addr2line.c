@@ -254,6 +254,7 @@ out:
 int
 main(int argc, char **argv)
 {
+	Elf *e;
 	Dwarf_Debug dbg;
 	Dwarf_Error de;
 	const char *exe;
@@ -300,7 +301,6 @@ main(int argc, char **argv)
 	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de))
 		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
 
-
 	if (argc > 0)
 		for (i = 0; i < argc; i++)
 			translate(dbg, argv[i]);
@@ -308,7 +308,12 @@ main(int argc, char **argv)
 		while (fgets(line, sizeof(line), stdin) != NULL)
 			translate(dbg, line);
 
+	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
+		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(de));
+
 	dwarf_finish(dbg, &de);
+
+	(void) elf_end(e);
 
 	exit(0);
 }
