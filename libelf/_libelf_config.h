@@ -115,21 +115,6 @@
 
 #define	LIBELF_VCSID(ID)	__RCSID(ID)
 
-#ifndef STAILQ_FOREACH_SAFE
-#define STAILQ_FOREACH_SAFE(var, head, field, tvar)            \
-       for ((var) = STAILQ_FIRST((head));                      \
-            (var) && ((tvar) = STAILQ_NEXT((var), field), 1);  \
-            (var) = (tvar))
-#endif
-
-#ifndef	STAILQ_LAST
-#define STAILQ_LAST(head, type, field)                                  \
-        (STAILQ_EMPTY((head)) ?                                         \
-                NULL :                                                  \
-                ((struct type *)(void *)                                \
-                ((char *)((head)->stqh_last) - offsetof(struct type, field))))
-#endif
-
 #define	roundup2	roundup
 
 #if	ARCH_ELFSIZE == 32
@@ -199,59 +184,7 @@
 
 #define	roundup2	roundup
 
-/*
- * Supply macros missing from <sys/queue.h>
- */
-
-#ifndef	STAILQ_FOREACH_SAFE
-#define STAILQ_FOREACH_SAFE(var, head, field, tvar)            \
-       for ((var) = STAILQ_FIRST((head));                      \
-            (var) && ((tvar) = STAILQ_NEXT((var), field), 1);  \
-            (var) = (tvar))
-#endif
-
-#ifndef	STAILQ_LAST
-#define STAILQ_LAST(head, type, field)                                  \
-        (STAILQ_EMPTY((head)) ?                                         \
-                NULL :                                                  \
-                ((struct type *)(void *)                                \
-                ((char *)((head)->stqh_last) - offsetof(struct type, field))))
-#endif
-
-
-/*
- * Supply symbols missing in at least some Linux based systems.
- */
-
-#ifndef	SHT_SUNW_verdef
-#define	SHT_SUNW_verdef		0x6FFFFFFD
-#endif
-
-#ifndef	SHT_SUNW_verneed
-#define	SHT_SUNW_verneed	0x6FFFFFFE
-#endif
-
-#ifndef	SHT_SUNW_versym
-#define	SHT_SUNW_versym		0x6FFFFFFF
-#endif
-
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
-
-/*
- * Symbols that are sometimes missing in system headers.
- */
-
-#ifndef	PN_XNUM
-#define	PN_XNUM			0xFFFFU
-#endif
-
-#ifndef	SHN_XINDEX
-#define	SHN_XINDEX		0xFFFFU
-#endif
-
-#ifndef	SHT_GNU_HASH
-#define	SHT_GNU_HASH		0x6FFFFFF6U
-#endif
 
 #ifndef	LIBELF_CONFIG_GNUHASH
 #define	LIBELF_CONFIG_GNUHASH	1
