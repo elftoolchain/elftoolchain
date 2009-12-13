@@ -406,6 +406,7 @@ int		dwarf_get_cu_die_offset(Dwarf_Arange, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug,
 		    Dwarf_Off, Dwarf_Off *, Dwarf_Error *);
+int		dwarf_get_elf(Dwarf_Debug, Elf **, Dwarf_Error *);
 int		dwarf_get_fde_at_pc(Dwarf_Fde *, Dwarf_Addr, Dwarf_Fde *,
 		    Dwarf_Addr *, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_get_fde_info_for_all_regs(Dwarf_Fde, Dwarf_Addr,

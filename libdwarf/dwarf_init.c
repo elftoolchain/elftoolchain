@@ -72,6 +72,22 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 }
 
 int
+dwarf_get_elf(Dwarf_Debug dbg, Elf **elf, Dwarf_Error *error)
+{
+	Dwarf_Elf_Object *e;
+
+	if (dbg == NULL || elf == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	e = dbg->dbg_iface->object;
+	*elf = e->eo_elf;
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
     Dwarf_Debug *ret_dbg, Dwarf_Error *error)
 {
