@@ -33,9 +33,7 @@
 
 #include "_libelf_config.h"
 
-#ifndef	NULL
-#define NULL 	((void *) 0)
-#endif
+#include "_elftc.h"
 
 /*
  * Library-private data structures.
