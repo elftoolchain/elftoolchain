@@ -63,6 +63,7 @@ WARNS?=	6
 MAN=	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
+	dwarf_get_elf.3					\
 	dwarf_init.3
 
 MLINKS+= \
