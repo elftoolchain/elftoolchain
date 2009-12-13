@@ -14,4 +14,3 @@
 .SUFFIXES:	.m4 .c
 .m4.c:
 	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
-
