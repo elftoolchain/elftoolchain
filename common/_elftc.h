@@ -56,6 +56,13 @@
                 ((char *)((head)->stqh_last) - offsetof(struct type, field))))
 #endif
 
+#ifndef	TAILQ_FOREACH_SAFE
+#define TAILQ_FOREACH_SAFE(var, head, field, tvar)                      \
+	for ((var) = TAILQ_FIRST((head));                               \
+	    (var) && ((tvar) = TAILQ_NEXT((var), field), 1);            \
+	    (var) = (tvar))
+#endif
+
 /*
  * Symbols that are sometimes missing in system headers.
  */
