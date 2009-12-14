@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	${.CURDIR}/..
+
 LIB=	dwarf
 
 SRCS=	\
@@ -54,11 +56,13 @@ INCS=	dwarf.h libdwarf.h
 GENSRCS=	dwarf_pubnames.c dwarf_pubtypes.c dwarf_weaks.c \
 		dwarf_funcs.c dwarf_vars.c dwarf_types.c
 CLEANFILES=	${GENSRCS}
-CFLAGS+=	-I. -I${.CURDIR} -g
+CFLAGS+=	-I. -I${.CURDIR} -I${TOP}/common
 
 SHLIB_MAJOR=	3
 
 WARNS?=	6
+
+LDADD+=		-lelf
 
 MAN=	dwarf_finish.3					\
 	dwarf_init.3
@@ -73,8 +77,4 @@ dwarf_funcs.c:		dwarf_nametbl.m4 dwarf_funcs.m4
 dwarf_vars.c:		dwarf_nametbl.m4 dwarf_vars.m4
 dwarf_types.c:		dwarf_nametbl.m4 dwarf_types.m4
 
-.include <bsd.lib.mk>
-
-.SUFFIXES:	.m4 .c
-.m4.c:
-	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
+.include "${TOP}/mk/elftoolchain.lib.mk"
