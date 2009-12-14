@@ -35,11 +35,10 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
     uint64_t aboff, Dwarf_Abbrev *abp, Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
-	int ret = DWARF_E_NONE;
 
 	if ((ab = malloc(sizeof(struct _Dwarf_Abbrev))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return DWARF_E_MEMORY;
+		return (DWARF_E_MEMORY);
 	}
 
 	/* Initialise the abbrev structure. */
@@ -59,7 +58,7 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 	if (abp != NULL)
 		*abp = ab;
 
-	return (ret);
+	return (DWARF_E_NONE);
 }
 
 static int
@@ -120,9 +119,13 @@ _dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 		aboff = offset;
 
 		entry = _dwarf_read_uleb128(ds->ds_data, &offset);
-		/* Check if this is the end of the data: */
-		if (entry == 0)
+		if (entry == 0) {
+			/* Last entry. */
+			ret = _dwarf_abbrev_add(cu, entry, 0, 0, aboff, &ab,
+			    error);
+			ab->ab_length = 1;
 			break;
+		}
 
 		tag = _dwarf_read_uleb128(ds->ds_data, &offset);
 
