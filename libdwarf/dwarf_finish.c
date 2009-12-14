@@ -30,8 +30,9 @@
 #include "_libdwarf.h"
 
 int
-dwarf_finish(Dwarf_Debug dbg, Dwarf_Error *error __unused)
+dwarf_finish(Dwarf_Debug dbg, Dwarf_Error *error)
 {
+	(void) error;	/* unused */
 
 	if (dbg == NULL)
 		return (DW_DLV_OK);
@@ -46,8 +47,9 @@ dwarf_finish(Dwarf_Debug dbg, Dwarf_Error *error __unused)
 
 
 int
-dwarf_object_finish(Dwarf_Debug dbg, Dwarf_Error *error __unused)
+dwarf_object_finish(Dwarf_Debug dbg, Dwarf_Error *error)
 {
+	(void) error;	/* unused */
 
 	if (dbg == NULL)
 		return (DW_DLV_OK);

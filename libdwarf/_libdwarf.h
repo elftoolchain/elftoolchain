@@ -39,6 +39,8 @@
 #include "dwarf.h"
 #include "libdwarf.h"
 
+#include "_elftc.h"
+
 #define DWARF_DIE_HASH_SIZE		8191
 
 struct _libdwarf_globals {
