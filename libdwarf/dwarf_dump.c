@@ -22,885 +22,385 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD: src/lib/libdwarf/dwarf_dump.c,v 1.1 2008/05/22 02:14:23 jb Exp $
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h>
 #include "_libdwarf.h"
 
-const char *
-get_sht_desc(uint32_t sh_type)
+int
+dwarf_get_AT_name(unsigned attr, const char **s)
 {
-	switch (sh_type) {
-	case SHT_NULL:
-		return "inactive";
-	case SHT_PROGBITS:
-		return "program defined information";
-	case SHT_SYMTAB:
-		return "symbol table section";
-	case SHT_STRTAB:
-		return "string table section";
-	case SHT_RELA:
-		return "relocation section with addends";
-	case SHT_HASH:
-		return "symbol hash table section";
-	case SHT_DYNAMIC:
-		return "dynamic section";
-	case SHT_NOTE:
-		return "note section";
-	case SHT_NOBITS:
-		return "no space section";
-	case SHT_REL:
-		return "relocation section - no addends";
-	case SHT_SHLIB:
-		return "reserved - purpose unknown";
-	case SHT_DYNSYM:
-		return "dynamic symbol table section";
-	case SHT_INIT_ARRAY:
-		return "Initialization function pointers.";
-	case SHT_FINI_ARRAY:
-		return "Termination function pointers.";
-	case SHT_PREINIT_ARRAY:
-		return "Pre-initialization function ptrs.";
-	case SHT_GROUP:
-		return "Section group.";
-	case SHT_SYMTAB_SHNDX:
-		return "Section indexes (see SHN_XINDEX).";
-	case SHT_GNU_verdef:
-		return "Symbol versions provided";
-	case SHT_GNU_verneed:
-		return "Symbol versions required";
-	case SHT_GNU_versym:
-		return "Symbol version table";
-#if	defined(SHT_AMD64_UNWIND)
-	case SHT_AMD64_UNWIND:
-		return "AMD64 unwind";
-#endif
-	default:
-		return "Unknown";
-	}
-}
 
-const char *
-get_attr_desc(uint32_t attr)
-{
+	assert(s != NULL);
+
 	switch (attr) {
 	case DW_AT_abstract_origin:
-		return "DW_AT_abstract_origin";
+		*s = "DW_AT_abstract_origin"; break;
 	case DW_AT_accessibility:
-		return "DW_AT_accessibility";
+		*s = "DW_AT_accessibility"; break;
 	case DW_AT_address_class:
-		return "DW_AT_address_class";
+		*s = "DW_AT_address_class"; break;
 	case DW_AT_artificial:
-		return "DW_AT_artificial";
+		*s = "DW_AT_artificial"; break;
+	case DW_AT_allocated:
+		*s = "DW_AT_allocated"; break;
+	case DW_AT_associated:
+		*s = "DW_AT_associated"; break;
 	case DW_AT_base_types:
-		return "DW_AT_base_types";
+		*s = "DW_AT_base_types"; break;
+	case DW_AT_binary_scale:
+		*s = "DW_AT_binary_scale"; break;
 	case DW_AT_bit_offset:
-		return "DW_AT_bit_offset";
+		*s = "DW_AT_bit_offset"; break;
 	case DW_AT_bit_size:
-		return "DW_AT_bit_size";
+		*s = "DW_AT_bit_size"; break;
+	case DW_AT_bit_stride:
+		*s = "DW_AT_bit_stride"; break;
 	case DW_AT_byte_size:
-		return "DW_AT_byte_size";
+		*s = "DW_AT_byte_size"; break;
+	case DW_AT_byte_stride:
+		*s = "DW_AT_byte_stride"; break;
 	case DW_AT_calling_convention:
-		return "DW_AT_calling_convention";
+		*s = "DW_AT_calling_convention"; break;
 	case DW_AT_common_reference:
-		return "DW_AT_common_reference";
+		*s = "DW_AT_common_reference"; break;
 	case DW_AT_comp_dir:
-		return "DW_AT_comp_dir";
+		*s = "DW_AT_comp_dir"; break;
 	case DW_AT_const_value:
-		return "DW_AT_const_value";
+		*s = "DW_AT_const_value"; break;
 	case DW_AT_containing_type:
-		return "DW_AT_containing_type";
+		*s = "DW_AT_containing_type"; break;
 	case DW_AT_count:
-		return "DW_AT_count";
+		*s = "DW_AT_count"; break;
+	case DW_AT_call_column:
+		*s = "DW_AT_call_column"; break;
+	case DW_AT_call_file:
+		*s = "DW_AT_call_file"; break;
+	case DW_AT_call_line:
+		*s = "DW_AT_call_line"; break;
+	case DW_AT_data_location:
+		*s = "DW_AT_data_location"; break;
 	case DW_AT_data_member_location:
-		return "DW_AT_data_member_location";
+		*s = "DW_AT_data_member_location"; break;
 	case DW_AT_decl_column:
-		return "DW_AT_decl_column";
+		*s = "DW_AT_decl_column"; break;
 	case DW_AT_decl_file:
-		return "DW_AT_decl_file";
+		*s = "DW_AT_decl_file"; break;
 	case DW_AT_decl_line:
-		return "DW_AT_decl_line";
+		*s = "DW_AT_decl_line"; break;
 	case DW_AT_declaration:
-		return "DW_AT_declaration";
+		*s = "DW_AT_declaration"; break;
 	case DW_AT_default_value:
-		return "DW_AT_default_value";
+		*s = "DW_AT_default_value"; break;
+	case DW_AT_decimal_scale:
+		*s = "DW_AT_decimal_scale"; break;
+	case DW_AT_decimal_sign:
+		*s = "DW_AT_decimal_sign"; break;
+	case DW_AT_description:
+		*s = "DW_AT_description"; break;
+	case DW_AT_digit_count:
+		*s = "DW_AT_digit_count"; break;
 	case DW_AT_discr:
-		return "DW_AT_discr";
+		*s = "DW_AT_discr"; break;
 	case DW_AT_discr_list:
-		return "DW_AT_discr_list";
+		*s = "DW_AT_discr_list"; break;
 	case DW_AT_discr_value:
-		return "DW_AT_discr_value";
+		*s = "DW_AT_discr_value"; break;
 	case DW_AT_element_list:
-		return "DW_AT_element_list";
+		*s = "DW_AT_element_list"; break;
 	case DW_AT_encoding:
-		return "DW_AT_encoding";
+		*s = "DW_AT_encoding"; break;
 	case DW_AT_external:
-		return "DW_AT_external";
+		*s = "DW_AT_external"; break;
+	case DW_AT_entry_pc:
+		*s = "DW_AT_entry_pc"; break;
+	case DW_AT_extension:
+		*s = "DW_AT_extension"; break;
+	case DW_AT_explicit:
+		*s = "DW_AT_explicit"; break;
+	case DW_AT_endianity:
+		*s = "DW_AT_endianity"; break;
+	case DW_AT_elemental:
+		*s = "DW_AT_elemental"; break;
 	case DW_AT_frame_base:
-		return "DW_AT_frame_base";
+		*s = "DW_AT_frame_base"; break;
 	case DW_AT_friend:
-		return "DW_AT_friend";
+		*s = "DW_AT_friend"; break;
 	case DW_AT_high_pc:
-		return "DW_AT_high_pc";
+		*s = "DW_AT_high_pc"; break;
+	case DW_AT_hi_user:
+		*s = "DW_AT_hi_user"; break;
 	case DW_AT_identifier_case:
-		return "DW_AT_identifier_case";
+		*s = "DW_AT_identifier_case"; break;
 	case DW_AT_import:
-		return "DW_AT_import";
+		*s = "DW_AT_import"; break;
 	case DW_AT_inline:
-		return "DW_AT_inline";
+		*s = "DW_AT_inline"; break;
 	case DW_AT_is_optional:
-		return "DW_AT_is_optional";
+		*s = "DW_AT_is_optional"; break;
 	case DW_AT_language:
-		return "DW_AT_language";
+		*s = "DW_AT_language"; break;
+	case DW_AT_lo_user:
+		*s = "DW_AT_lo_user"; break;
 	case DW_AT_location:
-		return "DW_AT_location";
+		*s = "DW_AT_location"; break;
 	case DW_AT_low_pc:
-		return "DW_AT_low_pc";
+		*s = "DW_AT_low_pc"; break;
 	case DW_AT_lower_bound:
-		return "DW_AT_lower_bound";
+		*s = "DW_AT_lower_bound"; break;
 	case DW_AT_macro_info:
-		return "DW_AT_macro_info";
+		*s = "DW_AT_macro_info"; break;
+	case DW_AT_mutable:
+		*s = "DW_AT_mutable"; break;
 	case DW_AT_member:
-		return "DW_AT_member";
+		*s = "DW_AT_member"; break;
 	case DW_AT_name:
-		return "DW_AT_name";
+		*s = "DW_AT_name"; break;
 	case DW_AT_namelist_item:
-		return "DW_AT_namelist_item";
+		*s = "DW_AT_namelist_item"; break;
 	case DW_AT_ordering:
-		return "DW_AT_ordering";
+		*s = "DW_AT_ordering"; break;
+	case DW_AT_object_pointer:
+		*s = "DW_AT_object_pointer"; break;
 	case DW_AT_priority:
-		return "DW_AT_priority";
+		*s = "DW_AT_priority"; break;
 	case DW_AT_producer:
-		return "DW_AT_producer";
+		*s = "DW_AT_producer"; break;
 	case DW_AT_prototyped:
-		return "DW_AT_prototyped";
+		*s = "DW_AT_prototyped"; break;
+	case DW_AT_picture_string:
+		*s = "DW_AT_picture_string"; break;
+	case DW_AT_pure:
+		*s = "DW_AT_pure"; break;
 	case DW_AT_return_addr:
-		return "DW_AT_return_addr";
+		*s = "DW_AT_return_addr"; break;
+	case DW_AT_ranges:
+		*s = "DW_AT_ranges"; break;
+	case DW_AT_recursive:
+		*s = "DW_AT_recursive"; break;
 	case DW_AT_segment:
-		return "DW_AT_segment";
+		*s = "DW_AT_segment"; break;
 	case DW_AT_sibling:
-		return "DW_AT_sibling";
+		*s = "DW_AT_sibling"; break;
 	case DW_AT_specification:
-		return "DW_AT_specification";
+		*s = "DW_AT_specification"; break;
 	case DW_AT_start_scope:
-		return "DW_AT_start_scope";
+		*s = "DW_AT_start_scope"; break;
 	case DW_AT_static_link:
-		return "DW_AT_static_link";
+		*s = "DW_AT_static_link"; break;
 	case DW_AT_stmt_list:
-		return "DW_AT_stmt_list";
-	case DW_AT_stride_size:
-		return "DW_AT_stride_size";
+		*s = "DW_AT_stmt_list"; break;
 	case DW_AT_string_length:
-		return "DW_AT_string_length";
+		*s = "DW_AT_string_length"; break;
 	case DW_AT_subscr_data:
-		return "DW_AT_subscr_data";
+		*s = "DW_AT_subscr_data"; break;
+	case DW_AT_small:
+		*s = "DW_AT_small"; break;
 	case DW_AT_type:
-		return "DW_AT_type";
+		*s = "DW_AT_type"; break;
+	case DW_AT_trampoline:
+		*s = "DW_AT_trampoline"; break;
+	case DW_AT_threads_scaled:
+		*s = "DW_AT_threads_scaled"; break;
 	case DW_AT_upper_bound:
-		return "DW_AT_upper_bound";
+		*s = "DW_AT_upper_bound"; break;
 	case DW_AT_use_location:
-		return "DW_AT_use_location";
+		*s = "DW_AT_use_location"; break;
+	case DW_AT_use_UTF8:
+		*s = "DW_AT_use_UTF8"; break;
 	case DW_AT_variable_parameter:
-		return "DW_AT_variable_parameter";
+		*s = "DW_AT_variable_parameter"; break;
 	case DW_AT_virtuality:
-		return "DW_AT_virtuality";
+		*s = "DW_AT_virtuality"; break;
 	case DW_AT_visibility:
-		return "DW_AT_visibility";
+		*s = "DW_AT_visibility"; break;
 	case DW_AT_vtable_elem_location:
-		return "DW_AT_vtable_elem_location";
+		*s = "DW_AT_vtable_elem_location"; break;
 	default:
-		break;
+		return (DW_DLV_NO_ENTRY);
 	}
 
-	return "Unknown attribute";
+	return (DW_DLV_OK);
 }
 
-const char *
-get_form_desc(uint32_t form)
+int
+dwarf_get_FORM_name(unsigned form, const char **s)
 {
+
+	assert(s != NULL);
+
 	switch (form) {
 	case DW_FORM_addr:
-		return "DW_FORM_addr";
+		*s = "DW_FORM_addr"; break;
 	case DW_FORM_block:
-		return "DW_FORM_block";
+		*s = "DW_FORM_block"; break;
 	case DW_FORM_block1:
-		return "DW_FORM_block1";
+		*s = "DW_FORM_block1"; break;
 	case DW_FORM_block2:
-		return "DW_FORM_block2";
+		*s = "DW_FORM_block2"; break;
 	case DW_FORM_block4:
-		return "DW_FORM_block4";
+		*s = "DW_FORM_block4"; break;
 	case DW_FORM_data1:
-		return "DW_FORM_data1";
+		*s = "DW_FORM_data1"; break;
 	case DW_FORM_data2:
-		return "DW_FORM_data2";
+		*s = "DW_FORM_data2"; break;
 	case DW_FORM_data4:
-		return "DW_FORM_data4";
+		*s = "DW_FORM_data4"; break;
 	case DW_FORM_data8:
-		return "DW_FORM_data8";
+		*s = "DW_FORM_data8"; break;
 	case DW_FORM_flag:
-		return "DW_FORM_flag";
+		*s = "DW_FORM_flag"; break;
 	case DW_FORM_indirect:
-		return "DW_FORM_indirect";
+		*s = "DW_FORM_indirect"; break;
 	case DW_FORM_ref1:
-		return "DW_FORM_ref1";
+		*s = "DW_FORM_ref1"; break;
 	case DW_FORM_ref2:
-		return "DW_FORM_ref2";
+		*s = "DW_FORM_ref2"; break;
 	case DW_FORM_ref4:
-		return "DW_FORM_ref4";
+		*s = "DW_FORM_ref4"; break;
 	case DW_FORM_ref8:
-		return "DW_FORM_ref8";
+		*s = "DW_FORM_ref8"; break;
 	case DW_FORM_ref_addr:
-		return "DW_FORM_ref_addr";
+		*s = "DW_FORM_ref_addr"; break;
 	case DW_FORM_ref_udata:
-		return "DW_FORM_ref_udata";
+		*s = "DW_FORM_ref_udata"; break;
 	case DW_FORM_sdata:
-		return "DW_FORM_sdata";
+		*s = "DW_FORM_sdata"; break;
 	case DW_FORM_string:
-		return "DW_FORM_string";
+		*s = "DW_FORM_string"; break;
 	case DW_FORM_strp:
-		return "DW_FORM_strp";
+		*s = "DW_FORM_strp"; break;
 	case DW_FORM_udata:
-		return "DW_FORM_udata";
+		*s = "DW_FORM_udata"; break;
 	default:
-		break;
+		return (DW_DLV_NO_ENTRY);
 	}
 
-	return "Unknown attribute";
+	return (DW_DLV_OK);
 }
 
-const char *
-get_tag_desc(uint32_t tag)
+int
+dwarf_get_TAG_name(unsigned tag, const char **s)
 {
+
+	assert(s != NULL);
+
 	switch (tag) {
 	case DW_TAG_access_declaration:
-		return "DW_TAG_access_declaration";
+		*s = "DW_TAG_access_declaration"; break;
 	case DW_TAG_array_type:
-		return "DW_TAG_array_type";
+		*s = "DW_TAG_array_type"; break;
 	case DW_TAG_base_type:
-		return "DW_TAG_base_type";
+		*s = "DW_TAG_base_type"; break;
 	case DW_TAG_catch_block:
-		return "DW_TAG_catch_block";
+		*s = "DW_TAG_catch_block"; break;
 	case DW_TAG_class_type:
-		return "DW_TAG_class_type";
+		*s = "DW_TAG_class_type"; break;
 	case DW_TAG_common_block:
-		return "DW_TAG_common_block";
+		*s = "DW_TAG_common_block"; break;
 	case DW_TAG_common_inclusion:
-		return "DW_TAG_common_inclusion";
+		*s = "DW_TAG_common_inclusion"; break;
 	case DW_TAG_compile_unit:
-		return "DW_TAG_compile_unit";
+		*s = "DW_TAG_compile_unit"; break;
 	case DW_TAG_condition:
-		return "DW_TAG_condition";
+		*s = "DW_TAG_condition"; break;
 	case DW_TAG_const_type:
-		return "DW_TAG_const_type";
+		*s = "DW_TAG_const_type"; break;
 	case DW_TAG_constant:
-		return "DW_TAG_constant";
+		*s = "DW_TAG_constant"; break;
 	case DW_TAG_dwarf_procedure:
-		return "DW_TAG_dwarf_procedure";
+		*s = "DW_TAG_dwarf_procedure"; break;
 	case DW_TAG_entry_point:
-		return "DW_TAG_entry_point";
+		*s = "DW_TAG_entry_point"; break;
 	case DW_TAG_enumeration_type:
-		return "DW_TAG_enumeration_type";
+		*s = "DW_TAG_enumeration_type"; break;
 	case DW_TAG_enumerator:
-		return "DW_TAG_enumerator";
+		*s = "DW_TAG_enumerator"; break;
 	case DW_TAG_formal_parameter:
-		return "DW_TAG_formal_parameter";
+		*s = "DW_TAG_formal_parameter"; break;
 	case DW_TAG_friend:
-		return "DW_TAG_friend";
+		*s = "DW_TAG_friend"; break;
 	case DW_TAG_imported_declaration:
-		return "DW_TAG_imported_declaration";
+		*s = "DW_TAG_imported_declaration"; break;
 	case DW_TAG_imported_module:
-		return "DW_TAG_imported_module";
+		*s = "DW_TAG_imported_module"; break;
 	case DW_TAG_imported_unit:
-		return "DW_TAG_imported_unit";
+		*s = "DW_TAG_imported_unit"; break;
 	case DW_TAG_inheritance:
-		return "DW_TAG_inheritance";
+		*s = "DW_TAG_inheritance"; break;
 	case DW_TAG_inlined_subroutine:
-		return "DW_TAG_inlined_subroutine";
+		*s = "DW_TAG_inlined_subroutine"; break;
 	case DW_TAG_interface_type:
-		return "DW_TAG_interface_type";
+		*s = "DW_TAG_interface_type"; break;
 	case DW_TAG_label:
-		return "DW_TAG_label";
+		*s = "DW_TAG_label"; break;
 	case DW_TAG_lexical_block:
-		return "DW_TAG_lexical_block";
+		*s = "DW_TAG_lexical_block"; break;
 	case DW_TAG_member:
-		return "DW_TAG_member";
+		*s = "DW_TAG_member"; break;
 	case DW_TAG_module:
-		return "DW_TAG_module";
+		*s = "DW_TAG_module"; break;
 	case DW_TAG_namelist:
-		return "DW_TAG_namelist";
+		*s = "DW_TAG_namelist"; break;
 	case DW_TAG_namelist_item:
-		return "DW_TAG_namelist_item";
+		*s = "DW_TAG_namelist_item"; break;
 	case DW_TAG_namespace:
-		return "DW_TAG_namespace";
+		*s = "DW_TAG_namespace"; break;
 	case DW_TAG_packed_type:
-		return "DW_TAG_packed_type";
+		*s = "DW_TAG_packed_type"; break;
 	case DW_TAG_partial_unit:
-		return "DW_TAG_partial_unit";
+		*s = "DW_TAG_partial_unit"; break;
 	case DW_TAG_pointer_type:
-		return "DW_TAG_pointer_type";
+		*s = "DW_TAG_pointer_type"; break;
 	case DW_TAG_ptr_to_member_type:
-		return "DW_TAG_ptr_to_member_type";
+		*s = "DW_TAG_ptr_to_member_type"; break;
 	case DW_TAG_reference_type:
-		return "DW_TAG_reference_type";
+		*s = "DW_TAG_reference_type"; break;
 	case DW_TAG_restrict_type:
-		return "DW_TAG_restrict_type";
+		*s = "DW_TAG_restrict_type"; break;
 	case DW_TAG_set_type:
-		return "DW_TAG_set_type";
+		*s = "DW_TAG_set_type"; break;
 	case DW_TAG_shared_type:
-		return "DW_TAG_shared_type";
+		*s = "DW_TAG_shared_type"; break;
 	case DW_TAG_string_type:
-		return "DW_TAG_string_type";
+		*s = "DW_TAG_string_type"; break;
 	case DW_TAG_structure_type:
-		return "DW_TAG_structure_type";
+		*s = "DW_TAG_structure_type"; break;
 	case DW_TAG_subprogram:
-		return "DW_TAG_subprogram";
+		*s = "DW_TAG_subprogram"; break;
 	case DW_TAG_subrange_type:
-		return "DW_TAG_subrange_type";
+		*s = "DW_TAG_subrange_type"; break;
 	case DW_TAG_subroutine_type:
-		return "DW_TAG_subroutine_type";
+		*s = "DW_TAG_subroutine_type"; break;
 	case DW_TAG_template_type_parameter:
-		return "DW_TAG_template_type_parameter";
+		*s = "DW_TAG_template_type_parameter"; break;
 	case DW_TAG_template_value_parameter:
-		return "DW_TAG_template_value_parameter";
+		*s = "DW_TAG_template_value_parameter"; break;
 	case DW_TAG_thrown_type:
-		return "DW_TAG_thrown_type";
+		*s = "DW_TAG_thrown_type"; break;
 	case DW_TAG_try_block:
-		return "DW_TAG_try_block";
+		*s = "DW_TAG_try_block"; break;
 	case DW_TAG_typedef:
-		return "DW_TAG_typedef";
+		*s = "DW_TAG_typedef"; break;
 	case DW_TAG_union_type:
-		return "DW_TAG_union_type";
+		*s = "DW_TAG_union_type"; break;
 	case DW_TAG_unspecified_parameters:
-		return "DW_TAG_unspecified_parameters";
+		*s = "DW_TAG_unspecified_parameters"; break;
 	case DW_TAG_unspecified_type:
-		return "DW_TAG_unspecified_type";
+		*s = "DW_TAG_unspecified_type"; break;
 	case DW_TAG_variable:
-		return "DW_TAG_variable";
+		*s = "DW_TAG_variable"; break;
 	case DW_TAG_variant:
-		return "DW_TAG_variant";
+		*s = "DW_TAG_variant"; break;
 	case DW_TAG_variant_part:
-		return "DW_TAG_variant_part";
+		*s = "DW_TAG_variant_part"; break;
 	case DW_TAG_volatile_type:
-		return "DW_TAG_volatile_type";
+		*s = "DW_TAG_volatile_type"; break;
 	case DW_TAG_with_stmt:
-		return "DW_TAG_with_stmt";
+		*s = "DW_TAG_with_stmt"; break;
 	default:
-		break;
+		return (DW_DLV_NO_ENTRY);
 	}
 
-	return "Unknown tag";
-}
-
-void
-dwarf_dump_abbrev(Dwarf_Debug dbg)
-{
-	Dwarf_Abbrev a;
-	Dwarf_AttrDef ad;
-	Dwarf_CU cu;
-
-	printf("Contents of the .debug_abbrev section:\n\nEntry Tag\n");
-
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		STAILQ_FOREACH(a, &cu->cu_abbrev, ab_next) {
-			printf("%5lu %-30s [%s children]\n",
-			    (u_long) a->ab_entry, get_tag_desc(a->ab_tag),
-			    (a->ab_children == DW_CHILDREN_yes) ? "has" : "no");
-
-			STAILQ_FOREACH(ad, &a->ab_attrdef, ad_next)
-				printf("      %-30s %s\n", get_attr_desc(ad->ad_attrib),
-				    get_form_desc(ad->ad_form));
-		}
-	}
-}
-#ifdef DOODAD
-    case DW_AT_inline:
-      switch (uvalue)
-	{
-	case DW_INL_not_inlined:
-	  printf (_("(not inlined)"));
-	  break;
-	case DW_INL_inlined:
-	  printf (_("(inlined)"));
-	  break;
-	case DW_INL_declared_not_inlined:
-	  printf (_("(declared as inline but ignored)"));
-	  break;
-	case DW_INL_declared_inlined:
-	  printf (_("(declared as inline and inlined)"));
-	  break;
-	default:
-	  printf (_("  (Unknown inline attribute value: %lx)"), uvalue);
-	  break;
-	}
-      break;
-
-    case DW_AT_language:
-      switch (uvalue)
-	{
-	case DW_LANG_C:			printf ("(non-ANSI C)"); break;
-	case DW_LANG_C89:		printf ("(ANSI C)"); break;
-	case DW_LANG_C_plus_plus:	printf ("(C++)"); break;
-	case DW_LANG_Fortran77:		printf ("(FORTRAN 77)"); break;
-	case DW_LANG_Fortran90:		printf ("(Fortran 90)"); break;
-	case DW_LANG_Modula2:		printf ("(Modula 2)"); break;
-	case DW_LANG_Pascal83:		printf ("(ANSI Pascal)"); break;
-	case DW_LANG_Ada83:		printf ("(Ada)"); break;
-	case DW_LANG_Cobol74:		printf ("(Cobol 74)"); break;
-	case DW_LANG_Cobol85:		printf ("(Cobol 85)"); break;
-	  /* DWARF 2.1 values.	*/
-	case DW_LANG_C99:		printf ("(ANSI C99)"); break;
-	case DW_LANG_Ada95:		printf ("(ADA 95)"); break;
-	case DW_LANG_Fortran95:		printf ("(Fortran 95)"); break;
-	  /* MIPS extension.  */
-	case DW_LANG_Mips_Assembler:	printf ("(MIPS assembler)"); break;
-	  /* UPC extension.  */
-	case DW_LANG_Upc:		printf ("(Unified Parallel C)"); break;
-	default:
-	  printf ("(Unknown: %lx)", uvalue);
-	  break;
-	}
-      break;
-
-    case DW_AT_encoding:
-      switch (uvalue)
-	{
-	case DW_ATE_void:		printf ("(void)"); break;
-	case DW_ATE_address:		printf ("(machine address)"); break;
-	case DW_ATE_boolean:		printf ("(boolean)"); break;
-	case DW_ATE_complex_float:	printf ("(complex float)"); break;
-	case DW_ATE_float:		printf ("(float)"); break;
-	case DW_ATE_signed:		printf ("(signed)"); break;
-	case DW_ATE_signed_char:	printf ("(signed char)"); break;
-	case DW_ATE_unsigned:		printf ("(unsigned)"); break;
-	case DW_ATE_unsigned_char:	printf ("(unsigned char)"); break;
-	  /* DWARF 2.1 value.  */
-	case DW_ATE_imaginary_float:	printf ("(imaginary float)"); break;
-	default:
-	  if (uvalue >= DW_ATE_lo_user
-	      && uvalue <= DW_ATE_hi_user)
-	    printf ("(user defined type)");
-	  else
-	    printf ("(unknown type)");
-	  break;
-	}
-      break;
-
-    case DW_AT_accessibility:
-      switch (uvalue)
-	{
-	case DW_ACCESS_public:		printf ("(public)"); break;
-	case DW_ACCESS_protected:	printf ("(protected)"); break;
-	case DW_ACCESS_private:		printf ("(private)"); break;
-	default:
-	  printf ("(unknown accessibility)");
-	  break;
-	}
-      break;
-
-    case DW_AT_visibility:
-      switch (uvalue)
-	{
-	case DW_VIS_local:		printf ("(local)"); break;
-	case DW_VIS_exported:		printf ("(exported)"); break;
-	case DW_VIS_qualified:		printf ("(qualified)"); break;
-	default:			printf ("(unknown visibility)"); break;
-	}
-      break;
-
-    case DW_AT_virtuality:
-      switch (uvalue)
-	{
-	case DW_VIRTUALITY_none:	printf ("(none)"); break;
-	case DW_VIRTUALITY_virtual:	printf ("(virtual)"); break;
-	case DW_VIRTUALITY_pure_virtual:printf ("(pure_virtual)"); break;
-	default:			printf ("(unknown virtuality)"); break;
-	}
-      break;
-
-    case DW_AT_identifier_case:
-      switch (uvalue)
-	{
-	case DW_ID_case_sensitive:	printf ("(case_sensitive)"); break;
-	case DW_ID_up_case:		printf ("(up_case)"); break;
-	case DW_ID_down_case:		printf ("(down_case)"); break;
-	case DW_ID_case_insensitive:	printf ("(case_insensitive)"); break;
-	default:			printf ("(unknown case)"); break;
-	}
-      break;
-
-    case DW_AT_calling_convention:
-      switch (uvalue)
-	{
-	case DW_CC_normal:	printf ("(normal)"); break;
-	case DW_CC_program:	printf ("(program)"); break;
-	case DW_CC_nocall:	printf ("(nocall)"); break;
-	default:
-	  if (uvalue >= DW_CC_lo_user
-	      && uvalue <= DW_CC_hi_user)
-	    printf ("(user defined)");
-	  else
-	    printf ("(unknown convention)");
-	}
-      break;
-
-    case DW_AT_ordering:
-      switch (uvalue)
-	{
-	case -1: printf ("(undefined)"); break;
-	case 0:  printf ("(row major)"); break;
-	case 1:  printf ("(column major)"); break;
-	}
-      break;
-
-    case DW_AT_frame_base:
-    case DW_AT_location:
-    case DW_AT_data_member_location:
-    case DW_AT_vtable_elem_location:
-    case DW_AT_allocated:
-    case DW_AT_associated:
-    case DW_AT_data_location:
-    case DW_AT_stride:
-    case DW_AT_upper_bound:
-    case DW_AT_lower_bound:
-      if (block_start)
-	{
-	  printf ("(");
-	  decode_location_expression (block_start, pointer_size, uvalue);
-	  printf (")");
-	}
-      else if (form == DW_FORM_data4 || form == DW_FORM_data8)
-	{
-	  printf ("(");
-	  printf ("location list");
-	  printf (")");
-	}
-      break;
-#endif
-
-static void
-dwarf_dump_at_attr(Dwarf_Die die, Dwarf_Attribute at)
-{
-
-	(void) die;	/* unused */
-
-	switch (at->at_attrib) {
-	case DW_AT_accessibility:
-		break;
-
-	case DW_AT_calling_convention:
-		break;
-
-	case DW_AT_encoding:
-		break;
-
-	case DW_AT_identifier_case:
-		break;
-
-	case DW_AT_inline:
-		break;
-
-	case DW_AT_language:
-		break;
-
-	case DW_AT_ordering:
-		break;
-
-	case DW_AT_virtuality:
-		break;
-
-	case DW_AT_visibility:
-		break;
-
-	case DW_AT_frame_base:
-	case DW_AT_location:
-	case DW_AT_data_member_location:
-	case DW_AT_vtable_elem_location:
-	case DW_AT_upper_bound:
-	case DW_AT_lower_bound:
-		break;
-
-	default:
-		break;
-	}
-}
-
-void
-dwarf_dump_at(Dwarf_Die die, Dwarf_Attribute at)
-{
-	uint64_t i;
-
-	printf("      %-30s : %-16s ",
-	    get_attr_desc(at->at_attrib),
-	    get_form_desc(at->at_form));
-
-	switch (at->at_form) {
-	case DW_FORM_addr:
-		printf("0x%llx", (unsigned long long) at->u[0].u64);
-		break;
-	case DW_FORM_block:
-	case DW_FORM_block1:
-	case DW_FORM_block2:
-	case DW_FORM_block4:
-		printf("%lu byte block:", (u_long) at->u[0].u64);
-		for (i = 0; i < at->u[0].u64; i++)
-			printf(" %02x", at->u[1].u8p[i]);
-		break;
-	case DW_FORM_data1:
-	case DW_FORM_data2:
-	case DW_FORM_data4:
-	case DW_FORM_data8:
-	case DW_FORM_flag:
-		printf("%llu", (unsigned long long) at->u[0].u64);
-		break;
-	case DW_FORM_ref1:
-	case DW_FORM_ref2:
-	case DW_FORM_ref4:
-	case DW_FORM_ref8:
-	case DW_FORM_ref_udata:
-		printf("<%llx>", (unsigned long long) (at->u[0].u64 +
-		    die->die_cu->cu_offset));
-		break;
-	case DW_FORM_string:
-		printf("%s", at->u[0].s);
-		break;
-	case DW_FORM_strp:
-		printf("(indirect string, offset 0x%llx): %s",
-		    (unsigned long long) at->u[0].u64, at->u[1].s);
-		break;
-	default:
-		printf("unknown form");
-		break;
-	}
-
-	/* Dump any extra attribute-specific information. */
-	dwarf_dump_at_attr(die, at);
-
-	printf("\n");
-}
-
-void
-dwarf_dump_die_at_offset(Dwarf_Debug dbg, Dwarf_Off off)
-{
-	Dwarf_CU cu;
-	Dwarf_Die die;
-
-	if (dbg == NULL)
-		return;
-
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		STAILQ_FOREACH(die, &cu->cu_die, die_next) {
-			if ((off_t) die->die_offset == off) {
-				dwarf_dump_die(die);
-				return;
-			}
-		}
-	}
-}
-
-void
-dwarf_dump_die(Dwarf_Die die)
-{
-	Dwarf_Attribute at;
-
-	printf("<%llx>: Abbrev number: %llu (%s)\n",
-	    (unsigned long long) die->die_offset,
-	    (unsigned long long) die->die_abnum,
-	    get_tag_desc(die->die_ab->ab_tag));
-
-	STAILQ_FOREACH(at, &die->die_attr, at_next)
-		dwarf_dump_at(die, at);
-}
-
-void
-dwarf_dump_raw(Dwarf_Debug dbg)
-{
-	Dwarf_CU cu;
-	char *p = (char *) dbg;
-	int i;
-
-	printf("dbg %p\n",dbg);
-
-	if (dbg == NULL)
-		return;
-
-	for (i = 0; i < (int) sizeof(*dbg); i++) {
-		if (*p >= 0x20 && *p < 0x7f) {
-			printf(" %c",*p++ & 0xff);
-		} else {
-			printf(" %02x",*p++ & 0xff);
-		}
-	}
-	printf("\n");
-
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		p = (char *) cu;
-		printf("cu %p\n",cu);
-		for (i = 0; i < (int) sizeof(*cu); i++) {
-			if (*p >= 0x20 && *p < 0x7f) {
-				printf(" %c",*p++ & 0xff);
-			} else {
-				printf(" %02x",*p++ & 0xff);
-			}
-		}
-		printf("\n");
-	}
-}
-
-static void
-dwarf_dump_tree_dies(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Error *error)
-{
-	Dwarf_Die child;
-	int ret;
-
-	do {
-		dwarf_dump_die(die);
-
-		if ((ret = dwarf_child(die, &child, error) == DWARF_E_NO_ENTRY)) {
-			/* No children. */
-		} else if (ret != DWARF_E_NONE) {
-			printf("Error %s\n", _dwarf_errmsg(error));
-			return;
-		} else
-			dwarf_dump_tree_dies(dbg, child, error);
-
-		if (dwarf_siblingof(dbg, die, &die, error) != DWARF_E_NONE)
-			die = NULL;
-		
-	} while (die != NULL);
-}
-
-void
-dwarf_dump_tree(Dwarf_Debug dbg)
-{
-	Dwarf_CU cu;
-	Dwarf_Die die;
-	Dwarf_Error error;
-	Dwarf_Half cu_pointer_size;
-	Dwarf_Half cu_version;
-	Dwarf_Unsigned cu_abbrev_offset;
-	Dwarf_Unsigned cu_header_length;
-	Dwarf_Unsigned cu_next_offset;
-
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		printf ("\nCompilation Unit @ offset %llx:\n",
-		    (unsigned long long) cu->cu_offset);
-		printf ("    Length:          %lu\n", (u_long) cu->cu_length);
-		printf ("    Version:         %hu\n", cu->cu_version);
-		printf ("    Abbrev Offset:   %lu\n", (u_long) cu->cu_abbrev_offset);
-		printf ("    Pointer Size:    %u\n", (u_int) cu->cu_pointer_size);
-
-		if (dwarf_next_cu_header(dbg, &cu_header_length,
-		    &cu_version, &cu_abbrev_offset, &cu_pointer_size,
-		    &cu_next_offset, &error) != DWARF_E_NONE) {
-			printf("Error %s\n", _dwarf_errmsg(&error));
-			return;
-		}
-
-		if (dwarf_siblingof(dbg, NULL, &die, &error) != DWARF_E_NONE) {
-			printf("Error %s\n", _dwarf_errmsg(&error));
-			return;
-		}
-
-		dwarf_dump_tree_dies(dbg, die, &error);
-
-	}
-}
-
-void
-dwarf_dump_info(Dwarf_Debug dbg)
-{
-	Dwarf_CU cu;
-	Dwarf_Die die;
-
-	printf("Contents of the .debug_info section:\n");
-
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		printf ("\nCompilation Unit @ offset %llx:\n",
-		    (unsigned long long) cu->cu_offset);
-		printf ("    Length:          %lu\n", (u_long) cu->cu_length);
-		printf ("    Version:         %hu\n", cu->cu_version);
-		printf ("    Abbrev Offset:   %lu\n", (u_long) cu->cu_abbrev_offset);
-		printf ("    Pointer Size:    %u\n", (u_int) cu->cu_pointer_size);
-
-		STAILQ_FOREACH(die, &cu->cu_die, die_next)
-			dwarf_dump_die(die);
-	}
-}
-
-#if 0
-void
-dwarf_dump_shstrtab(Dwarf_Debug dbg)
-{
-	char *name;
-	int indx = 0;
-
-	printf("---------------------\nSection header string table contents:\n");
-	while ((name = elf_strptr(dbg->dbg_elf, dbg->dbg_stnum, indx)) != NULL) {
-		printf("%5d '%s'\n",indx,name);
-		indx += strlen(name) + 1;
-	}
-}
-#endif
-
-#if 0
-void
-dwarf_dump_strtab(Dwarf_Debug dbg)
-{
-	char *name;
-	int indx = 0;
-
-	printf("---------------------\nString table contents:\n");
-	while ((name = elf_strptr(dbg->dbg_elf, dbg->dbg_s[DWARF_strtab].s_shnum, indx)) != NULL) {
-		printf("%5d '%s'\n",indx,name);
-		indx += strlen(name) + 1;
-	}
-}
-#endif
-
-#if 0
-void
-dwarf_dump_dbgstr(Dwarf_Debug dbg)
-{
-	char *name;
-	int indx = 0;
-
-	printf("---------------------\nDebug string table contents:\n");
-	while ((name = elf_strptr(dbg->dbg_elf, dbg->dbg_s[DWARF_debug_str].s_shnum, indx)) != NULL) {
-		printf("%5d '%s'\n",indx,name);
-		indx += strlen(name) + 1;
-	}
-}
-#endif
-
-#if 0
-void
-dwarf_dump_symtab(Dwarf_Debug dbg)
-{
-	GElf_Sym sym;
-	char *name;
-	int indx = 0;
-
-	printf("---------------------\nSymbol table contents:\n");
-	while (gelf_getsym(dbg->dbg_s[DWARF_symtab].s_data,  indx++, &sym) != NULL) {
-		if ((name = elf_strptr(dbg->dbg_elf, dbg->dbg_s[DWARF_strtab].s_shnum, sym.st_name)) == NULL)
-			printf("sym.st_name %u indx %d sym.st_size %lu\n",sym.st_name,indx,(u_long) sym.st_size);
-		else
-			printf("'%s' sym.st_name %u indx %d sym.st_size %lu\n",name,sym.st_name,indx,(u_long) sym.st_size);
-	}
-}
-#endif
-
-void
-dwarf_dump(Dwarf_Debug dbg)
-{
-#if 0
-	dwarf_dump_strtab(dbg);
-	dwarf_dump_shstrtab(dbg);
-	dwarf_dump_dbgstr(dbg);
-	dwarf_dump_symtab(dbg);
-#endif
-	dwarf_dump_info(dbg);
+	return (DW_DLV_OK);
 }

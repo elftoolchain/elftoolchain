@@ -314,8 +314,6 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 		*lenp = 1;
 		break;
 	default:
-		printf("%s(%d): form %s not handled\n",__func__,
-		    __LINE__,get_form_desc(at->at_form));
 		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
 		return (DW_DLV_ERROR);
 	}
