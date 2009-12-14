@@ -64,7 +64,11 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf_finish.3					\
+MAN=	dwarf_dealloc.3					\
+	dwarf_errmsg.3					\
+	dwarf_errno.3					\
+	dwarf_finish.3					\
+	dwarf_get_elf.3					\
 	dwarf_init.3
 
 MLINKS+= \
