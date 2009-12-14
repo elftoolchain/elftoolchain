@@ -3,10 +3,6 @@
 #
 # $Id$
 
-MKLINT=		no
-
-OBJECT_FMT=	ELF		# work around a bug in the pmake package.
-
 _NATIVE_ELF_FORMAT = native-elf-format
 
 .BEGIN:	${_NATIVE_ELF_FORMAT}.h
