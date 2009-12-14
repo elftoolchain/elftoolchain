@@ -43,11 +43,13 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 
 	ab = NULL;
 	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next)
+		STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
 			if (ab->ab_offset == offset)
-				break;
+				goto found_ab;
+		}
 	}
 
+found_ab:
 	if (ab == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_ERROR);
