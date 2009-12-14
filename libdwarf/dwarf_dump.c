@@ -74,8 +74,10 @@ get_sht_desc(uint32_t sh_type)
 		return "Symbol versions required";
 	case SHT_GNU_versym:
 		return "Symbol version table";
+#if	defined(SHT_AMD64_UNWIND)
 	case SHT_AMD64_UNWIND:
 		return "AMD64 unwind";
+#endif
 	default:
 		return "Unknown";
 	}
@@ -579,8 +581,11 @@ dwarf_dump_abbrev(Dwarf_Debug dbg)
 #endif
 
 static void
-dwarf_dump_at_attr(Dwarf_Die die __unused, Dwarf_Attribute at)
+dwarf_dump_at_attr(Dwarf_Die die, Dwarf_Attribute at)
 {
+
+	(void) die;	/* unused */
+
 	switch (at->at_attrib) {
 	case DW_AT_accessibility:
 		break;

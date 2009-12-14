@@ -29,7 +29,7 @@
 #include "_libdwarf.h"
 
 void
-dwarf_dealloc(Dwarf_Debug dbg __unused, Dwarf_Ptr p __unused, Dwarf_Unsigned alloc_type __unused)
+dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {
 	/*
 	 * This libdwarf implementation doesn't use this style
@@ -37,5 +37,7 @@ dwarf_dealloc(Dwarf_Debug dbg __unused, Dwarf_Ptr p __unused, Dwarf_Unsigned all
 	 * them to the client, so the client doesn't need to
 	 * remember to free them.
 	 */
+
+	(void) dbg; (void) p; (void) alloc_type;
 	return;
 }
