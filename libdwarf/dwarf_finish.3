@@ -105,10 +105,10 @@ use:
 	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
 		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(&de));
 
-	(void) elf_end(e);
-
 	if (dwarf_finish(dbg, &de) != DW_DLV_OK)
 		errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+
+	(void) elf_end(e);
 .Ed
 .Sh SEE ALSO
 .Xr elf_end 3 ,
