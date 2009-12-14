@@ -295,10 +295,6 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 /* Function prototype definitions. */
 __BEGIN_DECLS
 const char	*_dwarf_errmsg(Dwarf_Error *);
-const char	*get_sht_desc(uint32_t);
-const char	*get_attr_desc(uint32_t);
-const char	*get_form_desc(uint32_t);
-const char	*get_tag_desc(uint32_t);
 Dwarf_P_Attribute dwarf_add_AT_name(Dwarf_P_Die, char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_comp_dir(Dwarf_P_Die, char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_producer(Dwarf_P_Die, char *, Dwarf_Error *);
@@ -379,6 +375,9 @@ int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 int		dwarf_formudata(Dwarf_Attribute, Dwarf_Unsigned *,
 		    Dwarf_Error *);
+int		dwarf_get_AT_name(unsigned, const char **);
+int		dwarf_get_FORM_name(unsigned, const char **);
+int		dwarf_get_TAG_name(unsigned, const char **);
 int		dwarf_get_abbrev(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Abbrev *,
 		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_get_abbrev_children_flag(Dwarf_Abbrev, Dwarf_Signed *,
@@ -548,18 +547,6 @@ int		dwarf_whatform(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform_direct(Dwarf_Attribute, Dwarf_Half *,
 		    Dwarf_Error *);
 void		dwarf_dealloc(Dwarf_Debug, Dwarf_Ptr, Dwarf_Unsigned);
-void		dwarf_dump(Dwarf_Debug);
-void		dwarf_dump_abbrev(Dwarf_Debug);
-void		dwarf_dump_at(Dwarf_Die, Dwarf_Attribute);
-void		dwarf_dump_dbgstr(Dwarf_Debug);
-void		dwarf_dump_die(Dwarf_Die);
-void		dwarf_dump_die_at_offset(Dwarf_Debug, Dwarf_Off);
-void		dwarf_dump_info(Dwarf_Debug);
-void		dwarf_dump_shstrtab(Dwarf_Debug);
-void		dwarf_dump_strtab(Dwarf_Debug);
-void		dwarf_dump_symtab(Dwarf_Debug);
-void		dwarf_dump_raw(Dwarf_Debug);
-void		dwarf_dump_tree(Dwarf_Debug);
 __END_DECLS
 
 #endif /* !_LIBDWARF_H_ */
