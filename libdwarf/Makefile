@@ -56,7 +56,6 @@ INCS=	dwarf.h libdwarf.h
 GENSRCS=	dwarf_pubnames.c dwarf_pubtypes.c dwarf_weaks.c \
 		dwarf_funcs.c dwarf_vars.c dwarf_types.c
 CLEANFILES=	${GENSRCS}
-CFLAGS+=	-I. -I${.CURDIR} -I${TOP}/common
 
 SHLIB_MAJOR=	3
 

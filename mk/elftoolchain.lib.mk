@@ -10,6 +10,11 @@
 
 .include <bsd.lib.mk>
 
+# Adjust CFLAGS
+CFLAGS+=	-I.			# OBJDIR
+CFLAGS+=	-I${.CURDIR}		# Sources
+CFLAGS+=	-I${TOP}/common		# common code
+
 .if defined(LDADD)
 _LDADD_LIBELF=${LDADD:M-lelf}
 .if !empty(_LDADD_LIBELF)
