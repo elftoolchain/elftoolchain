@@ -91,4 +91,24 @@
 #define	SHT_GNU_HASH		0x6FFFFFF6U
 #endif
 
+/*
+ * VCS Ids.
+ */
+
+#ifndef	ELFTC_VCSID
+
+#if defined(__FreeBSD__)
+#define	ELFTC_VCSID(ID)		__FBSDID(ID)
+#endif
+
+#if defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
+#define	ELFTC_VCSID(ID)		/**/
+#endif
+
+#if defined(__NetBSD__)
+#define	ELFTC_VCSID(ID)		__RCSID(ID)
+#endif
+
+#endif	/* ELFTC_VCSID */
+
 #endif	/* _ELFTC_H */
