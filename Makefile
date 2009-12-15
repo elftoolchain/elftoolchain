@@ -18,4 +18,4 @@ SUBDIR += strings
 SUBDIR += libelf-test-suite
 SUBDIR += libelf-tutorial
 
-.include <bsd.lib.mk>
+.include <bsd.subdir.mk>
