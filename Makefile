@@ -1,10 +1,14 @@
 # $Id$
 
-# Build libraries first
+# Build the base libraries first.
 SUBDIR += libelf
+SUBDIR += libdwarf
+
+# Build additional APIs.
 SUBDIR += libelftc
 
-# Build tools after the libraries
+# Build tools after the libraries.
+SUBDIR += addr2line
 SUBDIR += ar
 SUBDIR += brandelf
 SUBDIR += elfcopy
@@ -14,7 +18,7 @@ SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
 
-# Build test suites and documentation at the end
+# Build test suites and documentation at the end.
 SUBDIR += libelf-test-suite
 SUBDIR += libelf-tutorial
 
