@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	${.CURDIR}/..
+
 LIB=	elftc
 
 SRCS=	elftc_demangle.c			\
@@ -11,11 +13,11 @@ SRCS=	elftc_demangle.c			\
 	libelftc_vstr.c
 INCS=	libelftc.h
 
-CFLAGS+=	-I. -I${.CURDIR}
-
 SHLIB_MAJOR=	1
 
 WARNS?=	6
+
+LDADD+=	-lelf
 
 MAN=	elftc_demangle.3
 
@@ -32,4 +34,4 @@ OS_TARGET=netbsd
 .include "os.${OS_TARGET}.mk"
 .endif
 
-.include <bsd.lib.mk>
+.include "${TOP}/mk/elftoolchain.lib.mk"
