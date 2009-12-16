@@ -168,6 +168,7 @@ Elf	*_libelf_ar_open_member(int _fd, Elf_Cmd _c, Elf *_ar);
 int	_libelf_ar_get_member(char *_s, size_t _sz, int _base, size_t *_ret);
 char	*_libelf_ar_get_string(const char *_buf, size_t _sz, int _rawname);
 char	*_libelf_ar_get_name(char *_buf, size_t _sz, Elf *_e);
+int	_libelf_ar_get_number(char *_buf, size_t _sz, int _base, size_t *_ret);
 Elf_Arsym *_libelf_ar_process_symtab(Elf *_ar, size_t *_dst);
 unsigned long _libelf_checksum(Elf *_e, int _elfclass);
 void	*_libelf_ehdr(Elf *_e, int _elfclass, int _allocate);
