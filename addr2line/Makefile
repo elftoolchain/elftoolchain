@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	..
+
 PROG=	addr2line
 SRCS=	addr2line.c
 
@@ -10,4 +12,4 @@ LDADD=	-lelftc -ldwarf -lelf
 
 MAN1=	addr2line.1
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"

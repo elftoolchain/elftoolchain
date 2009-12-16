@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	..
+
 PROG=	readelf
 SRCS=	readelf.c
 
@@ -13,4 +15,4 @@ LDADD+=	-larchive -lbz2 -lz
 
 MAN1=	readelf.1
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"

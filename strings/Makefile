@@ -1,8 +1,10 @@
 #
 
+TOP=	..
+
 PROG=   strings
 WARNS?= 6
 LDADD=  -lelf
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"
 
