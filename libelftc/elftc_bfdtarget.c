@@ -25,13 +25,14 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <string.h>
 #include <libelftc.h>
 
 #include "_libelftc.h"
+
+ELFTC_VCSID("$Id$");
 
 Bfd_Target *
 elftc_find_bfd_target(const char *tgt_name)

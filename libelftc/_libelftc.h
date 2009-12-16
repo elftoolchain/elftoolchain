@@ -30,6 +30,8 @@
 
 #include <stdbool.h>
 
+#include "_elftc.h"
+
 struct _Bfd_Target {
 	const char	*bt_name;	/* target name. */
 	unsigned int	 bt_type;	/* target type. */
