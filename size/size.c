@@ -25,7 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__RCSID("$Id$");
 
 #include <err.h>
 #include <fcntl.h>
@@ -39,6 +38,10 @@ __RCSID("$Id$");
 
 #include <libelf.h>
 #include <gelf.h>
+
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
 
 #define	BUF_SIZE			40
 #define	DEFAULT_SECTION_NAME_LENGTH	19
