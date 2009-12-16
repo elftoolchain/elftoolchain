@@ -111,4 +111,33 @@
 
 #endif	/* ELFTC_VCSID */
 
+/*
+ * Provide an equivalent for getprogname(3).
+ */
+
+#ifndef	ELFTC_GETPROGNAME
+
+#if defined(__FreeBSD__) || defined(__NetBSD__)
+
+#include <stdlib.h>
+
+#define	ELFTC_GETPROGNAME()	getprogname()
+
+#endif	/* defined(__FreeBSD__) || defined(__NetBSD__) */
+
+
+#if defined(__linux__)
+
+/*
+ * GLIBC based systems have a global 'char *' pointer referencing
+ * the executable's name.
+ */
+extern const char *program_invocation_short_name;
+
+#define	ELFTC_GETPROGNAME()	program_invocation_short_name
+
+#endif	/* __linux__ */
+
+#endif	/* ELFTC_GETPROGNAME */
+
 #endif	/* _ELFTC_H */
