@@ -25,8 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -45,6 +43,10 @@ __FBSDID("$FreeBSD$");
 
 #include <libelf.h>
 #include <gelf.h>
+
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
 
 #define	STRINGS_VERSION_STRING		"strings 1.0"
 
