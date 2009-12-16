@@ -1,8 +1,11 @@
 #
 
+TOP=	..
+
 PROG=   size
 WARNS?= 6
 LDADD=  -lelf
+DPADD=	${LIBELF}
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"
 
