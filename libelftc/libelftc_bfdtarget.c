@@ -25,13 +25,14 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <libelf.h>
 #include <libelftc.h>
 
 #include "_libelftc.h"
+
+ELFTC_VCSID("$Id$");
 
 struct _Bfd_Target targets[] = {
 

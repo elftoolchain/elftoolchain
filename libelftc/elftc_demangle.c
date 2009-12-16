@@ -25,7 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: users/kaiwang27/elftc/elftc_demangle.c 391 2009-05-30 18:26:22Z kaiwang27 $");
 
 #include <sys/param.h>
 #include <assert.h>
@@ -35,6 +34,8 @@ __FBSDID("$FreeBSD: users/kaiwang27/elftc/elftc_demangle.c 391 2009-05-30 18:26:
 #include <string.h>
 
 #include "_libelftc.h"
+
+ELFTC_VCSID("$Id$");
 
 static int
 is_mangled(const char *s, int style)
