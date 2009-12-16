@@ -371,8 +371,7 @@ int		dwarf_formaddr(Dwarf_Attribute, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_formblock(Dwarf_Attribute, Dwarf_Block *, Dwarf_Error *);
 int		dwarf_formflag(Dwarf_Attribute, Dwarf_Bool *, Dwarf_Error *);
 int		dwarf_formstring(Dwarf_Attribute, char **, Dwarf_Error *);
-int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Unsigned *,
-		    Dwarf_Error *);
+int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_formudata(Dwarf_Attribute, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 int		dwarf_get_AT_name(unsigned, const char **);

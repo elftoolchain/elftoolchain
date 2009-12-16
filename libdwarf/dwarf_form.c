@@ -220,7 +220,7 @@ dwarf_formudata(Dwarf_Attribute at, Dwarf_Unsigned *return_uvalue,
 }
 
 int
-dwarf_formsdata(Dwarf_Attribute at, Dwarf_Unsigned *return_svalue,
+dwarf_formsdata(Dwarf_Attribute at, Dwarf_Signed *return_svalue,
     Dwarf_Error *error)
 {
 	int ret;
