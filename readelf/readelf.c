@@ -2450,6 +2450,208 @@ dump_dwarf_line(struct readelf *re)
 }
 
 static void
+dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
+{
+	Dwarf_Attribute *attr_list;
+	Dwarf_Abbrev ab;
+	Dwarf_Die ret_die;
+	Dwarf_Unsigned dieoff, length, attr_count, offset, code, v_udata;
+	Dwarf_Signed v_sdata;
+	Dwarf_Off v_off;
+	Dwarf_Addr v_addr;
+	Dwarf_Half tag, attr, form;
+	Dwarf_Block v_block;
+	Dwarf_Bool v_bool;
+	Dwarf_Error de;
+	const char *tag_str, *attr_str;
+	char *v_str;
+	uint8_t *b;
+	int i, j, abc, ret;
+
+	if (dwarf_dieoffset(die, &dieoff, &de) != DW_DLV_OK) {
+		warnx("dwarf_dieoffset failed: %s", dwarf_errmsg(de));
+		goto cont_search;
+	}
+
+	printf("<%d><%jx>: ", level, (uintmax_t) dieoff);
+
+	/*
+	 * Find the abbrev entry for this DIE.
+	 */
+	abc = dwarf_die_abbrev_code(die);
+	offset = aboff;
+	while ((ret = dwarf_get_abbrev(re->dbg, offset, &ab, &length,
+	    &attr_count, &de)) == DW_DLV_OK) {
+		if (length == 1)
+			break;
+		offset += length;
+		if (dwarf_get_abbrev_code(ab, &code, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_abbrev_code failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		if ((int) code == abc)
+			break;
+	}
+	if (ret != DW_DLV_OK)
+		warnx("dwarf_get_abbrev: %s", dwarf_errmsg(de));
+	if (length == 1) {
+		printf("no abbrev entry for this DIE\n");
+		goto cont_search;
+	}
+	if (dwarf_get_abbrev_tag(ab, &tag, &de) != DW_DLV_OK) {
+		warnx("dwarf_get_abbrev_tag failed: %s",
+		    dwarf_errmsg(de));
+		goto cont_search;
+	}
+	if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
+		warnx("dwarf_get_TAG_name failed");
+		goto cont_search;
+	}
+
+	printf("Abbrev Number: %d (%s)\n", abc, tag_str);
+
+	if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
+	    DW_DLV_OK) {
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
+		goto cont_search;
+	}
+
+	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+		if (dwarf_whatform(attr_list[i], &form, &de) != DW_DLV_OK) {
+			warnx("dwarf_whatform failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
+			warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_get_AT_name(attr, &attr_str) != DW_DLV_OK) {
+			warnx("dwarf_get_AT_name failed");
+			continue;
+		}
+		printf("     %-18s: ", attr_str);
+		switch (form) {
+		case DW_FORM_ref_addr:
+			if (dwarf_global_formref(attr_list[i], &v_off, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_global_formref failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("<%jx>\n", (uintmax_t) v_off);
+			break;
+
+		case DW_FORM_ref1:
+		case DW_FORM_ref2:
+		case DW_FORM_ref4:
+		case DW_FORM_ref8:
+		case DW_FORM_ref_udata:
+			if (dwarf_formref(attr_list[i], &v_off, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formref failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("<%jx>\n", (uintmax_t) v_off);
+			break;
+
+		case DW_FORM_addr:
+			if (dwarf_formaddr(attr_list[i], &v_addr, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formaddr failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%#jx\n", (uintmax_t) v_addr);
+			break;
+
+		case DW_FORM_data1:
+		case DW_FORM_data2:
+		case DW_FORM_data4:
+		case DW_FORM_data8:
+		case DW_FORM_udata:
+			if (dwarf_formudata(attr_list[i], &v_udata, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formudata failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%ju\n", (uintmax_t) v_udata);
+			break;
+
+		case DW_FORM_sdata:
+			if (dwarf_formsdata(attr_list[i], &v_sdata, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formudata failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%jd\n", (intmax_t) v_sdata);
+			break;
+
+		case DW_FORM_flag:
+			if (dwarf_formflag(attr_list[i], &v_bool, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formflag failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%jd\n", (intmax_t) v_bool);
+			break;
+
+		case DW_FORM_string:
+		case DW_FORM_strp:
+			if (dwarf_formstring(attr_list[i], &v_str, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formstring failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			if (form == DW_FORM_string)
+				printf("%s\n", v_str);
+			else
+				printf("(indirect string) %s\n", v_str);
+			break;
+
+		case DW_FORM_block:
+		case DW_FORM_block1:
+		case DW_FORM_block2:
+		case DW_FORM_block4:
+			if (dwarf_formblock(attr_list[i], &v_block, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formblock failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%ju byte block:", v_block.bl_len);
+			b = v_block.bl_data;
+			for (j = 0; (Dwarf_Unsigned) j < v_block.bl_len; j++)
+				printf(" %x", b[j]);
+			putchar('\n');
+			break;
+		}
+	}
+
+
+cont_search:
+	/* Search children. */
+	ret = dwarf_child(die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_child: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		dump_dwarf_die(re, ret_die, aboff, level + 1);
+
+	/* Search sibling. */
+	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		dump_dwarf_die(re, ret_die, aboff, level);
+}
+
+static void
 dump_dwarf_info(struct readelf *re)
 {
 	struct section *s;
@@ -2457,7 +2659,7 @@ dump_dwarf_info(struct readelf *re)
 	Dwarf_Error de;
 	Dwarf_Half tag, version, pointer_size;
 	Dwarf_Off cu_offset, cu_length;
-	Dwarf_Unsigned abbrev_off;
+	Dwarf_Unsigned aboff;
 	Elf_Data *d;
 	int i, elferr, ret;
 
@@ -2481,7 +2683,7 @@ dump_dwarf_info(struct readelf *re)
 	if (d->d_size <= 0)
 		return;
 
-	while ((ret = dwarf_next_cu_header(re->dbg, NULL, &version, &abbrev_off,
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, &version, &aboff,
 	    &pointer_size, NULL, &de)) == DW_DLV_OK) {
 		die = NULL;
 		while (dwarf_siblingof(re->dbg, die, &die, &de) == DW_DLV_OK) {
@@ -2509,8 +2711,10 @@ dump_dwarf_info(struct readelf *re)
 		printf("  Compilation Unit @ %jd:\n", (intmax_t) cu_offset);
 		printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
 		printf("    Version:\t\t%u\n", version);
-		printf("    Abbrev Offset:\t%ju\n", (uintmax_t) abbrev_off);
+		printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
 		printf("    Pointer Size:\t%u\n", pointer_size);
+
+		dump_dwarf_die(re, die, aboff, 0);
 	}
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
@@ -2520,7 +2724,7 @@ static void
 dump_dwarf_abbrev(struct readelf *re)
 {
 	Dwarf_Abbrev ab;
-	Dwarf_Unsigned offset, aboff, atoff, length, attr_count;
+	Dwarf_Unsigned aboff, atoff, length, attr_count;
 	Dwarf_Signed flag, form;
 	Dwarf_Half tag, attr;
 	Dwarf_Error de;
@@ -2533,12 +2737,11 @@ dump_dwarf_abbrev(struct readelf *re)
 	    NULL, NULL, &de)) ==  DW_DLV_OK) {
 		printf("  Number TAG\n");
 		i = 0;
-		offset = 0;
-		while ((ret = dwarf_get_abbrev(re->dbg, offset, &ab, &length,
+		while ((ret = dwarf_get_abbrev(re->dbg, aboff, &ab, &length,
 		    &attr_count, &de)) == DW_DLV_OK) {
 			if (length == 1)
 				break;
-			offset += length;
+			aboff += length;
 			printf("%4d", ++i);
 			if (dwarf_get_abbrev_tag(ab, &tag, &de) != DW_DLV_OK) {
 				warnx("dwarf_get_abbrev_tag failed: %s",
