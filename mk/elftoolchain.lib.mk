@@ -19,6 +19,7 @@ CFLAGS+=	-I${TOP}/common		# common code
 _LDADD_LIBELF=${LDADD:M-lelf}
 .if !empty(_LDADD_LIBELF)
 CFLAGS+=	-I${TOP}/libelf
+LDFLAGS+=	-L${TOP}/libelf
 .endif
 .endif
 
