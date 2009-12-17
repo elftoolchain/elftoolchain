@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 28, 2009
+.Dd December 17, 2009
 .Os
 .Dt ELFTC_DEMANGLE 3
 .Sh NAME
@@ -34,7 +34,7 @@
 .Sh SYNOPSIS
 .In libelf.h
 .Ft int
-.Fn elftc_demangle "const char *mangledname" "char *buffer" "size_t bufsize" "unsigned int flags"
+.Fn elftc_demangle "const char *encodedname" "char *buffer" "size_t bufsize" "unsigned int flags"
 .Sh DESCRIPTION
 Function
 .Fn elftc_demangle
@@ -43,7 +43,7 @@ for the C++ language and returns a string denoting an equivalent
 C++ prototype.
 .Pp
 Argument
-.Ar mangledname
+.Ar encodedname
 specifies the encoded symbol name.
 Argument
 .Ar buffer
@@ -53,13 +53,44 @@ Argument
 specifies the size of the programmer-specified area.
 Argument
 .Ar flags
-specifies the mangling style and the flags that control demangle behaviour.
-.Sh RETURN VALUES
+specifies the encoding style in use for argument
+.Ar encodedname .
+Supported encoding styles are:
+.Bl -tag -width ".Dv ELFTC_DEM_NOPARAM"
+.It Dv ELFTC_DEM_ARM
+The encoding style used by the
+.Tn ARM
+C++ compiler.
+.It Dv ELFTC_DEM_GNU2
+The encoding style by GNU C++ version 2.
+.It Dv ELFTC_DEM_GNU3
+The encoding style by GNU C++ version 3 and later.
+.El
+.Pp
+Argument
+.Ar flags
+may be zero, in which case the function will attempt to guess the
+encoding scheme from the contents of
+.Ar encodedname .
+.Sh RETURN VALUE
 Function
 .Fn elftc_demangle
 returns 0 on success.
-In case of an error it returns -1 and sets
-the ELF error number.
+In case of an error it returns -1 and sets the
+.Va errno
+variable.
+.Sh EXAMPLES
+To decode a name that uses an unknown encoding style use:
+.Bd -literal
+	char buffer[1024];
+	const char *funcname;
+	
+	funcname = ...; /* points to string to be demangled */
+	if (elftc_demangle(funcname, buffer, sizeof(buffer), 0) == 0)
+		printf("Demangled name: %\\n", buffer);
+	else
+		perror("Cannot demangle %s", funcname);
+.Ed
 .Sh ERRORS
 Function
 .Fn elftc_demangle
@@ -67,14 +98,14 @@ may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
 .It Bq Er EINVAL
 Argument
-.Ar mangled_name
-was not a valid mangled name.
+.Ar encodedname
+was not a valid encoded name.
 .It Bq Er ENAMETOOLONG
 The output buffer specified by arguments
 .Ar buffer
 and
 .Ar bufsize
-are too small to hold the demangled name.
+was too small to hold the decoded function prototype.
 .El
 .Sh SEE ALSO
 .Xr elf 3 ,
