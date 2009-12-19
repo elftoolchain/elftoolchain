@@ -2747,7 +2747,7 @@ dump_dwarf_abbrev(struct readelf *re)
 				warnx("dwarf_get_abbrev_tag failed: %s",
 				    dwarf_errmsg(de));
 				continue;
-			} 
+			}
 			if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
 				warnx("dwarf_get_TAG_name failed");
 				continue;
@@ -2840,6 +2840,349 @@ dump_dwarf_str(struct readelf *re)
 				putchar(' ');
 		}
 		putchar('\n');
+	}
+}
+
+struct loc_at {
+	Dwarf_Attribute la_at;
+	Dwarf_Unsigned la_off;
+	Dwarf_Unsigned la_lowpc;
+	TAILQ_ENTRY(loc_at) la_next;
+};
+
+static TAILQ_HEAD(, loc_at) lalist = TAILQ_HEAD_INITIALIZER(lalist);
+
+static void
+search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
+{
+	Dwarf_Attribute *attr_list;
+	Dwarf_Die ret_die;
+	Dwarf_Unsigned attr_count, off;
+	Dwarf_Half attr, form;
+	Dwarf_Error de;
+	struct loc_at *la, *nla;
+	int i, ret;
+
+	if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
+	    DW_DLV_OK) {
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
+		goto cont_search;
+	}
+	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+		if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
+			warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (attr != DW_AT_location &&
+		    attr != DW_AT_string_length &&
+		    attr != DW_AT_return_addr &&
+		    attr != DW_AT_data_member_location &&
+		    attr != DW_AT_frame_base &&
+		    attr != DW_AT_segment &&
+		    attr != DW_AT_static_link &&
+		    attr != DW_AT_use_location &&
+		    attr != DW_AT_vtable_elem_location)
+			continue;
+		if (dwarf_whatform(attr_list[i], &form, &de) != DW_DLV_OK) {
+			warnx("dwarf_whatform failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (form != DW_FORM_data4 && form != DW_FORM_data8)
+			continue;
+		if (dwarf_formudata(attr_list[i], &off, &de) != DW_DLV_OK) {
+			warnx("dwarf_formudata failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		TAILQ_FOREACH(la, &lalist, la_next) {
+			if (off == la->la_off)
+				break;
+			if (off < la->la_off) {
+				if ((nla = malloc(sizeof(*nla))) == NULL)
+					err(1, "malloc failed");
+				nla->la_at = attr_list[i];
+				nla->la_off = off;
+				nla->la_lowpc = lowpc;
+				TAILQ_INSERT_BEFORE(la, nla, la_next);
+				break;
+			}
+		}
+		if (la == NULL) {
+			if ((nla = malloc(sizeof(*nla))) == NULL)
+				err(1, "malloc failed");
+			nla->la_at = attr_list[i];
+			nla->la_off = off;
+			nla->la_lowpc = lowpc;
+			TAILQ_INSERT_TAIL(&lalist, nla, la_next);
+		}
+	}
+
+cont_search:
+	/* Search children. */
+	ret = dwarf_child(die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_child: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		search_loclist_at(re, ret_die, lowpc);
+
+	/* Search sibling. */
+	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		search_loclist_at(re, ret_die, lowpc);
+}
+
+static void
+dump_dwarf_loclist(struct readelf *re)
+{
+	Dwarf_Die die;
+	Dwarf_Locdesc **llbuf;
+	Dwarf_Unsigned lowpc;
+	Dwarf_Signed lcnt;
+	Dwarf_Half tag;
+	Dwarf_Error de;
+	Dwarf_Loc *lr;
+	struct loc_at *la;
+	const char *op_str;
+	int i, j, ret;
+
+	printf("\nContents of section .debug_loc:\n");
+
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
+	    NULL, &de)) == DW_DLV_OK) {
+		die = NULL;
+		if (dwarf_siblingof(re->dbg, die, &die, &de) != DW_DLV_OK)
+			continue;
+		if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+			warnx("dwarf_tag failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		/* XXX: What about DW_TAG_partial_unit? */
+		lowpc = 0;
+		if (tag == DW_TAG_compile_unit) {
+			if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lowpc,
+			    &de) != DW_DLV_OK)
+				lowpc = 0;
+		}
+
+		/* Search attributes for reference to .debug_loc section. */
+		search_loclist_at(re, die, lowpc);
+	}
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
+
+	if (TAILQ_EMPTY(&lalist))
+		return;
+
+	printf("    Offset   Begin    End      Expression\n");
+
+	TAILQ_FOREACH(la, &lalist, la_next) {
+		if (dwarf_loclist_n(la->la_at, &llbuf, &lcnt, &de) !=
+		    DW_DLV_OK) {
+			warnx("dwarf_loclist_n failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		for (i = 0; i < lcnt; i++) {
+			printf("    %8.8jx ", la->la_off);
+			if (llbuf[i]->ld_lopc == 0 && llbuf[i]->ld_hipc == 0) {
+				printf("<End of list>\n");
+				continue;
+			}
+
+			/* TODO: handle base selection entry. */
+
+			printf("%8.8jx %8.8jx ",
+			    (uintmax_t) (la->la_lowpc + llbuf[i]->ld_lopc),
+			    (uintmax_t) (la->la_lowpc + llbuf[i]->ld_hipc));
+
+			putchar('(');
+			for (j = 0; (Dwarf_Half) j < llbuf[i]->ld_cents; j++) {
+				lr = &llbuf[i]->ld_s[j];
+				if (dwarf_get_OP_name(lr->lr_atom, &op_str) !=
+				    DW_DLV_OK) {
+					warnx("dwarf_get_OP_name failed: %s",
+					    dwarf_errmsg(de));
+					continue;
+				}
+
+				printf("%s", op_str);
+
+				switch (lr->lr_atom) {
+				/* Operations with no operands. */
+				case DW_OP_deref:
+				case DW_OP_reg0:
+				case DW_OP_reg1:
+				case DW_OP_reg2:
+				case DW_OP_reg3:
+				case DW_OP_reg4:
+				case DW_OP_reg5:
+				case DW_OP_reg6:
+				case DW_OP_reg7:
+				case DW_OP_reg8:
+				case DW_OP_reg9:
+				case DW_OP_reg10:
+				case DW_OP_reg11:
+				case DW_OP_reg12:
+				case DW_OP_reg13:
+				case DW_OP_reg14:
+				case DW_OP_reg15:
+				case DW_OP_reg16:
+				case DW_OP_reg17:
+				case DW_OP_reg18:
+				case DW_OP_reg19:
+				case DW_OP_reg20:
+				case DW_OP_reg21:
+				case DW_OP_reg22:
+				case DW_OP_reg23:
+				case DW_OP_reg24:
+				case DW_OP_reg25:
+				case DW_OP_reg26:
+				case DW_OP_reg27:
+				case DW_OP_reg28:
+				case DW_OP_reg29:
+				case DW_OP_reg30:
+				case DW_OP_reg31:
+				case DW_OP_lit0:
+				case DW_OP_lit1:
+				case DW_OP_lit2:
+				case DW_OP_lit3:
+				case DW_OP_lit4:
+				case DW_OP_lit5:
+				case DW_OP_lit6:
+				case DW_OP_lit7:
+				case DW_OP_lit8:
+				case DW_OP_lit9:
+				case DW_OP_lit10:
+				case DW_OP_lit11:
+				case DW_OP_lit12:
+				case DW_OP_lit13:
+				case DW_OP_lit14:
+				case DW_OP_lit15:
+				case DW_OP_lit16:
+				case DW_OP_lit17:
+				case DW_OP_lit18:
+				case DW_OP_lit19:
+				case DW_OP_lit20:
+				case DW_OP_lit21:
+				case DW_OP_lit22:
+				case DW_OP_lit23:
+				case DW_OP_lit24:
+				case DW_OP_lit25:
+				case DW_OP_lit26:
+				case DW_OP_lit27:
+				case DW_OP_lit28:
+				case DW_OP_lit29:
+				case DW_OP_lit30:
+				case DW_OP_lit31:
+				case DW_OP_dup:
+				case DW_OP_drop:
+				case DW_OP_over:
+				case DW_OP_swap:
+				case DW_OP_rot:
+				case DW_OP_xderef:
+				case DW_OP_abs:
+				case DW_OP_and:
+				case DW_OP_div:
+				case DW_OP_minus:
+				case DW_OP_mod:
+				case DW_OP_mul:
+				case DW_OP_neg:
+				case DW_OP_not:
+				case DW_OP_or:
+				case DW_OP_plus:
+				case DW_OP_shl:
+				case DW_OP_shr:
+				case DW_OP_shra:
+				case DW_OP_xor:
+				case DW_OP_eq:
+				case DW_OP_ge:
+				case DW_OP_gt:
+				case DW_OP_le:
+				case DW_OP_lt:
+				case DW_OP_ne:
+				case DW_OP_nop:
+					break;
+
+				case DW_OP_const1u:
+				case DW_OP_const1s:
+				case DW_OP_pick:
+				case DW_OP_deref_size:
+				case DW_OP_xderef_size:
+				case DW_OP_const2u:
+				case DW_OP_const2s:
+				case DW_OP_bra:
+				case DW_OP_skip:
+				case DW_OP_const4u:
+				case DW_OP_const4s:
+				case DW_OP_const8u:
+				case DW_OP_const8s:
+				case DW_OP_constu:
+				case DW_OP_plus_uconst:
+				case DW_OP_regx:
+				case DW_OP_piece:
+					printf(": %ju", (uintmax_t)
+					    lr->lr_number);
+					break;
+
+				case DW_OP_consts:
+				case DW_OP_breg0:
+				case DW_OP_breg1:
+				case DW_OP_breg2:
+				case DW_OP_breg3:
+				case DW_OP_breg4:
+				case DW_OP_breg5:
+				case DW_OP_breg6:
+				case DW_OP_breg7:
+				case DW_OP_breg8:
+				case DW_OP_breg9:
+				case DW_OP_breg10:
+				case DW_OP_breg11:
+				case DW_OP_breg12:
+				case DW_OP_breg13:
+				case DW_OP_breg14:
+				case DW_OP_breg15:
+				case DW_OP_breg16:
+				case DW_OP_breg17:
+				case DW_OP_breg18:
+				case DW_OP_breg19:
+				case DW_OP_breg20:
+				case DW_OP_breg21:
+				case DW_OP_breg22:
+				case DW_OP_breg23:
+				case DW_OP_breg24:
+				case DW_OP_breg25:
+				case DW_OP_breg26:
+				case DW_OP_breg27:
+				case DW_OP_breg28:
+				case DW_OP_breg29:
+				case DW_OP_breg30:
+				case DW_OP_breg31:
+				case DW_OP_fbreg:
+					printf(": %jd", (intmax_t)
+					    lr->lr_number);
+					break;
+
+				case DW_OP_bregx:
+					printf(": %ju %jd",
+					    (uintmax_t) lr->lr_number,
+					    (intmax_t) lr->lr_number2);
+					break;
+
+				case DW_OP_addr:
+					printf(": %#jx", (uintmax_t)
+					    lr->lr_number);
+					break;
+				}
+				if (j < llbuf[i]->ld_cents - 1)
+					printf(", ");
+			}
+			putchar(')');
+
+			if (llbuf[i]->ld_lopc == llbuf[i]->ld_hipc)
+				printf(" (start == end)");
+			putchar('\n');
+		}
 	}
 }
 
@@ -3101,6 +3444,8 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_info(re);
 	if (re->dop & DW_S)
 		dump_dwarf_str(re);
+	if (re->dop & DW_O)
+		dump_dwarf_loclist(re);
 
 	dwarf_finish(re->dbg, &de);
 }
@@ -3309,7 +3654,7 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 	if ((p = strdup(op)) == NULL)
 		err(EX_SOFTWARE, "strdup failed");
 	bp = p;
-	
+
 	while ((token = strsep(&p, ",")) != NULL) {
 		for (i = 0; dwarf_op[i].ln != NULL; i++) {
 			if (!strcmp(token, dwarf_op[i].ln)) {
