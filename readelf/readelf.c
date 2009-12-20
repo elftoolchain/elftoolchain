@@ -2788,6 +2788,84 @@ dump_dwarf_abbrev(struct readelf *re)
 }
 
 static void
+dump_dwarf_pubnames(struct readelf *re)
+{
+	struct section *s;
+	Dwarf_Unsigned die_off, offset, length, nt_cu_offset, nt_cu_length;
+	Dwarf_Signed cnt;
+	Dwarf_Global *globs;
+	Dwarf_Half nt_version;
+	Dwarf_Error de;
+	Elf_Data *d;
+	char *glob_name;
+	int i, dwarf_size, elferr;
+
+	printf("\nContents of the .debug_pubnames section:\n");
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && !strcmp(s->name, ".debug_pubnames"))
+			break;
+	}
+	if ((size_t) i >= re->shnum)
+		return;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	/* Read in .debug_pubnames section table header. */
+	offset = 0;
+	length = re->dw_read(d, &offset, 4);
+	if (length == 0xffffffff) {
+		dwarf_size = 8;
+		length = re->dw_read(d, &offset, 8);
+	} else
+		dwarf_size = 4;
+
+	if (length > d->d_size - offset) {
+		warnx("invalid .dwarf_pubnames section");
+		return;
+	}
+
+	nt_version = re->dw_read(d, &offset, 2);
+	nt_cu_offset = re->dw_read(d, &offset, dwarf_size);
+	nt_cu_length = re->dw_read(d, &offset, dwarf_size);
+	printf("  Length:\t\t\t\t%ju\n", (uintmax_t) length);
+	printf("  Version:\t\t\t\t%u\n", nt_version);
+	printf("  Offset into .debug_info section:\t%ju\n",
+	    (uintmax_t) nt_cu_offset);
+	printf("  Size of area in .debug_info section:\t%ju\n",
+	    (uintmax_t) nt_cu_length);
+
+	if (dwarf_get_globals(re->dbg, &globs, &cnt, &de) != DW_DLV_OK) {
+		warnx("dwarf_get_globals failed: %s", dwarf_errmsg(de));
+		return;
+	}
+
+	printf("\n    Offset      Name\n");
+	for (i = 0; i < cnt; i++) {
+		if (dwarf_globname(globs[i], &glob_name, &de) != DW_DLV_OK) {
+			warnx("dwarf_globname failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_global_die_offset(globs[i], &die_off, &de) !=
+		    DW_DLV_OK) {
+			warnx("dwarf_global_die_offset failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		printf("    %-11ju %s\n", (uintmax_t) die_off, glob_name);
+	}
+}
+
+static void
 dump_dwarf_str(struct readelf *re)
 {
 	struct section *s;
@@ -3446,6 +3524,8 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_str(re);
 	if (re->dop & DW_O)
 		dump_dwarf_loclist(re);
+	if (re->dop & DW_P)
+		dump_dwarf_pubnames(re);
 
 	dwarf_finish(re->dbg, &de);
 }
