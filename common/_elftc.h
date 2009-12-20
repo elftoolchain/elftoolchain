@@ -67,6 +67,30 @@
  * Symbols that are sometimes missing in system headers.
  */
 
+#ifndef	DT_GNU_HASH
+#define	DT_GNU_HASH		0x6FFFFEF5U
+#endif
+
+#ifndef	ELFOSABI_86OPEN
+#define	ELFOSABI_86OPEN		5
+#endif
+
+#ifndef	ELFOSABI_HURD
+#define	ELFOSABI_HURD		4
+#endif
+
+#ifndef	ELFOSABI_NSK
+#define	ELFOSABI_NSK		14
+#endif
+
+#ifndef	ELFOSABI_OPENVMS
+#define	ELFOSABI_OPENVMS	13
+#endif
+
+#ifndef	PN_XNUM
+#define	PN_XNUM			0xFFFFU
+#endif
+
 #ifndef	SHT_SUNW_verdef
 #define	SHT_SUNW_verdef		0x6FFFFFFD
 #endif
@@ -79,32 +103,12 @@
 #define	SHT_SUNW_versym		0x6FFFFFFF
 #endif
 
-#ifndef	PN_XNUM
-#define	PN_XNUM			0xFFFFU
-#endif
-
 #ifndef	SHN_XINDEX
 #define	SHN_XINDEX		0xFFFFU
 #endif
 
 #ifndef	SHT_GNU_HASH
 #define	SHT_GNU_HASH		0x6FFFFFF6U
-#endif
-
-#ifndef ELFOSABI_86OPEN
-#define ELFOSABI_86OPEN		5
-#endif
-
-#ifndef ELFOSABI_HURD
-#define ELFOSABI_HURD		4
-#endif
-
-#ifndef ELFOSABI_NSK
-#define ELFOSABI_NSK		14
-#endif
-
-#ifndef ELFOSABI_OPENVMS
-#define ELFOSABI_OPENVMS	13
 #endif
 
 
