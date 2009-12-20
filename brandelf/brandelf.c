@@ -294,7 +294,7 @@ printelftypes(void)
 {
 	size_t elfwalk;
 
-	fprintf(stderr, "known ELF types are: ");
+	fprintf(stderr, "Known ELF types are: ");
 	for (elfwalk = 0;
 	     elfwalk < sizeof(elftypes)/sizeof(elftypes[0]);
 	     elfwalk++)
