@@ -1,6 +1,9 @@
 # $Id$
 
-# Build the base libraries first.
+# Build configuration information first.
+SUBDIR += common
+
+# Build the base libraries next.
 SUBDIR += libelf
 SUBDIR += libdwarf
 
