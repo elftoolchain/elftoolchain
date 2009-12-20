@@ -29,7 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: src/usr.bin/brandelf/brandelf.c,v 1.25 2005/05/21 09:55:04 ru Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -42,6 +41,10 @@ __FBSDID("$FreeBSD: src/usr.bin/brandelf/brandelf.c,v 1.25 2005/05/21 09:55:04 r
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
 
 static int elftype(const char *);
 static const char *iselftype(int);
