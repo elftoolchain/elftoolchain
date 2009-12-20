@@ -161,4 +161,46 @@ extern const char *program_invocation_short_name;
 
 #endif	/* ELFTC_GETPROGNAME */
 
+/**
+ ** Per-OS configuration.
+ **/
+
+#if defined(__linux__)
+
+#include <endian.h>
+
+#define	ELFTC_BYTE_ORDER			__BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		__LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		__BIG_ENDIAN
+
+/*
+ * Debian GNU/Linux is missing strmode(3).
+ */
+#define	ELFTC_HAVE_STRMODE	0
+#endif	/* __linux__ */
+
+
+#if defined(__FreeBSD__)
+
+#include <sys/endian.h>
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#define	ELFTC_HAVE_STRMODE	1
+#endif	/* __FreeBSD__ */
+
+
+#if defined(__NetBSD__)
+
+#include <sys/endian.h>
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#define	ELFTC_HAVE_STRMODE	1
+#endif	/* __NetBSD __ */
+
 #endif	/* _ELFTC_H */
