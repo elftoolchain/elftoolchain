@@ -2866,6 +2866,82 @@ dump_dwarf_pubnames(struct readelf *re)
 }
 
 static void
+dump_dwarf_aranges(struct readelf *re)
+{
+	struct section *s;
+	Dwarf_Arange *aranges;
+	Dwarf_Addr start;
+	Dwarf_Unsigned die_off, offset, length, as_cu_offset;
+	Dwarf_Signed cnt;
+	Dwarf_Half as_version, as_addrsz, as_segsz;
+	Dwarf_Error de;
+	Elf_Data *d;
+	int i, dwarf_size, elferr;
+
+	printf("\nContents of section .debug_aranges:\n");
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && !strcmp(s->name, ".debug_aranges"))
+			break;
+	}
+	if ((size_t) i >= re->shnum)
+		return;
+
+	(void) elf_errno();
+	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s", elf_errmsg(-1));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	/* Read in the .debug_aranges section table header. */
+	offset = 0;
+	length = re->dw_read(d, &offset, 4);
+	if (length == 0xffffffff) {
+		dwarf_size = 8;
+		length = re->dw_read(d, &offset, 8);
+	} else
+		dwarf_size = 4;
+
+	if (length > d->d_size - offset) {
+		warnx("invalid .dwarf_aranges section");
+		return;
+	}
+
+	as_version = re->dw_read(d, &offset, 2);
+	as_cu_offset = re->dw_read(d, &offset, dwarf_size);
+	as_addrsz = re->dw_read(d, &offset, 1);
+	as_segsz = re->dw_read(d, &offset, 1);
+
+	printf("  Length:\t\t\t%ju\n", (uintmax_t) length);
+	printf("  Version:\t\t\t%u\n", as_version);
+	printf("  Offset into .debug_info:\t%ju\n", (uintmax_t) as_cu_offset);
+	printf("  Pointer Size:\t\t\t%u\n", as_addrsz);
+	printf("  Segment Size:\t\t\t%u\n", as_segsz);
+
+	if (dwarf_get_aranges(re->dbg, &aranges, &cnt, &de) != DW_DLV_OK) {
+		warnx("dwarf_get_aranges failed: %s", dwarf_errmsg(de));
+		return;
+	}
+
+	printf("\n    Address  Length\n");
+	for (i = 0; i < cnt; i++) {
+		if (dwarf_get_arange_info(aranges[i], &start, &length,
+		    &die_off, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_arange_info failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		printf("    %08jx %ju\n", (uintmax_t) start,
+		    (uintmax_t) length);
+	}
+}
+
+static void
 dump_dwarf_str(struct readelf *re)
 {
 	struct section *s;
@@ -3520,12 +3596,14 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_line(re);
 	if (re->dop & DW_I)
 		dump_dwarf_info(re);
+	if (re->dop & DW_P)
+		dump_dwarf_pubnames(re);
+	if (re->dop & DW_R)
+		dump_dwarf_aranges(re);
 	if (re->dop & DW_S)
 		dump_dwarf_str(re);
 	if (re->dop & DW_O)
 		dump_dwarf_loclist(re);
-	if (re->dop & DW_P)
-		dump_dwarf_pubnames(re);
 
 	dwarf_finish(re->dbg, &de);
 }
