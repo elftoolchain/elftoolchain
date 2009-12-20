@@ -29,7 +29,7 @@ main(int argc, char **argv)
 	char opt;
 	char checktime;
 	char erasetime;
-	char buf[TSLEN];
+	char buf[TSLEN + 1];
 	char *tc;
 	int fd;
 	int ts;
@@ -80,6 +80,7 @@ main(int argc, char **argv)
 				    *argv, strerror(errno));
 				goto ctend;
 			}
+			buf[TSLEN] = '\0';
 			ts = atoi(buf);
 			now = time(NULL);
 			if (ts <= now && ts >= now - TDELAY) {
