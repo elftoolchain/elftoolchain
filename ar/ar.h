@@ -26,6 +26,8 @@
  * $FreeBSD$
  */
 
+#include "_elftc.h"
+
 #define	BSDAR_VERSION	"1.1.0"
 
 /*
@@ -125,6 +127,7 @@ struct bsdar {
 void	bsdar_errc(struct bsdar *, int _eval, int _code,
 	    const char *fmt, ...);
 void	bsdar_warnc(struct bsdar *, int _code, const char *fmt, ...);
+const char *bsdar_strmode(mode_t m);
 void	ar_mode_d(struct bsdar *bsdar);
 void	ar_mode_m(struct bsdar *bsdar);
 void	ar_mode_p(struct bsdar *bsdar);

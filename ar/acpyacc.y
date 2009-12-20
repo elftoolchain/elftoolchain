@@ -26,7 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/mman.h>
 #include <sys/param.h>
@@ -44,6 +43,9 @@ __FBSDID("$FreeBSD$");
 #include <unistd.h>
 
 #include "ar.h"
+
+ELFTC_VCSID("$Id");
+
 
 #define TEMPLATE "arscp.XXXXXXXX"
 
