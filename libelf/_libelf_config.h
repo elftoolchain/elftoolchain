@@ -117,6 +117,10 @@
 
 #define	roundup2	roundup
 
+#if	!defined(ARCH_ELFSIZE)
+#error	ARCH_ELFSIZE is not defined.
+#endif
+
 #if	ARCH_ELFSIZE == 32
 #define	LIBELF_ARCH		ELF32_MACHDEP_ID
 #define	LIBELF_BYTEORDER	ELF32_MACHDEP_ENDIANNESS
