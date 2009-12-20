@@ -91,6 +91,23 @@
 #define	SHT_GNU_HASH		0x6FFFFFF6U
 #endif
 
+#ifndef ELFOSABI_86OPEN
+#define ELFOSABI_86OPEN		5
+#endif
+
+#ifndef ELFOSABI_HURD
+#define ELFOSABI_HURD		4
+#endif
+
+#ifndef ELFOSABI_NSK
+#define ELFOSABI_NSK		14
+#endif
+
+#ifndef ELFOSABI_OPENVMS
+#define ELFOSABI_OPENVMS	13
+#endif
+
+
 /*
  * VCS Ids.
  */
