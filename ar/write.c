@@ -25,9 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
-#include <sys/endian.h>
 #include <sys/mman.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
@@ -43,6 +40,8 @@ __FBSDID("$FreeBSD$");
 #include <sysexits.h>
 
 #include "ar.h"
+
+ELFTC_VCSID("$Id$");
 
 #define _ARMAG_LEN 8		/* length of ar magic string */
 #define _ARHDR_LEN 60		/* length of ar header */
@@ -121,6 +120,7 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	struct ar_obj		*obj;
 	struct stat		 sb;
 	const char		*bname;
+	char			*tmpname;
 
 	if (name == NULL)
 		return (NULL);
@@ -134,7 +134,8 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 		return (NULL);
 	}
 
-	if ((bname = basename(name)) == NULL)
+	tmpname = strdup(name);
+	if ((bname = basename(tmpname)) == NULL)
 		bsdar_errc(bsdar, EX_SOFTWARE, errno, "basename failed");
 	if (bsdar->options & AR_TR && strlen(bname) > _TRUNCATE_LEN) {
 		if ((obj->name = malloc(_TRUNCATE_LEN + 1)) == NULL)
@@ -144,6 +145,7 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	} else
 		if ((obj->name = strdup(bname)) == NULL)
 		    bsdar_errc(bsdar, EX_SOFTWARE, errno, "strdup failed");
+	free(tmpname);
 
 	if (fstat(obj->fd, &sb) < 0) {
 		bsdar_warnc(bsdar, errno, "can't fstat file: %s", obj->name);

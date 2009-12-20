@@ -59,7 +59,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/queue.h>
 #include <sys/types.h>
@@ -69,10 +68,13 @@ __FBSDID("$FreeBSD$");
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <sysexits.h>
 
 #include "ar.h"
+
+#include "_elftc.h"
 
 enum options
 {
@@ -105,7 +107,7 @@ main(int argc, char **argv)
 	bsdar = &bsdar_storage;
 	memset(bsdar, 0, sizeof(*bsdar));
 
-	if ((bsdar->progname = getprogname()) == NULL)
+	if ((bsdar->progname = ELFTC_GETPROGNAME()) == NULL)
 		bsdar->progname = "ar";
 
 	/* Act like ranlib if our name ends in "ranlib"; this
@@ -143,13 +145,15 @@ main(int argc, char **argv)
 		if (argc < 2)
 			bsdar_usage();
 
+		/*
+		 * Tack on a leading '-', for old-style usage.
+		 */
 		if (*argv[1] != '-') {
 			len = strlen(argv[1]) + 2;
 			if ((p = malloc(len)) == NULL)
 				bsdar_errc(bsdar, EX_SOFTWARE, errno,
 				    "malloc failed");
-			*p = '-';
-			(void)strlcpy(p + 1, argv[1], len - 1);
+			(void) snprintf(p, len, "-%s", argv[1]);
 			argv[1] = p;
 		}
 	}
@@ -251,10 +255,10 @@ main(int argc, char **argv)
 		    "only one of -s and -S options allowed");
 
 	if (bsdar->options & (AR_A | AR_B)) {
-		if ((bsdar->posarg = *argv) == NULL)
+		if (*argv == NULL)
 			bsdar_errc(bsdar, EX_USAGE, 0,
 			    "no position operand specified");
-		if ((bsdar->posarg = basename(bsdar->posarg)) == NULL)
+		if ((bsdar->posarg = basename(*argv)) == NULL)
 			bsdar_errc(bsdar, EX_SOFTWARE, errno,
 			    "basename failed");
 		argc--;

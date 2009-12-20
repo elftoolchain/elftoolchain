@@ -26,13 +26,16 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sysexits.h>
+
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
 
 #include "y.tab.h"
 
@@ -67,7 +70,7 @@ SAVE|save		{ return (SAVE); }
 [-_A-Za-z0-9/:$.\\]+	{
 	yylval.str = strdup(yytext);
 	if (yylval.str == NULL)
-		errc(EX_SOFTWARE, errno, "strdup failed");
+		err(EX_SOFTWARE, "strdup failed");
 	return (FNAME);
 }
 

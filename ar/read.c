@@ -26,7 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/queue.h>
 #include <sys/stat.h>
@@ -136,9 +135,9 @@ read_archive(struct bsdar *bsdar, char mode)
 				gid = archive_entry_gid(entry);
 				size = archive_entry_size(entry);
 				mtime = archive_entry_mtime(entry);
-				(void)strmode(md, buf);
 				(void)fprintf(stdout, "%s %6d/%-6d %8ju ",
-				    buf + 1, uid, gid, (uintmax_t)size);
+				    bsdar_strmode(md) + 1, uid, gid,
+				    (uintmax_t)size);
 				tp = localtime(&mtime);
 				(void)strftime(buf, sizeof(buf),
 				    "%b %e %H:%M %Y", tp);
