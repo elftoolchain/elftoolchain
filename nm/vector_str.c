@@ -28,7 +28,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "_elftc.h"
 #include "vector_str.h"
+
+ELFTC_VCSID("$Id$");
 
 /**
  * @file vector_str.c

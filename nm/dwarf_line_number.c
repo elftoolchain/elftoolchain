@@ -29,8 +29,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "_elftc.h"
 #include "vector_str.h"
 #include "dwarf_line_number.h"
+
+ELFTC_VCSID("$Id$");
 
 /**
  * @file dwarf_line_number.c

@@ -34,10 +34,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "_elftc.h"
 #include "cpp_demangle.h"
 #include "vector_str.h"
 
-#include "_elftc.h"
+ELFTC_VCSID("$Id$");
 
 /**
  * @file cpp_demangle.c
