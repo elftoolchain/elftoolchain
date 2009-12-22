@@ -47,12 +47,13 @@
 #include <sysexits.h>
 #include <unistd.h>
 
+#include "_elftc.h"
 #include "cpp_demangle.h"
 #include "cpp_demangle_arm.h"
 #include "cpp_demangle_gnu2.h"
 #include "dwarf_line_number.h"
 
-#include "_elftc.h"
+ELFTC_VCSID("$Id$");
 
 /* symbol information list */
 STAILQ_HEAD(sym_head, sym_entry);

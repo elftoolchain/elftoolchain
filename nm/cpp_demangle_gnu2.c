@@ -32,8 +32,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "_elftc.h"
 #include "vector_str.h"
 #include "cpp_demangle_gnu2.h"
+
+ELFTC_VCSID("$Id$");
 
 /**
  * @file cpp_demangle_gnu2.c
