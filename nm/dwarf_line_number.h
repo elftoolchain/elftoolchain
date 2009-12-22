@@ -30,6 +30,8 @@
 #include <sys/queue.h>
 #include <sys/types.h>
 
+#include <stdint.h>
+
 /**
  * @file dwarf_line_number.h
  * @brief Decode line number information from DWARF debug information.

@@ -24,7 +24,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <machine/endian.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -37,6 +36,8 @@
 
 #include "cpp_demangle.h"
 #include "vector_str.h"
+
+#include "_elftc.h"
 
 /**
  * @file cpp_demangle.c
@@ -616,7 +617,7 @@ cpp_demangle_get_tmpl_param(struct cpp_demangle_data *ddata, size_t idx)
 static int
 cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 {
-	size_t num_len, exp_len, p_idx, idx;
+	size_t i, num_len, exp_len, p_idx, idx;
 	const char *num;
 	char *exp;
 
@@ -670,7 +671,7 @@ cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 				return (0);
 
 			idx = ddata->output.size;
-			for (size_t i = p_idx; i < idx; ++i)
+			for (i = p_idx; i < idx; ++i)
 				if (vector_str_pop(&ddata->output) == false) {
 					free(exp);
 
@@ -1696,7 +1697,7 @@ cpp_demangle_read_offset_number(struct cpp_demangle_data *ddata)
 static int
 cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
 {
-	size_t class_type_len, idx, p_idx;
+	size_t class_type_len, i, idx, p_idx;
 	int p_func_type, rtn;
 	char *class_type;
 
@@ -1713,7 +1714,7 @@ cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
 
 	rtn = 0;
 	idx = ddata->output.size;
-	for (size_t i = p_idx; i < idx; ++i)
+	for (i = p_idx; i < idx; ++i)
 		if (vector_str_pop(&ddata->output) == false)
 			goto clean1;
 
@@ -3065,7 +3066,7 @@ static char *
 decode_fp_to_double(const char *p, size_t len)
 {
 	double f;
-	size_t rtn_len, limit;
+	size_t rtn_len, limit, i;
 	int byte;
 	char *rtn;
 
@@ -3074,19 +3075,19 @@ decode_fp_to_double(const char *p, size_t len)
 
 	memset(&f, 0, sizeof(double));
 
-	for (size_t i = 0; i < len / 2; ++i) {
+	for (i = 0; i < len / 2; ++i) {
 		byte = hex_to_dec(p[len - i * 2 - 1]) +
 		    hex_to_dec(p[len - i * 2 - 2]) * 16;
 
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(double) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 64;
@@ -3129,12 +3130,12 @@ decode_fp_to_float(const char *p, size_t len)
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(float) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 64;
@@ -3161,7 +3162,7 @@ static char *
 decode_fp_to_float128(const char *p, size_t len)
 {
 	long double f;
-	size_t rtn_len, limit;
+	size_t rtn_len, limit, i;
 	int byte;
 	unsigned char buf[FLOAT_QUADRUPLE_BYTES];
 	char *rtn;
@@ -3176,28 +3177,28 @@ decode_fp_to_float128(const char *p, size_t len)
 
 		memset(buf, 0, FLOAT_QUADRUPLE_BYTES);
 
-		for (size_t i = 0; i < len / 2; ++i) {
+		for (i = 0; i < len / 2; ++i) {
 			byte = hex_to_dec(p[len - i * 2 - 1]) +
 			    hex_to_dec(p[len - i * 2 - 2]) * 16;
 
 			if (byte < 0 || byte > 255)
 				return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 			buf[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 			buf[FLOAT_QUADRUPLE_BYTES - i -1] =
 			    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
 
 		memset(&f, 0, FLOAT_EXTENED_BYTES);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		memcpy(&f, buf + 6, FLOAT_EXTENED_BYTES);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
 		limit = 0;
@@ -3226,7 +3227,7 @@ static char *
 decode_fp_to_float80(const char *p, size_t len)
 {
 	long double f;
-	size_t rtn_len, limit;
+	size_t rtn_len, limit, i;
 	int byte;
 	unsigned char buf[FLOAT_EXTENED_BYTES];
 	char *rtn;
@@ -3239,28 +3240,28 @@ decode_fp_to_float80(const char *p, size_t len)
 
 		memset(buf, 0, FLOAT_EXTENED_BYTES);
 
-		for (size_t i = 0; i < len / 2; ++i) {
+		for (i = 0; i < len / 2; ++i) {
 			byte = hex_to_dec(p[len - i * 2 - 1]) +
 			    hex_to_dec(p[len - i * 2 - 2]) * 16;
 
 			if (byte < 0 || byte > 255)
 				return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 			buf[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 			buf[FLOAT_EXTENED_BYTES - i -1] =
 			    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
 
 		memset(&f, 0, FLOAT_QUADRUPLE_BYTES);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENED_BYTES);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
 		limit = 0;
@@ -3291,7 +3292,7 @@ static char *
 decode_fp_to_long_double(const char *p, size_t len)
 {
 	long double f;
-	size_t rtn_len, limit;
+	size_t rtn_len, limit, i;
 	int byte;
 	char *rtn;
 
@@ -3301,19 +3302,19 @@ decode_fp_to_long_double(const char *p, size_t len)
 
 	memset(&f, 0, sizeof(long double));
 
-	for (size_t i = 0; i < len / 2; ++i) {
+	for (i = 0; i < len / 2; ++i) {
 		byte = hex_to_dec(p[len - i * 2 - 1]) +
 		    hex_to_dec(p[len - i * 2 - 2]) * 16;
 
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(long double) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 256;
@@ -3403,11 +3404,12 @@ vector_read_cmd_dest(struct vector_read_cmd *v)
 static int
 vector_read_cmd_find(struct vector_read_cmd *v, enum read_cmd dst)
 {
+	size_t i;
 
 	if (v == NULL || dst == READ_FAIL)
 		return (-1);
 
-	for (size_t i = 0; i < v->size; ++i)
+	for (i = 0; i < v->size; ++i)
 		if (v->r_container[i] == dst)
 			return (1);
 
@@ -3448,6 +3450,7 @@ vector_read_cmd_pop(struct vector_read_cmd *v)
 static int
 vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd)
 {
+	size_t i;
 
 	if (v == NULL)
 		return (0);
@@ -3461,7 +3464,7 @@ vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd)
 		    == NULL)
 			return (0);
 
-		for (size_t i = 0; i < v->size; ++i)
+		for (i = 0; i < v->size; ++i)
 			tmp_r_ctn[i] = v->r_container[i];
 
 		free(v->r_container);
@@ -3518,6 +3521,7 @@ static int
 vector_type_qualifier_push(struct vector_type_qualifier *v,
     enum type_qualifier t)
 {
+	size_t i;
 
 	if (v == NULL)
 		return (0);
@@ -3530,7 +3534,7 @@ vector_type_qualifier_push(struct vector_type_qualifier *v,
 		    == NULL)
 			return (0);
 
-		for (size_t i = 0; i < v->size; ++i)
+		for (i = 0; i < v->size; ++i)
 			tmp_ctn[i] = v->q_container[i];
 
 		free(v->q_container);

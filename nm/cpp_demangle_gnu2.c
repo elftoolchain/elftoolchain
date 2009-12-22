@@ -1111,6 +1111,7 @@ clean:
 static bool
 read_qual_name(struct demangle_data *d)
 {
+	int i;
 	char num;
 
 	if (d == NULL)
@@ -1124,7 +1125,7 @@ read_qual_name(struct demangle_data *d)
 	assert(num > 0);
 
 	++d->p;
-	for (int i = 0; i < num ; ++i) {
+	for (i = 0; i < num ; ++i) {
 		if (read_class(d) == false)
 			return (false);
 
@@ -1174,6 +1175,7 @@ read_subst(struct demangle_data *d)
 static int
 read_subst_iter(struct demangle_data *d)
 {
+	int i;
 	size_t idx;
 	char repeat;
 	char *str;
@@ -1199,7 +1201,7 @@ read_subst_iter(struct demangle_data *d)
 
 	d->p = str;
 
-	for (int i = 0; i < repeat ; ++i) {
+	for (i = 0; i < repeat ; ++i) {
 		if (vector_str_push(&d->vec, d->arg.container[idx - 1],
 			strlen(d->arg.container[idx - 1])) == false)
 			return (-1);
