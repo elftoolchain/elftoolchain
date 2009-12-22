@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sysexits.h>
 #include <unistd.h>
 
@@ -50,6 +51,8 @@
 #include "cpp_demangle_arm.h"
 #include "cpp_demangle_gnu2.h"
 #include "dwarf_line_number.h"
+
+#include "_elftc.h"
 
 /* symbol information list */
 STAILQ_HEAD(sym_head, sym_entry);
@@ -648,12 +651,13 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 	const char *sym_name;
 	char type;
 	bool filter;
+	int i;
 
 	assert(elf != NULL);
 	assert(headp != NULL);
 
 	rtn = 0;
-	for (int i = 1; i < shnum; ++i) {
+	for (i = 1; i < shnum; ++i) {
 		if ((scn = elf_getscn(elf, i)) == NULL)
 			return (0);
 
@@ -1830,6 +1834,8 @@ static void
 sym_list_print(struct sym_print_data *p, struct line_info_head *line_info)
 {
 	struct sym_entry *e_v;
+	size_t si;
+	int i;
 
 	if (p == NULL || CHECK_SYM_PRINT_DATA(p))
 		return;
@@ -1838,10 +1844,10 @@ sym_list_print(struct sym_print_data *p, struct line_info_head *line_info)
 		return;
 
 	if (nm_opts.sort_reverse == false)
-		for (size_t i = 0; i != p->list_num; ++i)
-			sym_list_print_each(&e_v[i], p, line_info);
+		for (si = 0; si != p->list_num; ++si)
+			sym_list_print_each(&e_v[si], p, line_info);
 	else
-		for (int i = p->list_num - 1; i != -1; --i)
+		for (i = p->list_num - 1; i != -1; --i)
 			sym_list_print_each(&e_v[i], p, line_info);
 
 	free(e_v);
