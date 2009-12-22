@@ -24,8 +24,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <machine/endian.h>
-
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -36,6 +34,8 @@
 #include <string.h>
 
 #include "_libelftc.h"
+
+ELFTC_VCSID("$Id$");
 
 /**
  * @file cpp_demangle.c
@@ -3084,12 +3084,12 @@ decode_fp_to_double(const char *p, size_t len)
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(double) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 64;
@@ -3132,12 +3132,12 @@ decode_fp_to_float(const char *p, size_t len)
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(float) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 64;
@@ -3186,21 +3186,21 @@ decode_fp_to_float128(const char *p, size_t len)
 			if (byte < 0 || byte > 255)
 				return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 			buf[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 			buf[FLOAT_QUADRUPLE_BYTES - i -1] =
 			    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
 
 		memset(&f, 0, FLOAT_EXTENED_BYTES);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		memcpy(&f, buf + 6, FLOAT_EXTENED_BYTES);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
 		limit = 0;
@@ -3249,21 +3249,21 @@ decode_fp_to_float80(const char *p, size_t len)
 			if (byte < 0 || byte > 255)
 				return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 			buf[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 			buf[FLOAT_EXTENED_BYTES - i -1] =
 			    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
 
 		memset(&f, 0, FLOAT_QUADRUPLE_BYTES);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENED_BYTES);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
 		limit = 0;
@@ -3311,12 +3311,12 @@ decode_fp_to_long_double(const char *p, size_t len)
 		if (byte < 0 || byte > 255)
 			return (NULL);
 
-#if _BYTE_ORDER == _LITTLE_ENDIAN
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 		((unsigned char *)&f)[i] = (unsigned char)(byte);
-#else /* _BYTE_ORDER != _LITTLE_ENDIAN */
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		((unsigned char *)&f)[sizeof(long double) - i - 1] =
 		    (unsigned char)(byte);
-#endif /* _BYTE_ORDER == _LITTLE_ENDIAN */
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
 
 	rtn_len = 256;
