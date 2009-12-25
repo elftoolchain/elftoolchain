@@ -469,9 +469,9 @@
 #define DW_MACINFO_end_file	 	0x04
 #define DW_MACINFO_vendor_ext	 	0xff
 
-#define DW_CFA_advance_loc		0x01
-#define DW_CFA_offset	 		0x02
-#define DW_CFA_restore	 		0x03
+#define DW_CFA_advance_loc		0x40
+#define DW_CFA_offset	 		0x80
+#define DW_CFA_restore	 		0xc0
 #define DW_CFA_extended			0
 
 #define DW_CFA_nop	 		0x00
