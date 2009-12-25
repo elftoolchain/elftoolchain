@@ -424,7 +424,7 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 			continue;
 		}
 
-		high2 = *p >> 6;
+		high2 = *p & 0xc0;
 		low6 = *p & 0x3f;
 		p++;
 
@@ -817,7 +817,7 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 			continue;
 		}
 
-		high2 = *p >> 6;
+		high2 = *p & 0xc0;
 		low6 = *p & 0x3f;
 		p++;
 
