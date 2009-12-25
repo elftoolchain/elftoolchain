@@ -375,6 +375,7 @@ int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_formudata(Dwarf_Attribute, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 int		dwarf_get_AT_name(unsigned, const char **);
+int		dwarf_get_CFA_name(unsigned, const char **);
 int		dwarf_get_FORM_name(unsigned, const char **);
 int		dwarf_get_TAG_name(unsigned, const char **);
 int		dwarf_get_OP_name(unsigned, const char **);

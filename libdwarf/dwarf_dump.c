@@ -224,6 +224,76 @@ dwarf_get_AT_name(unsigned attr, const char **s)
 }
 
 int
+dwarf_get_CFA_name(unsigned cfa, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (cfa) {
+	case DW_CFA_advance_loc:
+		*s = "DW_CFA_advance_loc"; break;
+	case DW_CFA_offset:
+		*s = "DW_CFA_offset"; break;
+	case DW_CFA_restore:
+		*s = "DW_CFA_restore"; break;
+	case DW_CFA_nop:
+		*s = "DW_CFA_nop"; break;
+	case DW_CFA_set_loc:
+		*s = "DW_CFA_set_loc"; break;
+	case DW_CFA_advance_loc1:
+		*s = "DW_CFA_advance_loc1"; break;
+	case DW_CFA_advance_loc2:
+		*s = "DW_CFA_advance_loc2"; break;
+	case DW_CFA_advance_loc4:
+		*s = "DW_CFA_advance_loc4"; break;
+	case DW_CFA_offset_extended:
+		*s = "DW_CFA_offset_extended"; break;
+	case DW_CFA_restore_extended:
+		*s = "DW_CFA_restore_extended"; break;
+	case DW_CFA_undefined:
+		*s = "DW_CFA_undefined"; break;
+	case DW_CFA_same_value:
+		*s = "DW_CFA_same_value"; break;
+	case DW_CFA_register:
+		*s = "DW_CFA_register"; break;
+	case DW_CFA_remember_state:
+		*s = "DW_CFA_remember_state"; break;
+	case DW_CFA_restore_state:
+		*s = "DW_CFA_restore_state"; break;
+	case DW_CFA_def_cfa:
+		*s = "DW_CFA_def_cfa"; break;
+	case DW_CFA_def_cfa_register:
+		*s = "DW_CFA_def_cfa_register"; break;
+	case DW_CFA_def_cfa_offset:
+		*s = "DW_CFA_def_cfa_offset"; break;
+	case DW_CFA_def_cfa_expression:
+		*s = "DW_CFA_def_cfa_expression"; break;
+	case DW_CFA_expression:
+		*s = "DW_CFA_expression"; break;
+	case DW_CFA_offset_extended_sf:
+		*s = "DW_CFA_offset_extended_sf"; break;
+	case DW_CFA_def_cfa_sf:
+		*s = "DW_CFA_def_cfa_sf"; break;
+	case DW_CFA_def_cfa_offset_sf:
+		*s = "DW_CFA_def_cfa_offset_sf"; break;
+	case DW_CFA_val_offset:
+		*s = "DW_CFA_val_offset"; break;
+	case DW_CFA_val_offset_sf:
+		*s = "DW_CFA_val_offset_sf"; break;
+	case DW_CFA_val_expression:
+		*s = "DW_CFA_val_expression"; break;
+	case DW_CFA_lo_user:
+		*s = "DW_CFA_lo_user"; break;
+	case DW_CFA_high_user:
+		*s = "DW_CFA_high_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_FORM_name(unsigned form, const char **s)
 {
 
