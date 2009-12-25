@@ -205,7 +205,7 @@ dwarf_get_cie_info(Dwarf_Cie cie, Dwarf_Unsigned *bytes_in_cie,
 	/* XXX probably wrong, see above. */
 	*bytes_in_cie = cie->cie_length;
 	*version = cie->cie_version;
-	*augmenter = cie->cie_augment;
+	*augmenter = (char *) cie->cie_augment;
 	*caf = cie->cie_caf;
 	*daf = cie->cie_daf;
 	*ra = cie->cie_ra;
