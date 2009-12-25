@@ -91,7 +91,7 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 			}
 			memcpy(dbg->dbg_strtab, ds->ds_data, ds->ds_size);
 		} else 
-			dbg->dbg_strtab = ds->ds_data;
+			dbg->dbg_strtab = (char *) ds->ds_data;
 	} else {
 		/* DW_DLC_WRITE */
 
