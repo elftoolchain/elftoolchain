@@ -2942,6 +2942,203 @@ dump_dwarf_aranges(struct readelf *re)
 }
 
 static void
+dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
+    Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc)
+{
+	Dwarf_Frame_Op *oplist;
+	Dwarf_Signed opcnt, delta;
+	Dwarf_Small op;
+	Dwarf_Error de;
+	const char *op_str;
+	int i;
+
+	if (dwarf_expand_frame_instructions(re->dbg, insts, len, &oplist,
+	    &opcnt, &de) != DW_DLV_OK) {
+		warnx("dwarf_expand_frame_instructions failed: %s",
+		    dwarf_errmsg(de));
+		return;
+	}
+
+	for (i = 0; i < opcnt; i++) {
+		if (oplist[i].fp_base_op != 0)
+			op = oplist[i].fp_base_op;
+		else
+			op = oplist[i].fp_extended_op;
+		if (dwarf_get_CFA_name(op, &op_str) != DW_DLV_OK) {
+			warnx("dwarf_get_CFA_name failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		printf("  %s", op_str);
+		switch (op) {
+		case DW_CFA_advance_loc:
+			delta = oplist[i].fp_offset * caf;
+			pc += delta;
+			printf(": %ju to %08jx", (uintmax_t) delta,
+			    (uintmax_t) pc);
+			break;
+		case DW_CFA_offset:
+		case DW_CFA_offset_extended:
+		case DW_CFA_offset_extended_sf:
+			delta = oplist[i].fp_offset * daf;
+			printf(": r%u at cfa%+jd", oplist[i].fp_register,
+			    (intmax_t) delta);
+			break;
+		case DW_CFA_restore:
+			printf(": r%u", oplist[i].fp_register);
+			break;
+		case DW_CFA_set_loc:
+			pc = oplist[i].fp_offset;
+			printf(": to %08jx", (uintmax_t) pc);
+			break;
+		case DW_CFA_advance_loc1:
+		case DW_CFA_advance_loc2:
+		case DW_CFA_advance_loc4:
+			pc += oplist[i].fp_offset;
+			printf(": %jd to %08jx", (intmax_t) oplist[i].fp_offset,
+			    (uintmax_t) pc);
+			break;
+		case DW_CFA_def_cfa:
+			printf(": r%u ofs %ju", oplist[i].fp_register,
+			    (uintmax_t) oplist[i].fp_offset);
+			break;
+		case DW_CFA_def_cfa_sf:
+			printf(": r%u ofs %jd", oplist[i].fp_register,
+			    (intmax_t) (oplist[i].fp_offset * daf));
+			break;
+		case DW_CFA_def_cfa_register:
+			printf(": r%u", oplist[i].fp_register);
+			break;
+		case DW_CFA_def_cfa_offset:
+			printf(": %ju", (uintmax_t) oplist[i].fp_offset);
+			break;
+		case DW_CFA_def_cfa_offset_sf:
+			printf(": %jd", (intmax_t) (oplist[i].fp_offset * daf));
+			break;
+		default:
+			break;
+		}
+		putchar('\n');
+	}
+}
+
+static void
+dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
+{
+	Dwarf_Cie *cie_list, cie, pre_cie;
+	Dwarf_Fde *fde_list, fde;
+	Dwarf_Unsigned cie_offset, cie_length, fde_offset, fde_instlen;
+	Dwarf_Unsigned cie_caf, cie_daf, cie_instlen, func_len, fde_length;
+	Dwarf_Signed cie_count, fde_count, cie_index;
+	Dwarf_Addr low_pc;
+	Dwarf_Half cie_ra;
+	Dwarf_Small cie_version;
+	Dwarf_Ptr fde_addr, fde_inst, cie_inst;
+	char *cie_aug, c;
+	int i, eh_frame;
+	Dwarf_Error de;
+
+	printf("\nThe section %s contains:\n\n", s->name);
+
+	if (!strcmp(s->name, ".debug_frame")) {
+		eh_frame = 0;
+		if (dwarf_get_fde_list(re->dbg, &cie_list, &cie_count,
+		    &fde_list, &fde_count, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_list failed: %s",
+			    dwarf_errmsg(de));
+			return;
+		}
+	} else if (!strcmp(s->name, ".eh_frame")) {
+		eh_frame = 1;
+		if (dwarf_get_fde_list_eh(re->dbg, &cie_list, &cie_count,
+		    &fde_list, &fde_count, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_list_eh failed: %s",
+			    dwarf_errmsg(de));
+			return;
+		}
+	} else
+		return;
+
+	pre_cie = NULL;
+	for (i = 0; i < fde_count; i++) {
+		if (dwarf_get_fde_n(fde_list, i, &fde, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_n failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_get_cie_of_fde(fde, &cie, &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_n failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_get_fde_range(fde, &low_pc, &func_len, &fde_addr,
+		    &fde_length, &cie_offset, &cie_index, &fde_offset,
+		    &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_range failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_get_fde_instr_bytes(fde, &fde_inst, &fde_instlen,
+		    &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_instr_bytes failed: %s",
+			    dwarf_errmsg(de));
+			continue;
+		}
+		if (pre_cie == NULL || cie != pre_cie) {
+			pre_cie = cie;
+			if (dwarf_get_cie_info(cie, &cie_length, &cie_version,
+			    &cie_aug, &cie_caf, &cie_daf, &cie_ra,
+			    &cie_inst, &cie_instlen, &de) != DW_DLV_OK) {
+				warnx("dwarf_get_cie_info failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			if (!alt) {
+				printf("%08jx %08jx %08jx CIE\n",
+				    (uintmax_t) cie_offset,
+				    (uintmax_t) cie_length,
+				    (uintmax_t) (eh_frame ? ~0ULL : 0));
+				printf("  Version:\t\t\t%u\n", cie_version);
+				printf("  Augmentation:\t\t\t\"");
+				while ((c = *cie_aug++) != '\0')
+					putchar(c);
+				printf("\"\n");
+				printf("  Code alignment factor:\t%ju\n",
+				    (uintmax_t) cie_caf);
+				printf("  Data alignment factor:\t%jd\n",
+				    (intmax_t) cie_daf);
+				printf("  Return address column:\t%ju\n",
+				    (uintmax_t) cie_ra);
+				putchar('\n');
+				dump_dwarf_frame_inst(re, cie_inst,
+				    cie_instlen, cie_caf, cie_daf, 0);
+				putchar('\n');
+			}
+		}
+		printf("%08jx %08jx %08jx FDE cie=%08jx pc=%08jx..%08jx\n",
+		    (uintmax_t) fde_offset, (uintmax_t) fde_length,
+		    (uintmax_t) (eh_frame ? (fde_offset + 4) : cie_offset),
+		    (uintmax_t) cie_offset,
+		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
+		dump_dwarf_frame_inst(re, fde_inst, fde_instlen, cie_caf,
+		    cie_daf, low_pc);
+		putchar('\n');
+	}
+}
+
+static void
+dump_dwarf_frame(struct readelf *re, int alt)
+{
+	struct section *s;
+	int i;
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && (!strcmp(s->name, ".debug_frame") ||
+		    !strcmp(s->name, ".eh_frame")))
+			dump_dwarf_frame_section(re, s, alt);
+	}
+}
+
+static void
 dump_dwarf_str(struct readelf *re)
 {
 	struct section *s;
@@ -3600,6 +3797,10 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_pubnames(re);
 	if (re->dop & DW_R)
 		dump_dwarf_aranges(re);
+	if (re->dop & DW_F)
+		dump_dwarf_frame(re, 0);
+	else if (re->dop & DW_FF)
+		dump_dwarf_frame(re, 1);
 	if (re->dop & DW_S)
 		dump_dwarf_str(re);
 	if (re->dop & DW_O)
