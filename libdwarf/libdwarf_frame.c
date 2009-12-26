@@ -1047,11 +1047,13 @@ _dwarf_frame_get_internal_table(Dwarf_Fde fde, Dwarf_Addr pc_req,
 		return (ret);
 
 	/* Run instructions in FDE. */
-	ret = _dwarf_frame_run_inst(dbg, rt, fde->fde_inst, fde->fde_instlen,
-	    cie->cie_caf, cie->cie_daf, fde->fde_initloc, pc_req, &row_pc,
-	    error);
-	if (ret != DWARF_E_NONE)
-		return (ret);
+	if (pc_req >= fde->fde_initloc) {
+		ret = _dwarf_frame_run_inst(dbg, rt, fde->fde_inst,
+		    fde->fde_instlen, cie->cie_caf, cie->cie_daf,
+		    fde->fde_initloc, pc_req, &row_pc, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+	}
 
 	*ret_rt = rt;
 	*ret_row_pc = row_pc;
