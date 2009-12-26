@@ -825,6 +825,7 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 			switch (high2) {
 			case DW_CFA_advance_loc:
 				SET_BASE_OP(high2);
+				SET_OFFSET(low6);
 				break;
 			case DW_CFA_offset:
 				SET_BASE_OP(high2);
