@@ -206,8 +206,15 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	}
 	fde->fde_cieoff = cie->cie_offset;
 	fde->fde_cie = cie;
-	fde->fde_initloc = dbg->read(ds->ds_data, off, dbg->dbg_pointer_size);
-	fde->fde_adrange = dbg->read(ds->ds_data, off, dbg->dbg_pointer_size);
+	if (eh_frame) {
+		fde->fde_initloc = dbg->read(ds->ds_data, off, 4);
+		fde->fde_adrange = dbg->read(ds->ds_data, off, 4);
+	} else {
+		fde->fde_initloc = dbg->read(ds->ds_data, off,
+		    dbg->dbg_pointer_size);
+		fde->fde_adrange = dbg->read(ds->ds_data, off,
+		    dbg->dbg_pointer_size);
+	}
 
 	/* Optional augmentation data for .eh_frame section. */
 	if (eh_frame && *cie->cie_augment == 'z') {
