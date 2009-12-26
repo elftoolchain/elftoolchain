@@ -3020,6 +3020,112 @@ dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
 		}
 		putchar('\n');
 	}
+
+	if (dwarf_frame_instructions_dealloc(oplist, opcnt, &de) != DW_DLV_OK)
+		warnx("dwarf_frame_instructions_dealloc failed: %s",
+		    dwarf_errmsg(de));
+}
+
+static char *
+get_regoff_str(Dwarf_Half reg, Dwarf_Addr off)
+{
+	static char rs[16];
+
+	if (reg == DW_FRAME_UNDEFINED_VAL || reg == DW_FRAME_REG_INITIAL_VALUE)
+		snprintf(rs, sizeof(rs), "%c", 'u');
+	else if (reg == DW_FRAME_CFA_COL)
+		snprintf(rs, sizeof(rs), "c%+jd", (intmax_t) off);
+	else
+		snprintf(rs, sizeof(rs), "r%u%+jd", reg, (intmax_t) off);
+
+	return (rs);
+}
+
+static int
+dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
+    Dwarf_Half cie_ra)
+{
+	Dwarf_Regtable rt;
+	Dwarf_Addr row_pc, end_pc, pre_pc, cur_pc;
+	Dwarf_Error de;
+	char rn[16];
+	char *vec;
+	int i;
+
+#define BIT_SET(v, n) (v[(n)>>3] |= 1U << ((n) & 7))
+#define BIT_CLR(v, n) (v[(n)>>3] &= ~(1U << ((n) & 7)))
+#define BIT_ISSET(v, n) (v[(n)>>3] & (1U << ((n) & 7)))
+#define	RT(x) rt.rules[(x)]
+
+	vec = calloc((DW_REG_TABLE_SIZE + 7) / 8, 1);
+	if (vec == NULL)
+		err(1, "calloc failed");
+
+	pre_pc = ~0ULL;
+	cur_pc = pc;
+	end_pc = pc + func_len;
+	for (; cur_pc < end_pc; cur_pc++) {
+		if (dwarf_get_fde_info_for_all_regs(fde, cur_pc, &rt, &row_pc,
+		    &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_info_for_all_regs failed: %s\n",
+			    dwarf_errmsg(de));
+			return (-1);
+		}
+		if (row_pc == pre_pc)
+			continue;
+		pre_pc = row_pc;
+		for (i = 1; i < DW_REG_TABLE_SIZE; i++) {
+			if (rt.rules[i].dw_regnum != DW_FRAME_REG_INITIAL_VALUE)
+				BIT_SET(vec, i);
+		}
+	}
+
+	printf("   LOC   CFA      ");
+	for (i = 1; i < DW_REG_TABLE_SIZE; i++) {
+		if (BIT_ISSET(vec, i)) {
+			if ((Dwarf_Half) i == cie_ra)
+				printf("ra   ");
+			else {
+				snprintf(rn, sizeof(rn), "r%d", i);
+				printf("%-5s", rn);
+			}
+		}
+	}
+	putchar('\n');
+
+	pre_pc = ~0ULL;
+	cur_pc = pc;
+	end_pc = pc + func_len;
+	for (; cur_pc < end_pc; cur_pc++) {
+		if (dwarf_get_fde_info_for_all_regs(fde, cur_pc, &rt, &row_pc,
+		    &de) != DW_DLV_OK) {
+			warnx("dwarf_get_fde_info_for_all_regs failed: %s\n",
+			    dwarf_errmsg(de));
+			return (-1);
+		}
+		if (row_pc == pre_pc)
+			continue;
+		pre_pc = row_pc;
+		printf("%08jx ", (uintmax_t) row_pc);
+		printf("%-8s ", get_regoff_str(RT(0).dw_regnum,
+		    RT(0).dw_offset));
+		for (i = 1; i < DW_REG_TABLE_SIZE; i++) {
+			if (BIT_ISSET(vec, i)) {
+				printf("%-5s", get_regoff_str(RT(i).dw_regnum,
+				    RT(i).dw_offset));
+			}
+		}
+		putchar('\n');
+	}
+
+	free(vec);
+
+	return (0);
+
+#undef	BIT_SET
+#undef	BIT_CLR
+#undef	BIT_ISSET
+#undef	RT
 }
 
 static void
@@ -3091,11 +3197,12 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				    dwarf_errmsg(de));
 				continue;
 			}
+			printf("%08jx %08jx %8.8jx CIE",
+			    (uintmax_t) cie_offset,
+			    (uintmax_t) cie_length,
+			    (uintmax_t) (eh_frame ? 0 : ~0U));
 			if (!alt) {
-				printf("%08jx %08jx %08jx CIE\n",
-				    (uintmax_t) cie_offset,
-				    (uintmax_t) cie_length,
-				    (uintmax_t) (eh_frame ? ~0ULL : 0));
+				putchar('\n');
 				printf("  Version:\t\t\t%u\n", cie_version);
 				printf("  Augmentation:\t\t\t\"");
 				while ((c = *cie_aug++) != '\0')
@@ -3111,6 +3218,17 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				dump_dwarf_frame_inst(re, cie_inst,
 				    cie_instlen, cie_caf, cie_daf, 0);
 				putchar('\n');
+			} else {
+				printf(" \"");
+				while ((c = *cie_aug++) != '\0')
+					putchar(c);
+				putchar('"');
+				printf(" cf=%ju df=%jd ra=%ju\n",
+				    (uintmax_t) cie_caf,
+				    (uintmax_t) cie_daf,
+				    (uintmax_t) cie_ra);
+				dump_dwarf_frame_regtable(fde, 0, 1, cie_ra);
+				putchar('\n');
 			}
 		}
 		printf("%08jx %08jx %08jx FDE cie=%08jx pc=%08jx..%08jx\n",
@@ -3118,8 +3236,12 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 		    (uintmax_t) (eh_frame ? (fde_offset + 4) : cie_offset),
 		    (uintmax_t) cie_offset,
 		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
-		dump_dwarf_frame_inst(re, fde_inst, fde_instlen, cie_caf,
-		    cie_daf, low_pc);
+		if (!alt)
+			dump_dwarf_frame_inst(re, fde_inst, fde_instlen,
+			    cie_caf, cie_daf, low_pc);
+		else
+			dump_dwarf_frame_regtable(fde, low_pc, func_len,
+			    cie_ra);
 		putchar('\n');
 	}
 }
