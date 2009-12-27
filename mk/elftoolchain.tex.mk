@@ -1,30 +1,37 @@
 #
+# Rules to build LateX documentation.
+#
 # $Id$
 #
 
-# Recognize additional suffixes
-.SUFFIXES:	.tex .pdf
+.include "${TOP}/mk/elftoolchain.os.mk"
 
-#
-# Support for the ConTeXT format
-#
-.if defined(CONTEXTSRCS)
+.if defined(MKTEX) # && ${MKTEX} == "YES"
 
-TEXEXEC ?=	texexec --pdf
+# Recognize additional suffixes.
+.SUFFIXES:	.mp .eps .tex .pdf
 
-.tex.pdf:
-	${TEXEXEC} ${.IMPSRC}
+# Rules to build MetaPost figures.
+.mp.eps:
+	TEX=${LATEX} ${MPOST} -halt-on-error ${.IMPSRC}
+	mv ${.IMPSRC:T:R}.1 ${.TARGET}
+.eps.pdf:
+	ps2pdf ${.IMPSRC} ${.TARGET}
 
-all:	${CONTEXTSRCS:C/.tex$/.pdf/g}
-
-_CLEANFILES = mpgraph.mp
-
-.for ct in ${CONTEXTSRCS}
-_T = ${ct:T:C/.tex$//}
-_CLEANFILES += ${_T}.pdf ${_T}.log ${_T}.tmp ${_T}.tui ${_T}.tuo ${_T}-mpgraph.mp
-${_T}.pdf: ${ct}
+.for f in ${IMAGES_MP}
+${f:R}.eps: ${.CURDIR}/${f}
+CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf
 .endfor
-.endif
+
+all:	${DOC}
+
+${DOC}:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 
 clean:
-	rm -f ${_CLEANFILES}
+	rm -f ${CLEANFILES}
+.else
+
+all clean:
+	@echo WARNING: documentation build skipped: MKTEX=\"${MKTEX}\"
+	@true
+.endif
