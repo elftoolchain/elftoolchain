@@ -1,0 +1,175 @@
+%
+% Libelf by Example
+%
+% Copyright (c) 2006-2009 Joseph Koshy.  All rights reserved.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
+% are met:
+% 1. Redistributions of source code must retain the above copyright
+%    notice, this list of conditions and the following disclaimer.
+% 2. Redistributions in binary form must reproduce the above copyright
+%    notice, this list of conditions and the following disclaimer in the
+%    documentation and/or other materials provided with the distribution.
+%
+% This software is provided by Joseph Koshy ``as is'' and
+% any express or implied warranties, including, but not limited to, the
+% implied warranties of merchantability and fitness for a particular purpose
+% are disclaimed.  in no event shall Joseph Koshy be liable
+% for any direct, indirect, incidental, special, exemplary, or consequential
+% damages (including, but not limited to, procurement of substitute goods
+% or services; loss of use, data, or profits; or business interruption)
+% however caused and on any theory of liability, whether in contract, strict
+% liability, or tort (including negligence or otherwise) arising in any way
+% out of the use of this software, even if advised of the possibility of
+% such damage.
+%
+% $Id$
+%
+\documentclass[a4paper]{report}
+
+\usepackage{hyperref}
+\usepackage{varioref}
+
+\newcommand{\function}[1]{\texttt{#1}()}
+\newcommand{\library}[1]{\texttt{#1}}
+\newcommand{\tool}[1]{\textbf{#1}}
+\newcommand{\type}[1]{\texttt{#1}}
+
+\begin{document}
+
+\begin{abstract}
+This tutorial introduces the \library{libelf} library being developed
+at the \href{http://elftoolchain.sourceforge.net/}{ElfToolChain}
+project on \href{sourceforge.net}{SourceForge.Net}.  It shows how this
+library can be used to create tools that can manipulate ELF objects
+for native and non-native architectures.
+
+The ELF(3)/GELF(3) API set is discussed, as is handling of ar(1)
+archives.  The ELF format is discussed to the extent needed to
+understand the use of the ELF(3) library.
+
+Knowledge of the C programming language is a pre-requisite.
+\end{abstract}
+
+\chapter{Introduction}
+ELF \index{ELF+definition} stands for Extensible Linking Format.  It
+is a format for use by compilers, linkers, loaders and other tools
+that manipulate object code.
+
+The ELF specification was released to the public in 1990 as an
+``\href{http://www.x86.org/ftp/manuals/tools/elf.pdf}{open standard}''
+by a group of vendors.  As a result of its ready availability it has
+been widely adopted in the industry and is now the most popular object
+file format in use in the open-source world.  The ELF standard
+supports 32 and 64 bit architectures of both big and little-endian
+kinds, and supports features like cross-compilation, dynamic shared
+libraries.  ELF also supports the special compilation needs of the C++
+language.  In the open-source operating system commnunity, FreeBSD
+switched to using ELF as its object format in FreeBSD 3.0 (October
+1998).
+% TODO XXX fill in Linux and NetBSD history.
+
+The \library{libelf} library provides an API set (ELF(3) and
+GELF(3) for application writers to read and write ELF
+objects with.  The library eases the task of writing cross-tools
+that can run on one machine architecture and manipulate ELF
+objects for another.
+
+\section*{Rationale for this tutorial}
+The ELF(3) and GELF(3) API set is large, with over 80 callable
+functions.  So the task of getting started with the library can appear
+daunting at first glance.  This tutorial has been written to provide a
+gentle introduction to the API set.
+
+\section*{Target Audience}
+This tutorial would be of interest to developers wanting to create ELF
+processing tools using the \library{libelf} library.
+
+\section{Tutorial Overview}
+The tutorial covers the following:
+
+\begin{itemize}
+\item The basics of the ELF format (as much as is needed to understand
+  how to use the API set); how the ELF format structures the contents
+  of executables, relocatables and shared objects.
+\item How to get started building applications that use the
+  \library{libelf} library.
+\item The basic abstractions offered by the ELF(3) and GELF(3) API
+  set---how the ELF library abstracts out the ELF class and endianness
+  of an ELF object and allows the application to work with a native
+  representation while the library translates to and from the desired
+  target representation behind the scenes.
+\item How to use the APIs in the library to look inside an ELF object and examine its Executable Header, Program
+  Header Table and its component sections.
+\item How to create a new ELF object using the ELF library.
+\item An introduction to the class-independent GELF(3) interfaces, and when and where to use them
+ instead of the class-dependent functions in the ELF(3) API set.
+\item How to process \tool{ar} archives using the facilities provided by the library.
+\end{itemize}
+
+\section{Article Structure}
+One of the goals of this tutorial is to illustrate how to write code
+using \library{libelf}.  So we will jump right into working code.  As
+we progress through the examples, we introduce the concepts necessary
+to understand what is happening ``behind the scenes.''
+
+Chapter \vref{chap.getting-started} covers the basics involved in
+getting started with the ELF(3) library---how to compile and link an
+application that uses \library{libelf}.  We look at the way a working
+version number is established by an application, how a handle to ELF
+objects are obtained, and how error messages from the ELF library are
+reported.  APIs covered include \function{elf\_begin},
+\function{elf\_end}, \function{elf\_errmsg}, \function{elf\_errno},
+\function{elf\_kind} and \function{elf\_version}.
+
+Chapter \vref{chap.peering-inside} shows how an application can look
+inside an ELF object and understand its basic structure.  Along the
+way we will examine the way the ELF objects are laid out.  Other key
+concepts examined are the notions of ``file representation''
+\index{representation+file} and ``memory representation''
+\index{representation+memory} of ELF data types.  New APIs covered
+include \function{elf\_getident}, \function{elf\_getphnum},
+\function{elf\_getshnum}, \function{elf\_getshstrndx},
+\function{gelf\_getehdr} and \function{gelf\_getclass}.
+
+Chapter \vref{chap.elf-phdr} describes the ELF Program Header Table and
+shows how an application can retrieve this table from an ELF object.
+The \function{gelf\_getphdr} API is introduced in this section.
+
+Chapter \vref{chap.elf-sections} then looks at how data is stored in
+ELF sections.  An application that looks at ELF sections is examined.
+The \type{Elf\_Scn} and \type{Elf\_Data} data types used by the
+library are examined in detail.  APIs covered include
+\function{elf\_getscn}, \function{elf\_getdata},
+\function{elf\_nextscn}, \function{elf\_strptr},
+and \function{gelf\_getshdr}.
+
+Chapter \vref{chap.creating-elf} looks at how we create ELF objects.
+We cover the rules in ordering of the individual API calls when
+creating ELF objects.  We look at the library's object layout rules
+and how an application can choose to override these.  APIs covered
+include \function{elf\_fill}, \function{elf32\_getshdr},
+\function{elf32\_newehdr}, \function{elf32\_newphdr},
+\function{elf\_flagphdr}, \function{elf\_ndxscn},
+\function{elf\_newdata}, \function{elf\_newscn}, and
+\function{elf\_update}.
+
+The \library{libelf} library also assists applications that need read
+\tool{ar} archives.  Chapter \vref{chap.ar} in the tutorial covers how
+to use the ELF(3) library to handle archives.  This section covers the
+use of the \function{elf\_getarhdr}, \function{elf\_getarsym},
+\function{elf\_next} and \function{elf\_rand} functions.
+
+Chapter \vref{chap.conclusion} ends the tutorial with suggestions for
+further reading.
+
+\chapter{Getting Started}\label{chap.getting-started}
+\chapter{Peering Inside}\label{chap.peering-inside}
+\chapter{Examining the Program Header Table}\label{chap.elf-phdr}
+\chapter{Looking at Sections}\label{chap.elf-sections}
+\chapter{Creating new ELF objects}\label{chap.creating-elf}
+\chapter{Processing ar(1) archives}\label{chap.ar}
+\chapter{Conclusion}\label{chap.conclusion}
+\end{document}
+
