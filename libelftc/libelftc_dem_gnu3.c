@@ -53,7 +53,7 @@ enum type_qualifier {
 };
 
 struct vector_type_qualifier {
-	size_t		size, capacity;
+	size_t size, capacity;
 	enum type_qualifier *q_container;
 	struct vector_str ext_name;
 };
@@ -64,8 +64,8 @@ enum read_cmd {
 };
 
 struct vector_read_cmd {
-	size_t		 size, capacity;
-	enum read_cmd	*r_container;
+	size_t size, capacity;
+	enum read_cmd *r_container;
 };
 
 struct cpp_demangle_data {
@@ -197,12 +197,11 @@ cpp_demangle_gnu3(const char *org)
 	limit = 0;
 	while (*ddata.cur != '\0') {
 		/*
-		 * Breaking at some gcc info at tail.
-		 * e.g) @@GLIBCXX_3.4
+		 * Breaking at some gcc info at tail. e.g) @@GLIBCXX_3.4
 		 */
 		if (*ddata.cur == '@' && *(ddata.cur + 1) == '@')
 			break;
-		if (cpp_demangle_read_type(&ddata, 1) == 0)
+		if (!cpp_demangle_read_type(&ddata, 1))
 			goto clean;
 		if (limit++ > CPP_DEMANGLE_TRY_LIMIT)
 			goto clean;
@@ -259,7 +258,7 @@ cpp_demangle_data_init(struct cpp_demangle_data *d, const char *cur)
 		goto clean3;
 	if (!vector_str_init(&d->class_type))
 		goto clean4;
-	if (vector_read_cmd_init(&d->cmd) == 0)
+	if (!vector_read_cmd_init(&d->cmd))
 		goto clean5;
 
 	assert(d->output.container != NULL);
@@ -451,7 +450,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			memcpy(buf, " ", 1);
 			memcpy(buf + 1, v->ext_name.container[e_idx], e_len);
 
-			if (cpp_demangle_push_str(ddata, buf, e_len + 1) == 0) {
+			if (!cpp_demangle_push_str(ddata, buf, e_len + 1)) {
 				free(buf);
 				goto clean;
 			}
@@ -1942,7 +1941,7 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata, int delimit)
 
 	output = &ddata->output;
 	if (!strncmp(ddata->output.container[ddata->output.size - 1], ">", 1)) {
-		++cpp_demangle_gnu3_push_head;
+		cpp_demangle_gnu3_push_head++;
 		output = &ddata->output_tmp;
 	} else if (delimit == 1) {
 		if (ddata->paren == false) {
@@ -2095,7 +2094,7 @@ again:
 
 	case 'm':
 		/* unsigned long */
-		if (cpp_demangle_push_str(ddata, "unsigned long", 13) == 0)
+		if (!cpp_demangle_push_str(ddata, "unsigned long", 13))
 			goto clean;
 
 		++ddata->cur;
