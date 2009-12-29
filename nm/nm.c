@@ -172,8 +172,6 @@ static int		cmp_size(const void *, const void *);
 static int		cmp_value(const void *, const void *);
 static void		filter_dest(void);
 static int		filter_insert(fn_filter);
-static enum demangle	get_demangle_type(const char *);
-static enum demangle	get_demangle_option(const char *);
 static uint32_t		get_hash_str(const char *);
 static void		get_opt(int, char **);
 static int		get_sym(Elf *, struct sym_head *, int,
@@ -187,14 +185,13 @@ static bool		is_sec_debug(const char *);
 static bool		is_sec_nobits(GElf_Shdr *);
 static bool		is_sec_readonly(GElf_Shdr *);
 static bool		is_sec_text(GElf_Shdr *);
-static void		print_ar_index(int fd, Elf *);
+static void		print_ar_index(int, Elf *);
 static void		print_demangle_name(const char *, const char *);
 static void		print_header(const char *, const char *);
 static void		print_version(void);
 static int		read_elf(Elf *, const char *, Elf_Kind);
 static int		read_object(const char *);
 static int		read_files(int, char **);
-static unsigned char	*relocate_sec(Elf_Data *, Elf_Data *, int);
 static struct line_info_entry	*search_addr(struct line_info_head *, GElf_Sym *);
 static void		set_opt_value_print_fn(enum radix);
 static int		sym_elem_def(char, const GElf_Sym *, const char *);
@@ -937,7 +934,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	const char *shname, *objname;
 	char *type_table, **sec_table, *sfile;
 	size_t strndx, shnum;
-	int fd, ret, rtn, e_err;
+	int ret, rtn, e_err;
 
 #define	OBJNAME	(objname == NULL ? filename : objname)
 
@@ -1027,7 +1024,6 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		} else if ((sec_table[i] = strdup("*UND*")) == NULL)
 				goto next_cmd;
 
-check_type:
 		if (is_sec_text(&shdr))
 			type_table[i] = 'T';
 		else if (is_sec_data(&shdr)) {
@@ -1247,43 +1243,6 @@ read_files(int argc, char **argv)
 			--argc;
 			++argv;
 		}
-	}
-
-	return (rtn);
-}
-
-static unsigned char *
-relocate_sec(Elf_Data *org, Elf_Data *rela, int class)
-{
-	GElf_Rela ra;
-	Elf64_Sword add64;
-	Elf32_Sword add32;
-	int i;
-	unsigned char *rtn;
-
-	if (org == NULL || rela == NULL || class == ELFCLASSNONE)
-		return (NULL);
-
-	if (class != ELFCLASS32 && class != ELFCLASS64)
-		return (NULL);
-
-	if ((rtn = malloc(sizeof(unsigned char) * org->d_size)) == NULL)
-		return (NULL);
-
-	memcpy(rtn, org->d_buf, org->d_size);
-
-	i = 0;
-	while (gelf_getrela(rela, i, &ra) != NULL) {
-		if (class == ELFCLASS32) {
-			memcpy(&add32, rtn + ra.r_offset, sizeof(add32));
-			add32 += (Elf32_Sword)ra.r_addend;
-			memcpy(rtn + ra.r_offset, &add32, sizeof(add32));
-		} else {
-			memcpy(&add64, rtn + ra.r_offset, sizeof(add64));
-			add64 += (Elf64_Sword)ra.r_addend;
-			memcpy(rtn + ra.r_offset, &add64, sizeof(add64));
-		}
-		i++;
 	}
 
 	return (rtn);
