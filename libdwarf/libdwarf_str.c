@@ -78,8 +78,9 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
 		ds = _dwarf_find_section(dbg, ".debug_str");
 		if (ds == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
-			return (DW_DLV_NO_ENTRY);
+			dbg->dbg_strtab = NULL;
+			dbg->dbg_strtab_cap = dbg->dbg_strtab_size = 0;
+			return (DWARF_E_NONE);
 		}
 		
 		dbg->dbg_strtab_cap = dbg->dbg_strtab_size = ds->ds_size;
