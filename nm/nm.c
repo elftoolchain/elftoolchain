@@ -31,13 +31,14 @@
 #include <ar.h>
 #include <assert.h>
 #include <ctype.h>
+#include <dwarf.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <getopt.h>
 #include <inttypes.h>
-#include <libelf.h>
+#include <libdwarf.h>
 #include <libelftc.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -48,7 +49,6 @@
 #include <unistd.h>
 
 #include "_elftc.h"
-#include "dwarf_line_number.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -86,6 +86,15 @@ struct nm_prog_info {
 	const char	*version;
 	const char	*def_filename;
 };
+
+/* List for line number information. */
+struct line_info_entry {
+	uint64_t	addr;	/* address */
+	uint64_t	line;	/* line number */
+	char		*file;	/* file name with path */
+	SLIST_ENTRY(line_info_entry) entries;
+};
+SLIST_HEAD(line_info_head, line_info_entry);
 
 /* output numric type */
 enum radix {
@@ -239,7 +248,7 @@ static const struct option nm_longopts[] = {
 	{ "help",		no_argument,		NULL,		'h' },
 	{ "line-numbers",	no_argument,		NULL,		'l' },
 	{ "no-demangle",	no_argument,		&nm_opts.no_demangle,
-	  1 },
+	  1},
 	{ "no-sort",		no_argument,		NULL,		'p' },
 	{ "numeric-sort",	no_argument,		NULL,		'v' },
 	{ "print-armap",	no_argument,		NULL,		's' },
@@ -808,11 +817,9 @@ print_ar_index(int fd, Elf *arf)
 		if (elf_rand(arf, arsym->as_off) == arsym->as_off &&
 		    (elf = elf_begin(fd, cmd, arf)) != NULL) {
 			if ((arhdr = elf_getarhdr(elf)) != NULL)
-				printf("%s in %s\n",
-				    arsym->as_name,
+				printf("%s in %s\n", arsym->as_name,
 				    arhdr->ar_name != NULL ?
 				    arhdr->ar_name : arhdr->ar_rawname);
-
 			elf_end(elf);
 		}
 		++arsym;
@@ -889,15 +896,12 @@ sym_section_filter(const GElf_Shdr *shdr)
 	if (shdr == NULL)
 		return (-1);
 
-	if (nm_opts.print_debug == false &&
-	    shdr->sh_type == SHT_PROGBITS &&
+	if (!nm_opts.print_debug && shdr->sh_type == SHT_PROGBITS &&
 	    shdr->sh_flags == 0)
 		return (1);
-
 	if (nm_opts.print_symbol == PRINT_SYM_SYM &&
 	    shdr->sh_type == SHT_SYMTAB)
 		return (1);
-
 	if (nm_opts.print_symbol == PRINT_SYM_DYN &&
 	    shdr->sh_type == SHT_DYNSYM)
 		return (1);
@@ -913,21 +917,27 @@ sym_section_filter(const GElf_Shdr *shdr)
 static int
 read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 {
-	Elf_Data *dbg_abbrev, *dbg_info, *dbg_line, *dbg_rela_info;
-	Elf_Data *dbg_rela_line, *dbg_str, *dynstr_data, *strtab_data;
+	Dwarf_Debug dbg;
+	Dwarf_Die die;
+	Dwarf_Line *lbuf;
+	Dwarf_Error de;
+	Dwarf_Half tag;
+	Dwarf_Unsigned lineno;
+	Dwarf_Signed lcount;
+	Dwarf_Addr lineaddr;
+	Elf_Data *dynstr_data, *strtab_data;
 	Elf_Arhdr *arhdr;
 	Elf_Scn *scn;
 	GElf_Shdr shdr;
 	GElf_Half i;
 	struct sym_print_data p_data;
 	struct sym_head list_head;
-	struct comp_dir_head *comp_dir;
 	struct line_info_head *line_info;
+	struct line_info_entry *lie;
 	const char *shname, *objname;
-	char *type_table, **sec_table;
-	void *dbg_info_buf, *dbg_str_buf, *dbg_line_buf;
-	size_t strndx, shnum, dbg_info_size, dbg_str_size, dbg_line_size;
-	int fd, rtn, e_err;
+	char *type_table, **sec_table, *sfile;
+	size_t strndx, shnum;
+	int fd, ret, rtn, e_err;
 
 #define	OBJNAME	(objname == NULL ? filename : objname)
 
@@ -936,23 +946,13 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	/* Instead of TAILQ_HEAD_INITIALIZER to avoid warning */
 	STAILQ_HINIT_AFTER(list_head);
 
-	dbg_abbrev = NULL;
-	dbg_info = NULL;
-	dbg_line = NULL;
-	dbg_rela_info = NULL;
-	dbg_rela_line = NULL;
-	dbg_str = NULL;
 	dynstr_data = NULL;
 	strtab_data = NULL;
-	comp_dir = NULL;
-	line_info = NULL;
 	type_table = NULL;
 	sec_table = NULL;
-	dbg_info_buf = NULL;
-	dbg_str_buf = NULL;
-	dbg_line_buf = NULL;
-
+	line_info = NULL;
 	objname = NULL;
+
 	if (kind == ELF_K_AR) {
 		if ((arhdr = elf_getarhdr(elf)) == NULL)
 			goto next_cmd;
@@ -1011,55 +1011,21 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		 * Cannot test by type and attribute for dynstr, strtab
 		 */
 		shname = elf_strptr(elf, strndx, (size_t) shdr.sh_name);
-		if (shname == NULL) {
-			if ((sec_table[i] = strdup("*UND*")) == NULL)
+		if (shname != NULL) {
+			if ((sec_table[i] = strdup(shname)) == NULL)
 				goto next_cmd;
-			goto check_type;
-		}
-
-		if ((sec_table[i] = strdup(shname)) == NULL)
-			goto next_cmd;
-		if (strncmp(shname, ".dynstr", 7) == 0) {
-			if ((dynstr_data = elf_getdata(scn, NULL)) == NULL)
-				goto next_cmd;
-		}
-		if (strncmp(shname, ".strtab", 7) == 0) {
-			if ((strtab_data = elf_getdata(scn, NULL)) == NULL)
-				goto next_cmd;
-		}
-
-		/*
-		 * Not in SysV special sections, but has .debug_ stuff in DWARF.
-		 */
-		if (nm_opts.debug_line) {
-			if (!strncmp(shname, ".debug_info", 11)) {
-				if ((dbg_info = elf_getdata(scn, NULL)) == NULL)
-					goto next_cmd;
-			}
-			if (!strncmp(shname, ".rela.debug_info", 16)) {
-				if ((dbg_rela_info = elf_getdata(scn, NULL)) ==
+			if (!strncmp(shname, ".dynstr", 7)) {
+				if ((dynstr_data = elf_getdata(scn, NULL)) ==
 				    NULL)
 					goto next_cmd;
 			}
-			if (!strncmp(shname, ".debug_abbrev", 11)) {
-				if ((dbg_abbrev = elf_getdata(scn, NULL)) ==
+			if (!strncmp(shname, ".strtab", 7)) {
+				if ((strtab_data = elf_getdata(scn, NULL)) ==
 				    NULL)
 					goto next_cmd;
 			}
-			if (!strncmp(shname, ".debug_str", 11)) {
-				if ((dbg_str = elf_getdata(scn, NULL)) == NULL)
-					goto next_cmd;
-			}
-			if (!strncmp(shname, ".debug_line", 11)) {
-				if ((dbg_line = elf_getdata(scn, NULL)) == NULL)
-					goto next_cmd;
-			}
-			if (!strncmp(shname, ".rela.debug_line", 16)) {
-				if ((dbg_rela_line = elf_getdata(scn, NULL)) ==
-				    NULL)
-					goto next_cmd;
-			}
-		}
+		} else if ((sec_table[i] = strdup("*UND*")) == NULL)
+				goto next_cmd;
 
 check_type:
 		if (is_sec_text(&shdr))
@@ -1088,62 +1054,78 @@ check_type:
 
 	STAILQ_INIT(&list_head);
 
-	if (nm_opts.debug_line && dbg_info != NULL && dbg_abbrev != NULL &&
-	    dbg_line != NULL) {
-		if ((comp_dir = malloc(sizeof(struct comp_dir_head))) != NULL) {
-			SLIST_HINIT_AFTER(comp_dir);
-			SLIST_INIT(comp_dir);
-			if (dbg_rela_info == NULL) {
-				dbg_info_buf = dbg_info->d_buf;
-				dbg_info_size = dbg_info->d_size;
-			} else {
-				dbg_info_buf = relocate_sec(dbg_info,
-				    dbg_rela_info, gelf_getclass(elf));
-				dbg_info_size = dbg_info->d_size;
+	if (!nm_opts.debug_line)
+		goto process_sym;
+
+	/*
+	 * Collect dwarf line number information.
+	 */
+
+	if (dwarf_elf_init(elf, DW_DLC_READ, NULL, NULL, &dbg, &de) !=
+	    DW_DLV_OK) {
+		warnx("dwarf_elf_init failed: %s", dwarf_errmsg(de));
+		goto process_sym;
+	}
+
+	line_info = malloc(sizeof(struct line_info_head));
+	if (line_info == NULL) {
+		warn("malloc failed");
+		(void) dwarf_finish(dbg, &de);
+		goto process_sym;
+	}
+	SLIST_HINIT_AFTER(line_info);
+	SLIST_INIT(line_info);
+
+	while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
+	    &de)) ==  DW_DLV_OK) {
+		die = NULL;
+		while (dwarf_siblingof(dbg, die, &die, &de) == DW_DLV_OK) {
+			if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+				warnx("dwarf_tag failed: %s",
+				    dwarf_errmsg(de));
+				continue;
 			}
-			if (dbg_str == NULL) {
-				dbg_str_buf = NULL;
-				dbg_str_size = 0;
-			} else {
-				dbg_str_buf = dbg_str->d_buf;
-				dbg_str_size = dbg_str->d_size;
-			}
-			if (dbg_info_buf == NULL ||
-			    get_dwarf_info(dbg_info_buf, dbg_info_size,
-				dbg_abbrev->d_buf, dbg_abbrev->d_size,
-				dbg_str_buf, dbg_str_size,
-				comp_dir) == 0) {
-				comp_dir_dest(comp_dir);
-				free(comp_dir);
-				comp_dir = NULL;
-			}
+			/* XXX: What about DW_TAG_partial_unit? */
+			if (tag == DW_TAG_compile_unit)
+				break;
 		}
-
-		if ((line_info = malloc(sizeof(struct line_info_head))) != NULL) {
-			SLIST_HINIT_AFTER(line_info);
-			SLIST_INIT(line_info);
-
-			if (dbg_rela_line == NULL) {
-				dbg_line_buf = dbg_line->d_buf;
-				dbg_line_size = dbg_line->d_size;
-			} else {
-				dbg_line_buf = relocate_sec(dbg_line,
-				    dbg_rela_line, gelf_getclass(elf));
-				dbg_line_size = dbg_line->d_size;
+		if (die == NULL) {
+			warnx("could not find DW_TAG_compile_unit die");
+			continue;
+		}
+		if (dwarf_srclines(die, &lbuf, &lcount, &de) != DW_DLV_OK) {
+			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+			continue;
+		}
+		for (i = 0; i < lcount; i++) {
+			if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
+				warnx("dwarf_lineaddr: %s", dwarf_errmsg(de));
+				continue;
 			}
-
-			if (dbg_line_buf == NULL ||
-			    get_dwarf_line_info(dbg_line_buf,
-				dbg_line_size,
-				comp_dir,
-				line_info) == 0) {
-
-				line_info_dest(line_info);
-				free(line_info);
-				line_info = NULL;
+			if (dwarf_lineno(lbuf[i], &lineno, &de)) {
+				warnx("dwarf_lineno: %s", dwarf_errmsg(de));
+				continue;
 			}
+			if (dwarf_linesrc(lbuf[i], &sfile, &de)) {
+				warnx("dwarf_linesrc: %s", dwarf_errmsg(de));
+				continue;
+			}
+			if ((lie = malloc(sizeof(*lie))) == NULL) {
+				warn("malloc failed");
+				continue;
+			}
+			lie->addr = lineaddr;
+			lie->line = lineno;
+			lie->file = strdup(sfile);
+			if (lie->file == NULL)
+				warn("strdup failed");
+			SLIST_INSERT_HEAD(line_info, lie, entries);
 		}
 	}
+
+	(void) dwarf_finish(dbg, &de);
+
+process_sym:
 
 	p_data.list_num = get_sym(elf, &list_head, shnum, dynstr_data,
 	    strtab_data, type_table);
@@ -1161,30 +1143,20 @@ check_type:
 	sym_list_print(&p_data, line_info);
 
 next_cmd:
-	if (nm_opts.debug_line) {
-		if (dbg_rela_line != NULL)
-			free(dbg_line_buf);
-
-		if (dbg_rela_info != NULL)
-			free(dbg_info_buf);
-
-		if (line_info != NULL) {
-			line_info_dest(line_info);
-			free(line_info);
-			line_info = NULL;
+	if (nm_opts.debug_line && line_info != NULL) {
+		while (!SLIST_EMPTY(line_info)) {
+			lie = SLIST_FIRST(line_info);
+			SLIST_REMOVE_HEAD(line_info, entries);
+			free(lie->file);
+			free(lie);
 		}
-
-		if (comp_dir != NULL) {
-			comp_dir_dest(comp_dir);
-			free(comp_dir);
-			comp_dir = NULL;
-		}
+		free(line_info);
+		line_info = NULL;
 	}
 
 	if (sec_table != NULL)
 		for (i = 0; i < shnum; ++i)
 			free(sec_table[i]);
-
 	free(sec_table);
 	free(type_table);
 
@@ -1868,7 +1840,7 @@ usage(int exitcode)
  * Return 0 at success, >0 at failed.
  */
 int
-main(int argc, char *argv[])
+main(int argc, char **argv)
 {
 	int rtn = 1;
 
