@@ -39,6 +39,7 @@
 #include <getopt.h>
 #include <inttypes.h>
 #include <libelf.h>
+#include <libelftc.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,9 +49,6 @@
 #include <unistd.h>
 
 #include "_elftc.h"
-#include "cpp_demangle.h"
-#include "cpp_demangle_arm.h"
-#include "cpp_demangle_gnu2.h"
 #include "dwarf_line_number.h"
 
 ELFTC_VCSID("$Id$");
@@ -105,14 +103,10 @@ enum print_name {
 	PRINT_NAME_NONE, PRINT_NAME_FULL, PRINT_NAME_MULTI
 };
 
-enum demangle {
-	DEMANGLE_NONE, DEMANGLE_AUTO, DEMANGLE_GV2, DEMANGLE_GV3, DEMANGLE_ARM
-};
-
 struct nm_prog_options {
 	enum print_symbol	print_symbol;
 	enum print_name		print_name;
-	enum demangle		demangle_type;
+	int			demangle_type;
 	bool			print_debug;
 	bool			print_armap;
 	int			print_size;
@@ -237,8 +231,8 @@ struct nm_prog_options	nm_opts;
 struct sym_print_data	*nm_print_data;
 
 static const struct option nm_longopts[] = {
-	{ "debug-syms",		no_argument,		NULL,		'a'},
-	{ "defined-only",	no_argument,		&nm_opts.def_only, 1 },
+	{ "debug-syms",		no_argument,		NULL,		'a' },
+	{ "defined-only",	no_argument,		&nm_opts.def_only, 1},
 	{ "demangle",		optional_argument,	NULL,		'C' },
 	{ "dynamic",		no_argument,		NULL,		'D' },
 	{ "format",		required_argument,	NULL,		'F' },
@@ -253,7 +247,7 @@ static const struct option nm_longopts[] = {
 	{ "print-size",		no_argument,		NULL,		'S' },
 	{ "radix",		required_argument,	NULL,		't' },
 	{ "reverse-sort",	no_argument,		NULL,		'r' },
-	{ "size-sort",		no_argument,		&nm_opts.sort_size, 1 },
+	{ "size-sort",		no_argument,		&nm_opts.sort_size, 1},
 	{ "undefined-only",	no_argument,		NULL,		'u' },
 	{ "version",		no_argument,		NULL,		'V' },
 	{ NULL,			0,			NULL,		0   }
@@ -380,45 +374,23 @@ filter_insert(fn_filter filter_fn)
 	return (1);
 }
 
-static enum demangle
-get_demangle_type(const char *org)
-{
-
-	if (org == NULL)
-		return (DEMANGLE_NONE);
-
-	if (is_cpp_mangled_ia64(org))
-		return (DEMANGLE_GV3);
-
-	if (is_cpp_mangled_gnu2(org))
-		return (DEMANGLE_GV2);
-
-	if (is_cpp_mangled_ARM(org))
-		return (DEMANGLE_ARM);
-
-	return (DEMANGLE_NONE);
-}
-
-static enum demangle
-get_demangle_option(const char *opt)
+static int
+parse_demangle_option(const char *opt)
 {
 
 	if (opt == NULL)
-		return (DEMANGLE_AUTO);
-
-	if (strncasecmp(opt, "gnu-v2", 6) == 0)
-		return (DEMANGLE_GV2);
-
-	if (strncasecmp(opt, "gnu-v3", 6) == 0)
-		return (DEMANGLE_GV3);
-
-	if (strncasecmp(opt, "arm", 3) == 0)
-		return (DEMANGLE_ARM);
-
-	errx(EX_USAGE, "unknown demangling style '%s'", opt);
+		return (0);
+	else if (!strncasecmp(opt, "gnu-v2", 6))
+		return (ELFTC_DEM_GNU2);
+	else if (!strncasecmp(opt, "gnu-v3", 6))
+		return (ELFTC_DEM_GNU3);
+	else if (!strncasecmp(opt, "arm", 3))
+		return (ELFTC_DEM_ARM);
+	else
+		errx(EX_USAGE, "unknown demangling style '%s'", opt);
 
 	/* NOTREACHED */
-	return (DEMANGLE_NONE);
+	return (0);
 }
 
 static uint32_t
@@ -448,21 +420,17 @@ get_opt(int argc, char **argv)
 		return;
 
 	t = RADIX_DEFAULT;
-
 	while ((ch = getopt_long(argc, argv, "ABCDSVPaefghlnoprst:uvx",
 		    nm_longopts, NULL)) != -1) {
 		switch (ch) {
 		case 'A':
 			nm_opts.print_name = PRINT_NAME_FULL;
-
 			break;
 		case 'B':
 			nm_opts.elem_print_fn = &sym_elem_print_all;
-
 			break;
 		case 'C':
-			nm_opts.demangle_type = get_demangle_option(optarg);
-
+			nm_opts.demangle_type = parse_demangle_option(optarg);
 			break;
 		case 'F':
 			/* sysv, bsd, posix */
@@ -470,141 +438,107 @@ get_opt(int argc, char **argv)
 			case 'B':
 			case 'b':
 				nm_opts.elem_print_fn = &sym_elem_print_all;
-
 				break;
 			case 'P':
 			case 'p':
 				nm_opts.elem_print_fn =
 				    &sym_elem_print_all_portable;
-
 				break;
 			case 'S':
 			case 's':
 				nm_opts.elem_print_fn =
 				    &sym_elem_print_all_sysv;
 				break;
-
 			default:
 				warnx("%s: Invalid format", optarg);
-
 				usage(EX_USAGE);
-
 				/* NOTREACHED */
 			}
 
 			break;
 		case 'D':
 			nm_opts.print_symbol = PRINT_SYM_DYN;
-
 			break;
 		case 'S':
 			nm_opts.print_size = 1;
-
 			break;
 		case 'V':
 			print_version();
-
 			/* NOTREACHED */
-			break;
 		case 'P':
 			nm_opts.elem_print_fn = &sym_elem_print_all_portable;
-
 			break;
 		case 'a':
 			nm_opts.print_debug = true;
-
 			break;
 		case 'f':
 			break;
 		case 'e':
 			filter_insert(sym_elem_global_static);
-
 			break;
 		case 'g':
 			filter_insert(sym_elem_global);
-
 			break;
 		case 'o':
 			t = RADIX_OCT;
-
 			break;
 		case 'p':
 			nm_opts.sort_fn = &cmp_none;
-
 			break;
 		case 'r':
 			nm_opts.sort_reverse = true;
-
 			break;
 		case 's':
 			nm_opts.print_armap = true;
-
 			break;
 		case 't':
 			/* t require always argument to getopt_long */
 			switch (optarg[0]) {
 			case 'd':
 				t = RADIX_DEC;
-
 				break;
 			case 'o':
 				t = RADIX_OCT;
-
 				break;
 			case 'x':
 				t = RADIX_HEX;
-
 				break;
 			default:
 				warnx("%s: Invalid radix", optarg);
-
 				usage(EX_USAGE);
-
 				/* NOTREACHED */
 			}
-
 			break;
 		case 'u':
 			filter_insert(sym_elem_undef);
 			nm_opts.undef_only = true;
-
 			break;
 		case 'l':
 			nm_opts.debug_line = true;
-
 			break;
 		case 'n':
-			/* FALLTHROUGH */
 		case 'v':
 			nm_opts.sort_fn = &cmp_value;
-
 			break;
 		case 'x':
 			t = RADIX_HEX;
-
 			break;
 		case 0:
 			if (nm_opts.sort_size != 0) {
 				nm_opts.sort_fn = &cmp_size;
-
 				filter_insert(sym_elem_def);
 				filter_insert(sym_elem_nonzero_size);
 			}
-
 			if (nm_opts.def_only != 0)
 				filter_insert(sym_elem_def);
-
 			if (nm_opts.no_demangle != 0)
-				nm_opts.demangle_type = DEMANGLE_NONE;
-
+				nm_opts.demangle_type = -1;
 			break;
 		case 'h':
 			usage(EX_OK);
-
 			/* NOTREACHED */
 		default :
 			usage(EX_USAGE);
-
 			/* NOTREACHED */
 		}
 	}
@@ -625,10 +559,8 @@ get_opt(int argc, char **argv)
 			errx(EX_USAGE,
 			    "-u with --defined-only is meaningless");
 	}
-
 	if (nm_opts.print_debug == false)
 		filter_insert(sym_elem_nondebug);
-
 	if (nm_opts.sort_reverse == true && nm_opts.sort_fn == cmp_none)
 		nm_opts.sort_reverse = false;
 }
@@ -758,7 +690,7 @@ global_init(void)
 
 	nm_opts.print_symbol = PRINT_SYM_SYM;
 	nm_opts.print_name = PRINT_NAME_NONE;
-	nm_opts.demangle_type = DEMANGLE_NONE;
+	nm_opts.demangle_type = -1;
 	nm_opts.print_debug = false;
 	nm_opts.print_armap = false;
 	nm_opts.print_size = 0;
@@ -906,52 +838,16 @@ print_ar_index(int fd, Elf *arf)
 static void
 print_demangle_name(const char *format, const char *name)
 {
-	enum demangle d;
-	char *demangle;
+	char dem[8192];
 
 	if (format == NULL || name == NULL)
 		return;
 
-	d = nm_opts.demangle_type == DEMANGLE_AUTO ?
-	    get_demangle_type(name) : nm_opts.demangle_type;
-
-	switch (d) {
-	case DEMANGLE_GV2:
-		{
-			if ((demangle = cpp_demangle_gnu2(name)) == NULL)
-				demangle = cpp_demangle_ARM(name);
-
-			printf(format, demangle == NULL ? name : demangle);
-
-			free(demangle);
-		}
-		break;
-	case DEMANGLE_GV3:
-		{
-			demangle = cpp_demangle_ia64(name);
-
-			printf(format, demangle == NULL ? name : demangle);
-
-			free(demangle);
-		}
-		break;
-	case DEMANGLE_ARM:
-		{
-			demangle = cpp_demangle_ARM(name);
-
-			printf(format, demangle == NULL ? name : demangle);
-
-			free(demangle);
-		}
-
-                break;
-	case DEMANGLE_AUTO:
-		/* NOTREACHED */
-		/* FALLTHROUGH */
-	case DEMANGLE_NONE:
-	default:
+	if (nm_opts.demangle_type < 0 ||
+	    elftc_demangle(name, dem, sizeof(dem), nm_opts.demangle_type) < 0)
 		printf(format, name);
-	}
+	else
+		printf(format, dem);
 }
 
 static void
