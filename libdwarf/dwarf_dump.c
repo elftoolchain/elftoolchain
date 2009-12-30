@@ -350,6 +350,30 @@ dwarf_get_FORM_name(unsigned form, const char **s)
 }
 
 int
+dwarf_get_MACINFO_name(unsigned mi, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (mi) {
+	case DW_MACINFO_define:
+		*s = "DW_MACINFO_define"; break;
+	case DW_MACINFO_undef:
+		*s = "DW_MACINFO_undef"; break;
+	case DW_MACINFO_start_file:
+		*s = "DW_MACINFO_start_file"; break;
+	case DW_MACINFO_end_file:
+		*s = "DW_MACINFO_end_file"; break;
+	case DW_MACINFO_vendor_ext:
+		*s = "DW_MACINFO_vendor_ext"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_TAG_name(unsigned tag, const char **s)
 {
 
