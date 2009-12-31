@@ -2942,6 +2942,56 @@ dump_dwarf_aranges(struct readelf *re)
 }
 
 static void
+dump_dwarf_macinfo(struct readelf *re)
+{
+	Dwarf_Unsigned offset;
+	Dwarf_Signed cnt;
+	Dwarf_Macro_Details *md;
+	Dwarf_Error de;
+	const char *mi_str;
+	int i;
+
+#define	_MAX_MACINFO_ENTRY	65535
+
+	printf("\nContents of section .debug_macinfo:\n\n");
+
+	offset = 0;
+	while (dwarf_get_macro_details(re->dbg, offset, _MAX_MACINFO_ENTRY,
+	    &cnt, &md, &de) == DW_DLV_OK) {
+		for (i = 0; i < cnt; i++) {
+			offset = md[i].dmd_offset + 1;
+			if (md[i].dmd_type == 0)
+				break;
+			if (dwarf_get_MACINFO_name(md[i].dmd_type, &mi_str) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_get_MACINFO_name failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf(" %s", mi_str);
+			switch (md[i].dmd_type) {
+			case DW_MACINFO_define:
+			case DW_MACINFO_undef:
+				printf(" - lineno : %jd macro : %s\n",
+				    (intmax_t) md[i].dmd_lineno,
+				    md[i].dmd_macro);
+				break;
+			case DW_MACINFO_start_file:
+				printf(" - lineno : %jd filenum : %jd\n",
+				    (intmax_t) md[i].dmd_lineno,
+				    (intmax_t) md[i].dmd_fileindex);
+				break;
+			default:
+				putchar('\n');
+				break;
+			}
+		}
+	}
+
+#undef	_MAX_MACINFO_ENTRY
+}
+
+static void
 dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
     Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc)
 {
@@ -3919,6 +3969,8 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_pubnames(re);
 	if (re->dop & DW_R)
 		dump_dwarf_aranges(re);
+	if (re->dop & DW_M)
+		dump_dwarf_macinfo(re);
 	if (re->dop & DW_F)
 		dump_dwarf_frame(re, 0);
 	else if (re->dop & DW_FF)
