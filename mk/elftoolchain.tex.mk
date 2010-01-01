@@ -6,26 +6,32 @@
 
 .include "${TOP}/mk/elftoolchain.os.mk"
 
-.if defined(MKTEX) # && ${MKTEX} == "YES"
+.if defined(MKTEX) # && ${MKTEX} == "yes"
+
+all:	${DOC}.pdf
 
 # Recognize additional suffixes.
 .SUFFIXES:	.mp .eps .tex .pdf
 
 # Rules to build MetaPost figures.
 .mp.eps:
-	TEX=${LATEX} ${MPOST} -halt-on-error ${.IMPSRC}
+	TEX=${MPOSTTEX} ${MPOST} -halt-on-error ${.IMPSRC}
 	mv ${.IMPSRC:T:R}.1 ${.TARGET}
 .eps.pdf:
-	ps2pdf ${.IMPSRC} ${.TARGET}
+	${EPSTOPDF} ${.IMPSRC} > ${.TARGET}
 
 .for f in ${IMAGES_MP}
 ${f:R}.eps: ${.CURDIR}/${f}
-CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf
+CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 .endfor
 
-all:	${DOC}
+${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
+	${PDFLATEX} ${SRCS}
+	${PDFLATEX} ${SRCS}
 
-${DOC}:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
+.for f in aux log out
+CLEANFILES+=	${DOC}.${f}
+.endfor
 
 clean:
 	rm -f ${CLEANFILES}
