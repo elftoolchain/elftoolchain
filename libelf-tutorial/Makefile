@@ -7,7 +7,7 @@ TOP = ..
 
 DOC=			libelf-by-example
 
-SRCS=			libelf-by-example.tex
+SRCS=			libelf-by-example.tex prog1.txt prog2.txt prog3.txt
 
 IMAGES_MP=		fig-arstr.mp fig-ariter.mp fig-data.mp \
 			fig-eident.mp fig-elfhdrlayout.mp fig-elflayout.mp \
