@@ -58,12 +58,12 @@ main(int argc, char **argv)
         if (elf_kind(e) != ELF_K_ELF)
                 errx(EX_DATAERR, "\"%s\" is not an ELF object.", argv[1]);
 
-        if (elf_getphdrnum(e, &amp;n) == 0) @\co{3}@
-                errx(EX_DATAERR, "elf_getphnum() failed: %s.",
+        if (elf_getphdrnum(e, &n) != 0) @\co{3}@
+                errx(EX_DATAERR, "elf_getphdrnum() failed: %s.",
                     elf_errmsg(-1));
 
         for (i = 0; i < n; i++) { @\co{4}@
-                if (gelf_getphdr(e, i, &amp;phdr) != &amp;phdr) @\co{5}@
+                if (gelf_getphdr(e, i, &phdr) != &phdr) @\co{5}@
                         errx(EX_SOFTWARE, "getphdr() failed: %s.",
                             elf_errmsg(-1));
 
@@ -82,11 +82,11 @@ main(int argc, char **argv)
                 PRINT_FIELD(p_memsz);           NL();
                 PRINT_FIELD(p_flags);
                 (void) printf(" [");
-                if (phdr.p_flags &amp; PF_X)
+                if (phdr.p_flags & PF_X)
                         (void) printf(" execute");
-                if (phdr.p_flags &amp; PF_R)
+                if (phdr.p_flags & PF_R)
                         (void) printf(" read");
-                if (phdr.p_flags &amp; PF_W)
+                if (phdr.p_flags & PF_W)
                         (void) printf(" write");
                 printf(" ]");                   NL();
                 PRINT_FIELD(p_align);           NL();

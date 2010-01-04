@@ -38,7 +38,7 @@ main(int argc, char **argv)
         if (elf_kind(e) != ELF_K_ELF)
                 errx(EX_DATAERR, "\"%s\" is not an ELF object.", argv[1]);
 
-        if (gelf_getehdr(e, &amp;ehdr) == NULL) @\co{3}@
+        if (gelf_getehdr(e, &ehdr) == NULL) @\co{3}@
                 errx(EX_SOFTWARE, "getehdr() failed: %s.",
                     elf_errmsg(-1));
 
@@ -78,18 +78,18 @@ main(int argc, char **argv)
         PRINT_FIELD(e_phentsize);
         PRINT_FIELD(e_shentsize);
 
-        if (elf_getshnum(e, &amp;n) == 0) @\co{7}@
-                errx(EX_SOFTWARE, "getshnum() failed: %s.",
+        if (elf_getshdrnum(e, &n) != 0) @\co{7}@
+                errx(EX_SOFTWARE, "getshdrnum() failed: %s.",
                     elf_errmsg(-1));
         (void) printf(PRINT_FORMAT, "(shnum)", (uintmax_t) n);
 
-        if (elf_getshdrstrndx(e, &amp;n) == 0) @\co{8}@
+        if (elf_getshdrstrndx(e, &n) != 0) @\co{8}@
                 errx(EX_SOFTWARE, "getshdrstrndx() failed: %s.",
                     elf_errmsg(-1));
         (void) printf(PRINT_FORMAT, "(shstrndx)", (uintmax_t) n);
 
-        if (elf_getphnum(e, &amp;n) == 0) @\co{9}@
-                errx(EX_SOFTWARE, "getphnum() failed: %s.",
+        if (elf_getphdrnum(e, &n) != 0) @\co{9}@
+                errx(EX_SOFTWARE, "getphdrnum() failed: %s.",
                     elf_errmsg(-1));
         (void) printf(PRINT_FORMAT, "(phnum)", (uintmax_t) n);
 
