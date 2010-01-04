@@ -1,0 +1,99 @@
+/*
+ * Print the ELF Executable Header from an ELF object.
+ */
+
+#include <err.h>
+#include <fcntl.h>
+#include <gelf.h> @\co{1}@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sysexits.h>
+#include <unistd.h>
+#include <vis.h>
+
+int
+main(int argc, char **argv)
+{
+        int i, fd;
+        Elf *e;
+        char *id, bytes[5];
+        size_t n;
+        GElf_Ehdr ehdr; @\co{2}@
+
+        if (argc != 2)
+                errx(EX_USAGE, "usage: %s file-name", getprogname());
+
+        if (elf_version(EV_CURRENT) == EV_NONE)
+                errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+                    elf_errmsg(-1));
+
+        if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
+                err(EX_NOINPUT, "open \"%s\" failed", argv[1]);
+
+        if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
+                errx(EX_SOFTWARE, "elf_begin() failed: %s.",
+                    elf_errmsg(-1));
+
+        if (elf_kind(e) != ELF_K_ELF)
+                errx(EX_DATAERR, "\"%s\" is not an ELF object.", argv[1]);
+
+        if (gelf_getehdr(e, &amp;ehdr) == NULL) @\co{3}@
+                errx(EX_SOFTWARE, "getehdr() failed: %s.",
+                    elf_errmsg(-1));
+
+        if ((i = gelf_getclass(e)) == ELFCLASSNONE) @\co{4}@
+                errx(EX_SOFTWARE, "getclass() failed: %s.",
+                    elf_errmsg(-1));
+
+        (void) printf("%s: %d-bit ELF object\n", argv[1],
+            i == ELFCLASS32 ? 32 : 64);
+
+        if ((id = elf_getident(e, NULL)) == NULL) @\co{5}@
+                errx(EX_SOFTWARE, "getident() failed: %s.",
+                    elf_errmsg(-1));
+
+       (void) printf("%3s e_ident[0..%1d] %7s", " ", EI_ABIVERSION, " ");
+
+        for (i = 0; i <= EI_ABIVERSION; i++) {
+                (void) vis(bytes, id[i], VIS_WHITE, 0);
+                (void) printf(" ['%s' %X]", bytes, id[i]);
+        }
+
+        (void) printf("\n");
+
+#define        PRINT_FORMAT        "    %-20s 0x%jx\n"
+#define        PRINT_FIELD(N) do { \
+                (void) printf(PRINT_FORMAT ,#N, (uintmax_t) ehdr.N); \
+        } while (0)
+
+        PRINT_FIELD(e_type); @\co{6}@
+        PRINT_FIELD(e_machine);
+        PRINT_FIELD(e_version);
+        PRINT_FIELD(e_entry);
+        PRINT_FIELD(e_phoff);
+        PRINT_FIELD(e_shoff);
+        PRINT_FIELD(e_flags);
+        PRINT_FIELD(e_ehsize);
+        PRINT_FIELD(e_phentsize);
+        PRINT_FIELD(e_shentsize);
+
+        if (elf_getshnum(e, &amp;n) == 0) @\co{7}@
+                errx(EX_SOFTWARE, "getshnum() failed: %s.",
+                    elf_errmsg(-1));
+        (void) printf(PRINT_FORMAT, "(shnum)", (uintmax_t) n);
+
+        if (elf_getshdrstrndx(e, &amp;n) == 0) @\co{8}@
+                errx(EX_SOFTWARE, "getshdrstrndx() failed: %s.",
+                    elf_errmsg(-1));
+        (void) printf(PRINT_FORMAT, "(shstrndx)", (uintmax_t) n);
+
+        if (elf_getphnum(e, &amp;n) == 0) @\co{9}@
+                errx(EX_SOFTWARE, "getphnum() failed: %s.",
+                    elf_errmsg(-1));
+        (void) printf(PRINT_FORMAT, "(phnum)", (uintmax_t) n);
+
+        (void) elf_end(e);
+        (void) close(fd);
+        exit(EX_OK);
+}
