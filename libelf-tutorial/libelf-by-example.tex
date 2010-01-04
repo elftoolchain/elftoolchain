@@ -28,20 +28,64 @@
 %
 \documentclass[a4paper]{report}
 
+\usepackage{array}
 \usepackage{color}
+\usepackage{comment}                                    % TODO remove this
+\usepackage{float}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{varioref}
+\usepackage{xspace}
 
-\newcommand{\function}[1]{\texttt{#1}()}
-\newcommand{\library}[1]{\texttt{#1}}
+\makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
+\newcommand{\function}[1]{\texttt{#1}()}
 \newcommand{\filename}[1]{\texttt{#1}}
+\newcommand{\firstterm}[1]{\textit{#1}}                 % TODO Add \index
+\newcommand{\library}[1]{\texttt{#1}}
 \newcommand{\parameter}[1]{\texttt{#1}}
+\newcommand{\reg}{(R)\xspace}
+\newcommand{\tableheader}[1]{\textbf{#1}}
 \newcommand{\tool}[1]{\textbf{#1}}
+\newcommand{\trade}{(TM)\xspace}
 \newcommand{\type}[1]{\texttt{#1}}
-\newcommand{\co}[1]{\framebox{\textbf{\color{blue}#1}}}
+
+% Define a new environment "callout" that groups a listing and a
+% description list together.  Inside this environment the "\co"
+% command may be used to denote a callout location; a corresponding
+% "\coref" command may be used at the place in the text that
+% references the callout and the two locations will be cross-linked in
+% the PDF file generated.
+%
+% Usage:
+%
+%   \begin{callout}[color]{UNIQUE-TOKEN}
+%    ... \co{M} ...
+%    \begin{lstlisting}[escapechar=@]
+%       ... @\co{N}@
+%    \end{lstlisting}
+%    \begin{description}
+%    \item[\coref{M}] ... description ...
+%    \item[\coref{N}] ... description ...
+%    \end{description}
+%   \end{callout}
+%
+% In the typeset text `M' and `N' are made (PDF) targets and rendered
+% in a visually distinct way. `UNIQUE-TOKEN' is used to disambiguate
+% between different callout environments in the same text.  `color'
+% defaults to blue.
+\newenvironment{callout}[2][blue]{%
+  \begingroup\newcommand{\@cocolor}{#1}%
+  \newcommand{\@cogroup}[1]{#2}}{\endgroup}
+\newcommand{\@co}[1]{\framebox{\textbf{\color{\@cocolor}#1}}}
+\newcommand{\co}[1]{%
+  \hypertarget{\@cogroup.#1.co}{%
+    \hyperlink{\@cogroup.#1.cr}{\@co{#1}}}}
+\newcommand{\coref}[1]{%
+  \hypertarget{\@cogroup.#1.cr}{%
+    \hyperlink{\@cogroup.#1.co}{\@co{#1}}}}
+\makeatother
 
 \begin{document}
 \lstset{language=C,basicstyle=\small,escapechar=@,float}
@@ -137,8 +181,8 @@ way we will examine the way the ELF objects are laid out.  Other key
 concepts examined are the notions of ``file representation''
 \index{representation+file} and ``memory representation''
 \index{representation+memory} of ELF data types.  New APIs covered
-include \function{elf\_getident}, \function{elf\_getphnum},
-\function{elf\_getshnum}, \function{elf\_getshstrndx},
+include \function{elf\_getident}, \function{elf\_getphdrnum},
+\function{elf\_getshdrnum}, \function{elf\_getshdrstrndx},
 \function{gelf\_getehdr} and \function{gelf\_getclass}.
 
 Chapter \vref{chap.elf-phdr} describes the ELF Program Header Table and
@@ -177,7 +221,7 @@ further reading.
 Let us dive in first and get a taste of programming with
 \library{libelf}.
 
-Our first program (Program 1, listing \vref{src.prog.1}) will open a
+Our first program (Program 1, listing~\vref{src.prog.1}) will open a
 filename presented to it on its command line and retrieve the file
 type recognized by the ELF library.
 
@@ -185,18 +229,19 @@ This example is covers the basics involved in using \library{libelf};
 how to compile a program using \library{libelf}, how to initialize the
 library, how to report errors, and how to wind up.
 
-\lstinputlisting[caption=Program 1,label=src.prog.1]{prog1.txt}
+\begin{callout}{prog1}
+  \lstinputlisting[caption=Program 1,label=src.prog.1]{prog1.txt}
 
-\begin{description}
-  \item[\co{1}] The functions and dataypes that make up the ELF(3) API
+  \begin{description}
+  \item[\coref{1}] The functions and dataypes that make up the ELF(3) API
     are declared in \filename{libelf.h}.  This file must be included
     in every application that desires to use the \library{libelf}
     library.
 
-  \item[\co{2}] The ELF(3) library uses an opaque type \type{Elf} as a
+  \item[\coref{2}] The ELF(3) library uses an opaque type \type{Elf} as a
     handle for the ELF object being processed.
 
-  \item[\co{4}] Before the functions in the library can be invoked, an
+  \item[\coref{4}] Before the functions in the library can be invoked, an
     application must indicate to the library the version of the ELF
     specification it is expecting to use.  This is done by the call to
     \function{elf\_version}.
@@ -227,7 +272,7 @@ library, how to report errors, and how to wind up.
     In practice though, the ELF version hasn't changed since
     inception, so the current version (\constant{EV\_CURRENT}) is 1.
 
-  \item[\co{5}] The \function{elf\_begin} function takes an open file
+  \item[\coref{5}] The \function{elf\_begin} function takes an open file
     descriptor and converts it an \type{Elf} handle according to the
     command specified.
 
@@ -242,7 +287,7 @@ library, how to report errors, and how to wind up.
     processing \tool{ar} archives.  We will look at \tool{ar} archive
     processing in chapter \vref{chap.ar}.
 
-  \item[\co{6}] When the ELF library encounters an error, it records
+  \item[\coref{6}] When the ELF library encounters an error, it records
     an error number in an internal location.  This error number may be
     retrieved using the \function{elf\_errno} function.
 
@@ -250,7 +295,7 @@ library, how to report errors, and how to wind up.
     string describing the error number passed in.  As a programming
     convenience, a value of -1 denotes the current error number.
 
-  \item[\co{3} \co{7}] The ELF library can operate on \tool{ar}
+  \item[\coref{3} \coref{7}] The ELF library can operate on \tool{ar}
     archives and ELF objects.  The function \function{elf\_kind}
     returns the kind of object associated with an \type{Elf} handle.
     The return value of the \function{elf\_kind} function is one of
@@ -258,33 +303,38 @@ library, how to report errors, and how to wind up.
 
     The \type{Elf\_Kind} type is defined in \filename{libelf.h}.
 
-  \item[\co{8}] When you are done with a handle, it is good practice
+  \item[\coref{8}] When you are done with a handle, it is good practice
     to release its resources using the \function{elf\_end} function.
-\end{description}
+  \end{description}
+\end{callout}
 
 Now it is time to get something running.
 
-Save the listing in listing \vref{src.prog.1} to file
-\filename{prog1.c} and then compile and run it as shown in listing
-\vref{scr.prog.1}.
+Save the listing in listing~\vref{src.prog.1} to file
+\filename{prog1.c} and then compile and run it as shown in
+listing~\vref{scr.prog1}.
 
-\begin{lstlisting}[language=sh,caption=Compiling and running prog1,label=scr.prog.1]
+\begin{callout}[red]{scr1}
+  \begin{lstlisting}[basicstyle=\ttfamily, language={},
+      caption=Compiling and running prog1,
+      label=scr.prog1]
 % cc -o prog1 prog1.c -lelf @\co{1}@
 % ./prog1 prog1 @\co{2}@
 prog1: elf object
 % ./prog1 /usr/lib/libc.a @\co{3}@
 /usr/lib/libc.a: ar(1) archive
-\end{lstlisting}
+  \end{lstlisting}
 
-\begin{description}
-  \item[\co{1}] The \parameter{-lelf} option to the \tool{cc} comand
+  \begin{description}
+  \item[\coref{1}] The \parameter{-lelf} option to the \tool{cc} comand
     informs it to link \tool{prog1} against the \library{libelf}
     library.
-  \item[\co{2}] We invoke \tool{prog1} on itself, and it recognizes
+  \item[\coref{2}] We invoke \tool{prog1} on itself, and it recognizes
     its own executable as ELF object.  All is well.
-  \item[\co{3}] Here we see that \tool{prog1} recognizes an \tool{ar}
+  \item[\coref{3}] Here we see that \tool{prog1} recognizes an \tool{ar}
     archive correctly.
-\end{description}
+  \end{description}
+\end{callout}
 
 Congratulations!  You have created your first ELF handling program
 using \library{libelf}.
@@ -292,11 +342,704 @@ using \library{libelf}.
 In the next chapter we will look deeper into the ELF format and learn
 how to pick an ELF object apart into its component pieces.
 
-\chapter{Peering Inside}\label{chap.peering-inside}
+\chapter{Peering Inside an ELF Object}\label{chap.peering-inside}
+
+Next, we will look inside an ELF object.  We will look at how an ELF
+object is laid out and introduce its major parts, namely the ELF
+Executable Header, the ELF Program Header Table and ELF Sections.
+Along the way we will look at the way \library{libelf} handles
+non-native objects.
+
+As an object format, ELF supports multiple kinds of objects:
+
+\begin{itemize}
+\item Compilers generate \firstterm{relocatable objects} that contain fragments of
+  machine code along with the ``glue'' information needed when
+  combining multiple such objects to form a final executable.
+\item \firstterm{Executables} are programs that are in a form that an
+  operating system can launch in a process.  The process of forming
+  executables from collections of relocatable objects is called
+  \firstterm{linking}.
+\item \firstterm{Dynamically loadable objects} are those that can be
+  loaded by an executable after it has started executing.  Dynamically
+  loadable \firstterm{shared libraries} are examples of such objects.
+\end{itemize}
+
+\section{The Layout of an ELF file}
+
+An ELF object consists of a mandatory header named the \firstterm{ELF
+  Executable Header}, followed by optional content in the form of
+\firstterm{ELF Program Header Table} and zero or more \firstterm{ELF
+  Sections} (see figure \vref{fig.elf.layout}).
+
+\begin{figure}
+  \caption{The layout of a typical ELF File}\label{fig.elf.layout}
+  \begin{center}
+    \includegraphics[scale=.75]{fig-elflayout}
+  \end{center}
+\end{figure}
+
+\begin{itemize}
+\item The \firstterm{ELF Executable Header} defines the structure of
+  the rest of the file.  This header is \emph{always} present in a
+  valid ELF file.  It describes the class of the file (whether 32 bit
+  or 64 bit), the type (whether a relocatable, executable or shared
+  object), and the byte ordering used (little endian or big endian).
+  It also describes the overall layout of the ELF object.  The ELF
+  header is described below.
+
+\item An optional \firstterm{ELF Program Header Table} is present in
+  executable objects and contains information used by at program load
+  time.  The program header table is described in
+  chapter~\vref{chap.elf-phdr}.
+
+\item The contents of a relocatable ELF object are contained in
+  \firstterm{ELF sections}.  These sections are described by entries
+  in an \firstterm{ELF Section Header Table}, which has one table
+  entry per section present in the file.
+  Chapter~\vref{chap.elf-sections} describes ELF sections and the
+  section header table in further detail.
+\end{itemize}
+
+Every ELF object is associated with three parameters:
+
+\begin{itemize}
+\item Its \firstterm{class} denotes whether its is a 32 bit ELF object
+  (\constant{ELFCLASS32}) or a 64 bit (\constant{ELFCLASS64}) one.
+\item Its \firstterm{endianness} denotes whether it is using
+  little-endian (\constant{ELFDATA2LSB}) or big-endian addressing
+  (\constant{ELFDATA2MSB}).
+\item Finally, each ELF object is associated with a
+  \firstterm{version} number as discussed in
+  chapter~\vref{chap.getting-started}.
+\end{itemize}
+
+These parameters are stored in the ELF Executable Header.  Let us now
+take a closer look at the ELF Executable Header.
+
+\subsubsection{The ELF Executable Header}
+Table \vref{src.elf.ehdr} describes the layout of an ELF Executable
+Header using a ``C-like'' struct.
+
+\begin{callout}{ehdr}
+  \begin{table}
+    \caption{ELF Executable Headers}\label{src.elf.ehdr}
+    \begin{tabular}{rl|l}
+      \mbox{} & \tableheader{The 32 bit ELF Executable Header} &
+      \tableheader{The 64 bit ELF Executable Header} \\ \hline
+       & \verb+typedef struct {+&
+         \verb+typedef struct {+\\
+\co{1} & \verb+   unsigned char  e_ident[16];+&
+         \verb+   unsigned char  e_ident[16];+\\
+\co{2} & \verb+   uint16_t       e_type;+&
+         \verb+   uint16_t       e_type;+\\
+\co{3} & \verb+   uint16_t       e_machine;+&
+         \verb+   uint16_t       e_machine;+\\
+       & \verb+   uint32_t       e_version;+&
+         \verb+   uint32_t       e_version;+\\
+       & \verb+   uint32_t       e_entry;+&
+         \verb+   uint32_t       e_entry;+\\
+\co{4} & \verb+   uint32_t       e_phoff;+&
+         \verb+   uint64_t       e_phoff;+\\
+\co{5} & \verb+   uint32_t       e_shoff;+&
+         \verb+   uint64_t       e_shoff;+\\
+       & \verb+   uint32_t       e_flags;+&
+         \verb+   uint32_t       e_flags;+\\
+       & \verb+   uint16_t       e_ehsize;+&
+         \verb+   uint16_t       e_ehsize;+\\
+       & \verb+   uint16_t       e_phentsize;+&
+         \verb+   uint16_t       e_phentsize;+\\
+\co{6} & \verb+   uint16_t       e_phnum;+&
+         \verb+   uint16_t       e_phnum;+\\
+\co{7} & \verb+   uint16_t       e_shnum;+&
+         \verb+   uint16_t       e_shnum;+\\
+\co{8} & \verb+   uint16_t       e_shstrndx;+&
+         \verb+   uint16_t       e_shstrndx;+\\
+       & \verb+} Elf32_Ehdr;+&
+         \verb+} Elf64_Ehdr;+\\
+    \end{tabular}
+  \end{table}
+
+  \begin{description}
+  \item[\coref{1}] The first 16 bytes (the \parameter{e\_ident}
+    array)) contain values that determine the ELF class, version and
+    endianness of the rest of the file.  See figure
+    \vref{fig.elf.eident}.
+
+    \begin{figure}[H]
+      \caption{The \parameter{e\_ident[]} array}\label{fig.elf.eident}
+      \begin{center}
+        \includegraphics[scale=.9]{fig-eident}
+      \end{center}
+    \end{figure}
+
+    The first 4 bytes of an ELF object are always 0x7F, 'E', 'L' and
+    'F'.  The next three bytes specify the class of the ELF object
+    (\constant{ELFCLASS32} or \constant{ELFCLASS64}), its data
+    ordering (\constant{ELFDATA2LSB} or \constant{ELFDATA2MSB}) and
+    the ELF version the object conforms to.  With this information on
+    hand, an application (in our case the \library{libelf} library)
+    can then interpret the rest of the ELF Executable Header
+    correctly.
+
+  \item[\coref{2}] The \parameter{e\_type} member determines the type
+    of the ELF object.  For example, it would contain a 1
+    (\constant{ET\_REL}) in a relocatable or 3 (\constant{ET\_DYN}) in
+    a shared object.
+
+  \item[\coref{3}] The \parameter{e\_machine} member describes the
+    machine architecture this ELF object is for.  Example values are 3
+    (\constant{EM\_386}) for the Intel\reg i386\trade architecture and
+    20 (\constant{EM\_PPC}) for the 32-bit PowerPC\trade architecture.
+
+  \item[\coref{4} \coref{5}] The ELF Executable Header also describes
+    the layout of the rest of the ELF object.  The
+    \parameter{e\_phoff} and \parameter{e\_shoff} fields contain the
+    file offsets where the ELF Program Header Table and ELF Section
+    Header Table would reside.  These fields are zero if the file does
+    not have a Program Header Table or Section Header Table
+    respectively.  The sizes of these components are determined by the
+    \parameter{e\_phentsize} and \parameter{e\_shentsize} members
+    respectively in conjunction with the number of entries in these
+    tables.
+
+    \begin{figure}[H]
+      \caption{The ELF Executable Header and Object Layout}
+      \label{fig.elf.ehdr-layout}
+      \begin{center}
+        \includegraphics[scale=.9]{fig-elfhdrlayout}
+      \end{center}
+    \end{figure}
+
+    The ELF Executable Header describes its own size (in bytes) in
+    field \parameter{e\_ehsize}.
+
+    \item[\coref{6} \coref{7}] The \parameter{e\_phnum} and
+      \parameter{e\_shnum} fields usually contain the number of ELF
+      program header table entries and Section Header Table entries.
+      Note that these fields are only 2 bytes wide, so if an ELF
+      object has a large number of sections or Program Header Table
+      entries, then a scheme known as \firstterm{Extended Numbering}
+      (section~\vref{sec.extended-numbering}) is used to encode the
+      actual number of sections or program header table entries.  When
+      extended numbering is in use these fields will contain ``magic''
+      numbers instead of actual counts.
+
+    \item[\coref{8}] If the ELF object contains sections, then we need
+      a way to get at the names of sections.  Section names are stored
+      in a string table. The \parameter{e\_shstrndx} stores the
+      section index of this string table (see
+      \vref{sec.extended-numbering}) so that processing tools know
+      which string table to use when retrieving names.  We will cover
+      ELF string tables in more detail later.
+  \end{description}
+
+  The fields \parameter{e\_entry} and \parameter{e\_flags} are used
+  for executables and are placed in the Executable Header for easy
+  access at program load time.  We will not look at them further in
+  this tutorial.
+\end{callout}
+
+\subsubsection{ELF Class- and Endianness- Independent Processing}
+Now let us look at the way the \library{libelf} API set abstracts out
+ELF class and endianness for us.
+
+Imagine that you are writing an ELF processing application that is
+going to support processing of non-native binaries (say for a machine
+with a different native endianness and word size).  It should be
+evident that ELF data structures would have two distinct
+representations: an \firstterm{in-memory representation} that follows
+the rules for the machine architecture that the application running
+on, and an \firstterm{in-file representation} that corresponds to the
+target architecture for the ELF object.
+
+The application would like to manipulate data in its native memory
+representation.  This memory representation would conform to the
+native endianness of the host's CPU and would conform to the address
+alignment and structure padding requirements set by the host's machine
+architecture.
+
+However when this data has to go into the target object it may need to
+be formatted differently.  For example, it could be packed differently
+compared to the ``native'' memory representation and may have to be
+laid out according a different set of rules for alignment.  The
+endianness of the data in-file could be different from that of the
+in-memory representation.
+
+\begin{figure}
+  \caption{File and Memory Representations}\label{fig.representations}
+  \begin{center}
+    \includegraphics[scale=.9]{fig-filemem}
+  \end{center}
+\end{figure}
+
+Figure \vref{fig.representations} depicts the relationship between the
+file and memory representation of an ELF data structure.  As shown in
+the figure, the size of an ELF data structure in file could be
+different from its size in memory.  The alignment restrictions
+(\parameter{\%falign} and \parameter{\%malign} in the figure) could be
+different.  The byte ordering of the data could be different too.
+
+The ELF(3) and GELF(3) API set can handle the conversion of ELF data
+structures to and from their file representations to memory
+representations automatically.  For example, when we read in the ELF
+Executable Header in program~\vref{src.prog.2} below, the \library{libelf}
+library will automatically do the necessary byteswapping and alignment
+adjustments for us.
+
+For applications that want finer-grain control over the conversion
+process, the \function{elf\textit{NN}\_xlatetof} and
+\function{elf\textit{NN}\_xlatetom} functions are available.  These
+functions will translate data buffers containing ELF data structures
+between their memory and file representions.
+
+\subsubsection{Extended numbering}\label{sec.extended-numbering}
+        
+The \parameter{e\_shnum}, \parameter{e\_phnum} and
+\parameter{e\_shstrndx} fields of the ELF Executable Header are only 2
+bytes long and are not physically capable of representing numbers
+larger than 65535.  For ELF objects with a large number of sections,
+we need a different way of encoding section numbers.
+
+ELF objects with such a large number of sections can arise due to the
+way GCC copes with C++ templates.  When compiling C++ code which uses
+templates, GCC generates many sections with names following the
+pattern ``.gnu.linkonce.\textit{name}''.  While each compiled ELF
+relocatable object will now contain replicated data, the linker is
+expected to treat such sections specially at the final link stage,
+discarding all but one of each section.
+
+When extended numbering is in use:
+
+\begin{itemize}
+\item The \parameter{e\_shnum} field of the ELF Executable Header is
+  always zero and the true number of sections is stored in the
+  \parameter{sh\_size} field of the section header table entry at
+  index 0.
+\item The true index of the section name string table is stored in
+  field \parameter{sh\_link} field of the zeroth entry of the section
+  header table, while the \parameter{e\_shstrndx} field of the
+  Executable Header set to \constant{SHN\_XINDEX} (0xFFFF).
+\item For extended program header table numbering the scheme is similar,
+  with the \parameter{e\_phnum} field of the Executable Header holding
+  the value \constant{PN\_XNUM} (0xFFFF) and the
+  \parameter{sh\_link} field of the zeroth section header table holding
+  the actual number of program header table entries.
+\end{itemize}
+
+The \library{libelf} library provides the functions
+\function{elf\_getphdrnum}, \function{elf\_getshdrnum} and
+\function{elf\_getshdrstrndx} for applications to retrieve the correct
+value of these fields, even in the presence of extended numbering.
+
+\subsection{Reading an Executable Header using gelf(3)}
+
+We will now look at a small program that will print out the ELF
+Executable Header in an ELF object. For this example we will introduce
+the GELF(3) API set.
+
+The ELF(3) API set is defined in terms of ELF-class dependent types
+(\type{Elf32\_Ehdr}, \type{Elf64\_Shdr}, etc.) and consequently has
+many operations that have both 32- and 64- bit variants.  So, in order
+to retrieve an ELF Executable Header from a 32 bit ELF object we would
+need to use the function \function{elf32\_getehdr}, which would return
+a pointer to an \type{Elf32\_Ehdr} structure.  For a 64-bit ELF
+object, the function we would need to use would be
+\function{elf64\_getehdr}, which would return a pointer to an
+\type{Elf64\_Ehdr} structure.  This duplication is awkward to deal
+with in code when you want to write applications that can
+transparently process either class of ELF objects.
+
+The GELF(3) APIs provide an ELF class independent way of writing ELF
+applications.  These functions are defined in terms of ``generic''
+types that are large enough to hold the values of their corresponding
+32- and 64- bit ELF types.  Further, the GELF(3) APIs always work on
+\emph{copies} of ELF data structures thus bypassing the
+problem of 32- and 64- bit ELF data structures having incompatible
+memory layouts.  You can freely mix calls to GELF(3) and ELF(3)
+functions.
+
+The downside of using the GELF(3) APIs is the extra copying and
+conversion of data that occurs.  This overhead is usually not
+significant to most applications.
+
+\begin{callout}{prog2}
+  \lstinputlisting[caption=Program 2, label=src.prog.2]{prog2.txt}
+
+  \begin{description}
+  \item[\coref{1}] Programs using the GELF(3) API set need to include
+    \filename{gelf.h}.
+
+  \item[\coref{2}] The GELF(3) functions always operate on a local
+    copies of data structures.  The \type{GElf\_Ehdr} type has fields
+    that are large enough to contain values for a 64 bit ELF
+    Executable Header.
+
+  \item[\coref{3}] We retrieve the ELF Executable Header using
+    function \function{gelf\_getehdr}.  This function will translate
+    the ELF Executable Header in the ELF object being read to the
+    appropriate in-memory representation for type \type{GElf\_Ehdr}.
+    For example, if a 32-bit ELF object is being examined, then the
+    values in its executable header would be appropriately converted
+    (expanded and/or byteswapped) by this function.
+
+  \item[\coref{4}] The \function{gelf\_getclass} function retrieves
+    the ELF class of the object being examined.
+
+  \item[\coref{5}] Here we show the use of the
+    \function{elf\_getident} function to retrieve the contents of the
+    \parameter{e\_ident[]} array from the underlying file.  These
+    bytes would also be present in the \parameter{e\_ident} member of
+    the \parameter{ehdr} structure.
+
+    Here we print the first few bytes of the \parameter{e\_ident[]}
+    field of the ELF Executable Header.
+
+  \item[\coref{6}] Following the \parameter{e\_ident[]} bytes, we
+    print the values of some of the fields of the ELF Executable
+    Header structure.
+
+  \item[\coref{7} \coref{8} \coref{9}] As described in \vref{sec.extended-numbering}, the
+    \function{elf\_getphdrnum}, \function{elf\_getshdrnum} and
+    \function{elf\_getshdrstrndx} functions should be used to retrieve
+    the count of program header table entries, the number of sections,
+    and the section name string table index from the ELF Executable
+    Header.  Using these functions insulates your application from the
+    quirks of extended numbering.
+  \end{description}
+\end{callout}
+
+Save the program in listing~\vref{src.prog.2} to file \filename{prog2.c} and
+then compile and run it as shown in listing~\vref{scr.prog2}.
+
+\begin{callout}[red]{scr2}
+  \newcommand{\at}{@}
+  \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
+      label=scr.prog2, caption=Compiling and Running prog2]
+% cc -o prog2 prog2.c -lelf @\co{1}@
+% ./prog2 prog2 @\co{2}@
+prog2: 64-bit ELF object
+    e_ident[0..8]        ['\^?' 7F] ['E' 45] ['L' 4C] ['F' 46] ['\^B' 2] \
+                         ['\^A' 1] ['\^A' 1] ['\^I' 9] ['\^@\at@' 0]
+    e_type               0x2
+    e_machine            0x3e
+    e_version            0x1
+    e_entry              0x400a10
+    e_phoff              0x40
+    e_shoff              0x16f8
+    e_flags              0x0
+    e_ehsize             0x40
+    e_phentsize          0x38
+    e_shentsize          0x40
+    (shnum)              0x18
+    (shstrndx)           0x15
+    (phnum)              0x5
+  \end{lstlisting}
+  \begin{description}
+  \item[\coref{1}] The process for compiling and linking a GELF(3)
+    using application is the same as that for ELF(3) programs.
+
+  \item[\coref{2}] We run our program on itself.  This listing in this
+    tutorial was generated on an AMD64\trade machine running FreeBSD.
+  \end{description}
+
+  You should now run \tool{prog2} on other object files that you have
+  lying around.  Try it on a few non-native ELF object files too.
+\end{callout}
+
 \chapter{Examining the Program Header Table}\label{chap.elf-phdr}
+Before a program on disk can be executed by a processor it needs to
+brought into main memory.  This process is conventionally called
+``loading''.
+
+When loading an executable into memory, the operating system views it
+as comprising of ``segments''.  Each such segment starts somewhere in
+the ELF object, is associated with a particular protection
+characteristic (for example, read-only or read-write), and gets loaded
+into a specific memory address and is .
+
+For example, FreeBSD expects (statically linked) executables to have
+an ``executable'' segment containing code, and a ``data'' segment
+containing statically initialized data.  The executable segment would
+be mapped in with read-only and execute permissions and could be
+shared across multiple processes using the same ELF executable.  The
+data segment would be mapped in with read and write permissions and
+would be made private to the process.  For dynamically linked
+executables the basic idea of grouping related parts of an ELF object
+into contiguous ``segments'' still holds, though there may be multiple
+segments of each type per process.
+
+The ELF \firstterm{Program Header Table} encodes information about the
+segments present in the ELF file.  Using the Program Header Table, the
+ELF file can be viewed as a collection of non-overlapping segments,
+each segment being described by a Program Header Table entry.  The
+structure of each Program Header Table entry is shown in \vref{src.elf.phdr}.
+
+\begin{callout}{phdr}
+  \begin{table}[H]
+    \caption{ELF Program Header Table Entries}\label{src.elf.phdr}
+    \begin{tabular}{rl|ll}
+      \mbox{} & \tableheader{A 32 bit Program Header Table Entry} &
+      \tableheader{A 64 bit Program Header Table Entry}\\ \hline
+       & \verb+typedef struct {+&
+         \verb+typedef struct {+\\
+\co{1} & \verb+    Elf32_Word      p_type;+&
+         \verb+    Elf64_Word      p_type;+&\\
+\co{2} & \verb+    Elf32_Off       p_offset;+&
+         \verb+    Elf64_Word      p_flags;+&\\
+\co{3} & \verb+    Elf32_Addr      p_vaddr;+&
+         \verb+    Elf64_Off       p_offset;+&\\
+\co{4} & \verb+    Elf32_Addr      p_paddr;+&
+         \verb+    Elf64_Addr      p_vaddr;+&\\
+\co{5} & \verb+    Elf32_Word      p_filesz;+&
+         \verb+    Elf64_Addr      p_paddr;+&\\
+\co{6} & \verb+    Elf32_Word      p_memsz;+&
+         \verb+    Elf64_Xword     p_filesz;+&\\
+\co{7} & \verb+    Elf32_Word      p_flags;+&
+         \verb+    Elf64_Xword     p_memsz;+&\\
+\co{8} & \verb+    Elf32_Word      p_align;+&
+         \verb+    Elf64_Xword     p_align;+&\\
+       & \verb+} Elf32_Phdr;+ & \verb+} Elf64_Phdr;+&\\
+    \end{tabular}
+  \end{table}
+
+  \begin{description}
+  \item[\coref{1}] The type of the Program Header Table entry is
+    encoded using this field.  It holds one of the \constant{PT\_*}
+    constants defined in the system headers.
+
+    Examples include:
+    \begin{itemize}
+    \item A segment of type \constant{PT\_LOAD} is loaded into memory.
+    \item A segment of type \constant{PT\_NOTE} contains auxiliary
+      information.  For example, core files (see the core(5) manual
+      page) use \constant{PT\_NOTE} sections to record the name of the
+      process that dumped core.
+    \item A \constant{PT\_PHDR} segment describes the Program Header
+      Table itself.
+    \end{itemize}
+
+    The ELF specification reserves type values from 0x60000000
+    (\constant{PT\_LOOS}) to 0x6FFFFFFF (\constant{PT\_HIOS}) for
+    OS-private information.  Values from 0x70000000
+    (\constant{PT\_LOPROC}) to 0x7FFFFFFF (\constant{PT\_HIPROC}) are
+    similarly reserved for processor-specific information.
+
+  \item[\coref{2}] The \parameter{p\_offset} field holds the file
+    offset in the ELF object to the start of the segment being
+    described by this table entry.
+
+  \item[\coref{3}] The virtual address this segment should be loaded
+    at.
+
+  \item[\coref{4}] The physical address this segment should be loaded
+    at.  This field does not apply for userland objects.
+
+  \item[\coref{5}] The number of bytes the segment takes up in the
+    file.  This number is zero for segments that do not have data
+    associated with them in the file.
+
+  \item[\coref{6}] The number of bytes the segment takes up in memory.
+
+  \item[\coref{7}] Additional flags that specify segment properties.
+    For example, flag \constant{PF\_X} specifies that the segment in
+    question should be made executable and flag \constant{PF\_W}
+    denotes that the segment should be writable.
+
+  \item[\coref{8}] The alignment requirements of the segment both in
+    memory and in the file.  This field holds a value that is a power
+    of two.
+  \end{description}
+\end{callout}
+
+\textbf{Note}: The careful reader will note that the 32- and 64- bit
+\type{Elf\_Phdr} structures are laid out differently in memory.  These
+differences are handled for you by the functions in the
+\library{libelf} library.
+
+Figure~\vref{fig.elf.phdr.layout} shows graphically how the fields of
+the Program Header Table entry specify the segment's placement in file
+and in memory.
+
+\begin{figure}
+  \caption{ELF Segment Placement}\label{fig.elf.phdr.layout}
+  \begin{center}
+    \includegraphics[scale=.8]{fig-phdrlayout}
+  \end{center}
+\end{figure}
+
+\subsection{Reading a Program Header Table using gelf(3)}
+We will now look at a program that will print out the Program Header
+Table associated with an ELF object.  We will continue to use the
+GELF(3) API set for this example.  The ELF(3) API set also offers two
+ELF class-dependent APIs that retrieve the Program Header Table from
+an ELF object: \function{elf32\_getphdr} and
+\function{elf64\_getphdr}, but these require us to know the ELF class
+of the object being handled.
+
+\begin{callout}{prog3}
+  \lstinputlisting[caption=Program 3, label=src.prog.3]{prog3.txt}
+  
+  \begin{description}
+  \item[\coref{1}] We need to include \filename{gelf.h} in order to
+    use the GELF(3) APIs.
+  \item[\coref{2}] The \type{GElf\_Phdr} type has fields that are
+    large enough to contain the values in an \type{Elf32\_Phdr} type
+    and an \type{Elf64\_Phdr} type.
+  \item[\coref{3}] We retrieve the number of Program Header Table
+    entries using \function{elf\_getphdrnum}.  Note that the Program
+    Header Table is optional; for example, an ELF relocatable object
+    will not have a Program Header Table.
+  \item[\coref{4} \coref{5}] We iterate over all valid indices for the
+    object's Program Header Table, retrieving the table entry at each
+    index using the \function{gelf\_getphdr} function.
+  \item[\coref{6} \coref{7}] We then print out the contents of the
+    entry so retrieved.  We use a helper function
+    \function{print\_ptype} to convert the \parameter{p\_type} member
+    to a readable string.
+  \end{description}
+\end{callout}
+
+Save the program in listing~\vref{src.prog.3} to file \filename{prog3.c} and
+then compile and run it as shown in listing~\vref{scr.prog3}.
+
+\begin{callout}[red]{scr3}
+  \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
+      label=scr.prog3, caption=Compiling and Running prog3]
+% cc -o prog3 prog3.c -lelf @\co{1}@
+% ./prog3 prog3 @\co{2}@
+PHDR 0:
+    p_type               0x6 "PHDR" @\co{3}@
+    p_offset             0x34
+    p_vaddr              0x8048034
+    p_paddr              0x8048034
+    p_filesz             0xc0
+    p_memsz              0xc0
+    p_flags              0x5 [ execute read ]
+    p_align              0x4
+PHDR 1:
+    p_type               0x3 "INTERP" @\co{4}@
+    p_offset             0xf4
+    p_vaddr              0x80480f4
+    p_paddr              0x80480f4
+    p_filesz             0x15
+    p_memsz              0x15
+    p_flags              0x4 [ read ]
+    p_align              0x1
+PHDR 2:
+    p_type               0x1 "LOAD" @\co{5}@
+    p_offset             0x0
+    p_vaddr              0x8048000
+    p_paddr              0x8048000
+    p_filesz             0xe67
+    p_memsz              0xe67
+    p_flags              0x5 [ execute read ]
+    p_align              0x1000
+PHDR 3:
+    p_type               0x1 "LOAD" @\co{6}@
+    p_offset             0xe68
+    p_vaddr              0x8049e68
+    p_paddr              0x8049e68
+    p_filesz             0x11c
+    p_memsz              0x13c
+    p_flags              0x6 [ read write ]
+    p_align              0x1000
+PHDR 4:
+    p_type               0x2 "DYNAMIC"
+    p_offset             0xe78
+    p_vaddr              0x8049e78
+    p_paddr              0x8049e78
+    p_filesz             0xb8
+    p_memsz              0xb8
+    p_flags              0x6 [ read write ]
+    p_align              0x4
+PHDR 5:
+    p_type               0x4 "NOTE"
+    p_offset             0x10c
+    p_vaddr              0x804810c
+    p_paddr              0x804810c
+    p_filesz             0x18
+    p_memsz              0x18
+    p_flags              0x4 [ read ]
+    p_align              0x4
+  \end{lstlisting}
+
+  \begin{description}
+  \item[\coref{1}] Compile and link the program in the standard way.
+  \item[\coref{2}] We make our program examine its own Program Header
+    Table.  This listing was generated on an i386\trade machine
+    running FreeBSD.
+  \item[\coref{3}] The very first entry in this Program Header Table
+    describes the Program Header Table itself.
+  \item[\coref{4}] An entry of type \constant{PT\_INTERP} is used to
+    point the kernel to the ``interpreter'' associated with this ELF
+    object.  This is usually the runtime loader
+    \filename{/libexec/ld-elf.so.1}.
+  \item[\coref{5} \coref{6}] This object has two loadable segments:
+    one with execute and read permissions and one with read and write
+    permissions.  Both these segments require page alignment.
+  \end{description}
+\end{callout}
+
+You should now run \tool{prog3} on other object files.
+
+\begin{itemize}
+\item Try a relocatable object file created by a \tool{cc -c}
+  invocation.  Does it have an Program Header Table?
+\item Try \tool{prog3} on shared libraries.  What do their Program
+  Header Tables look like?
+\item Can you locate ELF objects on your system that have
+  \constant{PT\_TLS} header entries?
+\end{itemize}
+
 \chapter{Looking at Sections}\label{chap.elf-sections}
 \chapter{Creating new ELF objects}\label{chap.creating-elf}
 \chapter{Processing ar(1) archives}\label{chap.ar}
+
 \chapter{Conclusion}\label{chap.conclusion}
+This tutorial covered the following topics:
+\begin{itemize}
+\item We gained an overview of the facilities for manipulating ELF
+  objects offered by the ELF(3) and GELF(3) API sets.
+\item We studied the basics of the ELF format, including the key data
+  structures involved and their layout inside ELF objects.
+\item We looked at example programs that retrieve ELF data structures
+  from existing ELF objects.
+\item We looked at how to create new ELF objects using the ELF(3)
+  library.
+\item We looked at accessing information in the \tool{ar} archives.
+\end{itemize}
+
+\section{Further Reading}
+There are very few books today on the topic of linking and loading.
+John Levine's ``\href{http://linker.iecc.com/}{Linkers and Loaders}''
+is a readable book that offers a overview of the concepts involved in
+the process of linking and loading object files.
+
+On the Web, Peter Seebach's DeveloperWorks article
+``\href{http://www-128.ibm.com/developerworks/power/library/pa-spec12/index.html}{An
+  unsung hero: The hardworking ELF}'' covers the history and features
+of the ELF format.  Other tutorials include Hongjiu Liu's
+``\href{http://linux4u.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/elf.html}{ELF:
+  From The Programmer's Perspective}'', which covers GCC and GNU ld,
+and Michael L. Haung's
+``\href{http://www.cs.ucdavis.edu/~haungs/paper/node10.html}{The
+  Executable and Linking Format (ELF)}''.
+
+Neelakanth Nadgir's
+\href{http://developers.sun.com/solaris/articles/elf.html}
+{tutorial on ELF(3) and GELF(3)} is a readable and brief introduction
+to the ELF{3} and GELF{3} APIs for Solaris\trade.
+
+The
+\href{http://docsun.cites.uiuc.edu/sun_docs/C/solaris_9/SUNWdev/LLM/toc.html}{Linkers
+  and Libraries Guide} from Sun Microsystems\reg describes linking and
+loading tools in Solaris\trade.  Chapter 7 of this book, ``Object File
+Format'' contains a readable introduction to the ELF format.
+
+The current specification of the ELF format, the ``%
+\href{http://www.x86.org/ftp/manuals/tools/elf.pdf}{Tool Interface
+  Standard (TIS) Executable and Linking Format (ELF) Specification,
+  Version 1.2}'' is freely available to download.
 \end{document}
 
