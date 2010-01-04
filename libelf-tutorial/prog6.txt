@@ -1,0 +1,56 @@
+/*
+ * Iterate through an ar(1) archive.
+ */
+
+#include <err.h>
+#include <fcntl.h>
+#include <libelf.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sysexits.h>
+#include <unistd.h>
+
+int
+main(int argc, char **argv)
+{
+    int fd;
+    Elf *ar, *e;
+    Elf_Arhdr *arh;
+
+    if (argc != 2)
+        errx(EX_USAGE, "usage: %s file-name", getprogname());
+
+    if (elf_version(EV_CURRENT) == EV_NONE)
+        errx(EX_SOFTWARE, "ELF library initialization "
+            "failed: %s", elf_errmsg(-1));
+
+    if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
+        err(EX_NOINPUT, "open \%s\" failed", argv[1]);
+
+    if ((fd = open(argv[1], O_RDONLY, 0)) < 0) @\co{1}@
+        err(EX_NOINPUT, "open \%s\" failed", argv[1]);
+
+    if ((ar = elf_begin(fd, ELF_C_READ, NULL)) == NULL) @\co{2}@
+        errx(EX_SOFTWARE, "elf_begin() failed: %s.",
+            elf_errmsg(-1));
+
+    if (elf_kind(ar) != ELF_K_AR)
+        errx(EX_DATAERR, "%s is not an ar(1) archive.",
+            argv[1]);
+
+    while ((e = elf_begin(fd, ELF_C_READ, ar)) != NULL) { @\co{3}@
+        if ((arh = elf_getarhdr(e)) == NULL) @\co{4}@
+            errx(EX_SOFTWARE, "elf_getarhdr() failed: %s.",
+                elf_errmsg(-1));
+
+        (void) printf("%20s %d\n", arh->ar_name,
+            arh->ar_size);
+
+        (void) elf_next(e); @\co{5}@
+        (void) elf_end(e); @\co{6}@
+    }
+
+    (void) elf_end(ar);
+    (void) close(fd);
+    exit(0);
+}
