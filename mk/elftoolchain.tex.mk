@@ -26,10 +26,10 @@ CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 .endfor
 
 ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
-	${PDFLATEX} ${SRCS} || (rm ${.TARGET}; exit 1)
-	${PDFLATEX} ${SRCS}
+	${PDFLATEX} ${DOC}.tex || (rm ${.TARGET}; exit 1)
+	${PDFLATEX} ${DOC}.tex
 
-.for f in aux log out pdf
+.for f in aux log out pdf toc
 CLEANFILES+=	${DOC}.${f}
 .endfor
 
