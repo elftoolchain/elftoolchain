@@ -135,6 +135,21 @@ struct _Dwarf_Loclist {
 	TAILQ_ENTRY(_Dwarf_Loclist) ll_next; /* Next loclist in list. */
 };
 
+struct _Dwarf_P_Expr_Entry {
+	Dwarf_Loc	ee_loc;		/* Location expression. */
+	Dwarf_Unsigned	ee_sym;		/* Optional related reloc sym index. */
+	STAILQ_ENTRY(_Dwarf_P_Expr_Entry) ee_next; /* Next entry in list. */
+};
+
+struct _Dwarf_P_Expr {
+	Dwarf_Debug	pe_dbg;		/* Dwarf_Debug pointer. */
+	uint8_t		*pe_block;	/* Expression block data. */
+	int		pe_invalid;	/* Block data is up-to-date or not. */
+	Dwarf_Unsigned	pe_length;	/* Length of the block. */
+	STAILQ_HEAD(, _Dwarf_P_Expr_Entry) pe_eelist; /* List of entries. */
+	STAILQ_ENTRY(_Dwarf_P_Expr) pe_next; /* Next expr in list. */
+};
+
 struct _Dwarf_Line {
 	Dwarf_LineInfo	ln_li;		/* Ptr to line info. */
 	Dwarf_Addr	ln_addr;	/* Line address. */
@@ -355,6 +370,7 @@ struct _Dwarf_Debug {
 	Dwarf_Callback_Func_b dbgp_func_b;
 	Dwarf_Die	dbgp_root_die;
 	STAILQ_HEAD(, _Dwarf_Die) dbgp_dielist;
+	STAILQ_HEAD(, _Dwarf_P_Expr) dbgp_pelist;
 };
 
 /*
@@ -422,6 +438,9 @@ int		_dwarf_loc_fill_locdesc(Dwarf_Debug, Dwarf_Locdesc *, uint8_t *,
 int		_dwarf_loc_fill_locexpr(Dwarf_Debug, Dwarf_Locdesc **,
 		    uint8_t *, uint64_t, uint8_t, Dwarf_Error *);
 int		_dwarf_loc_add(Dwarf_Die, Dwarf_Attribute, Dwarf_Error *);
+int		_dwarf_loc_expr_add_atom(Dwarf_Debug, uint8_t *, uint8_t *,
+		    Dwarf_Small, Dwarf_Unsigned, Dwarf_Unsigned, int *,
+		    Dwarf_Error *);
 int		_dwarf_loclist_find(Dwarf_Debug, uint64_t, Dwarf_Loclist *);
 int		_dwarf_loclist_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
@@ -441,5 +460,7 @@ int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
 char		*_dwarf_strtab_get_table(Dwarf_Debug);
 int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_write_sleb128(uint8_t *, uint8_t *, int64_t);
+int		_dwarf_write_uleb128(uint8_t *, uint8_t *, uint64_t);
 
 #endif /* !__LIBDWARF_H_ */

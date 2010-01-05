@@ -274,6 +274,204 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 }
 
 int
+_dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
+    Dwarf_Small atom, Dwarf_Unsigned operand1, Dwarf_Unsigned operand2,
+    int *length, Dwarf_Error *error)
+{
+	uint8_t buf[64];
+	uint8_t *p, *pe;
+	uint64_t offset;
+	int len;
+
+	if (out != NULL && end != NULL) {
+		p = out;
+		pe = end;
+	} else {
+		p = buf;
+		pe = &buf[sizeof(buf)];
+	}
+
+	switch (atom) {
+	/* Operations with no operands. */
+	case DW_OP_deref:
+	case DW_OP_reg0:
+	case DW_OP_reg1:
+	case DW_OP_reg2:
+	case DW_OP_reg3:
+	case DW_OP_reg4:
+	case DW_OP_reg5:
+	case DW_OP_reg6:
+	case DW_OP_reg7:
+	case DW_OP_reg8:
+	case DW_OP_reg9:
+	case DW_OP_reg10:
+	case DW_OP_reg11:
+	case DW_OP_reg12:
+	case DW_OP_reg13:
+	case DW_OP_reg14:
+	case DW_OP_reg15:
+	case DW_OP_reg16:
+	case DW_OP_reg17:
+	case DW_OP_reg18:
+	case DW_OP_reg19:
+	case DW_OP_reg20:
+	case DW_OP_reg21:
+	case DW_OP_reg22:
+	case DW_OP_reg23:
+	case DW_OP_reg24:
+	case DW_OP_reg25:
+	case DW_OP_reg26:
+	case DW_OP_reg27:
+	case DW_OP_reg28:
+	case DW_OP_reg29:
+	case DW_OP_reg30:
+	case DW_OP_reg31:
+
+	case DW_OP_lit0:
+	case DW_OP_lit1:
+	case DW_OP_lit2:
+	case DW_OP_lit3:
+	case DW_OP_lit4:
+	case DW_OP_lit5:
+	case DW_OP_lit6:
+	case DW_OP_lit7:
+	case DW_OP_lit8:
+	case DW_OP_lit9:
+	case DW_OP_lit10:
+	case DW_OP_lit11:
+	case DW_OP_lit12:
+	case DW_OP_lit13:
+	case DW_OP_lit14:
+	case DW_OP_lit15:
+	case DW_OP_lit16:
+	case DW_OP_lit17:
+	case DW_OP_lit18:
+	case DW_OP_lit19:
+	case DW_OP_lit20:
+	case DW_OP_lit21:
+	case DW_OP_lit22:
+	case DW_OP_lit23:
+	case DW_OP_lit24:
+	case DW_OP_lit25:
+	case DW_OP_lit26:
+	case DW_OP_lit27:
+	case DW_OP_lit28:
+	case DW_OP_lit29:
+	case DW_OP_lit30:
+	case DW_OP_lit31:
+
+	case DW_OP_dup:
+	case DW_OP_drop:
+
+	case DW_OP_over:
+
+	case DW_OP_swap:
+	case DW_OP_rot:
+	case DW_OP_xderef:
+
+	case DW_OP_abs:
+	case DW_OP_and:
+	case DW_OP_div:
+	case DW_OP_minus:
+	case DW_OP_mod:
+	case DW_OP_mul:
+	case DW_OP_neg:
+	case DW_OP_not:
+	case DW_OP_or:
+	case DW_OP_plus:
+
+	case DW_OP_shl:
+	case DW_OP_shr:
+	case DW_OP_shra:
+	case DW_OP_xor:
+
+	case DW_OP_eq:
+	case DW_OP_ge:
+	case DW_OP_gt:
+	case DW_OP_le:
+	case DW_OP_lt:
+	case DW_OP_ne:
+
+	case DW_OP_nop:
+		*p++ = atom;
+		break;
+
+	/* Operations with a signed LEB128 operand. */
+	case DW_OP_consts:
+	case DW_OP_breg0:
+	case DW_OP_breg1:
+	case DW_OP_breg2:
+	case DW_OP_breg3:
+	case DW_OP_breg4:
+	case DW_OP_breg5:
+	case DW_OP_breg6:
+	case DW_OP_breg7:
+	case DW_OP_breg8:
+	case DW_OP_breg9:
+	case DW_OP_breg10:
+	case DW_OP_breg11:
+	case DW_OP_breg12:
+	case DW_OP_breg13:
+	case DW_OP_breg14:
+	case DW_OP_breg15:
+	case DW_OP_breg16:
+	case DW_OP_breg17:
+	case DW_OP_breg18:
+	case DW_OP_breg19:
+	case DW_OP_breg20:
+	case DW_OP_breg21:
+	case DW_OP_breg22:
+	case DW_OP_breg23:
+	case DW_OP_breg24:
+	case DW_OP_breg25:
+	case DW_OP_breg26:
+	case DW_OP_breg27:
+	case DW_OP_breg28:
+	case DW_OP_breg29:
+	case DW_OP_breg30:
+	case DW_OP_breg31:
+	case DW_OP_fbreg:
+		*p++ = atom;
+		len = _dwarf_write_sleb128(p, pe, operand1);
+		assert(len > 0);
+		p += len;
+		break;
+
+	/*
+	 * Operations with an unsigned LEB128 operand
+	 * followed by a signed LEB128 operand.
+	 */
+	case DW_OP_bregx:
+		*p++ = atom;
+		len = _dwarf_write_uleb128(p, pe, operand1);
+		assert(len > 0);
+		p += len;
+		len = _dwarf_write_sleb128(p, pe, operand2);
+		assert(len > 0);
+		p += len;
+		break;
+
+	/* Target address size operand. */
+	case DW_OP_addr:
+		*p++ = atom;
+		offset = 0;
+		dbg->write(p, &offset, operand1, dbg->dbg_pointer_size);
+		p += dbg->dbg_pointer_size;
+		break;
+
+	/* All other operations cause an error. */
+	default:
+		DWARF_SET_ERROR(error, DWARF_E_INVALID_EXPR);
+		return (DWARF_E_INVALID_EXPR);
+	}
+
+	if (length)
+		*length = p - out;
+
+	return (DWARF_E_NONE);
+}
+
+int
 _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
     uint64_t in_len, uint8_t pointer_size, Dwarf_Error *error)
 {
