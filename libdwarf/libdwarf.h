@@ -69,6 +69,7 @@ typedef struct _Dwarf_NamePair	*Dwarf_Var;
 typedef struct _Dwarf_NamePair	*Dwarf_Weak;
 typedef struct _Dwarf_NameTbl	*Dwarf_NameTbl;
 typedef struct _Dwarf_NameSec	*Dwarf_NameSec;
+typedef struct _Dwarf_P_Expr	*Dwarf_P_Expr;
 typedef struct _Dwarf_Rangelist	*Dwarf_Rangelist;
 
 typedef enum {
@@ -320,10 +321,16 @@ Dwarf_P_Attribute dwarf_add_AT_reference(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    Dwarf_P_Die, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_flag(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    Dwarf_Small, Dwarf_Error *);
-Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
-		    Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_string(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    char *, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_expr_addr(Dwarf_P_Expr, Dwarf_Unsigned,
+		    Dwarf_Signed, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_expr_addr_b(Dwarf_P_Expr, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_expr_gen(Dwarf_P_Expr, Dwarf_Small, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
 int		dwarf_arrayorder(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
@@ -353,6 +360,9 @@ int		dwarf_elf_init(Elf *, int, Dwarf_Handler, Dwarf_Ptr,
 		    Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_expand_frame_instructions(Dwarf_Debug, Dwarf_Ptr,
 		    Dwarf_Unsigned, Dwarf_Frame_Op **, Dwarf_Signed *,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_expr_current_offset(Dwarf_P_Expr, Dwarf_Error *);
+Dwarf_Addr	dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 char		*dwarf_find_macro_value_start(char *);
 int		dwarf_finish(Dwarf_Debug, Dwarf_Error *);
@@ -497,6 +507,7 @@ int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
 Dwarf_P_Die	dwarf_new_die(Dwarf_P_Debug, Dwarf_Tag, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die, Dwarf_Error *);
+Dwarf_P_Expr	dwarf_new_expr(Dwarf_P_Debug, Dwarf_Error *);
 int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
 		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Half *,
 		    Dwarf_Unsigned *, Dwarf_Error *);
