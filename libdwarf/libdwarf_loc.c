@@ -43,10 +43,12 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 	int count;
 	uint64_t operand1;
 	uint64_t operand2;
-	uint8_t *pe;
+	uint8_t *ps, *pe;
 
 	count = 0;
+	ps = p;
 	pe = p + len;
+
 	/*
 	 * Process each byte. If an error occurs, then the
 	 * count will be set to -1.
@@ -56,8 +58,10 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		operand1 = 0;
 		operand2 = 0;
 
-		if (lbuf != NULL)
+		if (lbuf != NULL) {
 			lbuf->ld_s[count].lr_atom = *p;
+			lbuf->ld_s[count].lr_offset = p - ps;
+		}
 
 		switch (*p++) {
 		/* Operations with no operands. */
