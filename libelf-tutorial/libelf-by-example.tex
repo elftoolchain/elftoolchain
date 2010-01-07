@@ -87,7 +87,7 @@
 \makeatother
 
 \begin{document}
-\lstset{language=C,basicstyle=\small,escapechar=@,float}
+\lstset{language=C,basicstyle=\small\ttfamily,escapechar=@,float}
 
 \title{\library{libelf} by Example}
 \author{Joseph~Koshy}
@@ -125,19 +125,18 @@ are met:
   the distribution.
 \end{itemize}
 
-{\raggedright
-THIS DOCUMENTATION IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS
+THIS DOCUMENTATION IS PROVIDED BY THE AUTHOR AND CON\-TRIBUTORS ``AS
 IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MER\-CHANTABILITY AND FITNESS FOR A
+TO, THE IMPLIED WARRANTIES OF MER\-CHANT\-ABILITY AND FITNESS FOR A
 PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR AND
-CON\-TRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEM\-PLARY, OR CON\-SEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+CON\-TRIBUTORS BE LIABLE FOR ANY DIRECT, IN\-DIRECT, INCIDENT\-AL,
+SPECIAL, EX\-EMPLARY, OR CON\-SEQUENT\-IAL DAMAGES (INCLUDING, BUT NOT
 LIMITED TO, PRO\-CURE\-MENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
 USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHE\-THER IN CONTRACT, STRICT LIABILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ANY THEORY OF LIABILITY, WHE\-THER IN CONTRACT, STRICT LIA\-BILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHER\-WISE) ARISING IN ANY WAY OUT OF THE
 USE OF THIS DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.}
+DAMAGE.
 
 \vskip\baselineskip
 
@@ -228,22 +227,23 @@ include \function{elf\_getident}, \function{elf\_getphdrnum},
 \function{elf\_getshdrnum}, \function{elf\_getshdrstrndx},
 \function{gelf\_getehdr} and \function{gelf\_getclass}.
 
-Chapter \vref{chap.elf-phdr} describes the ELF Program Header Table and
-shows how an application can retrieve this table from an ELF object.
-The \function{gelf\_getphdr} API is introduced in this chapter.
+Chapter \vref{chap.elf-phdr} describes the ELF Prog\-ram Head\-er Table
+and shows how an appli\-cation can retrieve this table from an ELF
+object.  The \function{gelf\_getphdr} function is introduced in this
+chapter.
 
 Chapter \vref{chap.elf-sections} then looks at how data is stored in
 ELF sections.  An application that looks at ELF sections is examined.
 The \type{Elf\_Scn} and \type{Elf\_Data} data types used by the
-library are examined in detail.  APIs covered include
-\function{elf\_getscn}, \function{elf\_getdata},
-\function{elf\_nextscn}, \function{elf\_strptr},
-and \function{gelf\_getshdr}.
+library are examined in detail. The functions covered in this chapter
+include \function{elf\_getscn}, \function{elf\_getdata},
+\function{elf\_nextscn}, \function{elf\_strptr}, and
+\function{gelf\_getshdr}.
 
 Chapter \vref{chap.creating-elf} looks at how we create ELF objects.
 We cover the rules in ordering of the individual API calls when
 creating ELF objects.  We look at the library's object layout rules
-and how an application can choose to override these.  APIs covered
+and how an application can choose to override these.  The APIs covered
 include \function{elf\_fill}, \function{elf32\_getshdr},
 \function{elf32\_newehdr}, \function{elf32\_newphdr},
 \function{elf\_flagphdr}, \function{elf\_ndxscn},
@@ -273,7 +273,7 @@ how to compile a program using \library{libelf}, how to initialize the
 library, how to report errors, and how to wind up.
 
 \begin{callout}{prog1}
-  \lstinputlisting[caption=Program 1,label=src.prog.1]{prog1.txt}
+  \lstinputlisting[caption=Program 1, label=src.prog.1]{prog1.txt}
 
   \begin{description}
   \item[\coref{1}] The functions and dataypes that make up the ELF(3) API
@@ -512,7 +512,7 @@ Header using a ``C-like'' struct.
     \begin{figure}[H]
       \caption{The \parameter{e\_ident[]} array}\label{fig.elf.eident}
       \begin{center}
-        \includegraphics[scale=.9]{fig-eident}
+        \framebox{\includegraphics[scale=.9]{fig-eident}}
       \end{center}
     \end{figure}
 
@@ -612,7 +612,7 @@ in-memory representation.
 \begin{figure}
   \caption{File and Memory Representations}\label{fig.representations}
   \begin{center}
-    \includegraphics[scale=.9]{fig-filemem}
+    \includegraphics{fig-filemem}
   \end{center}
 \end{figure}
 
@@ -907,7 +907,7 @@ and in memory.
 \begin{figure}
   \caption{ELF Segment Placement}\label{fig.elf.phdr.layout}
   \begin{center}
-    \includegraphics[scale=.8]{fig-phdrlayout}
+    \includegraphics[scale=.85]{fig-phdrlayout}
   \end{center}
 \end{figure}
 
@@ -1140,7 +1140,7 @@ the fields of an ELF section header specify the section's placement.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.8]{fig-shdrlayout}
+    \includegraphics[scale=.85]{fig-shdrlayout}
   \end{center}
   \caption{Section layout}\label{fig.elf.shdrlayout}
 \end{figure}
@@ -1195,7 +1195,7 @@ descriptor could conceptually cover the content of a section with
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.9]{fig-scn}
+    \includegraphics{fig-scn}
   \end{center}
   \caption{Managing data in an Elf Section}\label{fig.elf.scn}
 \end{figure}
@@ -1208,7 +1208,7 @@ representation.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.9]{fig-data}
+    \includegraphics{fig-data}
   \end{center}
   \caption{\type{Elf\_Data} descriptors}\label{fig.elf.data}
 \end{figure}
@@ -1218,7 +1218,7 @@ Figure~\vref{fig.elf.scn-data.decl} shows the C definition of the
 
 \begin{callout}{data}
   \begin{lstlisting}[caption=Definition of Elf\_Data and Elf\_Scn,
-      label=fig.elf.scn-data.decl, basicstyle=\ttfamily]
+      label=fig.elf.scn-data.decl, basicstyle=\small\ttfamily]
 typedef struct _Elf_Scn Elf_Scn;   @\co{1}@ 
 typedef struct _Elf_Data {
         /*
@@ -1272,7 +1272,7 @@ string table graphically.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.9]{fig-strtab}
+    \includegraphics{fig-strtab}
   \end{center}
   \caption{String Table Layout}\label{fig.elf.strtab}
 \end{figure}
@@ -1646,7 +1646,7 @@ structure of an ar(1) archive pictorially.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.8]{fig-arstr}
+    \includegraphics[scale=.9]{fig-arstr}
   \end{center}
   \caption{The structure of ar(1) archives}\label{fig.arstr}
 \end{figure}
@@ -1711,7 +1711,7 @@ an ar(1) archive.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[scale=.9]{fig-ariter}
+    \includegraphics{fig-ariter}
   \end{center}
   \caption{Iterating through ar(1) archives with
     \function{elf\_begin} and \function{elf\_next}}\label{fig.ariter}
