@@ -42,11 +42,11 @@ main(int argc, char **argv)
     GElf_Phdr phdr; @\co{2}@
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", getprogname());
+        errx(EX_USAGE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        errx(EX_SOFTWARE, "ELF library initialization failed: %s",
-            elf_errmsg(-1));
+        errx(EX_SOFTWARE, "ELF library initialization "
+            "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
         err(EX_NOINPUT, "open \"%s\" failed", argv[1]);
@@ -56,7 +56,8 @@ main(int argc, char **argv)
             elf_errmsg(-1));
 
     if (elf_kind(e) != ELF_K_ELF)
-        errx(EX_DATAERR, "\"%s\" is not an ELF object.", argv[1]);
+        errx(EX_DATAERR, "\"%s\" is not an ELF object.",
+            argv[1]);
 
     if (elf_getphdrnum(e, &n) != 0) @\co{3}@
         errx(EX_DATAERR, "elf_getphdrnum() failed: %s.",
@@ -68,9 +69,9 @@ main(int argc, char **argv)
                 elf_errmsg(-1));
 
         (void) printf("PHDR %d:\n");
-#define        PRINT_FORMAT        "    %-20s 0x%jx"
+#define        PRINT_FMT        "    %-20s 0x%jx"
 #define        PRINT_FIELD(N) do { \
-        (void) printf(PRINT_FORMAT, #N, (uintmax_t) phdr.N); \
+        (void) printf(PRINT_FMT, #N, (uintmax_t) phdr.N); \
     } while (0)
 #define         NL() do { (void) printf("\n"); } while (0)
         PRINT_FIELD(p_type); @\co{6}@
