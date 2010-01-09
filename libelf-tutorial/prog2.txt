@@ -54,8 +54,8 @@ main(int argc, char **argv)
         errx(EX_SOFTWARE, "getident() failed: %s.",
             elf_errmsg(-1));
 
-       (void) printf("%3s e_ident[0..%1d] %7s", " ",
-           EI_ABIVERSION, " ");
+    (void) printf("%3s e_ident[0..%1d] %7s", " ",
+        EI_ABIVERSION, " ");
 
     for (i = 0; i <= EI_ABIVERSION; i++) {
         (void) vis(bytes, id[i], VIS_WHITE, 0);
