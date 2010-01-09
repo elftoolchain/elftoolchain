@@ -17,4 +17,9 @@ IMAGES_MP=		fig-arstr.mp fig-ariter.mp fig-data.mp \
 			fig-scn.mp fig-shdrlayout.mp fig-strtab.mp \
 			fig-versions.mp 
 
+check-example-syntax: .PHONY
+.for f in ${SRCS:Mprog*}
+	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' ${f} > $${c};	echo -n $${c} ' '; cc $${c} -lelf
+.endfor
+	@echo
 .include "${TOP}/mk/elftoolchain.tex.mk"
