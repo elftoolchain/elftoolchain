@@ -26,7 +26,7 @@
 %
 % $Id$
 %
-\documentclass[a4paper]{book}
+\documentclass[a4paper,pdftex]{book}
 
 \usepackage{array}
 \usepackage{color}
@@ -36,7 +36,7 @@
 \usepackage{varioref}
 \usepackage{xspace}
 
-\usepackage[pdftex,bookmarks=false]{hyperref}
+\usepackage{hyperref}
 
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
@@ -85,6 +85,19 @@
 \newcommand{\coref}[1]{%
   \hypertarget{\@cogroup.#1.cr}{%
     \hyperlink{\@cogroup.#1.co}{\@co{#1}}}}
+
+% Add meta-data to the PDF file.
+\hypersetup{
+  pdftitle={libelf by Example},
+  pdfauthor={Joseph Koshy},
+  pdfsubject={Handling ELF objects with libelf},
+  pdfkeywords={ar archive %
+    ELF "ELF sections" %
+    GELF %
+    loading libelf linker %
+    programming %
+    "shared library" "shared objects"}
+}
 \makeatother
 
 \begin{document}
