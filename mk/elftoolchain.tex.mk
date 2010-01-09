@@ -8,6 +8,8 @@
 
 .if defined(MKTEX) # && ${MKTEX} == "yes"
 
+.MAIN:	all
+
 all:	${DOC}.pdf
 
 # Recognize additional suffixes.
