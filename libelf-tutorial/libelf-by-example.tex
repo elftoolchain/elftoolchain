@@ -422,17 +422,19 @@ how to pick an ELF object apart into its component pieces.
 \chapter{Peering Inside an ELF Object}\label{chap.peering-inside}
 
 Next, we will look inside an ELF object.  We will look at how an ELF
-object is laid out and introduce its major parts, namely the ELF
-Executable Header, the ELF Program Header Table and ELF Sections.
+object is laid out and we will introduce its major parts, namely the
+ELF Executable Header, the ELF Program Header Table and ELF Sections.
 Along the way we will look at the way \library{libelf} handles
 non-native objects.
+
+\section{The Layout of an ELF file}
 
 As an object format, ELF supports multiple kinds of objects:
 
 \begin{itemize}
-\item Compilers generate \firstterm{relocatable objects} that contain fragments of
-  machine code along with the ``glue'' information needed when
-  combining multiple such objects to form a final executable.
+\item Compilers generate \firstterm{relocatable objects} that contain
+  fragments of machine code along with the ``glue'' information needed
+  when combining multiple such objects to form a final executable.
 \item \firstterm{Executables} are programs that are in a form that an
   operating system can launch in a process.  The process of forming
   executables from collections of relocatable objects is called
@@ -441,8 +443,6 @@ As an object format, ELF supports multiple kinds of objects:
   loaded by an executable after it has started executing.  Dynamically
   loadable \firstterm{shared libraries} are examples of such objects.
 \end{itemize}
-
-\section{The Layout of an ELF file}
 
 An ELF object consists of a mandatory header named the \firstterm{ELF
   Executable Header}, followed by optional content in the form of
@@ -467,21 +467,21 @@ An ELF object consists of a mandatory header named the \firstterm{ELF
 
 \item An optional \firstterm{ELF Program Header Table} is present in
   executable objects and contains information used by at program load
-  time.  The program header table is described in
+  time.  The Program Header Table is described in
   chapter~\vref{chap.elf-phdr}.
 
 \item The contents of a relocatable ELF object are contained in
   \firstterm{ELF sections}.  These sections are described by entries
-  in an \firstterm{ELF Section Header Table}, which has one table
-  entry per section present in the file.
-  Chapter~\vref{chap.elf-sections} describes ELF sections and the
-  section header table in further detail.
+  in an \firstterm{ELF Section Header Table}. This table has one entry
+  per section present in the file.  Chapter~\vref{chap.elf-sections}
+  describes ELF sections and the section header table in further
+  detail.
 \end{itemize}
 
 Every ELF object is associated with three parameters:
 
 \begin{itemize}
-\item Its \firstterm{class} denotes whether its is a 32 bit ELF object
+\item Its \firstterm{class} denotes whether it is a 32 bit ELF object
   (\constant{ELFCLASS32}) or a 64 bit (\constant{ELFCLASS64}) one.
 \item Its \firstterm{endianness} denotes whether it is using
   little-endian (\constant{ELFDATA2LSB}) or big-endian addressing
@@ -496,7 +496,7 @@ take a closer look at the ELF Executable Header.
 
 \subsubsection{The ELF Executable Header}\label{sec.ehdr}
 Table \vref{src.elf.ehdr} describes the layout of an ELF Executable
-Header using a ``C-like'' struct.
+Header using a ``C-like'' notation.
 
 \begin{callout}{ehdr}
   \begin{table}
@@ -539,7 +539,7 @@ Header using a ``C-like'' struct.
 
   \begin{description}
   \item[\coref{1}] The first 16 bytes (the \parameter{e\_ident}
-    array)) contain values that determine the ELF class, version and
+    array) contain values that determine the ELF class, version and
     endianness of the rest of the file.  See figure
     \vref{fig.elf.eident}.
 
@@ -550,24 +550,23 @@ Header using a ``C-like'' struct.
       \end{center}
     \end{figure}
 
-    The first 4 bytes of an ELF object are always 0x7F, 'E', 'L' and
-    'F'.  The next three bytes specify the class of the ELF object
+    The first 4 bytes of an ELF object are always 0x7F, `E', `L' and
+    `F'.  The next three bytes specify the class of the ELF object
     (\constant{ELFCLASS32} or \constant{ELFCLASS64}), its data
     ordering (\constant{ELFDATA2LSB} or \constant{ELFDATA2MSB}) and
     the ELF version the object conforms to.  With this information on
-    hand, an application (in our case the \library{libelf} library)
-    can then interpret the rest of the ELF Executable Header
-    correctly.
+    hand, the \library{libelf} library can then interpret the rest of
+    the ELF Executable Header correctly.
 
   \item[\coref{2}] The \parameter{e\_type} member determines the type
-    of the ELF object.  For example, it would contain a 1
-    (\constant{ET\_REL}) in a relocatable or 3 (\constant{ET\_DYN}) in
-    a shared object.
+    of the ELF object.  For example, it would contain a `1'
+    (\constant{ET\_REL}) in a relocatable or `3' (\constant{ET\_DYN})
+    in a shared object.
 
   \item[\coref{3}] The \parameter{e\_machine} member describes the
-    machine architecture this ELF object is for.  Example values are 3
+    machine architecture this ELF object is for.  Example values are `3'
     (\constant{EM\_386}) for the Intel\reg i386\trade architecture and
-    20 (\constant{EM\_PPC}) for the 32-bit PowerPC\trade architecture.
+    `20' (\constant{EM\_PPC}) for the 32-bit PowerPC\trade architecture.
 
   \begin{figure}
     \caption{The ELF Executable Header and Object Layout}
@@ -581,7 +580,7 @@ Header using a ``C-like'' struct.
     the layout of the rest of the ELF object
     (Figure~\vref{fig.elf.ehdr-layout}). The \parameter{e\_phoff} and
     \parameter{e\_shoff} fields contain the file offsets where the ELF
-    Program Header Table and ELF Section Header Table would reside.
+    Program Header Table and ELF Section Header Table reside.
     These fields are zero if the file does not have a Program Header
     Table or Section Header Table respectively.  The sizes of these
     components are determined by the \parameter{e\_phentsize} and
@@ -599,16 +598,16 @@ Header using a ``C-like'' struct.
     then a scheme known as \firstterm{Extended Numbering}
     (section~\vref{sec.extended-numbering}) is used to encode the
     actual number of sections or program header table entries.  When
-    extended numbering is in use these fields will contain ``magic''
-    numbers instead of actual counts.
+    extended numbering is in use these fields will contain ``magic
+    numbers'' instead of actual counts.
 
   \item[\coref{8}] If the ELF object contains sections, then we need a
     way to get at the names of sections.  Section names are stored in
     a string table. The \parameter{e\_shstrndx} stores the section
     index of this string table (see \vref{sec.extended-numbering}) so
-    that processing tools know which string table to use when
-    retrieving names.  We will cover ELF string tables in more detail
-    in section~\vref{sec.shdr.strtab}.
+    that processing tools know which string table to use for
+    retrieving the names of sections.  We will cover ELF string tables
+    in more detail in section~\vref{sec.shdr.strtab}.
   \end{description}
 
   The fields \parameter{e\_entry} and \parameter{e\_flags} are used
@@ -636,8 +635,8 @@ native endianness of the host's CPU and would conform to the address
 alignment and structure padding requirements set by the host's machine
 architecture.
 
-However when this data has to go into the target object it may need to
-be formatted differently.  For example, it could be packed differently
+When this data is written into the target object it may need to be
+formatted differently.  For example, it could be packed differently
 compared to the ``native'' memory representation and may have to be
 laid out according a different set of rules for alignment.  The
 endianness of the data in-file could be different from that of the
@@ -652,19 +651,19 @@ in-memory representation.
 
 Figure \vref{fig.representations} depicts the relationship between the
 file and memory representation of an ELF data structure.  As shown in
-the figure, the size of an ELF data structure in file could be
+the figure, the size of an ELF data structure in the file could be
 different from its size in memory.  The alignment restrictions
 (\parameter{\%falign} and \parameter{\%malign} in the figure) could be
 different.  The byte ordering of the data could be different too.
 
 The ELF(3) and GELF(3) API set can handle the conversion of ELF data
-structures to and from their file representations to memory
-representations automatically.  For example, when we read in the ELF
-Executable Header in program~\vref{src.prog.2} below, the \library{libelf}
-library will automatically do the necessary byteswapping and alignment
-adjustments for us.
+structures to and from their file and memory representations
+automatically.  For example, when we read in the ELF Executable Header
+in program~\vref{src.prog.2} below, the \library{libelf} library will
+automatically do the necessary byteswapping and alignment adjustments
+for us.
 
-For applications that want finer-grain control over the conversion
+For applications that desire finer-grain control over the conversion
 process, the \function{elf\textit{NN}\_xlatetof} and
 \function{elf\textit{NN}\_xlatetom} functions are available.  These
 functions will translate data buffers containing ELF data structures
@@ -723,9 +722,9 @@ would need to use the function \function{elf32\_getehdr}, which would
 return a pointer to an \type{Elf32\_Ehdr} structure.  For a 64-bit ELF
 object, the function we would need to use would be
 \function{elf64\_getehdr}, which would return a pointer to an
-\type{Elf64\_Ehdr} structure.  This duplication is awkward to deal
-with in code when you want to write applications that can
-transparently process either class of ELF objects.
+\type{Elf64\_Ehdr} structure.  This duplication is awkward when you
+want to write applications that can transparently process either class
+of ELF objects.
 
 The GELF(3) APIs provide an ELF class independent way of writing ELF
 applications.  These functions are defined in terms of ``generic''
@@ -769,8 +768,8 @@ significant to most applications.
     bytes would also be present in the \parameter{e\_ident} member of
     the \parameter{ehdr} structure.
 
-    Here we print the first few bytes of the \parameter{e\_ident[]}
-    field of the ELF Executable Header.
+    We print the first few bytes of the \parameter{e\_ident[]} field
+    of the ELF Executable Header.
 
   \item[\coref{6}] Following the \parameter{e\_ident[]} bytes, we
     print the values of some of the fields of the ELF Executable
@@ -781,9 +780,9 @@ significant to most applications.
     \function{elf\_get\\-shdr\-strndx} described in section
     \vref{sec.extended-numbering} should be used to retrieve the count
     of program header table entries, the number of sections, and the
-    section name string table index respectively, from the ELF
-    Executable Header.  Using these functions insulates your
-    application from the quirks of extended numbering.
+    section name string table index respectively.  Using these
+    functions insulates your application from the quirks of extended
+    numbering.
   \end{description}
 \end{callout}
 
@@ -831,33 +830,31 @@ Before a program on disk can be executed by a processor it needs to
 brought into main memory.  This process is conventionally called
 ``loading''.
 
-When loading an executable into memory, the operating system views it
+When loading an ELF object into memory, the operating system views it
 as comprising of ``segments''.  Each such segment is a contiguous
 region of data inside the ELF object that is associated with a
 particular protection characteristic (for example, read-only or
 read-write) and that gets placed at a specific virtual memory address.
 
 For example, the FreeBSD\texttrademark{} operating system expects
-(statically linked) executables to have an ``executable'' segment
-containing code, and a ``data'' segment containing statically
-initialized data.  The executable segment would be mapped in with
-read-only and execute permissions and could be shared across multiple
-processes using the same ELF executable.  The data segment would be
-mapped in with read and write permissions and would be made private to
-each process.  For dynamically linked executables, the basic idea of
-grouping related parts of an ELF object into contiguous ``segments''
-still holds, though there may be multiple segments of each type per
-process.
+executables to have an ``executable'' segment containing code, and a
+``data'' segment containing statically initialized data.  The
+executable segment would be mapped in with read and execute
+permissions and could be shared across multiple processes using the
+same ELF executable.  The data segment would be mapped in with read
+and write permissions and would be made private to each process.  For
+dynamically linked executables, the basic idea of grouping related
+parts of an ELF object into contiguous ``segments'' still holds,
+though there may be multiple segments of each type per process.
 
 \section{The ELF Program Header Table}
 
 The ELF \firstterm{Program Header Table} describes the segments
 present in an ELF file.  The location of the Program Header Table is
 described by the \parameter{e\_phoff} field of the ELF Executable
-Header (see section~\vref{sec.ehdr}).
-
-The Program Header Table is a contiguous array of program header table
-entries, with each entry describing one segment.
+Header (see section~\vref{sec.ehdr}).  The program header table is a
+contiguous array of program header table entries, one entry per
+segment.
 
 Figure~\vref{fig.elf.phdr.layout} shows graphically how the fields of
 a Program Header Table entry specify the segment's placement in file
@@ -910,9 +907,8 @@ table~\vref{src.elf.phdr}.
     \begin{itemize}
     \item A segment of type \constant{PT\_LOAD} is loaded into memory.
     \item A segment of type \constant{PT\_NOTE} contains auxiliary
-      information.  For example, core files (see the core(5) manual
-      page) use \constant{PT\_NOTE} sections to record the name of the
-      process that dumped core.
+      information.  For example, core filesuse \constant{PT\_NOTE}
+      sections to record the name of the process that dumped core.
     \item A \constant{PT\_PHDR} segment describes the Program Header
       Table itself.
     \end{itemize}
@@ -1061,7 +1057,7 @@ PHDR 5:
     describes the Program Header Table itself.
   \item[\coref{4}] An entry of type \constant{PT\_INTERP} is used to
     point the kernel to the ``interpreter'' associated with this ELF
-    object.  This is usually the runtime loader
+    object.  This is usually a runtime loader, such as
     \filename{/libexec/ld-elf.so.1}.
   \item[\coref{5} \coref{6}] This object has two loadable segments:
     one with execute and read permissions and one with read and write
@@ -1096,7 +1092,7 @@ file.
 ELF sections are described by entries in an \firstterm{ELF Section
   Header Table}.  This table is usually placed at the very end of the
 ELF object (see figure~\vref{fig.elf.layout}).
-Listing~\vref{src.elf.shdr} describes the elements of section header
+Table~\vref{src.elf.shdr} describes the elements of section header
 table entry and figure~\vref{fig.elf.shdrlayout} shows graphically how
 the fields of an ELF section header specify the section's placement.
 
@@ -1153,7 +1149,7 @@ the fields of an ELF section header specify the section's placement.
     denotes a section containing a symbol table.
 
     The ELF specification reserves values in the range 0x6000\-0000 to
-    0x6FFF\-FFFF to denote OS-specific section types and values in the
+    0x6FFF\-FFFF to denote OS-specific section types, and values in the
     range 0x7000\-0000 to 0x7FFF\-FFFF for processor-specific section
     types.  In addition, applications have been given the range
     0x80000000 to 0xFFFFFFFF for their own use.
@@ -1304,15 +1300,15 @@ typedef struct _Elf_Data {
   \end{description}
 \end{callout}
 
-Before we look at example program we need to understand how string
+Before we look at an example program we need to understand how string
 tables are implemented by \library{libelf}.
 
 \subsection{String Tables}\label{sec.shdr.strtab}
 
-String tables hold variable length strings allowing other structures
-in an ELF object to refer to strings by their offsets into the string
-table's contents. Figure~\vref{fig.elf.strtab} shows the layout of a
-string table graphically.
+String tables hold variable length strings, allowing other structures
+in an ELF object to refer to strings using offsets into the string
+table.  Sections containing string tables have type
+\constant{SHT\_STRTAB}.
 
 \begin{figure}
   \begin{center}
@@ -1321,13 +1317,12 @@ string table graphically.
   \caption{String Table Layout}\label{fig.elf.strtab}
 \end{figure}
 
-Sections containing string tables have type \constant{SHT\_STRTAB}.
-
-Figure~\vref{fig.elf.strtab} illustrates the following points:
+Figure~\vref{fig.elf.strtab} shows the layout of a string table
+graphically:
 
 \begin{itemize}
 \item The initial byte of a string table is \constant{NUL} (a
-  '\(\backslash\)0').  This allows an string offset value of zero to
+  `\(\backslash\)0').  This allows an string offset value of zero to
   denote the NULL string.
 \item Subsequent strings are separated by \constant{NUL} bytes.
 \item The final byte in the section is again a \constant{NUL} so as to
@@ -1370,8 +1365,8 @@ to use:
     \item[\coref{2}] Function \function{elf\_nextscn} has the useful
       property that it returns the pointer to section number 1 if a
       NULL section pointer is passed in.  Recall that section number 0
-      is always of type \constant{SHT\_NULL} and is not very
-      interesting to applications.
+      is always of type \constant{SHT\_NULL} and is not interesting to
+      applications.
     \item[\coref{3}] We loop over all sections in the ELF object.
       Function \function{elf\_nextscn} will return NULL at the end,
       which is a convenient way to exit the processing loop.
@@ -1387,7 +1382,7 @@ to use:
     \item[\coref{6}] We retrieve the section descriptor associate with
       the string table holding section names.  Variable
       \parameter{shstrndx} was retrieved by a prior call to function
-      \function{elf\_getshstrndx}.
+      \function{elf\_getshdrstrndx}.
     \item[\coref{7}] We cycle through the \type{Elf\_Data} descriptors
       associated with the section in question, printing the characters
       in each data buffer.
@@ -1498,7 +1493,7 @@ name string table.  We will mark the ELF of the object as using a
   \begin{description}
   \item[\coref{1}] We include \filename{libelf.h} to bring in
     prototypes for \library{libelf}'s functions.
-    \item[\coref{2}] We will create an ELF section containing 'hash'
+    \item[\coref{2}] We will create an ELF section containing `hash'
       values.  These values are present in host-native order in the
       array \parameter{hash\_words}.  These values will be translated
       to the appropriate byte order by the \library{libelf} library
@@ -1521,7 +1516,7 @@ name string table.  We will mark the ELF of the object as using a
       will be laid out so we don't know where the ELF Program Header
       Table will reside.  We will update this entry later.
     \item[\coref{8}] We create a section descriptor for the section
-      containing the 'hash' values, and associate the data in the
+      containing the `hash' values, and associate the data in the
       \parameter{hash\_words} array with this descriptor.  The type of
       the section is set to \constant{SHT\_HASH}.  The library will
       compute its size and location in the final object and will
@@ -1541,10 +1536,9 @@ name string table.  We will mark the ELF of the object as using a
       out.  We can thus fill in the values in the ELF Program Header
       Table entry that we had allocated using the new values in the
       Executable Header after this call to \function{elf\_update}.
-      The Program Header Table is then marked <quote>dirty</quote>
-      using a call to function \function{elf\_flagdata}, so that a
-      subsequent call to \function{elf\_update} will use the new
-      contents.
+      The Program Header Table is then marked ``dirty'' using a call
+      to function \function{elf\_flagdata}, so that a subsequent call
+      to \function{elf\_update} will use the new contents.
     \item[\coref{12}] A call to function \function{elf\_update} with
       parameter \constant{ELF\_C\_WRITE} causes the object file to be
       written out.
@@ -1599,9 +1593,9 @@ ELF Header:
 
 Some of the finer points in creating ELF objects using the
 \library{libelf} library are examined below.  We cover memory
-management rules, ELF data structure lifetimes, how an application can
-take full control over an object's layout.  We also briefly cover how
-an existing ELF object would be modified.
+management rules, ELF data structure lifetimes, and how an application
+can take full control over an object's layout.  We also briefly cover
+how to modify an existing ELF object.
 
 \subsection{Controlling ELF Layout}
 By default, the \library{libelf} library will lay out your ELF objects
@@ -1638,10 +1632,9 @@ library by setting the \parameter{d\_buf} members of \type{Elf\_Data}
 structures passed to the library.  The \library{libelf} library also
 passes data back to the application using the same mechanism.  In
 order to keep tracking memory ownership simple, the \library{libelf}
-library follows the rule that it will <emphasis>never</emphasis>
-attempt to free data that it did not allocate.  Conversely, the
-application is also expected to \emph{not} free memory allocated by
-the \library{libelf} library.
+library follows the rule that it will never attempt to free data that
+it did not allocate.  Conversely, the application is also not to free
+memory allocated by the \library{libelf} library.
 
 \subsection{\library{libelf} data structure lifetimes}
 As part of the process of writing out an ELF object, the
@@ -1651,7 +1644,7 @@ bookkeeping structures.
 A rule to be followed when using the \library{libelf} library is that
 all pointers to returned data structures (e.g., pointers to
 \type{Elf\_Scn} and \type{Elf\_Data} structures or to other ELF
-headers <emphasis>become invalid</emphasis> after a call to function
+headers \emph{become invalid} after a call to function
 \function{elf\_update} with parameter \constant{ELF\_C\_WRITE}.
 
 After a successful call to function \function{elf\_update} all ELF
@@ -1727,14 +1720,14 @@ The initial members of an ar(1); archive may be special:
   symbol table}.  An archive symbol table maps program symbols to
   archive members in an archive.  It is usually maintained by tools
   like \tool{ranlib} and \tool{ar}.
-\item An archive member with name ``//'' is an \firstterm{archive
-  string table}.  The members of an ar(1) header only contain
-  fixed size ASCII strings with space and '/' characters being used
-  for string termination.  File names that exceed the length limits of
-  the \parameter{ar\_name} member are handled by placing them in a
-  special string table (not to be confused with ELF string tables) and
-  storing the offset of the file name in the \parameter{ar\_name}
-  member as a string of decimal digits.
+\item An archive member with name ``/\hskip-.2ex/'' is an
+  \firstterm{archive string table}.  The members of an ar(1) header
+  only contain fixed size ASCII strings with space and `/' characters
+  being used for string termination.  File names that exceed the
+  length limits of the \parameter{ar\_name} member are handled by
+  placing them in a special string table (not to be confused with ELF
+  string tables) and storing the offset of the file name in the
+  \parameter{ar\_name} member as a string of decimal digits.
 \end{itemize}
 
 The archive handling functions offered by the \library{libelf} library
@@ -1792,7 +1785,7 @@ We now look at an example program that illustrates these concepts.
     by \function{elf\_getarhdr}.
 
     \begin{lstlisting}[caption=The \type{Elf\_Arhdr} Structure,
-        label=fig.arhdr, basicstyle=\small]
+        label=fig.arhdr, basicstyle=\small\ttfamily]
 typedef struct {
     time_t      ar_date;     /* time of creation */
     char        *ar_name;    /* archive member name */
@@ -1804,7 +1797,7 @@ typedef struct {
 } Elf_Arhdr;
     \end{lstlisting}
   \item[\coref{5}] The \function{elf\_next} function sets up the
-    <emphasis>parent</emphasis> archive descriptor (referenced by
+    \emph{parent} archive descriptor (referenced by
     variable \parameter{ar} in this example) to return the next
     archive member on the next call to function \function{elf\_begin}.
   \item[\coref{6}] It is good programming practice to call
@@ -1850,7 +1843,7 @@ inside the ar(1) archive of the member that contains its
 definition.
 
 \begin{lstlisting}[caption=The \type{Elf\_Arsym} structure,
-    label=fig.arsym, basicstyle=\small]
+    label=fig.arsym, basicstyle=\small\ttfamily]
 typedef struct {
   off_t         as_off;   /* byte offset to member's header */
   unsigned long as_hash;  /* elf_hash() value for name */
