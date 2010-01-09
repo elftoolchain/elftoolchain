@@ -73,7 +73,7 @@ main(int argc, char **argv)
 
     data = NULL; n = 0;
     while (n < shdr.sh_size &&
-           (data = elf_getdata(scn, data)) != NULL) @\co{7}@
+           (data = elf_getdata(scn, data)) != NULL) { @\co{7}@
         p = (char *) data->d_buf;
         while (p < (char *) data->d_buf + data->d_size) {
             if (vis(pc, *p, VIS_WHITE, 0))
