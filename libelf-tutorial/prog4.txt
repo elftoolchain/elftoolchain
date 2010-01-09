@@ -24,11 +24,11 @@ main(int argc, char **argv)
     size_t n, shstrndx, sz;
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", getprogname());
+        errx(EX_USAGE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        errx(EX_SOFTWARE, "ELF library initialization failed: %s",
-            elf_errmsg(-1));
+        errx(EX_SOFTWARE, "ELF library initialization "
+            "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
         err(EX_NOINPUT, "open \%s\" failed", argv[1]);
@@ -38,7 +38,8 @@ main(int argc, char **argv)
             elf_errmsg(-1));
 
     if (elf_kind(e) != ELF_K_ELF)
-        errx(EX_DATAERR, "%s is not an ELF object.", argv[1]);
+        errx(EX_DATAERR, "%s is not an ELF object.",
+            argv[1]);
 
     if (elf_getshdrstrndx(e, &shstrndx) != 0) @\co{1}@
         errx(EX_SOFTWARE, "elf_getshdrstrndx() failed: %s.",
@@ -50,12 +51,13 @@ main(int argc, char **argv)
             errx(EX_SOFTWARE, "getshdr() failed: %s.",
                 elf_errmsg(-1));
 
-        if ((name = elf_strptr(e, shstrndx, shdr.sh_name)) == NULL) @\co{5}@
+        if ((name = elf_strptr(e, shstrndx, shdr.sh_name))
+            == NULL) @\co{5}@
             errx(EX_SOFTWARE, "elf_strptr() failed: %s.",
                 elf_errmsg(-1));
 
-        (void) printf("Section %-4.4jd %s\n", (uintmax_t) elf_ndxscn(scn),
-            name);
+        (void) printf("Section %-4.4jd %s\n", (uintmax_t)
+            elf_ndxscn(scn), name);
     }
 
     if ((scn = elf_getscn(e, shstrndx)) == NULL) @\co{6}@
@@ -66,10 +68,12 @@ main(int argc, char **argv)
         errx(EX_SOFTWARE, "getshdr(shstrndx) failed: %s.",
             elf_errmsg(-1));
 
-    (void) printf(".shstrab: size=%jd\n", (uintmax_t) shdr.sh_size);
+    (void) printf(".shstrab: size=%jd\n", (uintmax_t)
+        shdr.sh_size);
 
     data = NULL; n = 0;
-    while (n < shdr.sh_size && (data = elf_getdata(scn, data)) != NULL) @\co{7}@
+    while (n < shdr.sh_size &&
+           (data = elf_getdata(scn, data)) != NULL) @\co{7}@
         p = (char *) data->d_buf;
         while (p < (char *) data->d_buf + data->d_size) {
             if (vis(pc, *p, VIS_WHITE, 0))

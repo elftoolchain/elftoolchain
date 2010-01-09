@@ -22,11 +22,11 @@ main(int argc, char **argv)
     GElf_Ehdr ehdr; @\co{2}@
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", getprogname());
+        errx(EX_USAGE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        errx(EX_SOFTWARE, "ELF library initialization failed: %s",
-            elf_errmsg(-1));
+        errx(EX_SOFTWARE, "ELF library initialization "
+            "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
         err(EX_NOINPUT, "open \"%s\" failed", argv[1]);
@@ -36,7 +36,8 @@ main(int argc, char **argv)
             elf_errmsg(-1));
 
     if (elf_kind(e) != ELF_K_ELF)
-        errx(EX_DATAERR, "\"%s\" is not an ELF object.", argv[1]);
+        errx(EX_DATAERR, "\"%s\" is not an ELF object.",
+            argv[1]);
 
     if (gelf_getehdr(e, &ehdr) == NULL) @\co{3}@
         errx(EX_SOFTWARE, "getehdr() failed: %s.",
@@ -63,9 +64,9 @@ main(int argc, char **argv)
 
     (void) printf("\n");
 
-#define        PRINT_FORMAT        "    %-20s 0x%jx\n"
+#define        PRINT_FMT        "    %-20s 0x%jx\n"
 #define        PRINT_FIELD(N) do { \
-        (void) printf(PRINT_FORMAT ,#N, (uintmax_t) ehdr.N); \
+        (void) printf(PRINT_FMT, #N, (uintmax_t) ehdr.N); \
     } while (0)
 
     PRINT_FIELD(e_type); @\co{6}@
@@ -82,17 +83,17 @@ main(int argc, char **argv)
     if (elf_getshdrnum(e, &n) != 0) @\co{7}@
         errx(EX_SOFTWARE, "getshdrnum() failed: %s.",
             elf_errmsg(-1));
-    (void) printf(PRINT_FORMAT, "(shnum)", (uintmax_t) n);
+    (void) printf(PRINT_FMT, "(shnum)", (uintmax_t) n);
 
     if (elf_getshdrstrndx(e, &n) != 0) @\co{8}@
         errx(EX_SOFTWARE, "getshdrstrndx() failed: %s.",
             elf_errmsg(-1));
-    (void) printf(PRINT_FORMAT, "(shstrndx)", (uintmax_t) n);
+    (void) printf(PRINT_FMT, "(shstrndx)", (uintmax_t) n);
 
     if (elf_getphdrnum(e, &n) != 0) @\co{9}@
         errx(EX_SOFTWARE, "getphdrnum() failed: %s.",
             elf_errmsg(-1));
-    (void) printf(PRINT_FORMAT, "(phnum)", (uintmax_t) n);
+    (void) printf(PRINT_FMT, "(phnum)", (uintmax_t) n);
 
     (void) elf_end(e);
     (void) close(fd);
