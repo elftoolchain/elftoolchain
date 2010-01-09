@@ -40,7 +40,7 @@
 
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
-\newcommand{\function}[1]{\texttt{#1}()}
+\newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\filename}[1]{\texttt{#1}}
 \newcommand{\firstterm}[1]{\textit{#1}}                 % TODO Add \index
 \newcommand{\library}[1]{\texttt{#1}}
@@ -107,9 +107,11 @@
 \author{Joseph~Koshy}
 \maketitle
 
+\setcounter{tocdepth}{1}
 \tableofcontents
 
 \chapter*{Preface}
+
 This tutorial introduces the \library{libelf} library being developed
 at the \href{http://elftoolchain.sourceforge.net/}{ElfToolChain}
 project on \href{sourceforge.net}{SourceForge.Net}.  It shows how this
@@ -123,9 +125,11 @@ understand the use of the ELF(3) library.
 Knowledge of the C programming language is a pre-requisite.
 
 \section*{Legal Notice}
-Copyright \copyright{} 2006-2009 Joseph Koshy.  All rights reserved.
 
-\vskip\baselineskip
+Copyright \copyright{} 2006--2009 Joseph Koshy.  All rights reserved.
+
+\vskip.8\baselineskip
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -138,20 +142,23 @@ are met:
   the distribution.
 \end{itemize}
 
-THIS DOCUMENTATION IS PROVIDED BY THE AUTHOR AND CON\-TRIBUTORS ``AS
-IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MER\-CHANT\-ABILITY AND FITNESS FOR A
-PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR AND
-CON\-TRIBUTORS BE LIABLE FOR ANY DIRECT, IN\-DIRECT, INCIDENT\-AL,
-SPECIAL, EX\-EMPLARY, OR CON\-SEQUENT\-IAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PRO\-CURE\-MENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHE\-THER IN CONTRACT, STRICT LIA\-BILITY, OR
-TORT (INCLUDING NEGLIGENCE OR OTHER\-WISE) ARISING IN ANY WAY OUT OF THE
+\subsubsection*{Disclaimer}
+
+THIS DOCUMENTATION IS PROVIDED BY THE AUTHOR AND CON\-TRIBUTORS
+``\hskip-0.5ex{}AS~IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MER\-CHANT\-ABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR AND CON\-TRIBUTORS BE LIABLE
+FOR ANY DIRECT, IN\-DIRECT, INCIDENT\-AL, SPECIAL, EX\-EMPLARY, OR
+CON\-SEQUENT\-IAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PRO\-CURE\-MENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHE\-THER IN CONTRACT, STRICT LIA\-BILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHER\-WISE) ARISING IN ANY WAY OUT OF THE
 USE OF THIS DOCUMENTATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 
-\vskip\baselineskip
+\vskip.8\baselineskip
 
 Many of the designations used by manufacturers and sellers to
 distinguish their products are claimed as trademarks. Where those
@@ -160,6 +167,7 @@ were aware of the trademark claim, the designations have been followed
 by the ``\texttrademark'' or the ``\textregistered'' symbol.
 
 \chapter{Introduction}
+
 ELF \index{ELF+definition} stands for Extensible Linking Format.  It
 is a format for use by compilers, linkers, loaders and other tools
 that manipulate object code.
@@ -167,33 +175,34 @@ that manipulate object code.
 The ELF specification was released to the public in 1990 as an
 ``\href{http://www.x86.org/ftp/manuals/tools/elf.pdf}{open standard}''
 by a group of vendors.  As a result of its ready availability it has
-been widely adopted in the industry and is now the most popular object
-file format in use in the open-source world.  The ELF standard
-supports 32 and 64 bit architectures of both big and little-endian
-kinds, and supports features like cross-compilation, dynamic shared
-libraries.  ELF also supports the special compilation needs of the C++
-language.  In the open-source operating system commnunity, FreeBSD
-switched to using ELF as its object format in FreeBSD 3.0 (October
-1998).
+been widely adopted by industry and the open-source community.  The
+ELF standard supports 32- and 64-bit architectures of both big and
+little-endian kinds, and supports features like cross-compilation and
+dynamic shared libraries.  ELF also supports the special compilation
+needs of the C++ language.  Among the current set of open-source
+operating systems, FreeBSD switched to using ELF as its object format
+in FreeBSD 3.0 (October 1998).
 % TODO XXX fill in Linux and NetBSD history.
 
-The \library{libelf} library provides an API set (ELF(3) and
-GELF(3) for application writers to read and write ELF
-objects with.  The library eases the task of writing cross-tools
-that can run on one machine architecture and manipulate ELF
-objects for another.
+The \library{libelf} library provides an API set (ELF(3) and GELF(3))
+for application writers to read and write ELF objects with.  The
+library eases the task of writing cross-tools that can run on one
+machine architecture and manipulate ELF objects for another.
 
 \section*{Rationale for this tutorial}
+
 The ELF(3) and GELF(3) API set is large, with over 80 callable
 functions.  So the task of getting started with the library can appear
 daunting at first glance.  This tutorial has been written to provide a
 gentle introduction to the API set.
 
 \section*{Target Audience}
+
 This tutorial would be of interest to developers wanting to create ELF
 processing tools using the \library{libelf} library.
 
 \section{Tutorial Overview}
+
 The tutorial covers the following:
 
 \begin{itemize}
@@ -204,36 +213,42 @@ The tutorial covers the following:
   \library{libelf} library.
 \item The basic abstractions offered by the ELF(3) and GELF(3)
   APIs---how the ELF library abstracts out the ELF class and
-  endianness of an ELF object and allows the application to work with
-  a native representation while the library translates to and from the
-  desired target representation behind the scenes.
-\item How to use the APIs in the library to look inside an ELF object and examine its Executable Header, Program
-  Header Table and its component sections.
+  endianness of ELF objects and allows an application to work with
+  native forms of these objects, while the library translates to and
+  from the desired target representation behind the scenes.
+\item How to use the APIs in the library to look inside an ELF object
+  and examine its Executable Header, Program Header Table and its
+  component sections.
 \item How to create a new ELF object using the ELF library.
-\item An introduction to the class-independent GELF(3) interfaces, and when and where to use them
- instead of the class-dependent functions in the ELF(3) API set.
-\item How to process \tool{ar} archives using the facilities provided by the library.
+\item An introduction to the class-independent GELF(3) interfaces, and
+  when and where to use them instead of the class-dependent functions
+  in the ELF(3) API set.
+\item How to process \tool{ar} archives using the facilities provided
+  by the library.
 \end{itemize}
 
 \section{Tutorial Structure}
-One of the goals of this tutorial is to illustrate how to write code
-using \library{libelf}.  So we will jump right into working code.  As
-we progress through the examples, we introduce the concepts necessary
-to understand what is happening ``behind the scenes.''
+
+One of the goals of this tutorial is to illustrate how to write
+programs using \library{libelf}.  So we will jump into writing code at
+the earliest opportunity.  As we progress through the examples, we
+introduce the concepts necessary to understand what is happening
+``behind the scenes.''
 
 Chapter \vref{chap.getting-started} covers the basics involved in
 getting started with the ELF(3) library---how to compile and link an
 application that uses \library{libelf}.  We look at the way a working
-version number is established by an application, how a handle to ELF
-objects are obtained, and how error messages from the ELF library are
-reported.  APIs covered include \function{elf\_begin},
-\function{elf\_end}, \function{elf\_errmsg}, \function{elf\_errno},
-\function{elf\_kind} and \function{elf\_version}.
+ELF version number is established by an application, how a handle to
+ELF objects are obtained, and how error messages from the ELF library
+are reported.  The functions used in this section include
+\function{elf\_begin}, \function{elf\_end}, \function{elf\_errmsg},
+\function{elf\_errno}, \function{elf\_kind} and
+\function{elf\_version}.
 
 Chapter \vref{chap.peering-inside} shows how an application can look
 inside an ELF object and understand its basic structure.  Along the
 way we will examine the way the ELF objects are laid out.  Other key
-concepts examined are the notions of ``file representation''
+concepts covered are the notions of ``file representation''
 \index{representation+file} and ``memory representation''
 \index{representation+memory} of ELF data types.  New APIs covered
 include \function{elf\_getident}, \function{elf\_getphdrnum},
@@ -246,10 +261,10 @@ ELF object.  This chapter introduces the \function{gelf\_getphdr}
 function.
 
 Chapter \vref{chap.elf-sections} then looks at how data is stored in
-ELF sections.  An application that looks at ELF sections is examined.
-The \type{Elf\_Scn} and \type{Elf\_Data} data types used by the
-library are examined in detail. The functions covered in this chapter
-include \function{elf\_getscn}, \function{elf\_getdata},
+ELF sections.  A program that looks at ELF sections is examined.  The
+\type{Elf\_Scn} and \type{Elf\_Data} data types used by the library
+are introduced. The functions covered in this chapter include
+\function{elf\_getscn}, \function{elf\_getdata},
 \function{elf\_nextscn}, \function{elf\_strptr}, and
 \function{gelf\_getshdr}.
 
@@ -263,26 +278,24 @@ include \function{elf\_fill}, \function{elf32\_get\-shdr},
 \function{elf\_new\-data}, \function{elf\_new\-scn}, and
 \function{elf\_update}.
 
-The \library{libelf} library also assists applications that need read
-\tool{ar} archives.  Chapter \vref{chap.ar} in the tutorial covers how
-to use the ELF(3) library to handle \tool{ar} archives.  This chapter
-covers the use of the \function{elf\_get\-arhdr},
-\function{elf\_get\-arsym}, \function{elf\_next} and
-\function{elf\_rand} functions.
+The \library{libelf} library also assists applications that need to
+read \tool{ar} archives.  Chapter \vref{chap.ar} covers how to use the
+ELF(3) library to handle \tool{ar} archives.  This chapter covers the
+use of the \function{elf\_get\-arhdr}, \function{elf\_get\-arsym},
+\function{elf\_next} and \function{elf\_rand} functions.
 
 Chapter \vref{chap.conclusion} ends the tutorial with suggestions for
 further reading.
 
 \chapter{Getting Started}\label{chap.getting-started}
 
-Let us dive in first and get a taste of programming with
-\library{libelf}.
+Let us dive in and get a taste of programming with \library{libelf}.
 
 \section{Example: Getting started with \library{libelf}}
 
 Our first program (Program 1, listing~\vref{src.prog.1}) will open a
 filename presented to it on its command line and retrieve the file
-type recognized by the ELF library.
+type as recognized by the ELF library.
 
 This example is covers the basics involved in using \library{libelf};
 how to compile a program using \library{libelf}, how to initialize the
@@ -293,7 +306,7 @@ library, how to report errors, and how to wind up.
 
   \begin{description}
   \item[\coref{1}] The functions and dataypes that make up the ELF(3) API
-    are declared in \filename{libelf.h}.  This file must be included
+    are declared in the header \filename{libelf.h}.  This file must be included
     in every application that desires to use the \library{libelf}
     library.
 
@@ -308,7 +321,7 @@ library, how to report errors, and how to wind up.
     A call to \function{elf\_version} is mandatory before other
     functions in the ELF library can be invoked.
 
-    There are three version numbers that come into play when an
+    There are multiple version numbers that come into play when an
     application is manipulating an ELF object.
 
     \begin{itemize}
@@ -316,8 +329,9 @@ library, how to report errors, and how to wind up.
       that the application understands.
     \item Second, we have the ELF version associated with the ELF
       object being processed ($v_2$).
-    \item Third, we have the version(s) known to the \library{libelf}
-      library ($v_1$ and $v_2$).
+    \item Third, we have the versions recognized by the
+      \library{libelf} library: $v_1$ and $v_2$.  The library may know
+      how to translate between versions $v_1$ and $v_2$.
     \end{itemize}
 
     \begin{figure}
@@ -327,29 +341,29 @@ library, how to report errors, and how to wind up.
       \caption{ELF versions}\label{fig.versions}
     \end{figure}
 
-    In the figure \vpageref{fig.versions} the application expects to
-    work with ELF specification version ($v_1$). The ELF object file
-    conforms to ELF specification version ($v_2$).  The library
-    understands both version $v_1$ and $v_2$ of ELF semantics and so
-    is able to mediate between the application and the ELF object.
+    In figure~\vref{fig.versions} the application expects to work with
+    ELF specification version ($v_1$). The ELF object file conforms to
+    ELF specification version ($v_2$).  The library understands both
+    version $v_1$ and $v_2$ of ELF semantics and so is able to mediate
+    between the application and the ELF object.
 
-    In practice though, the ELF version hasn't changed since
-    inception, so the current version (\constant{EV\_CURRENT}) is 1.
+    In practice, the ELF version has not changed since inception, so
+    the current version (\constant{EV\_CURRENT}) is 1.
 
   \item[\coref{5}] The \function{elf\_begin} function takes an open file
     descriptor and converts it an \type{Elf} handle according to the
     command specified.
 
     The second parameter to \function{elf\_begin} can be one of
-    \constant{ELF\_C\_READ} for opening an ELF object for reading,
-    \constant{ELF\_C\_WRITE} for creating a new ELF object, or
-    \constant{ELF\_C\_RDWR} for opening an ELF object for updates.
+    `\constant{ELF\_C\_READ}' for opening an ELF object for reading,
+    `\constant{ELF\_C\_WRITE}' for creating a new ELF object, or
+    `\constant{ELF\_C\_RDWR}' for opening an ELF object for updates.
     The mode with which file descriptor \parameter{fd} was opened with
     must be consistent with the this parameter.
 
     The third parameter to \function{elf\_begin} is only used when
     processing \tool{ar} archives.  We will look at \tool{ar} archive
-    processing in chapter \vref{chap.ar}.
+    processing in chapter~\vref{chap.ar}.
 
   \item[\coref{6}] When the ELF library encounters an error, it records
     an error number in an internal location.  This error number may be
@@ -363,9 +377,8 @@ library, how to report errors, and how to wind up.
     archives and ELF objects.  The function \function{elf\_kind}
     returns the kind of object associated with an \type{Elf} handle.
     The return value of the \function{elf\_kind} function is one of
-    the values defined by the \type{Elf\_Kind} enumeration.
-
-    The \type{Elf\_Kind} type is defined in \filename{libelf.h}.
+    the values defined by the \type{Elf\_Kind} enumeration in
+    \filename{libelf.h}.
 
   \item[\coref{8}] When you are done with a handle, it is good practice
     to release its resources using the \function{elf\_end} function.
@@ -943,6 +956,7 @@ differences are handled for you by the functions in the
 \library{libelf} library.
 
 \section{Example: Reading a Program Header Table}
+
 We will now look at a program that will print out the Program Header
 Table associated with an ELF object.  We will continue to use the
 GELF(3) API set for this example.  The ELF(3) API set also offers two
@@ -1293,7 +1307,7 @@ typedef struct _Elf_Data {
 Before we look at example program we need to understand how string
 tables are implemented by \library{libelf}.
 
-\section{String Tables}\label{sec.shdr.strtab}
+\subsection{String Tables}\label{sec.shdr.strtab}
 
 String tables hold variable length strings allowing other structures
 in an ELF object to refer to strings by their offsets into the string
@@ -1328,6 +1342,7 @@ applications would use the \function{elf\_strptr} function to convert
 a string offset to \type{char *} pointer usable by C code.
 
 \section{Example: Listing section names}
+
 Let us now write a program that would retrieve and print the names of
 the sections present in an ELF object.  This example will show you how
 to use:
@@ -1581,6 +1596,7 @@ ELF Header:
 \end{callout}
 
 \section{The finer points in creating ELF objects}
+
 Some of the finer points in creating ELF objects using the
 \library{libelf} library are examined below.  We cover memory
 management rules, ELF data structure lifetimes, how an application can
@@ -1817,7 +1833,7 @@ listing~\vref{scr.prog6}.
   \end{description}
 \end{callout}
 
-\section{Random access in an ar(1) archive}
+\subsection{Random access in an ar(1) archive}
 
 Random access in the archive is supported by the function
 \function{elf\_rand}.  However, in order to use this function you need
@@ -1847,6 +1863,7 @@ Once the file offset of the member is known, the function
 desired archive member at the next call to \function{elf\_begin}.
 
 \chapter{Conclusion}\label{chap.conclusion}
+
 This tutorial covered the following topics:
 \begin{itemize}
 \item We gained an overview of the facilities for manipulating ELF
@@ -1861,6 +1878,7 @@ This tutorial covered the following topics:
 \end{itemize}
 
 \section{Further Reading}
+
 There are very few books today on the topic of linking and loading.
 John Levine's ``\href{http://linker.iecc.com/}{Linkers and Loaders}''
 is a readable book that offers a overview of the concepts involved in
