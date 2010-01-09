@@ -18,7 +18,7 @@ main(int argc, char **argv)
     Elf_Arhdr *arh;
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", getprogname());
+        errx(EX_USAGE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
         errx(EX_SOFTWARE, "ELF library initialization "
