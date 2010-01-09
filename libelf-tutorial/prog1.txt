@@ -24,9 +24,9 @@ main(int argc, char **argv)
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
         err(EX_NOINPUT, "open \%s\" failed", argv[1]);
 
-    if ((e = elf_begin(fd, ELF_C_READ @\co{5}@, NULL)) == NULL)
+    if ((e = elf_begin(fd, ELF_C_READ@\co{5}@, NULL)) == NULL)
         errx(EX_SOFTWARE, "elf_begin() failed: %s.",
-            elf_errmsg(-1)  @\co{6}@
+            elf_errmsg(-1));  @\co{6}@
 
     ek = elf_kind(e); @\co{7}@
 
