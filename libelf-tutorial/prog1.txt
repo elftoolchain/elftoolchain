@@ -15,7 +15,7 @@ main(int argc, char **argv)
     Elf_Kind ek; @\co{3}@
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", getprogname());
+        errx(EX_USAGE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE) @\co{4}@
         errx(EX_SOFTWARE, "ELF library initialization "
