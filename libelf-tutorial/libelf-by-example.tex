@@ -502,12 +502,12 @@ Every ELF object is associated with three parameters:
 \end{itemize}
 
 These parameters are stored in the ELF Executable Header.  Let us now
-take a closer look at the ELF Executable Header.%
-\index{executable~header!layout}
+take a closer look at the ELF Executable Header.
 
 \subsubsection{The ELF Executable Header}\label{sec.ehdr}
 Table \vref{src.elf.ehdr} describes the layout of an ELF Executable
-Header using a ``C-like'' notation.
+Header using a ``C-like'' notation.%
+\index{executable~header!layout}
 
 \begin{callout}{ehdr}
   \begin{table}
@@ -552,10 +552,12 @@ Header using a ``C-like'' notation.
   \item[\coref{1}] The first 16 bytes (the \parameter{e\_ident}
     array) contain values that determine the ELF class, version and
     endianness of the rest of the file.  See figure
-    \vref{fig.elf.eident}.
+    \vref{fig.elf.eident}.%
+    \index{executable~header!e_ident@\parameter{e\_ident}!definition}
 
     \begin{figure}[H]
-      \caption{The \parameter{e\_ident[]} array}\label{fig.elf.eident}
+      \caption{The \parameter{e\_ident} array}\label{fig.elf.eident}
+      \index{executable~header!e_ident@\parameter{e\_ident} field}
       \begin{center}
         \includegraphics[scale=.9]{fig-eident}
       \end{center}
@@ -572,12 +574,14 @@ Header using a ``C-like'' notation.
   \item[\coref{2}] The \parameter{e\_type} member determines the type
     of the ELF object.  For example, it would contain a `1'
     (\constant{ET\_REL}) in a relocatable or `3' (\constant{ET\_DYN})
-    in a shared object.
+    in a shared object.%
+    \index{executable~header!executable type}
 
   \item[\coref{3}] The \parameter{e\_machine} member describes the
     machine architecture this ELF object is for.  Example values are `3'
     (\constant{EM\_386}) for the Intel\reg i386\trade architecture and
-    `20' (\constant{EM\_PPC}) for the 32-bit PowerPC\trade architecture.
+    `20' (\constant{EM\_PPC}) for the 32-bit PowerPC\trade architecture.%
+    \index{executable~header!executable architecture}
 
   \begin{figure}
     \caption{The ELF Executable Header and Object Layout}
@@ -596,10 +600,15 @@ Header using a ``C-like'' notation.
     Table or Section Header Table respectively.  The sizes of these
     components are determined by the \parameter{e\_phentsize} and
     \parameter{e\_shentsize} members respectively in conjunction with
-    the number of entries in these tables.
+    the number of entries in these tables.%
+    \index{sections!header~table!layout in file}%
+    \index{sections!header~table!entry size}%
+    \index{program~header!layout in file}%
+    \index{program~header!entry size}
 
     The ELF Executable Header describes its own size (in bytes) in
-    field \parameter{e\_ehsize}.
+    field \parameter{e\_ehsize}.%
+    \index{executable~header!own size}
 
   \item[\coref{6} \coref{7}] The \parameter{e\_phnum} and
     \parameter{e\_shnum} fields usually contain the number of ELF
@@ -618,13 +627,16 @@ Header using a ``C-like'' notation.
     index of this string table (see \vref{sec.extended-numbering}) so
     that processing tools know which string table to use for
     retrieving the names of sections.  We will cover ELF string tables
-    in more detail in section~\vref{sec.shdr.strtab}.
+    in more detail in section~\vref{sec.shdr.strtab}.%
+    \index{sections!names!string table}
   \end{description}
 
   The fields \parameter{e\_entry} and \parameter{e\_flags} are used
   for executables and are placed in the Executable Header for easy
   access at program load time.  We will not look at them further in
-  this tutorial.
+  this tutorial.%
+  \index{executable~header!program entry point}%
+  \index{executable~header!flags}%
 \end{callout}
 
 \subsubsection{ELF Class- and Endianness- Independent Processing}
@@ -666,20 +678,24 @@ file and memory representation of an ELF data structure.  As shown in
 the figure, the size of an ELF data structure in the file could be
 different from its size in memory.  The alignment restrictions
 (\parameter{\%falign} and \parameter{\%malign} in the figure) could be
-different.  The byte ordering of the data could be different too.
+different.  The byte ordering of the data could be different too.%
+\index{object~representation!differences between file and memory}
 
 The ELF(3) and GELF(3) API set can handle the conversion of ELF data
 structures to and from their file and memory representations
 automatically.  For example, when we read in the ELF Executable Header
 in program~\vref{src.prog.2} below, the \library{libelf} library will
 automatically do the necessary byteswapping and alignment adjustments
-for us.
+for us.%
+\index{ELF!class!agnostic APIs}%
+\index{ELF!data conversion!automatic}
 
 For applications that desire finer-grain control over the conversion
 process, the \function{elf\textit{NN}\_xlatetof} and
 \function{elf\textit{NN}\_xlatetom} functions are available.  These
 functions will translate data buffers containing ELF data structures
-between their memory and file representions.
+between their memory and file representions.%
+\index{ELF!data conversion!application control over}
 
 \subsubsection{Extended numbering}\label{sec.extended-numbering}
 
@@ -688,7 +704,8 @@ The \parameter{e\_shnum}, \parameter{e\_phnum} and
 \parameter{e\_shstrndx} fields of the ELF Executable Header are only 2
 bytes long and are not physically capable of representing numbers
 larger than 65535.  For ELF objects with a large number of sections,
-we need a different way of encoding section numbers.
+we need a different way of encoding section numbers.%
+\index{extended~numbering!need for}
 
 ELF objects with such a large number of sections can arise due to the
 way GCC copes with C++ templates.  When compiling C++ code which uses
@@ -718,7 +735,7 @@ When extended numbering is in use:
   of program header table entries.
 \end{itemize}
 
-An \index{extended~numbering!functions to use} application may use
+An \index{extended~numbering!APIs to use} application may use
 the functions \function{elf\_getphdrnum}, \function{elf\_getshdrnum}
 and \function{elf\_getshdrstrndx} to retrieve the correct value of
 these fields when extended numbering is in use.
@@ -739,7 +756,8 @@ object, the function we would need to use would be
 \function{elf64\_getehdr}, which would return a pointer to an
 \type{Elf64\_Ehdr} structure.  This duplication is awkward when you
 want to write applications that can transparently process either class
-of ELF objects.
+of ELF objects.%
+\index{ELF!class!agnostic APIs}
 
 The GELF(3) APIs provide an ELF class independent way of writing ELF
 applications.  These functions are defined in terms of ``generic''
@@ -772,21 +790,24 @@ significant to most applications.
     appropriate in-memory representation for type \type{GElf\_Ehdr}.
     For example, if a 32-bit ELF object is being examined, then the
     values in its executable header would be appropriately converted
-    (expanded and/or byteswapped) by this function.
+    (expanded and/or byteswapped) by this function.%
+    \index{executable~header!retrieval of}
 
   \item[\coref{4}] The \function{gelf\_getclass} function retrieves
-    the ELF class of the object being examined.
+    the ELF class of the object being examined.%
+    \index{ELF!class!retrieval of}
 
   \item[\coref{5}] Here we show the use of the
     \function{elf\_getident} function to retrieve the contents of the
     \parameter{e\_ident[]} array from the underlying file.  These
     bytes would also be present in the \parameter{e\_ident} member of
-    the \parameter{ehdr} structure.
+    the \parameter{ehdr} structure.%
+    \index{ELF!e_ident@\parameter{e\_ident}!retrieval of}
 
-    We print the first few bytes of the \parameter{e\_ident[]} field
+    We print the first few bytes of the \parameter{e\_ident} field
     of the ELF Executable Header.
 
-  \item[\coref{6}] Following the \parameter{e\_ident[]} bytes, we
+  \item[\coref{6}] Following the \parameter{e\_ident} bytes, we
     print the values of some of the fields of the ELF Executable
     Header structure.
 
@@ -797,7 +818,11 @@ significant to most applications.
     of program header table entries, the number of sections, and the
     section name string table index respectively.  Using these
     functions insulates your application from the quirks of extended
-    numbering.
+    numbering.%
+    \index{extended~numbering!use of APIs}%
+    \index{extended~numbering!elf_getphdrnum@\function{elf\_getphdrnum}}%
+    \index{extended~numbering!elf_getshdrnum@\function{elf\_getshdrnum}}%
+    \index{extended~numbering!elf_getshdrstrndx@\function{elf\_getshdrstrndx}}
   \end{description}
 \end{callout}
 
@@ -854,8 +879,9 @@ placed at a specific virtual memory address.
 
 For example, the FreeBSD\texttrademark{} operating system expects
 executables to have an ``executable'' segment containing code, and a
-``data'' segment containing statically initialized data.  The
-executable segment would be mapped in with read and execute
+``data'' segment containing statically initialized data.%
+\index{segments!example layout}%
+The executable segment would be mapped in with read and execute
 permissions and could be shared across multiple processes using the
 same ELF executable.  The data segment would be mapped in with read
 and write permissions and would be made private to each process.  For
@@ -878,6 +904,7 @@ and in memory.
 
 \begin{figure}
   \caption{ELF Segment Placement}\label{fig.elf.phdr.layout}
+  \index{program~header!table!layout}
   \begin{center}
     \includegraphics[scale=.85]{fig-phdrlayout}
   \end{center}
@@ -917,7 +944,8 @@ table~\vref{src.elf.phdr}.\index{program~header!table!entry}
   \begin{description}
   \item[\coref{1}] The type of the Program Header Table entry is
     encoded using this field.  It holds one of the \constant{PT\_*}
-    constants defined in the system headers.
+    constants defined in the system headers.%
+    \index{segments!type}
 
     Examples include:
     \begin{itemize}
@@ -933,32 +961,39 @@ table~\vref{src.elf.phdr}.\index{program~header!table!entry}
     (\constant{PT\_LOOS}) to 0x6FFF\-FFFF (\constant{PT\_HIOS}) for
     OS-private information.  Values from 0x7000\-0000
     (\constant{PT\_LOPROC}) to 0x7FFF\-FFFF (\constant{PT\_HIPROC})
-    are similarly reserved for processor-specific information.
+    are similarly reserved for processor-specific information.%
+    \index{segments!type!reserved values}
 
   \item[\coref{2}] The \parameter{p\_offset} field holds the file
     offset in the ELF object to the start of the segment being
-    described by this table entry.
+    described by this table entry.%
+    \index{segments!offset in file}
 
   \item[\coref{3}] The virtual address this segment should be loaded
-    at.
+    at.%
+    \index{segments!virtual address of}
 
   \item[\coref{4}] The physical address this segment should be loaded
     at.  This field does not apply for userland objects.
 
   \item[\coref{5}] The number of bytes the segment takes up in the
     file.  This number is zero for segments that do not have data
-    associated with them in the file.
+    associated with them in the file.%
+    \index{segments!file size of}
 
-  \item[\coref{6}] The number of bytes the segment takes up in memory.
+  \item[\coref{6}] The number of bytes the segment takes up in memory.%
+    \index{segments!memory size of}
 
   \item[\coref{7}] Additional flags that specify segment properties.
     For example, flag \constant{PF\_X} specifies that the segment in
     question should be made executable and flag \constant{PF\_W}
-    denotes that the segment should be writable.
+    denotes that the segment should be writable.%
+    \index{segments!flags}
 
   \item[\coref{8}] The alignment requirements of the segment both in
     memory and in the file.  This field holds a value that is a power
-    of two.
+    of two.%
+    \index{segments!aligment of}
   \end{description}
 \end{callout}
 
@@ -975,7 +1010,8 @@ GELF(3) API set for this example.  The ELF(3) API set also offers two
 ELF class-dependent APIs that retrieve the Program Header Table from
 an ELF object: \function{elf32\_getphdr} and
 \function{elf64\_getphdr}, but these require us to know the ELF class
-of the object being handled.
+of the object being handled.%
+\index{ELF!class!agnostic APIs}
 
 \begin{callout}{prog3}
   \lstinputlisting[caption=Program 3, label=src.prog.3]{prog3.txt}
@@ -985,14 +1021,17 @@ of the object being handled.
     use the GELF(3) APIs.
   \item[\coref{2}] The \type{GElf\_Phdr} type has fields that are
     large enough to contain the values in an \type{Elf32\_Phdr} type
-    and an \type{Elf64\_Phdr} type.
+    and an \type{Elf64\_Phdr} type.%
+    \index{ELF!class!agnostic APIs}
   \item[\coref{3}] We retrieve the number of Program Header Table
     entries using the function \function{elf\_getphdrnum}.  Note that
     the Program Header Table is optional; for example, an ELF
-    relocatable object will not have a Program Header Table.
+    relocatable object will not have a Program Header Table.%
+    \index{program~header!table!retrieval of}
   \item[\coref{4} \coref{5}] We iterate over all valid indices for the
     object's Program Header Table, retrieving the table entry at each
-    index using the \function{gelf\_getphdr} function.
+    index using the \function{gelf\_getphdr} function.%
+    \index{program~header!table!iteration over}
   \item[\coref{6} \coref{7}] We then print out the contents of the
     entry so retrieved.  We use a helper function
     \function{print\_ptype} to convert the \parameter{p\_type} member
@@ -1068,16 +1107,18 @@ PHDR 5:
   \item[\coref{1}] Compile and link the program in the standard way.
   \item[\coref{2}] We make our program examine its own Program Header
     Table.  This listing was generated on an i386\trade machine
-    running FreeBSD.
+    running FreeBSD\texttrademark.
   \item[\coref{3}] The very first entry in this Program Header Table
-    describes the Program Header Table itself.
+    describes the Program Header Table itself.%
+    \index{program~header!table!self-description}
   \item[\coref{4}] An entry of type \constant{PT\_INTERP} is used to
     point the kernel to the ``interpreter'' associated with this ELF
     object.  This is usually a runtime loader, such as
     \filename{/libexec/ld-elf.so.1}.
   \item[\coref{5} \coref{6}] This object has two loadable segments:
     one with execute and read permissions and one with read and write
-    permissions.  Both these segments require page alignment.
+    permissions.  Both these segments require page alignment.%
+    \index{segments!examples of}
   \end{description}
 \end{callout}
 
@@ -1103,7 +1144,8 @@ For linking, data in an ELF object is grouped into
 one kind of data.  For example, a section could contain a table of
 strings used for program symbols, another could contain debug
 information, and another could contain machine code.  Non-empty
-sections do not overlap in the file.
+sections do not overlap in the file.%
+\index{sections!use of}
 
 ELF sections are described by entries in an \firstterm{ELF Section
   Header Table}\index{sections!header~table}.  This table is
@@ -1111,7 +1153,8 @@ usually placed at the very end of the ELF object (see
 figure~\vref{fig.elf.layout}).  Table~\vref{src.elf.shdr} describes
 the elements of section header table entry and
 figure~\vref{fig.elf.shdrlayout} shows graphically how the fields of
-an ELF section header specify the section's placement.
+an ELF section header specify the section's placement.%
+\index{sections!placement in file}
 
 \begin{callout}{shdr}
   \begin{table}[H]
@@ -1147,14 +1190,15 @@ an ELF section header specify the section's placement.
   \begin{description}
   \item[\coref{1}] The \parameter{sh\_name} field is used to encode a
     section's name.  As section names are variable length strings,
-    they are not kept in the section header table entry itself.
+    they are not kept in the section header table entry itself.%
+    \index{sections!names!representation of}%
     Instead, all section names are collected into an object-wide
     string table holding section names and the \parameter{sh\_name}
     field of each section header stores an \emph{index} into the
     string table.  The ELF Executable Header has an
     \parameter{e\_shstrndx} member that points to the section index of
-    this string table.
-
+    this string table.%
+    \index{sections!names!string table}
     ELF string tables, and the way to read them programmatically are
     described in section~\vref{sec.shdr.strtab}.
 
@@ -1163,23 +1207,27 @@ an ELF section header specify the section's placement.
     constants defined in the system's ELF headers.  For example, a
     section of type \constant{SHT\_PROGBITS} is defined to contain
     executable code, while a section type \constant{SHT\_SYMTAB}
-    denotes a section containing a symbol table.
+    denotes a section containing a symbol table.%
+    \index{sections!type}
 
     The ELF specification reserves values in the range 0x6000\-0000 to
     0x6FFF\-FFFF to denote OS-specific section types, and values in the
     range 0x7000\-0000 to 0x7FFF\-FFFF for processor-specific section
     types.  In addition, applications have been given the range
-    0x80000000 to 0xFFFFFFFF for their own use.
+    0x80000000 to 0xFFFFFFFF for their own use.%
+    \index{sections!type!reserved values}
 
   \item[\coref{3}] Section flags indicate whether a section has
     specific properties, e.g., whether it contains writable data or
     instructions, or whether it has special link ordering
     requirements.  Flag values from 0x00100000 to 0x08000000 (8 flags)
     are reserved for OS-specific uses.  Flags values from 0x10000000
-    to 0x80000000 (4 flags) are reserved for processor specific uses.
+    to 0x80000000 (4 flags) are reserved for processor specific uses.%
+    \index{sections!flags}
 
   \item[\coref{4}] The \parameter{sh\_size} member specifies the size
-    of the section in bytes.
+    of the section in bytes.%
+    \index{sections!size of}
 
   \item[\coref{5} \coref{6}] The \parameter{sh\_link} and
     \parameter{sh\_info} fields contain additional additional section
@@ -1188,11 +1236,13 @@ an ELF section header specify the section's placement.
 
   \item[\coref{7}] For sections that have specific alignment
     requirements, the \parameter{sh\_addralign} member holds the
-    required alignment.  Its value is a power of two.
+    required alignment.  Its value is a power of two.%
+    \index{sections!alignment of}
 
   \item[\coref{8}] For sections that contain arrays of fixed-size
     elements, the \parameter{sh\_entsize} member specifies the size of
-    each element.
+    each element.%
+    \index{sections!entry sizes}
   \end{description}
 \end{callout}
 
@@ -1209,22 +1259,28 @@ including \constant{SHN\_LORESERVE} (0xFF00).  Section indices between
 0xFF00 and 0xFFFF are used to denote special sections (like FORTRAN
 COMMON blocks).  Thus if an ELF file has more than 65279 (0xFEFF)
 sections, then it needs to use extended section numbering (see
-section~\vref{sec.extended-numbering}).
+section~\vref{sec.extended-numbering}).%
+\index{sections!indices!valid indices}
 
-The Section Header Table entry at index 0 (\constant{SHN\_UNDEF}) is
+The Section Header Table entry at index `0' (\constant{SHN\_UNDEF}) is
 treated specially: it is always of type \constant{SHT\_NULL}.  It has
 its members set to zero except when extended numbering is in use, see
-section~\vref{sec.extended-numbering}.
+section~\vref{sec.extended-numbering}.%
+\index{sections!indices!SHN_UNDEF@\constant{SHN\_UNDEF}}
 
 \section{ELF section handling with \library{libelf}}
 
 You can conveniently retrieve the contents of sections and section
 headers using the APIs in the ELF(3) library.  Function
 \function{elf\_getscn} will retrieve section information for a
-requested section number.  Iteration through the sections of an ELF
-file is possible using function \function{elf\_nextscn}.  These
-routines will take care of translating between in-file and in-memory
-representations, thus simplifying your application.
+requested section number.%
+\index{sections!retrieval!elf_getscn@\function{elf\_getscn}}%
+Iteration through the sections of an ELF
+file is possible using function \function{elf\_nextscn}.%
+\index{sections!iteration through!elf_nextscn@\function{elf\_nextscn}}%
+These routines will take care of translating between in-file and in-memory
+representations, thus simplifying your application.%
+\index{object~representation!automatic translation}
 
 In the ELF(3) API set, ELF sections are managed using \type{Elf\_Scn}
 descriptors.  There is one \type{Elf\_Scn} descriptor per ELF section
@@ -1232,23 +1288,31 @@ in the ELF object.  Functions \function{elf\_getscn} and
 \function{elf\_nextscn} retrieve pointers to \type{Elf\_Scn}
 descriptors for pre-existing sections in the ELF object.  (Chapter
 \vref{chap.creating-elf} covers the use of function
-\function{elf\_newscn} for allocating new sections).
+\function{elf\_newscn} for allocating new sections).%
+\index{Elf_Scn@\type{Elf\_Scn}!use of}.
 
 Given a \type{Elf\_Scn} descriptor, the functions
 \function{elf32\_\-getshdr} and \function{elf64\_\-getshdr} retrieve the
 associated Section Header Table entry for the section.  The GELF(3)
 API set offers an equivalent ELF-class independent function
-\function{gelf\_getshdr}.
+\function{gelf\_getshdr}.%
+\index{ELF!class!agnostic APIs}%
+\index{sections!header table entry!retrieval of}%
+\index{sections!header table entry!elf32_getshdr@\function{elf32\_getshdr}}%
+\index{sections!header table entry!elf32_getshdr@\function{elf64\_getshdr}}%
+\index{sections!header table entry!elf32_getshdr@\function{gelf\_getshdr}}
 
 Each \type{Elf\_Scn} descriptor can be associated with zero or more
 \type{Elf\_Data} descriptors.  \type{Elf\_Data} descriptors describe
 regions of application memory that contain the actual data in the ELF
 section.  \type{Elf\_Data} descriptors for a given \type{Elf\_Scn}
-descriptor are retrieved using the \function{elf\_getdata} function.
+descriptor are retrieved using the \function{elf\_getdata} function.%
+\index{Elf_Scn@\type{Elf\_Scn}!Elf_Data descriptors@\type{Elf\_Data} descriptors}
 
 Figure~\vref{fig.elf.scn} shows graphically how an \type{Elf\_Scn}
 descriptor could conceptually cover the content of a section with
-\type{Elf\_Data} descriptors.
+\type{Elf\_Data} descriptors.%
+\index{sections!coverage by data descriptors}
 
 \begin{figure}
   \begin{center}
@@ -1261,7 +1325,8 @@ Figure~\vref{fig.elf.data} depicts how an \type{Elf\_Data} structure
 describes a chunk of application memory.  Note that the figure
 reflects the fact that the in-memory representation of data could have
 a different size and endianness than its in-file
-representation.
+representation.%
+\index{Elf_Data@\type{Elf\_Data}!describing application memory}
 
 \begin{figure}
   \begin{center}
@@ -1271,8 +1336,8 @@ representation.
 \end{figure}
 
 Figure~\vref{fig.elf.scn-data.decl} shows the C definition of the
-\type{Elf\_Scn} \index{Elf_Scn@\texttt{Elf\_Scn}!definition~of} and
-\type{Elf\_Data} \index{Elf_Data@\texttt{Elf\_Data}!definition~of}
+\type{Elf\_Scn} \index{Elf_Scn@\type{Elf\_Scn}!definition~of} and
+\type{Elf\_Data} \index{Elf_Data@\type{Elf\_Data}!definition~of}
 descriptors.
 
 \begin{callout}{data}
@@ -1298,24 +1363,30 @@ typedef struct _Elf_Data {
     application.
   \item[\coref{2}] The \parameter{d\_align} member specifies alignment
     of data referenced in the \type{Elf\_Data} with respect to its
-    containing section.
+    containing section.%
+    \index{Elf_Data@\type{Elf\_Data}!alignment}
   \item[\coref{3}] The \parameter{d\_buf} member points to a contiguous
-    region of memory holding data.
+    region of memory holding data.%
+    \index{Elf_Data@\type{Elf\_Data}!data pointer}
   \item[\coref{4}] The \parameter{d\_off} member contains the file
     offset \emph{from the start of the section} of the data in this
     buffer.  This field is usually managed by the library, but is
     under application control if the application has requested full
     control of the ELF file's layout (see
-    chapter~\vref{chap.creating-elf}).
+    chapter~\vref{chap.creating-elf}).%
+    \index{Elf_Data@\type{Elf\_Data}!offset in section}
   \item[\coref{5}] The \parameter{d\_size} member contains the size of
-    the memory buffer.
+    the memory buffer.%
+    \index{Elf_Data@\type{Elf\_Data}!data size}
   \item[\coref{6}] The \parameter{d\_type} member specifies the ELF
     type of the data contained in the data buffer.  Legal values for
     this member are precisely those defined by the \type{Elf\_Type}
-    enumeration in \filename{libelf.h}.
+    enumeration in \filename{libelf.h}.%
+    \index{Elf_Data@\type{Elf\_Data}!data type}
   \item[\coref{7}] The \parameter{d\_version} member specifies the
     working version for the data in this descriptor.  It must be one
-    of the values supported by the \library{libelf} library.
+    of the values supported by the \library{libelf} library.%
+    \index{Elf_Data@\type{Elf\_Data}!descriptor version}
   \end{description}
 \end{callout}
 
@@ -1327,7 +1398,8 @@ tables are implemented by \library{libelf}.
 String tables hold variable length strings, allowing other structures
 in an ELF object to refer to strings using offsets into the string
 table.  Sections containing string tables have type
-\constant{SHT\_STRTAB}.
+\constant{SHT\_STRTAB}.%
+\index{sections!string~table}
 
 \begin{figure}
   \begin{center}
@@ -1337,7 +1409,8 @@ table.  Sections containing string tables have type
 \end{figure}
 
 Figure~\vref{fig.elf.strtab} shows the layout of a string table
-graphically:
+graphically:%
+\index{sections!string~table!layout}
 
 \begin{itemize}
 \item The initial byte of a string table is \constant{NUL} (a
@@ -1353,7 +1426,9 @@ names could be kept in one string table and symbol names in another.
 
 Given the section index of a section containing a string table,
 applications would use the \function{elf\_strptr} function to convert
-a string offset to \type{char *} pointer usable by C code.
+a string offset to \type{char *} pointer usable by C code.%
+\index{sections!string~table!retrieval of strings}%
+\index{sections!string~table!elf_strptr@\function{elf\_strptr}}
 
 \section{Example: Listing section names}
 
@@ -1364,11 +1439,14 @@ to use:
 \item Functions \function{elf\_nextscn} and \function{elf\_getscn} to
   retrieve \type{Elf\_Scn} descriptors.
 \item Function \function{gelf\_getshdr} to retrieve a Section Header
-  Table entry corresponding to a section descriptor.
+  Table entry corresponding to a section descriptor.%
+  \index{ELF!class!agnostic APIs}
 \item Function \function{elf\_strptr} to convert section name indices
-  to NUL-terminated strings.
+  to NUL-terminated strings.%
+  \index{sections!names!retrieval of}
 \item Function \function{elf\_getdata} to retrieve translated data
-  associated with a section.
+  associated with a section.%
+  \index{sections!data!retrieval of}
 \end{itemize}
 
 \begin{callout}{prog4}
@@ -1380,10 +1458,11 @@ to use:
       \function{elf\_getshdrstrndx}.  The use of
       \function{elf\_getshdrstrndx} allows our program to work
       correctly when the object being examined has a very large number
-      of sections.
+      of sections.%
+      \index{sections!names!string table}
     \item[\coref{2}] Function \function{elf\_nextscn} has the useful
-      property that it returns the pointer to section number 1 if a
-      NULL section pointer is passed in.  Recall that section number 0
+      property that it returns the pointer to section number `1' if a
+      NULL section pointer is passed in.  Recall that section number `0'
       is always of type \constant{SHT\_NULL} and is not interesting to
       applications.
     \item[\coref{3}] We loop over all sections in the ELF object.
@@ -1393,15 +1472,19 @@ to use:
       associated section header using function
       \function{gelf\_getshdr}.  The \parameter{sh\_name} member of
       this structure holds the required offset into the section name
-      string table.
+      string table.%
+      index{sections!header table entry!retrieval of}
     \item[\coref{5}] We convert the string offset in member
       \parameter{sh\_name} to a \type{char *} pointer using function
       \function{elf\_strptr}.  This value is then printed using
-      \function{printf}.
+      \function{printf}.%
+      \index{sections!names!retrieval of}%
+      \index{sections!names!elf_strptr@\function{elf\_strptr}}%
     \item[\coref{6}] We retrieve the section descriptor associate with
       the string table holding section names.  Variable
       \parameter{shstrndx} was retrieved by a prior call to function
-      \function{elf\_getshdrstrndx}.
+      \function{elf\_getshdrstrndx}.%
+      \index{sections!names!string table}
     \item[\coref{7}] We cycle through the \type{Elf\_Data} descriptors
       associated with the section in question, printing the characters
       in each data buffer.
@@ -1487,7 +1570,7 @@ Broadly speaking, the steps involved in creating an ELF file with
   \function{elf64\_newphdr} or \function{gelf\_newphdr}.  The Program
   Header Table can be allocated anytime after the Executable Header
   has been allocated.%
-  \index{program~header~table!allocation}
+  \index{program~header!table!allocation of}
 \item Sections may be added to an ELF object using function
   \function{elf\_newscn}.  \type{Elf\_Data} descriptors associated
   with an ELF section can be added to a section descriptor using
@@ -1526,11 +1609,11 @@ name string table.  We will mark the ELF of the object as using a
       array \parameter{hash\_words}.  These values will be translated
       to the appropriate byte order by the \library{libelf} library
       when the object file is created.%
-      \index{section!hash~values}
+      \index{sections!hash~values}
     \item[\coref{3}] We use a pre-fabricated ELF string table to hold
       section names.  See section~\vref{sec.shdr.strtab} for more
       information on the layout of ELF string tables.%
-      \index{section!string~table}
+      \index{sections!string~table}
     \item[\coref{4}] The first step to create an ELF object is to
       obtain a file descriptor from the OS that is opened for writing.
     \item[\coref{5}] By passing parameter \constant{ELF\_C\_WRITE} to
