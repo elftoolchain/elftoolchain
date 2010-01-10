@@ -1464,36 +1464,45 @@ r p \^@\at@ . h a s h \^@\at@ . d y n s y m
 
 We will now look at how ELF objects can be created (and modified, see
 section~\vref{sec.modifying-elf}) using the \library{libelf}
-library.
+library.\index{ELF!creation~of}
 
 Broadly speaking, the steps involved in creating an ELF file with
 \library{libelf} are:
 \begin{enumerate}
 \item An ELF descriptor needs to be allocated with a call to
   \function{elf\_begin}, passing in the parameter
-  \constant{ELF\_C\_WRITE}.
+  \constant{ELF\_C\_WRITE}.%
+  \index{ELF!descriptor!allocation}%
+
 \item You would then allocate an ELF Executable Header using one of
   the \function{elf32\_newehdr}, \function{elf64\_newehdr} or
   \function{gelf\_newehdr} functions.  Note that this is a mandatory
   step since an ELF Executable Header is always present in an ELF
   object.  The ELF ``class'', of the object, i.e., whether the object
-  is a 32-bit or 64-bit one, is fixed at this time.
+  is a 32-bit or 64-bit one, is fixed at this time.%
+  \index{executable~header!allocation!functions}%
+  \index{executable~header!allocation!gelf_newehdr@\function{gelf\_newehdr}}%
 \item An ELF Program Header Table is optional and can be allocated
   using one of functions \function{elf32\_newphdr},
   \function{elf64\_newphdr} or \function{gelf\_newphdr}.  The Program
   Header Table can be allocated anytime after the Executable Header
-  has been allocated.
+  has been allocated.%
+  \index{program~header~table!allocation}
 \item Sections may be added to an ELF object using function
   \function{elf\_newscn}.  \type{Elf\_Data} descriptors associated
   with an ELF section can be added to a section descriptor using
   function \function{elf\_newdata}. ELF sections can be allocated
-  anytime after the object's Executable Header has been allocated.
+  anytime after the object's Executable Header has been allocated.%
+  \index{sections!adding to an object}%
+  \index{Elf_Data@\type{Elf\_Data}!adding to section descriptor}
 \item If you are creating an ELF object for a non-native architecture,
   you can change the byte ordering of the object by changing the byte
-  order byte at offset \constant{EI\_DATA} in the ELF header.
+  order byte at offset \constant{EI\_DATA} in the ELF header.%
+  \index{object~creation!non-native byte order}
 \item Once your data is in place, you then ask the \library{libelf}
   library to write out the final ELF object using function
-  \function{elf\_update}.
+  \function{elf\_update}.%
+  \index{executable~header!updating!with \function{elf\_update}}
 \item Finally, you close the ELF descriptor allocated using function
   \function{elf\_end}.
 \end{enumerate}
@@ -1516,20 +1525,24 @@ name string table.  We will mark the ELF of the object as using a
       values.  These values are present in host-native order in the
       array \parameter{hash\_words}.  These values will be translated
       to the appropriate byte order by the \library{libelf} library
-      when the object file is created.
+      when the object file is created.%
+      \index{section!hash~values}
     \item[\coref{3}] We use a pre-fabricated ELF string table to hold
       section names.  See section~\vref{sec.shdr.strtab} for more
-      information on the layout of ELF string tables.
+      information on the layout of ELF string tables.%
+      \index{section!string~table}
     \item[\coref{4}] The first step to create an ELF object is to
       obtain a file descriptor from the OS that is opened for writing.
     \item[\coref{5}] By passing parameter \constant{ELF\_C\_WRITE} to
       function \function{elf\_begin}, we obtain an ELF descriptor
-      suitable for creating new ELF objects.
+      suitable for creating new ELF objects.%
+      \index{object~creation!with \function{elf\_begin}}
     \item[\coref{6}] We allocate an ELF Executable Header and set the
       \constant{EI\_DATA} byte in its \parameter{e\_ident} member.
       The machine type is set to \constant{EM\_PPC} denoting the
       PowerPC architecture, and the object is marked as an ELF
-      executable.
+      executable.%
+      \index{executable~header!allocation}
     \item[\coref{7}] We allocate an ELF Program Header table with one
       entry.  At this point of time we do not know how the ELF object
       will be laid out so we don't know where the ELF Program Header
@@ -1544,10 +1557,12 @@ name string table.  We will mark the ELF of the object as using a
       string table.  We use the pre-fabricated string table in
       variable \parameter{string\_table}.  The type of the section is
       set to \constant{SHT\_STRTAB}.  Its offset and size in the file
-      will be computed by the library.
+      will be computed by the library.%
+      index{sections!string~table!allocation~of}
     \item[\coref{10}] We set the string table index field in the ELF
       Executable Header using the function
-      \function{elf\_setshstrndx}.
+      \function{elf\_setshstrndx}.%
+      \index{executable~header!setting the string table index}
     \item[\coref{11}] Calling function \function{elf\_update} with
       parameter \constant{ELF\_C\_NULL} indicates that the
       \library{libelf} library is to compute the layout of the object,
@@ -1557,10 +1572,12 @@ name string table.  We will mark the ELF of the object as using a
       Executable Header after this call to \function{elf\_update}.
       The Program Header Table is then marked ``dirty'' using a call
       to function \function{elf\_flagdata}, so that a subsequent call
-      to \function{elf\_update} will use the new contents.
+      to \function{elf\_update} will use the new contents.%
+      \index{executable~header!updating!with \function{elf\_update}}
     \item[\coref{12}] A call to function \function{elf\_update} with
       parameter \constant{ELF\_C\_WRITE} causes the object file to be
-      written out.
+      written out.%
+      \index{object~creation!writing to file!with \function{elf\_update}}
   \end{description}
 \end{callout}
 
@@ -1618,10 +1635,12 @@ how to modify an existing ELF object.
 
 \subsection{Controlling ELF Layout}
 By default, the \library{libelf} library will lay out your ELF objects
-for you.  The default layout is shown in figure~\vref{fig.elf.layout}.
+for you.  The default layout is shown in figure~\vref{fig.elf.layout}.%
+\index{object~creation!default~layout}%
 An application may request fine-grained control over the ELF object's
 layout by setting the flag \constant{ELF\_F\_LAYOUT} on the ELF
-descriptor using function \function{elf\_flagelf}.
+descriptor using function \function{elf\_flagelf}.%
+\index{object~creation!layout!application~control~of}
 
 Once an ELF descriptor has been flagged with flag
 \constant{ELF\_F\_LAYOUT} the following members of the ELF data
@@ -1642,7 +1661,9 @@ These fields must set prior to calling function
 The library will fill ``gaps'' between parts of the ELF file with a
 \firstterm{fill character}\index{ELF!fill character}.  An application
 may set the fill character using the function \function{elf\_fill}.
-The default fill character is a zero byte.
+The default fill character is a zero byte.%
+\index{object~creation!layout!fill~character}%
+\index{object~creation!layout!elf_fill@\function{elf\_fill}}
 
 \subsection{Memory Management}
 
@@ -1653,7 +1674,8 @@ passes data back to the application using the same mechanism.  In
 order to keep tracking memory ownership simple, the \library{libelf}
 library follows the rule that it will never attempt to free data that
 it did not allocate.  Conversely, the application is also not to free
-memory allocated by the \library{libelf} library.
+memory allocated by the \library{libelf} library.%
+\index{object~creation!memory~management~rules}
 
 \subsection{\library{libelf} data structure lifetimes}
 As part of the process of writing out an ELF object, the
@@ -1667,13 +1689,16 @@ headers \emph{become invalid} after a call to function
 \function{elf\_update} with parameter \constant{ELF\_C\_WRITE}.
 
 After a successful call to function \function{elf\_update} all ELF
-data structures will need to be retrieved afresh.
+data structures will need to be retrieved afresh.%
+\index{object~creation!refreshing of data structures}
 
 \subsection{Modifying existing ELF objects}\label{sec.modifying-elf}
 
 The \library{libelf} library also allows existing ELF objects to be
 modified.  The process is similar to that for creating ELF objects,
-the differences being:
+the differences being:%
+\index{object~modification!process to follow}
+
 \begin{itemize}
 \item The underlying file object would need to be opened for reading
   and writing, and the call to function \function{elf\_begin} would
@@ -1684,7 +1709,8 @@ the differences being:
   \function{elf\_new*} APIs used for allocating new data structures.
   The \library{libelf} library would be informed of modifications to
   ELF data structures by calls to the appropriate
-  \function{elf\_flag*} functions.
+  \function{elf\_flag*} functions.%
+  \index{object~modification!flagging modified data}
 \end{itemize}
 
 The rest of the program flow would be similar to the object creation
