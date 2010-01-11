@@ -30,6 +30,7 @@
 
 \usepackage{array}
 \usepackage{color}
+\usepackage{fancybox}
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{listings}
@@ -37,7 +38,7 @@
 \usepackage{varioref}
 \usepackage{xspace}
 
-\usepackage{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
 
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
@@ -76,10 +77,11 @@
 % in a visually distinct way. `UNIQUE-TOKEN' is used to disambiguate
 % between different callout environments in the same text.  `color'
 % defaults to blue.
-\newenvironment{callout}[2][blue]{%
+\newenvironment{callout}[2][black]{%
   \begingroup\newcommand{\@cocolor}{#1}%
+  \setlength{\shadowsize}{1.2pt}%
   \newcommand{\@cogroup}[1]{#2}}{\endgroup}
-\newcommand{\@co}[1]{\framebox{\textbf{\color{\@cocolor}#1}}}
+\newcommand{\@co}[1]{\shadowbox{\color{\@cocolor}#1}}
 \newcommand{\co}[1]{%
   \hypertarget{\@cogroup.#1.co}{%
     \hyperlink{\@cogroup.#1.cr}{\@co{#1}}}}
@@ -117,9 +119,9 @@
 
 This tutorial introduces the \library{libelf} library being developed
 at the \href{http://elftoolchain.sourceforge.net/}{ElfToolChain}
-project on \href{sourceforge.net}{SourceForge.Net}.  It shows how this
-library can be used to create tools that can manipulate ELF objects
-for native and non-native architectures.
+project on \href{http://sourceforge.net/}{SourceForge.Net}.  It shows
+how this library can be used to create tools that can manipulate ELF
+objects for native and non-native architectures.
 
 The ELF(3)/GELF(3) APIs are discussed, as is handling of ar(1)
 archives.  The ELF format is discussed to the extent needed to
@@ -394,7 +396,7 @@ Save the listing in listing~\vref{src.prog.1} to file
 \filename{prog1.c} and then compile and run it as shown in
 listing~\vref{scr.prog1}.
 
-\begin{callout}[red]{scr1}
+\begin{callout}{scr1}
   \begin{lstlisting}[basicstyle=\ttfamily, language={},
       caption=Compiling and running prog1,
       label=scr.prog1]
@@ -829,7 +831,7 @@ significant to most applications.
 Save the program in listing~\vref{src.prog.2} to file \filename{prog2.c} and
 then compile and run it as shown in listing~\vref{scr.prog2}.
 
-\begin{callout}[red]{scr2}
+\begin{callout}{scr2}
   \newcommand{\at}{@}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
       label=scr.prog2, caption=Compiling and Running prog2]
@@ -1042,7 +1044,7 @@ of the object being handled.%
 Save the program in listing~\vref{src.prog.3} to file \filename{prog3.c} and
 then compile and run it as shown in listing~\vref{scr.prog3}.
 
-\begin{callout}[red]{scr3}
+\begin{callout}{scr3}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
       label=scr.prog3, caption=Compiling and Running prog3]
 % cc -o prog3 prog3.c -lelf @\co{1}@
@@ -1494,7 +1496,7 @@ Save the program in listing~\vref{src.prog.4} to file
 \filename{prog4.c} and then compile and run it as shown in
 listing~\vref{scr.prog4}.
 
-\begin{callout}[red]{scr4}
+\begin{callout}{scr4}
   \newcommand{\at}{@}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
       label=scr.prog4, caption=Compiling and Running prog4]
@@ -1667,7 +1669,7 @@ Save the program in listing~\vref{src.prog.5} to file
 \filename{prog5.c} and then compile and run it as shown in
 listing~\vref{scr.prog5}.
 
-\begin{callout}[red]{scr5}
+\begin{callout}{scr5}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
       label=scr.prog5, caption=Compiling and Running prog5]
 % cc -o prog5 prog5.c -lelf @\co{1}@
@@ -1947,7 +1949,7 @@ Save the program in listing~\vref{src.prog.6} to file
 \filename{prog6.c} and then compile and run it as shown in
 listing~\vref{scr.prog6}.
 
-\begin{callout}[red]{scr6}
+\begin{callout}{scr6}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
       label=scr.prog6, caption=Compiling and Running prog6]
 % cc -o prog6 prog6.c -lelf @\co{1}@
