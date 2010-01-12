@@ -313,7 +313,8 @@ library, how to report errors, and how to wind up.
   \item[\coref{1}] The functions and dataypes that make up the ELF(3) API
     are declared in the header \filename{libelf.h}.  This file must be included
     in every application that desires to use the \library{libelf}
-    library.
+    library.%
+    \index{libelf@\library{libelf}!header \filename{elf.h}}
 
   \item[\coref{2}] The ELF(3) library uses an opaque type \type{Elf} as a
     handle for the ELF object being processed.
@@ -394,7 +395,8 @@ Now it is time to get something running.
 
 Save the listing in listing~\vref{src.prog.1} to file
 \filename{prog1.c} and then compile and run it as shown in
-listing~\vref{scr.prog1}.
+listing~\vref{scr.prog1}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr1}
   \begin{lstlisting}[basicstyle=\ttfamily, language={},
@@ -690,7 +692,8 @@ in program~\vref{src.prog.2} below, the \library{libelf} library will
 automatically do the necessary byteswapping and alignment adjustments
 for us.%
 \index{ELF!class!agnostic APIs}%
-\index{ELF!data conversion!automatic}
+\index{ELF!data conversion!automatic}%
+\index{libelf@\library{libelf}!automatic data conversion}
 
 For applications that desire finer-grain control over the conversion
 process, the \function{elf\textit{NN}\_xlatetof} and
@@ -746,7 +749,8 @@ these fields when extended numbering is in use.
 
 We will now look at a small program that will print out the ELF
 executable header in an ELF object. For this example we will introduce
-the GELF(3) API set.
+the GELF(3) API set.%
+\index{GELF}
 
 The ELF(3) API is defined in terms of ELF class-dep\-endent types
 (\type{Elf32\_\-Ehdr}, \type{Elf64\_\-Shdr}, etc.) and consequently
@@ -772,14 +776,16 @@ functions.
 
 The downside of using the GELF(3) APIs is the extra copying and
 conversion of data that occurs.  This overhead is usually not
-significant to most applications.
+significant to most applications.%
+\index{GELF!downsides to}
 
 \begin{callout}{prog2}
   \lstinputlisting[caption=Program 2, label=src.prog.2]{prog2.txt}
 
   \begin{description}
   \item[\coref{1}] Programs using the GELF(3) API set need to include
-    \filename{gelf.h}.
+    \filename{gelf.h}.%
+    \index{libelf@\library{libelf}!header \filename{gelf.h}}
 
   \item[\coref{2}] The GELF(3) functions always operate on a local
     copies of data structures.  The \type{GElf\_Ehdr} type has fields
@@ -829,7 +835,8 @@ significant to most applications.
 \end{callout}
 
 Save the program in listing~\vref{src.prog.2} to file \filename{prog2.c} and
-then compile and run it as shown in listing~\vref{scr.prog2}.
+then compile and run it as shown in listing~\vref{scr.prog2}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr2}
   \newcommand{\at}{@}
@@ -1042,7 +1049,8 @@ of the object being handled.%
 \end{callout}
 
 Save the program in listing~\vref{src.prog.3} to file \filename{prog3.c} and
-then compile and run it as shown in listing~\vref{scr.prog3}.
+then compile and run it as shown in listing~\vref{scr.prog3}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr3}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
@@ -1494,7 +1502,8 @@ to use:
 
 Save the program in listing~\vref{src.prog.4} to file
 \filename{prog4.c} and then compile and run it as shown in
-listing~\vref{scr.prog4}.
+listing~\vref{scr.prog4}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr4}
   \newcommand{\at}{@}
@@ -1667,7 +1676,8 @@ name string table.  We will mark the ELF of the object as using a
 
 Save the program in listing~\vref{src.prog.5} to file
 \filename{prog5.c} and then compile and run it as shown in
-listing~\vref{scr.prog5}.
+listing~\vref{scr.prog5}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr5}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
@@ -1947,7 +1957,8 @@ typedef struct {
 
 Save the program in listing~\vref{src.prog.6} to file
 \filename{prog6.c} and then compile and run it as shown in
-listing~\vref{scr.prog6}.
+listing~\vref{scr.prog6}.%
+\index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr6}
   \begin{lstlisting}[language={}, basicstyle=\small\ttfamily,
@@ -1997,7 +2008,7 @@ typedef struct {
 Once the file offset of the member is known, the function
 \function{elf\_rand} can be used to set the parent archive to open the
 desired archive member at the next call to \function{elf\_begin}.%
-\index{ar~archive!random~access!elf_rand@\texttt{elf\_rand}}
+\index{ar~archive!random~access!use of \function{elf\_rand}}
 
 \chapter{Conclusion}\label{chap.conclusion}
 
