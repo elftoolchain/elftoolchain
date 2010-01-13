@@ -43,7 +43,7 @@ ${f:R}.eps: ${.CURDIR}/${f}
 CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 .endfor
 
-${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g} ${DOC}.ind
+${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 	${PDFLATEX} ${DOC}.tex || (rm ${.TARGET}; exit 1)
 	@if grep 'undefined references' ${DOC}.log > /dev/null; then \
 		${PDFLATEX} ${DOC}.tex; \
