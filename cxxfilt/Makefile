@@ -10,6 +10,6 @@ WARNS?=	6
 DPADD=	${LIBELFTC}
 LDADD=	-lelftc
 
-NO_MAN=
+MAN1=	c++filt.1
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
