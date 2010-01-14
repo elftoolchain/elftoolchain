@@ -30,6 +30,7 @@
 #include <err.h>
 #include <getopt.h>
 #include <libelftc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -160,7 +161,7 @@ main(int argc, char **argv)
 	if (*argv != NULL) {
 		for (i = 0; i < argc; i++) {
 			if ((dem = demangle(argv[i], 1, NULL)) == NULL)
-				fprintf(stderr, "Faild: %s\n", argv[i]);
+				fprintf(stderr, "Failed: %s\n", argv[i]);
 			else
 				printf("%s\n", dem);
 		}
