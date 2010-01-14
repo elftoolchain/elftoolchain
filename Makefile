@@ -21,8 +21,10 @@ SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
 
-# Build test suites and documentation at the end.
+# Build test suites.
 SUBDIR += libelf-test-suite
-SUBDIR += libelf-tutorial
+
+# Build documentation at the end.
+SUBDIR += documentation
 
 .include <bsd.subdir.mk>

@@ -3,7 +3,7 @@
 #
 # $Id$
 
-TOP = ..
+TOP = ../..
 
 DOC=			libelf-by-example
 
