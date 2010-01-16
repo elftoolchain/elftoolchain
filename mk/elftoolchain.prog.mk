@@ -35,8 +35,10 @@ LDFLAGS+= -L${TOP}/libelftc
 .endif
 .endif
 
+.if defined(SRCS)
 .if ${SRCS:M*.y}
 CLEANFILES+=	y.tab.h
+.endif
 .endif
 
 .include <bsd.prog.mk>
