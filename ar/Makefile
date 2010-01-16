@@ -16,6 +16,8 @@ NO_SHARED?=	yes
 
 LINKS=	${BINDIR}/ar ${BINDIR}/ranlib
 
+CLEANFILES+= ranlib
+
 MAN1=	ar.1
 MLINKS= ar.1 ranlib.1
 
