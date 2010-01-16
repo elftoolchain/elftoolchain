@@ -102,6 +102,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 		}						\
 		ln->ln_li     = li;				\
 		ln->ln_addr   = address;			\
+		ln->ln_symndx = 0;				\
 		ln->ln_fileno = file;				\
 		ln->ln_lineno = line;				\
 		ln->ln_column = column;				\
@@ -346,6 +347,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 			;
 		length++;
 	}
+	li->li_inclen = length;
 
 	/* Sanity check. */
 	if (p - ds->ds_data > (int) ds->ds_size) {
@@ -364,7 +366,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	i = 0;
 	p = ds->ds_data + offset;
 	while (*p != '\0') {
-		li->li_incdirs[i++] = (char *)p;
+		li->li_incdirs[i++] = (char *) p;
 		while (*p++ != '\0')
 			;
 	}

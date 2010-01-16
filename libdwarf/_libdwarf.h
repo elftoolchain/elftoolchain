@@ -153,6 +153,7 @@ struct _Dwarf_P_Expr {
 struct _Dwarf_Line {
 	Dwarf_LineInfo	ln_li;		/* Ptr to line info. */
 	Dwarf_Addr	ln_addr;	/* Line address. */
+	Dwarf_Unsigned	ln_symndx;	/* Symbol index for relocation. */
 	Dwarf_Unsigned	ln_fileno;	/* File number. */
 	Dwarf_Unsigned	ln_lineno;	/* Line number. */
 	Dwarf_Signed	ln_column;	/* Column number. */
@@ -371,6 +372,7 @@ struct _Dwarf_Debug {
 	Dwarf_Die	dbgp_root_die;
 	STAILQ_HEAD(, _Dwarf_Die) dbgp_dielist;
 	STAILQ_HEAD(, _Dwarf_P_Expr) dbgp_pelist;
+	Dwarf_LineInfo	dbgp_lineinfo;
 };
 
 /*
@@ -461,6 +463,10 @@ void		_dwarf_strtab_cleanup(Dwarf_Debug);
 char		*_dwarf_strtab_get_table(Dwarf_Debug);
 int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_write_sleb128(uint8_t *, uint8_t *, int64_t);
+int		_dwarf_write_sleb128_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    int64_t, Dwarf_Error *);
 int		_dwarf_write_uleb128(uint8_t *, uint8_t *, uint64_t);
+int		_dwarf_write_uleb128_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint64_t, Dwarf_Error *);
 
 #endif /* !__LIBDWARF_H_ */
