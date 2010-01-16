@@ -14,6 +14,7 @@ SUBDIR += libelftc
 SUBDIR += addr2line
 SUBDIR += ar
 SUBDIR += brandelf
+SUBDIR += cxxfilt
 SUBDIR += elfcopy
 SUBDIR += elfdump
 SUBDIR += nm
