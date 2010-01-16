@@ -75,8 +75,17 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: c++filt [options] [name ...]\n");
+	fprintf(stderr, "usage: %s [options] [name ...]\n",
+	    ELFTC_GETPROGNAME());
 	exit(1);
+}
+
+static void
+version(void)
+{
+
+	fprintf(stderr, "%s 1.0\n", ELFTC_GETPROGNAME());
+	exit(0);
 }
 
 static int
@@ -147,8 +156,10 @@ main(int argc, char **argv)
 			if ((format = find_format(optarg)) < 0)
 				errx(1, "unsupported format: %s", optarg);
 			break;
-		case OPTION_HELP:
 		case OPTION_VERSION:
+			version();
+			/* NOT REACHED */
+		case OPTION_HELP:
 		default:
 			usage();
 			/* NOT REACHED */
