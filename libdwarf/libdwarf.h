@@ -243,6 +243,7 @@ enum {
 	DWARF_E_REGTABLE_SPACE,		/* Insufficient regtable space. */
 	DWARF_E_INVALID_ARANGE,		/* Invalid address range data. */
 	DWARF_E_INVALID_MACINFO,	/* Invalid macinfo data. */
+	DWARF_E_SEQUENCE,		/* API called in wrong sequence. */
 	DWARF_E_NUM			/* Max error number. */
 };
 
@@ -325,12 +326,18 @@ Dwarf_P_Attribute dwarf_add_AT_string(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    char *, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
 		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_directory_decl(Dwarf_P_Debug, char *, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_expr_addr(Dwarf_P_Expr, Dwarf_Unsigned,
 		    Dwarf_Signed, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_expr_addr_b(Dwarf_P_Expr, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_expr_gen(Dwarf_P_Expr, Dwarf_Small, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_file_decl(Dwarf_P_Debug, char *, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_line_entry(Dwarf_P_Debug, Dwarf_Unsigned,
+		    Dwarf_Addr, Dwarf_Unsigned, Dwarf_Signed, Dwarf_Bool,
+		    Dwarf_Bool, Dwarf_Error *);
 int		dwarf_arrayorder(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
@@ -489,6 +496,9 @@ int		dwarf_lineendsequence(Dwarf_Line, Dwarf_Bool *, Dwarf_Error *);
 int		dwarf_lineno(Dwarf_Line, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_lineoff(Dwarf_Line, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_linesrc(Dwarf_Line, char **, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_lne_end_sequence(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_lne_set_address(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
+		    Dwarf_Error *);
 int		dwarf_locdesc(Dwarf_Die, uint64_t, Dwarf_Locdesc **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_locdesc_free(Dwarf_Locdesc *, Dwarf_Error *);

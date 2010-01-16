@@ -67,8 +67,19 @@ Dwarf_P_Attribute
 dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
     Dwarf_P_Expr loc_expr, Dwarf_Error *error)
 {
+	Dwarf_Attribute at;
 
+	if (dbg == NULL || die == NULL || loc_expr == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	}
 
+	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+		return (DW_DLV_BADADDR);
+
+	at->at_die = die;
+	at->at_attrib = attr;
+	
 }
 #endif
 

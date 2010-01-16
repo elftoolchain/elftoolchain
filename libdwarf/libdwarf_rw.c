@@ -260,6 +260,27 @@ _dwarf_write_sleb128(uint8_t *data, uint8_t *end, int64_t val)
 	return (p - data);
 }
 
+int
+_dwarf_write_sleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    int64_t val, Dwarf_Error *error)
+{
+	int len;
+
+	while ((len = _dwarf_write_sleb128(*block + *offsetp, *block + *size,
+	    val)) < 0) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
+	}
+
+	*offsetp += len;
+
+	return (DWARF_E_NONE);
+}
+
 uint64_t
 _dwarf_read_uleb128(uint8_t *data, uint64_t *offsetp)
 {
@@ -298,6 +319,27 @@ _dwarf_write_uleb128(uint8_t *data, uint8_t *end, uint64_t val)
 	} while (val > 0);
 
 	return (p - data);
+}
+
+int
+_dwarf_write_uleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    uint64_t val, Dwarf_Error *error)
+{
+	int len;
+
+	while ((len = _dwarf_write_uleb128(*block + *offsetp, *block + *size,
+	    val)) < 0) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
+	}
+
+	*offsetp += len;
+
+	return (DWARF_E_NONE);
 }
 
 int64_t
