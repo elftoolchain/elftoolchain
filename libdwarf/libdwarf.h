@@ -324,6 +324,10 @@ Dwarf_P_Attribute dwarf_add_AT_flag(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    Dwarf_Small, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_string(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    char *, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_arange(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
+		    Dwarf_Signed, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_arange_b(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Addr, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_die_to_debug(Dwarf_P_Debug, Dwarf_P_Die,
 		    Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_directory_decl(Dwarf_P_Debug, char *, Dwarf_Error *);

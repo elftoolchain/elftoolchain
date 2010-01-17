@@ -262,6 +262,9 @@ struct _Dwarf_Arange {
 	Dwarf_ArangeSet	ar_as;		/* Ptr to the set it belongs to. */
 	Dwarf_Unsigned	ar_address;	/* Start PC. */
 	Dwarf_Unsigned	ar_range;	/* PC range. */
+	Dwarf_Unsigned	ar_symndx;	/* First symbol index for reloc. */
+	Dwarf_Unsigned	ar_esymndx;	/* Second symbol index for reloc. */
+	Dwarf_Addr	ar_eoff;	/* Offset from second symbol. */
 	STAILQ_ENTRY(_Dwarf_Arange) ar_next; /* Next arange in list. */
 };
 
@@ -373,6 +376,7 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Die) dbgp_dielist;
 	STAILQ_HEAD(, _Dwarf_P_Expr) dbgp_pelist;
 	Dwarf_LineInfo	dbgp_lineinfo;
+	Dwarf_ArangeSet dbgp_as;
 };
 
 /*
