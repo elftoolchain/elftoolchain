@@ -36,6 +36,10 @@
 #include <libelftc.h>
 #include <libgen.h>
 
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
+
 static struct option longopts[] = {
 	{"target" , required_argument, NULL, 'b'},
 	{"demangle", no_argument, NULL, 'C'},
@@ -49,12 +53,14 @@ static struct option longopts[] = {
 
 static int demangle, func, base;
 
+static char unknown[] = { '?', '?', '\0' };
+
 static void
 usage(void)
 {
 
 	fprintf(stderr, "usage: %s [-b target] [-Cfs] [-e exe] addr addr"
-	    " ...\n", getprogname());
+	    " ...\n", ELFTC_GETPROGNAME());
 	exit(1);
 }
 
@@ -62,7 +68,7 @@ static void
 version(void)
 {
 
-	fprintf(stderr, "%s 1.0", getprogname());
+	fprintf(stderr, "%s 1.0", ELFTC_GETPROGNAME());
 	exit(0);
 }
 
@@ -73,7 +79,8 @@ search_func(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Addr addr,
 	Dwarf_Die ret_die, spec_die;
 	Dwarf_Error de;
 	Dwarf_Half tag;
-	Dwarf_Unsigned lopc, hipc, ref;
+	Dwarf_Unsigned lopc, hipc;
+	Dwarf_Off ref;
 	Dwarf_Attribute sub_at, spec_at;
 	char *func0;
 	int ret;
@@ -94,13 +101,13 @@ search_func(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Addr addr,
 
 		/* Found it! */
 
-		*rlt_func = "??";
+		*rlt_func = unknown;
 		ret = dwarf_attr(die, DW_AT_name, &sub_at, &de);
 		if (ret == DW_DLV_ERROR)
 			return;
 		if (ret == DW_DLV_OK) {
 			if (dwarf_formstring(sub_at, &func0, &de))
-				*rlt_func = "??";
+				*rlt_func = unknown;
 			else
 				*rlt_func = func0;
 			return;
@@ -118,7 +125,7 @@ search_func(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Addr addr,
 		if (dwarf_offdie(dbg, ref, &spec_die, &de))
 			return;
 		if (dwarf_attrval_string(spec_die, DW_AT_name, rlt_func, &de))
-			*rlt_func = "??";
+			*rlt_func = unknown;
 
 		return;
 	}
@@ -150,14 +157,14 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 	Dwarf_Unsigned lopc, hipc, addr, lineno, plineno;
 	Dwarf_Signed lcount;
 	Dwarf_Addr lineaddr, plineaddr;
-	const char *pfile, *file, *funcname;
-	char *file0;
+	const char *funcname;
+	char *file, *file0, *pfile;
 	char demangled[1024];
 	int i, ret;
 
 	addr = strtoull(addrstr, NULL, 16);
 	lineno = 0;
-	file = "??";
+	file = unknown;
 
 	while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
 	    &de)) ==  DW_DLV_OK) {
@@ -193,7 +200,7 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 
 		plineaddr = ~0ULL;
 		plineno = 0;
-		pfile = "??";
+		pfile = unknown;
 		for (i = 0; i < lcount; i++) {
 			if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
 				warnx("dwarf_lineaddr: %s",
@@ -230,14 +237,15 @@ out:
 
 	if (func) {
 		if (funcname == NULL)
-			funcname = "??";
+			funcname = unknown;
 		if (demangle &&
 		    !elftc_demangle(funcname, demangled, sizeof(demangled), 0))
 			printf("%s\n", demangled);
 		else
 			printf("%s\n", funcname);
 	}
-	printf("%s:%ju\n", base ? basename(file) : file, lineno);
+
+	(void) printf("%s:%ju\n", base ? basename(file) : file, lineno);
 
 	/*
 	 * Reset internal CU pointer, so we will start from the first CU
