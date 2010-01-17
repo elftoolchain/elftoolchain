@@ -112,7 +112,7 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			range = dbg->read(ds->ds_data, &offset, as->as_addrsz);
 			if (addr == 0 && range == 0)
 				break;
-			if ((ar = malloc(sizeof(struct _Dwarf_Arange))) ==
+			if ((ar = calloc(1, sizeof(struct _Dwarf_Arange))) ==
 			    NULL) {
 				DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 				goto fail_cleanup;

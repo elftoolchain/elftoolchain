@@ -22,6 +22,7 @@ SRCS=	\
 	dwarf_lineno.c		\
 	dwarf_loclist.c		\
 	dwarf_macinfo.c		\
+	dwarf_pro_arange.c	\
 	dwarf_pro_attr.c	\
 	dwarf_pro_expr.c	\
 	dwarf_pro_init.c	\
