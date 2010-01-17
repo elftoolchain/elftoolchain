@@ -39,7 +39,7 @@ typedef uint64_t	Dwarf_Unsigned;
 typedef uint16_t	Dwarf_Half;
 typedef uint8_t		Dwarf_Small;
 typedef int64_t		Dwarf_Signed;
-typedef uint64_t	Dwarf_Addr;
+typedef uintptr_t	Dwarf_Addr;
 typedef void		*Dwarf_Ptr;
 
 typedef struct _Dwarf_Abbrev	*Dwarf_Abbrev;
