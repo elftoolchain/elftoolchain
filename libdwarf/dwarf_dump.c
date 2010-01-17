@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2009 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -26,6 +28,26 @@
 
 #include <assert.h>
 #include "_libdwarf.h"
+
+int
+dwarf_get_ACCESS_name(unsigned access, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (access) {
+	case DW_ACCESS_public:
+		*s = "DW_ACCESS_public"; break;
+	case DW_ACCESS_protected:
+		*s = "DW_ACCESS_protected"; break;
+	case DW_ACCESS_private:
+		*s = "DW_ACCESS_private"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
 
 int
 dwarf_get_AT_name(unsigned attr, const char **s)
@@ -224,6 +246,78 @@ dwarf_get_AT_name(unsigned attr, const char **s)
 }
 
 int
+dwarf_get_ATE_name(unsigned ate, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch(ate) {
+	case DW_ATE_address:
+		*s = "DW_ATE_address"; break;
+	case DW_ATE_boolean:
+		*s = "DW_ATE_boolean"; break;
+	case DW_ATE_complex_float:
+		*s = "DW_ATE_complex_float"; break;
+	case DW_ATE_float:
+		*s = "DW_ATE_float"; break;
+	case DW_ATE_signed:
+		*s = "DW_ATE_signed"; break;
+	case DW_ATE_signed_char:
+		*s = "DW_ATE_signed_char"; break;
+	case DW_ATE_unsigned:
+		*s = "DW_ATE_unsigned"; break;
+	case DW_ATE_unsigned_char:
+		*s = "DW_ATE_unsigned_char"; break;
+	case DW_ATE_imaginary_float:
+		*s = "DW_ATE_imaginary_float"; break;
+	case DW_ATE_packed_decimal:
+		*s = "DW_ATE_packed_decimal"; break;
+	case DW_ATE_numeric_string:
+		*s = "DW_ATE_numeric_string"; break;
+	case DW_ATE_edited:
+		*s = "DW_ATE_edited"; break;
+	case DW_ATE_signed_fixed:
+		*s = "DW_ATE_signed_fixed"; break;
+	case DW_ATE_unsigned_fixed:
+		*s = "DW_ATE_unsigned_fixed"; break;
+	case DW_ATE_decimal_float:
+		*s = "DW_ATE_decimal_float"; break;
+	case DW_ATE_lo_user:
+		*s = "DW_ATE_lo_user"; break;
+	case DW_ATE_hi_user:
+		*s = "DW_ATE_hi_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_CC_name(unsigned cc, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (cc) {
+	case DW_CC_normal:
+		*s = "DW_CC_normal"; break;
+	case DW_CC_program:
+		*s = "DW_CC_program"; break;
+	case DW_CC_nocall:
+		*s = "DW_CC_nocall"; break;
+	case DW_CC_lo_user:
+		*s = "DW_CC_lo_user"; break;
+	case DW_CC_hi_user:
+		*s = "DW_CC_hi_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_CFA_name(unsigned cfa, const char **s)
 {
 
@@ -294,6 +388,24 @@ dwarf_get_CFA_name(unsigned cfa, const char **s)
 }
 
 int
+dwarf_get_CHILDREN_name(unsigned children, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (children) {
+	case DW_CHILDREN_no:
+		*s = "DW_CHILDREN_no"; break;
+	case DW_CHILDREN_yes:
+		*s = "DW_CHILDREN_yes"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_FORM_name(unsigned form, const char **s)
 {
 
@@ -350,6 +462,186 @@ dwarf_get_FORM_name(unsigned form, const char **s)
 }
 
 int
+dwarf_get_DSC_name(unsigned ds, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (ds) {
+	case DW_DSC_label:
+		*s = "DW_DSC_label"; break;
+	case DW_DSC_range:
+		*s = "DW_DSC_range"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_ID_name(unsigned id, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (id) {
+	case DW_ID_case_sensitive:
+		*s = "DW_ID_case_sensitive"; break;
+	case DW_ID_up_case:
+		*s = "DW_ID_up_case"; break;
+	case DW_ID_down_case:
+		*s = "DW_ID_down_case"; break;
+	case DW_ID_case_insensitive:
+		*s = "DW_ID_case_insensitive"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_INL_name(unsigned inl, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (inl) {
+	case DW_INL_not_inlined:
+		*s = "DW_INL_not_inlined"; break;
+	case DW_INL_inlined:
+		*s = "DW_INL_inlined"; break;
+	case DW_INL_declared_not_inlined:
+		*s = "DW_INL_declared_not_inlined"; break;
+	case DW_INL_declared_inlined:
+		*s = "DW_INL_declared_inlined"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_LANG_name(unsigned lang, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (lang) {
+	case DW_LANG_C89:
+		*s = "DW_LANG_C89"; break;
+	case DW_LANG_C:
+		*s = "DW_LANG_C"; break;
+	case DW_LANG_Ada83:
+		*s = "DW_LANG_Ada83"; break;
+	case DW_LANG_C_plus_plus:
+		*s = "DW_LANG_C_plus_plus"; break;
+	case DW_LANG_Cobol74:
+		*s = "DW_LANG_Cobol74"; break;
+	case DW_LANG_Cobol85:
+		*s = "DW_LANG_Cobol85"; break;
+	case DW_LANG_Fortran77:
+		*s = "DW_LANG_Fortran77"; break;
+	case DW_LANG_Fortran90:
+		*s = "DW_LANG_Fortran90"; break;
+	case DW_LANG_Pascal83:
+		*s = "DW_LANG_Pascal83"; break;
+	case DW_LANG_Modula2:
+		*s = "DW_LANG_Modula2"; break;
+	case DW_LANG_Java:
+		*s = "DW_LANG_Java"; break;
+	case DW_LANG_C99:
+		*s = "DW_LANG_C99"; break;
+	case DW_LANG_Ada95:
+		*s = "DW_LANG_Ada95"; break;
+	case DW_LANG_Fortran95:
+		*s = "DW_LANG_Fortran95"; break;
+	case DW_LANG_PLI:
+		*s = "DW_LANG_PLI"; break;
+	case DW_LANG_ObjC:
+		*s = "DW_LANG_ObjC"; break;
+	case DW_LANG_ObjC_plus_plus:
+		*s = "DW_LANG_ObjC_plus_plus"; break;
+	case DW_LANG_UPC:
+		*s = "DW_LANG_UPC"; break;
+	case DW_LANG_D:
+		*s = "DW_LANG_D"; break;
+	case DW_LANG_lo_user:
+		*s = "DW_LANG_lo_user"; break;
+	case DW_LANG_hi_user:
+		*s = "DW_LANG_hi_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_LNE_name(unsigned lne, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (lne) {
+	case DW_LNE_end_sequence:
+		*s = "DW_LNE_end_sequence"; break;
+	case DW_LNE_set_address:
+		*s = "DW_LNE_set_address"; break;
+	case DW_LNE_define_file:
+		*s = "DW_LNE_define_file"; break;
+	case DW_LNE_lo_user:
+		*s = "DW_LNE_lo_user"; break;
+	case DW_LNE_hi_user:
+		*s = "DW_LNE_hi_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_LNS_name(unsigned lns, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (lns) {
+	case DW_LNS_copy:
+		*s = "DW_LNS_copy"; break;
+	case DW_LNS_advance_pc:
+		*s = "DW_LNS_advance_pc"; break;
+	case DW_LNS_advance_line:
+		*s = "DW_LNS_advance_line"; break;
+	case DW_LNS_set_file:
+		*s = "DW_LNS_set_file"; break;
+	case DW_LNS_set_column:
+		*s = "DW_LNS_set_column"; break;
+	case DW_LNS_negate_stmt:
+		*s = "DW_LNS_negate_stmt"; break;
+	case DW_LNS_set_basic_block:
+		*s = "DW_LNS_set_basic_block"; break;
+	case DW_LNS_const_add_pc:
+		*s = "DW_LNS_const_add_pc"; break;
+	case DW_LNS_fixed_advance_pc:
+		*s = "DW_LNS_fixed_advance_pc"; break;
+	case DW_LNS_set_prologue_end:
+		*s = "DW_LNS_set_prologue_end"; break;
+	case DW_LNS_set_epilogue_begin:
+		*s = "DW_LNS_set_epilogue_begin"; break;
+	case DW_LNS_set_isa:
+		*s = "DW_LNS_set_isa"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_MACINFO_name(unsigned mi, const char **s)
 {
 
@@ -366,132 +658,6 @@ dwarf_get_MACINFO_name(unsigned mi, const char **s)
 		*s = "DW_MACINFO_end_file"; break;
 	case DW_MACINFO_vendor_ext:
 		*s = "DW_MACINFO_vendor_ext"; break;
-	default:
-		return (DW_DLV_NO_ENTRY);
-	}
-
-	return (DW_DLV_OK);
-}
-
-int
-dwarf_get_TAG_name(unsigned tag, const char **s)
-{
-
-	assert(s != NULL);
-
-	switch (tag) {
-	case DW_TAG_access_declaration:
-		*s = "DW_TAG_access_declaration"; break;
-	case DW_TAG_array_type:
-		*s = "DW_TAG_array_type"; break;
-	case DW_TAG_base_type:
-		*s = "DW_TAG_base_type"; break;
-	case DW_TAG_catch_block:
-		*s = "DW_TAG_catch_block"; break;
-	case DW_TAG_class_type:
-		*s = "DW_TAG_class_type"; break;
-	case DW_TAG_common_block:
-		*s = "DW_TAG_common_block"; break;
-	case DW_TAG_common_inclusion:
-		*s = "DW_TAG_common_inclusion"; break;
-	case DW_TAG_compile_unit:
-		*s = "DW_TAG_compile_unit"; break;
-	case DW_TAG_condition:
-		*s = "DW_TAG_condition"; break;
-	case DW_TAG_const_type:
-		*s = "DW_TAG_const_type"; break;
-	case DW_TAG_constant:
-		*s = "DW_TAG_constant"; break;
-	case DW_TAG_dwarf_procedure:
-		*s = "DW_TAG_dwarf_procedure"; break;
-	case DW_TAG_entry_point:
-		*s = "DW_TAG_entry_point"; break;
-	case DW_TAG_enumeration_type:
-		*s = "DW_TAG_enumeration_type"; break;
-	case DW_TAG_enumerator:
-		*s = "DW_TAG_enumerator"; break;
-	case DW_TAG_formal_parameter:
-		*s = "DW_TAG_formal_parameter"; break;
-	case DW_TAG_friend:
-		*s = "DW_TAG_friend"; break;
-	case DW_TAG_imported_declaration:
-		*s = "DW_TAG_imported_declaration"; break;
-	case DW_TAG_imported_module:
-		*s = "DW_TAG_imported_module"; break;
-	case DW_TAG_imported_unit:
-		*s = "DW_TAG_imported_unit"; break;
-	case DW_TAG_inheritance:
-		*s = "DW_TAG_inheritance"; break;
-	case DW_TAG_inlined_subroutine:
-		*s = "DW_TAG_inlined_subroutine"; break;
-	case DW_TAG_interface_type:
-		*s = "DW_TAG_interface_type"; break;
-	case DW_TAG_label:
-		*s = "DW_TAG_label"; break;
-	case DW_TAG_lexical_block:
-		*s = "DW_TAG_lexical_block"; break;
-	case DW_TAG_member:
-		*s = "DW_TAG_member"; break;
-	case DW_TAG_module:
-		*s = "DW_TAG_module"; break;
-	case DW_TAG_namelist:
-		*s = "DW_TAG_namelist"; break;
-	case DW_TAG_namelist_item:
-		*s = "DW_TAG_namelist_item"; break;
-	case DW_TAG_namespace:
-		*s = "DW_TAG_namespace"; break;
-	case DW_TAG_packed_type:
-		*s = "DW_TAG_packed_type"; break;
-	case DW_TAG_partial_unit:
-		*s = "DW_TAG_partial_unit"; break;
-	case DW_TAG_pointer_type:
-		*s = "DW_TAG_pointer_type"; break;
-	case DW_TAG_ptr_to_member_type:
-		*s = "DW_TAG_ptr_to_member_type"; break;
-	case DW_TAG_reference_type:
-		*s = "DW_TAG_reference_type"; break;
-	case DW_TAG_restrict_type:
-		*s = "DW_TAG_restrict_type"; break;
-	case DW_TAG_set_type:
-		*s = "DW_TAG_set_type"; break;
-	case DW_TAG_shared_type:
-		*s = "DW_TAG_shared_type"; break;
-	case DW_TAG_string_type:
-		*s = "DW_TAG_string_type"; break;
-	case DW_TAG_structure_type:
-		*s = "DW_TAG_structure_type"; break;
-	case DW_TAG_subprogram:
-		*s = "DW_TAG_subprogram"; break;
-	case DW_TAG_subrange_type:
-		*s = "DW_TAG_subrange_type"; break;
-	case DW_TAG_subroutine_type:
-		*s = "DW_TAG_subroutine_type"; break;
-	case DW_TAG_template_type_parameter:
-		*s = "DW_TAG_template_type_parameter"; break;
-	case DW_TAG_template_value_parameter:
-		*s = "DW_TAG_template_value_parameter"; break;
-	case DW_TAG_thrown_type:
-		*s = "DW_TAG_thrown_type"; break;
-	case DW_TAG_try_block:
-		*s = "DW_TAG_try_block"; break;
-	case DW_TAG_typedef:
-		*s = "DW_TAG_typedef"; break;
-	case DW_TAG_union_type:
-		*s = "DW_TAG_union_type"; break;
-	case DW_TAG_unspecified_parameters:
-		*s = "DW_TAG_unspecified_parameters"; break;
-	case DW_TAG_unspecified_type:
-		*s = "DW_TAG_unspecified_type"; break;
-	case DW_TAG_variable:
-		*s = "DW_TAG_variable"; break;
-	case DW_TAG_variant:
-		*s = "DW_TAG_variant"; break;
-	case DW_TAG_variant_part:
-		*s = "DW_TAG_variant_part"; break;
-	case DW_TAG_volatile_type:
-		*s = "DW_TAG_volatile_type"; break;
-	case DW_TAG_with_stmt:
-		*s = "DW_TAG_with_stmt"; break;
 	default:
 		return (DW_DLV_NO_ENTRY);
 	}
@@ -796,6 +962,190 @@ dwarf_get_OP_name(unsigned op, const char **s)
 		*s = "DW_OP_bregx"; break;
 	case DW_OP_addr:
 		*s = "DW_OP_addr"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_ORD_name(unsigned ord, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (ord) {
+	case DW_ORD_row_major:
+		*s = "DW_ORD_row_major"; break;
+	case DW_ORD_col_major:
+		*s = "DW_ORD_col_major"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_TAG_name(unsigned tag, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (tag) {
+	case DW_TAG_access_declaration:
+		*s = "DW_TAG_access_declaration"; break;
+	case DW_TAG_array_type:
+		*s = "DW_TAG_array_type"; break;
+	case DW_TAG_base_type:
+		*s = "DW_TAG_base_type"; break;
+	case DW_TAG_catch_block:
+		*s = "DW_TAG_catch_block"; break;
+	case DW_TAG_class_type:
+		*s = "DW_TAG_class_type"; break;
+	case DW_TAG_common_block:
+		*s = "DW_TAG_common_block"; break;
+	case DW_TAG_common_inclusion:
+		*s = "DW_TAG_common_inclusion"; break;
+	case DW_TAG_compile_unit:
+		*s = "DW_TAG_compile_unit"; break;
+	case DW_TAG_condition:
+		*s = "DW_TAG_condition"; break;
+	case DW_TAG_const_type:
+		*s = "DW_TAG_const_type"; break;
+	case DW_TAG_constant:
+		*s = "DW_TAG_constant"; break;
+	case DW_TAG_dwarf_procedure:
+		*s = "DW_TAG_dwarf_procedure"; break;
+	case DW_TAG_entry_point:
+		*s = "DW_TAG_entry_point"; break;
+	case DW_TAG_enumeration_type:
+		*s = "DW_TAG_enumeration_type"; break;
+	case DW_TAG_enumerator:
+		*s = "DW_TAG_enumerator"; break;
+	case DW_TAG_formal_parameter:
+		*s = "DW_TAG_formal_parameter"; break;
+	case DW_TAG_friend:
+		*s = "DW_TAG_friend"; break;
+	case DW_TAG_imported_declaration:
+		*s = "DW_TAG_imported_declaration"; break;
+	case DW_TAG_imported_module:
+		*s = "DW_TAG_imported_module"; break;
+	case DW_TAG_imported_unit:
+		*s = "DW_TAG_imported_unit"; break;
+	case DW_TAG_inheritance:
+		*s = "DW_TAG_inheritance"; break;
+	case DW_TAG_inlined_subroutine:
+		*s = "DW_TAG_inlined_subroutine"; break;
+	case DW_TAG_interface_type:
+		*s = "DW_TAG_interface_type"; break;
+	case DW_TAG_label:
+		*s = "DW_TAG_label"; break;
+	case DW_TAG_lexical_block:
+		*s = "DW_TAG_lexical_block"; break;
+	case DW_TAG_member:
+		*s = "DW_TAG_member"; break;
+	case DW_TAG_module:
+		*s = "DW_TAG_module"; break;
+	case DW_TAG_namelist:
+		*s = "DW_TAG_namelist"; break;
+	case DW_TAG_namelist_item:
+		*s = "DW_TAG_namelist_item"; break;
+	case DW_TAG_namespace:
+		*s = "DW_TAG_namespace"; break;
+	case DW_TAG_packed_type:
+		*s = "DW_TAG_packed_type"; break;
+	case DW_TAG_partial_unit:
+		*s = "DW_TAG_partial_unit"; break;
+	case DW_TAG_pointer_type:
+		*s = "DW_TAG_pointer_type"; break;
+	case DW_TAG_ptr_to_member_type:
+		*s = "DW_TAG_ptr_to_member_type"; break;
+	case DW_TAG_reference_type:
+		*s = "DW_TAG_reference_type"; break;
+	case DW_TAG_restrict_type:
+		*s = "DW_TAG_restrict_type"; break;
+	case DW_TAG_set_type:
+		*s = "DW_TAG_set_type"; break;
+	case DW_TAG_shared_type:
+		*s = "DW_TAG_shared_type"; break;
+	case DW_TAG_string_type:
+		*s = "DW_TAG_string_type"; break;
+	case DW_TAG_structure_type:
+		*s = "DW_TAG_structure_type"; break;
+	case DW_TAG_subprogram:
+		*s = "DW_TAG_subprogram"; break;
+	case DW_TAG_subrange_type:
+		*s = "DW_TAG_subrange_type"; break;
+	case DW_TAG_subroutine_type:
+		*s = "DW_TAG_subroutine_type"; break;
+	case DW_TAG_template_type_parameter:
+		*s = "DW_TAG_template_type_parameter"; break;
+	case DW_TAG_template_value_parameter:
+		*s = "DW_TAG_template_value_parameter"; break;
+	case DW_TAG_thrown_type:
+		*s = "DW_TAG_thrown_type"; break;
+	case DW_TAG_try_block:
+		*s = "DW_TAG_try_block"; break;
+	case DW_TAG_typedef:
+		*s = "DW_TAG_typedef"; break;
+	case DW_TAG_union_type:
+		*s = "DW_TAG_union_type"; break;
+	case DW_TAG_unspecified_parameters:
+		*s = "DW_TAG_unspecified_parameters"; break;
+	case DW_TAG_unspecified_type:
+		*s = "DW_TAG_unspecified_type"; break;
+	case DW_TAG_variable:
+		*s = "DW_TAG_variable"; break;
+	case DW_TAG_variant:
+		*s = "DW_TAG_variant"; break;
+	case DW_TAG_variant_part:
+		*s = "DW_TAG_variant_part"; break;
+	case DW_TAG_volatile_type:
+		*s = "DW_TAG_volatile_type"; break;
+	case DW_TAG_with_stmt:
+		*s = "DW_TAG_with_stmt"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_VIRTUALITY_name(unsigned vir, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (vir) {
+	case DW_VIRTUALITY_none:
+		*s = "DW_VIRTUALITY_none"; break;
+	case DW_VIRTUALITY_virtual:
+		*s = "DW_VIRTUALITY_virtual"; break;
+	case DW_VIRTUALITY_pure_virtual:
+		*s = "DW_VIRTUALITY_pure_virtual"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_VIS_name(unsigned vis, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (vis) {
+	case DW_VIS_local:
+		*s = "DW_VIS_local"; break;
+	case DW_VIS_exported:
+		*s = "DW_VIS_exported"; break;
+	case DW_VIS_qualified:
+		*s = "DW_VIS_qualified"; break;
 	default:
 		return (DW_DLV_NO_ENTRY);
 	}

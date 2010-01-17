@@ -395,12 +395,25 @@ int		dwarf_formstring(Dwarf_Attribute, char **, Dwarf_Error *);
 int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_formudata(Dwarf_Attribute, Dwarf_Unsigned *,
 		    Dwarf_Error *);
+int		dwarf_get_ACCESS_name(unsigned, const char **);
 int		dwarf_get_AT_name(unsigned, const char **);
+int		dwarf_get_ATE_name(unsigned, const char **);
+int		dwarf_get_CC_name(unsigned, const char **);
 int		dwarf_get_CFA_name(unsigned, const char **);
+int		dwarf_get_CHILDREN_name(unsigned, const char **);
+int		dwarf_get_DSC_name(unsigned, const char **);
 int		dwarf_get_FORM_name(unsigned, const char **);
+int		dwarf_get_ID_name(unsigned, const char **);
+int		dwarf_get_INL_name(unsigned, const char **);
+int		dwarf_get_LANG_name(unsigned, const char **);
+int		dwarf_get_LNE_name(unsigned, const char **);
+int		dwarf_get_LNS_name(unsigned, const char **);
 int		dwarf_get_MACINFO_name(unsigned, const char **);
-int		dwarf_get_TAG_name(unsigned, const char **);
 int		dwarf_get_OP_name(unsigned, const char **);
+int		dwarf_get_ORD_name(unsigned, const char **);
+int		dwarf_get_TAG_name(unsigned, const char **);
+int		dwarf_get_VIRTUALITY_name(unsigned, const char **);
+int		dwarf_get_VIS_name(unsigned, const char **);
 int		dwarf_get_abbrev(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Abbrev *,
 		    Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_get_abbrev_children_flag(Dwarf_Abbrev, Dwarf_Signed *,
