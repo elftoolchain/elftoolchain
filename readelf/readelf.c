@@ -2455,7 +2455,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Abbrev ab;
 	Dwarf_Die ret_die;
-	Dwarf_Unsigned dieoff, length, attr_count, offset, code, v_udata;
+	Dwarf_Unsigned ate, dieoff, length, attr_count, offset, code, v_udata;
 	Dwarf_Signed v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
@@ -2463,7 +2463,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	Dwarf_Block v_block;
 	Dwarf_Bool v_bool;
 	Dwarf_Error de;
-	const char *tag_str, *attr_str;
+	const char *tag_str, *attr_str, *ate_str;
 	char *v_str;
 	uint8_t *b;
 	int i, j, abc, ret;
@@ -2540,7 +2540,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("<%jx>\n", (uintmax_t) v_off);
+			printf("<%jx>", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_ref1:
@@ -2554,7 +2554,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("<%jx>\n", (uintmax_t) v_off);
+			printf("<%jx>", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_addr:
@@ -2564,7 +2564,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%#jx\n", (uintmax_t) v_addr);
+			printf("%#jx", (uintmax_t) v_addr);
 			break;
 
 		case DW_FORM_data1:
@@ -2578,7 +2578,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju\n", (uintmax_t) v_udata);
+			printf("%ju", (uintmax_t) v_udata);
 			break;
 
 		case DW_FORM_sdata:
@@ -2588,7 +2588,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%jd\n", (intmax_t) v_sdata);
+			printf("%jd", (intmax_t) v_sdata);
 			break;
 
 		case DW_FORM_flag:
@@ -2598,7 +2598,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%jd\n", (intmax_t) v_bool);
+			printf("%jd", (intmax_t) v_bool);
 			break;
 
 		case DW_FORM_string:
@@ -2610,9 +2610,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				continue;
 			}
 			if (form == DW_FORM_string)
-				printf("%s\n", v_str);
+				printf("%s", v_str);
 			else
-				printf("(indirect string) %s\n", v_str);
+				printf("(indirect string) %s", v_str);
 			break;
 
 		case DW_FORM_block:
@@ -2629,9 +2629,21 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 			b = v_block.bl_data;
 			for (j = 0; (Dwarf_Unsigned) j < v_block.bl_len; j++)
 				printf(" %x", b[j]);
-			putchar('\n');
 			break;
 		}
+		switch (attr) {
+		case DW_AT_encoding:
+			if (dwarf_attrval_unsigned(die, attr, &ate, &de) !=
+			    DW_DLV_OK)
+				break;
+			if (dwarf_get_ATE_name(ate, &ate_str) != DW_DLV_OK)
+				break;
+			printf("\t(%s)", &ate_str[strlen("DW_ATE_")]);
+			break;
+		default:
+			break;
+		}
+		putchar('\n');
 	}
 
 
