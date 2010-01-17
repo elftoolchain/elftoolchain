@@ -84,14 +84,14 @@ typedef struct {
 } Dwarf_Obj_Access_Section;
 
 typedef struct {
-	int (*get_section_info)(void* obj, Dwarf_Half index,
-	    Dwarf_Obj_Access_Section* ret_section, int *error);
-	Dwarf_Endianness (*get_byte_order)(void* obj);
-	Dwarf_Small (*get_length_size)(void* obj);
-	Dwarf_Small (*get_pointer_size)(void* obj);
-	Dwarf_Unsigned (*get_section_count)(void* obj);
-	int (*load_section)(void* obj, Dwarf_Half index, Dwarf_Small** ret_data,
-	    int* error);
+	int (*get_section_info)(void *_obj, Dwarf_Half _index,
+	    Dwarf_Obj_Access_Section *_ret_section, int *_error);
+	Dwarf_Endianness (*get_byte_order)(void *_obj);
+	Dwarf_Small (*get_length_size)(void *_obj);
+	Dwarf_Small (*get_pointer_size)(void *_obj);
+	Dwarf_Unsigned (*get_section_count)(void *_obj);
+	int (*load_section)(void *_obj, Dwarf_Half _index,
+	    Dwarf_Small **_ret_data, int *_error);
 } Dwarf_Obj_Access_Methods;
 
 typedef struct {
@@ -99,13 +99,13 @@ typedef struct {
 	const Dwarf_Obj_Access_Methods *methods;
 } Dwarf_Obj_Access_Interface;
 
-typedef int (*Dwarf_Callback_Func)(char* name, int size, Dwarf_Unsigned type,
-    Dwarf_Unsigned flags, Dwarf_Unsigned link, Dwarf_Unsigned info, int *index,
-    int *error);
+typedef int (*Dwarf_Callback_Func)(char *_name, int _size,
+    Dwarf_Unsigned _type, Dwarf_Unsigned _flags, Dwarf_Unsigned _link,
+    Dwarf_Unsigned _info, int *_index, int *_error);
 
-typedef int (*Dwarf_Callback_Func_b)(char* name, int size, Dwarf_Unsigned type,
-    Dwarf_Unsigned flags, Dwarf_Unsigned link, Dwarf_Unsigned info,
-    Dwarf_Unsigned *index, int *error);
+typedef int (*Dwarf_Callback_Func_b)(char *_name, int _size,
+    Dwarf_Unsigned _type, Dwarf_Unsigned _flags, Dwarf_Unsigned _link,
+    Dwarf_Unsigned _info, Dwarf_Unsigned *_index, int *_error);
 
 typedef Dwarf_Unsigned Dwarf_Tag;
 
