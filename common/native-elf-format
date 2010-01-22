@@ -34,8 +34,8 @@ $1 ~ "Machine:" {
         }
     }
 END {
-    printf("#define	LIBELF_CLASS	ELFCLASS%s\n", elfclass);
-    printf("#define	LIBELF_ARCH	%s\n", elfarch);
-    printf("#define	LIBELF_BYTEORDER	ELFDATA2%s\n", elfdata);
+    printf("#define	ELFTC_CLASS	ELFCLASS%s\n", elfclass);
+    printf("#define	ELFTC_ARCH	%s\n", elfarch);
+    printf("#define	ELFTC_BYTEORDER	ELFDATA2%s\n", elfdata);
 }'
 
