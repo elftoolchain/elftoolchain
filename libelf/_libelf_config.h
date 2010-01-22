@@ -150,6 +150,10 @@
 
 #include "native-elf-format.h"
 
+#define	LIBELF_CLASS		ELFTC_CLASS
+#define	LIBELF_ARCH		ELFTC_ARCH
+#define	LIBELF_BYTEORDER	ELFTC_BYTEORDER
+
 #endif	/* defined(__linux__) */
 
 /*
