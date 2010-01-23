@@ -229,6 +229,9 @@ struct _Dwarf_Fde {
 	uint8_t		*fde_augdata;	/* Augmentation data. */
 	Dwarf_Ptr	fde_inst;	/* Instructions. */
 	Dwarf_Unsigned	fde_instlen;	/* Length of instructions. */
+	Dwarf_Unsigned	fde_symndx;	/* Symbol index for relocation. */
+	Dwarf_Unsigned	fde_esymndx;	/* End symbol index for relocation. */
+	Dwarf_Addr	fde_eoff;	/* Offset from the end symbol. */
 	STAILQ_ENTRY(_Dwarf_Fde) fde_next; /* Next FDE in list. */
 };
 
@@ -379,6 +382,10 @@ struct _Dwarf_Debug {
 	Dwarf_ArangeSet dbgp_as;
 	Dwarf_Macro_Details *dbgp_mdlist;
 	Dwarf_Unsigned	dbgp_mdcnt;
+	STAILQ_HEAD(, _Dwarf_Cie) dbgp_cielist;
+	STAILQ_HEAD(, _Dwarf_Fde) dbgp_fdelist;
+	Dwarf_Unsigned	dbgp_cielen;
+	Dwarf_Unsigned	dbgp_fdelen;
 };
 
 /*
