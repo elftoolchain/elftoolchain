@@ -45,9 +45,18 @@
 #include <archive_entry.h>
 #endif
 
-#include "config.h"
+#include "_elftc.h"
 
-ELFDUMP_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
+
+#if defined(ELFTC_NEED_ELF_NOTE_DEFINITION)
+#include "native-elf-format.h"
+#if ELFTC_CLASS == ELFCLASS32
+typedef Elf32_Nhdr	Elf_Note;
+#else
+typedef Elf64_Nhdr	Elf_Note;
+#endif
+#endif
 
 /* elfdump(1) options. */
 #define	ED_DYN		(1<<0)
@@ -120,6 +129,24 @@ struct rel_entry {
 	const char *symn;
 	uint32_t type;
 };
+
+#if defined(ELFTC_NEED_BYTEORDER_EXTENSIONS)
+static __inline uint32_t
+be32dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
+}
+
+static __inline uint32_t
+le32dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return ((p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0]);
+}
+#endif
 
 /* http://www.sco.com/developers/gabi/latest/ch5.dynamic.html#tag_encodings */
 static const char *
@@ -315,36 +342,41 @@ sh_types(u_int64_t sht) {
 	}
 }
 
+/*
+ * Define known section flags. These flags are defined in the order
+ * they are to be printed out.
+ */
+#define	DEFINE_SHFLAGS()			\
+	DEFINE_SHF(WRITE)			\
+	DEFINE_SHF(ALLOC)			\
+	DEFINE_SHF(EXECINSTR)			\
+	DEFINE_SHF(MERGE)			\
+	DEFINE_SHF(STRINGS)			\
+	DEFINE_SHF(INFO_LINK)			\
+	DEFINE_SHF(LINK_ORDER)			\
+	DEFINE_SHF(OS_NONCONFORMING)		\
+	DEFINE_SHF(GROUP)			\
+	DEFINE_SHF(TLS)
+
+#undef	DEFINE_SHF
+#define	DEFINE_SHF(F) "SHF_" #F "|"
+#define ALLSHFLAGS	DEFINE_SHFLAGS()
+
 static const char *
 sh_flags(uint64_t shf)
 {
-	static char	flg[128];
-	int		len;
+	static char	flg[sizeof(ALLSHFLAGS)+1];
 
 	flg[0] = '\0';
-	if (shf & SHF_WRITE)
-		strlcat(flg, "SHF_WRITE|", sizeof(flg));
-	if (shf & SHF_ALLOC)
-		strlcat(flg, "SHF_ALLOC|", sizeof(flg));
-	if (shf & SHF_EXECINSTR)
-		strlcat(flg, "SHF_EXECINSTR|", sizeof(flg));
-	if (shf & SHF_MERGE)
-		strlcat(flg, "SHF_MERGE|", sizeof(flg));
-	if (shf & SHF_STRINGS)
-		strlcat(flg, "SHF_STRINGS|", sizeof(flg));
-	if (shf & SHF_INFO_LINK)
-		strlcat(flg, "SHF_INFO_LINK|", sizeof(flg));
-	if (shf & SHF_LINK_ORDER)
-		strlcat(flg, "SHF_LINK_ORDER|", sizeof(flg));
-	if (shf & SHF_OS_NONCONFORMING)
-		strlcat(flg, "SHF_OS_NONCONFORMING|", sizeof(flg));
-	if (shf & SHF_GROUP)
-		strlcat(flg, "SHF_GROUP|", sizeof(flg));
-	if (shf & SHF_TLS)
-		strlcat(flg, "SHF_TLS|", sizeof(flg));
-	len = strlen(flg);
-	if (len > 0)
-		flg[len - 1] = '\0';
+
+#undef	DEFINE_SHF
+#define	DEFINE_SHF(N)				\
+	if (shf & SHF_##N)			\
+		strcat(flg, "SHF_" #N "|");	\
+
+	DEFINE_SHFLAGS()
+
+	flg[strlen(flg) - 1] = '\0'; /* Remove the trailing "|". */
 
 	return (flg);
 }
