@@ -37,6 +37,10 @@
 #define NULL 	((void *) 0)
 #endif
 
+#ifndef	offsetof
+#define	offsetof(T, M)		((int) &((T*) 0) -> M)
+#endif
+
 /*
  * Supply macros missing from <sys/queue.h>
  */
@@ -176,7 +180,15 @@ extern const char *program_invocation_short_name;
 /*
  * Debian GNU/Linux is missing strmode(3).
  */
-#define	ELFTC_HAVE_STRMODE	0
+#define	ELFTC_HAVE_STRMODE			0
+
+/* Whether we need to define Elf_Note. */
+#define	ELFTC_NEED_ELF_NOTE_DEFINITION		1
+/* Whether we need to supply {be,le}32dec. */
+#define ELFTC_NEED_BYTEORDER_EXTENSIONS		1
+
+#define	roundup2	roundup
+
 #endif	/* __linux__ */
 
 
