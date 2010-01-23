@@ -359,6 +359,8 @@ int		dwarf_bitoffset(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_bitsize(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_bytesize(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_child(Dwarf_Die, Dwarf_Die *, Dwarf_Error *);
+int		dwarf_def_macro(Dwarf_P_Debug, Dwarf_Unsigned, char *, char *,
+		    Dwarf_Error *);
 int		dwarf_diename(Dwarf_Die, char **, Dwarf_Error *);
 int		dwarf_dieoffset(Dwarf_Die, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_die_abbrev_code(Dwarf_Die);
@@ -369,6 +371,7 @@ Dwarf_P_Die	dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die, Dwarf_Error *);
 int		dwarf_elf_init(Elf *, int, Dwarf_Handler, Dwarf_Ptr,
 		    Dwarf_Debug *, Dwarf_Error *);
+int		dwarf_end_macro_file(Dwarf_P_Debug, Dwarf_Error *);
 int		dwarf_expand_frame_instructions(Dwarf_Debug, Dwarf_Ptr,
 		    Dwarf_Unsigned, Dwarf_Frame_Op **, Dwarf_Signed *,
 		    Dwarf_Error *);
@@ -581,7 +584,13 @@ int		dwarf_srcfiles(Dwarf_Die, char ***, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_srclang(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_srclines(Dwarf_Die, Dwarf_Line **, Dwarf_Signed *,
 		    Dwarf_Error *);
+int		dwarf_start_macro_file(Dwarf_P_Debug, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
 int		dwarf_tag(Dwarf_Die, Dwarf_Half *, Dwarf_Error *);
+int		dwarf_undef_macro(Dwarf_P_Debug, Dwarf_Unsigned, char *,
+		    Dwarf_Error *);
+int		dwarf_vendor_ext(Dwarf_P_Debug, Dwarf_Unsigned, char *,
+		    Dwarf_Error *);
 int		dwarf_whatattr(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform_direct(Dwarf_Attribute, Dwarf_Half *,

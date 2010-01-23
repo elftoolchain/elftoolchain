@@ -377,6 +377,8 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_P_Expr) dbgp_pelist;
 	Dwarf_LineInfo	dbgp_lineinfo;
 	Dwarf_ArangeSet dbgp_as;
+	Dwarf_Macro_Details *dbgp_mdlist;
+	Dwarf_Unsigned	dbgp_mdcnt;
 };
 
 /*
