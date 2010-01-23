@@ -50,11 +50,13 @@ typedef struct _Dwarf_Attribute *Dwarf_P_Attribute;
 typedef struct _Dwarf_AttrDef	*Dwarf_AttrDef;
 typedef struct _Dwarf_CU	*Dwarf_CU;
 typedef struct _Dwarf_Cie	*Dwarf_Cie;
+typedef struct _Dwarf_Cie	*Dwarf_P_Cie;
 typedef struct _Dwarf_Debug	*Dwarf_Debug;
 typedef struct _Dwarf_Debug	*Dwarf_P_Debug;
 typedef struct _Dwarf_Die	*Dwarf_Die;
 typedef struct _Dwarf_Die	*Dwarf_P_Die;
 typedef struct _Dwarf_Fde	*Dwarf_Fde;
+typedef struct _Dwarf_Fde	*Dwarf_P_Fde;
 typedef struct _Dwarf_FrameSec	*Dwarf_FrameSec;
 typedef struct _Dwarf_Line	*Dwarf_Line;
 typedef struct _Dwarf_LineFile	*Dwarf_LineFile;
@@ -339,6 +341,15 @@ Dwarf_Unsigned	dwarf_add_expr_gen(Dwarf_P_Expr, Dwarf_Small, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_file_decl(Dwarf_P_Debug, char *, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_frame_cie(Dwarf_P_Debug, char *, Dwarf_Small,
+		    Dwarf_Small, Dwarf_Small, Dwarf_Ptr, Dwarf_Unsigned,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_frame_fde(Dwarf_P_Debug, Dwarf_P_Fde, Dwarf_P_Die,
+		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_frame_fde_b(Dwarf_P_Debug, Dwarf_P_Fde, Dwarf_P_Die,
+		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_line_entry(Dwarf_P_Debug, Dwarf_Unsigned,
 		    Dwarf_Addr, Dwarf_Unsigned, Dwarf_Signed, Dwarf_Bool,
 		    Dwarf_Bool, Dwarf_Error *);
@@ -538,6 +549,7 @@ int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 Dwarf_P_Die	dwarf_new_die(Dwarf_P_Debug, Dwarf_Tag, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die, Dwarf_Error *);
 Dwarf_P_Expr	dwarf_new_expr(Dwarf_P_Debug, Dwarf_Error *);
+Dwarf_P_Fde	dwarf_new_fde(Dwarf_P_Debug, Dwarf_Error *);
 int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
 		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Half *,
 		    Dwarf_Unsigned *, Dwarf_Error *);
