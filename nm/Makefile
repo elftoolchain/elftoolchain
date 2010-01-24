@@ -8,6 +8,6 @@ SRCS=	nm.c
 
 WARNS?=	6
 
-LDADD=	-lelf -lelftc -ldwarf
+LDADD=	-ldwarf -lelftc -lelf
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
