@@ -71,8 +71,36 @@
  * Symbols that are sometimes missing in system headers.
  */
 
+#ifndef	DT_DEPRECATED_SPARC_REGISTER
+#define	DT_DEPRECATED_SPARC_REGISTER	0x70000001
+#endif
+
 #ifndef	DT_GNU_HASH
 #define	DT_GNU_HASH		0x6FFFFEF5U
+#endif
+
+#ifndef	DT_MAXPOSTAGS
+#define	DT_MAXPOSTAGS		34
+#endif
+
+#ifndef	DT_SUNW_AUXILIARY
+#define	DT_SUNW_AUXILIARY	0x6000000D
+#endif
+
+#ifndef	DT_SUNW_CAP
+#define	DT_SUNW_CAP		0x60000010	
+#endif
+
+#ifndef	DT_SUNW_FILTER
+#define	DT_SUNW_FILTER		0x6000000F	
+#endif
+
+#ifndef	DT_SUNW_RTLDINF
+#define	DT_SUNW_RTLDINF		0x6000000E	
+#endif
+
+#ifndef	DT_USED
+#define	DT_USED			0x7FFFFFFE	
 #endif
 
 #ifndef	ELFOSABI_86OPEN
@@ -91,8 +119,219 @@
 #define	ELFOSABI_OPENVMS	13
 #endif
 
+/*
+ * Supply missing EM_XXX definitions.
+ */
+#ifndef	EM_68HC05
+#define	EM_68HC05		72
+#endif
+
+#ifndef	EM_68HC08
+#define	EM_68HC08		71
+#endif
+
+#ifndef	EM_68HC11
+#define	EM_68HC11		70
+#endif
+
+#ifndef	EM_68HC16
+#define	EM_68HC16		69
+#endif
+
+#ifndef	EM_ARCA
+#define	EM_ARCA			109
+#endif
+
+#ifndef	EM_ARC_A5
+#define	EM_ARC_A5		93
+#endif
+
+#ifndef	EM_AVR
+#define	EM_AVR			83
+#endif
+
+#ifndef	EM_BLACKFIN
+#define	EM_BLACKFIN		106
+#endif
+
+#ifndef	EM_CR
+#define	EM_CR			103
+#endif
+
+#ifndef	EM_CRIS
+#define	EM_CRIS			76
+#endif
+
+#ifndef	EM_D10V
+#define	EM_D10V			85
+#endif
+
+#ifndef	EM_D30V
+#define	EM_D30V			86
+#endif
+
+#ifndef	EM_F2MC16
+#define	EM_F2MC16		104
+#endif
+
+#ifndef	EM_FIREPATH
+#define	EM_FIREPATH		78
+#endif
+
+#ifndef	EM_FR30
+#define	EM_FR30			84
+#endif
+
+#ifndef	EM_FX66
+#define	EM_FX66			66
+#endif
+
+#ifndef	EM_HUANY
+#define	EM_HUANY		81
+#endif
+
+#ifndef	EM_IP2K
+#define	EM_IP2K			101
+#endif
+
+#ifndef	EM_JAVELIN
+#define	EM_JAVELIN		77
+#endif
+
+#ifndef	EM_M32R
+#define	EM_M32R			88
+#endif
+
+#ifndef	EM_MAX
+#define	EM_MAX			102
+#endif
+
+#ifndef	EM_MMIX
+#define	EM_MMIX			80
+#endif
+
+#ifndef	EM_MN10200
+#define	EM_MN10200		90
+#endif
+
+#ifndef	EM_MN10300
+#define	EM_MN10300		89
+#endif
+
+#ifndef	EM_MSP430
+#define	EM_MSP430		105
+#endif
+
+#ifndef	EM_NS32K
+#define	EM_NS32K		97
+#endif
+
+#ifndef	EM_OPENRISC
+#define	EM_OPENRISC		92
+#endif
+
+#ifndef	EM_PDSP
+#define	EM_PDSP			63
+#endif
+
+#ifndef	EM_PJ
+#define	EM_PJ			91
+#endif
+
+#ifndef	EM_PRISM
+#define	EM_PRISM		82
+#endif
+
+#ifndef	EM_SEP
+#define	EM_SEP			108
+#endif
+
+#ifndef	EM_SE_C33
+#define	EM_SE_C33		107
+#endif
+
+#ifndef	EM_SNP1K
+#define	EM_SNP1K		99
+#endif
+
+#ifndef	EM_ST19
+#define	EM_ST19			74
+#endif
+
+#ifndef	EM_ST200
+#define	EM_ST200		100
+#endif
+
+#ifndef	EM_ST7
+#define	EM_ST7			68
+#endif
+
+#ifndef	EM_ST9PLUS
+#define	EM_ST9PLUS		67
+#endif
+
+#ifndef	EM_SVX
+#define	EM_SVX			73
+#endif
+
+#ifndef	EM_TMM_GPP
+#define	EM_TMM_GPP		96
+#endif
+
+#ifndef	EM_TPC
+#define	EM_TPC			98
+#endif
+
+#ifndef	EM_UNICORE
+#define	EM_UNICORE		110
+#endif
+
+#ifndef	EM_V850
+#define	EM_V850			87
+#endif
+
+#ifndef	EM_VAX
+#define	EM_VAX			75
+#endif
+
+#ifndef	EM_VIDEOCORE
+#define	EM_VIDEOCORE		95
+#endif
+
+#ifndef	EM_XTENSA
+#define	EM_XTENSA		94
+#endif
+
+#ifndef	EM_ZSP
+#define	EM_ZSP			79
+#endif
+
 #ifndef	PN_XNUM
 #define	PN_XNUM			0xFFFFU
+#endif
+
+#ifndef	SHT_AMD64_UNWIND
+#define	SHT_AMD64_UNWIND	0x70000001
+#endif
+
+#ifndef	SHT_SUNW_ANNOTATE
+#define	SHT_SUNW_ANNOTATE	0X6FFFFFF7
+#endif
+
+#ifndef	SHT_SUNW_DEBUGSTR
+#define	SHT_SUNW_DEBUGSTR	0X6FFFFFF8
+#endif
+
+#ifndef	SHT_SUNW_DEBUG
+#define	SHT_SUNW_DEBUG		0X6FFFFFF9
+#endif
+
+#ifndef	SHT_SUNW_cap
+#define	SHT_SUNW_cap		0x6FFFFFF5
+#endif
+
+#ifndef	SHT_SUNW_dof
+#define	SHT_SUNW_dof		0x6FFFFFF4
 #endif
 
 #ifndef	SHT_SUNW_verdef
