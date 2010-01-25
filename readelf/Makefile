@@ -7,8 +7,8 @@ SRCS=	readelf.c
 
 WARNS?=	6
 
-DPADD=	${LIBELF} ${LIBDWARF}
-LDADD=	-lelf -ldwarf
+DPADD=	${LIBDWARF} ${LIBELF}
+LDADD=	-ldwarf -lelf
 .if !defined(LIBELF_AR)
 LDADD+=	-larchive -lbz2 -lz
 .endif
