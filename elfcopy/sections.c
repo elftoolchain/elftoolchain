@@ -25,12 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-#if defined(__FBSDID)
-__FBSDID("$FreeBSD$");
-#elif defined(__RCSID)
-__RCSID("$Id$");
-#endif
-
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <err.h>
@@ -41,6 +35,8 @@ __RCSID("$Id$");
 #include <sysexits.h>
 
 #include "elfcopy.h"
+
+ELFTC_VCSID("$Id$");
 
 static void	add_gnu_debuglink(struct elfcopy *ecp);
 static void	add_to_shstrtab(struct elfcopy *ecp, const char *name);

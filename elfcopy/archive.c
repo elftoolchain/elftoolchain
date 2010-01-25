@@ -25,13 +25,7 @@
  */
 
 #include <sys/cdefs.h>
-#if defined(__FBSDID)
-__FBSDID("$FreeBSD$");
-#elif defined(__RCSID)
-__RCSID("$Id$");
-#endif
 
-#include <sys/endian.h>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -47,6 +41,8 @@ __RCSID("$Id$");
 #endif	/* ! LIBELF_AR */
 
 #include "elfcopy.h"
+
+ELFTC_VCSID("$Id$");
 
 #define _ARMAG_LEN 8		/* length of ar magic string */
 #define _ARHDR_LEN 60		/* length of ar header */
