@@ -25,12 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-#if defined(__FBSDID)
-__FBSDID("$FreeBSD$");
-#elif defined(__RCSID)
-__RCSID("$Id$");
-#endif
-
 #include <sys/queue.h>
 #include <err.h>
 #include <gelf.h>
@@ -40,6 +34,8 @@ __RCSID("$Id$");
 #include <sysexits.h>
 
 #include "elfcopy.h"
+
+ELFTC_VCSID("$Id$");
 
 static void	insert_to_inseg_list(struct segment *seg, struct section *sec);
 

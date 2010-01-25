@@ -25,12 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-#if defined(__FBSDID)
-__FBSDID("$FreeBSD$");
-#elif defined(__RCSID)
-__RCSID("$Id$");
-#endif
-
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <err.h>
@@ -44,6 +38,8 @@ __RCSID("$Id$");
 #include <unistd.h>
 
 #include "elfcopy.h"
+
+ELFTC_VCSID("$Id$");
 
 enum options
 {
@@ -1041,7 +1037,7 @@ main(int argc, char **argv)
 	STAILQ_INIT(&ecp->v_arobj);
 	TAILQ_INIT(&ecp->v_sec);
 
-	if ((ecp->progname = getprogname()) == NULL)
+	if ((ecp->progname = ELFTC_GETPROGNAME()) == NULL)
 		ecp->progname = "elfcopy";
 
 	if (strcmp(ecp->progname, "strip") == 0)

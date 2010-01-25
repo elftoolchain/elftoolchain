@@ -29,6 +29,8 @@
 #include <sys/queue.h>
 #include <gelf.h>
 
+#include "_elftc.h"
+
 /*
  * User specified symbol operation (strip, keep, localize, globalize,
  * weaken, rename, etc).
@@ -199,7 +201,7 @@ struct elfcopy {
 
 	int flags;		/* elfcopy run control flags. */
 
-	const char	*debuglink;	/* GNU debuglink file. */
+	char	*debuglink;	/* GNU debuglink file. */
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
 	unsigned char	*v_rel;		/* symbols needed by relocation. */
