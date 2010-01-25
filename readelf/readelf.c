@@ -46,7 +46,9 @@
 #include <archive_entry.h>
 #endif	/* ! LIBELF_AR */
 
-#include "config.h"
+#include "_elftc.h"
+
+ELFTC_VCSID("$Id$");
 
 /*
  * readelf(1) options.
@@ -1044,7 +1046,7 @@ static uint64_t	_dwarf_read_msb(Elf_Data *d, uint64_t *offsetp,
 uint64_t	_dwarf_decode_lsb(uint8_t **data, int bytes_to_read);
 uint64_t	_dwarf_decode_msb(uint8_t **data, int bytes_to_read);
 int64_t		_dwarf_decode_sleb128(uint8_t **dp);
-static uint64_t	_dwarf_decode_uleb128(uint8_t **dp);
+uint64_t	_dwarf_decode_uleb128(uint8_t **dp);
 
 static void
 dump_ehdr(struct readelf *re)
@@ -2455,7 +2457,8 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Abbrev ab;
 	Dwarf_Die ret_die;
-	Dwarf_Unsigned ate, dieoff, length, attr_count, offset, code, v_udata;
+	Dwarf_Off dieoff;
+	Dwarf_Unsigned ate, length, attr_count, offset, code, v_udata;
 	Dwarf_Signed v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
@@ -2736,7 +2739,8 @@ static void
 dump_dwarf_abbrev(struct readelf *re)
 {
 	Dwarf_Abbrev ab;
-	Dwarf_Unsigned aboff, atoff, length, attr_count;
+	Dwarf_Off atoff;
+	Dwarf_Unsigned aboff, length, attr_count;
 	Dwarf_Signed flag, form;
 	Dwarf_Half tag, attr;
 	Dwarf_Error de;
@@ -2803,7 +2807,8 @@ static void
 dump_dwarf_pubnames(struct readelf *re)
 {
 	struct section *s;
-	Dwarf_Unsigned die_off, offset, length, nt_cu_offset, nt_cu_length;
+	Dwarf_Off die_off;
+	Dwarf_Unsigned offset, length, nt_cu_offset, nt_cu_length;
 	Dwarf_Signed cnt;
 	Dwarf_Global *globs;
 	Dwarf_Half nt_version;
@@ -2883,7 +2888,8 @@ dump_dwarf_aranges(struct readelf *re)
 	struct section *s;
 	Dwarf_Arange *aranges;
 	Dwarf_Addr start;
-	Dwarf_Unsigned die_off, offset, length, as_cu_offset;
+	Dwarf_Unsigned offset, length, as_cu_offset;
+	Dwarf_Off die_off;
 	Dwarf_Signed cnt;
 	Dwarf_Half as_version, as_addrsz, as_segsz;
 	Dwarf_Error de;
@@ -3123,7 +3129,7 @@ dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
 	if (vec == NULL)
 		err(1, "calloc failed");
 
-	pre_pc = ~0ULL;
+	pre_pc = ~((Dwarf_Addr) 0);
 	cur_pc = pc;
 	end_pc = pc + func_len;
 	for (; cur_pc < end_pc; cur_pc++) {
@@ -3155,7 +3161,7 @@ dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
 	}
 	putchar('\n');
 
-	pre_pc = ~0ULL;
+	pre_pc = ~((Dwarf_Addr) 0);
 	cur_pc = pc;
 	end_pc = pc + func_len;
 	for (; cur_pc < end_pc; cur_pc++) {
@@ -3195,7 +3201,8 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 {
 	Dwarf_Cie *cie_list, cie, pre_cie;
 	Dwarf_Fde *fde_list, fde;
-	Dwarf_Unsigned cie_offset, cie_length, fde_offset, fde_instlen;
+	Dwarf_Off cie_offset, fde_offset;
+	Dwarf_Unsigned cie_length, fde_instlen;
 	Dwarf_Unsigned cie_caf, cie_daf, cie_instlen, func_len, fde_length;
 	Dwarf_Signed cie_count, fde_count, cie_index;
 	Dwarf_Addr low_pc;
@@ -4245,35 +4252,6 @@ _dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 	return (ret);
 }
 
-uint64_t
-_dwarf_decode_lsb(uint8_t **data, int bytes_to_read)
-{
-	uint64_t ret;
-	uint8_t *src;
-
-	src = *data;
-
-	ret = 0;
-	switch (bytes_to_read) {
-	case 8:
-		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
-		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
-	case 4:
-		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
-	case 2:
-		ret |= ((uint64_t) src[1]) << 8;
-	case 1:
-		ret |= src[0];
-		break;
-	default:
-		return 0;
-	}
-
-	*data += bytes_to_read;
-
-	return ret;
-}
-
 static uint64_t
 _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 {
@@ -4304,89 +4282,6 @@ _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 	}
 
 	*offsetp += bytes_to_read;
-
-	return (ret);
-}
-
-uint64_t
-_dwarf_decode_msb(uint8_t **data, int bytes_to_read)
-{
-	uint64_t ret;
-	uint8_t *src;
-
-	src = *data;
-
-	ret = 0;
-	switch (bytes_to_read) {
-	case 1:
-		ret = src[0];
-		break;
-	case 2:
-		ret = src[1] | ((uint64_t) src[0]) << 8;
-		break;
-	case 4:
-		ret = src[3] | ((uint64_t) src[2]) << 8;
-		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
-		break;
-	case 8:
-		ret = src[7] | ((uint64_t) src[6]) << 8;
-		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
-		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
-		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
-		break;
-	default:
-		return 0;
-		break;
-	}
-
-	*data += bytes_to_read;
-
-	return ret;
-}
-
-int64_t
-_dwarf_decode_sleb128(uint8_t **dp)
-{
-	int64_t ret = 0;
-	uint8_t b;
-	int shift = 0;
-
-	uint8_t *src = *dp;
-
-	do {
-		b = *src++;
-
-		ret |= ((b & 0x7f) << shift);
-
-		shift += 7;
-	} while ((b & 0x80) != 0);
-
-	if (shift < 32 && (b & 0x40) != 0)
-		ret |= (-1 << shift);
-
-	*dp = src;
-
-	return (ret);
-}
-
-static uint64_t
-_dwarf_decode_uleb128(uint8_t **dp)
-{
-	uint64_t ret = 0;
-	uint8_t b;
-	int shift = 0;
-
-	uint8_t *src = *dp;
-
-	do {
-		b = *src++;
-
-		ret |= ((b & 0x7f) << shift);
-
-		shift += 7;
-	} while ((b & 0x80) != 0);
-
-	*dp = src;
 
 	return (ret);
 }
