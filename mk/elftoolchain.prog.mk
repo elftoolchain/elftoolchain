@@ -14,6 +14,7 @@ LIBELF?=	${TOP}/libelf
 LIBELFTC?=	${TOP}/libelftc
 
 CFLAGS+=	-I. -I${.CURDIR} -I${TOP}/common
+CLEANFILES+=	.depend
 
 .if defined(LDADD)
 _LDADD_LIBDWARF=${LDADD:M-ldwarf}
