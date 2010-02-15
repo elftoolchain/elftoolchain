@@ -4287,21 +4287,21 @@ _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 }
 
 static void
-readelf_version()
+readelf_version(void)
 {
 
 	exit(EX_OK);
 }
 
 static void
-readelf_help()
+readelf_help(void)
 {
 
 	exit(EX_OK);
 }
 
 static void
-readelf_usage()
+readelf_usage(void)
 {
 
 	fprintf(stderr, "usage: readelf <options> object ...\n");
