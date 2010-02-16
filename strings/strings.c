@@ -291,7 +291,7 @@ handle_elf(const char *name, int fd)
  * type requested.
  */
 long
-getcharacter()
+getcharacter(void)
 {
 	long rt;
 	int i;
@@ -422,7 +422,7 @@ _exit1:
 }
 
 void
-usage()
+usage(void)
 {
 	(void) fprintf(stderr,
 	    "strings [-afho] [-e s|S|l|L|b|B] [-n #] [-t o|x|d] file ...\n");
@@ -430,7 +430,7 @@ usage()
 }
 
 void
-show_version()
+show_version(void)
 {
         (void) fprintf(stdout, STRINGS_VERSION_STRING "\n");
         exit(EX_OK);
