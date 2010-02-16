@@ -179,14 +179,14 @@ dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Unsigned *length,
 
 	if (expr == NULL || length == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return ((Dwarf_Addr) DW_DLV_BADADDR);
+		return ((Dwarf_Addr) (uintptr_t) DW_DLV_BADADDR);
 	}
 
 	if (expr->pe_block == NULL || expr->pe_invalid)
 		if (_dwarf_expr_into_block(expr, error) != DWARF_E_NONE)
-			return ((Dwarf_Addr) DW_DLV_BADADDR);
+			return ((Dwarf_Addr) (uintptr_t) DW_DLV_BADADDR);
 
 	*length = expr->pe_length;
 
-	return ((Dwarf_Addr) expr->pe_block);
+	return ((Dwarf_Addr) (uintptr_t) expr->pe_block);
 }

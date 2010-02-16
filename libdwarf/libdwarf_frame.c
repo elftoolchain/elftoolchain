@@ -1041,7 +1041,7 @@ _dwarf_frame_get_internal_table(Dwarf_Fde fde, Dwarf_Addr pc_req,
 	cie = fde->fde_cie;
 	assert(cie != NULL);
 	ret = _dwarf_frame_run_inst(dbg, rt, cie->cie_initinst,
-	    cie->cie_instlen, cie->cie_caf, cie->cie_daf, 0, ~(Dwarf_Addr)0,
+	    cie->cie_instlen, cie->cie_caf, cie->cie_daf, 0, ~0ULL,
 	    &row_pc, error);
 	if (ret != DWARF_E_NONE)
 		return (ret);
