@@ -726,7 +726,7 @@ sysv_calc(Elf *elf, GElf_Ehdr *elfhdr, GElf_Shdr *shdr, int dry_run)
 }
 
 void
-sysv_footer()
+sysv_footer(void)
 {
 	(void) printf("%-*s", (int)sec_name_len, "Total");
 	print_number(10, text_size_total, radix, '\n');
@@ -737,7 +737,7 @@ sysv_footer()
  * berkeley style output formatting helper functions.
  */
 void
-berkeley_header()
+berkeley_header(void)
 {
 	text_size = data_size = bss_size = 0;
 }
@@ -835,14 +835,14 @@ Usage: size [options] file ...\n\
   -x                 Equivalent to `--radix=16'.\n";
 
 void
-usage()
+usage(void)
 {
 	(void) fprintf(stderr, "%s", usagemsg);
 	exit(EX_USAGE);
 }
 
 void
-show_version()
+show_version(void)
 {
 	(void) fprintf(stdout, SIZE_VERSION_STRING "\n");
 	exit(EX_OK);
