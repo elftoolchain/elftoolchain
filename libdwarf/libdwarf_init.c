@@ -193,6 +193,22 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DWARF_E_ARGUMENT);
 	}
 
+	if (pf & DW_DLC_TARGET_BIGENDIAN) {
+		dbg->write = _dwarf_write_msb;
+		dbg->write_alloc = _dwarf_write_msb_alloc;
+	} else if (pf & DW_DLC_TARGET_LITTLEENDIAN) {
+		dbg->write = _dwarf_write_lsb;
+		dbg->write_alloc = _dwarf_write_lsb_alloc;
+	} else {
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_BIG_ENDIAN
+		dbg->write = _dwarf_write_msb;
+		dbg->write_alloc = _dwarf_write_msb_alloc;
+#else  /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_BIG_ENDIAN */
+		dbg->write = _dwarf_write_lsb;
+		dbg->write_alloc = _dwarf_write_lsb_alloc;
+#endif	/* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_BIG_ENDIAN */
+	}
+
 	if (pf & DW_DLC_STREAM_RELOCATIONS &&
 	    pf & DW_DLC_SYMBOLIC_RELOCATIONS) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);

@@ -183,6 +183,25 @@ _dwarf_write_lsb(uint8_t *data, uint64_t *offsetp, uint64_t value,
 	*offsetp += bytes_to_write;
 }
 
+int
+_dwarf_write_lsb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    uint64_t value, int bytes_to_write, Dwarf_Error *error)
+{
+
+	while (*offsetp + bytes_to_write > *size) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}		
+	}
+
+	_dwarf_write_lsb(*block, offsetp, value, bytes_to_write);
+
+	return (DWARF_E_NONE);
+}
+
 void
 _dwarf_write_msb(uint8_t *data, uint64_t *offsetp, uint64_t value,
     int bytes_to_write)
@@ -213,6 +232,25 @@ _dwarf_write_msb(uint8_t *data, uint64_t *offsetp, uint64_t value,
 	}
 
 	*offsetp += bytes_to_write;
+}
+
+int
+_dwarf_write_msb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    uint64_t value, int bytes_to_write, Dwarf_Error *error)
+{
+
+	while (*offsetp + bytes_to_write > *size) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}		
+	}
+
+	_dwarf_write_msb(*block, offsetp, value, bytes_to_write);
+
+	return (DWARF_E_NONE);
 }
 
 int64_t

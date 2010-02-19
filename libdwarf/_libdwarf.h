@@ -358,6 +358,8 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Rangelist) dbg_rllist; /* List of rangelist. */
 	uint64_t	(*read)(uint8_t *, uint64_t *, int);
 	void		(*write)(uint8_t *, uint64_t *, uint64_t, int);
+	int		(*write_alloc)(uint8_t **, uint64_t *, uint64_t *,
+			    uint64_t, int, Dwarf_Error *);
 	uint64_t	(*decode)(uint8_t **, int);
 
 	Dwarf_Half	dbg_frame_rule_table_size;
@@ -437,7 +439,11 @@ uint64_t	_dwarf_read_uleb128(uint8_t *, uint64_t *);
 char		*_dwarf_read_string(void *, Dwarf_Unsigned, uint64_t *);
 uint8_t		*_dwarf_read_block(void *, uint64_t *, uint64_t);
 void		_dwarf_write_lsb(uint8_t *, uint64_t *, uint64_t, int);
+int		_dwarf_write_lsb_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint64_t, int, Dwarf_Error *);
 void		_dwarf_write_msb(uint8_t *, uint64_t *, uint64_t, int);
+int		_dwarf_write_msb_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint64_t, int, Dwarf_Error *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
