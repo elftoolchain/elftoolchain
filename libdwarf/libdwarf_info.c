@@ -119,16 +119,29 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_Section *ds;
 	Dwarf_CU cu;
-	int ret;
+	Dwarf_Unsigned ndx;
+	int i, ret;
 
 	assert(dbg != NULL && dbg->write_alloc != NULL);
 
-	if ((cu = STAILQ_FIRST(&dbg->dbg_cu)) == NULL)
-		return (DWARF_E_NONE);
+	/* Create the single CU for this debugging object. */
+	if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+	cu->cu_dbg = dbg;
+	cu->cu_version = 2;	/* DWARF2 */
+	cu->cu_pointer_size = dbg->dbg_pointer_size;
+	STAILQ_INIT(&cu->cu_abbrev);
+	STAILQ_INIT(&cu->cu_die);
+	for (i = 0; i < DWARF_DIE_HASH_SIZE; i++)
+		STAILQ_INIT(&cu->cu_die_hash[i]);
+	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
-	if ((ret = _dwarf_section_init(&dbg->dbgp_info, ".debug_init",
+	/* Create .debug_init section. */
+	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init",
 	    error)) != DWARF_E_NONE)
-		return (ret);
+		goto fail_cleanup0;
 
 	ds = dbg->dbgp_info;
 
@@ -162,11 +175,26 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if ((ret = _dwarf_die_gen(dbg, cu, error)) != DWARF_E_NONE)
 		goto fail_cleanup;
 
+	/* Inform application the creation of .debug_info ELF section. */
+	ndx = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_size,
+	    SHT_PROGBITS, 0, 0, 0, NULL);
+	if (!ndx) {
+		ret = DWARF_E_USER_CALLBACK;
+		DWARF_SET_ERROR(error, ret);
+		goto fail_cleanup;
+	}
+	ds->ds_ndx = ndx;
+
 	return (DWARF_E_NONE);
 
 fail_cleanup:
 
-	_dwarf_section_free(&dbg->dbgp_info);
+	_dwarf_section_free(dbg, &dbg->dbgp_info);
+
+fail_cleanup0:
+
+	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+	free(cu);
 
 	return (ret);
 }

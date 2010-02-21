@@ -24,11 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include "_libdwarf.h"
 
 int
-_dwarf_elf_get_section_info(void *obj, Dwarf_Half index,
+_dwarf_elf_get_section_info(void *obj, Dwarf_Half ndx,
     Dwarf_Obj_Access_Section *ret_section, int *error)
 {
 	Dwarf_Elf_Object *e;
@@ -43,13 +42,13 @@ _dwarf_elf_get_section_info(void *obj, Dwarf_Half index,
 		return (DW_DLV_ERROR);
 	}
 
-	if (index >= e->eo_seccnt) {
+	if (ndx >= e->eo_seccnt) {
 		if (error)
 			*error = DWARF_E_NO_ENTRY;
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	sh = &e->eo_shdr[index];
+	sh = &e->eo_shdr[ndx];
 
 	ret_section->addr = sh->sh_addr;
 	ret_section->size = sh->sh_size;
@@ -125,7 +124,7 @@ _dwarf_elf_get_section_count(void *obj)
 }
 
 int
-_dwarf_elf_load_section(void *obj, Dwarf_Half index, Dwarf_Small** ret_data,
+_dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
     int *error)
 {
 	Dwarf_Elf_Object *e;
@@ -140,13 +139,13 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half index, Dwarf_Small** ret_data,
 		return (DW_DLV_ERROR);
 	}
 
-	if (index >= e->eo_seccnt) {
+	if (ndx >= e->eo_seccnt) {
 		if (error)
 			*error = DWARF_E_NO_ENTRY;
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	d = e->eo_data[index];
+	d = e->eo_data[ndx];
 
 	if (d == NULL) {
 		if (error)
