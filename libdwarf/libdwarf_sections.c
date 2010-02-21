@@ -29,72 +29,98 @@
 #define	_SECTION_INIT_SIZE	128
 
 int
-_dwarf_section_init(Dwarf_Section **ds, const char *name, Dwarf_Error *error)
+_dwarf_section_init(Dwarf_Debug dbg, Dwarf_Section **dsp, const char *name,
+    Dwarf_Error *error)
 {
+	Dwarf_Section *ds;
 
-	assert(ds != NULL);
+	assert(dbg != NULL && dsp != NULL && name != NULL);
 
-	if ((*ds = malloc(sizeof(*ds))) == NULL) {
+	if ((ds = malloc(sizeof(struct _Dwarf_Section))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
 
-	(*ds)->ds_name = name;
-	(*ds)->ds_size = 0;
-	(*ds)->ds_cap = _SECTION_INIT_SIZE;
-	if (((*ds)->ds_data = malloc((*ds)->ds_cap)) == NULL) {
-		free(*ds);
+	ds->ds_name = name;
+	ds->ds_size = 0;
+	ds->ds_cap = _SECTION_INIT_SIZE;
+	ds->ds_ndx = 0;
+	if ((ds->ds_data = malloc(ds->ds_cap)) == NULL) {
+		free(ds);
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
+
+	STAILQ_INSERT_TAIL(&dbg->dbgp_seclist, ds, ds_next);
+	dbg->dbgp_seccnt++;
+	*dsp = ds;
 
 	return (DWARF_E_NONE);
 }
 
 void
-_dwarf_section_free(Dwarf_Section **ds)
+_dwarf_section_free(Dwarf_Debug dbg, Dwarf_Section **dsp)
 {
+	Dwarf_Section *ds, *tds;
 
-	assert(ds != NULL);
-	if (*ds == NULL)
+	assert(dbg != NULL && dsp != NULL);
+
+	if (*dsp == NULL)
 		return;
-	if ((*ds)->ds_data)
-		free((*ds)->ds_data);
-	free(*ds);
-	*ds = NULL;
+
+	STAILQ_FOREACH_SAFE(ds, &dbg->dbgp_seclist, ds_next, tds) {
+		if (ds == *dsp) {
+			STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_Section,
+			    ds_next);
+			if (ds->ds_data)
+				free(ds->ds_data);
+			free(ds);
+			*dsp = NULL;
+			return;
+		}
+	}
+}
+
+Dwarf_Unsigned
+_dwarf_pro_callback(Dwarf_P_Debug dbg, const char *name, int size,
+    Dwarf_Unsigned type, Dwarf_Unsigned flags, Dwarf_Unsigned link,
+    Dwarf_Unsigned info, int *error)
+{
+	Dwarf_Unsigned ndx;
+	char *name0;
+	int e, ret, indx;
+
+	if ((name0 = strdup(name)) == NULL)
+		return (0);
+	
+	if (dbg->dbgp_func_b)
+		ret = dbg->dbgp_func_b(name0, size, type, flags, link, info,
+		    &ndx, &e);
+	else {
+		ret = dbg->dbgp_func(name0, size, type, flags, link, info,
+		    &indx, &e);
+		ndx = indx;
+	}
+
+	if (ret < 0) {
+		if (error)
+			*error = e;
+		ndx = 0;
+	}
+
+	free(name0);
+
+	return (ndx);
 }
 
 int
 _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
-	Dwarf_CU cu;
-	int i, ret;
+	int ret;
 
-	/*
-	 * Create the single CU for this debugging object.
-	 */
-	if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
-	}
-	cu->cu_dbg = dbg;
-	cu->cu_version = 2;	/* DWARF2 */
-	cu->cu_pointer_size = dbg->dbg_pointer_size;
-	STAILQ_INIT(&cu->cu_abbrev);
-	STAILQ_INIT(&cu->cu_die);
-	for (i = 0; i < DWARF_DIE_HASH_SIZE; i++)
-		STAILQ_INIT(&cu->cu_die_hash[i]);
-	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
-
+	/* Generate .debug_info section content. */
 	if ((ret = _dwarf_info_gen(dbg, error)) != DWARF_E_NONE)
-		goto fail_cleanup;
+		return (ret);
 
 	return (DWARF_E_NONE);
-
-fail_cleanup:
-
-	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
-	free(cu);
-
-	return (ret);
 }

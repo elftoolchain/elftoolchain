@@ -238,6 +238,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 	STAILQ_INIT(&dbg->dbg_mslist);
 	STAILQ_INIT(&dbg->dbgp_dielist);
 	STAILQ_INIT(&dbg->dbgp_pelist);
+	STAILQ_INIT(&dbg->dbgp_seclist);
 	TAILQ_INIT(&dbg->dbg_loclist);
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {

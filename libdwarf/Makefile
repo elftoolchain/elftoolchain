@@ -30,6 +30,7 @@ SRCS=	\
 	dwarf_pro_init.c	\
 	dwarf_pro_lineno.c	\
 	dwarf_pro_macinfo.c	\
+	dwarf_pro_sections.c	\
 	dwarf_pubnames.c	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\

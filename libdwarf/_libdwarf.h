@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <gelf.h>
 #include "dwarf.h"
 #include "libdwarf.h"
@@ -316,11 +317,13 @@ struct _Dwarf_CU {
 	STAILQ_ENTRY(_Dwarf_CU) cu_next; /* Next compilation unit. */
 };
 
-typedef struct {
+typedef struct _Dwarf_Section {
 	const char	*ds_name;	/* Section name. */
 	Dwarf_Small	*ds_data;	/* Section data. */
 	Dwarf_Unsigned	ds_size;	/* Section size. */
 	Dwarf_Unsigned	ds_cap;		/* Section capacity. */
+	Dwarf_Unsigned	ds_ndx;		/* ELF section index. */
+	STAILQ_ENTRY(_Dwarf_Section) ds_next; /* Next section in the list. */
 } Dwarf_Section;
 
 typedef struct {
@@ -391,6 +394,9 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Fde) dbgp_fdelist;
 	Dwarf_Unsigned	dbgp_cielen;
 	Dwarf_Unsigned	dbgp_fdelen;
+	STAILQ_HEAD(, _Dwarf_Section) dbgp_seclist;
+	Dwarf_Unsigned	dbgp_seccnt;
+	Dwarf_Section	*dbgp_secpos;
 	Dwarf_Section	*dbgp_info;
 };
 
@@ -443,6 +449,9 @@ int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
+Dwarf_Unsigned	_dwarf_pro_callback(Dwarf_P_Debug, const char *, int,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Unsigned, int *);
 uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
 uint64_t	_dwarf_read_msb(uint8_t *, uint64_t *, int);
 int64_t		_dwarf_read_sleb128(uint8_t *, uint64_t *);
@@ -487,8 +496,8 @@ int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
 int		_dwarf_ranges_find(Dwarf_Debug, uint64_t, Dwarf_Rangelist *);
-void		_dwarf_section_free(Dwarf_Section **);
-int		_dwarf_section_init(Dwarf_Section **, const char *,
+void		_dwarf_section_free(Dwarf_Debug, Dwarf_Section **);
+int		_dwarf_section_init(Dwarf_Debug, Dwarf_Section **, const char *,
 		    Dwarf_Error *);
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);

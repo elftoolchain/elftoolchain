@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
@@ -248,6 +248,7 @@ enum {
 	DWARF_E_SEQUENCE,		/* API called in wrong sequence. */
 	DWARF_E_NO_ROOT_DIE,		/* Root DIE is not specified. */
 	DWARF_E_DIE_NULL_ATTR,		/* DIE doesn't have any attr. */
+	DWARF_E_USER_CALLBACK,		/* Application callback failed. */
 	DWARF_E_NUM			/* Max error number. */
 };
 
@@ -500,6 +501,8 @@ int		dwarf_get_ranges(Dwarf_Debug, Dwarf_Off, Dwarf_Ranges **,
 int		dwarf_get_ranges_a(Dwarf_Debug, Dwarf_Off, Dwarf_Die,
 		    Dwarf_Ranges **, Dwarf_Signed *, Dwarf_Unsigned *,
 		    Dwarf_Error *);
+Dwarf_Ptr	dwarf_get_section_bytes(Dwarf_P_Debug, Dwarf_Signed,
+		    Dwarf_Signed *, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_get_str(Dwarf_Debug, Dwarf_Off, char **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_get_types(Dwarf_Debug, Dwarf_Type **, Dwarf_Signed *,
@@ -601,6 +604,7 @@ int		dwarf_srclines(Dwarf_Die, Dwarf_Line **, Dwarf_Signed *,
 int		dwarf_start_macro_file(Dwarf_P_Debug, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
 int		dwarf_tag(Dwarf_Die, Dwarf_Half *, Dwarf_Error *);
+Dwarf_Signed	dwarf_transform_to_disk_form(Dwarf_P_Debug, Dwarf_Error *);
 int		dwarf_undef_macro(Dwarf_P_Debug, Dwarf_Unsigned, char *,
 		    Dwarf_Error *);
 int		dwarf_vendor_ext(Dwarf_P_Debug, Dwarf_Unsigned, char *,

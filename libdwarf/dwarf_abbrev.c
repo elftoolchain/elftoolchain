@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include "_libdwarf.h"
 
 int
@@ -108,7 +107,7 @@ dwarf_get_abbrev_children_flag(Dwarf_Abbrev abbrev, Dwarf_Signed *return_flag,
 }
 
 int
-dwarf_get_abbrev_entry(Dwarf_Abbrev abbrev, Dwarf_Signed index,
+dwarf_get_abbrev_entry(Dwarf_Abbrev abbrev, Dwarf_Signed ndx,
     Dwarf_Half *attr_num, Dwarf_Signed *form, Dwarf_Off *offset,
     Dwarf_Error *error)
 {
@@ -121,13 +120,13 @@ dwarf_get_abbrev_entry(Dwarf_Abbrev abbrev, Dwarf_Signed index,
 		return (DW_DLV_ERROR);
 	}
 
-	if (index < 0 || (uint64_t)index >= abbrev->ab_atnum) {
+	if (ndx < 0 || (uint64_t) ndx >= abbrev->ab_atnum) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	ad = STAILQ_FIRST(&abbrev->ab_attrdef);
-	for (i = 0; i < index && ad != NULL; i++)
+	for (i = 0; i < ndx && ad != NULL; i++)
 		ad = STAILQ_NEXT(ad, ad_next);
 
 	assert(ad != NULL);
