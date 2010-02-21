@@ -54,6 +54,7 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(INVALID_MACINFO,	"Invalid macinfo data"),
 	DEFINE_ERROR(SEQUENCE,		"API called in wrong sequence"),
 	DEFINE_ERROR(NO_ROOT_DIE,	"Root DIE is not specified"),
+	DEFINE_ERROR(DIE_NULL_ATTR,	"DIE doesn't contain any attributes"),
 	DEFINE_ERROR(USER_CALLBACK,	"Application callback failed"),
 	DEFINE_ERROR(NUM,		"Unknown DWARF error")
 #undef	DEFINE_ERROR
