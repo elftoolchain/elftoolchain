@@ -281,6 +281,7 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 	/*
 	 * Search abbrev list to find a matching entry.
 	 */
+	die->die_ab = NULL;
 	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
 		if (die->die_tag != ab->ab_tag)
 			continue;
@@ -367,6 +368,8 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 int
 _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 {
+	Dwarf_Abbrev ab, tab;
+	Dwarf_AttrDef ad, tad;
 	Dwarf_Die die;
 	int ret;
 
@@ -380,14 +383,19 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 	die = dbg->dbgp_root_die;
 
 	ret = _dwarf_die_gen_recursive(dbg, cu, die, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	if (ret != DWARF_E_NONE) {
+		STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
+			STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
+				STAILQ_REMOVE(&ab->ab_attrdef, ad,
+				    _Dwarf_AttrDef, ad_next);
+				free(ad);
+			}
+			STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev,
+			    ab_next);
+			free(ab);
+		}
+		return (ret);
+	}
 
 	return (DWARF_E_NONE);
-
-fail_cleanup:
-
-	/* TODO: cleanup */
-
-	return (ret);
 }
