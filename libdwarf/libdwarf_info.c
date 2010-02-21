@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2010 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -108,6 +110,63 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 
 		offset = next_offset;
 	}
+
+	return (ret);
+}
+
+int
+_dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_Section *ds;
+	Dwarf_CU cu;
+	int ret;
+
+	assert(dbg != NULL && dbg->write_alloc != NULL);
+
+	if ((cu = STAILQ_FIRST(&dbg->dbg_cu)) == NULL)
+		return (DWARF_E_NONE);
+
+	if ((ret = _dwarf_section_init(&dbg->dbgp_info, ".debug_init",
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
+	ds = dbg->dbgp_info;
+
+	/* Length placeholder. (We only use 32-bit DWARF format) */
+	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+	    cu->cu_length, 4, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	/* Write CU version */
+	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+	    cu->cu_version, 2, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	/*
+	 * Write abbrev offset. (always 0, we only support single CU)
+	 * TODO: relocation entry for this value.
+	 */
+	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+	    cu->cu_abbrev_offset, 4, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	/* Pointer size. */
+	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+	    cu->cu_pointer_size, 1, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	if ((ret = _dwarf_die_gen(dbg, cu, error)) != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	return (DWARF_E_NONE);
+
+fail_cleanup:
+
+	_dwarf_section_free(&dbg->dbgp_info);
 
 	return (ret);
 }

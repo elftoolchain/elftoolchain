@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include "_libdwarf.h"
 
-static int
+int
 _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
     uint64_t aboff, Dwarf_Abbrev *abp, Dwarf_Error *error)
 {
@@ -61,7 +61,7 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 	return (DWARF_E_NONE);
 }
 
-static int
+int
 _dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
     uint64_t adoff, Dwarf_AttrDef *adp, Dwarf_Error *error)
 {
