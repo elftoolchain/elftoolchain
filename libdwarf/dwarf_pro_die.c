@@ -65,6 +65,7 @@ dwarf_new_die(Dwarf_P_Debug dbg, Dwarf_Tag new_tag,
 	if (_dwarf_die_alloc(&die, error) != DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
 
+	die->die_dbg = dbg;
 	die->die_tag = new_tag;
 
 	STAILQ_INSERT_TAIL(&dbg->dbgp_dielist, die, die_pro_next);
