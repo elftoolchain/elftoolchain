@@ -24,10 +24,10 @@ SRCS=	\
 	dwarf_macinfo.c		\
 	dwarf_pro_arange.c	\
 	dwarf_pro_attr.c	\
+	dwarf_pro_die.c		\
 	dwarf_pro_expr.c	\
 	dwarf_pro_frame.c	\
 	dwarf_pro_init.c	\
-	dwarf_pro_die.c		\
 	dwarf_pro_lineno.c	\
 	dwarf_pro_macinfo.c	\
 	dwarf_pubnames.c	\
@@ -54,6 +54,7 @@ SRCS=	\
 	libdwarf_nametbl.c	\
 	libdwarf_ranges.c	\
 	libdwarf_rw.c		\
+	libdwarf_sections.c	\
 	libdwarf_str.c
 
 INCS=	dwarf.h libdwarf.h

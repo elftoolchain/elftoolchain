@@ -183,6 +183,11 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DWARF_E_ARGUMENT);
 	}
 
+	if (pf & DW_DLC_SIZE_64)
+		dbg->dbg_pointer_size = 8;
+	else
+		dbg->dbg_pointer_size = 4;
+
 	if (pf & DW_DLC_ISA_IA64 && pf & DW_DLC_ISA_MIPS) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DWARF_E_ARGUMENT);

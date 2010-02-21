@@ -246,6 +246,8 @@ enum {
 	DWARF_E_INVALID_ARANGE,		/* Invalid address range data. */
 	DWARF_E_INVALID_MACINFO,	/* Invalid macinfo data. */
 	DWARF_E_SEQUENCE,		/* API called in wrong sequence. */
+	DWARF_E_NO_ROOT_DIE,		/* Root DIE is not specified. */
+	DWARF_E_DIE_NULL_ATTR,		/* DIE doesn't have any attr. */
 	DWARF_E_NUM			/* Max error number. */
 };
 

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD: src/lib/libdwarf/dwarf_die.c,v 1.1 2008/05/22 02:14:23 jb Exp $
  */
 
 #include <assert.h>
@@ -183,9 +181,7 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 
 	if (parent) {
 
-		/*
-		 * Disconnect from old parent.
-		 */
+		/* Disconnect from old parent. */
 		if (die->die_parent) {
 			if (die->die_parent == parent)
 				return;
@@ -193,20 +189,15 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 			die->die_parent = NULL;
 		}
 
-		/*
-		 * Connect to new parent.
-		 */
+		/* Connect to new parent. */
 		die->die_parent = parent;
 		parent->die_child = die;
-
 		return;
 	}
 
 	if (child) {
 
-		/*
-		 * Disconnect from old child.
-		 */
+		/* Disconnect from old child. */
 		if (die->die_child) {
 			if (die->die_child == child)
 				return;
@@ -214,20 +205,15 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 			die->die_child = NULL;
 		}
 
-		/*
-		 * Connect to new child.
-		 */
+		/* Connect to new child. */
 		die->die_child = child;
 		child->die_parent = die;
-
 		return;
 	}
 
 	if (left_sibling) {
 
-		/*
-		 * Disconnect from old left sibling.
-		 */
+		/* Disconnect from old left sibling. */
 		if (die->die_left) {
 			if (die->die_left == left_sibling)
 				return;
@@ -235,20 +221,15 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 			die->die_left = NULL;
 		}
 
-		/*
-		 * Connect to new right sibling.
-		 */
+		/* Connect to new right sibling. */
 		die->die_left = left_sibling;
 		left_sibling->die_right = die;
-
 		return;
 	}
 
 	if (right_sibling) {
 
-		/*
-		 * Disconnect from old right sibling.
-		 */
+		/* Disconnect from old right sibling. */
 		if (die->die_right) {
 			if (die->die_right == right_sibling)
 				return;
@@ -256,12 +237,9 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 			die->die_right = NULL;
 		}
 
-		/*
-		 * Connect to new right sibling.
-		 */
+		/* Connect to new right sibling. */
 		die->die_right = right_sibling;
 		right_sibling->die_left = die;
-
 		return;
 	}
 }
@@ -284,4 +262,132 @@ _dwarf_die_count_links(Dwarf_P_Die parent, Dwarf_P_Die child,
 		count++;
 
 	return (count);
+}
+
+static int
+_dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
+    Dwarf_Error *error) {
+	Dwarf_Section *ds;
+	Dwarf_Abbrev ab;
+	Dwarf_Attribute at;
+	Dwarf_AttrDef ad;
+	int match, ret;
+
+	if (STAILQ_EMPTY(&die->die_attr)) {
+		DWARF_SET_ERROR(error, DWARF_E_DIE_NULL_ATTR);
+		return (DWARF_E_DIE_NULL_ATTR);
+	}
+
+	/*
+	 * Search abbrev list to find a matching entry.
+	 */
+	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
+		if (die->die_tag != ab->ab_tag)
+			continue;
+		if (ab->ab_children == DW_CHILDREN_no && die->die_child != NULL)
+			continue;
+		if (ab->ab_children == DW_CHILDREN_yes &&
+		    die->die_child == NULL)
+			continue;
+		at = STAILQ_FIRST(&die->die_attr);
+		ad = STAILQ_FIRST(&ab->ab_attrdef);
+		assert(at != NULL && ad != NULL);
+		match = 1;
+		do {
+			if (at->at_attrib != ad->ad_attrib ||
+			    at->at_form != ad->ad_form) {
+				match = 0;
+				break;
+			}
+			at = STAILQ_NEXT(at, at_next);
+			ad = STAILQ_NEXT(ad, ad_next);
+			if ((at == NULL && ad != NULL) ||
+			    (at != NULL && ad == NULL))
+				match = 0;
+		} while (at != NULL && ad != NULL);
+		if (match) {
+			die->die_ab = ab;
+			break;
+		}
+	}
+
+	/*
+	 * Create a new abbrev entry if we can not reuse any existing one.
+	 */
+	if (die->die_ab == NULL) {
+		ret = _dwarf_abbrev_add(cu, ++cu->cu_abbrev_cnt, die->die_tag,
+		    die->die_child != NULL ? 1 : 0, 0, &ab, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+		STAILQ_FOREACH(at, &die->die_attr, at_next) {
+			ret = _dwarf_attrdef_add(ab, at->at_attrib, at->at_form,
+			    0, NULL, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+		}
+		die->die_ab = ab;
+	}
+
+	ds = dbg->dbgp_info;
+	assert(ds != NULL);
+
+	/*
+	 * Transform the DIE to bytes stream.
+	 */
+	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+	    &ds->ds_size, die->die_ab->ab_entry, error);
+	if (ret != DWARF_E_NONE)
+		return (ret);
+
+	/* TODO: Write attributes. */
+
+	/* Proceed to child DIE. */
+	if (die->die_child != NULL) {
+		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_child, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+	}
+
+	/* Proceed to sibling DIE. */
+	if (die->die_right != NULL) {
+		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_right, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+	}
+
+	/* Write a null DIE indicating the end of current level. */
+	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+	    &ds->ds_size, 0, error);
+	if (ret != DWARF_E_NONE)
+		return (ret);
+
+	return (DWARF_E_NONE);
+}
+
+int
+_dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
+{
+	Dwarf_Die die;
+	int ret;
+
+	assert(dbg != NULL && cu != NULL);
+
+	if (dbg->dbgp_root_die == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_NO_ROOT_DIE);
+		return (DWARF_E_NO_ROOT_DIE);
+	}
+
+	die = dbg->dbgp_root_die;
+
+	ret = _dwarf_die_gen_recursive(dbg, cu, die, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	return (DWARF_E_NONE);
+
+fail_cleanup:
+
+	/* TODO: cleanup */
+
+	return (ret);
 }

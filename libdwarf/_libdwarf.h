@@ -33,6 +33,7 @@
 
 #include <sys/param.h>
 #include <sys/queue.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <gelf.h>
@@ -303,6 +304,7 @@ struct _Dwarf_CU {
 	uint32_t	cu_header_length; /* Length of the CU header. */
 	uint16_t	cu_version;	/* DWARF version. */
 	uint64_t	cu_abbrev_offset; /* Offset into .debug_abbrev. */
+	uint64_t	cu_abbrev_cnt;	/* Abbrev entry count. */
 	uint64_t	cu_lineno_offset; /* Offset into .debug_lineno. */
 	uint8_t		cu_pointer_size;/* Number of bytes in pointer. */
 	uint64_t	cu_next_offset; /* Offset to the next CU. */
@@ -318,6 +320,7 @@ typedef struct {
 	const char	*ds_name;	/* Section name. */
 	Dwarf_Small	*ds_data;	/* Section data. */
 	Dwarf_Unsigned	ds_size;	/* Section size. */
+	Dwarf_Unsigned	ds_cap;		/* Section capacity. */
 } Dwarf_Section;
 
 typedef struct {
@@ -388,12 +391,15 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Fde) dbgp_fdelist;
 	Dwarf_Unsigned	dbgp_cielen;
 	Dwarf_Unsigned	dbgp_fdelen;
+	Dwarf_Section	*dbgp_info;
 };
 
 /*
  * Internal function prototypes.
  */
 
+int		_dwarf_abbrev_add(Dwarf_CU, uint64_t, uint64_t, uint8_t,
+		    uint64_t, Dwarf_Abbrev *, Dwarf_Error *);
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
@@ -404,6 +410,8 @@ Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
 		    Dwarf_Error *);
+int		_dwarf_attrdef_add(Dwarf_Abbrev, uint64_t, uint64_t, uint64_t,
+		    Dwarf_AttrDef *, Dwarf_Error *);
 uint64_t	_dwarf_decode_lsb(uint8_t **, int);
 uint64_t	_dwarf_decode_msb(uint8_t **, int);
 int64_t		_dwarf_decode_sleb128(uint8_t **);
@@ -415,6 +423,7 @@ int		_dwarf_die_alloc(Dwarf_Die *, Dwarf_Error *);
 int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
+int		_dwarf_die_gen(Dwarf_P_Debug, Dwarf_CU, Dwarf_Error *);
 void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
@@ -430,6 +439,8 @@ Dwarf_Unsigned	_dwarf_elf_get_section_count(void *);
 int		_dwarf_elf_get_section_info(void *, Dwarf_Half,
 		    Dwarf_Obj_Access_Section *, int *);
 Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
+int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
+int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
 uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
@@ -476,6 +487,9 @@ int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
 int		_dwarf_ranges_find(Dwarf_Debug, uint64_t, Dwarf_Rangelist *);
+void		_dwarf_section_free(Dwarf_Section **);
+int		_dwarf_section_init(Dwarf_Section **, const char *,
+		    Dwarf_Error *);
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
