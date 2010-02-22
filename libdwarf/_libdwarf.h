@@ -504,6 +504,7 @@ int		_dwarf_section_init(Dwarf_Debug, Dwarf_Section **, const char *,
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
+int		_dwarf_strtab_gen(Dwarf_Debug, Dwarf_Error *);
 char		*_dwarf_strtab_get_table(Dwarf_Debug);
 int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_write_sleb128(uint8_t *, uint8_t *, int64_t);
