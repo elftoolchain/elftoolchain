@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2009, 2010 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -26,8 +28,6 @@
  * $FreeBSD: src/lib/libdwarf/dwarf_abbrev.c,v 1.1 2008/05/22 02:14:23 jb Exp $
  */
 
-#include <assert.h>
-#include <stdlib.h>
 #include "_libdwarf.h"
 
 int
@@ -163,4 +163,81 @@ _dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry)
 	}
 
 	return (ab);
+}
+
+int
+_dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_CU cu;
+	Dwarf_Abbrev ab;
+	Dwarf_AttrDef ad;
+	Dwarf_Section *ds;
+	int ret;
+
+	cu = STAILQ_FIRST(&dbg->dbg_cu);
+	if (cu == NULL)
+		return (DWARF_E_NONE);
+
+	/* Create .debug_abbrev section. */
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_abbrev", error)) !=
+	    DWARF_E_NONE)
+		return (ret);
+
+	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
+		/* Write abbrev code. */
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, ab->ab_entry, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
+
+		/* Write abbrev tag. */
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, ab->ab_tag, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
+
+		/* Write children flag. */
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    ab->ab_children, 1, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
+
+		/* Write attribute specifications. */
+		STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
+			/* Write attribute name. */
+			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
+			    &ds->ds_cap, &ds->ds_size, ad->ad_attrib, error);
+			if (ret != DWARF_E_NONE)
+				goto fail_cleanup;
+			/* Write form. */
+			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
+			    &ds->ds_cap, &ds->ds_size, ad->ad_form, error);
+			if (ret != DWARF_E_NONE)
+				goto fail_cleanup;
+		}
+
+		/* Signal end of attribute spec list. */
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, 0, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, 0, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
+	}
+
+	/* End of abbreviation for this CU. */
+	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+	    &ds->ds_size, 0, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	return (DWARF_E_NONE);
+
+fail_cleanup:
+
+	_dwarf_section_free(dbg, &ds);
+
+	return (ret);
 }
