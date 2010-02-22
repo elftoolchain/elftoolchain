@@ -413,6 +413,8 @@ void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
+int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_Section *, Dwarf_CU,
+		    Dwarf_Die, Dwarf_Error *);
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
 		    Dwarf_Error *);

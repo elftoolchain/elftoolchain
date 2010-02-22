@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2009, 2010 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -250,4 +252,100 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		ret = _dwarf_attr_add(die, &atref, NULL, error);
 
 	return (ret);
+}
+
+static int
+_dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
+    Dwarf_Attribute at, Dwarf_Error *error)
+{
+	int ret;
+
+	assert(dbg != NULL && ds != NULL && cu != NULL && at != NULL);
+
+	switch (at->at_form) {
+	case DW_FORM_addr:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, cu->cu_pointer_size, error);
+		break;
+	case DW_FORM_block:
+	case DW_FORM_block1:
+	case DW_FORM_block2:
+	case DW_FORM_block4:
+		/* TODO. */
+		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
+		ret = DWARF_E_NOT_IMPLEMENTED;
+		break;
+	case DW_FORM_data1:
+	case DW_FORM_flag:
+	case DW_FORM_ref1:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, 1, error);
+		break;
+	case DW_FORM_data2:
+	case DW_FORM_ref2:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, 2, error);
+		break;
+	case DW_FORM_data4:
+	case DW_FORM_ref4:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, 4, error);
+		break;
+	case DW_FORM_data8:
+	case DW_FORM_ref8:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, 8, error);
+		break;
+	case DW_FORM_indirect:
+		/* TODO. */
+		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
+		ret = DWARF_E_NOT_IMPLEMENTED;
+		break;
+	case DW_FORM_ref_addr:
+		/* DWARF2 format. */
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, cu->cu_pointer_size, error);
+		break;
+	case DW_FORM_ref_udata:
+	case DW_FORM_udata:
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[0].u64, error);
+		break;
+	case DW_FORM_sdata:
+		ret = _dwarf_write_sleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[0].s64, error);
+	case DW_FORM_string:
+		/* TODO. */
+		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
+		ret = DWARF_E_NOT_IMPLEMENTED;
+		break;
+	case DW_FORM_strp:
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, 4, error);
+		break;
+	default:
+		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
+		ret = DWARF_E_NOT_IMPLEMENTED;
+		break;
+	}
+
+	return (ret);
+}
+
+int
+_dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
+    Dwarf_Die die, Dwarf_Error *error)
+{
+	Dwarf_Attribute at;
+	int ret;
+
+	assert(dbg != NULL && ds != NULL && cu != NULL && die != NULL);
+
+	STAILQ_FOREACH(at, &die->die_attr, at_next) {
+		ret = _dwarf_attr_write(dbg, ds, cu, at, error);
+		if (ret != DWARF_E_NONE)
+			return (ret);
+	}
+
+	return (DWARF_E_NONE);
 }
