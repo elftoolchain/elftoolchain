@@ -340,7 +340,10 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 	if (ret != DWARF_E_NONE)
 		return (ret);
 
-	/* TODO: Write attributes. */
+	/* Transform the attributes of this DIE. */
+	ret = _dwarf_attr_gen(dbg, ds, cu, die, error);
+	if (ret != DWARF_E_NONE)
+		return (ret);
 
 	/* Proceed to child DIE. */
 	if (die->die_child != NULL) {
