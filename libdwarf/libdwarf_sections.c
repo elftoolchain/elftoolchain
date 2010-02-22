@@ -118,8 +118,12 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 	int ret;
 
-	/* Generate .debug_info section content. */
+	/* Generate .debug_info section. */
 	if ((ret = _dwarf_info_gen(dbg, error)) != DWARF_E_NONE)
+		return (ret);
+
+	/* Genrate .debug_str section. */
+	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
 
 	return (DWARF_E_NONE);

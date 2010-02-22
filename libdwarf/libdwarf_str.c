@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,4 +118,32 @@ _dwarf_strtab_cleanup(Dwarf_Debug dbg)
 
 	if (dbg->dbg_mode == DW_DLC_RDWR || dbg->dbg_mode == DW_DLC_WRITE)
 		free(dbg->dbg_strtab);
+}
+
+int
+_dwarf_strtab_gen(Dwarf_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_Section *ds;
+	int ret;
+
+	assert(dbg != NULL);
+
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", error)) !=
+	    DWARF_E_NONE)
+		return (ret);
+
+	if (dbg->dbg_strtab_size > ds->ds_size) {
+		ds->ds_data = realloc(ds->ds_data, dbg->dbg_strtab_size);
+		if (ds->ds_data == NULL) {
+			_dwarf_section_free(dbg, &ds);
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
+		ds->ds_cap = dbg->dbg_strtab_size;
+	}
+
+	memcpy(ds->ds_data, dbg->dbg_strtab, dbg->dbg_strtab_size);
+	ds->ds_size = dbg->dbg_strtab_size;
+
+	return (DWARF_E_NONE);
 }
