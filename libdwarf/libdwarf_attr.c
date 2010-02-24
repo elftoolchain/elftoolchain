@@ -349,9 +349,9 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		ret = _dwarf_write_sleb128_alloc(&ds->ds_data, &ds->ds_cap,
 		    &ds->ds_size, at->u[0].s64, error);
 	case DW_FORM_string:
-		/* TODO. */
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
-		ret = DWARF_E_NOT_IMPLEMENTED;
+		assert(at->u[0].s != NULL);
+		ret = _dwarf_write_string_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[0].s, error);
 		break;
 	case DW_FORM_strp:
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
