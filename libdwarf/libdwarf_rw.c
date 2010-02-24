@@ -1,4 +1,6 @@
 /*-
+ * Copyright (c) 2010 Kai Wang
+ * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
  * All rights reserved.
  *
@@ -439,6 +441,37 @@ _dwarf_read_string(void *data, Dwarf_Unsigned size, uint64_t *offsetp)
 		(*offsetp)++;
 
 	return (ret);
+}
+
+void
+_dwarf_write_string(void *data, uint64_t *offsetp, char *string)
+{
+	char *dst;
+	
+	dst = (char *) data + *offsetp;
+	strcpy(dst, string);
+	(*offsetp) += strlen(string) + 1;
+}
+
+int
+_dwarf_write_string_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    char *string, Dwarf_Error *error)
+{
+	size_t len;
+
+	len = strlen(string) + 1;
+	while (*offsetp + len > *size) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}		
+	}
+
+	_dwarf_write_string(*block, offsetp, string);
+
+	return (DWARF_E_NONE);
 }
 
 uint8_t *
