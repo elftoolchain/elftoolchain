@@ -470,6 +470,9 @@ int		_dwarf_write_lsb_alloc(uint8_t **, uint64_t *, uint64_t *,
 void		_dwarf_write_msb(uint8_t *, uint64_t *, uint64_t, int);
 int		_dwarf_write_msb_alloc(uint8_t **, uint64_t *, uint64_t *,
 		    uint64_t, int, Dwarf_Error *);
+void		_dwarf_write_string(void *, uint64_t *, char *);
+int		_dwarf_write_string_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    char *, Dwarf_Error *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
