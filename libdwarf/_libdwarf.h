@@ -85,6 +85,8 @@ struct _Dwarf_AttrDef {
 
 struct _Dwarf_Attribute {
 	Dwarf_Die		at_die;		/* Ptr to containing DIE. */
+	Dwarf_Die		at_refdie;	/* Ptr to reference DIE. */
+	uint64_t		at_offset;	/* Offset in info section. */
 	uint64_t		at_attrib;	/* DW_AT_XXX */
 	uint64_t		at_form;	/* DW_FORM_XXX */
 	int			at_indirect;	/* Has indirect form. */
@@ -309,6 +311,7 @@ struct _Dwarf_CU {
 	uint64_t	cu_lineno_offset; /* Offset into .debug_lineno. */
 	uint8_t		cu_pointer_size;/* Number of bytes in pointer. */
 	uint64_t	cu_next_offset; /* Offset to the next CU. */
+	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev;	/* List of abbrevs. */
 	STAILQ_HEAD(, _Dwarf_Die) cu_die; /* List of dies. */
@@ -415,7 +418,7 @@ int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
 int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_Section *, Dwarf_CU,
-		    Dwarf_Die, Dwarf_Error *);
+		    Dwarf_Die, int, Dwarf_Error *);
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
 		    Dwarf_Error *);

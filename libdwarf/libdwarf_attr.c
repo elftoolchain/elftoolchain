@@ -256,14 +256,29 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 
 static int
 _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
-    Dwarf_Attribute at, Dwarf_Error *error)
+    Dwarf_Attribute at, int pass2, Dwarf_Error *error)
 {
+	uint64_t value, offset;
 	int ret;
 
 	assert(dbg != NULL && ds != NULL && cu != NULL && at != NULL);
 
+	/* Only update DW_FORM_ref4 and DW_FORM_ref8 in the second pass. */
+	if (pass2) {
+		if (at->at_form != DW_FORM_ref4 && at->at_form != DW_FORM_ref8)
+			return (DWARF_E_NONE);
+		if (at->at_refdie == NULL || at->at_offset == 0)
+			return (DWARF_E_NONE);
+		offset = at->at_offset;
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
+		    at->at_refdie->die_offset,
+		    at->at_form == DW_FORM_ref4 ? 4 : 8, error);
+		return (ret);
+	}
+
 	switch (at->at_form) {
 	case DW_FORM_addr:
+		/* TODO: handle relocation. */
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
 		    at->u[0].u64, cu->cu_pointer_size, error);
 		break;
@@ -287,14 +302,33 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		    at->u[0].u64, 2, error);
 		break;
 	case DW_FORM_data4:
-	case DW_FORM_ref4:
+		/* TODO: handle relocation. */
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
 		    at->u[0].u64, 4, error);
 		break;
 	case DW_FORM_data8:
-	case DW_FORM_ref8:
+		/* TODO: handle relocation. */
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
 		    at->u[0].u64, 8, error);
+		break;
+	case DW_FORM_ref4:
+	case DW_FORM_ref8:
+		/*
+		 * The value of ref4 and ref8 could be a reference to another
+		 * DIE within the CU. And if we don't know the ref DIE's
+		 * offset at the moement, then we remember at_offset and fill
+		 * it in the second pass.
+		 */
+		if (at->at_refdie) {
+			value = at->at_refdie->die_offset;
+			if (value == 0) {
+				cu->cu_pass2 = 1;
+				at->at_offset = ds->ds_size;
+			}
+		} else
+			value = at->u[0].u64;
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    value, at->at_form == DW_FORM_ref4 ? 4 : 8, error);
 		break;
 	case DW_FORM_indirect:
 		/* TODO. */
@@ -302,7 +336,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		ret = DWARF_E_NOT_IMPLEMENTED;
 		break;
 	case DW_FORM_ref_addr:
-		/* DWARF2 format. */
+		/* DWARF2 format. TODO: handle relocation. */
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
 		    at->u[0].u64, cu->cu_pointer_size, error);
 		break;
@@ -334,7 +368,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 
 int
 _dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
-    Dwarf_Die die, Dwarf_Error *error)
+    Dwarf_Die die, int pass2, Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
 	int ret;
@@ -342,7 +376,7 @@ _dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 	assert(dbg != NULL && ds != NULL && cu != NULL && die != NULL);
 
 	STAILQ_FOREACH(at, &die->die_attr, at_next) {
-		ret = _dwarf_attr_write(dbg, ds, cu, at, error);
+		ret = _dwarf_attr_write(dbg, ds, cu, at, pass2, error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}

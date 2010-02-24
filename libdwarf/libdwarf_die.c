@@ -266,7 +266,7 @@ _dwarf_die_count_links(Dwarf_P_Die parent, Dwarf_P_Die child,
 
 static int
 _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
-    Dwarf_Error *error) {
+    int pass2, Dwarf_Error *error) {
 	Dwarf_Section *ds;
 	Dwarf_Abbrev ab;
 	Dwarf_Attribute at;
@@ -277,6 +277,12 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 		DWARF_SET_ERROR(error, DWARF_E_DIE_NULL_ATTR);
 		return (DWARF_E_DIE_NULL_ATTR);
 	}
+
+	ds = dbg->dbgp_info;
+	assert(ds != NULL);
+
+	if (pass2)
+		goto attr_gen;
 
 	/*
 	 * Search abbrev list to find a matching entry.
@@ -329,8 +335,7 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 		die->die_ab = ab;
 	}
 
-	ds = dbg->dbgp_info;
-	assert(ds != NULL);
+	die->die_offset = ds->ds_size;
 
 	/*
 	 * Transform the DIE to bytes stream.
@@ -340,21 +345,25 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
 	if (ret != DWARF_E_NONE)
 		return (ret);
 
+attr_gen:
+
 	/* Transform the attributes of this DIE. */
-	ret = _dwarf_attr_gen(dbg, ds, cu, die, error);
+	ret = _dwarf_attr_gen(dbg, ds, cu, die, pass2, error);
 	if (ret != DWARF_E_NONE)
 		return (ret);
 
 	/* Proceed to child DIE. */
 	if (die->die_child != NULL) {
-		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_child, error);
+		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_child, pass2,
+		    error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}
 
 	/* Proceed to sibling DIE. */
 	if (die->die_right != NULL) {
-		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_right, error);
+		ret = _dwarf_die_gen_recursive(dbg, cu, die->die_right, pass2,
+		    error);
 		if (ret != DWARF_E_NONE)
 			return (ret);
 	}
@@ -385,20 +394,30 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 
 	die = dbg->dbgp_root_die;
 
-	ret = _dwarf_die_gen_recursive(dbg, cu, die, error);
-	if (ret != DWARF_E_NONE) {
-		STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
-			STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
-				STAILQ_REMOVE(&ab->ab_attrdef, ad,
-				    _Dwarf_AttrDef, ad_next);
-				free(ad);
-			}
-			STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev,
-			    ab_next);
-			free(ab);
-		}
-		return (ret);
+	ret = _dwarf_die_gen_recursive(dbg, cu, die, 0, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
+	if (cu->cu_pass2) {
+		ret = _dwarf_die_gen_recursive(dbg, cu, die, 1, error);
+		if (ret != DWARF_E_NONE)
+			goto fail_cleanup;
 	}
 
 	return (DWARF_E_NONE);
+
+fail_cleanup:
+
+	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
+		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
+			STAILQ_REMOVE(&ab->ab_attrdef, ad,
+			    _Dwarf_AttrDef, ad_next);
+			free(ad);
+		}
+		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev,
+		    ab_next);
+		free(ab);
+	}
+
+	return (ret);
 }
