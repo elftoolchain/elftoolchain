@@ -355,7 +355,7 @@ dwarf_add_AT_reference(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	else
 		at->at_form = DW_FORM_ref8;
 
-	/* TODO: Add reference to the ref_die. */
+	at->at_refdie = ref_die;
 
 	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
