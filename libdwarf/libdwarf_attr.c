@@ -263,7 +263,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 
 	assert(dbg != NULL && ds != NULL && cu != NULL && at != NULL);
 
-	/* Only update DW_FORM_ref4 and DW_FORM_ref8 in the second pass. */
+	/* Fill in reference to other DIE in the second pass. */
 	if (pass2) {
 		if (at->at_form != DW_FORM_ref4 && at->at_form != DW_FORM_ref8)
 			return (DWARF_E_NONE);
