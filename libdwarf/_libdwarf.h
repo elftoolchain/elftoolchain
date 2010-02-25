@@ -86,14 +86,13 @@ struct _Dwarf_AttrDef {
 struct _Dwarf_Attribute {
 	Dwarf_Die		at_die;		/* Ptr to containing DIE. */
 	Dwarf_Die		at_refdie;	/* Ptr to reference DIE. */
-	Dwarf_P_Expr		at_expr;	/* Associated loc expression. */
 	uint64_t		at_offset;	/* Offset in info section. */
 	uint64_t		at_attrib;	/* DW_AT_XXX */
 	uint64_t		at_form;	/* DW_FORM_XXX */
 	int			at_indirect;	/* Has indirect form. */
 	union {
-		uint64_t	u64;
-		int64_t		s64;
+		uint64_t	u64;		/* Unsigned value. */
+		int64_t		s64;		/* Signed value. */
 		char		*s;   		/* String. */
 		uint8_t		*u8p;		/* Block. */
 	} u[2];					/* Value. */
@@ -451,6 +450,7 @@ Dwarf_Small	_dwarf_elf_get_pointer_size(void *);
 Dwarf_Unsigned	_dwarf_elf_get_section_count(void *);
 int		_dwarf_elf_get_section_info(void *, Dwarf_Half,
 		    Dwarf_Obj_Access_Section *, int *);
+int		_dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Error *);
 Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
 int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
