@@ -62,7 +62,6 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
 	return (DWARF_E_NONE);
 }
 
-#if 0
 Dwarf_P_Attribute
 dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
     Dwarf_P_Expr loc_expr, Dwarf_Error *error)
@@ -79,9 +78,10 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 
 	at->at_die = die;
 	at->at_attrib = attr;
-	
+	at->at_expr = loc_expr;
+
+	return (at);
 }
-#endif
 
 Dwarf_P_Attribute
 dwarf_add_AT_name(Dwarf_P_Die die, char *name, Dwarf_Error *error)
