@@ -86,6 +86,7 @@ struct _Dwarf_AttrDef {
 struct _Dwarf_Attribute {
 	Dwarf_Die		at_die;		/* Ptr to containing DIE. */
 	Dwarf_Die		at_refdie;	/* Ptr to reference DIE. */
+	Dwarf_P_Expr		at_expr;	/* Associated loc expression. */
 	uint64_t		at_offset;	/* Offset in info section. */
 	uint64_t		at_attrib;	/* DW_AT_XXX */
 	uint64_t		at_form;	/* DW_FORM_XXX */
