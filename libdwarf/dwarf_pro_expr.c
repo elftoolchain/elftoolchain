@@ -56,7 +56,7 @@ _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 	return (ee);
 }
 
-static int
+int
 _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 {
 	struct _Dwarf_P_Expr_Entry *ee;

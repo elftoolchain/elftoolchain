@@ -78,7 +78,19 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 
 	at->at_die = die;
 	at->at_attrib = attr;
-	at->at_expr = loc_expr;
+
+	if (_dwarf_expr_into_block(loc_expr, error) != DWARF_E_NONE)
+		return (DW_DLV_BADADDR);
+	at->u[0].u64 = loc_expr->pe_length;
+	at->u[1].u8p = loc_expr->pe_block;
+	if (loc_expr->pe_length <= UCHAR_MAX)
+		at->at_form = DW_FORM_block1;
+	if (loc_expr->pe_length <= USHRT_MAX)
+		at->at_form = DW_FORM_block2;
+	if (loc_expr->pe_length <= UINT_MAX)
+		at->at_form = DW_FORM_block4;
+	else
+		at->at_form = DW_FORM_block;
 
 	return (at);
 }
