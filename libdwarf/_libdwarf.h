@@ -459,21 +459,6 @@ int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
 Dwarf_Unsigned	_dwarf_pro_callback(Dwarf_P_Debug, const char *, int,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Unsigned, int *);
-uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
-uint64_t	_dwarf_read_msb(uint8_t *, uint64_t *, int);
-int64_t		_dwarf_read_sleb128(uint8_t *, uint64_t *);
-uint64_t	_dwarf_read_uleb128(uint8_t *, uint64_t *);
-char		*_dwarf_read_string(void *, Dwarf_Unsigned, uint64_t *);
-uint8_t		*_dwarf_read_block(void *, uint64_t *, uint64_t);
-void		_dwarf_write_lsb(uint8_t *, uint64_t *, uint64_t, int);
-int		_dwarf_write_lsb_alloc(uint8_t **, uint64_t *, uint64_t *,
-		    uint64_t, int, Dwarf_Error *);
-void		_dwarf_write_msb(uint8_t *, uint64_t *, uint64_t, int);
-int		_dwarf_write_msb_alloc(uint8_t **, uint64_t *, uint64_t *,
-		    uint64_t, int, Dwarf_Error *);
-void		_dwarf_write_string(void *, uint64_t *, char *);
-int		_dwarf_write_string_alloc(uint8_t **, uint64_t *, uint64_t *,
-		    char *, Dwarf_Error *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
@@ -506,6 +491,12 @@ int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
 int		_dwarf_ranges_find(Dwarf_Debug, uint64_t, Dwarf_Rangelist *);
+uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
+uint64_t	_dwarf_read_msb(uint8_t *, uint64_t *, int);
+int64_t		_dwarf_read_sleb128(uint8_t *, uint64_t *);
+uint64_t	_dwarf_read_uleb128(uint8_t *, uint64_t *);
+char		*_dwarf_read_string(void *, Dwarf_Unsigned, uint64_t *);
+uint8_t		*_dwarf_read_block(void *, uint64_t *, uint64_t);
 void		_dwarf_section_free(Dwarf_Debug, Dwarf_Section **);
 int		_dwarf_section_init(Dwarf_Debug, Dwarf_Section **, const char *,
 		    Dwarf_Error *);
@@ -515,6 +506,18 @@ void		_dwarf_strtab_cleanup(Dwarf_Debug);
 int		_dwarf_strtab_gen(Dwarf_P_Debug, Dwarf_Error *);
 char		*_dwarf_strtab_get_table(Dwarf_Debug);
 int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
+void		_dwarf_write_block(void *, uint64_t *, uint8_t *, uint64_t);
+int		_dwarf_write_block_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint8_t *, uint64_t, Dwarf_Error *);
+void		_dwarf_write_lsb(uint8_t *, uint64_t *, uint64_t, int);
+int		_dwarf_write_lsb_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint64_t, int, Dwarf_Error *);
+void		_dwarf_write_msb(uint8_t *, uint64_t *, uint64_t, int);
+int		_dwarf_write_msb_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint64_t, int, Dwarf_Error *);
+void		_dwarf_write_string(void *, uint64_t *, char *);
+int		_dwarf_write_string_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    char *, Dwarf_Error *);
 int		_dwarf_write_sleb128(uint8_t *, uint8_t *, int64_t);
 int		_dwarf_write_sleb128_alloc(uint8_t **, uint64_t *, uint64_t *,
 		    int64_t, Dwarf_Error *);

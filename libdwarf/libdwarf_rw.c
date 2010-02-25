@@ -485,3 +485,33 @@ _dwarf_read_block(void *data, uint64_t *offsetp, uint64_t length)
 
 	return (ret);
 }
+
+void
+_dwarf_write_block(void *data, uint64_t *offsetp, uint8_t *blk,
+    uint64_t length)
+{
+	uint8_t *dst;
+
+	dst = (uint8_t *) data + *offsetp;
+	memcpy(dst, blk, length);
+	(*offsetp) += length;
+}
+
+int
+_dwarf_write_block_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    uint8_t *blk, uint64_t length, Dwarf_Error *error)
+{
+
+	while (*offsetp + length > *size) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}		
+	}
+
+	_dwarf_write_block(*block, offsetp, blk, length);
+
+	return (DWARF_E_NONE);
+}

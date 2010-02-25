@@ -258,7 +258,7 @@ static int
 _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
     Dwarf_Attribute at, int pass2, Dwarf_Error *error)
 {
-	uint64_t value, offset;
+	uint64_t value, offset, bs;
 	int ret;
 
 	assert(dbg != NULL && ds != NULL && cu != NULL && at != NULL);
@@ -283,12 +283,28 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		    at->u[0].u64, cu->cu_pointer_size, error);
 		break;
 	case DW_FORM_block:
+		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[0].u64, error);
+		if (ret != DWARF_E_NONE)
+			break;
+		ret = _dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[1].u8p, at->u[0].u64, error);
+		break;
 	case DW_FORM_block1:
 	case DW_FORM_block2:
 	case DW_FORM_block4:
-		/* TODO. */
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
-		ret = DWARF_E_NOT_IMPLEMENTED;
+		if (at->at_form == DW_FORM_block1)
+			bs = 1;
+		else if (at->at_form == DW_FORM_block2)
+			bs = 2;
+		else
+			bs = 4;
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    at->u[0].u64, bs, error);
+		if (ret != DWARF_E_NONE)
+			break;
+		ret = _dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,
+		    &ds->ds_size, at->u[1].u8p, at->u[0].u64, error);
 		break;
 	case DW_FORM_data1:
 	case DW_FORM_flag:
