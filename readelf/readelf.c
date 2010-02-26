@@ -1535,7 +1535,7 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 		"st_name + r_addend"
 #define	RELA_CT  (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	   \
 		r_type(re->ehdr.e_machine, GELF_R_TYPE(r.r_info)), \
-		(uintmax_t)symval, symname, (intmax_t)r.r_addend   \
+		(uintmax_t)symval, symname, (uintmax_t)r.r_addend  \
 
 	printf("\nRelocation section with addend (%s):\n", s->name);
 	if (re->ec == ELFCLASS32)
@@ -1560,10 +1560,10 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 		else {
 			if (re->options & RE_WW)
 				printf("%16.16jx %16.16jx %-24.24s"
-				    " %16.16jx %s + %jd\n", RELA_CT);
+				    " %16.16jx %s + %jx\n", RELA_CT);
 			else
 				printf("%12.12jx %12.12jx %-19.19s"
-				    " %16.16jx %s + %jd\n", RELA_CT);
+				    " %16.16jx %s + %jx\n", RELA_CT);
 		}
 	}
 
