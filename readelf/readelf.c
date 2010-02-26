@@ -3767,6 +3767,10 @@ get_symbol_name(struct readelf *re, int symtab, int i)
 	}
 	if (gelf_getsym(data, i, &sym) != &sym)
 		return ("");
+	/* Return section name for STT_SECTION symbol. */
+	if (GELF_ST_TYPE(sym.st_info) == STT_SECTION &&
+	    re->sl[sym.st_shndx].name != NULL)
+		return (re->sl[sym.st_shndx].name);
 	if ((name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
 		return ("");
 
