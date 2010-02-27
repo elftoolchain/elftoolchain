@@ -92,7 +92,6 @@ _dwarf_pro_callback(Dwarf_P_Debug dbg, const char *name, int size,
 
 	if ((name0 = strdup(name)) == NULL)
 		return (0);
-	
 	if (dbg->dbgp_func_b)
 		ret = dbg->dbgp_func_b(name0, size, type, flags, link, info,
 		    &ndx, &e);
@@ -101,13 +100,11 @@ _dwarf_pro_callback(Dwarf_P_Debug dbg, const char *name, int size,
 		    &indx, &e);
 		ndx = indx;
 	}
-
 	if (ret < 0) {
 		if (error)
 			*error = e;
 		ndx = 0;
 	}
-
 	free(name0);
 
 	return (ndx);
