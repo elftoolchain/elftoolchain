@@ -193,6 +193,11 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DWARF_E_ARGUMENT);
 	}
 
+	if (pf & DW_DLC_ISA_IA64)
+		dbg->dbgp_isa = DW_DLC_ISA_IA64;
+	else
+		dbg->dbgp_isa = DW_DLC_ISA_MIPS;
+
 	if (pf & DW_DLC_TARGET_BIGENDIAN && pf & DW_DLC_TARGET_LITTLEENDIAN) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DWARF_E_ARGUMENT);
