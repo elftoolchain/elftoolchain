@@ -1535,7 +1535,7 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 		"st_name + r_addend"
 #define	RELA_CT  (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	   \
 		r_type(re->ehdr.e_machine, GELF_R_TYPE(r.r_info)), \
-		(uintmax_t)symval, symname, (uintmax_t)r.r_addend  \
+		(uintmax_t)symval, symname
 
 	printf("\nRelocation section with addend (%s):\n", s->name);
 	if (re->ec == ELFCLASS32)
@@ -1554,16 +1554,17 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 		}
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
-		if (re->ec == ELFCLASS32)
-			printf("%8.8jx %8.8jx %-19.19s %8.8jx %s + %jd\n",
-			    RELA_CT);
-		else {
+		if (re->ec == ELFCLASS32) {
+			printf("%8.8jx %8.8jx %-19.19s %8.8jx %s", RELA_CT);
+			printf(" + %x\n", (uint32_t) r.r_addend);
+		} else {
 			if (re->options & RE_WW)
 				printf("%16.16jx %16.16jx %-24.24s"
-				    " %16.16jx %s + %jx\n", RELA_CT);
+				    " %16.16jx %s", RELA_CT);
 			else
 				printf("%12.12jx %12.12jx %-19.19s"
-				    " %16.16jx %s + %jx\n", RELA_CT);
+				    " %16.16jx %s", RELA_CT);
+			printf(" + %jx\n", (uintmax_t) r.r_addend);
 		}
 	}
 
