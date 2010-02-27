@@ -221,6 +221,26 @@ typedef struct {
 } Dwarf_Macro_Details;
 
 /*
+ * Relocation Type.
+ */
+enum Dwarf_Rel_Type {
+	dwarf_drt_none,
+	dwarf_drt_segment_rel,
+	dwarf_drt_first_of_length_pair,
+	dwarf_drt_second_of_length_pair
+};
+
+/*
+ * Relocation Entry.
+ */
+typedef struct Dwarf_Relocation_Data_s {
+	unsigned char drd_type;
+	unsigned char drd_length;
+	Dwarf_Unsigned drd_offset;
+	Dwarf_Unsigned drd_symbol_index;
+} *Dwarf_Relocation_Data;
+
+/*
  * Error numbers which are specific to this implementation.
  */
 enum {
