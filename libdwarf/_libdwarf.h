@@ -384,6 +384,7 @@ struct _Dwarf_Debug {
 	 */
 
 	Dwarf_Unsigned	dbgp_flags;
+	Dwarf_Unsigned	dbgp_isa;
 	Dwarf_Callback_Func dbgp_func;
 	Dwarf_Callback_Func_b dbgp_func_b;
 	Dwarf_Die	dbgp_root_die;

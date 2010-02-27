@@ -103,3 +103,18 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 
 	return (dbg);
 }
+
+int
+dwarf_producer_set_isa(Dwarf_P_Debug dbg, Dwarf_Unsigned isa,
+    Dwarf_Error *error)
+{
+
+	if (dbg == NULL || (isa >= DW_DLC_ISA_MAX && isa != DW_DLC_ISA_IA64)) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	dbg->dbgp_isa = isa;
+
+	return (DW_DLV_OK);
+}
