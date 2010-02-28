@@ -224,7 +224,8 @@ typedef struct {
  * Relocation Type.
  */
 enum Dwarf_Rel_Type {
-	dwarf_drt_none,
+	dwarf_drt_none = 0,
+	dwarf_drt_data_reloc,
 	dwarf_drt_segment_rel,
 	dwarf_drt_first_of_length_pair,
 	dwarf_drt_second_of_length_pair

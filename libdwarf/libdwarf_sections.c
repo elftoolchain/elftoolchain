@@ -69,45 +69,44 @@ _dwarf_section_free(Dwarf_Debug dbg, Dwarf_Section **dsp)
 		return;
 
 	STAILQ_FOREACH_SAFE(ds, &dbg->dbgp_seclist, ds_next, tds) {
-		if (ds == *dsp) {
-			STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_Section,
-			    ds_next);
-			if (ds->ds_data)
-				free(ds->ds_data);
-			free(ds);
-			*dsp = NULL;
-			return;
-		}
+		if (ds != *dsp)
+			continue;
+		STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_Section, ds_next);
+		if (ds->ds_data)
+			free(ds->ds_data);
+		free(ds);
+		*dsp = NULL;
+		break;
 	}
 }
 
-Dwarf_Unsigned
+int
 _dwarf_pro_callback(Dwarf_P_Debug dbg, const char *name, int size,
     Dwarf_Unsigned type, Dwarf_Unsigned flags, Dwarf_Unsigned link,
-    Dwarf_Unsigned info, int *error)
+    Dwarf_Unsigned info, Dwarf_Unsigned *symndx, int *error)
 {
-	Dwarf_Unsigned ndx;
 	char *name0;
-	int e, ret, indx;
+	int e, ret, isymndx;
+
+	assert(dbg != NULL && name != NULL && symndx != NULL);
 
 	if ((name0 = strdup(name)) == NULL)
 		return (0);
 	if (dbg->dbgp_func_b)
 		ret = dbg->dbgp_func_b(name0, size, type, flags, link, info,
-		    &ndx, &e);
+		    symndx, &e);
 	else {
 		ret = dbg->dbgp_func(name0, size, type, flags, link, info,
-		    &indx, &e);
-		ndx = indx;
+		    &isymndx, &e);
+		*symndx = isymndx;
 	}
 	if (ret < 0) {
 		if (error)
 			*error = e;
-		ndx = 0;
 	}
 	free(name0);
 
-	return (ndx);
+	return (ret);
 }
 
 int
