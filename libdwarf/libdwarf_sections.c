@@ -30,13 +30,13 @@
 
 int
 _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
-    Dwarf_Error *error)
+    int alloc_data, Dwarf_Error *error)
 {
 	Dwarf_P_Section ds;
 
 	assert(dbg != NULL && dsp != NULL && name != NULL);
 
-	if ((ds = malloc(sizeof(struct _Dwarf_P_Section))) == NULL) {
+	if ((ds = calloc(1, sizeof(struct _Dwarf_P_Section))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
@@ -46,14 +46,15 @@ _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
-	ds->ds_size = 0;
-	ds->ds_cap = _SECTION_INIT_SIZE;
-	ds->ds_ndx = 0;
-	if ((ds->ds_data = malloc(ds->ds_cap)) == NULL) {
-		free(ds->ds_name);
-		free(ds);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+
+	if (alloc_data) {
+		ds->ds_cap = _SECTION_INIT_SIZE;
+		if ((ds->ds_data = malloc(ds->ds_cap)) == NULL) {
+			free(ds->ds_name);
+			free(ds);
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
 	}
 
 	STAILQ_INSERT_TAIL(&dbg->dbgp_seclist, ds, ds_next);

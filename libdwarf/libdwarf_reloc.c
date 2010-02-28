@@ -63,6 +63,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 {
 	Dwarf_Rel_Section drs;
 	char name[128];
+	int alloc_data;
 
 	assert(dbg != NULL && drsp != NULL && ref != NULL);
 
@@ -74,27 +75,26 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 	drs->drs_ref = ref;
 
 	/*
-	 * Generate the actual reloc ELF section if we are under stream
-	 * mode.
+	 * FIXME The logic here is most likely wrong. It should
+	 * be the ISA that determines relocation type.
 	 */
-	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		/*
-		 * FIXME The logic here is most likely wrong. It should
-		 * be the ISA that determines relocation type.
-		 */
-		if (dbg->dbgp_flags & DW_DLC_SIZE_64)
-			drs->drs_addend = 1;
-		else
-			drs->drs_addend = 0;
+	if (dbg->dbgp_flags & DW_DLC_SIZE_64)
+		drs->drs_addend = 1;
+	else
+		drs->drs_addend = 0;
+
+	if (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS)
+		alloc_data = 1;
+	else
+		alloc_data = 0;
 		
-		snprintf(name, sizeof(name), "%s%s",
-		    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
-		if (_dwarf_section_init(dbg, &drs->drs_ds, name, error) !=
-		    DWARF_E_NONE) {
-			free(drs);
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
-		}
+	snprintf(name, sizeof(name), "%s%s",
+	    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
+	if (_dwarf_section_init(dbg, &drs->drs_ds, name, alloc_data, error) !=
+	    DWARF_E_NONE) {
+		free(drs);
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
 	}
 
 	STAILQ_INIT(&drs->drs_dre);
@@ -164,7 +164,7 @@ _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 {
 	Dwarf_P_Section ds;
 	Dwarf_Unsigned unit;
-	int ret;
+	int ret, size;
 
 	assert(dbg != NULL && drs != NULL && drs->drs_ds != NULL &&
 	    drs->drs_ref != NULL);
@@ -172,18 +172,25 @@ _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	ds = drs->drs_ds;
 
 	/*
-	 * Calculate the size (in bytes) of the relocation section and
-	 * realloc the section data block to this size.
+	 * Calculate the size (in bytes) of the relocation section.
 	 */
 	if (dbg->dbgp_flags & DW_DLC_SIZE_64)
 		unit = drs->drs_addend ? sizeof(Elf64_Rela) : sizeof(Elf64_Rel);
 	else
 		unit = drs->drs_addend ? sizeof(Elf32_Rela) : sizeof(Elf32_Rel);
 	assert(ds->ds_size == 0);
-	ds->ds_cap = drs->drs_drecnt * unit;
-	if ((ds->ds_data = realloc(ds->ds_data, ds->ds_cap)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+	size = drs->drs_drecnt * unit;
+
+	/*
+	 * If we are under stream mode, realloc the section data block to
+	 * this size.
+	 */
+	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
+		ds->ds_cap = size;
+		if ((ds->ds_data = realloc(ds->ds_data, ds->ds_cap)) == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
 	}
 
 	/*
@@ -192,7 +199,7 @@ _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	 * section, we set it to 0 since we have no way to know .symtab
 	 * section index.
 	 */
-	ret = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_cap,
+	ret = _dwarf_pro_callback(dbg, ds->ds_name, size,
 	    drs->drs_addend ? SHT_RELA : SHT_REL, 0, 0, drs->drs_ref->ds_ndx,
 	    &ds->ds_symndx, NULL);
 	if (ret < 0) {
