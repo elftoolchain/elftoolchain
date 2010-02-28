@@ -59,7 +59,7 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 
 int
 _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
-    Dwarf_Section *ref, Dwarf_Error *error)
+    Dwarf_P_Section ref, Dwarf_Error *error)
 {
 	Dwarf_Rel_Section drs;
 	char name[128];
@@ -86,8 +86,9 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 			drs->drs_addend = 1;
 		else
 			drs->drs_addend = 0;
-		snprintf(name, sizeof(name), "%s.%s",
-		    drs->drs_addend ? "rela" : "rel", ref->ds_name);
+		
+		snprintf(name, sizeof(name), "%s%s",
+		    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
 		if (_dwarf_section_init(dbg, &drs->drs_ds, name, error) !=
 		    DWARF_E_NONE) {
 			free(drs);
@@ -160,7 +161,7 @@ int
 _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
     Dwarf_Error *error)
 {
-	Dwarf_Section *ds;
+	Dwarf_P_Section ds;
 	Dwarf_Unsigned unit;
 	int ret;
 

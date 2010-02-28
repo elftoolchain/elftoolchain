@@ -171,7 +171,7 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_CU cu;
 	Dwarf_Abbrev ab;
 	Dwarf_AttrDef ad;
-	Dwarf_Section *ds;
+	Dwarf_P_Section ds;
 	int ret;
 
 	cu = STAILQ_FIRST(&dbg->dbg_cu);

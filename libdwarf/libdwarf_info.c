@@ -117,7 +117,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 int
 _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
-	Dwarf_Section *ds;
+	Dwarf_P_Section ds;
 	Dwarf_Rel_Section drs;
 	Dwarf_CU cu;
 	int i, ret, ndx;
