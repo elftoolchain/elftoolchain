@@ -102,5 +102,7 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 
 	*reloc_buffer = drs->drs_drd;
 
+	dbg->dbgp_drspos = STAILQ_NEXT(dbg->dbgp_drspos, drs_next);
+
 	return (DW_DLV_OK);
 }
