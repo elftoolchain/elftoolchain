@@ -486,9 +486,9 @@ Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
-int		_dwarf_pro_callback(Dwarf_P_Debug, const char *, int,
+int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
-		    Dwarf_Unsigned, Dwarf_Unsigned *, int *);
+		    Dwarf_Unsigned *, int *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
