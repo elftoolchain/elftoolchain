@@ -128,7 +128,7 @@ _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	assert(dbg != NULL);
 
-	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", error)) !=
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", 1, error)) !=
 	    DWARF_E_NONE)
 		return (ret);
 

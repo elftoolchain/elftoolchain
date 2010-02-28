@@ -139,7 +139,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
 	/* Create .debug_init section. */
-	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init",
+	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 1,
 	    error)) != DWARF_E_NONE)
 		goto fail_cleanup1;
 	ds = dbg->dbgp_info;
@@ -196,13 +196,10 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	/*
 	 * Inform application the creation of relocation section for
-	 * .debug_info, if we are under stream relocation mode.
+	 * .debug_info.
 	 */
-	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		if (_dwarf_reloc_elf_create_notify(dbg, drs, NULL) !=
-		    DWARF_E_NONE)
-			goto fail_cleanup;
-	}
+	if (_dwarf_reloc_elf_create_notify(dbg, drs, NULL) != DWARF_E_NONE)
+		goto fail_cleanup;
 
 	return (DWARF_E_NONE);
 

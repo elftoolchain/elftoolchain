@@ -539,7 +539,7 @@ int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
 void		_dwarf_reloc_section_free(Dwarf_P_Debug, Dwarf_Rel_Section *);
 void		_dwarf_section_free(Dwarf_P_Debug, Dwarf_P_Section *);
 int		_dwarf_section_init(Dwarf_P_Debug, Dwarf_P_Section *,
-		    const char *, Dwarf_Error *);
+		    const char *, int, Dwarf_Error *);
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
