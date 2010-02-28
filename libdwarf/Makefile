@@ -54,6 +54,7 @@ SRCS=	\
 	libdwarf_macinfo.c	\
 	libdwarf_nametbl.c	\
 	libdwarf_ranges.c	\
+	libdwarf_reloc.c	\
 	libdwarf_rw.c		\
 	libdwarf_sections.c	\
 	libdwarf_str.c

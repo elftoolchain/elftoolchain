@@ -118,9 +118,9 @@ int
 _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_Section *ds;
+	Dwarf_Rel_Section drs;
 	Dwarf_CU cu;
-	Dwarf_Unsigned ndx;
-	int i, ret;
+	int i, ret, ndx;
 
 	assert(dbg != NULL && dbg->write_alloc != NULL);
 
@@ -141,9 +141,13 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Create .debug_init section. */
 	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init",
 	    error)) != DWARF_E_NONE)
-		goto fail_cleanup0;
-
+		goto fail_cleanup1;
 	ds = dbg->dbgp_info;
+
+	/* Create relocation section for .debug_init */
+	if ((ret = _dwarf_reloc_section_init(dbg, &drs, ds, error)) !=
+	    DWARF_E_NONE)
+		goto fail_cleanup0;
 
 	/* Length placeholder. (We only use 32-bit DWARF format) */
 	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
@@ -159,8 +163,12 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	/*
 	 * Write abbrev offset. (always 0, we only support single CU)
-	 * TODO: relocation entry for this value.
+	 * Also generate a relocation entry for this offset.
 	 */
+	ret = _dwarf_reloc_entry_add(drs, dwarf_drt_data_reloc, 4, ds->ds_size,
+	    0, ".debug_abbrev", error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
 	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
 	    cu->cu_abbrev_offset, 4, error);
 	if (ret != DWARF_E_NONE)
@@ -172,27 +180,39 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
+	/* Transform the DIE(s) of this CU. */
 	if ((ret = _dwarf_die_gen(dbg, cu, error)) != DWARF_E_NONE)
 		goto fail_cleanup;
 
 	/* Inform application the creation of .debug_info ELF section. */
 	ndx = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_size,
-	    SHT_PROGBITS, 0, 0, 0, NULL);
-	if (!ndx) {
+	    SHT_PROGBITS, 0, 0, 0, &ds->ds_symndx, NULL);
+	if (ndx < 0) {
 		ret = DWARF_E_USER_CALLBACK;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
 	}
 	ds->ds_ndx = ndx;
 
+	/*
+	 * Inform application the creation of relocation section for
+	 * .debug_info, if we are under stream relocation mode.
+	 */
+	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
+		if (_dwarf_reloc_elf_create_notify(dbg, drs, NULL) !=
+		    DWARF_E_NONE)
+			goto fail_cleanup;
+	}
+
 	return (DWARF_E_NONE);
 
 fail_cleanup:
-
-	_dwarf_section_free(dbg, &dbg->dbgp_info);
+	_dwarf_reloc_section_free(dbg, &drs);
 
 fail_cleanup0:
+	_dwarf_section_free(dbg, &dbg->dbgp_info);
 
+fail_cleanup1:
 	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
 	free(cu);
 
