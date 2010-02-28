@@ -255,7 +255,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 }
 
 static int
-_dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
+_dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_CU cu,
     Dwarf_Attribute at, int pass2, Dwarf_Error *error)
 {
 	uint64_t value, offset, bs;
@@ -383,7 +383,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 }
 
 int
-_dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
+_dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_CU cu,
     Dwarf_Die die, int pass2, Dwarf_Error *error)
 {
 	Dwarf_Attribute at;

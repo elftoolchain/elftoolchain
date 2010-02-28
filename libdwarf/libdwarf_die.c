@@ -267,7 +267,7 @@ _dwarf_die_count_links(Dwarf_P_Die parent, Dwarf_P_Die child,
 static int
 _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_P_Die die,
     int pass2, Dwarf_Error *error) {
-	Dwarf_Section *ds;
+	Dwarf_P_Section ds;
 	Dwarf_Abbrev ab;
 	Dwarf_Attribute at;
 	Dwarf_AttrDef ad;

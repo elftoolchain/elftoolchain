@@ -123,7 +123,7 @@ _dwarf_strtab_cleanup(Dwarf_Debug dbg)
 int
 _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
-	Dwarf_Section *ds;
+	Dwarf_P_Section ds;
 	int ret;
 
 	assert(dbg != NULL);

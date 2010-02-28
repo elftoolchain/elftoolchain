@@ -324,29 +324,35 @@ typedef struct _Dwarf_Section {
 	const char	*ds_name;	/* Section name. */
 	Dwarf_Small	*ds_data;	/* Section data. */
 	Dwarf_Unsigned	ds_size;	/* Section size. */
+} Dwarf_Section;
+
+typedef struct _Dwarf_P_Section {
+	char		*ds_name;	/* Section name. */
+	Dwarf_Small	*ds_data;	/* Section data. */
+	Dwarf_Unsigned	ds_size;	/* Section size. */
 	Dwarf_Unsigned	ds_cap;		/* Section capacity. */
 	Dwarf_Unsigned	ds_ndx;		/* ELF section index. */
 	Dwarf_Unsigned	ds_symndx;	/* Section symbol index. (for reloc) */
-	STAILQ_ENTRY(_Dwarf_Section) ds_next; /* Next section in the list. */
-} Dwarf_Section;
+	STAILQ_ENTRY(_Dwarf_P_Section) ds_next; /* Next section in the list. */
+} *Dwarf_P_Section;
 
 typedef struct _Dwarf_Rel_Entry {
-	unsigned char dre_type;		/* Reloc type. */
-	unsigned char dre_length;	/* Reloc storage unit length. */
-	Dwarf_Unsigned dre_offset;	/* Reloc storage unit offset. */
-	Dwarf_Unsigned dre_symndx;	/* Reloc symbol index. */
+	unsigned char	dre_type;	/* Reloc type. */
+	unsigned char	dre_length;	/* Reloc storage unit length. */
+	Dwarf_Unsigned	dre_offset;	/* Reloc storage unit offset. */
+	Dwarf_Unsigned	dre_symndx;	/* Reloc symbol index. */
 	const char *dre_secname;	/* Refer to some debug section. */
 	STAILQ_ENTRY(_Dwarf_Rel_Entry) dre_next; /* Next reloc entry. */
 } *Dwarf_Rel_Entry;
 
 typedef struct _Dwarf_Rel_Section {
-	struct _Dwarf_Section *drs_ds;	/* Ptr to actual reloc ELF section. */
-	struct _Dwarf_Section *drs_ref; /* To which debug section it refers. */
+	struct _Dwarf_P_Section *drs_ds; /* Ptr to actual reloc ELF section. */
+	struct _Dwarf_P_Section *drs_ref; /* Which debug section it refers. */
 	struct Dwarf_Relocation_Data_s *drs_drd; /* Reloc data array. */
 	STAILQ_HEAD(, _Dwarf_Rel_Entry) drs_dre; /* Reloc entry list. */
-	Dwarf_Unsigned drs_drecnt;	/* Count of entries. */
-	Dwarf_Unsigned drs_size;	/* Size of this section in bytes. */
-	int drs_addend;			/* Elf_Rel or Elf_Rela */
+	Dwarf_Unsigned	drs_drecnt;	/* Count of entries. */
+	Dwarf_Unsigned	drs_size;	/* Size of this section in bytes. */
+	int		drs_addend;	/* Elf_Rel or Elf_Rela */
 	STAILQ_ENTRY(_Dwarf_Rel_Section) drs_next; /* Next reloc section. */
 } *Dwarf_Rel_Section;
 
@@ -419,10 +425,10 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Fde) dbgp_fdelist;
 	Dwarf_Unsigned	dbgp_cielen;
 	Dwarf_Unsigned	dbgp_fdelen;
-	STAILQ_HEAD(, _Dwarf_Section) dbgp_seclist;
+	STAILQ_HEAD(, _Dwarf_P_Section) dbgp_seclist;
 	Dwarf_Unsigned	dbgp_seccnt;
-	Dwarf_Section	*dbgp_secpos;
-	Dwarf_Section	*dbgp_info;
+	Dwarf_P_Section	dbgp_secpos;
+	Dwarf_P_Section	dbgp_info;
 	STAILQ_HEAD(, _Dwarf_Rel_Section) dbgp_drslist;
 };
 
@@ -440,7 +446,7 @@ void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
-int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_Section *, Dwarf_CU,
+int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_P_Section, Dwarf_CU,
 		    Dwarf_Die, int, Dwarf_Error *);
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
@@ -527,11 +533,11 @@ int		_dwarf_reloc_entry_add(Dwarf_Rel_Section, unsigned char,
 		    unsigned char, Dwarf_Unsigned, Dwarf_Unsigned, const char *,
 		    Dwarf_Error *);
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
-		    Dwarf_Section *, Dwarf_Error *);
+		    Dwarf_P_Section, Dwarf_Error *);
 void		_dwarf_reloc_section_free(Dwarf_P_Debug, Dwarf_Rel_Section *);
-void		_dwarf_section_free(Dwarf_Debug, Dwarf_Section **);
-int		_dwarf_section_init(Dwarf_Debug, Dwarf_Section **, const char *,
-		    Dwarf_Error *);
+void		_dwarf_section_free(Dwarf_P_Debug, Dwarf_P_Section *);
+int		_dwarf_section_init(Dwarf_P_Debug, Dwarf_P_Section *,
+		    const char *, Dwarf_Error *);
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
