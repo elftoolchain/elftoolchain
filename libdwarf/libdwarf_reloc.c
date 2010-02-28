@@ -99,6 +99,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 
 	STAILQ_INIT(&drs->drs_dre);
 	STAILQ_INSERT_TAIL(&dbg->dbgp_drslist, drs, drs_next);
+	dbg->dbgp_drscnt++;
 	*drsp = drs;
 
 	return (DWARF_E_NONE);

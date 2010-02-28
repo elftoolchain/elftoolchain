@@ -351,7 +351,7 @@ typedef struct _Dwarf_Rel_Section {
 	struct Dwarf_Relocation_Data_s *drs_drd; /* Reloc data array. */
 	STAILQ_HEAD(, _Dwarf_Rel_Entry) drs_dre; /* Reloc entry list. */
 	Dwarf_Unsigned	drs_drecnt;	/* Count of entries. */
-	Dwarf_Unsigned	drs_size;	/* Size of this section in bytes. */
+	Dwarf_Unsigned	drs_size;	/* Size of ELF section in bytes. */
 	int		drs_addend;	/* Elf_Rel or Elf_Rela */
 	STAILQ_ENTRY(_Dwarf_Rel_Section) drs_next; /* Next reloc section. */
 } *Dwarf_Rel_Section;
@@ -430,6 +430,8 @@ struct _Dwarf_Debug {
 	Dwarf_P_Section	dbgp_secpos;
 	Dwarf_P_Section	dbgp_info;
 	STAILQ_HEAD(, _Dwarf_Rel_Section) dbgp_drslist;
+	Dwarf_Unsigned	dbgp_drscnt;
+	Dwarf_Rel_Section dbgp_drspos;
 };
 
 /*

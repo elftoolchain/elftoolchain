@@ -536,6 +536,11 @@ int		dwarf_get_ranges(Dwarf_Debug, Dwarf_Off, Dwarf_Ranges **,
 int		dwarf_get_ranges_a(Dwarf_Debug, Dwarf_Off, Dwarf_Die,
 		    Dwarf_Ranges **, Dwarf_Signed *, Dwarf_Unsigned *,
 		    Dwarf_Error *);
+int		dwarf_get_relocation_info(Dwarf_P_Debug, Dwarf_Signed *,
+		    Dwarf_Signed *, Dwarf_Unsigned *, Dwarf_Relocation_Data *,
+		    Dwarf_Error *);
+int		dwarf_get_relocation_info_count(Dwarf_P_Debug, Dwarf_Unsigned *,
+		    int *, Dwarf_Error *);
 Dwarf_Ptr	dwarf_get_section_bytes(Dwarf_P_Debug, Dwarf_Signed,
 		    Dwarf_Signed *, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_get_str(Dwarf_Debug, Dwarf_Off, char **, Dwarf_Signed *,
