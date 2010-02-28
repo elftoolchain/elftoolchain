@@ -45,6 +45,7 @@ Dwarf_Ptr
 dwarf_get_section_bytes(Dwarf_P_Debug dbg, Dwarf_Signed dwarf_section,
     Dwarf_Signed *elf_section_index, Dwarf_Unsigned *length, Dwarf_Error *error)
 {
+	Dwarf_Ptr data;
 
 	(void) dwarf_section;	/* ignored. */
 
@@ -53,11 +54,6 @@ dwarf_get_section_bytes(Dwarf_P_Debug dbg, Dwarf_Signed dwarf_section,
 		return (NULL);
 	}
 
-	if (dbg->dbgp_secpos == NULL)
-		dbg->dbgp_secpos = STAILQ_FIRST(&dbg->dbgp_seclist);
-	else
-		dbg->dbgp_secpos = STAILQ_NEXT(dbg->dbgp_secpos, ds_next);
-
 	if (dbg->dbgp_secpos == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
 		return (NULL);
@@ -65,6 +61,19 @@ dwarf_get_section_bytes(Dwarf_P_Debug dbg, Dwarf_Signed dwarf_section,
 
 	*elf_section_index = dbg->dbgp_secpos->ds_ndx;
 	*length = dbg->dbgp_secpos->ds_size;
+	data = dbg->dbgp_secpos->ds_data;
 
-	return (dbg->dbgp_secpos->ds_data);
+	dbg->dbgp_secpos = STAILQ_NEXT(dbg->dbgp_secpos, ds_next);
+
+	return (data);
+}
+
+void
+dwarf_reset_section_bytes(Dwarf_P_Debug dbg)
+{
+
+	assert(dbg != NULL);
+
+	dbg->dbgp_secpos = STAILQ_FIRST(&dbg->dbgp_seclist);
+	dbg->dbgp_drspos = STAILQ_FIRST(&dbg->dbgp_drslist);
 }

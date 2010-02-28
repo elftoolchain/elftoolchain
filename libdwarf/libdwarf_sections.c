@@ -130,5 +130,9 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
 
+	/* Set section/relocation iterator to the first element. */
+	dbg->dbgp_secpos = STAILQ_FIRST(&dbg->dbgp_seclist);
+	dbg->dbgp_drspos = STAILQ_FIRST(&dbg->dbgp_drslist);
+
 	return (DWARF_E_NONE);
 }
