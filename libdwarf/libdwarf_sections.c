@@ -85,6 +85,7 @@ _dwarf_section_free(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp)
 			free(ds->ds_data);
 		free(ds);
 		*dsp = NULL;
+		dbg->dbgp_seccnt--;
 		break;
 	}
 }

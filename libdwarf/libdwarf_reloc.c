@@ -182,6 +182,14 @@ _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	size = drs->drs_drecnt * unit;
 
 	/*
+	 * Discard this relocation section if there is no entry in it.
+	 */
+	if (size == 0) {
+		_dwarf_reloc_section_free(dbg, &drs);
+		return (DWARF_E_NONE);
+	}
+
+	/*
 	 * If we are under stream mode, realloc the section data block to
 	 * this size.
 	 */
@@ -207,6 +215,17 @@ _dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 		return (DWARF_E_USER_CALLBACK);
 	}
 	ds->ds_ndx = ret;
+
+	/*
+	 * At this point (after notified the application) we no longer need
+	 * to keep track of section name, index and link etc if we are under
+	 * DW_DLC_SYMBOLIC_RELOCATIONS, so we should free the internal
+	 * Dwarf_Section.
+	 */
+	if (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) {
+		_dwarf_section_free(dbg, &ds);
+		drs->drs_ds = NULL;
+	}
 
 	return (DWARF_E_NONE);
 }
