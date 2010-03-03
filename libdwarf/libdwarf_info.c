@@ -198,7 +198,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	 * Inform application the creation of relocation section for
 	 * .debug_info.
 	 */
-	if (_dwarf_reloc_elf_create_notify(dbg, drs, NULL) != DWARF_E_NONE)
+	if (_dwarf_reloc_section_finalize(dbg, drs, NULL) != DWARF_E_NONE)
 		goto fail_cleanup;
 
 	return (DWARF_E_NONE);
