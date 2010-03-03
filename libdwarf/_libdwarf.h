@@ -340,6 +340,7 @@ typedef struct _Dwarf_Rel_Entry {
 	unsigned char	dre_type;	/* Reloc type. */
 	unsigned char	dre_length;	/* Reloc storage unit length. */
 	Dwarf_Unsigned	dre_offset;	/* Reloc storage unit offset. */
+	Dwarf_Unsigned	dre_addend;	/* Reloc addend. */
 	Dwarf_Unsigned	dre_symndx;	/* Reloc symbol index. */
 	const char *dre_secname;	/* Refer to some debug section. */
 	STAILQ_ENTRY(_Dwarf_Rel_Entry) dre_next; /* Next reloc entry. */
@@ -533,6 +534,8 @@ int		_dwarf_reloc_section_finalize(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_entry_add(Dwarf_Rel_Section, unsigned char,
 		    unsigned char, Dwarf_Unsigned, Dwarf_Unsigned, const char *,
+		    Dwarf_Error *);
+int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
 		    Dwarf_P_Section, Dwarf_Error *);
