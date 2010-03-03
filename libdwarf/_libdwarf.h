@@ -529,7 +529,7 @@ int64_t		_dwarf_read_sleb128(uint8_t *, uint64_t *);
 uint64_t	_dwarf_read_uleb128(uint8_t *, uint64_t *);
 char		*_dwarf_read_string(void *, Dwarf_Unsigned, uint64_t *);
 uint8_t		*_dwarf_read_block(void *, uint64_t *, uint64_t);
-int		_dwarf_reloc_elf_create_notify(Dwarf_P_Debug, Dwarf_Rel_Section,
+int		_dwarf_reloc_section_finalize(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_entry_add(Dwarf_Rel_Section, unsigned char,
 		    unsigned char, Dwarf_Unsigned, Dwarf_Unsigned, const char *,

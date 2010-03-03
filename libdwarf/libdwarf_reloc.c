@@ -160,7 +160,7 @@ _dwarf_reloc_entry_add(Dwarf_Rel_Section drs, unsigned char type,
 }
 
 int
-_dwarf_reloc_elf_create_notify(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
+_dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
     Dwarf_Error *error)
 {
 	Dwarf_P_Section ds;
