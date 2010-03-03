@@ -165,12 +165,8 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	 * Write abbrev offset. (always 0, we only support single CU)
 	 * Also generate a relocation entry for this offset.
 	 */
-	ret = _dwarf_reloc_entry_add(drs, dwarf_drt_data_reloc, 4, ds->ds_size,
-	    0, ".debug_abbrev", error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
-	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-	    cu->cu_abbrev_offset, 4, error);
+	ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
+	    ds->ds_size, 0, cu->cu_abbrev_offset, ".debug_abbrev", error);
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
