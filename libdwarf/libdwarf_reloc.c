@@ -135,13 +135,32 @@ _dwarf_reloc_section_free(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp)
 }
 
 int
-_dwarf_reloc_entry_add(Dwarf_Rel_Section drs, unsigned char type,
-    unsigned char length, Dwarf_Unsigned offset, Dwarf_Unsigned symndx,
+_dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
+    Dwarf_P_Section ds, unsigned char type, unsigned char length,
+    Dwarf_Unsigned offset, Dwarf_Unsigned symndx, Dwarf_Unsigned addend,
     const char *secname, Dwarf_Error *error)
 {
 	Dwarf_Rel_Entry dre;
+	int ret;
 
 	assert(drs != NULL);
+
+	/*
+	 * If the DW_DLC_SYMBOLIC_RELOCATIONS flag is set or ElfXX_Rel
+	 * is used instead of ELfXX_Rela, we need to write the addend
+	 * in the storage unit to be relocated. Otherwise write 0 in the
+	 * storage unit and the addend will be written into relocation
+	 * section later.
+	 */
+	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) ||
+	    drs->drs_addend == 0)
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    addend, length, error);
+	else
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		    0, length, error);
+	if (ret != DWARF_E_NONE)
+		return (ret);
 
 	if ((dre = calloc(1, sizeof(struct _Dwarf_Rel_Entry))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -152,6 +171,7 @@ _dwarf_reloc_entry_add(Dwarf_Rel_Section drs, unsigned char type,
 	dre->dre_length = length;
 	dre->dre_offset = offset;
 	dre->dre_symndx = symndx;
+	dre->dre_addend = addend;
 	dre->dre_secname = secname;
 	drs->drs_drecnt++;
 
