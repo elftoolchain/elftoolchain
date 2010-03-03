@@ -62,7 +62,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 {
 	Dwarf_Rel_Section drs;
 	char name[128];
-	int alloc_data;
+	int pseudo;
 
 	assert(dbg != NULL && drsp != NULL && ref != NULL);
 
@@ -83,13 +83,13 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 		drs->drs_addend = 0;
 
 	if (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS)
-		alloc_data = 1;
+		pseudo = 1;
 	else
-		alloc_data = 0;
+		pseudo = 0;
 		
 	snprintf(name, sizeof(name), "%s%s",
 	    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
-	if (_dwarf_section_init(dbg, &drs->drs_ds, name, alloc_data, error) !=
+	if (_dwarf_section_init(dbg, &drs->drs_ds, name, pseudo, error) !=
 	    DWARF_E_NONE) {
 		free(drs);
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -235,17 +235,6 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 		return (DWARF_E_USER_CALLBACK);
 	}
 	ds->ds_ndx = ret;
-
-	/*
-	 * At this point (after notified the application) we no longer need
-	 * to keep track of section name, index and link etc if we are under
-	 * DW_DLC_SYMBOLIC_RELOCATIONS, so we should free the internal
-	 * Dwarf_Section.
-	 */
-	if (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) {
-		_dwarf_section_free(dbg, &ds);
-		drs->drs_ds = NULL;
-	}
 
 	return (DWARF_E_NONE);
 }

@@ -128,11 +128,11 @@ _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	assert(dbg != NULL);
 
-	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", 1, error)) !=
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", 0, error)) !=
 	    DWARF_E_NONE)
 		return (ret);
 
-	if (dbg->dbg_strtab_size > ds->ds_size) {
+	if (dbg->dbg_strtab_size > ds->ds_cap) {
 		ds->ds_data = realloc(ds->ds_data, dbg->dbg_strtab_size);
 		if (ds->ds_data == NULL) {
 			_dwarf_section_free(dbg, &ds);
