@@ -30,7 +30,7 @@
 
 int
 _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
-    int alloc_data, Dwarf_Error *error)
+    int pseudo, Dwarf_Error *error)
 {
 	Dwarf_P_Section ds;
 
@@ -47,7 +47,7 @@ _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
 		return (DWARF_E_MEMORY);
 	}
 
-	if (alloc_data) {
+	if (!pseudo) {
 		ds->ds_cap = _SECTION_INIT_SIZE;
 		if ((ds->ds_data = malloc(ds->ds_cap)) == NULL) {
 			free(ds->ds_name);
@@ -55,10 +55,10 @@ _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 			return (DWARF_E_MEMORY);
 		}
+		STAILQ_INSERT_TAIL(&dbg->dbgp_seclist, ds, ds_next);
+		dbg->dbgp_seccnt++;
 	}
 
-	STAILQ_INSERT_TAIL(&dbg->dbgp_seclist, ds, ds_next);
-	dbg->dbgp_seccnt++;
 	*dsp = ds;
 
 	return (DWARF_E_NONE);
@@ -75,19 +75,20 @@ _dwarf_section_free(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp)
 		return;
 
 	STAILQ_FOREACH_SAFE(ds, &dbg->dbgp_seclist, ds_next, tds) {
-		if (ds != *dsp)
-			continue;
-		STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_P_Section,
-		    ds_next);
-		if (ds->ds_name)
-			free(ds->ds_name);
-		if (ds->ds_data)
-			free(ds->ds_data);
-		free(ds);
-		*dsp = NULL;
-		dbg->dbgp_seccnt--;
-		break;
+		if (ds == *dsp) {
+			STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_P_Section,
+			    ds_next);
+			dbg->dbgp_seccnt--;
+			break;
+		}
 	}
+	ds = *dsp;
+	if (ds->ds_name)
+		free(ds->ds_name);
+	if (ds->ds_data)
+		free(ds->ds_data);
+	free(ds);
+	*dsp = NULL;
 }
 
 int

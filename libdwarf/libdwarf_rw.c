@@ -190,6 +190,8 @@ _dwarf_write_lsb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
     uint64_t value, int bytes_to_write, Dwarf_Error *error)
 {
 
+	assert(*size > 0);
+
 	while (*offsetp + bytes_to_write > *size) {
 		*size *= 2;
 		*block = realloc(*block, *size);
@@ -240,6 +242,8 @@ int
 _dwarf_write_msb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
     uint64_t value, int bytes_to_write, Dwarf_Error *error)
 {
+
+	assert(*size > 0);
 
 	while (*offsetp + bytes_to_write > *size) {
 		*size *= 2;
@@ -306,6 +310,8 @@ _dwarf_write_sleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 {
 	int len;
 
+	assert(*size > 0);
+
 	while ((len = _dwarf_write_sleb128(*block + *offsetp, *block + *size,
 	    val)) < 0) {
 		*size *= 2;
@@ -366,6 +372,8 @@ _dwarf_write_uleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
     uint64_t val, Dwarf_Error *error)
 {
 	int len;
+
+	assert(*size > 0);
 
 	while ((len = _dwarf_write_uleb128(*block + *offsetp, *block + *size,
 	    val)) < 0) {
@@ -459,6 +467,8 @@ _dwarf_write_string_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 {
 	size_t len;
 
+	assert(*size > 0);
+
 	len = strlen(string) + 1;
 	while (*offsetp + len > *size) {
 		*size *= 2;
@@ -501,6 +511,8 @@ int
 _dwarf_write_block_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
     uint8_t *blk, uint64_t length, Dwarf_Error *error)
 {
+
+	assert(*size > 0);
 
 	while (*offsetp + length > *size) {
 		*size *= 2;

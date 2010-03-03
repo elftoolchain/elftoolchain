@@ -139,7 +139,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
 	/* Create .debug_init section. */
-	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 1,
+	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 0,
 	    error)) != DWARF_E_NONE)
 		goto fail_cleanup1;
 	ds = dbg->dbgp_info;

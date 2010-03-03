@@ -179,7 +179,7 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		return (DWARF_E_NONE);
 
 	/* Create .debug_abbrev section. */
-	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_abbrev", 1, error)) !=
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_abbrev", 0, error)) !=
 	    DWARF_E_NONE)
 		return (ret);
 
