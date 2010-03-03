@@ -130,6 +130,7 @@ _dwarf_reloc_section_free(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp)
 			_dwarf_section_free(dbg, &drs->drs_ds);
 		free(drs);
 		*drsp = NULL;
+		dbg->dbgp_drscnt--;
 		break;
 	}
 }
