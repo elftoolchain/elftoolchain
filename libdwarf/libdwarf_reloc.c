@@ -53,7 +53,6 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 	default:
 		assert(0);
 	}
-
 	return (0);		/* NOT REACHED */
 }
 
@@ -227,6 +226,70 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 		_dwarf_section_free(dbg, &ds);
 		drs->drs_ds = NULL;
 	}
+
+	return (DWARF_E_NONE);
+}
+
+int
+_dwarf_reloc_section_gen(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
+    Dwarf_Error *error)
+{
+	Dwarf_Rel_Entry dre;
+	Dwarf_P_Section ds;
+	Dwarf_Unsigned type;
+	int ret;
+
+	assert((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0);
+	assert(drs->drs_ds != NULL && drs->drs_ds->ds_size == 0);
+	assert(!STAILQ_EMPTY(&drs->drs_dre));
+	ds = drs->drs_ds;
+
+	STAILQ_FOREACH(dre, &drs->drs_dre, dre_next) {
+		assert(dre->dre_length == 4 || dre->dre_length == 8);
+		type = _dwarf_get_reloc_type(dbg, dre->dre_length == 8);
+		if (dbg->dbgp_flags & DW_DLC_SIZE_64) {
+			/* Write r_offset (8 bytes) */
+			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
+			    &ds->ds_size, dre->dre_offset, 8, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+			/* Write r_info (8 bytes) */
+			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
+			    &ds->ds_size, ELF64_R_INFO(dre->dre_symndx, type),
+			    8, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+			/* Write r_addend (8 bytes) */
+			if (drs->drs_addend) {
+				ret = dbg->write_alloc(&ds->ds_data,
+				    &ds->ds_cap, &ds->ds_size, dre->dre_addend,
+				    8, error);
+				if (ret != DWARF_E_NONE)
+					return (ret);
+			}
+		} else {
+			/* Write r_offset (4 bytes) */
+			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
+			    &ds->ds_size, dre->dre_offset, 4, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+			/* Write r_info (4 bytes) */
+			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
+			    &ds->ds_size, ELF32_R_INFO(dre->dre_symndx, type),
+			    4, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+			/* Write r_addend (4 bytes) */
+			if (drs->drs_addend) {
+				ret = dbg->write_alloc(&ds->ds_data,
+				    &ds->ds_cap, &ds->ds_size, dre->dre_addend,
+				    4, error);
+				if (ret != DWARF_E_NONE)
+					return (ret);
+			}
+		}
+	}
+	assert(ds->ds_size == ds->ds_cap);
 
 	return (DWARF_E_NONE);
 }
