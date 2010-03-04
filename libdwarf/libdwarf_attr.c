@@ -389,8 +389,8 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		    &ds->ds_size, at->u[0].s, error);
 		break;
 	case DW_FORM_strp:
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    at->u[0].u64, 4, error);
+		ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc,
+		    4, 0, at->u[0].u64, ".debug_str", error);
 		break;
 	default:
 		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
