@@ -137,13 +137,15 @@ _dwarf_reloc_section_free(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp)
 int
 _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
     Dwarf_P_Section ds, unsigned char type, unsigned char length,
-    Dwarf_Unsigned offset, Dwarf_Unsigned symndx, Dwarf_Unsigned addend,
-    const char *secname, Dwarf_Error *error)
+    Dwarf_Unsigned symndx, Dwarf_Unsigned addend, const char *secname,
+    Dwarf_Error *error)
 {
 	Dwarf_Rel_Entry dre;
+	Dwarf_Unsigned offset;
 	int ret;
 
 	assert(drs != NULL);
+	offset = ds->ds_size;
 
 	/*
 	 * If the DW_DLC_SYMBOLIC_RELOCATIONS flag is set or ElfXX_Rel
