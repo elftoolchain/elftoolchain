@@ -165,8 +165,8 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	 * Write abbrev offset. (always 0, we only support single CU)
 	 * Also generate a relocation entry for this offset.
 	 */
-	ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
-	    ds->ds_size, 0, cu->cu_abbrev_offset, ".debug_abbrev", error);
+	ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4, 0,
+	    cu->cu_abbrev_offset, ".debug_abbrev", error);
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
@@ -177,7 +177,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		goto fail_cleanup;
 
 	/* Transform the DIE(s) of this CU. */
-	if ((ret = _dwarf_die_gen(dbg, cu, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_die_gen(dbg, cu, drs, error)) != DWARF_E_NONE)
 		goto fail_cleanup;
 
 	/* Inform application the creation of .debug_info ELF section. */

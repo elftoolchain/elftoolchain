@@ -90,8 +90,8 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 			return (DW_DLV_ERROR);
 		}
 		for (i = 0, dre = STAILQ_FIRST(&drs->drs_dre);
-		     (Dwarf_Unsigned) i < *reloc_entry_count && dre != NULL;
-		     i++, dre = STAILQ_NEXT(dre, dre_next)) {
+		    (Dwarf_Unsigned) i < *reloc_entry_count && dre != NULL;
+		    i++, dre = STAILQ_NEXT(dre, dre_next)) {
 			drs->drs_drd[i].drd_type = dre->dre_type;
 			drs->drs_drd[i].drd_length = dre->dre_length;
 			drs->drs_drd[i].drd_offset = dre->dre_offset;

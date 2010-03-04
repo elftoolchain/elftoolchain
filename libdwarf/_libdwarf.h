@@ -449,8 +449,8 @@ void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
-int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_P_Section, Dwarf_CU,
-		    Dwarf_Die, int, Dwarf_Error *);
+int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_P_Section, Dwarf_Rel_Section,
+		    Dwarf_CU, Dwarf_Die, int, Dwarf_Error *);
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
 		    Dwarf_Error *);
@@ -467,7 +467,8 @@ int		_dwarf_die_alloc(Dwarf_Die *, Dwarf_Error *);
 int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
-int		_dwarf_die_gen(Dwarf_P_Debug, Dwarf_CU, Dwarf_Error *);
+int		_dwarf_die_gen(Dwarf_P_Debug, Dwarf_CU, Dwarf_Rel_Section,
+		    Dwarf_Error *);
 void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
@@ -534,8 +535,8 @@ int		_dwarf_reloc_section_finalize(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_entry_add(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_P_Section, unsigned char, unsigned char,
-		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
-		    const char *, Dwarf_Error *);
+		    Dwarf_Unsigned, Dwarf_Unsigned, const char *,
+		    Dwarf_Error *);
 int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
