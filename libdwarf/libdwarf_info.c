@@ -38,7 +38,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	uint64_t offset;
 
 	ret = DWARF_E_NONE;
-	
+
 	offset = 0;
 	while (offset < ds->ds_size) {
 		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {

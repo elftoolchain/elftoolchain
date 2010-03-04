@@ -82,7 +82,7 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 			dbg->dbg_strtab_cap = dbg->dbg_strtab_size = 0;
 			return (DWARF_E_NONE);
 		}
-		
+
 		dbg->dbg_strtab_cap = dbg->dbg_strtab_size = ds->ds_size;
 
 		if (dbg->dbg_mode == DW_DLC_RDWR) {
@@ -91,7 +91,7 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 				return (DWARF_E_MEMORY);
 			}
 			memcpy(dbg->dbg_strtab, ds->ds_data, ds->ds_size);
-		} else 
+		} else
 			dbg->dbg_strtab = (char *) ds->ds_data;
 	} else {
 		/* DW_DLC_WRITE */

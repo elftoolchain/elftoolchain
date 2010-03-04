@@ -170,7 +170,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 			TAILQ_INSERT_BEFORE(tll, ll, ll_next);
 			break;
 		}
-		
+
 	if (tll == NULL)
 		TAILQ_INSERT_TAIL(&dbg->dbg_loclist, ll, ll_next);
 

@@ -103,7 +103,7 @@ dwarf_add_AT_name(Dwarf_P_Die die, char *name, Dwarf_Error *error)
 	if (_dwarf_add_string_attr(die, &at, DW_AT_name, name, error) !=
 	    DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-	
+
 	return (at);
 }
 
@@ -115,7 +115,7 @@ dwarf_add_AT_comp_dir(Dwarf_P_Die die, char *dir, Dwarf_Error *error)
 	if (_dwarf_add_string_attr(die, &at, DW_AT_comp_dir, dir, error) !=
 	    DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-	
+
 	return (at);
 }
 
@@ -127,7 +127,7 @@ dwarf_add_AT_producer(Dwarf_P_Die die, char *producer, Dwarf_Error *error)
 	if (_dwarf_add_string_attr(die, &at, DW_AT_producer, producer, error) !=
 	    DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-	
+
 	return (at);
 }
 
@@ -188,7 +188,7 @@ dwarf_add_AT_const_value_string(Dwarf_P_Die die, char *string,
 	if (_dwarf_add_string_attr(die, &at, DW_AT_const_value, string,
 	    error) != DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-	
+
 	return (at);
 }
 
@@ -414,6 +414,6 @@ dwarf_add_AT_string(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	if (_dwarf_add_string_attr(die, &at, attr, string, error) !=
 	    DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-	
+
 	return (at);
 }

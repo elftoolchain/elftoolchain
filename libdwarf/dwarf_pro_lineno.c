@@ -67,7 +67,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 	ln->ln_addr   = ln0->ln_addr + code_offset;
 	ln->ln_symndx = 0;
 	ln->ln_fileno = file;
-	ln->ln_lineno = lineno;	
+	ln->ln_lineno = lineno;
 	ln->ln_column = column;
 	ln->ln_bblock = basic_block;
 	ln->ln_stmt   = is_stmt;

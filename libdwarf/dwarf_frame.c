@@ -126,10 +126,10 @@ dwarf_get_fde_at_pc(Dwarf_Fde *fdelist, Dwarf_Addr pc, Dwarf_Fde *ret_fde,
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
-	
+
 	fs = fdelist[0]->fde_fs;
 	assert(fs != NULL);
-	
+
 	for (i = 0; (Dwarf_Unsigned)i < fs->fs_fdelen; i++) {
 		fde = fdelist[i];
 		if (pc >= fde->fde_initloc && pc < fde->fde_initloc +
