@@ -40,7 +40,7 @@ _dwarf_find_section(Dwarf_Debug dbg, const char *name)
 	for (i = 0; i < dbg->dbg_seccnt; i++) {
 		ds = &dbg->dbg_section[i];
 		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
-		    return (ds);
+			return (ds);
 	}
 
 	return (NULL);

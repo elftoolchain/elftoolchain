@@ -152,9 +152,28 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
 
+	/* Finally, update and generate all relocation sections. */
+	if ((ret = _dwarf_reloc_gen(dbg, error)) != DWARF_E_NONE)
+		return (ret);
+
 	/* Set section/relocation iterator to the first element. */
 	dbg->dbgp_secpos = STAILQ_FIRST(&dbg->dbgp_seclist);
 	dbg->dbgp_drspos = STAILQ_FIRST(&dbg->dbgp_drslist);
-
+	
 	return (DWARF_E_NONE);
+}
+
+Dwarf_P_Section
+_dwarf_pro_find_section(Dwarf_P_Debug dbg, const char *name)
+{
+	Dwarf_P_Section ds;
+
+	assert(dbg != NULL && name != NULL);
+
+	STAILQ_FOREACH(ds, &dbg->dbgp_seclist, ds_next) {
+		if (ds->ds_name != NULL && !strcmp(ds->ds_name ,name))
+			return (ds);
+	}
+
+	return (NULL);
 }

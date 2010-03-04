@@ -493,6 +493,7 @@ int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
 int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Unsigned *, int *);
+Dwarf_P_Section	_dwarf_pro_find_section(Dwarf_P_Debug, const char *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
@@ -537,6 +538,7 @@ int		_dwarf_reloc_entry_add(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_P_Section, unsigned char, unsigned char,
 		    Dwarf_Unsigned, Dwarf_Unsigned, const char *,
 		    Dwarf_Error *);
+int		_dwarf_reloc_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
