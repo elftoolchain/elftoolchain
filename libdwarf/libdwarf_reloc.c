@@ -304,3 +304,38 @@ _dwarf_reloc_section_gen(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 
 	return (DWARF_E_NONE);
 }
+
+int
+_dwarf_reloc_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_Rel_Section drs;
+	Dwarf_Rel_Entry dre;
+	Dwarf_P_Section ds;
+	int ret;
+
+	STAILQ_FOREACH(drs, &dbg->dbgp_drslist, drs_next) {
+		/*
+		 * Update relocation entries: translate any section name
+		 * reference to section symbol index.
+		 */
+		STAILQ_FOREACH(dre, &drs->drs_dre, dre_next) {
+			if (dre->dre_secname == NULL)
+				continue;
+			ds = _dwarf_pro_find_section(dbg, dre->dre_secname);
+			assert(ds != NULL && ds->ds_symndx != 0);
+			dre->dre_symndx = ds->ds_symndx;
+		}
+
+		/*
+		 * Generate ELF relocation section if we are under stream
+		 * mode.
+		 */
+		if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
+			ret = _dwarf_reloc_section_gen(dbg, drs, error);
+			if (ret != DWARF_E_NONE)
+				return (ret);
+		}
+	}
+
+	return (DWARF_E_NONE);
+}
