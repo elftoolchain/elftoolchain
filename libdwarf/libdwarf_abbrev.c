@@ -233,6 +233,11 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
 
+	/* Notify the creation of .debug_abbrev ELF section. */
+	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
+	if (ret != DWARF_E_NONE)
+		goto fail_cleanup;
+
 	return (DWARF_E_NONE);
 
 fail_cleanup:
