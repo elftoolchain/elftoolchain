@@ -120,7 +120,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Section ds;
 	Dwarf_Rel_Section drs;
 	Dwarf_CU cu;
-	int i, ret, ndx;
+	int i, ret;
 
 	assert(dbg != NULL && dbg->write_alloc != NULL);
 
@@ -181,14 +181,9 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		goto fail_cleanup;
 
 	/* Inform application the creation of .debug_info ELF section. */
-	ndx = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_size,
-	    SHT_PROGBITS, 0, 0, 0, &ds->ds_symndx, NULL);
-	if (ndx < 0) {
-		ret = DWARF_E_USER_CALLBACK;
-		DWARF_SET_ERROR(error, ret);
+	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
+	if (ret != DWARF_E_NONE)
 		goto fail_cleanup;
-	}
-	ds->ds_ndx = ndx;
 
 	/*
 	 * Inform application the creation of relocation section for

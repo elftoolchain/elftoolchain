@@ -117,6 +117,25 @@ _dwarf_pro_callback(Dwarf_P_Debug dbg, char *name, int size,
 }
 
 int
+_dwarf_section_callback(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
+    Dwarf_Unsigned type, Dwarf_Unsigned flags, Dwarf_Unsigned link,
+    Dwarf_Unsigned info, Dwarf_Error *error)
+{
+	int ret, ndx;
+
+	ndx = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_size,
+	    type, flags, link, info, &ds->ds_symndx, NULL);
+	if (ndx < 0) {
+		ret = DWARF_E_USER_CALLBACK;
+		DWARF_SET_ERROR(error, ret);
+		return (ret);
+	}
+	ds->ds_ndx = ndx;
+
+	return (DWARF_E_NONE);
+}
+
+int
 _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 	int ret;

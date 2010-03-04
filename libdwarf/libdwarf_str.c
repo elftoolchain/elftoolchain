@@ -145,5 +145,12 @@ _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	memcpy(ds->ds_data, dbg->dbg_strtab, dbg->dbg_strtab_size);
 	ds->ds_size = dbg->dbg_strtab_size;
 
-	return (DWARF_E_NONE);
+	/*
+	 * Inform application the creation of .debug_str ELF section.
+	 * Note that .debug_str use a different format than usual ELF
+	 * string table, so it should not have SHT_STRTAB as its type.
+	 */
+	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
+
+	return (ret);
 }
