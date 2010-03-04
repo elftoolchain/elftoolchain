@@ -86,7 +86,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 		pseudo = 1;
 	else
 		pseudo = 0;
-		
+
 	snprintf(name, sizeof(name), "%s%s",
 	    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
 	if (_dwarf_section_init(dbg, &drs->drs_ds, name, pseudo, error) !=

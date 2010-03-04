@@ -101,13 +101,13 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 		dbg->dbg_section[i].ds_size = sec.size;
 		dbg->dbg_section[i].ds_name = sec.name;
-		
+
 		if (m->load_section(obj, i, &dbg->dbg_section[i].ds_data, &ret)
 		    != DW_DLV_OK) {
 			free(dbg->dbg_section);
 			DWARF_SET_ERROR(error, ret);
 			return (ret);
-		}			
+		}
 	}
 
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||

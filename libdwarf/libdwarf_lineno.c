@@ -317,7 +317,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	li->li_opbase = dbg->read(ds->ds_data, &offset, 1);
 	STAILQ_INIT(&li->li_lflist);
 	STAILQ_INIT(&li->li_lnlist);
-		
+
 	if ((int)li->li_hdrlen - 5 < li->li_opbase - 1) {
 		ret = DWARF_E_INVALID_LINE;
 		DWARF_SET_ERROR(error, ret);

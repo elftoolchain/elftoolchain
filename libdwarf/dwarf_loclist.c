@@ -172,7 +172,7 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 		return (DW_DLV_NO_ENTRY);
 	}
-	
+
 	*hipc = *lopc = 0;
 	for (i = 0; i < ll->ll_ldlen; i++) {
 		ld = ll->ll_ldlist[i];

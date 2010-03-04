@@ -66,7 +66,7 @@ _dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
     uint64_t adoff, Dwarf_AttrDef *adp, Dwarf_Error *error)
 {
 	Dwarf_AttrDef ad;
-	
+
 	if (ab == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DWARF_E_ARGUMENT);
