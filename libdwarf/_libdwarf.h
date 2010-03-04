@@ -542,6 +542,9 @@ int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
 		    Dwarf_P_Section, Dwarf_Error *);
 void		_dwarf_reloc_section_free(Dwarf_P_Debug, Dwarf_Rel_Section *);
+int		_dwarf_section_callback(Dwarf_P_Debug, Dwarf_P_Section,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
 void		_dwarf_section_free(Dwarf_P_Debug, Dwarf_P_Section *);
 int		_dwarf_section_init(Dwarf_P_Debug, Dwarf_P_Section *,
 		    const char *, int, Dwarf_Error *);
