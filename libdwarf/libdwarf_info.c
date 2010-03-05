@@ -119,6 +119,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_P_Section ds;
 	Dwarf_Rel_Section drs;
+	Dwarf_Unsigned offset;
 	Dwarf_CU cu;
 	int i, ret;
 
@@ -179,6 +180,11 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Transform the DIE(s) of this CU. */
 	if ((ret = _dwarf_die_gen(dbg, cu, drs, error)) != DWARF_E_NONE)
 		goto fail_cleanup;
+
+	/* Now we can fill in the length of this CU. */
+	cu->cu_length = ds->ds_size - 4;
+	offset = 0;
+	dbg->write(ds->ds_data, &offset, cu->cu_length, 4);
 
 	/* Inform application the creation of .debug_info ELF section. */
 	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
