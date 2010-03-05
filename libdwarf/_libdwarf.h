@@ -97,6 +97,7 @@ struct _Dwarf_Attribute {
 		uint8_t		*u8p;		/* Block. */
 	} u[2];					/* Value. */
 	Dwarf_Locdesc		*at_ld;		/* at value is locdesc. */
+	Dwarf_P_Expr		at_expr;	/* at value is expr. */
 	uint64_t		at_relsym;	/* Relocation symbol index. */
 	STAILQ_ENTRY(_Dwarf_Attribute) at_next;	/* Next attribute. */
 };
@@ -536,8 +537,8 @@ int		_dwarf_reloc_section_finalize(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_entry_add(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_P_Section, unsigned char, unsigned char,
-		    Dwarf_Unsigned, Dwarf_Unsigned, const char *,
-		    Dwarf_Error *);
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
+		    const char *, Dwarf_Error *);
 int		_dwarf_reloc_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
