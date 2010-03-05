@@ -258,6 +258,7 @@ static int
 _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
     Dwarf_CU cu, Dwarf_Attribute at, int pass2, Dwarf_Error *error)
 {
+	struct _Dwarf_P_Expr_Entry *ee;
 	uint64_t value, offset, bs;
 	int ret;
 
@@ -281,35 +282,58 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		if (at->at_relsym)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
 			    dwarf_drt_data_reloc, cu->cu_pointer_size,
-			    at->at_relsym, at->u[0].u64, NULL, error);
+			    ds->ds_size, at->at_relsym, at->u[0].u64, NULL,
+			    error);
 		else
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, at->u[0].u64, cu->cu_pointer_size,
 			    error);
 		break;
 	case DW_FORM_block:
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[0].u64, error);
-		if (ret != DWARF_E_NONE)
-			break;
-		ret = _dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[1].u8p, at->u[0].u64, error);
-		break;
 	case DW_FORM_block1:
 	case DW_FORM_block2:
 	case DW_FORM_block4:
-		if (at->at_form == DW_FORM_block1)
-			bs = 1;
-		else if (at->at_form == DW_FORM_block2)
-			bs = 2;
-		else
-			bs = 4;
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    at->u[0].u64, bs, error);
-		if (ret != DWARF_E_NONE)
-			break;
+		/* Write block size. */
+		if (at->at_form == DW_FORM_block) {
+			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
+			    &ds->ds_cap, &ds->ds_size, at->u[0].u64, error);
+			if (ret != DWARF_E_NONE)
+				break;
+		} else {
+			if (at->at_form == DW_FORM_block1)
+				bs = 1;
+			else if (at->at_form == DW_FORM_block2)
+				bs = 2;
+			else
+				bs = 4;
+			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+			    at->u[0].u64, bs, error);
+			if (ret != DWARF_E_NONE)
+				break;
+		}
+
+		/* Keep block data offset for later use. */
+		offset = ds->ds_size;
+
+		/* Write block data. */
 		ret = _dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,
 		    &ds->ds_size, at->u[1].u8p, at->u[0].u64, error);
+		if (ret != DWARF_E_NONE)
+			break;
+		if (at->at_expr == NULL)
+			break;
+
+		/* Generate relocation entry for DW_OP_addr expressions. */
+		STAILQ_FOREACH(ee, &at->at_expr->pe_eelist, ee_next) {
+			if (ee->ee_loc.lr_atom != DW_OP_addr || ee->ee_sym == 0)
+				continue;
+			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
+			    dwarf_drt_data_reloc, dbg->dbg_pointer_size,
+			    offset + ee->ee_loc.lr_offset + 1, ee->ee_sym,
+			    ee->ee_loc.lr_number, NULL, error);
+			if (ret != DWARF_E_NONE)
+				break;
+		}
 		break;
 	case DW_FORM_data1:
 	case DW_FORM_flag:
@@ -325,7 +349,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 	case DW_FORM_data4:
 		if (at->at_relsym)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
-			    dwarf_drt_data_reloc, 4, at->at_relsym,
+			    dwarf_drt_data_reloc, 4, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, NULL, error);
 		else
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
@@ -334,7 +358,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 	case DW_FORM_data8:
 		if (at->at_relsym)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
-			    dwarf_drt_data_reloc, 8, at->at_relsym,
+			    dwarf_drt_data_reloc, 8, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, NULL, error);
 		else
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
@@ -369,7 +393,8 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		if (at->at_relsym)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
 			    dwarf_drt_data_reloc, cu->cu_pointer_size,
-			    at->at_relsym, at->u[0].u64, NULL, error);
+			    ds->ds_size, at->at_relsym, at->u[0].u64, NULL,
+			    error);
 		else
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, at->u[0].u64, cu->cu_pointer_size,
@@ -390,7 +415,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		break;
 	case DW_FORM_strp:
 		ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc,
-		    4, 0, at->u[0].u64, ".debug_str", error);
+		    4, ds->ds_size, 0, at->u[0].u64, ".debug_str", error);
 		break;
 	default:
 		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);

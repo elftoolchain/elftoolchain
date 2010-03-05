@@ -78,6 +78,7 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 
 	at->at_die = die;
 	at->at_attrib = attr;
+	at->at_expr = loc_expr;
 
 	if (_dwarf_expr_into_block(loc_expr, error) != DWARF_E_NONE)
 		return (DW_DLV_BADADDR);

@@ -137,15 +137,16 @@ _dwarf_reloc_section_free(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp)
 int
 _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
     Dwarf_P_Section ds, unsigned char type, unsigned char length,
-    Dwarf_Unsigned symndx, Dwarf_Unsigned addend, const char *secname,
-    Dwarf_Error *error)
+    Dwarf_Unsigned offset, Dwarf_Unsigned symndx, Dwarf_Unsigned addend,
+    const char *secname, Dwarf_Error *error)
 {
 	Dwarf_Rel_Entry dre;
-	Dwarf_Unsigned offset;
+	Dwarf_Unsigned reloff;
 	int ret;
 
 	assert(drs != NULL);
-	offset = ds->ds_size;
+	assert(offset <= ds->ds_size);
+	reloff = offset;
 
 	/*
 	 * If the DW_DLC_SYMBOLIC_RELOCATIONS flag is set or ElfXX_Rel
@@ -156,13 +157,15 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	 */
 	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) ||
 	    drs->drs_addend == 0)
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
 		    addend, length, error);
 	else
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
+		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
 		    0, length, error);
 	if (ret != DWARF_E_NONE)
 		return (ret);
+	if (offset > ds->ds_size)
+		ds->ds_size = offset;
 
 	if ((dre = calloc(1, sizeof(struct _Dwarf_Rel_Entry))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -171,7 +174,7 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	STAILQ_INSERT_TAIL(&drs->drs_dre, dre, dre_next);
 	dre->dre_type = type;
 	dre->dre_length = length;
-	dre->dre_offset = offset;
+	dre->dre_offset = reloff;
 	dre->dre_symndx = symndx;
 	dre->dre_addend = addend;
 	dre->dre_secname = secname;
