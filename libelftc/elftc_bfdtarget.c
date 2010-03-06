@@ -35,7 +35,7 @@
 ELFTC_VCSID("$Id$");
 
 Bfd_Target *
-elftc_find_bfd_target(const char *tgt_name)
+elftc_bfd_find_target(const char *tgt_name)
 {
 	Bfd_Target *tgt;
 

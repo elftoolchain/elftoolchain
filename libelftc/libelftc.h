@@ -53,7 +53,7 @@ typedef enum {
 #define ELFTC_DEM_NOPARAM	0x00010000U
 
 __BEGIN_DECLS
-Bfd_Target		*elftc_find_bfd_target(const char *tgt_name);
+Bfd_Target		*elftc_bfd_find_target(const char *tgt_name);
 Bfd_Target_Flavor	 elftc_bfd_target_flavor(Bfd_Target *tgt);
 unsigned int		 elftc_bfd_target_byteorder(Bfd_Target *tgt);
 unsigned int		 elftc_bfd_target_class(Bfd_Target *tgt);
