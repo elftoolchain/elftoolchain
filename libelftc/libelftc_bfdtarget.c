@@ -34,7 +34,7 @@
 
 ELFTC_VCSID("$Id$");
 
-struct _Bfd_Target targets[] = {
+struct _Bfd_Target _libelftc_targets[] = {
 
 	{
 		.bt_name = "binary",
