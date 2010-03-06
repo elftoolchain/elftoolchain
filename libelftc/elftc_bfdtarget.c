@@ -39,7 +39,7 @@ elftc_bfd_find_target(const char *tgt_name)
 {
 	Bfd_Target *tgt;
 
-	for (tgt = targets; tgt->bt_name; tgt++)
+	for (tgt = _libelftc_targets; tgt->bt_name; tgt++)
 		if (!strcmp(tgt_name, tgt->bt_name))
 			return (tgt);
 

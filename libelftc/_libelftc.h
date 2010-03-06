@@ -41,7 +41,7 @@ struct _Bfd_Target {
 	unsigned int	 bt_osabi;	/* elf target abi. */
 };
 
-extern struct _Bfd_Target targets[];
+extern struct _Bfd_Target _libelftc_targets[];
 
 /** @brief Dynamic vector data for string. */
 struct vector_str {
