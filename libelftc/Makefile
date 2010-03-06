@@ -19,7 +19,12 @@ WARNS?=	6
 
 LDADD+=	-lelf
 
-MAN=	elftc_demangle.3
+MAN3=	elftc_bfd_find_target.3 \
+	elftc_demangle.3
+
+MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
+	elftc_bfd_find_target.3 elftc_bfd_target_class.3 \
+	elftc_bfd_find_target.3 elftc_bfd_target_flavor.3
 
 # Determine the target operating system that we are building for.
 .if ${unix:MFreeBSD*}
