@@ -963,7 +963,7 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 {
 	Bfd_Target *tgt;
 
-	if ((tgt = elftc_find_bfd_target(target_name)) == NULL)
+	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
 		errx(EX_USAGE, "%s: invalid target name", target_name);
 	ecp->oec = elftc_bfd_target_class(tgt);
 	ecp->oed = elftc_bfd_target_byteorder(tgt);
