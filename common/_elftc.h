@@ -310,6 +310,14 @@
 #define	PN_XNUM			0xFFFFU
 #endif
 
+#ifndef	R_IA_64_DIR32LSB
+#define	R_IA_64_DIR32LSB	0x25
+#endif
+
+#ifndef	R_IA_66_DIR64LSB
+#define	R_IA_64_DIR64LSB	0x27
+#endif
+
 #ifndef	SHT_AMD64_UNWIND
 #define	SHT_AMD64_UNWIND	0x70000001
 #endif
