@@ -314,7 +314,7 @@
 #define	R_IA_64_DIR32LSB	0x25
 #endif
 
-#ifndef	R_IA_66_DIR64LSB
+#ifndef	R_IA_64_DIR64LSB
 #define	R_IA_64_DIR64LSB	0x27
 #endif
 
