@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -422,6 +422,258 @@ fail_cleanup:
 	if (li->li_incdirs)
 		free(li->li_incdirs);
 	free(li);
+
+	return (ret);
+}
+
+static int
+_dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
+    Dwarf_Rel_Section drs, Dwarf_Error * error)
+{
+	Dwarf_LineInfo li;
+	Dwarf_Line ln, pln;
+	Dwarf_Unsigned address, file, line, spc;
+	Dwarf_Unsigned addr0, maddr;
+	Dwarf_Signed line0, column;
+	int is_stmt, basic_block, end_sequence;
+	int ret;
+
+#define	RESET_REGISTERS						\
+	do {							\
+		address	       = 0;				\
+		file	       = 1;				\
+		line	       = 1;				\
+		column	       = 0;				\
+		is_stmt	       = li->li_defstmt;		\
+		basic_block    = 0;				\
+		end_sequence   = 0;				\
+	} while(0)
+
+	li = dbg->dbgp_lineinfo;
+	maddr = (255 - li->li_opbase) / li->li_lrange;
+
+	RESET_REGISTERS;
+
+	pln = NULL;
+	STAILQ_FOREACH(ln, &li->li_lnlist, ln_next) {
+		if (ln->ln_symndx > 0) {
+			/*
+			 * Generate DW_LNE_set_address extended op.
+			 */
+			RCHECK(WRITE_VALUE(0, 1));
+			RCHECK(WRITE_ULEB128(dbg->dbg_pointer_size + 1));
+			RCHECK(WRITE_VALUE(DW_LNE_set_address, 1));
+			RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds,
+			    dwarf_drt_data_reloc, dbg->dbg_pointer_size,
+			    ds->ds_size, ln->ln_symndx, ln->ln_addr,
+			    NULL, error));
+			address = ln->ln_addr;
+			goto next_line;
+		} else if (ln->ln_endseq) {
+			/*
+			 * Generate DW_LNE_end_sequence.
+			 */
+			RCHECK(WRITE_VALUE(0, 1));
+			RCHECK(WRITE_ULEB128(1));
+			RCHECK(WRITE_VALUE(DW_LNE_end_sequence, 1));
+			RESET_REGISTERS;
+			goto next_line;
+		}
+
+		assert(pln == NULL || pln->ln_addr <= ln->ln_addr);
+
+		/*
+		 * Generate standard opcodes for file, column, is_stmt or
+		 * basic_block changes.
+		 */
+		if (ln->ln_lineno != file) {
+			RCHECK(WRITE_VALUE(DW_LNS_set_file, 1));
+			RCHECK(WRITE_ULEB128(ln->ln_lineno));
+			file = ln->ln_lineno;
+		}
+		if (ln->ln_column != column) {
+			RCHECK(WRITE_VALUE(DW_LNS_set_column, 1));
+			RCHECK(WRITE_ULEB128(ln->ln_column));
+			column = ln->ln_column;
+		}
+		if (ln->ln_stmt != is_stmt) {
+			RCHECK(WRITE_VALUE(DW_LNS_negate_stmt, 1));
+			is_stmt = ln->ln_stmt;
+		}
+		if (ln->ln_bblock && !basic_block) {
+			RCHECK(WRITE_VALUE(DW_LNS_set_basic_block, 1));
+			basic_block = 1;
+		}
+
+		/*
+		 * Calculate address and line number change.
+		 */
+		addr0 = (ln->ln_addr - pln->ln_addr) / li->li_minlen;
+		line0 = ln->ln_lineno - pln->ln_lineno;
+
+		/*
+		 * Generate DW_LNS_advance_line if line delta is out of
+		 * range.
+		 */
+		assert(li->li_lbase <= 0);
+		if (line0 < li->li_lbase ||
+		    line0 > li->li_lbase + li->li_lrange - 1) {
+			RCHECK(WRITE_VALUE(DW_LNS_advance_line, 1));
+			RCHECK(WRITE_SLEB128(line0));
+			line0 = 0;
+		}
+
+		/*
+		 * Check if it can be fit in the special ops.
+		 */
+		spc = (line0 - li->li_lbase) + (li->li_lrange * addr0) +
+		    li->li_opbase;
+		if (spc <= 255) {
+			RCHECK(WRITE_VALUE(spc, 1));
+			basic_block = 0;
+			goto next_line;
+		}
+
+		/*
+		 * See if this can be handled by DW_LNS_const_add_pc.
+		 */
+		spc = (line0 - li->li_lbase) +
+		    (li->li_lrange * (addr0 - maddr)) + li->li_opbase;
+		if (spc <= 255) {
+			RCHECK(WRITE_VALUE(DW_LNS_const_add_pc, 1));
+			RCHECK(WRITE_VALUE(spc, 1));
+			basic_block = 0;
+			goto next_line;
+		}
+
+		/*
+		 * Otherwise we have to use DW_LNS_advance_pc.
+		 */
+		RCHECK(WRITE_VALUE(DW_LNS_advance_pc, 1));
+		RCHECK(WRITE_ULEB128(addr0));
+		RCHECK(WRITE_VALUE(DW_LNS_copy, 1));
+		basic_block = 0;
+
+	next_line:
+		pln = ln;
+	}
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	return (ret);
+
+#undef	RESET_REGISTERS
+}
+
+static uint8_t oplen[] = {0, 1, 1, 1, 1, 0, 0, 0, 1};
+
+int
+_dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_LineInfo li;
+	Dwarf_LineFile lf;
+	Dwarf_P_Section ds;
+	Dwarf_Rel_Section drs;
+	Dwarf_Unsigned offset;
+	int i, ret;
+
+	assert(dbg != NULL && dbg->dbgp_lineinfo != NULL);
+
+	li = dbg->dbgp_lineinfo;
+	if (STAILQ_EMPTY(&li->li_lnlist))
+		return (DWARF_E_NONE);
+
+	li->li_length = 0;
+	li->li_version = 2;
+	li->li_hdrlen = 0;
+	li->li_minlen = 1;
+	li->li_defstmt = 1;
+	li->li_lbase = -5;
+	li->li_lrange = 14;
+	li->li_opbase = 10;
+
+	/* Create .debug_line section. */
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_line", 0, error)) !=
+	    DWARF_E_NONE)
+		return (ret);
+
+	/* Create relocation section for .debug_line */
+	if ((ret = _dwarf_reloc_section_init(dbg, &drs, ds, error)) !=
+	    DWARF_E_NONE)
+		goto gen_fail1;
+
+	/* Length placeholder. (We only use 32-bit DWARF format) */
+	RCHECK(WRITE_VALUE(0, 4));
+
+	/* Write line number dwarf version. (DWARF2) */
+	RCHECK(WRITE_VALUE(li->li_version, 2));
+
+	/* Header length placeholder. */
+	offset = ds->ds_size;
+	RCHECK(WRITE_VALUE(li->li_hdrlen, 4));
+
+	/* Write minimum instruction length. FIXME should be arch-specific. */
+	RCHECK(WRITE_VALUE(li->li_minlen, 1));
+
+	/*
+	 * Write initial value for is_stmt. XXX Which default value we
+	 * should use?
+	 */
+	RCHECK(WRITE_VALUE(li->li_defstmt, 1));
+
+	/*
+	 * Write line_base and line_range. FIXME These value needs to be
+	 * fine tuned.
+	 */
+	RCHECK(WRITE_VALUE(li->li_lbase, 1));
+	RCHECK(WRITE_VALUE(li->li_lrange, 1));
+
+	/* Write opcode_base. (DWARF2) */
+	RCHECK(WRITE_VALUE(li->li_opbase, 1));
+
+	/* Write standard op length array. */
+	RCHECK(WRITE_BLOCK(oplen, sizeof(oplen) / sizeof(oplen[0])));
+
+	/* Write the list of include directories. */
+	for (i = 0; (Dwarf_Unsigned) i < li->li_inclen; i++)
+		RCHECK(WRITE_STRING(li->li_incdirs[i]));
+	RCHECK(WRITE_VALUE(0, 1));
+
+	/* Write the list of filenames. */
+	STAILQ_FOREACH(lf, &li->li_lflist, lf_next) {
+		RCHECK(WRITE_STRING(lf->lf_fname));
+		RCHECK(WRITE_ULEB128(lf->lf_dirndx));
+		RCHECK(WRITE_ULEB128(lf->lf_mtime));
+		RCHECK(WRITE_ULEB128(lf->lf_size));
+	}
+	RCHECK(WRITE_VALUE(0, 1));
+
+	/* Fill in the header length. */
+	li->li_hdrlen = ds->ds_size - offset - 4;
+	dbg->write(ds->ds_data, &offset, li->li_hdrlen, 4);
+
+	/* Generate the line number program. */
+	RCHECK(_dwarf_lineno_gen_program(dbg, ds, drs, error));
+
+	/* Fill in the length of this line info. */
+	li->li_length = ds->ds_size - 4;
+	offset = 0;
+	dbg->write(ds->ds_data, &offset, li->li_length, 4);
+
+	/* Notify the creation of .debug_line ELF section. */
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
+
+	/* Finalize relocation section for .debug_line. */
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	_dwarf_reloc_section_free(dbg, &drs);
+
+gen_fail1:
+	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
 }
