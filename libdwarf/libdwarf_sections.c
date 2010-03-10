@@ -148,6 +148,10 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if ((ret = _dwarf_abbrev_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
 
+	/* Produce .debug_line section. */
+	if ((ret = _dwarf_lineno_gen(dbg, error)) != DWARF_E_NONE)
+		return (ret);
+
 	/* Produce .debug_str section. */
 	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
