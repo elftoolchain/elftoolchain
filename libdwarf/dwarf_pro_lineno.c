@@ -42,6 +42,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 
 	li = dbg->dbgp_lineinfo;
 
+	/* Search for nearest DW_LNE_set_address. */
 	ln0 = NULL;
 	STAILQ_FOREACH(ln, &li->li_lnlist, ln_next) {
 		if (ln->ln_symndx > 0)
