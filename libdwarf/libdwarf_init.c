@@ -227,6 +227,18 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	dbg->dbgp_flags = pf;
 
+	STAILQ_INIT(&dbg->dbgp_dielist);
+	STAILQ_INIT(&dbg->dbgp_pelist);
+	STAILQ_INIT(&dbg->dbgp_seclist);
+	STAILQ_INIT(&dbg->dbgp_drslist);
+
+	if ((dbg->dbgp_lineinfo = calloc(1, sizeof(struct _Dwarf_LineInfo))) ==
+	    NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lnlist);
+
 	return (DWARF_E_NONE);
 }
 
@@ -241,10 +253,6 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 	STAILQ_INIT(&dbg->dbg_rllist);
 	STAILQ_INIT(&dbg->dbg_aslist);
 	STAILQ_INIT(&dbg->dbg_mslist);
-	STAILQ_INIT(&dbg->dbgp_dielist);
-	STAILQ_INIT(&dbg->dbgp_pelist);
-	STAILQ_INIT(&dbg->dbgp_seclist);
-	STAILQ_INIT(&dbg->dbgp_drslist);
 	TAILQ_INIT(&dbg->dbg_loclist);
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
