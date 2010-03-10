@@ -76,6 +76,32 @@ extern struct _libdwarf_globals _libdwarf;
 #define	DWARF_SET_ELF_ERROR(_e)						\
 	_DWARF_SET_ERROR(_e, DWARF_E_ELF, elf_errno())
 
+/*
+ * Convenient macros for producer bytes stream generation.
+ */
+#define	WRITE_VALUE(value, bytes)					\
+	dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,	\
+	    (value), (bytes), error)
+#define	WRITE_ULEB128(value)						\
+	_dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,		\
+	    &ds->ds_size, (value), error)
+#define	WRITE_SLEB128(value)						\
+	_dwarf_write_sleb128_alloc(&ds->ds_data, &ds->ds_cap,		\
+	    &ds->ds_size, (value), error)
+#define	WRITE_STRING(string)						\
+	_dwarf_write_string_alloc(&ds->ds_data, &ds->ds_cap,		\
+	    &ds->ds_size, (string), error)
+#define	WRITE_BLOCK(blk, size)						\
+	_dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,		\
+	    &ds->ds_size, (blk), (size), error)
+#define	RCHECK(expr)							\
+	do {								\
+		ret = expr;						\
+		if (ret != DWARF_E_NONE)				\
+			goto gen_fail;					\
+	} while(0)
+
+
 struct _Dwarf_AttrDef {
 	uint64_t	ad_attrib;		/* DW_AT_XXX */
 	uint64_t	ad_form;		/* DW_FORM_XXX */
@@ -504,6 +530,7 @@ int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
 int		_dwarf_frame_init(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_frame_regtable_copy(Dwarf_Debug, Dwarf_Regtable3 **,
 		    Dwarf_Regtable3 *, Dwarf_Error *);
+int		_dwarf_lineno_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_lineno_init(Dwarf_Die, uint64_t, Dwarf_Error *);
 int		_dwarf_loc_fill_locdesc(Dwarf_Debug, Dwarf_Locdesc *, uint8_t *,
 		    uint64_t, uint8_t, Dwarf_Error *);
