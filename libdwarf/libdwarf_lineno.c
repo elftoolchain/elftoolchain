@@ -488,7 +488,7 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		 */
 		if (ln->ln_lineno != file) {
 			RCHECK(WRITE_VALUE(DW_LNS_set_file, 1));
-			RCHECK(WRITE_ULEB128(ln->ln_lineno));
+			RCHECK(WRITE_ULEB128(ln->ln_fileno));
 			file = ln->ln_lineno;
 		}
 		if (ln->ln_column != column) {
