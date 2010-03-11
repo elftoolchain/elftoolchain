@@ -271,10 +271,9 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		if (at->at_refdie == NULL || at->at_offset == 0)
 			return (DWARF_E_NONE);
 		offset = at->at_offset;
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
-		    at->at_refdie->die_offset,
-		    at->at_form == DW_FORM_ref4 ? 4 : 8, error);
-		return (ret);
+		dbg->write(ds->ds_data, &offset, at->at_refdie->die_offset,
+		    at->at_form == DW_FORM_ref4 ? 4 : 8);
+		return (DWARF_E_NONE);
 	}
 
 	switch (at->at_form) {
@@ -285,9 +284,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			    ds->ds_size, at->at_relsym, at->u[0].u64, NULL,
 			    error);
 		else
-			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
-			    &ds->ds_size, at->u[0].u64, cu->cu_pointer_size,
-			    error);
+			ret = WRITE_VALUE(at->u[0].u64, cu->cu_pointer_size);
 		break;
 	case DW_FORM_block:
 	case DW_FORM_block1:
@@ -306,8 +303,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 				bs = 2;
 			else
 				bs = 4;
-			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-			    at->u[0].u64, bs, error);
+			ret = WRITE_VALUE(at->u[0].u64, bs);
 			if (ret != DWARF_E_NONE)
 				break;
 		}
@@ -316,8 +312,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		offset = ds->ds_size;
 
 		/* Write block data. */
-		ret = _dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[1].u8p, at->u[0].u64, error);
+		ret = WRITE_BLOCK(at->u[1].u8p, at->u[0].u64);
 		if (ret != DWARF_E_NONE)
 			break;
 		if (at->at_expr == NULL)
@@ -338,13 +333,11 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 	case DW_FORM_data1:
 	case DW_FORM_flag:
 	case DW_FORM_ref1:
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    at->u[0].u64, 1, error);
+		ret = WRITE_VALUE(at->u[0].u64, 1);
 		break;
 	case DW_FORM_data2:
 	case DW_FORM_ref2:
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    at->u[0].u64, 2, error);
+		ret = WRITE_VALUE(at->u[0].u64, 2);
 		break;
 	case DW_FORM_data4:
 		if (at->at_relsym)
@@ -352,8 +345,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			    dwarf_drt_data_reloc, 4, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, NULL, error);
 		else
-			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
-			    &ds->ds_size, at->u[0].u64, 4, error);
+			ret = WRITE_VALUE(at->u[0].u64, 4);
 		break;
 	case DW_FORM_data8:
 		if (at->at_relsym)
@@ -361,8 +353,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			    dwarf_drt_data_reloc, 8, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, NULL, error);
 		else
-			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
-			    &ds->ds_size, at->u[0].u64, 8, error);
+			ret = WRITE_VALUE(at->u[0].u64, 8);
 		break;
 	case DW_FORM_ref4:
 	case DW_FORM_ref8:
@@ -380,8 +371,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			}
 		} else
 			value = at->u[0].u64;
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    value, at->at_form == DW_FORM_ref4 ? 4 : 8, error);
+		ret = WRITE_VALUE(value, at->at_form == DW_FORM_ref4 ? 4 : 8);
 		break;
 	case DW_FORM_indirect:
 		/* TODO. */
@@ -396,22 +386,18 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			    ds->ds_size, at->at_relsym, at->u[0].u64, NULL,
 			    error);
 		else
-			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
-			    &ds->ds_size, at->u[0].u64, cu->cu_pointer_size,
-			    error);
+			ret = WRITE_VALUE(at->u[0].u64, cu->cu_pointer_size);
 		break;
 	case DW_FORM_ref_udata:
 	case DW_FORM_udata:
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[0].u64, error);
+		ret = WRITE_ULEB128(at->u[0].u64);
 		break;
 	case DW_FORM_sdata:
-		ret = _dwarf_write_sleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[0].s64, error);
+		ret = WRITE_SLEB128(at->u[0].s64);
+		break;
 	case DW_FORM_string:
 		assert(at->u[0].s != NULL);
-		ret = _dwarf_write_string_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, at->u[0].s, error);
+		ret = WRITE_STRING(at->u[0].s);
 		break;
 	case DW_FORM_strp:
 		ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc,
