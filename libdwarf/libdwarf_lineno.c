@@ -486,10 +486,10 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		 * Generate standard opcodes for file, column, is_stmt or
 		 * basic_block changes.
 		 */
-		if (ln->ln_lineno != file) {
+		if (ln->ln_fileno != file) {
 			RCHECK(WRITE_VALUE(DW_LNS_set_file, 1));
 			RCHECK(WRITE_ULEB128(ln->ln_fileno));
-			file = ln->ln_lineno;
+			file = ln->ln_fileno;
 		}
 		if (ln->ln_column != column) {
 			RCHECK(WRITE_VALUE(DW_LNS_set_column, 1));
