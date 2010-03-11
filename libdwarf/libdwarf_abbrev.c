@@ -182,63 +182,26 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		return (ret);
 
 	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
-		/* Write abbrev code. */
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, ab->ab_entry, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
-
-		/* Write abbrev tag. */
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, ab->ab_tag, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
-
-		/* Write children flag. */
-		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-		    ab->ab_children, 1, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
-
-		/* Write attribute specifications. */
+		RCHECK(WRITE_ULEB128(ab->ab_entry));
+		RCHECK(WRITE_ULEB128(ab->ab_tag));
+		RCHECK(WRITE_VALUE(ab->ab_children, 1));
 		STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
-			/* Write attribute name. */
-			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
-			    &ds->ds_cap, &ds->ds_size, ad->ad_attrib, error);
-			if (ret != DWARF_E_NONE)
-				goto fail_cleanup;
-			/* Write form. */
-			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
-			    &ds->ds_cap, &ds->ds_size, ad->ad_form, error);
-			if (ret != DWARF_E_NONE)
-				goto fail_cleanup;
+			RCHECK(WRITE_ULEB128(ad->ad_attrib));
+			RCHECK(WRITE_ULEB128(ad->ad_form));
 		}
-
 		/* Signal end of attribute spec list. */
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, 0, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
-		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-		    &ds->ds_size, 0, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
+		RCHECK(WRITE_ULEB128(0));
+		RCHECK(WRITE_ULEB128(0));
 	}
-
 	/* End of abbreviation for this CU. */
-	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
-	    &ds->ds_size, 0, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(WRITE_ULEB128(0));
 
 	/* Notify the creation of .debug_abbrev ELF section. */
-	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
 	return (DWARF_E_NONE);
 
-fail_cleanup:
+gen_fail:
 
 	_dwarf_section_free(dbg, &ds);
 
