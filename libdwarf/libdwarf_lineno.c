@@ -431,7 +431,7 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
     Dwarf_Rel_Section drs, Dwarf_Error * error)
 {
 	Dwarf_LineInfo li;
-	Dwarf_Line ln, pln;
+	Dwarf_Line ln;
 	Dwarf_Unsigned address, file, line, spc;
 	Dwarf_Unsigned addr0, maddr;
 	Dwarf_Signed line0, column;
@@ -454,7 +454,6 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 
 	RESET_REGISTERS;
 
-	pln = NULL;
 	STAILQ_FOREACH(ln, &li->li_lnlist, ln_next) {
 		if (ln->ln_symndx > 0) {
 			/*
@@ -477,10 +476,8 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 			RCHECK(WRITE_ULEB128(1));
 			RCHECK(WRITE_VALUE(DW_LNE_end_sequence, 1));
 			RESET_REGISTERS;
-			goto next_line;
+			continue;
 		}
-
-		assert(pln == NULL || pln->ln_addr <= ln->ln_addr);
 
 		/*
 		 * Generate standard opcodes for file, column, is_stmt or
@@ -508,8 +505,8 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		/*
 		 * Calculate address and line number change.
 		 */
-		addr0 = (ln->ln_addr - pln->ln_addr) / li->li_minlen;
-		line0 = ln->ln_lineno - pln->ln_lineno;
+		addr0 = (ln->ln_addr - address) / li->li_minlen;
+		line0 = ln->ln_lineno - line;
 
 		/*
 		 * Generate DW_LNS_advance_line if line delta is out of
@@ -555,7 +552,8 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		basic_block = 0;
 
 	next_line:
-		pln = ln;
+		address = ln->ln_addr;
+		line = ln->ln_lineno;
 	}
 
 	return (DWARF_E_NONE);
