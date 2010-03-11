@@ -142,44 +142,32 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Create .debug_init section. */
 	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 0,
 	    error)) != DWARF_E_NONE)
-		goto fail_cleanup1;
+		goto gen_fail1;
 	ds = dbg->dbgp_info;
 
 	/* Create relocation section for .debug_init */
 	if ((ret = _dwarf_reloc_section_init(dbg, &drs, ds, error)) !=
 	    DWARF_E_NONE)
-		goto fail_cleanup0;
+		goto gen_fail0;
 
 	/* Length placeholder. (We only use 32-bit DWARF format) */
-	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-	    cu->cu_length, 4, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(WRITE_VALUE(cu->cu_length, 4));
 
 	/* Write CU version */
-	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-	    cu->cu_version, 2, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(WRITE_VALUE(cu->cu_version, 2));
 
 	/*
 	 * Write abbrev offset. (always 0, we only support single CU)
 	 * Also generate a relocation entry for this offset.
 	 */
-	ret = _dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
-	    ds->ds_size, 0, cu->cu_abbrev_offset, ".debug_abbrev", error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
+	    ds->ds_size, 0, cu->cu_abbrev_offset, ".debug_abbrev", error));
 
 	/* Pointer size. */
-	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &ds->ds_size,
-	    cu->cu_pointer_size, 1, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(WRITE_VALUE(cu->cu_pointer_size, 1));
 
 	/* Transform the DIE(s) of this CU. */
-	if ((ret = _dwarf_die_gen(dbg, cu, drs, error)) != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(_dwarf_die_gen(dbg, cu, drs, error));
 
 	/* Now we can fill in the length of this CU. */
 	cu->cu_length = ds->ds_size - 4;
@@ -187,27 +175,23 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	dbg->write(ds->ds_data, &offset, cu->cu_length, 4);
 
 	/* Inform application the creation of .debug_info ELF section. */
-	ret = _dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
 	/*
 	 * Inform application the creation of relocation section for
 	 * .debug_info.
 	 */
-	ret = _dwarf_reloc_section_finalize(dbg, drs, NULL);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
 
 	return (DWARF_E_NONE);
 
-fail_cleanup:
+gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);
 
-fail_cleanup0:
+gen_fail0:
 	_dwarf_section_free(dbg, &dbg->dbgp_info);
 
-fail_cleanup1:
+gen_fail1:
 	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
 	free(cu);
 
