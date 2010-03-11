@@ -237,6 +237,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
 	}
+	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lflist);
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lnlist);
 
 	return (DWARF_E_NONE);
