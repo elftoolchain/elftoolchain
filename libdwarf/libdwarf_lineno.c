@@ -466,7 +466,6 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 			    dwarf_drt_data_reloc, dbg->dbg_pointer_size,
 			    ds->ds_size, ln->ln_symndx, ln->ln_addr,
 			    NULL, error));
-			address = ln->ln_addr;
 			goto next_line;
 		} else if (ln->ln_endseq) {
 			/*
