@@ -138,18 +138,41 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	return (dbg->dbgp_fdelen++);
 }
 
-#if 0
 Dwarf_P_Fde
 dwarf_fde_cfa_offset(Dwarf_P_Fde fde, Dwarf_Unsigned reg, Dwarf_Signed offset,
     Dwarf_Error *error)
 {
+	int ret;
 
+	if (fde == NULL || reg > 0x3f) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	}
+
+	ret = _dwarf_frame_fde_add_inst(fde, DW_CFA_offset | (reg & 0x3f),
+	    offset, 0, error);
+
+	if (ret != DWARF_E_NONE)
+		return (DW_DLV_BADADDR);
+
+	return (fde);
 }
 
 Dwarf_P_Fde
 dwarf_add_fde_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
     Dwarf_Unsigned val2, Dwarf_Error *error)
 {
+	int ret;
 
+	if (fde == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	}
+
+	ret = _dwarf_frame_fde_add_inst(fde, op, val1, val2, error);
+
+	if (ret != DWARF_E_NONE)
+		return (DW_DLV_BADADDR);
+
+	return (fde);
 }
-#endif

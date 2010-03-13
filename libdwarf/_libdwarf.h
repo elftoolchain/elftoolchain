@@ -258,8 +258,9 @@ struct _Dwarf_Fde {
 	Dwarf_Unsigned	fde_adrange;	/* Address range. */
 	Dwarf_Unsigned	fde_auglen;	/* Augmentation length. */
 	uint8_t		*fde_augdata;	/* Augmentation data. */
-	Dwarf_Ptr	fde_inst;	/* Instructions. */
+	uint8_t		*fde_inst;	/* Instructions. */
 	Dwarf_Unsigned	fde_instlen;	/* Length of instructions. */
+	Dwarf_Unsigned	fde_instcap;	/* Capacity of inst buffer. */
 	Dwarf_Unsigned	fde_symndx;	/* Symbol index for relocation. */
 	Dwarf_Unsigned	fde_esymndx;	/* End symbol index for relocation. */
 	Dwarf_Addr	fde_eoff;	/* Offset from the end symbol. */
@@ -522,6 +523,8 @@ int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
 		    Dwarf_Unsigned *, int *);
 Dwarf_P_Section	_dwarf_pro_find_section(Dwarf_P_Debug, const char *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
+int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
 		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);

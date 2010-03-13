@@ -382,6 +382,8 @@ Dwarf_Unsigned	dwarf_add_file_decl(Dwarf_P_Debug, char *, Dwarf_Unsigned,
 Dwarf_Unsigned	dwarf_add_frame_cie(Dwarf_P_Debug, char *, Dwarf_Small,
 		    Dwarf_Small, Dwarf_Small, Dwarf_Ptr, Dwarf_Unsigned,
 		    Dwarf_Error *);
+Dwarf_P_Fde	dwarf_add_fde_inst(Dwarf_P_Fde, Dwarf_Small, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_frame_fde(Dwarf_P_Debug, Dwarf_P_Fde, Dwarf_P_Die,
 		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Error *);
@@ -426,6 +428,8 @@ int		dwarf_expand_frame_instructions(Dwarf_Debug, Dwarf_Ptr,
 		    Dwarf_Error *);
 Dwarf_Unsigned	dwarf_expr_current_offset(Dwarf_P_Expr, Dwarf_Error *);
 Dwarf_Addr	dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Unsigned *,
+		    Dwarf_Error *);
+Dwarf_P_Fde	dwarf_fde_cfa_offset(Dwarf_P_Fde, Dwarf_Unsigned, Dwarf_Signed,
 		    Dwarf_Error *);
 char		*dwarf_find_macro_value_start(char *);
 int		dwarf_finish(Dwarf_Debug, Dwarf_Error *);
