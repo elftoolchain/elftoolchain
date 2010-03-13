@@ -26,10 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "_libdwarf.h"
 
 int

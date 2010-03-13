@@ -25,10 +25,6 @@
  */
 
 #include "_libdwarf.h"
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static int
 _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
