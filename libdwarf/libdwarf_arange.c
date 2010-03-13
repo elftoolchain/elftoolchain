@@ -202,8 +202,8 @@ _dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		else
 			RCHECK(WRITE_VALUE(ar->ar_range, dbg->dbg_pointer_size));
 	}
-	WRITE_VALUE(0, dbg->dbg_pointer_size);
-	WRITE_VALUE(0, dbg->dbg_pointer_size);
+	RCHECK(WRITE_VALUE(0, dbg->dbg_pointer_size));
+	RCHECK(WRITE_VALUE(0, dbg->dbg_pointer_size));
 
 	/* Fill in the length field. */
 	as->as_length = ds->ds_size - 4;
