@@ -318,6 +318,10 @@
 #define	R_IA_64_DIR64LSB	0x27
 #endif
 
+#ifndef	R_MIPS_32
+#define	R_MIPS_32		0x2
+#endif
+
 #ifndef	SHT_AMD64_UNWIND
 #define	SHT_AMD64_UNWIND	0x70000001
 #endif
