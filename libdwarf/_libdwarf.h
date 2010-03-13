@@ -95,6 +95,9 @@ extern struct _libdwarf_globals _libdwarf;
 #define	WRITE_BLOCK(blk, size)						\
 	_dwarf_write_block_alloc(&ds->ds_data, &ds->ds_cap,		\
 	    &ds->ds_size, (blk), (size), error)
+#define	WRITE_PADDING(byte, cnt)					\
+	_dwarf_write_padding_alloc(&ds->ds_data, &ds->ds_cap,		\
+	    &ds->ds_size, (byte), (cnt), error)
 #define	RCHECK(expr)							\
 	do {								\
 		ret = expr;						\
@@ -475,6 +478,7 @@ Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_abbrev_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
 void		_dwarf_arange_cleanup(Dwarf_Debug);
+int		_dwarf_arange_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
@@ -602,6 +606,9 @@ int		_dwarf_write_lsb_alloc(uint8_t **, uint64_t *, uint64_t *,
 void		_dwarf_write_msb(uint8_t *, uint64_t *, uint64_t, int);
 int		_dwarf_write_msb_alloc(uint8_t **, uint64_t *, uint64_t *,
 		    uint64_t, int, Dwarf_Error *);
+void		_dwarf_write_padding(void *, uint64_t *, uint8_t, uint64_t);
+int		_dwarf_write_padding_alloc(uint8_t **, uint64_t *, uint64_t *,
+		    uint8_t, uint64_t, Dwarf_Error *);
 void		_dwarf_write_string(void *, uint64_t *, char *);
 int		_dwarf_write_string_alloc(uint8_t **, uint64_t *, uint64_t *,
 		    char *, Dwarf_Error *);

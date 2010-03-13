@@ -527,3 +527,34 @@ _dwarf_write_block_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	return (DWARF_E_NONE);
 }
+
+void
+_dwarf_write_padding(void *data, uint64_t *offsetp, uint8_t byte,
+    uint64_t length)
+{
+	uint8_t *dst;
+
+	dst = (uint8_t *) data + *offsetp;
+	memset(dst, byte, length);
+	(*offsetp) += length;
+}
+
+int
+_dwarf_write_padding_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
+    uint8_t byte, uint64_t cnt, Dwarf_Error *error)
+{
+	assert(*size > 0);
+
+	while (*offsetp + cnt > *size) {
+		*size *= 2;
+		*block = realloc(*block, *size);
+		if (*block == NULL) {
+			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			return (DWARF_E_MEMORY);
+		}
+	}
+
+	_dwarf_write_padding(*block, offsetp, byte, cnt);
+
+	return (DWARF_E_NONE);
+}
