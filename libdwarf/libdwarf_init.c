@@ -237,6 +237,13 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lflist);
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lnlist);
 
+	if ((dbg->dbgp_as = calloc(1, sizeof(struct _Dwarf_ArangeSet))) ==
+	    NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+	STAILQ_INIT(&dbg->dbgp_as->as_arlist);
+
 	return (DWARF_E_NONE);
 }
 
