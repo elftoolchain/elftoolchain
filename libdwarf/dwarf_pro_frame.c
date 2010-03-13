@@ -75,7 +75,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	}
 
 	cie->cie_caf = caf;
-	cie->cie_daf = daf;
+	cie->cie_daf = (int8_t) daf; /* daf is signed. */
 	cie->cie_ra = ra;
 	if (initinst != NULL && inst_len > 0) {
 		cie->cie_initinst = malloc(inst_len);
