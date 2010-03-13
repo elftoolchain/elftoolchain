@@ -19,8 +19,9 @@ IMAGES_MP=		fig-arstr.mp fig-ariter.mp fig-data.mp \
 
 check-example-syntax: .PHONY
 .for f in ${SRCS:Mprog*}
-	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' ${f} > $${c}; \
-	echo -n $${c} ' '; cc $${c} -lelf && rm $${c}
+	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' ${.CURDIR}/${f} > ${.OBJDIR}/$${c}; \
+	echo -n $${c} ' '; cc ${.OBJDIR}/$${c} -lelf && rm ${.OBJDIR}/$${c}
 .endfor
 	@echo
+
 .include "${TOP}/mk/elftoolchain.tex.mk"
