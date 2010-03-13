@@ -24,8 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <limits.h>
-
 #include "_libdwarf.h"
 
 static int
