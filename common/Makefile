@@ -4,7 +4,7 @@ TOP=	..
 
 .include "${TOP}/mk/elftoolchain.os.mk"
 
-all:
+all obj depend:
 
 clean:
 	rm -f ${CLEANFILES}
