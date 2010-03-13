@@ -949,6 +949,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	sec_table = NULL;
 	line_info = NULL;
 	objname = NULL;
+	rtn = 0;
 
 	if (kind == ELF_K_AR) {
 		if ((arhdr = elf_getarhdr(elf)) == NULL)
