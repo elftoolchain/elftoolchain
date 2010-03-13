@@ -24,9 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
 #include "_libdwarf.h"
 
 #define	_INIT_DWARF_STRTAB_SIZE 1024

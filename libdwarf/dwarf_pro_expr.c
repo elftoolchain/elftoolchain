@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include "_libdwarf.h"
 
 static struct _Dwarf_P_Expr_Entry *
