@@ -184,6 +184,52 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 }
 
 int
+_dwarf_reloc_entry_add_pair(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
+    Dwarf_P_Section ds, unsigned char length, Dwarf_Unsigned offset,
+    Dwarf_Unsigned symndx, Dwarf_Unsigned esymndx, Dwarf_Unsigned symoff,
+    Dwarf_Unsigned esymoff, Dwarf_Error *error)
+{
+	Dwarf_Rel_Entry dre;
+	Dwarf_Unsigned reloff;
+	int ret;
+
+	assert(drs != NULL);
+	assert(offset <= ds->ds_size);
+	assert(dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS);
+	reloff = offset;
+
+	/* Write net offset into section stream. */
+	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
+	    esymoff - symoff, length, error);
+	if (ret != DWARF_E_NONE)
+		return (ret);
+	if (offset > ds->ds_size)
+		ds->ds_size = offset;
+
+	if ((dre = calloc(2, sizeof(struct _Dwarf_Rel_Entry))) == NULL) {
+		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		return (DWARF_E_MEMORY);
+	}
+	STAILQ_INSERT_TAIL(&drs->drs_dre, &dre[0], dre_next);
+	STAILQ_INSERT_TAIL(&drs->drs_dre, &dre[1], dre_next);
+	dre[0].dre_type = dwarf_drt_first_of_length_pair;
+	dre[0].dre_length = length;
+	dre[0].dre_offset = reloff;
+	dre[0].dre_symndx = symndx;
+	dre[0].dre_addend = 0;
+	dre[0].dre_secname = NULL;
+	dre[1].dre_type = dwarf_drt_second_of_length_pair;
+	dre[1].dre_length = length;
+	dre[1].dre_offset = reloff;
+	dre[1].dre_symndx = esymndx;
+	dre[1].dre_addend = 0;
+	dre[1].dre_secname = NULL;
+	drs->drs_drecnt += 2;
+
+	return (DWARF_E_NONE);
+}
+
+int
 _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
     Dwarf_Error *error)
 {

@@ -527,6 +527,7 @@ void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
 void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
+int		_dwarf_frame_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
 		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);
 int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
@@ -570,6 +571,10 @@ int		_dwarf_reloc_entry_add(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_P_Section, unsigned char, unsigned char,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
 		    const char *, Dwarf_Error *);
+int		_dwarf_reloc_entry_add_pair(Dwarf_P_Debug, Dwarf_Rel_Section,
+		    Dwarf_P_Section, unsigned char, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Error *);
 int		_dwarf_reloc_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
