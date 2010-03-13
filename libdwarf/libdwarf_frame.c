@@ -1329,6 +1329,9 @@ _dwarf_frame_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Fde fde;
 	int ret;
 
+	if (STAILQ_EMPTY(&dbg->dbgp_cielist))
+		return (DWARF_E_NONE);
+
 	/* Create .debug_frame section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_frame", 0, error)) !=
 	    DWARF_E_NONE)
