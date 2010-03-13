@@ -1212,7 +1212,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
 		return (DWARF_E_INVALID_FRAME);
 	}
-	
+
 	return (DWARF_E_NONE);
 
 gen_fail:
@@ -1221,5 +1221,143 @@ gen_fail:
 #undef	ds
 #undef	ds_data
 #undef	ds_cap
-#undef	ds_size	
+#undef	ds_size
+}
+
+static int
+_dwarf_frame_gen_cie(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_P_Cie cie,
+    Dwarf_Error *error)
+{
+	uint64_t offset;
+	int ret;
+
+	assert(dbg != NULL && ds != NULL && cie != NULL);
+
+	cie->cie_offset = offset = ds->ds_size;
+	cie->cie_length = 0;
+	cie->cie_version = 1;
+
+	/* Length placeholder. */
+	RCHECK(WRITE_VALUE(cie->cie_length, 4));
+
+	/* .debug_frame use CIE id ~0. */
+	RCHECK(WRITE_VALUE(~0U, 4));
+
+	/* .debug_frame version is 1. (DWARF2) */
+	RCHECK(WRITE_VALUE(cie->cie_version, 1));
+
+	/* Write augmentation, if present. */
+	if (cie->cie_augment != NULL)
+		RCHECK(WRITE_BLOCK(cie->cie_augment,
+		    strlen((char *) cie->cie_augment) + 1));
+	else
+		RCHECK(WRITE_VALUE(0, 1));
+
+	/* Write caf, daf and ra. */
+	RCHECK(WRITE_ULEB128(cie->cie_caf));
+	RCHECK(WRITE_SLEB128(cie->cie_daf));
+	RCHECK(WRITE_VALUE(cie->cie_ra, 1));
+
+	/* Write initial instructions, if present. */
+	if (cie->cie_initinst != NULL)
+		RCHECK(WRITE_BLOCK(cie->cie_initinst, cie->cie_instlen));
+
+	/* TODO padding? */
+
+	/* Fill in the length field. */
+	cie->cie_length = ds->ds_size - 4;
+	dbg->write(ds->ds_data, &offset, cie->cie_length, 4);
+	
+	return (DWARF_E_NONE);
+
+gen_fail:
+	return (ret);
+}
+
+static int
+_dwarf_frame_gen_fde(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
+    Dwarf_Rel_Section drs, Dwarf_P_Fde fde, Dwarf_Error *error)
+{
+	int ret;
+
+	assert(dbg != NULL && ds != NULL && drs != NULL);
+	assert(fde != NULL && fde->fde_cie != NULL);
+
+	fde->fde_offset = ds->ds_size;
+	fde->fde_length = 0;
+	fde->fde_cieoff = fde->fde_cie->cie_offset;
+
+	/* Length placeholder. */
+	RCHECK(WRITE_VALUE(fde->fde_length, 4));
+
+	/* Write CIE pointer. */
+	RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
+	    ds->ds_size, 0, fde->fde_cieoff, ".debug_frame", error));
+
+	/* Write FDE initial location. */
+	RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc,
+	    dbg->dbg_pointer_size, ds->ds_size, fde->fde_symndx,
+	    fde->fde_initloc, NULL, error));
+
+	/*
+	 * Write FDE address range. Use a pair of relocation entries if
+	 * application provided end symbol index. Otherwise write the
+	 * length without assoicating any relocation info.
+	 */
+	if (fde->fde_esymndx > 0)
+		RCHECK(_dwarf_reloc_entry_add_pair(dbg, drs, ds,
+		    dbg->dbg_pointer_size, ds->ds_size, fde->fde_symndx,
+		    fde->fde_esymndx, fde->fde_initloc, fde->fde_eoff, error));
+	else
+		RCHECK(WRITE_VALUE(fde->fde_adrange, dbg->dbg_pointer_size));
+
+	/* Write FDE frame instructions. */
+	RCHECK(WRITE_BLOCK(fde->fde_inst, fde->fde_instlen));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	return (ret);
+}
+
+int
+_dwarf_frame_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_P_Section ds;
+	Dwarf_Rel_Section drs;
+	Dwarf_P_Cie cie;
+	Dwarf_P_Fde fde;
+	int ret;
+
+	/* Create .debug_frame section. */
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_frame", 0, error)) !=
+	    DWARF_E_NONE)
+		goto gen_fail0;
+
+	/* Create relocation section for .debug_frame */
+	RCHECK(_dwarf_reloc_section_init(dbg, &drs, ds, error));
+
+	/* Generate list of CIE. */
+	STAILQ_FOREACH(cie, &dbg->dbgp_cielist, cie_next)
+		RCHECK(_dwarf_frame_gen_cie(dbg, ds, cie, error));
+
+	/* Generate list of FDE. */
+	STAILQ_FOREACH(fde, &dbg->dbgp_fdelist, fde_next)
+		RCHECK(_dwarf_frame_gen_fde(dbg, ds, drs, fde, error));
+
+	/* Inform application the creation of .debug_frame ELF section. */
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
+
+	/* Finalize relocation section for .debug_frame */
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	_dwarf_reloc_section_free(dbg, &drs);
+
+gen_fail0:
+	_dwarf_section_free(dbg, &ds);
+
+	return (ret);
 }
