@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,6 +145,84 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 fail_cleanup:
 
 	_dwarf_arange_cleanup(dbg);
+
+	return (ret);
+}
+
+int
+_dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_P_Section ds;
+	Dwarf_Rel_Section drs;
+	Dwarf_ArangeSet as;
+	Dwarf_Arange ar;
+	uint64_t offset;
+	int ret;
+
+	as = dbg->dbgp_as;
+	assert(as != NULL);
+	if (STAILQ_EMPTY(&as->as_arlist))
+		return (DWARF_E_NONE);
+
+	as->as_length = 0;
+	as->as_version = 2;
+	as->as_cu_offset = 0;	/* We have only one CU. */
+	as->as_addrsz = dbg->dbg_pointer_size;
+	as->as_segsz = 0;	/* XXX */
+	
+	/* Create .debug_arange section. */
+	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_aranges", 0, error)) !=
+	    DWARF_E_NONE)
+		goto gen_fail0;
+
+	/* Create relocation section for .debug_aranges */
+	RCHECK(_dwarf_reloc_section_init(dbg, &drs, ds, error));
+
+	/* Write section header. */
+	RCHECK(WRITE_VALUE(as->as_length, 4));
+	RCHECK(WRITE_VALUE(as->as_version, 2));
+	RCHECK(WRITE_VALUE(as->as_cu_offset, 4));
+	RCHECK(WRITE_VALUE(as->as_addrsz, 1));
+	RCHECK(WRITE_VALUE(as->as_segsz, 1));
+
+	/* Pad to (2 * address_size) */
+	offset = roundup(ds->ds_size, 2 * as->as_addrsz);
+	if (offset > ds->ds_size)
+		RCHECK(WRITE_PADDING(0, offset - ds->ds_size));
+
+	/* Write tuples. */
+	STAILQ_FOREACH(ar, &as->as_arlist, ar_next) {
+		RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds,
+		    dwarf_drt_data_reloc, dbg->dbg_pointer_size, ds->ds_size,
+		    ar->ar_symndx, ar->ar_address, NULL, error));
+		if (ar->ar_esymndx > 0)
+			RCHECK(_dwarf_reloc_entry_add_pair(dbg, drs, ds,
+			    dbg->dbg_pointer_size, ds->ds_size, ar->ar_symndx,
+			    ar->ar_esymndx, ar->ar_address, ar->ar_eoff, error));
+		else
+			RCHECK(WRITE_VALUE(ar->ar_range, dbg->dbg_pointer_size));
+	}
+	WRITE_VALUE(0, dbg->dbg_pointer_size);
+	WRITE_VALUE(0, dbg->dbg_pointer_size);
+
+	/* Fill in the length field. */
+	as->as_length = ds->ds_size - 4;
+	offset = 0;
+	dbg->write(ds->ds_data, &offset, as->as_length, 4);
+
+	/* Inform application the creation of .debug_aranges ELF section. */
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
+
+	/* Finalize relocation section for .debug_aranges */
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	_dwarf_reloc_section_free(dbg, &drs);
+
+gen_fail0:
+	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
 }
