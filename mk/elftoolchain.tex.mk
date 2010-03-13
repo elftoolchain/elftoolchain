@@ -58,6 +58,9 @@ CLEANFILES+=	${DOC}.${f}
 
 clean:
 	rm -f ${CLEANFILES}
+
+obj depend:	# do nothing
+
 .else
 
 all clean:
