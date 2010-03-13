@@ -125,6 +125,12 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 		return (DW_DLV_NOCOUNT);
 	}
 
+	if (end_symbol_index > 0 &&
+	    (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
+		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		return (DW_DLV_NOCOUNT);
+	}
+
 	fde->fde_cie = ciep;
 	fde->fde_initloc = virt_addr;
 	fde->fde_adrange = code_len;
