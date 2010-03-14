@@ -75,7 +75,7 @@ extern struct _libdwarf_globals _libdwarf;
 
 #define	DWARF_SET_ERROR(_e, _err)	_DWARF_SET_ERROR(_e, _err, 0)
 #define	DWARF_SET_ELF_ERROR(_e)						\
-	_DWARF_SET_ERROR(_e, DWARF_E_ELF, elf_errno())
+	_DWARF_SET_ERROR(_e, DW_DLE_ELF, elf_errno())
 
 /*
  * Convenient macros for producer bytes stream generation.

@@ -34,7 +34,7 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(ARGUMENT,		"Invalid argument"), */
 	/* DEFINE_ERROR(DEBUG_INFO_NULL, "Debug info NULL"), */
 	/* DEFINE_ERROR(MEMORY,		"Insufficient memory"), */
-	DEFINE_ERROR(ELF,		"ELF error"),
+	/* DEFINE_ERROR(ELF,		"ELF error"), */
 	DEFINE_ERROR(INVALID_CU,	"Invalid compilation unit data"),
 	DEFINE_ERROR(CU_VERSION,	"Wrong CU version. Only 2 and 3 supported"),
 	DEFINE_ERROR(MISSING_ABBREV,	"Abbrev not found"),
@@ -72,7 +72,7 @@ _dwarf_errmsg(Dwarf_Error *error)
 	else
 		p = _libdwarf_errors[error->err_error];
 
-	if (error->err_error == DWARF_E_ELF)
+	if (error->err_error == DW_DLE_ELF)
 		snprintf(error->err_msg, sizeof(error->err_msg),
 		    "ELF error : %s [%s(%d)]", elf_errmsg(error->elf_error),
 		    error->err_func, error->err_line);

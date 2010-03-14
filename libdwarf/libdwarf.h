@@ -251,7 +251,7 @@ enum {
 	DW_DLE_DEBUG_INFO_NULL,		/* Debug info NULL. */
 	DW_DLE_NO_ENTRY,		/* No entry. */
 	DW_DLE_MEMORY,			/* Insufficient memory. */
-	DWARF_E_ELF,			/* ELF error. */
+	DW_DLE_ELF,			/* ELF error. */
 	DWARF_E_INVALID_CU,		/* Invalid compilation unit data. */
 	DWARF_E_CU_VERSION,		/* Wrong CU version. */
 	DWARF_E_MISSING_ABBREV,		/* Abbrev not found. */
