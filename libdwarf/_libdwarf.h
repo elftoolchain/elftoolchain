@@ -554,6 +554,7 @@ int		_dwarf_loclist_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_loclist_cleanup(Dwarf_Loclist);
 void		_dwarf_macinfo_cleanup(Dwarf_Debug);
+int		_dwarf_macinfo_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,
 		    Dwarf_Error *);
 int		_dwarf_nametbl_init(Dwarf_Debug, Dwarf_NameSec *,

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,6 +159,56 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 fail_cleanup:
 
 	_dwarf_macinfo_cleanup(dbg);
+
+	return (ret);
+}
+
+int
+_dwarf_macinfo_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_P_Section ds;
+	Dwarf_Macro_Details *md;
+	int i, ret;
+
+	if (dbg->dbgp_mdcnt == 0)
+		return (DWARF_E_NONE);
+
+	/* Create .debug_frame section. */
+	RCHECK(_dwarf_section_init(dbg, &ds, ".debug_macinfo", 0, error));
+
+	/* Write the list of Dwarf_Macro_Details. */
+	for (i = 0; (Dwarf_Unsigned) i < dbg->dbgp_mdcnt; i++) {
+		md = &dbg->dbgp_mdlist[i];
+		md->dmd_offset = ds->ds_size;
+		RCHECK(WRITE_VALUE(md->dmd_type, 1));
+		switch (md->dmd_type) {
+		case DW_MACINFO_define:
+		case DW_MACINFO_undef:
+		case DW_MACINFO_vendor_ext:
+			RCHECK(WRITE_ULEB128(md->dmd_lineno));
+			assert(md->dmd_macro != NULL);
+			RCHECK(WRITE_STRING(md->dmd_macro));
+			break;
+		case DW_MACINFO_start_file:
+			RCHECK(WRITE_ULEB128(md->dmd_lineno));
+			RCHECK(WRITE_ULEB128(md->dmd_fileindex));
+			break;
+		case DW_MACINFO_end_file:
+			break;
+		default:
+			assert(0);
+			break;
+		}
+	}
+	RCHECK(WRITE_VALUE(0, 1));
+
+	/* Inform application the creation of .debug_macinfo ELF section. */
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
 }
