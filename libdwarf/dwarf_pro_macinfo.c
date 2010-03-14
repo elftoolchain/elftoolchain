@@ -40,17 +40,19 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	}
 
 	md = &dbg->dbgp_mdlist[dbg->dbgp_mdcnt];
+	dbg->dbgp_mdcnt++;
 
 	md->dmd_offset = 0;
 	md->dmd_type = type;
 	md->dmd_lineno = lineno;
 	md->dmd_fileindex = fileindex;
+	md->dmd_macro = NULL;
 
-	if (str1 == NULL || str2 == NULL) {
-		md->dmd_macro = NULL;
+	if (str1 == NULL || str2 == NULL)
 		return (DW_DLV_OK);
-	} else if (str2 == NULL) {
+	else if (str2 == NULL) {
 		if ((md->dmd_macro = strdup(str1)) == NULL) {
+			dbg->dbgp_mdcnt--;
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 			return (DW_DLV_ERROR);
 		}
@@ -58,6 +60,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	} else {
 		len = strlen(str1) + strlen(str2) + 2;
 		if ((md->dmd_macro = malloc(len)) == NULL) {
+			dbg->dbgp_mdcnt--;
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 			return (DW_DLV_ERROR);
 		}
