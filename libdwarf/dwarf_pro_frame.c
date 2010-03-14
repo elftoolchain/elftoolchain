@@ -163,7 +163,7 @@ dwarf_fde_cfa_offset(Dwarf_P_Fde fde, Dwarf_Unsigned reg, Dwarf_Signed offset,
 	ret = _dwarf_frame_fde_add_inst(fde, DW_CFA_offset | (reg & 0x3f),
 	    offset, 0, error);
 
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (fde);
@@ -182,7 +182,7 @@ dwarf_add_fde_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 
 	ret = _dwarf_frame_fde_add_inst(fde, op, val1, val2, error);
 
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (fde);

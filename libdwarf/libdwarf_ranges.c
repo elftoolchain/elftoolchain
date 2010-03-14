@@ -53,7 +53,7 @@ _dwarf_ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 	if (cnt != NULL)
 		*cnt = i;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -71,7 +71,7 @@ _dwarf_ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
 	if (ret_rl != NULL)
 		*ret_rl = rl;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -104,7 +104,7 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	}
 
 	if (_dwarf_ranges_find(dbg, off, NULL) != DWARF_E_NO_ENTRY)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -115,7 +115,7 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	rl->rl_offset = off;
 
 	ret = _dwarf_ranges_parse(dbg, cu, ds, off, NULL, &cnt);
-	if (ret != DWARF_E_NONE) {
+	if (ret != DW_DLE_NONE) {
 		free(rl);
 		return (ret);
 	}
@@ -129,7 +129,7 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	}
 
 	ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray, NULL);
-	if (ret != DWARF_E_NONE) {
+	if (ret != DW_DLE_NONE) {
 		free(rl->rl_rgarray);
 		free(rl);
 		return (ret);
@@ -137,5 +137,5 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 
 	STAILQ_INSERT_TAIL(&dbg->dbg_rllist, rl, rl_next);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }

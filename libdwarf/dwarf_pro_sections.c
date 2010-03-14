@@ -35,7 +35,7 @@ dwarf_transform_to_disk_form(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		return (DW_DLV_NOCOUNT);
 	}
 
-	if (_dwarf_generate_sections(dbg, error) != DWARF_E_NONE)
+	if (_dwarf_generate_sections(dbg, error) != DW_DLE_NONE)
 		return (DW_DLV_NOCOUNT);
 
 	return (dbg->dbgp_seccnt);

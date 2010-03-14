@@ -73,7 +73,7 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 			ret = _dwarf_loc_fill_locdesc(dbg, ld[i],
 			    ds->ds_data + *off, len, cu->cu_pointer_size,
 			    error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 		}
 
@@ -83,7 +83,7 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 	if (ldlen != NULL)
 		*ldlen = i;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -101,7 +101,7 @@ _dwarf_loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
 	if (ret_ll != NULL)
 		*ret_ll = ll;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -112,7 +112,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	uint64_t ldlen;
 	int i, ret;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	if ((ds = _dwarf_find_section(dbg, ".debug_loc")) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
@@ -133,7 +133,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	/* Get the number of locdesc the first round. */
 	ret = _dwarf_loclist_add_locdesc(dbg, cu, ds, &lloff, NULL, &ldlen,
 	    NULL, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		goto fail_cleanup;
 
 	/*
@@ -159,7 +159,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	/* Fill in locdesc. */
 	ret = _dwarf_loclist_add_locdesc(dbg, cu, ds, &lloff, ll->ll_ldlist,
 	    NULL, &ll->ll_length, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		goto fail_cleanup;
 
 	/* Insert to the queue. Sort by offset. */
@@ -172,7 +172,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	if (tll == NULL)
 		TAILQ_INSERT_TAIL(&dbg->dbg_loclist, ll, ll_next);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 

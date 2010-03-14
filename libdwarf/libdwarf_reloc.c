@@ -90,7 +90,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 	snprintf(name, sizeof(name), "%s%s",
 	    drs->drs_addend ? ".rela" : ".rel", ref->ds_name);
 	if (_dwarf_section_init(dbg, &drs->drs_ds, name, pseudo, error) !=
-	    DWARF_E_NONE) {
+	    DW_DLE_NONE) {
 		free(drs);
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 		return (DWARF_E_MEMORY);
@@ -101,7 +101,7 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 	dbg->dbgp_drscnt++;
 	*drsp = drs;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -162,7 +162,7 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	else
 		ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
 		    0, length, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 	if (offset > ds->ds_size)
 		ds->ds_size = offset;
@@ -180,7 +180,7 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	dre->dre_secname = secname;
 	drs->drs_drecnt++;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -201,7 +201,7 @@ _dwarf_reloc_entry_add_pair(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	/* Write net offset into section stream. */
 	ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap, &offset,
 	    esymoff - symoff, length, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 	if (offset > ds->ds_size)
 		ds->ds_size = offset;
@@ -226,7 +226,7 @@ _dwarf_reloc_entry_add_pair(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	dre[1].dre_secname = NULL;
 	drs->drs_drecnt += 2;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -257,7 +257,7 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	 */
 	if (size == 0) {
 		_dwarf_reloc_section_free(dbg, &drs);
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 	}
 
 	/*
@@ -287,7 +287,7 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	}
 	ds->ds_ndx = ret;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -311,47 +311,47 @@ _dwarf_reloc_section_gen(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 			/* Write r_offset (8 bytes) */
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, dre->dre_offset, 8, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			/* Write r_info (8 bytes) */
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, ELF64_R_INFO(dre->dre_symndx, type),
 			    8, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			/* Write r_addend (8 bytes) */
 			if (drs->drs_addend) {
 				ret = dbg->write_alloc(&ds->ds_data,
 				    &ds->ds_cap, &ds->ds_size, dre->dre_addend,
 				    8, error);
-				if (ret != DWARF_E_NONE)
+				if (ret != DW_DLE_NONE)
 					return (ret);
 			}
 		} else {
 			/* Write r_offset (4 bytes) */
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, dre->dre_offset, 4, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			/* Write r_info (4 bytes) */
 			ret = dbg->write_alloc(&ds->ds_data, &ds->ds_cap,
 			    &ds->ds_size, ELF32_R_INFO(dre->dre_symndx, type),
 			    4, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			/* Write r_addend (4 bytes) */
 			if (drs->drs_addend) {
 				ret = dbg->write_alloc(&ds->ds_data,
 				    &ds->ds_cap, &ds->ds_size, dre->dre_addend,
 				    4, error);
-				if (ret != DWARF_E_NONE)
+				if (ret != DW_DLE_NONE)
 					return (ret);
 			}
 		}
 	}
 	assert(ds->ds_size == ds->ds_cap);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -381,10 +381,10 @@ _dwarf_reloc_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		 */
 		if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
 			ret = _dwarf_reloc_section_gen(dbg, drs, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 		}
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }

@@ -28,8 +28,8 @@
 
 const char *_libdwarf_errors[] = {
 #define	DEFINE_ERROR(N,S)		[DWARF_E_##N] = S
-	DEFINE_ERROR(NONE,		"No Error"),
-	DEFINE_ERROR(ERROR,		"An error"),
+	/* DEFINE_ERROR(NONE,		"No Error"), */
+	/* DEFINE_ERROR(ERROR,		"An error"), */
 	DEFINE_ERROR(NO_ENTRY,		"No entry found"),
 	DEFINE_ERROR(ARGUMENT,		"Invalid argument"),
 	DEFINE_ERROR(DEBUG_INFO,	"Debug info NULL"),
@@ -67,8 +67,8 @@ _dwarf_errmsg(Dwarf_Error *error)
 
 	if (error->err_error < 0 || error->err_error >= DWARF_E_NUM)
 		return _libdwarf_errors[DWARF_E_NUM];
-	else if (error->err_error == DWARF_E_NONE)
-		return _libdwarf_errors[DWARF_E_NONE];
+	else if (error->err_error == DW_DLE_NONE)
+		return _libdwarf_errors[DW_DLE_NONE];
 	else
 		p = _libdwarf_errors[error->err_error];
 

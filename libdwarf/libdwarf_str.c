@@ -53,7 +53,7 @@ _dwarf_strtab_add(Dwarf_Debug dbg, char *string, uint64_t *off,
 	dbg->dbg_strtab_size += len;
 	dbg->dbg_strtab[dbg->dbg_strtab_size - 1] = '\0';
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 char *
@@ -77,7 +77,7 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		if (ds == NULL) {
 			dbg->dbg_strtab = NULL;
 			dbg->dbg_strtab_cap = dbg->dbg_strtab_size = 0;
-			return (DWARF_E_NONE);
+			return (DW_DLE_NONE);
 		}
 
 		dbg->dbg_strtab_cap = dbg->dbg_strtab_size = ds->ds_size;
@@ -104,7 +104,7 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		dbg->dbg_strtab[0] = '\0';
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -126,7 +126,7 @@ _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	assert(dbg != NULL);
 
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_str", 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (ret);
 
 	if (dbg->dbg_strtab_size > ds->ds_cap) {

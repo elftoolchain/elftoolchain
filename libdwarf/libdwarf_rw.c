@@ -203,7 +203,7 @@ _dwarf_write_lsb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	_dwarf_write_lsb(*block, offsetp, value, bytes_to_write);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -256,7 +256,7 @@ _dwarf_write_msb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	_dwarf_write_msb(*block, offsetp, value, bytes_to_write);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int64_t
@@ -324,7 +324,7 @@ _dwarf_write_sleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	*offsetp += len;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 uint64_t
@@ -387,7 +387,7 @@ _dwarf_write_uleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	*offsetp += len;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int64_t
@@ -481,7 +481,7 @@ _dwarf_write_string_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	_dwarf_write_string(*block, offsetp, string);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 uint8_t *
@@ -525,7 +525,7 @@ _dwarf_write_block_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	_dwarf_write_block(*block, offsetp, blk, length);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -556,5 +556,5 @@ _dwarf_write_padding_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	_dwarf_write_padding(*block, offsetp, byte, cnt);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }

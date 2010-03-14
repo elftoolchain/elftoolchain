@@ -115,7 +115,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	}
 
 	ret = _dwarf_info_init(dbg, s, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 #define	INIT_NAMETBL(NDX, TBL)						\
@@ -124,7 +124,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		    NULL) {						\
 			ret = _dwarf_nametbl_init(dbg, &dbg->dbg_##TBL,	\
 			    s, error);					\
-			if (ret != DWARF_E_NONE)			\
+			if (ret != DW_DLE_NONE)			\
 				return (ret);				\
 		}							\
 	} while (0)
@@ -147,7 +147,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	 * Initialise call frame data.
 	 */
 	ret = _dwarf_frame_init(dbg, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 	/*
@@ -155,7 +155,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	 */
 	if ((s = _dwarf_find_section(dbg, ".debug_aranges")) != NULL) {
 		ret = _dwarf_arange_init(dbg, s, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
@@ -164,7 +164,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	 */
 	if ((s = _dwarf_find_section(dbg, ".debug_macinfo")) != NULL) {
 		ret = _dwarf_macinfo_init(dbg, s, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
@@ -244,7 +244,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 	}
 	STAILQ_INIT(&dbg->dbgp_as->as_arlist);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -252,7 +252,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 {
 	int ret;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	STAILQ_INIT(&dbg->dbg_cu);
 	STAILQ_INIT(&dbg->dbg_rllist);
@@ -262,7 +262,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
 		ret = _dwarf_consumer_init(dbg, error);
-		if (ret != DWARF_E_NONE) {
+		if (ret != DW_DLE_NONE) {
 			_dwarf_deinit(dbg);
 			return (ret);
 		}
@@ -270,7 +270,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 
 	if (dbg->dbg_mode == DW_DLC_WRITE || dbg->dbg_mode == DW_DLC_RDWR) {
 		ret = _dwarf_producer_init(dbg, pro_flags, error);
-		if (ret != DWARF_E_NONE) {
+		if (ret != DW_DLE_NONE) {
 			_dwarf_deinit(dbg);
 			return (ret);
 		}
@@ -279,10 +279,10 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 	/*
 	 * Initialise internal string table.
 	 */
-	if ((ret = _dwarf_strtab_init(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_strtab_init(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -414,5 +414,5 @@ _dwarf_alloc(Dwarf_Debug *ret_dbg, int mode, Dwarf_Error *error)
 
 	*ret_dbg = dbg;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }

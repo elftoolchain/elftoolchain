@@ -50,12 +50,12 @@ dwarf_producer_init(Dwarf_Unsigned flags, Dwarf_Callback_Func func,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DWARF_E_NONE)
+	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	dbg->dbg_mode = mode;
 
-	if (_dwarf_init(dbg, flags, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, flags, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_BADADDR);
 	}
@@ -89,12 +89,12 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DWARF_E_NONE)
+	if (_dwarf_alloc(&dbg, DW_DLC_WRITE, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	dbg->dbg_mode = mode;
 
-	if (_dwarf_init(dbg, flags, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, flags, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_BADADDR);
 	}

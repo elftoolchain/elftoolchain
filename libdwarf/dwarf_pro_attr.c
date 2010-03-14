@@ -37,14 +37,14 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
 	at->at_attrib = attr;
 	at->at_expr = loc_expr;
 
-	if (_dwarf_expr_into_block(loc_expr, error) != DWARF_E_NONE)
+	if (_dwarf_expr_into_block(loc_expr, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 	at->u[0].u64 = loc_expr->pe_length;
 	at->u[1].u8p = loc_expr->pe_block;
@@ -66,7 +66,7 @@ dwarf_add_AT_name(Dwarf_P_Die die, char *name, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (_dwarf_add_string_attr(die, &at, DW_AT_name, name, error) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);
@@ -78,7 +78,7 @@ dwarf_add_AT_comp_dir(Dwarf_P_Die die, char *dir, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (_dwarf_add_string_attr(die, &at, DW_AT_comp_dir, dir, error) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);
@@ -90,7 +90,7 @@ dwarf_add_AT_producer(Dwarf_P_Die die, char *producer, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (_dwarf_add_string_attr(die, &at, DW_AT_producer, producer, error) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);
@@ -107,7 +107,7 @@ dwarf_add_AT_const_value_signedint(Dwarf_P_Die die, Dwarf_Signed value,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -131,7 +131,7 @@ dwarf_add_AT_const_value_unsignedint(Dwarf_P_Die die, Dwarf_Unsigned value,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -151,7 +151,7 @@ dwarf_add_AT_const_value_string(Dwarf_P_Die die, char *string,
 	Dwarf_Attribute at;
 
 	if (_dwarf_add_string_attr(die, &at, DW_AT_const_value, string,
-	    error) != DWARF_E_NONE)
+	    error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);
@@ -177,7 +177,7 @@ dwarf_add_AT_targ_address_b(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -205,7 +205,7 @@ dwarf_add_AT_dataref(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 
 	ret = _dwarf_add_AT_dataref(dbg, die, attr, pc_value, sym_index,
 	    NULL, &at, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);
@@ -223,7 +223,7 @@ dwarf_add_AT_ref_address(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -248,7 +248,7 @@ dwarf_add_AT_unsigned_const(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -280,7 +280,7 @@ dwarf_add_AT_signed_const(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -314,7 +314,7 @@ dwarf_add_AT_reference(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -342,7 +342,7 @@ dwarf_add_AT_flag(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	if (_dwarf_attr_alloc(die, &at, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	at->at_die = die;
@@ -369,7 +369,7 @@ dwarf_add_AT_string(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	/* XXX Add DW_FORM_string style string instead? */
 
 	if (_dwarf_add_string_attr(die, &at, attr, string, error) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	return (at);

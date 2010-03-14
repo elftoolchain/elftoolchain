@@ -251,7 +251,7 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	if (table_column == DW_FRAME_CFA_COL) {
@@ -293,7 +293,7 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	/* Copy the CFA rule to the first column of the reg table. */
@@ -340,7 +340,7 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	*value_type = RL.dw_value_type;
@@ -372,7 +372,7 @@ dwarf_get_fde_info_for_cfa_reg3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	*value_type = CFA.dw_value_type;
@@ -407,11 +407,11 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	ret = _dwarf_frame_regtable_copy(dbg, &reg_table, rt, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	*row_pc = pc;
@@ -434,7 +434,7 @@ dwarf_expand_frame_instructions(Dwarf_Debug dbg, Dwarf_Ptr instruction,
 
 	ret = _dwarf_frame_get_fop(dbg, instruction, len, ret_oplist, ret_opcnt,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	return (DW_DLV_OK);

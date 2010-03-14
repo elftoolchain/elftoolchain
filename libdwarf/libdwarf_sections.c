@@ -61,7 +61,7 @@ _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
 
 	*dsp = ds;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -132,7 +132,7 @@ _dwarf_section_callback(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 	}
 	ds->ds_ndx = ndx;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -141,67 +141,67 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	int ret;
 
 	/* Produce .debug_info section. */
-	if ((ret = _dwarf_info_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_info_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_abbrev section. */
-	if ((ret = _dwarf_abbrev_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_abbrev_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_line section. */
-	if ((ret = _dwarf_lineno_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_lineno_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_frame section. */
-	if ((ret = _dwarf_frame_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_frame_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_aranges section. */
-	if ((ret = _dwarf_arange_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_arange_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_macinfo section. */
-	if ((ret = _dwarf_macinfo_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_macinfo_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_pubnames section. */
 	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_pubnames", dbg->dbgp_pubs,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_weaknames section. */
 	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_weaknames", dbg->dbgp_weaks,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_funcnames section. */
 	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_funcnames", dbg->dbgp_funcs,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_typenames section. */
 	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_typenames", dbg->dbgp_types,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_varnames section. */
 	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_varnames", dbg->dbgp_vars,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Produce .debug_str section. */
-	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_strtab_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Finally, update and generate all relocation sections. */
-	if ((ret = _dwarf_reloc_gen(dbg, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_reloc_gen(dbg, error)) != DW_DLE_NONE)
 		return (ret);
 
 	/* Set section/relocation iterator to the first element. */
 	dbg->dbgp_secpos = STAILQ_FIRST(&dbg->dbgp_seclist);
 	dbg->dbgp_drspos = STAILQ_FIRST(&dbg->dbgp_drslist);
 	
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 Dwarf_P_Section
