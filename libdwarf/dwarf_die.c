@@ -61,7 +61,7 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 	}
 
 	if ((cu = dbg->dbg_cu_current) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_CU_CURRENT);
+		DWARF_SET_ERROR(error, DW_DLE_DIE_NO_CU_CONTEXT);
 		return (DW_DLV_ERROR);
 	}
 

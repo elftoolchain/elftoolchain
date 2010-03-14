@@ -39,7 +39,7 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(VERSION_STAMP_ERROR, "Unsupported version"), */
 	/* DEFINE_ERROR(ABBREV_NULL,	"Abbrev not found"), */
 	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
-	DEFINE_ERROR(CU_CURRENT,	"No current compilation unit"),
+	/* DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"), */
 	DEFINE_ERROR(BAD_FORM,		"Wrong form type for attribute value"),
 	DEFINE_ERROR(INVALID_EXPR,	"Invalid DWARF expression"),
 	DEFINE_ERROR(INVALID_LOCLIST,	"Invalid loclist data"),

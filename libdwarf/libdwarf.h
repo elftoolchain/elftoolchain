@@ -256,7 +256,7 @@ enum {
 	DW_DLE_VERSION_STAMP_ERROR,	/* Invalid version. */
 	DW_DLE_ABBREV_NULL,		/* Abbrev not found. */
 	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
-	DWARF_E_CU_CURRENT,		/* No current compilation unit. */
+	DW_DLE_DIE_NO_CU_CONTEXT,	/* No current compilation unit. */
 	DWARF_E_BAD_FORM,		/* Wrong form type for attrib value. */
 	DWARF_E_INVALID_EXPR,		/* Invalid DWARF expression. */
 	DWARF_E_INVALID_LOCLIST,	/* Invalid loclist data. */
