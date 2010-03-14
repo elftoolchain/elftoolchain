@@ -290,8 +290,8 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - offset) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_LINE);
-		return (DWARF_E_INVALID_LINE);
+		DWARF_SET_ERROR(error, DW_DLE_DEBUG_LINE_LENGTH_BAD);
+		return (DW_DLE_DEBUG_LINE_LENGTH_BAD);
 	}
 
 	if ((li = calloc(1, sizeof(struct _Dwarf_LineInfo))) == NULL) {
@@ -316,7 +316,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	STAILQ_INIT(&li->li_lnlist);
 
 	if ((int)li->li_hdrlen - 5 < li->li_opbase - 1) {
-		ret = DWARF_E_INVALID_LINE;
+		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
 	}
@@ -348,7 +348,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 
 	/* Sanity check. */
 	if (p - ds->ds_data > (int) ds->ds_size) {
-		ret = DWARF_E_INVALID_LINE;
+		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
 	}
@@ -378,7 +378,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 		if (ret != DW_DLE_NONE)
 			goto fail_cleanup;
 		if (p - ds->ds_data > (int) ds->ds_size) {
-			ret = DWARF_E_INVALID_LINE;
+			ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
 			DWARF_SET_ERROR(error, ret);
 			goto fail_cleanup;
 		}
@@ -388,7 +388,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 
 	/* Sanity check. */
 	if (p - ds->ds_data - hdroff != li->li_hdrlen) {
-		ret = DWARF_E_INVALID_LINE;
+		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
 		DWARF_SET_ERROR(error, ret);
 		goto fail_cleanup;
 	}

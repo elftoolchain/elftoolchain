@@ -240,7 +240,7 @@ dwarf_linesrc(Dwarf_Line ln, char **ret_linesrc, Dwarf_Error *error)
 		;
 
 	if (lf == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_LINE);
+		DWARF_SET_ERROR(error, DW_DLE_LINE_FILE_NUM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
