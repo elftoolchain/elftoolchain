@@ -41,9 +41,10 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
 	/* DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"), */
 	DEFINE_ERROR(BAD_FORM,		"Wrong form type for attribute value"),
+	/* DEFINE_ERROR(LOC_EXPR_BAD,	"Invalid location expression"), */
 	/* DEFINE_ERROR(EXPR_LENGTH_BAD,	"Invalid DWARF expression length"), */
 	/* DEFINE_ERROR(DEBUG_LOC_SECTION_SHORT, "Loclist section too short"), */
-	DEFINE_ERROR(INVALID_ATTR,	"Invalid attribute"),
+	/* DEFINE_ERROR(ATTR_FORM_BAD,	"Invalid attribute form"), */
 	DEFINE_ERROR(INVALID_LINE,	"Invalid line info data"),
 	DEFINE_ERROR(INVALID_FRAME,	"Invalid call frame data"),
 	DEFINE_ERROR(REGTABLE_SPACE,	"Insufficient internal regtable space"),
