@@ -62,7 +62,7 @@ dwarf_new_die(Dwarf_P_Debug dbg, Dwarf_Tag new_tag,
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_die_alloc(&die, error) != DWARF_E_NONE)
+	if (_dwarf_die_alloc(&die, error) != DW_DLE_NONE)
 		return (DW_DLV_BADADDR);
 
 	die->die_dbg = dbg;

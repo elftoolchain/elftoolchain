@@ -85,7 +85,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 	int elferr, pointer_size;
 
 	if (symtab == 0 || symtab_data == NULL)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	if (gelf_getclass(elf) == ELFCLASS32)
 		pointer_size = 4;
@@ -116,13 +116,13 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 					    elferr);
 					return (DWARF_E_ELF);
 				} else
-					return (DWARF_E_NONE);
+					return (DW_DLE_NONE);
 			}
 
 			_dwarf_elf_apply_reloc(d, rel, symtab_data,
 			    pointer_size, eh.e_ident[EI_DATA]);
 
-			return (DWARF_E_NONE);
+			return (DW_DLE_NONE);
 		}
 	}
 	elferr = elf_errno();
@@ -131,7 +131,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 		return (DWARF_E_ELF);
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -146,7 +146,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	size_t symtab_ndx;
 	int elferr, i, j, n, ret;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	if ((iface = calloc(1, sizeof(*iface))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -272,7 +272,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 			if (_dwarf_elf_relocate(elf,  e->eo_data[j],
 			    elf_ndxscn(scn), symtab_ndx, symtab_data, error) !=
-			    DWARF_E_NONE)
+			    DW_DLE_NONE)
 				goto fail_cleanup;
 
 			j++;
@@ -281,7 +281,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 	assert(j == n);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 

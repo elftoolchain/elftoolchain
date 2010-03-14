@@ -43,7 +43,7 @@ _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
 	if (ret_cie != NULL)
 		*ret_cie = cie;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 static int
@@ -57,7 +57,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 
 	/* Check if we already added this CIE. */
 	if (_dwarf_frame_find_cie(fs, *off, NULL) != DWARF_E_NO_ENTRY)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -98,7 +98,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	if (*cie->cie_augment != 0 && *cie->cie_augment != 'z') {
 		*off = cie->cie_offset + ((dwarf_size == 4) ? 4 : 12) +
 		    cie->cie_length;
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 	}
 
 	/* Optional EH Data field for .eh_frame section. */
@@ -145,7 +145,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 
 	fs->fs_cielen++;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 static int
@@ -197,7 +197,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	    DWARF_E_NO_ENTRY) {
 		ret = _dwarf_frame_add_cie(dbg, fs, ds, &fde->fde_cieoff, &cie,
 		    error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 	fde->fde_cieoff = cie->cie_offset;
@@ -239,7 +239,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 
 	fs->fs_fdelen++;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 static void
@@ -327,7 +327,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 				    &entry_off, 0, error);
 		}
 
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			goto fail_cleanup;
 
 		offset = entry_off;
@@ -365,7 +365,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 
 	*frame_sec = fs;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 
@@ -403,7 +403,7 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 	printf("frame_run_inst: (caf=%ju, daf=%jd)\n", caf, daf);
 #endif
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 	init_rt = saved_rt = NULL;
 	*row_pc = pc;
 
@@ -804,7 +804,7 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		}							\
 	} while(0)
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 	*count = 0;
 
 	p = insts;
@@ -931,7 +931,7 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		(*count)++;
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -944,7 +944,7 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 
 	ret = _dwarf_frame_convert_inst(dbg, insts, len, &count, NULL, NULL,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 	if ((oplist = calloc(count, sizeof(Dwarf_Frame_Op))) == NULL) {
@@ -954,7 +954,7 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 
 	ret = _dwarf_frame_convert_inst(dbg, insts, len, &count, oplist, NULL,
 	    error);
-	if (ret != DWARF_E_NONE) {
+	if (ret != DW_DLE_NONE) {
 		_dwarf_frame_free_fop(oplist, count);
 		return (ret);
 	}
@@ -962,7 +962,7 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 	*ret_oplist = oplist;
 	*ret_opcnt = count;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -1009,7 +1009,7 @@ _dwarf_frame_regtable_copy(Dwarf_Debug dbg, Dwarf_Regtable3 **dest,
 		(*dest)->rt3_rules[i].dw_regnum =
 		    dbg->dbg_frame_undefined_value;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -1039,7 +1039,7 @@ _dwarf_frame_get_internal_table(Dwarf_Fde fde, Dwarf_Addr pc_req,
 	ret = _dwarf_frame_run_inst(dbg, rt, cie->cie_initinst,
 	    cie->cie_instlen, cie->cie_caf, cie->cie_daf, 0, ~0ULL,
 	    &row_pc, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 	/* Run instructions in FDE. */
@@ -1047,14 +1047,14 @@ _dwarf_frame_get_internal_table(Dwarf_Fde fde, Dwarf_Addr pc_req,
 		ret = _dwarf_frame_run_inst(dbg, rt, fde->fde_inst,
 		    fde->fde_instlen, cie->cie_caf, cie->cie_daf,
 		    fde->fde_initloc, pc_req, &row_pc, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
 	*ret_rt = rt;
 	*ret_row_pc = row_pc;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -1110,7 +1110,7 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if ((ds = _dwarf_find_section(dbg, ".debug_frame")) != NULL) {
 		ret = _dwarf_frame_section_init(dbg, &dbg->dbg_frame, ds, 0,
 		    error);
-		if (ret != DWARF_E_NONE) {
+		if (ret != DW_DLE_NONE) {
 			free(rt);
 			return (ret);
 		}
@@ -1118,7 +1118,7 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if ((ds = _dwarf_find_section(dbg, ".eh_frame")) != NULL) {
 		ret = _dwarf_frame_section_init(dbg, &dbg->dbg_eh_frame, ds, 1,
 		    error);
-		if (ret != DWARF_E_NONE) {
+		if (ret != DW_DLE_NONE) {
 			free(rt);
 			return (ret);
 		}
@@ -1126,7 +1126,7 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	dbg->dbg_internal_reg_table = rt;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 #define	_FDE_INST_INIT_SIZE	128
@@ -1159,7 +1159,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 
 	RCHECK(WRITE_VALUE(op, 1));
 	if (op == DW_CFA_nop)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	high2 = op & 0xc0;
 	low6 = op & 0x3f;
@@ -1176,7 +1176,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
 			return (DWARF_E_INVALID_FRAME);
 		}
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 	}
 
 	switch (low6) {
@@ -1213,7 +1213,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 		return (DWARF_E_INVALID_FRAME);
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	return (ret);
@@ -1268,7 +1268,7 @@ _dwarf_frame_gen_cie(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_P_Cie cie,
 	cie->cie_length = ds->ds_size - 4;
 	dbg->write(ds->ds_data, &offset, cie->cie_length, 4);
 	
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	return (ret);
@@ -1314,7 +1314,7 @@ _dwarf_frame_gen_fde(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 	/* Write FDE frame instructions. */
 	RCHECK(WRITE_BLOCK(fde->fde_inst, fde->fde_instlen));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	return (ret);
@@ -1330,11 +1330,11 @@ _dwarf_frame_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	int ret;
 
 	if (STAILQ_EMPTY(&dbg->dbgp_cielist))
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	/* Create .debug_frame section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_frame", 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		goto gen_fail0;
 
 	/* Create relocation section for .debug_frame */
@@ -1354,7 +1354,7 @@ _dwarf_frame_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Finalize relocation section for .debug_frame */
 	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);

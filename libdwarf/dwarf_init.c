@@ -48,15 +48,15 @@ dwarf_elf_init(Elf *elf, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_alloc(&dbg, mode, error) != DWARF_E_NONE)
+	if (_dwarf_alloc(&dbg, mode, error) != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	if (_dwarf_elf_init(dbg, elf, error) != DWARF_E_NONE) {
+	if (_dwarf_elf_init(dbg, elf, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_ERROR);
 	}
 
-	if ((ret = _dwarf_init(dbg, 0, error)) != DWARF_E_NONE) {
+	if ((ret = _dwarf_init(dbg, 0, error)) != DW_DLE_NONE) {
 		_dwarf_elf_deinit(dbg);
 		free(dbg);
 		if (ret == DWARF_E_DEBUG_INFO)
@@ -117,15 +117,15 @@ dwarf_init(int fd, int mode, Dwarf_Handler errhand, Dwarf_Ptr errarg,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_alloc(&dbg, mode, error) != DWARF_E_NONE)
+	if (_dwarf_alloc(&dbg, mode, error) != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	if (_dwarf_elf_init(dbg, elf, error) != DWARF_E_NONE) {
+	if (_dwarf_elf_init(dbg, elf, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_ERROR);
 	}
 
-	if ((ret = _dwarf_init(dbg, 0, error)) != DWARF_E_NONE) {
+	if ((ret = _dwarf_init(dbg, 0, error)) != DW_DLE_NONE) {
 		_dwarf_elf_deinit(dbg);
 		free(dbg);
 		if (ret == DWARF_E_DEBUG_INFO)
@@ -153,12 +153,12 @@ dwarf_object_init(Dwarf_Obj_Access_Interface *iface, Dwarf_Handler errhand,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_alloc(&dbg, DW_DLC_READ, error) != DWARF_E_NONE)
+	if (_dwarf_alloc(&dbg, DW_DLC_READ, error) != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	dbg->dbg_iface = iface;
 
-	if (_dwarf_init(dbg, 0, error) != DWARF_E_NONE) {
+	if (_dwarf_init(dbg, 0, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_ERROR);
 	}

@@ -43,7 +43,7 @@ _dwarf_attr_alloc(Dwarf_Die die, Dwarf_Attribute *atp, Dwarf_Error *error)
 
 	*atp = at;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 static int
@@ -53,7 +53,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	Dwarf_Attribute at;
 	int ret;
 
-	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DW_DLE_NONE)
 		return (ret);
 
 	memcpy(at, atref, sizeof(struct _Dwarf_Attribute));
@@ -82,7 +82,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	if (die->die_ab->ab_tag == DW_TAG_compile_unit &&
 	    at->at_attrib == DW_AT_stmt_list) {
 		ret = _dwarf_lineno_init(die, at->u[0].u64, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
@@ -105,7 +105,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		case DW_FORM_data8:
 			ret = _dwarf_loclist_add(die->die_cu->cu_dbg,
 			    die->die_cu, at->u[0].u64, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			break;
 		case DW_FORM_block:
@@ -113,7 +113,7 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		case DW_FORM_block2:
 		case DW_FORM_block4:
 			ret = _dwarf_loc_add(die, at, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 			break;
 		default:
@@ -127,14 +127,14 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 	if (at->at_attrib == DW_AT_ranges) {
 		ret = _dwarf_ranges_add(die->die_cu->cu_dbg, die->die_cu,
 		    at->u[0].u64, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
 	if (atp != NULL)
 		*atp = at;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 Dwarf_Attribute
@@ -159,7 +159,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 	Dwarf_Section *str;
 	int ret;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 	memset(&atref, 0, sizeof(atref));
 	atref.at_die = die;
 	atref.at_attrib = ad->ad_attrib;
@@ -244,7 +244,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		break;
 	}
 
-	if (ret == DWARF_E_NONE)
+	if (ret == DW_DLE_NONE)
 		ret = _dwarf_attr_add(die, &atref, NULL, error);
 
 	return (ret);
@@ -263,13 +263,13 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 	/* Fill in reference to other DIE in the second pass. */
 	if (pass2) {
 		if (at->at_form != DW_FORM_ref4 && at->at_form != DW_FORM_ref8)
-			return (DWARF_E_NONE);
+			return (DW_DLE_NONE);
 		if (at->at_refdie == NULL || at->at_offset == 0)
-			return (DWARF_E_NONE);
+			return (DW_DLE_NONE);
 		offset = at->at_offset;
 		dbg->write(ds->ds_data, &offset, at->at_refdie->die_offset,
 		    at->at_form == DW_FORM_ref4 ? 4 : 8);
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 	}
 
 	switch (at->at_form) {
@@ -290,7 +290,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		if (at->at_form == DW_FORM_block) {
 			ret = _dwarf_write_uleb128_alloc(&ds->ds_data,
 			    &ds->ds_cap, &ds->ds_size, at->u[0].u64, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				break;
 		} else {
 			if (at->at_form == DW_FORM_block1)
@@ -300,7 +300,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			else
 				bs = 4;
 			ret = WRITE_VALUE(at->u[0].u64, bs);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				break;
 		}
 
@@ -309,7 +309,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 
 		/* Write block data. */
 		ret = WRITE_BLOCK(at->u[1].u8p, at->u[0].u64);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			break;
 		if (at->at_expr == NULL)
 			break;
@@ -322,7 +322,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			    dwarf_drt_data_reloc, dbg->dbg_pointer_size,
 			    offset + ee->ee_loc.lr_offset + 1, ee->ee_sym,
 			    ee->ee_loc.lr_number, NULL, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				break;
 		}
 		break;
@@ -418,7 +418,7 @@ _dwarf_add_AT_dataref(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 
 	assert(dbg != NULL && die != NULL);
 
-	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DW_DLE_NONE)
 		return (ret);
 
 	at->at_die = die;
@@ -436,7 +436,7 @@ _dwarf_add_AT_dataref(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	if (atp)
 		*atp = at;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -453,14 +453,14 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
 		return (DWARF_E_ARGUMENT);
 	}
 
-	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DW_DLE_NONE)
 		return (ret);
 
 	at->at_die = die;
 	at->at_attrib = attr;
 	at->at_form = DW_FORM_strp;
 	if ((ret = _dwarf_strtab_add(die->die_dbg, string, &at->u[0].u64,
-	    error)) != DWARF_E_NONE) {
+	    error)) != DW_DLE_NONE) {
 		free(at);
 		return (ret);
 	}
@@ -470,7 +470,7 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
 
 	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -484,9 +484,9 @@ _dwarf_attr_gen(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 
 	STAILQ_FOREACH(at, &die->die_attr, at_next) {
 		ret = _dwarf_attr_write(dbg, ds, drs, cu, at, pass2, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }

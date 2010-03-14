@@ -58,7 +58,7 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 				DWARF_SET_ERROR(error, ret);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				assert(0); /* Internal error! */
 			*llbuf = ll->ll_ldlist;
 			*listlen = ll->ll_ldlen;
@@ -119,7 +119,7 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				assert(0); /* Internal error! */
 			*llbuf = ll->ll_ldlist[0];
 			*listlen = 1;
@@ -214,7 +214,7 @@ dwarf_loclist_from_expr(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 
 	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len,
 	    dbg->dbg_pointer_size, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	*llbuf = ld;
@@ -244,7 +244,7 @@ dwarf_loclist_from_expr_a(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 
 	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len, addr_size,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
 	*llbuf = ld;
@@ -315,7 +315,7 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 		return (DW_DLV_ERROR);
 	}
 
-	if (ret == DWARF_E_NONE)
+	if (ret == DW_DLE_NONE)
 		*llbuf = lbuf;
 
 	return (DW_DLV_OK);

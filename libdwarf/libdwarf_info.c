@@ -37,7 +37,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	uint64_t next_offset;
 	uint64_t offset;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	offset = 0;
 	while (offset < ds->ds_size) {
@@ -98,14 +98,14 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		/*
 		 * Parse the .debug_abbrev info for this CU.
 		 */
-		if ((ret = _dwarf_abbrev_init(dbg, cu, error)) != DWARF_E_NONE)
+		if ((ret = _dwarf_abbrev_init(dbg, cu, error)) != DW_DLE_NONE)
 			break;
 
 		/*
 		 * Parse the list of DIE for this CU.
 		 */
 		if ((ret = _dwarf_die_parse(dbg, ds, cu, dwarf_size, offset,
-		    next_offset, error)) != DWARF_E_NONE)
+		    next_offset, error)) != DW_DLE_NONE)
 			break;
 
 		offset = next_offset;
@@ -141,13 +141,13 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	/* Create .debug_init section. */
 	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 0,
-	    error)) != DWARF_E_NONE)
+	    error)) != DW_DLE_NONE)
 		goto gen_fail1;
 	ds = dbg->dbgp_info;
 
 	/* Create relocation section for .debug_init */
 	if ((ret = _dwarf_reloc_section_init(dbg, &drs, ds, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		goto gen_fail0;
 
 	/* Length placeholder. (We only use 32-bit DWARF format) */
@@ -183,7 +183,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	 */
 	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);

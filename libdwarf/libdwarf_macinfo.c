@@ -87,7 +87,7 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 	if (cnt != NULL)
 		*cnt = i;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -120,7 +120,7 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		entry_off = offset;
 
 		ret = _dwarf_macinfo_parse(dbg, ds, &offset, NULL, &cnt, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 
 		if (cnt == 0)
@@ -147,14 +147,14 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		ret = _dwarf_macinfo_parse(dbg, ds, &offset, ms->ms_mdlist,
 		    NULL, error);
 
-		if (ret != DWARF_E_NONE) {
+		if (ret != DW_DLE_NONE) {
 			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
 			ret = DWARF_E_MEMORY;
 			goto fail_cleanup;
 		}
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 
@@ -171,7 +171,7 @@ _dwarf_macinfo_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	int i, ret;
 
 	if (dbg->dbgp_mdcnt == 0)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	/* Create .debug_frame section. */
 	RCHECK(_dwarf_section_init(dbg, &ds, ".debug_macinfo", 0, error));
@@ -205,7 +205,7 @@ _dwarf_macinfo_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Inform application the creation of .debug_macinfo ELF section. */
 	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_section_free(dbg, &ds);

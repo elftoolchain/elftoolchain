@@ -34,7 +34,7 @@ _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 	int len;
 
 	if (_dwarf_loc_expr_add_atom(expr->pe_dbg, NULL, NULL, opcode, val1,
-	    val2, &len, error) != DWARF_E_NONE)
+	    val2, &len, error) != DW_DLE_NONE)
 		return (NULL);
 	assert(len > 0);
 
@@ -84,14 +84,14 @@ _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 		    &expr->pe_block[pos], &expr->pe_block[expr->pe_length],
 		    ee->ee_loc.lr_atom, ee->ee_loc.lr_number,
 		    ee->ee_loc.lr_number2, &len, error);
-		assert(ret == DWARF_E_NONE);
+		assert(ret == DW_DLE_NONE);
 		assert(len > 0);
 		pos += len;
 	}
 
 	expr->pe_invalid = 0;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 Dwarf_P_Expr
@@ -182,7 +182,7 @@ dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Unsigned *length,
 	}
 
 	if (expr->pe_block == NULL || expr->pe_invalid)
-		if (_dwarf_expr_into_block(expr, error) != DWARF_E_NONE)
+		if (_dwarf_expr_into_block(expr, error) != DW_DLE_NONE)
 			return ((Dwarf_Addr) (uintptr_t) DW_DLV_BADADDR);
 
 	*length = expr->pe_length;

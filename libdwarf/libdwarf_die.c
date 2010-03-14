@@ -44,7 +44,7 @@ _dwarf_die_alloc(Dwarf_Die *ret_die, Dwarf_Error *error)
 
 	*ret_die = die;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -60,7 +60,7 @@ _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
 		return (DWARF_E_ARGUMENT);
 	}
 
-	if ((ret = _dwarf_die_alloc(&die, error)) != DWARF_E_NONE)
+	if ((ret = _dwarf_die_alloc(&die, error)) != DW_DLE_NONE)
 		return (ret);
 
 	die->die_offset	= offset;
@@ -78,7 +78,7 @@ _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
 	if (diep != NULL)
 		*diep = die;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 /* Find die at offset 'off' within the same CU. */
@@ -138,13 +138,13 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		}
 
 		if ((ret = _dwarf_die_add(cu, die_offset, abnum, ab, &die,
-		    error)) != DWARF_E_NONE)
+		    error)) != DW_DLE_NONE)
 			return (ret);
 
 		STAILQ_FOREACH(ad, &ab->ab_attrdef, ad_next) {
 			if ((ret = _dwarf_attr_init(dbg, ds, &offset,
 			    dwarf_size, cu, die, ad, ad->ad_form, 0,
-			    error)) != DWARF_E_NONE)
+			    error)) != DW_DLE_NONE)
 				return (ret);
 		}
 
@@ -167,7 +167,7 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		}
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 void
@@ -322,12 +322,12 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	if (die->die_ab == NULL) {
 		ret = _dwarf_abbrev_add(cu, ++cu->cu_abbrev_cnt, die->die_tag,
 		    die->die_child != NULL ? 1 : 0, 0, &ab, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 		STAILQ_FOREACH(at, &die->die_attr, at_next) {
 			ret = _dwarf_attrdef_add(ab, at->at_attrib, at->at_form,
 			    0, NULL, error);
-			if (ret != DWARF_E_NONE)
+			if (ret != DW_DLE_NONE)
 				return (ret);
 		}
 		die->die_ab = ab;
@@ -340,21 +340,21 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	 */
 	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
 	    &ds->ds_size, die->die_ab->ab_entry, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 attr_gen:
 
 	/* Transform the attributes of this DIE. */
 	ret = _dwarf_attr_gen(dbg, ds, drs, cu, die, pass2, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
 	/* Proceed to child DIE. */
 	if (die->die_child != NULL) {
 		ret = _dwarf_die_gen_recursive(dbg, cu, drs, die->die_child,
 		    pass2, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
@@ -362,17 +362,17 @@ attr_gen:
 	if (die->die_right != NULL) {
 		ret = _dwarf_die_gen_recursive(dbg, cu, drs, die->die_right,
 		    pass2, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
 
 	/* Write a null DIE indicating the end of current level. */
 	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
 	    &ds->ds_size, 0, error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		return (ret);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -406,7 +406,7 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	if (cu->cu_pass2)
 		RCHECK(_dwarf_die_gen_recursive(dbg, cu, drs, die, 1, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 

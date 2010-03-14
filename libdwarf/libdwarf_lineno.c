@@ -62,7 +62,7 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 
 	*p = src;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 static int
@@ -147,7 +147,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 				p++;
 				ret = _dwarf_lineno_add_file(li, &p, compdir,
 				    error);
-				if (ret != DWARF_E_NONE)
+				if (ret != DW_DLE_NONE)
 					goto prog_fail;
 				break;
 			default:
@@ -223,7 +223,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 		}
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 prog_fail:
 
@@ -261,7 +261,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	assert(dbg != NULL);
 
 	if ((ds = _dwarf_find_section(dbg, ".debug_line")) == NULL)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	/*
 	 * Try to find out the dir where the CU was compiled. Later we
@@ -375,7 +375,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 */
 	while (*p != '\0') {
 		ret = _dwarf_lineno_add_file(li, &p, compdir, error);
-		if (ret != DWARF_E_NONE)
+		if (ret != DW_DLE_NONE)
 			goto fail_cleanup;
 		if (p - ds->ds_data > (int) ds->ds_size) {
 			ret = DWARF_E_INVALID_LINE;
@@ -398,12 +398,12 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 */
 	ret = _dwarf_lineno_run_program(cu, li, p, ds->ds_data + endoff, compdir,
 	    error);
-	if (ret != DWARF_E_NONE)
+	if (ret != DW_DLE_NONE)
 		goto fail_cleanup;
 
 	cu->cu_lineinfo = li;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 
@@ -552,7 +552,7 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		line = ln->ln_lineno;
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	return (ret);
@@ -591,7 +591,7 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	li = dbg->dbgp_lineinfo;
 	if (STAILQ_EMPTY(&li->li_lnlist))
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	li->li_length = 0;
 	li->li_version = 2;
@@ -604,12 +604,12 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	/* Create .debug_line section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_line", 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (ret);
 
 	/* Create relocation section for .debug_line */
 	if ((ret = _dwarf_reloc_section_init(dbg, &drs, ds, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		goto gen_fail1;
 
 	/* Length placeholder. (We only use 32-bit DWARF format) */
@@ -676,7 +676,7 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Finalize relocation section for .debug_line. */
 	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);

@@ -101,7 +101,7 @@ extern struct _libdwarf_globals _libdwarf;
 #define	RCHECK(expr)							\
 	do {								\
 		ret = expr;						\
-		if (ret != DWARF_E_NONE)				\
+		if (ret != DW_DLE_NONE)				\
 			goto gen_fail;					\
 	} while(0)
 

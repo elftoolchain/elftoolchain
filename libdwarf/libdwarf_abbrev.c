@@ -56,7 +56,7 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 	if (abp != NULL)
 		*abp = ab;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -89,7 +89,7 @@ _dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
 	if (adp != NULL)
 		*adp = ad;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -107,7 +107,7 @@ _dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 	uint64_t tag;
 	u_int8_t children;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	ds = _dwarf_find_section(dbg, ".debug_abbrev");
 	assert(ds != NULL);
@@ -130,7 +130,7 @@ _dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 		children = dbg->read(ds->ds_data, &offset, 1);
 
 		if ((ret = _dwarf_abbrev_add(cu, entry, tag, children, aboff,
-		    &ab, error)) != DWARF_E_NONE)
+		    &ab, error)) != DW_DLE_NONE)
 			break;
 
 		do {
@@ -139,7 +139,7 @@ _dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 			form = _dwarf_read_uleb128(ds->ds_data, &offset);
 			if (attr != 0)
 				if ((ret = _dwarf_attrdef_add(ab, attr, form,
-				    adoff, NULL, error)) != DWARF_E_NONE)
+				    adoff, NULL, error)) != DW_DLE_NONE)
 					return (ret);
 		} while (attr != 0);
 
@@ -174,11 +174,11 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	cu = STAILQ_FIRST(&dbg->dbg_cu);
 	if (cu == NULL)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	/* Create .debug_abbrev section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_abbrev", 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		return (ret);
 
 	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
@@ -199,7 +199,7 @@ _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Notify the creation of .debug_abbrev ELF section. */
 	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 

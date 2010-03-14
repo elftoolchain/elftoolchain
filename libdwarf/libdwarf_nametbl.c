@@ -146,7 +146,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 
 	*namesec = ns;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 
@@ -167,7 +167,7 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 
 	assert(dbg != NULL && name != NULL);
 	if (nt == NULL || STAILQ_EMPTY(&nt->nt_nplist))
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	nt->nt_length = 0;
 	nt->nt_version = 2;
@@ -178,7 +178,7 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 
 	/* Create name lookup section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, name, 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		goto gen_fail0;
 
 	/* Create relocation section for the name lookup section. */
@@ -211,7 +211,7 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 	/* Finalize relocation section for the name lookup section. */
 	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);

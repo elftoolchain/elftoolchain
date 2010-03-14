@@ -466,7 +466,7 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 	if (length)
 		*length = p - out;
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -488,7 +488,7 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 
 	llbuf->ld_cents = num;
 	if (num <= 0)
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	if ((llbuf->ld_s = calloc(num, sizeof(Dwarf_Loc))) == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
@@ -497,7 +497,7 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 
 	(void) _dwarf_loc_fill_loc(dbg, llbuf, pointer_size, in, in_len);
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 }
 
 int
@@ -517,7 +517,7 @@ _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 
 	ret = _dwarf_loc_fill_locdesc(dbg, llbuf, in, in_len, pointer_size,
 	    error);
-	if (ret != DWARF_E_NONE) {
+	if (ret != DW_DLE_NONE) {
 		free(llbuf);
 		return (ret);
 	}

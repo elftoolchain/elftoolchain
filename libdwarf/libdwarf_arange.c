@@ -58,7 +58,7 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	uint64_t offset, dwarf_size, length, addr, range;
 	int i, ret;
 
-	ret = DWARF_E_NONE;
+	ret = DW_DLE_NONE;
 
 	offset = 0;
 	while (offset < ds->ds_size) {
@@ -140,7 +140,7 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		assert((Dwarf_Unsigned)i == dbg->dbg_arange_cnt);
 	}
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 fail_cleanup:
 
@@ -162,7 +162,7 @@ _dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	as = dbg->dbgp_as;
 	assert(as != NULL);
 	if (STAILQ_EMPTY(&as->as_arlist))
-		return (DWARF_E_NONE);
+		return (DW_DLE_NONE);
 
 	as->as_length = 0;
 	as->as_version = 2;
@@ -172,7 +172,7 @@ _dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	
 	/* Create .debug_arange section. */
 	if ((ret = _dwarf_section_init(dbg, &ds, ".debug_aranges", 0, error)) !=
-	    DWARF_E_NONE)
+	    DW_DLE_NONE)
 		goto gen_fail0;
 
 	/* Create relocation section for .debug_aranges */
@@ -216,7 +216,7 @@ _dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Finalize relocation section for .debug_aranges */
 	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
-	return (DWARF_E_NONE);
+	return (DW_DLE_NONE);
 
 gen_fail:
 	_dwarf_reloc_section_free(dbg, &drs);

@@ -245,8 +245,8 @@ typedef struct Dwarf_Relocation_Data_s {
  * Error numbers which are specific to this implementation.
  */
 enum {
-	DWARF_E_NONE,			/* No error. */
-	DWARF_E_ERROR,			/* An error! */
+	DW_DLE_NONE,			/* No error. */
+	DW_DLE_ERROR,			/* An error! */
 	DWARF_E_NO_ENTRY,		/* No entry. */
 	DWARF_E_ARGUMENT,		/* Invalid argument. */
 	DWARF_E_DEBUG_INFO,		/* Debug info NULL. */
