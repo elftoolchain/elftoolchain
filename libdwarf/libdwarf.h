@@ -259,7 +259,7 @@ enum {
 	DW_DLE_DIE_NO_CU_CONTEXT,	/* No current compilation unit. */
 	DWARF_E_BAD_FORM,		/* Wrong form type for attrib value. */
 	DW_DLE_EXPR_LENGTH_BAD,		/* Invalid DWARF expression. */
-	DWARF_E_INVALID_LOCLIST,	/* Invalid loclist data. */
+	DW_DLE_DEBUG_LOC_SECTION_SHORT,	/* Loclist section too short. */
 	DWARF_E_INVALID_ATTR,		/* Invalid attribute. */
 	DWARF_E_INVALID_LINE,		/* Invalid line info data. */
 	DWARF_E_INVALID_FRAME,		/* Invalid call frame data. */

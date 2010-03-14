@@ -62,8 +62,8 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 		/* Otherwise it's normal entry. */
 		len = dbg->read(ds->ds_data, off, 2);
 		if (*off + len > ds->ds_size) {
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_LOCLIST);
-			return (DWARF_E_INVALID_LOCLIST);
+			DWARF_SET_ERROR(error, DW_DLE_DEBUG_LOC_SECTION_SHORT);
+			return (DW_DLE_DEBUG_LOC_SECTION_SHORT);
 		}
 
 		if (total_len != NULL)
