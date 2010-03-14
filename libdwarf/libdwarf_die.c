@@ -271,16 +271,14 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	Dwarf_AttrDef ad;
 	int match, ret;
 
-	if (STAILQ_EMPTY(&die->die_attr)) {
-		DWARF_SET_ERROR(error, DWARF_E_DIE_NULL_ATTR);
-		return (DWARF_E_DIE_NULL_ATTR);
-	}
-
 	ds = dbg->dbgp_info;
 	assert(ds != NULL);
 
 	if (pass2)
 		goto attr_gen;
+
+	if (STAILQ_EMPTY(&die->die_attr))
+		goto null_die;
 
 	/*
 	 * Search abbrev list to find a matching entry.
@@ -366,6 +364,7 @@ attr_gen:
 			return (ret);
 	}
 
+null_die:
 	/* Write a null DIE indicating the end of current level. */
 	ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
 	    &ds->ds_size, 0, error);

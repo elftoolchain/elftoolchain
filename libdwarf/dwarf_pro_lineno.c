@@ -48,7 +48,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 			ln0 = ln;
 	}
 	if (ln0 == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_SEQUENCE);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
