@@ -267,7 +267,7 @@ enum {
 	DW_DLE_NO_CIE_FOR_FDE,		/* CIE not found for certain FDE. */
 	DW_DLE_FRAME_INSTR_EXEC_ERROR,	/* Frame instruction exec error. */
 	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
-	DWARF_E_REGTABLE_SPACE,		/* Insufficient regtable space. */
+	DW_DLE_DF_REG_NUM_TOO_HIGH,	/* Insufficient regtable space. */
 	DWARF_E_INVALID_ARANGE,		/* Invalid address range data. */
 	DWARF_E_INVALID_MACINFO,	/* Invalid macinfo data. */
 	DWARF_E_SEQUENCE,		/* API called in wrong sequence. */

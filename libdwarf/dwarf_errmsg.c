@@ -50,7 +50,7 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(NO_CIE_FOR_FDE,	"FDE without corresponding CIE"), */
 	/* DEFINE_ERROR(FRAME_INSTR_EXEC_ERROR, "Frame instruction exec error"), */
 	/* DEFINE_ERROR(FRAME_VERSION_BAD,	"Unsupported frame section version"), */
-	DEFINE_ERROR(REGTABLE_SPACE,	"Insufficient internal regtable space"),
+	/* DEFINE_ERROR(DF_REG_NUM_TOO_HIGH, "Register number too large"), */
 	DEFINE_ERROR(INVALID_ARANGE,	"Invalid address range data"),
 	DEFINE_ERROR(INVALID_MACINFO,	"Invalid macinfo data"),
 	DEFINE_ERROR(SEQUENCE,		"API called in wrong sequence"),
