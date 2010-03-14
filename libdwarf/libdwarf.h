@@ -263,7 +263,10 @@ enum {
 	DW_DLE_ATTR_FORM_BAD,		/* Invalid attribute form. */
 	DW_DLE_DEBUG_LINE_LENGTH_BAD,	/* Line info section too short. */
 	DW_DLE_LINE_FILE_NUM_BAD,	/* Invalid file number. */
-	DWARF_E_INVALID_FRAME,		/* Invalid call frame data. */
+	DW_DLE_DEBUG_FRAME_LENGTH_BAD,	/* Frame section too short. */
+	DW_DLE_NO_CIE_FOR_FDE,		/* CIE not found for certain FDE. */
+	DW_DLE_FRAME_INSTR_EXEC_ERROR,	/* Frame instruction exec error. */
+	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
 	DWARF_E_REGTABLE_SPACE,		/* Insufficient regtable space. */
 	DWARF_E_INVALID_ARANGE,		/* Invalid address range data. */
 	DWARF_E_INVALID_MACINFO,	/* Invalid macinfo data. */
