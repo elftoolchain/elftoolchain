@@ -86,7 +86,7 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 		drs->drs_drd = calloc(*reloc_entry_count,
 		    sizeof(struct Dwarf_Relocation_Data_s));
 		if (drs->drs_drd == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		for (i = 0, dre = STAILQ_FIRST(&drs->drs_dre);

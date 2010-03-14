@@ -124,8 +124,8 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 		return (ret);
 
 	if ((ll = malloc(sizeof(struct _Dwarf_Loclist))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	ll->ll_offset = lloff;
@@ -142,14 +142,14 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	 */
 	ll->ll_ldlen = ldlen;
 	if ((ll->ll_ldlist = calloc(ldlen, sizeof(Dwarf_Locdesc *))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		ret = DWARF_E_MEMORY;
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		ret = DW_DLE_MEMORY;
 		goto fail_cleanup;
 	}
 	for (i = 0; (uint64_t) i < ldlen; i++) {
 		if ((ll->ll_ldlist[i] = calloc(1, sizeof(Dwarf_Locdesc))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			ret = DWARF_E_MEMORY;
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
 	}

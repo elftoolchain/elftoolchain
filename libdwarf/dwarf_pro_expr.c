@@ -39,7 +39,7 @@ _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 	assert(len > 0);
 
 	if ((ee = calloc(1, sizeof(*ee))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (NULL);
 	}
 
@@ -73,8 +73,8 @@ _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 
 
 	if ((expr->pe_block = calloc((size_t) expr->pe_length, 1)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	pos = 0;
@@ -105,7 +105,7 @@ dwarf_new_expr(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	}
 
 	if ((pe = calloc(1, sizeof(struct _Dwarf_P_Expr))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_BADADDR);
 	}
 	STAILQ_INIT(&pe->pe_eelist);

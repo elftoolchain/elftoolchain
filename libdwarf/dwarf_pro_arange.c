@@ -56,7 +56,7 @@ dwarf_add_arange_b(Dwarf_P_Debug dbg, Dwarf_Addr start, Dwarf_Unsigned length,
 	}
 
 	if ((ar = calloc(1, sizeof(struct _Dwarf_Arange))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (0);
 	}
 	ar->ar_as = as;

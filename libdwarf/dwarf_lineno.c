@@ -66,7 +66,7 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 
 	if ((li->li_lnarray = malloc(*linecount *
 	    sizeof(struct _Dwarf_Line))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -118,7 +118,7 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 	}
 
 	if ((li->li_lfnarray = malloc(*srccount * sizeof(char *))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 

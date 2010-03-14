@@ -85,8 +85,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	dbg->dbg_seccnt = cnt;
 
 	if ((dbg->dbg_section = calloc(cnt, sizeof(Dwarf_Section))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	for (i = 0; i < cnt; i++) {
@@ -231,16 +231,16 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	if ((dbg->dbgp_lineinfo = calloc(1, sizeof(struct _Dwarf_LineInfo))) ==
 	    NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lflist);
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lnlist);
 
 	if ((dbg->dbgp_as = calloc(1, sizeof(struct _Dwarf_ArangeSet))) ==
 	    NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&dbg->dbgp_as->as_arlist);
 
@@ -406,8 +406,8 @@ _dwarf_alloc(Dwarf_Debug *ret_dbg, int mode, Dwarf_Error *error)
 	Dwarf_Debug dbg;
 
 	if ((dbg = calloc(sizeof(struct _Dwarf_Debug), 1)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	dbg->dbg_mode = mode;

@@ -127,16 +127,16 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			break;
 
 		if ((ms = calloc(1, sizeof(struct _Dwarf_MacroSet))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			ret = DWARF_E_MEMORY;
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
 		STAILQ_INSERT_TAIL(&dbg->dbg_mslist, ms, ms_next);
 
 		if ((ms->ms_mdlist = calloc(cnt, sizeof(Dwarf_Macro_Details)))
 		    == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			ret = DWARF_E_MEMORY;
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
 
@@ -148,8 +148,8 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		    NULL, error);
 
 		if (ret != DW_DLE_NONE) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			ret = DWARF_E_MEMORY;
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
 	}

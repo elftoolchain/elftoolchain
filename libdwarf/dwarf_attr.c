@@ -80,7 +80,7 @@ dwarf_attrlist(Dwarf_Die die, Dwarf_Attribute **attrbuf,
 
 	if ((die->die_attrarray = malloc(*attrcount * sizeof(Dwarf_Attribute)))
 	    == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 

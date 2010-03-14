@@ -40,7 +40,7 @@ dwarf_add_$1name(Dwarf_P_Debug dbg, Dwarf_P_Die die, char *$1_name,
 	if (dbg->dbgp_$1s == NULL) {
 		dbg->dbgp_$1s = calloc(1, sizeof(struct _Dwarf_NameTbl));
 		if (dbg->dbgp_$1s == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 			return (0);
 		}
 		STAILQ_INIT(&dbg->dbgp_$1s->nt_nplist);
@@ -49,7 +49,7 @@ dwarf_add_$1name(Dwarf_P_Debug dbg, Dwarf_P_Die die, char *$1_name,
 	nt = dbg->dbgp_$1s;
 
 	if ((np = calloc(1, sizeof(struct _Dwarf_NamePair))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (0);
 	}
 
@@ -57,7 +57,7 @@ dwarf_add_$1name(Dwarf_P_Debug dbg, Dwarf_P_Die die, char *$1_name,
 	np->np_die = die;
 	if ((np->np_name = strdup($1_name)) == NULL) {
 		free(np);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (0);
 	}
 

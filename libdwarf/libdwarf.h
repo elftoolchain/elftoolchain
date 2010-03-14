@@ -250,7 +250,7 @@ enum {
 	DW_DLE_ARGUMENT,		/* Invalid argument. */
 	DW_DLE_DEBUG_INFO_NULL,		/* Debug info NULL. */
 	DWARF_E_NO_ENTRY,		/* No entry. */
-	DWARF_E_MEMORY,			/* Insufficient memory. */
+	DW_DLE_MEMORY,			/* Insufficient memory. */
 	DWARF_E_ELF,			/* ELF error. */
 	DWARF_E_INVALID_CU,		/* Invalid compilation unit data. */
 	DWARF_E_CU_VERSION,		/* Wrong CU version. */
