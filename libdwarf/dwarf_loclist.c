@@ -53,7 +53,7 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		case DW_FORM_data8:
 			ret = _dwarf_loclist_find(at->at_die->die_dbg,
 			    at->u[0].u64, &ll);
-			if (ret == DWARF_E_NO_ENTRY) {
+			if (ret == DW_DLE_NO_ENTRY) {
 				/* Malformed Attr? */
 				DWARF_SET_ERROR(error, ret);
 				return (DW_DLV_NO_ENTRY);
@@ -115,7 +115,7 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 		case DW_FORM_data8:
 			ret = _dwarf_loclist_find(at->at_die->die_dbg,
 			    at->u[0].u64, &ll);
-			if (ret == DWARF_E_NO_ENTRY) {
+			if (ret == DW_DLE_NO_ENTRY) {
 				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 				return (DW_DLV_NO_ENTRY);
 			}
@@ -165,7 +165,7 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 	}
 
 	ret = _dwarf_loclist_find(dbg, offset, &ll);
-	if (ret == DWARF_E_NO_ENTRY) {
+	if (ret == DW_DLE_NO_ENTRY) {
 		DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
 		return (DW_DLV_NO_ENTRY);
 	}
@@ -290,7 +290,7 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 	}
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

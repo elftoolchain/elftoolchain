@@ -30,7 +30,7 @@ const char *_libdwarf_errors[] = {
 #define	DEFINE_ERROR(N,S)		[DWARF_E_##N] = S
 	/* DEFINE_ERROR(NONE,		"No Error"), */
 	/* DEFINE_ERROR(ERROR,		"An error"), */
-	DEFINE_ERROR(NO_ENTRY,		"No entry found"),
+	/* DEFINE_ERROR(NO_ENTRY,		"No entry found"), */
 	/* DEFINE_ERROR(ARGUMENT,		"Invalid argument"), */
 	/* DEFINE_ERROR(DEBUG_INFO_NULL, "Debug info NULL"), */
 	/* DEFINE_ERROR(MEMORY,		"Insufficient memory"), */

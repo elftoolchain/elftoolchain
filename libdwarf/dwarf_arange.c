@@ -37,7 +37,7 @@ dwarf_get_aranges(Dwarf_Debug dbg, Dwarf_Arange **arlist,
 	}
 
 	if (dbg->dbg_arange_cnt == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -70,7 +70,7 @@ dwarf_get_arange(Dwarf_Arange *arlist, Dwarf_Unsigned arange_cnt,
 		}
 	}
 
-	DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+	DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 
 	return (DW_DLV_NO_ENTRY);
 }

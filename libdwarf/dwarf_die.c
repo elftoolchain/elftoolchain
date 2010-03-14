@@ -40,7 +40,7 @@ dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 
 	if ((next = die->die_child) == NULL) {
 		*ret_die = NULL;
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	} else
 		*ret_die = next;
@@ -70,13 +70,13 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 	if (die == NULL) {
 		*caller_ret_die = STAILQ_FIRST(&cu->cu_die);
 		if (*caller_ret_die == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+			DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 			ret = DW_DLV_NO_ENTRY;
 		}
 	} else {
 		*caller_ret_die = die->die_right;
 		if (*caller_ret_die == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+			DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 			ret = DW_DLV_NO_ENTRY;
 		}
 	}
@@ -186,7 +186,7 @@ dwarf_diename(Dwarf_Die die, char **ret_name, Dwarf_Error *error)
 	}
 
 	if (die->die_name == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -226,7 +226,7 @@ dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug dbg,
 	}
 
 	if (cu == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

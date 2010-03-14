@@ -96,7 +96,7 @@ _dwarf_loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
 			break;
 
 	if (ll == NULL)
-		return (DWARF_E_NO_ENTRY);
+		return (DW_DLE_NO_ENTRY);
 
 	if (ret_ll != NULL)
 		*ret_ll = ll;
@@ -115,12 +115,12 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	ret = DW_DLE_NONE;
 
 	if ((ds = _dwarf_find_section(dbg, ".debug_loc")) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
-		return (DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		return (DW_DLE_NO_ENTRY);
 	}
 
 	/* First we search if we have already added this loclist. */
-	if (_dwarf_loclist_find(dbg, lloff, NULL) != DWARF_E_NO_ENTRY)
+	if (_dwarf_loclist_find(dbg, lloff, NULL) != DW_DLE_NO_ENTRY)
 		return (ret);
 
 	if ((ll = malloc(sizeof(struct _Dwarf_Loclist))) == NULL) {

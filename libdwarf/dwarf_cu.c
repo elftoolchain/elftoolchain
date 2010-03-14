@@ -44,7 +44,7 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
 		dbg->dbg_cu_current = STAILQ_NEXT(dbg->dbg_cu_current, cu_next);
 
 	if (dbg->dbg_cu_current == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

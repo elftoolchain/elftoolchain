@@ -38,7 +38,7 @@ _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
 	}
 
 	if (cie == NULL)
-		return (DWARF_E_NO_ENTRY);
+		return (DW_DLE_NO_ENTRY);
 
 	if (ret_cie != NULL)
 		*ret_cie = cie;
@@ -56,7 +56,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	char *p;
 
 	/* Check if we already added this CIE. */
-	if (_dwarf_frame_find_cie(fs, *off, NULL) != DWARF_E_NO_ENTRY)
+	if (_dwarf_frame_find_cie(fs, *off, NULL) != DW_DLE_NO_ENTRY)
 		return (DW_DLE_NONE);
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
@@ -194,7 +194,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		fde->fde_cieoff = dbg->read(ds->ds_data, off, dwarf_size);
 
 	if (_dwarf_frame_find_cie(fs, fde->fde_cieoff, &cie) ==
-	    DWARF_E_NO_ENTRY) {
+	    DW_DLE_NO_ENTRY) {
 		ret = _dwarf_frame_add_cie(dbg, fs, ds, &fde->fde_cieoff, &cie,
 		    error);
 		if (ret != DW_DLE_NONE)
