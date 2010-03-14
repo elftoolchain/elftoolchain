@@ -393,19 +393,22 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 
 	die = dbg->dbgp_root_die;
 
-	ret = _dwarf_die_gen_recursive(dbg, cu, drs, die, 0, error);
-	if (ret != DWARF_E_NONE)
-		goto fail_cleanup;
+	/*
+	 * Insert a DW_AT_stmt_list attribute into root DIE, if there are
+	 * line number information.
+	 */
+	if (!STAILQ_EMPTY(&dbg->dbgp_lineinfo->li_lnlist))
+		RCHECK(_dwarf_add_AT_dataref(dbg, die, DW_AT_stmt_list, 0, 0,
+		    ".debug_line", NULL, error));
 
-	if (cu->cu_pass2) {
-		ret = _dwarf_die_gen_recursive(dbg, cu, drs, die, 1, error);
-		if (ret != DWARF_E_NONE)
-			goto fail_cleanup;
-	}
+	RCHECK(_dwarf_die_gen_recursive(dbg, cu, drs, die, 0, error));
+
+	if (cu->cu_pass2)
+		RCHECK(_dwarf_die_gen_recursive(dbg, cu, drs, die, 1, error));
 
 	return (DWARF_E_NONE);
 
-fail_cleanup:
+gen_fail:
 
 	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
 		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
