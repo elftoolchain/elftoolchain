@@ -363,7 +363,7 @@ Dwarf_P_Attribute dwarf_add_AT_flag(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 Dwarf_P_Attribute dwarf_add_AT_string(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_location_expr(Dwarf_P_Debug, Dwarf_P_Die,
-		    Dwarf_Half, Dwarf_P_Expr, Dwarf_Error *error);
+		    Dwarf_Half, Dwarf_P_Expr, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_arange(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
 		    Dwarf_Signed, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_arange_b(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
@@ -390,6 +390,16 @@ Dwarf_Unsigned	dwarf_add_frame_fde(Dwarf_P_Debug, Dwarf_P_Fde, Dwarf_P_Die,
 Dwarf_Unsigned	dwarf_add_frame_fde_b(Dwarf_P_Debug, Dwarf_P_Fde, Dwarf_P_Die,
 		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Addr, Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_funcname(Dwarf_P_Debug, Dwarf_P_Die, char *,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_pubname(Dwarf_P_Debug, Dwarf_P_Die, char *,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_typename(Dwarf_P_Debug, Dwarf_P_Die, char *,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_varname(Dwarf_P_Debug, Dwarf_P_Die, char *,
+		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_add_weakname(Dwarf_P_Debug, Dwarf_P_Die, char *,
+		    Dwarf_Error *);
 Dwarf_Unsigned	dwarf_add_line_entry(Dwarf_P_Debug, Dwarf_Unsigned,
 		    Dwarf_Addr, Dwarf_Unsigned, Dwarf_Signed, Dwarf_Bool,
 		    Dwarf_Bool, Dwarf_Error *);
