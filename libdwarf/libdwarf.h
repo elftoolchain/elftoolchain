@@ -257,7 +257,6 @@ enum {
 	DW_DLE_ABBREV_NULL,		/* Abbrev not found. */
 	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
 	DW_DLE_DIE_NO_CU_CONTEXT,	/* No current compilation unit. */
-	DWARF_E_BAD_FORM,		/* Wrong form type for attrib value. */
 	DW_DLE_LOC_EXPR_BAD,		/* Invalid location expression. */
 	DW_DLE_EXPR_LENGTH_BAD,		/* Invalid DWARF expression. */
 	DW_DLE_DEBUG_LOC_SECTION_SHORT,	/* Loclist section too short. */
