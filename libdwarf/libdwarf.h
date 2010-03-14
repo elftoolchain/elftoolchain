@@ -254,7 +254,7 @@ enum {
 	DW_DLE_ELF,			/* ELF error. */
 	DW_DLE_CU_LENGTH_ERROR,		/* Invalid compilation unit data. */
 	DW_DLE_VERSION_STAMP_ERROR,	/* Invalid version. */
-	DWARF_E_MISSING_ABBREV,		/* Abbrev not found. */
+	DW_DLE_ABBREV_NULL,		/* Abbrev not found. */
 	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
 	DWARF_E_CU_CURRENT,		/* No current compilation unit. */
 	DWARF_E_BAD_FORM,		/* Wrong form type for attrib value. */
