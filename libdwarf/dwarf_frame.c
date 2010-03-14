@@ -34,7 +34,7 @@ dwarf_get_fde_list(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 
 	if (dbg == NULL || cie_list == NULL || cie_count == NULL ||
 	    fde_list == NULL || fde_count == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -65,7 +65,7 @@ dwarf_get_fde_list_eh(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 
 	if (dbg == NULL || cie_list == NULL || cie_count == NULL ||
 	    fde_list == NULL || fde_count == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -95,7 +95,7 @@ dwarf_get_fde_n(Dwarf_Fde *fdelist, Dwarf_Unsigned fde_index,
 	Dwarf_FrameSec fs;
 
 	if (fdelist == NULL || ret_fde == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -122,7 +122,7 @@ dwarf_get_fde_at_pc(Dwarf_Fde *fdelist, Dwarf_Addr pc, Dwarf_Fde *ret_fde,
 
 	if (fdelist == NULL || ret_fde == NULL || lopc == NULL ||
 	    hipc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -149,7 +149,7 @@ dwarf_get_cie_of_fde(Dwarf_Fde fde, Dwarf_Cie *ret_cie, Dwarf_Error *error)
 {
 
 	if (fde == NULL || ret_cie == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -167,7 +167,7 @@ dwarf_get_fde_range(Dwarf_Fde fde, Dwarf_Addr *low_pc, Dwarf_Unsigned *func_len,
 	if (fde == NULL || low_pc == NULL || func_len == NULL ||
 	    fde_bytes == NULL || fde_byte_len == NULL || cie_offset == NULL ||
 	    cie_index == NULL || fde_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -197,7 +197,7 @@ dwarf_get_cie_info(Dwarf_Cie cie, Dwarf_Unsigned *bytes_in_cie,
 	if (cie == NULL || bytes_in_cie == NULL || version == NULL ||
 	    augmenter == NULL || caf == NULL || daf == NULL || ra == NULL ||
 	    initinst == NULL || inst_len == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -220,7 +220,7 @@ dwarf_get_fde_instr_bytes(Dwarf_Fde fde, Dwarf_Ptr *ret_inst,
 {
 
 	if (fde == NULL || ret_inst == NULL || ret_len == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -245,7 +245,7 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 
 	if (fde == NULL || offset_relevant == NULL || register_num == NULL ||
 	    offset == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -284,7 +284,7 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	int i, ret;
 
 	if (fde == NULL || reg_table == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -334,7 +334,7 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
 	if (fde == NULL || value_type == NULL || offset_relevant == NULL ||
 	    register_num == NULL || offset_or_block_len == NULL ||
 	    block_ptr == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -366,7 +366,7 @@ dwarf_get_fde_info_for_cfa_reg3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	if (fde == NULL || value_type == NULL || offset_relevant == NULL ||
 	    register_num == NULL || offset_or_block_len == NULL ||
 	    block_ptr == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -398,7 +398,7 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	int ret;
 
 	if (fde == NULL || reg_table == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -428,7 +428,7 @@ dwarf_expand_frame_instructions(Dwarf_Debug dbg, Dwarf_Ptr instruction,
 
 	if (dbg == NULL || instruction == NULL || len == 0 ||
 	    ret_oplist == NULL || ret_opcnt == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -446,7 +446,7 @@ dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *oplist, Dwarf_Signed opcnt,
 {
 
 	if (oplist == NULL || opcnt == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

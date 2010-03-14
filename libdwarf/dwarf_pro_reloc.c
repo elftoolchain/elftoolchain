@@ -32,7 +32,7 @@ dwarf_get_relocation_info_count(Dwarf_P_Debug dbg, Dwarf_Unsigned *reloc_cnt,
 {
 
 	if (dbg == NULL || reloc_cnt == NULL || drd_buffer_version == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -59,7 +59,7 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 	if (dbg == NULL || elf_section_index == NULL ||
 	    elf_section_link == NULL || reloc_entry_count == NULL ||
 	    reloc_buffer == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

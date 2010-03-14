@@ -32,7 +32,7 @@ dwarf_add_die_to_debug(Dwarf_P_Debug dbg, Dwarf_P_Die first_die,
 {
 
 	if (dbg == NULL || first_die == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -50,7 +50,7 @@ dwarf_new_die(Dwarf_P_Debug dbg, Dwarf_Tag new_tag,
 	int count;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -58,7 +58,7 @@ dwarf_new_die(Dwarf_P_Debug dbg, Dwarf_Tag new_tag,
 	    right_sibling);
 
 	if (count > 1) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -86,7 +86,7 @@ dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent,
 	int count;
 
 	if (die == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -94,7 +94,7 @@ dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent,
 	    right_sibling);
 
 	if (count > 1) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	} else if (count == 0)
 		return (die);

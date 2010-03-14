@@ -52,7 +52,7 @@ dwarf_get_macro_details(Dwarf_Debug dbg, Dwarf_Off offset,
 	int i;
 
 	if (dbg == NULL || entry_cnt == NULL || details == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

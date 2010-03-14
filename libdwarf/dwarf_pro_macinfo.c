@@ -75,7 +75,7 @@ dwarf_def_macro(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno, char *name,
 {
 
 	if (dbg == NULL || name == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -89,7 +89,7 @@ dwarf_undef_macro(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno, char *name,
 {
 
 	if (dbg == NULL || name == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -103,7 +103,7 @@ dwarf_start_macro_file(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno,
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -116,7 +116,7 @@ dwarf_end_macro_file(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -130,7 +130,7 @@ dwarf_vendor_ext(Dwarf_P_Debug dbg, Dwarf_Unsigned constant, char *string,
 {
 
 	if (dbg == NULL || string == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

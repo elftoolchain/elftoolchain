@@ -35,7 +35,7 @@ dwarf_attr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Attribute *atp,
 	Dwarf_Attribute at;
 
 	if (die == NULL || atp == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -57,7 +57,7 @@ dwarf_attrlist(Dwarf_Die die, Dwarf_Attribute **attrbuf,
 	int i;
 
 	if (die == NULL || attrbuf == NULL || attrcount == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -98,7 +98,7 @@ dwarf_hasattr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Bool *ret_bool,
     Dwarf_Error *error)
 {
 	if (die == NULL || ret_bool == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -113,7 +113,7 @@ dwarf_lowpc(Dwarf_Die die, Dwarf_Addr *ret_lowpc, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_lowpc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -131,7 +131,7 @@ dwarf_highpc(Dwarf_Die die, Dwarf_Addr *ret_highpc, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_highpc == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -149,7 +149,7 @@ dwarf_bytesize(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_size == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -167,7 +167,7 @@ dwarf_bitsize(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_size == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -185,7 +185,7 @@ dwarf_bitoffset(Dwarf_Die die, Dwarf_Unsigned *ret_size, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_size == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -203,7 +203,7 @@ dwarf_srclang(Dwarf_Die die, Dwarf_Unsigned *ret_lang, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_lang == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -221,7 +221,7 @@ dwarf_arrayorder(Dwarf_Die die, Dwarf_Unsigned *ret_order, Dwarf_Error *error)
 	Dwarf_Attribute at;
 
 	if (die == NULL || ret_order == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

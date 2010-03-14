@@ -449,8 +449,8 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
 	assert(atp != NULL);
 
 	if (die == NULL || string == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DW_DLE_NONE)

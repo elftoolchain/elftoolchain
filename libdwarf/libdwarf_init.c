@@ -78,8 +78,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	cnt = m->get_section_count(obj);
 
 	if (cnt == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_DEBUG_INFO);
-		return (DWARF_E_DEBUG_INFO);
+		DWARF_SET_ERROR(error, DW_DLE_DEBUG_INFO_NULL);
+		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
 	dbg->dbg_seccnt = cnt;
@@ -110,8 +110,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
 	    ((s = _dwarf_find_section(dbg, ".debug_info")) == NULL)) {
 		free(dbg->dbg_section);
-		DWARF_SET_ERROR(error, DWARF_E_DEBUG_INFO);
-		return (DWARF_E_DEBUG_INFO);
+		DWARF_SET_ERROR(error, DW_DLE_DEBUG_INFO_NULL);
+		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
 	ret = _dwarf_info_init(dbg, s, error);
@@ -176,8 +176,8 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 {
 
 	if (pf & DW_DLC_SIZE_32 && pf & DW_DLC_SIZE_64) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if (pf & DW_DLC_SIZE_64)
@@ -186,8 +186,8 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		dbg->dbg_pointer_size = 4;
 
 	if (pf & DW_DLC_ISA_IA64 && pf & DW_DLC_ISA_MIPS) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if (pf & DW_DLC_ISA_IA64)
@@ -196,8 +196,8 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		dbg->dbgp_isa = DW_DLC_ISA_MIPS;
 
 	if (pf & DW_DLC_TARGET_BIGENDIAN && pf & DW_DLC_TARGET_LITTLEENDIAN) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if (pf & DW_DLC_TARGET_BIGENDIAN) {
@@ -218,8 +218,8 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	if (pf & DW_DLC_STREAM_RELOCATIONS &&
 	    pf & DW_DLC_SYMBOLIC_RELOCATIONS) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	dbg->dbgp_flags = pf;
