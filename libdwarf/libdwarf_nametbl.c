@@ -165,8 +165,8 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 	uint64_t offset;
 	int ret;
 
-	assert(dbg != NULL && name != NULL && nt != NULL);
-	if (STAILQ_EMPTY(&nt->nt_nplist))
+	assert(dbg != NULL && name != NULL);
+	if (nt == NULL || STAILQ_EMPTY(&nt->nt_nplist))
 		return (DWARF_E_NONE);
 
 	nt->nt_length = 0;
