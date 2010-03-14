@@ -51,7 +51,7 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 	case DW_DLC_ISA_IA64:
 		return (is64 ? R_IA_64_DIR64LSB : R_IA_64_DIR32LSB);
 	default:
-		assert(0);
+		break;
 	}
 	return (0);		/* NOT REACHED */
 }
