@@ -109,6 +109,12 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	Dwarf_P_Cie ciep;
 	int i;
 
+	/*
+	 * XXX SGI libdwaf need the DIE arg because later it will insert a
+	 * DW_AT_MIPS_fde attribute, which points to the offset the
+	 * correspoding FDE, into this DIE. Do we need this?
+	 */
+
 	if (dbg == NULL || fde == NULL || die == NULL || fde->fde_dbg != dbg) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
