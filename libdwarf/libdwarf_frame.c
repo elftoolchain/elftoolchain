@@ -76,8 +76,8 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - *off) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-		return (DWARF_E_INVALID_FRAME);
+		DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+		return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 	}
 
 	(void) dbg->read(ds->ds_data, off, dwarf_size); /* Skip CIE id. */
@@ -85,8 +85,8 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 
 	cie->cie_version = dbg->read(ds->ds_data, off, 1);
 	if (cie->cie_version != 1 && cie->cie_version != 3) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-		return (DWARF_E_INVALID_FRAME);
+		DWARF_SET_ERROR(error, DW_DLE_FRAME_VERSION_BAD);
+		return (DW_DLE_FRAME_VERSION_BAD);
 	}
 
 	cie->cie_augment = ds->ds_data + *off;
@@ -176,8 +176,8 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - *off) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-		return (DWARF_E_INVALID_FRAME);
+		DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+		return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 	}
 
 	fde->fde_length = length;
@@ -187,8 +187,8 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		fde->fde_cieoff = *off - (4 + delta);
 		/* This delta should never be 0. */
 		if (fde->fde_cieoff == fde->fde_offset) {
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-			return (DWARF_E_INVALID_FRAME);
+			DWARF_SET_ERROR(error, DW_DLE_NO_CIE_FOR_FDE);
+			return (DW_DLE_NO_CIE_FOR_FDE);
 		}
 	} else
 		fde->fde_cieoff = dbg->read(ds->ds_data, off, dwarf_size);
@@ -298,8 +298,8 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 
 		if (length > ds->ds_size - offset ||
 		    (length == 0 && !eh_frame)) {
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-			return (DWARF_E_INVALID_FRAME);
+			DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+			return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 		}
 
 		/* Check terminator for .eh_frame */
@@ -465,8 +465,9 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #endif
 				break;
 			default:
-				DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-				ret = DWARF_E_INVALID_FRAME;
+				DWARF_SET_ERROR(error,
+				    DW_DLE_FRAME_INSTR_EXEC_ERROR);
+				ret = DW_DLE_FRAME_INSTR_EXEC_ERROR;
 				goto program_done;
 			}
 
@@ -709,8 +710,8 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #endif
 			break;
 		default:
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-			ret = DWARF_E_INVALID_FRAME;
+			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			ret = DW_DLE_FRAME_INSTR_EXEC_ERROR;
 			goto program_done;
 		}
 	}
@@ -841,8 +842,9 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 				SET_REGISTER(low6);
 				break;
 			default:
-				DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-				return (DWARF_E_INVALID_FRAME);
+				DWARF_SET_ERROR(error,
+				    DW_DLE_FRAME_INSTR_EXEC_ERROR);
+				return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 			}
 
 			(*count)++;
@@ -924,8 +926,8 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 			SET_OFFSET(soff);
 			break;
 		default:
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-			return (DWARF_E_INVALID_FRAME);
+			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 		}
 
 		(*count)++;
@@ -1173,8 +1175,8 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 			RCHECK(WRITE_ULEB128(val1));
 			break;
 		default:
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-			return (DWARF_E_INVALID_FRAME);
+			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 		}
 		return (DW_DLE_NONE);
 	}
@@ -1209,8 +1211,8 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 	case DW_CFA_restore_state:
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_FRAME);
-		return (DWARF_E_INVALID_FRAME);
+		DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+		return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 	}
 
 	return (DW_DLE_NONE);
