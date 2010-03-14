@@ -54,7 +54,7 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(ARANGE_OFFSET_BAD,	"Invalid address range offset"), */
 	/* DEFINE_ERROR(DEBUG_MACRO_INCONSISTENT, "Invalid macinfo data"), */
 	DEFINE_ERROR(NO_ROOT_DIE,	"Root DIE is not specified"),
-	DEFINE_ERROR(USER_CALLBACK,	"Application callback failed"),
+	/* DEFINE_ERROR(ELF_SECT_ERR,	"Application callback failed"), */
 	DEFINE_ERROR(NUM,		"Unknown DWARF error")
 #undef	DEFINE_ERROR
 };
