@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,6 +151,65 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 fail_cleanup:
 
 	_dwarf_nametbl_cleanup(ns);
+
+	return (ret);
+}
+
+int
+_dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
+    Dwarf_Error *error)
+{
+	Dwarf_P_Section ds;
+	Dwarf_Rel_Section drs;
+	Dwarf_NamePair np;
+	int ret;
+
+	assert(dbg != NULL && name != NULL && nt != NULL);
+	if (STAILQ_EMPTY(&nt->nt_nplist))
+		return (DWARF_E_NONE);
+
+	nt->nt_length = 0;
+	nt->nt_version = 2;
+	nt->nt_cu = STAILQ_FIRST(&dbg->dbg_cu);
+	assert(nt->nt_cu != NULL);
+	nt->nt_cu_offset = nt->nt_cu->cu_offset;
+	nt->nt_cu_length = nt->nt_cu->cu_length;
+
+	/* Create name lookup section. */
+	if ((ret = _dwarf_section_init(dbg, &ds, name, 0, error)) !=
+	    DWARF_E_NONE)
+		goto gen_fail0;
+
+	/* Create relocation section for the name lookup section. */
+	RCHECK(_dwarf_reloc_section_init(dbg, &drs, ds, error));
+
+	/* Write table header. */
+	RCHECK(WRITE_VALUE(nt->nt_length, 4));
+	RCHECK(WRITE_VALUE(nt->nt_version, 2));
+	RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
+	    ds->ds_size, 0, nt->nt_cu_offset, ".debug_info", error));
+	RCHECK(WRITE_VALUE(nt->nt_cu_length, 4));
+
+	/* Write tuples. */
+	STAILQ_FOREACH(np, &nt->nt_nplist, np_next) {
+		RCHECK(WRITE_VALUE(np->np_offset, 4));
+		RCHECK(WRITE_STRING(np->np_name));
+	}
+	RCHECK(WRITE_VALUE(0, 4));
+
+	/* Inform application the creation of name lookup ELF section. */
+	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
+
+	/* Finalize relocation section for the name lookup section. */
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+
+	return (DWARF_E_NONE);
+
+gen_fail:
+	_dwarf_reloc_section_free(dbg, &drs);
+
+gen_fail0:
+	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
 }
