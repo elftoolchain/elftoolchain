@@ -229,6 +229,7 @@ struct _Dwarf_LineInfo {
 
 struct _Dwarf_NamePair {
 	Dwarf_NameTbl	np_nt;		/* Ptr to containing name table. */
+	Dwarf_Die	np_die;		/* Ptr to Ref. Die. */
 	Dwarf_Unsigned	np_offset;	/* Offset in CU. */
 	char		*np_name;	/* Object/Type name. */
 	STAILQ_ENTRY(_Dwarf_NamePair) np_next; /* Next pair in the list. */
@@ -458,6 +459,11 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_Fde) dbgp_fdelist;
 	Dwarf_Unsigned	dbgp_cielen;
 	Dwarf_Unsigned	dbgp_fdelen;
+	Dwarf_NameTbl	dbgp_pubs;
+	Dwarf_NameTbl	dbgp_weaks;
+	Dwarf_NameTbl	dbgp_funcs;
+	Dwarf_NameTbl	dbgp_types;
+	Dwarf_NameTbl	dbgp_vars;
 	STAILQ_HEAD(, _Dwarf_P_Section) dbgp_seclist;
 	Dwarf_Unsigned	dbgp_seccnt;
 	Dwarf_P_Section	dbgp_secpos;

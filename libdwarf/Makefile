@@ -27,11 +27,16 @@ SRCS=	\
 	dwarf_pro_die.c		\
 	dwarf_pro_expr.c	\
 	dwarf_pro_frame.c	\
+	dwarf_pro_funcs.c	\
 	dwarf_pro_init.c	\
 	dwarf_pro_lineno.c	\
 	dwarf_pro_macinfo.c	\
+	dwarf_pro_pubnames.c	\
 	dwarf_pro_reloc.c	\
 	dwarf_pro_sections.c	\
+	dwarf_pro_types.c	\
+	dwarf_pro_vars.c	\
+	dwarf_pro_weaks.c	\
 	dwarf_pubnames.c	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\
@@ -63,7 +68,10 @@ SRCS=	\
 INCS=	dwarf.h libdwarf.h
 
 GENSRCS=	dwarf_pubnames.c dwarf_pubtypes.c dwarf_weaks.c \
-		dwarf_funcs.c dwarf_vars.c dwarf_types.c
+		dwarf_funcs.c dwarf_vars.c dwarf_types.c	\
+		dwarf_pro_pubnames.c dwarf_pro_weaks.c		\
+		dwarf_pro_funcs.c dwarf_pro_types.c		\
+		dwarf_pro_vars.c
 CLEANFILES=	${GENSRCS}
 
 SHLIB_MAJOR=	3
@@ -88,5 +96,10 @@ dwarf_weaks.c:		dwarf_nametbl.m4 dwarf_weaks.m4
 dwarf_funcs.c:		dwarf_nametbl.m4 dwarf_funcs.m4
 dwarf_vars.c:		dwarf_nametbl.m4 dwarf_vars.m4
 dwarf_types.c:		dwarf_nametbl.m4 dwarf_types.m4
+dwarf_pro_pubnames.c:	dwarf_pro_nametbl.m4 dwarf_pro_pubnames.m4
+dwarf_pro_weaks.c:	dwarf_pro_nametbl.m4 dwarf_pro_weaks.m4
+dwarf_pro_funcs.c:	dwarf_pro_nametbl.m4 dwarf_pro_funcs.m4
+dwarf_pro_types.c:	dwarf_pro_nametbl.m4 dwarf_pro_types.m4
+dwarf_pro_vars.c:	dwarf_pro_nametbl.m4 dwarf_pro_vars.m4
 
 .include "${TOP}/mk/elftoolchain.lib.mk"
