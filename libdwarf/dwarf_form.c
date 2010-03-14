@@ -108,7 +108,7 @@ dwarf_formref(Dwarf_Attribute at, Dwarf_Off *return_offset, Dwarf_Error *error)
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_OK;
 	}
 
@@ -141,7 +141,7 @@ dwarf_global_formref(Dwarf_Attribute at, Dwarf_Off *return_offset,
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_OK;
 	}
 
@@ -162,7 +162,7 @@ dwarf_formaddr(Dwarf_Attribute at, Dwarf_Addr *return_addr, Dwarf_Error *error)
 		*return_addr = at->u[0].u64;
 		ret = DW_DLV_OK;
 	} else {
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
@@ -183,7 +183,7 @@ dwarf_formflag(Dwarf_Attribute at, Dwarf_Bool *return_bool, Dwarf_Error *error)
 		*return_bool = (Dwarf_Bool) at->u[0].u64;
 		ret = DW_DLV_OK;
 	} else {
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
@@ -212,7 +212,7 @@ dwarf_formudata(Dwarf_Attribute at, Dwarf_Unsigned *return_uvalue,
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
@@ -241,7 +241,7 @@ dwarf_formsdata(Dwarf_Attribute at, Dwarf_Signed *return_svalue,
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
@@ -269,7 +269,7 @@ dwarf_formblock(Dwarf_Attribute at, Dwarf_Block *return_block,
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
@@ -297,7 +297,7 @@ dwarf_formstring(Dwarf_Attribute at, char **return_string,
 		ret = DW_DLV_OK;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_BAD_FORM);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLV_ERROR;
 	}
 
