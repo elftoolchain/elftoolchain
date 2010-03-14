@@ -37,14 +37,15 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(ELF,		"ELF error"), */
 	/* DEFINE_ERROR(CU_LENGTH_ERROR,	"Invalid compilation unit data"), */
 	/* DEFINE_ERROR(VERSION_STAMP_ERROR, "Unsupported version"), */
-	/* DEFINE_ERROR(ABBREV_NULL,	"Abbrev not found"), */
+	/* DEFINE_ERROR(DEBUG_ABBREV_NULL, "Abbrev not found"), */
 	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
 	/* DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"), */
 	/* DEFINE_ERROR(LOC_EXPR_BAD,	"Invalid location expression"), */
 	/* DEFINE_ERROR(EXPR_LENGTH_BAD,	"Invalid DWARF expression length"), */
 	/* DEFINE_ERROR(DEBUG_LOC_SECTION_SHORT, "Loclist section too short"), */
 	/* DEFINE_ERROR(ATTR_FORM_BAD,	"Invalid attribute form"), */
-	DEFINE_ERROR(INVALID_LINE,	"Invalid line info data"),
+	/* DEFINE_ERROR(DEBUG_LINE_LENGTH_BAD, "Line info section too short"), */
+	/* DEFINE_ERROR(LINE_FILE_NUM_BAD, "Invalid file number."), */
 	DEFINE_ERROR(INVALID_FRAME,	"Invalid call frame data"),
 	DEFINE_ERROR(REGTABLE_SPACE,	"Insufficient internal regtable space"),
 	DEFINE_ERROR(INVALID_ARANGE,	"Invalid address range data"),
