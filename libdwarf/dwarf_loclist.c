@@ -58,8 +58,11 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 				DWARF_SET_ERROR(error, ret);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DW_DLE_NONE)
-				assert(0); /* Internal error! */
+			if (ret != DW_DLE_NONE) {
+				/* Internal error! */
+				assert(0);
+				return (DW_DLV_NO_ENTRY);
+			}
 			*llbuf = ll->ll_ldlist;
 			*listlen = ll->ll_ldlen;
 			return (DW_DLV_OK);
@@ -72,13 +75,13 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 				*listlen = 1;
 				return (DW_DLV_OK);
 			} else {
-				/* Malformed Attr? */
-				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+				/* Internal error! */
+				assert(0);
 				return (DW_DLV_NO_ENTRY);
 			}
 		default:
 			/* Malformed Attr? */
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+			DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 			return (DW_DLV_NO_ENTRY);
 		}
 	default:
@@ -116,11 +119,14 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 			ret = _dwarf_loclist_find(at->at_die->die_dbg,
 			    at->u[0].u64, &ll);
 			if (ret == DW_DLE_NO_ENTRY) {
-				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+				DWARF_SET_ERROR(error, DW_DLV_NO_ENTRY);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DW_DLE_NONE)
-				assert(0); /* Internal error! */
+			if (ret != DW_DLE_NONE) {
+				/* Internal error! */
+				assert(0);
+				return (DW_DLV_NO_ENTRY);
+			}
 			*llbuf = ll->ll_ldlist[0];
 			*listlen = 1;
 			return (DW_DLV_OK);
@@ -133,16 +139,17 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 				*listlen = 1;
 				return (DW_DLV_OK);
 			} else {
-				DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+				/* Internal error! */
+				assert(0);
 				return (DW_DLV_ERROR);
 			}
 		default:
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+			DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 			return (DW_DLV_ERROR);
 		}
 	default:
 		/* Wrong attr supplied. */
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 }
@@ -166,7 +173,7 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 
 	ret = _dwarf_loclist_find(dbg, offset, &ll);
 	if (ret == DW_DLE_NO_ENTRY) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_ATTR);
+		DWARF_SET_ERROR(error, DW_DLV_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
