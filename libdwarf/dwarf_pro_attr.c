@@ -26,40 +26,6 @@
 
 #include "_libdwarf.h"
 
-static int
-_dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
-    char *string, Dwarf_Error *error)
-{
-	Dwarf_Attribute at;
-	int ret;
-
-	assert(atp != NULL);
-
-	if (die == NULL || string == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
-	}
-
-	if ((ret = _dwarf_attr_alloc(die, &at, error)) != DWARF_E_NONE)
-		return (ret);
-
-	at->at_die = die;
-	at->at_attrib = attr;
-	at->at_form = DW_FORM_strp;
-	if ((ret = _dwarf_strtab_add(die->die_dbg, string, &at->u[0].u64,
-	    error)) != DWARF_E_NONE) {
-		free(at);
-		return (ret);
-	}
-	at->u[1].s = _dwarf_strtab_get_table(die->die_dbg) + at->u[0].u64;
-
-	*atp = at;
-
-	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
-
-	return (DWARF_E_NONE);
-}
-
 Dwarf_P_Attribute
 dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
     Dwarf_P_Expr loc_expr, Dwarf_Error *error)
@@ -230,25 +196,17 @@ dwarf_add_AT_dataref(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
     Dwarf_Unsigned pc_value, Dwarf_Unsigned sym_index, Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
+	int ret;
 
 	if (dbg == NULL || die == NULL) {
 		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
-	if (_dwarf_attr_alloc(die, &at, error) != DWARF_E_NONE)
+	ret = _dwarf_add_AT_dataref(dbg, die, attr, pc_value, sym_index,
+	    NULL, &at, error);
+	if (ret != DWARF_E_NONE)
 		return (DW_DLV_BADADDR);
-
-	at->at_die = die;
-	at->at_attrib = attr;
-	if (dbg->dbg_pointer_size == 4)
-		at->at_form = DW_FORM_data4;
-	else
-		at->at_form = DW_FORM_data8;
-	at->at_relsym = sym_index;
-	at->u[0].u64 = pc_value;
-
-	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
 	return (at);
 

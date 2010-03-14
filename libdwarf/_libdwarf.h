@@ -129,6 +129,7 @@ struct _Dwarf_Attribute {
 	Dwarf_Locdesc		*at_ld;		/* at value is locdesc. */
 	Dwarf_P_Expr		at_expr;	/* at value is expr. */
 	uint64_t		at_relsym;	/* Relocation symbol index. */
+	const char		*at_relsec;	/* Rel. to dwarf section. */
 	STAILQ_ENTRY(_Dwarf_Attribute) at_next;	/* Next attribute. */
 };
 
@@ -482,6 +483,11 @@ int		_dwarf_abbrev_add(Dwarf_CU, uint64_t, uint64_t, uint8_t,
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_abbrev_gen(Dwarf_P_Debug, Dwarf_Error *);
+int		_dwarf_add_AT_dataref(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
+		    Dwarf_Unsigned, Dwarf_Unsigned, const char *,
+		    Dwarf_P_Attribute *, Dwarf_Error *);
+int		_dwarf_add_string_attr(Dwarf_P_Die, Dwarf_P_Attribute *,
+		    Dwarf_Half, char *, Dwarf_Error *);
 int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
 void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_gen(Dwarf_P_Debug, Dwarf_Error *);
