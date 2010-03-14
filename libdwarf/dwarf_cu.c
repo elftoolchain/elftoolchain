@@ -34,7 +34,7 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

@@ -38,7 +38,7 @@ _dwarf_elf_get_section_info(void *obj, Dwarf_Half ndx,
 
 	if (ret_section == NULL) {
 		if (error)
-			*error = DWARF_E_ARGUMENT;
+			*error = DW_DLE_ARGUMENT;
 		return (DW_DLV_ERROR);
 	}
 
@@ -135,7 +135,7 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
 
 	if (ret_data == NULL) {
 		if (error)
-			*error = DWARF_E_ARGUMENT;
+			*error = DW_DLE_ARGUMENT;
 		return (DW_DLV_ERROR);
 	}
 

@@ -33,7 +33,7 @@ dwarf_add_$1name(Dwarf_P_Debug dbg, Dwarf_P_Die die, char *$1_name,
 	Dwarf_NamePair np;
 
 	if (dbg == NULL || die == NULL || $1_name == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (0);
 	}
 

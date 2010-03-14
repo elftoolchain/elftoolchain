@@ -56,8 +56,8 @@ _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
 	int ret;
 
 	if (cu == NULL || ab == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if ((ret = _dwarf_die_alloc(&die, error)) != DW_DLE_NONE)

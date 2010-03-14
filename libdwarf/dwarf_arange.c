@@ -32,7 +32,7 @@ dwarf_get_aranges(Dwarf_Debug dbg, Dwarf_Arange **arlist,
 {
 
 	if (dbg == NULL || arlist == NULL || ret_arange_cnt == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -57,7 +57,7 @@ dwarf_get_arange(Dwarf_Arange *arlist, Dwarf_Unsigned arange_cnt,
 	int i;
 
 	if (arlist == NULL || ret_arange == NULL || arange_cnt == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -84,7 +84,7 @@ dwarf_get_cu_die_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 	Dwarf_ArangeSet as;
 
 	if (ar == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -107,7 +107,7 @@ dwarf_get_arange_cu_header_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 	Dwarf_ArangeSet as;
 
 	if (ar == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -129,7 +129,7 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
 
 	if (ar == NULL || start == NULL || length == NULL ||
 	    cu_die_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

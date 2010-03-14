@@ -32,7 +32,7 @@ dwarf_new_fde(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Fde fde;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -54,7 +54,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	Dwarf_P_Cie cie;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -116,7 +116,7 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	 */
 
 	if (dbg == NULL || fde == NULL || die == NULL || fde->fde_dbg != dbg) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -127,13 +127,13 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 			break;
 	}
 	if (ciep == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
 	if (end_symbol_index > 0 &&
 	    (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -156,7 +156,7 @@ dwarf_fde_cfa_offset(Dwarf_P_Fde fde, Dwarf_Unsigned reg, Dwarf_Signed offset,
 	int ret;
 
 	if (fde == NULL || reg > 0x3f) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -176,7 +176,7 @@ dwarf_add_fde_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 	int ret;
 
 	if (fde == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 

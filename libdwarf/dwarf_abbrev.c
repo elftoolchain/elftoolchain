@@ -36,7 +36,7 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 
 	if (dbg == NULL || return_abbrev == NULL || length == NULL ||
 	    attr_count == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -50,7 +50,7 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 
 found_ab:
 	if (ab == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -67,7 +67,7 @@ dwarf_get_abbrev_tag(Dwarf_Abbrev abbrev, Dwarf_Half *return_tag,
 {
 
 	if (abbrev == NULL || return_tag == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -82,7 +82,7 @@ dwarf_get_abbrev_code(Dwarf_Abbrev abbrev, Dwarf_Unsigned *return_code,
 {
 
 	if (abbrev == NULL || return_code == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -97,7 +97,7 @@ dwarf_get_abbrev_children_flag(Dwarf_Abbrev abbrev, Dwarf_Signed *return_flag,
 {
 
 	if (abbrev == NULL || return_flag == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -116,12 +116,12 @@ dwarf_get_abbrev_entry(Dwarf_Abbrev abbrev, Dwarf_Signed ndx,
 
 	if (abbrev == NULL || attr_num == NULL || form == NULL ||
 	    offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (ndx < 0 || (uint64_t) ndx >= abbrev->ab_atnum) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

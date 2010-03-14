@@ -31,7 +31,7 @@ dwarf_transform_to_disk_form(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -50,7 +50,7 @@ dwarf_get_section_bytes(Dwarf_P_Debug dbg, Dwarf_Signed dwarf_section,
 	(void) dwarf_section;	/* ignored. */
 
 	if (dbg == NULL || elf_section_index == NULL || length == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (NULL);
 	}
 

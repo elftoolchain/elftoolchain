@@ -31,8 +31,8 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(NONE,		"No Error"), */
 	/* DEFINE_ERROR(ERROR,		"An error"), */
 	DEFINE_ERROR(NO_ENTRY,		"No entry found"),
-	DEFINE_ERROR(ARGUMENT,		"Invalid argument"),
-	DEFINE_ERROR(DEBUG_INFO,	"Debug info NULL"),
+	/* DEFINE_ERROR(ARGUMENT,		"Invalid argument"), */
+	/* DEFINE_ERROR(DEBUG_INFO,	"Debug info NULL"), */
 	DEFINE_ERROR(MEMORY,		"Insufficient memory"),
 	DEFINE_ERROR(ELF,		"ELF error"),
 	DEFINE_ERROR(INVALID_CU,	"Invalid compilation unit data"),

@@ -32,7 +32,7 @@ dwarf_attrval_flag(Dwarf_Die die, uint64_t attr, Dwarf_Bool *valp, Dwarf_Error *
 	Dwarf_Attribute at;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -61,7 +61,7 @@ dwarf_attrval_string(Dwarf_Die die, uint64_t attr, const char **strp, Dwarf_Erro
 	Dwarf_Attribute at;
 
 	if (die == NULL || strp == NULL) {
-		DWARF_SET_ERROR(err, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -93,7 +93,7 @@ dwarf_attrval_signed(Dwarf_Die die, uint64_t attr, Dwarf_Signed *valp, Dwarf_Err
 	Dwarf_Attribute at;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -125,7 +125,7 @@ dwarf_attrval_unsigned(Dwarf_Die die, uint64_t attr, Dwarf_Unsigned *valp, Dwarf
 	Dwarf_Unsigned val;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

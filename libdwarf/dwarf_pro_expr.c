@@ -100,7 +100,7 @@ dwarf_new_expr(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Expr pe;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -122,7 +122,7 @@ dwarf_add_expr_gen(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 {
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -147,7 +147,7 @@ dwarf_add_expr_addr_b(Dwarf_P_Expr expr, Dwarf_Unsigned address,
 	struct _Dwarf_P_Expr_Entry *ee;
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -164,7 +164,7 @@ dwarf_expr_current_offset(Dwarf_P_Expr expr, Dwarf_Error *error)
 {
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -177,7 +177,7 @@ dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Unsigned *length,
 {
 
 	if (expr == NULL || length == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return ((Dwarf_Addr) (uintptr_t) DW_DLV_BADADDR);
 	}
 

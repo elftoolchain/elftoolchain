@@ -35,7 +35,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 	Dwarf_Line ln, ln0;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -55,7 +55,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 
 	if (ln->ln_addr > ln0->ln_addr + code_offset) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -86,7 +86,7 @@ dwarf_lne_set_address(Dwarf_P_Debug dbg, Dwarf_Addr offs, Dwarf_Unsigned symndx,
 	Dwarf_Line ln;
 
 	if (dbg == NULL || symndx == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -112,7 +112,7 @@ dwarf_lne_end_sequence(Dwarf_P_Debug dbg, Dwarf_Addr addr, Dwarf_Error *error)
 	Dwarf_Line ln;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -120,7 +120,7 @@ dwarf_lne_end_sequence(Dwarf_P_Debug dbg, Dwarf_Addr addr, Dwarf_Error *error)
 
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 	if (ln->ln_addr > addr) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -143,7 +143,7 @@ dwarf_add_directory_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Error *error)
 	Dwarf_LineInfo li;
 
 	if (dbg == NULL || name == NULL || strlen(name) == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -171,7 +171,7 @@ dwarf_add_file_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Unsigned dirndx,
 	Dwarf_LineFile lf;
 
 	if (dbg == NULL || name == NULL || strlen(name) == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 

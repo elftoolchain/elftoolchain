@@ -66,8 +66,8 @@ _dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
 	Dwarf_AttrDef ad;
 
 	if (ab == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
-		return (DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		return (DW_DLE_ARGUMENT);
 	}
 
 	if ((ad = malloc(sizeof(struct _Dwarf_AttrDef))) == NULL) {

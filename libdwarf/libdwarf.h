@@ -247,9 +247,9 @@ typedef struct Dwarf_Relocation_Data_s {
 enum {
 	DW_DLE_NONE,			/* No error. */
 	DW_DLE_ERROR,			/* An error! */
+	DW_DLE_ARGUMENT,		/* Invalid argument. */
+	DW_DLE_DEBUG_INFO_NULL,		/* Debug info NULL. */
 	DWARF_E_NO_ENTRY,		/* No entry. */
-	DWARF_E_ARGUMENT,		/* Invalid argument. */
-	DWARF_E_DEBUG_INFO,		/* Debug info NULL. */
 	DWARF_E_MEMORY,			/* Insufficient memory. */
 	DWARF_E_ELF,			/* ELF error. */
 	DWARF_E_INVALID_CU,		/* Invalid compilation unit data. */
@@ -298,7 +298,6 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define	DW_DLV_ERROR		1
 #define DW_DLV_BADADDR		NULL
 #define DW_DLV_NOCOUNT		((Dwarf_Signed) -1)
-#define DW_DLE_DEBUG_INFO_NULL	DWARF_E_DEBUG_INFO
 
 /*
  * Access modes.

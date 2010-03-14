@@ -33,7 +33,7 @@ dwarf_hasform(Dwarf_Attribute at, Dwarf_Half form, Dwarf_Bool *return_hasform,
 {
 
 	if (at == NULL || return_hasform == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -47,7 +47,7 @@ dwarf_whatform(Dwarf_Attribute at, Dwarf_Half *return_form, Dwarf_Error *error)
 {
 
 	if (at == NULL || return_form == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -62,7 +62,7 @@ dwarf_whatform_direct(Dwarf_Attribute at, Dwarf_Half *return_form,
 {
 
 	if (at == NULL || return_form == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -79,7 +79,7 @@ dwarf_whatattr(Dwarf_Attribute at, Dwarf_Half *return_attr, Dwarf_Error *error)
 {
 
 	if (at == NULL || return_attr == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -94,7 +94,7 @@ dwarf_formref(Dwarf_Attribute at, Dwarf_Off *return_offset, Dwarf_Error *error)
 	int ret;
 
 	if (at == NULL || return_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -122,7 +122,7 @@ dwarf_global_formref(Dwarf_Attribute at, Dwarf_Off *return_offset,
 	int ret;
 
 	if (at == NULL || return_offset == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -154,7 +154,7 @@ dwarf_formaddr(Dwarf_Attribute at, Dwarf_Addr *return_addr, Dwarf_Error *error)
 	int ret;
 
 	if (at == NULL || return_addr == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -175,7 +175,7 @@ dwarf_formflag(Dwarf_Attribute at, Dwarf_Bool *return_bool, Dwarf_Error *error)
 	int ret;
 
 	if (at == NULL || return_bool == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -197,7 +197,7 @@ dwarf_formudata(Dwarf_Attribute at, Dwarf_Unsigned *return_uvalue,
 	int ret;
 
 	if (at == NULL || return_uvalue == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -226,7 +226,7 @@ dwarf_formsdata(Dwarf_Attribute at, Dwarf_Signed *return_svalue,
 	int ret;
 
 	if (at == NULL || return_svalue == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -255,7 +255,7 @@ dwarf_formblock(Dwarf_Attribute at, Dwarf_Block *return_block,
 	int ret;
 
 	if (at == NULL || return_block == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -283,7 +283,7 @@ dwarf_formstring(Dwarf_Attribute at, char **return_string,
 	int ret;
 
 	if (at == NULL || return_string == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_ARGUMENT);
+		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
