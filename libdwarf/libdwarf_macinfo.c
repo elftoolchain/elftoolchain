@@ -74,8 +74,8 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 		case DW_MACINFO_end_file:
 			break;
 		default:
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_MACINFO);
-			return (DWARF_E_INVALID_MACINFO);
+			DWARF_SET_ERROR(error, DW_DLE_DEBUG_MACRO_INCONSISTENT);
+			return (DW_DLE_DEBUG_MACRO_INCONSISTENT);
 		}
 
 		i++;

@@ -52,7 +52,7 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(FRAME_VERSION_BAD,	"Unsupported frame section version"), */
 	/* DEFINE_ERROR(DF_REG_NUM_TOO_HIGH, "Register number too large"), */
 	/* DEFINE_ERROR(ARANGE_OFFSET_BAD,	"Invalid address range offset"), */
-	DEFINE_ERROR(INVALID_MACINFO,	"Invalid macinfo data"),
+	/* DEFINE_ERROR(DEBUG_MACRO_INCONSISTENT, "Invalid macinfo data"), */
 	DEFINE_ERROR(SEQUENCE,		"API called in wrong sequence"),
 	DEFINE_ERROR(NO_ROOT_DIE,	"Root DIE is not specified"),
 	DEFINE_ERROR(DIE_NULL_ATTR,	"DIE doesn't contain any attributes"),
