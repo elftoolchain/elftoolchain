@@ -90,8 +90,8 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
 		if (cu->cu_version != 2 && cu->cu_version != 3) {
-			DWARF_SET_ERROR(error, DWARF_E_CU_VERSION);
-			ret = DWARF_E_CU_VERSION;
+			DWARF_SET_ERROR(error, DW_DLE_VERSION_STAMP_ERROR);
+			ret = DW_DLE_VERSION_STAMP_ERROR;
 			break;
 		}
 
