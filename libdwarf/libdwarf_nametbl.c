@@ -201,7 +201,7 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
 	/* Finalize relocation section for the name lookup section. */
-	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
 	return (DWARF_E_NONE);
 

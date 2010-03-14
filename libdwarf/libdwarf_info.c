@@ -181,7 +181,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	 * Inform application the creation of relocation section for
 	 * .debug_info.
 	 */
-	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
 	return (DWARF_E_NONE);
 
