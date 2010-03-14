@@ -193,6 +193,8 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 
 	/* Write tuples. */
 	STAILQ_FOREACH(np, &nt->nt_nplist, np_next) {
+		assert(np->np_die != NULL);
+		np->np_offset = np->np_die->die_offset;
 		RCHECK(WRITE_VALUE(np->np_offset, 4));
 		RCHECK(WRITE_STRING(np->np_name));
 	}
