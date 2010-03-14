@@ -384,11 +384,7 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	int ret;
 
 	assert(dbg != NULL && cu != NULL);
-
-	if (dbg->dbgp_root_die == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ROOT_DIE);
-		return (DWARF_E_NO_ROOT_DIE);
-	}
+	assert(dbg->dbgp_root_die != NULL);
 
 	die = dbg->dbgp_root_die;
 
