@@ -164,6 +164,31 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	if ((ret = _dwarf_macinfo_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
 
+	/* Produce .debug_pubnames section. */
+	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_pubnames", dbg->dbgp_pubs,
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
+	/* Produce .debug_weaknames section. */
+	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_weaknames", dbg->dbgp_weaks,
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
+	/* Produce .debug_funcnames section. */
+	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_funcnames", dbg->dbgp_funcs,
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
+	/* Produce .debug_typenames section. */
+	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_typenames", dbg->dbgp_types,
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
+	/* Produce .debug_varnames section. */
+	if ((ret = _dwarf_nametbl_gen(dbg, ".debug_varnames", dbg->dbgp_vars,
+	    error)) != DWARF_E_NONE)
+		return (ret);
+
 	/* Produce .debug_str section. */
 	if ((ret = _dwarf_strtab_gen(dbg, error)) != DWARF_E_NONE)
 		return (ret);
