@@ -393,8 +393,9 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #define CHECK_TABLE_SIZE(x)						\
 	do {								\
 		if ((x) >= rt->rt3_reg_table_size) {			\
-			DWARF_SET_ERROR(error, DWARF_E_REGTABLE_SPACE);	\
-			ret = DWARF_E_REGTABLE_SPACE;			\
+			DWARF_SET_ERROR(error,				\
+			    DW_DLE_DF_REG_NUM_TOO_HIGH);		\
+			ret = DW_DLE_DF_REG_NUM_TOO_HIGH;		\
 			goto program_done;				\
 		}							\
 	} while(0)
