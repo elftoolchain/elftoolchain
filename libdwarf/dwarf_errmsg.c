@@ -38,7 +38,6 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(CU_LENGTH_ERROR,	"Invalid compilation unit data"), */
 	/* DEFINE_ERROR(VERSION_STAMP_ERROR, "Unsupported version"), */
 	/* DEFINE_ERROR(DEBUG_ABBREV_NULL, "Abbrev not found"), */
-	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
 	/* DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"), */
 	/* DEFINE_ERROR(LOC_EXPR_BAD,	"Invalid location expression"), */
 	/* DEFINE_ERROR(EXPR_LENGTH_BAD,	"Invalid DWARF expression length"), */

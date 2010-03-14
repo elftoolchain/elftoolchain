@@ -255,7 +255,6 @@ enum {
 	DW_DLE_CU_LENGTH_ERROR,		/* Invalid compilation unit data. */
 	DW_DLE_VERSION_STAMP_ERROR,	/* Invalid version. */
 	DW_DLE_DEBUG_ABBREV_NULL,	/* Abbrev not found. */
-	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
 	DW_DLE_DIE_NO_CU_CONTEXT,	/* No current compilation unit. */
 	DW_DLE_LOC_EXPR_BAD,		/* Invalid location expression. */
 	DW_DLE_EXPR_LENGTH_BAD,		/* Invalid DWARF expression. */

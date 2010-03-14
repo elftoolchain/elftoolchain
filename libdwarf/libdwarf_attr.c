@@ -239,8 +239,8 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		atref.u[1].s = (char *) str->ds_data + atref.u[0].u64;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
-		ret = DWARF_E_NOT_IMPLEMENTED;
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	}
 
@@ -371,8 +371,8 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		break;
 	case DW_FORM_indirect:
 		/* TODO. */
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
-		ret = DWARF_E_NOT_IMPLEMENTED;
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	case DW_FORM_ref_addr:
 		/* DWARF2 format. */
@@ -400,8 +400,8 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		    4, ds->ds_size, 0, at->u[0].u64, ".debug_str", error);
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
-		ret = DWARF_E_NOT_IMPLEMENTED;
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	}
 

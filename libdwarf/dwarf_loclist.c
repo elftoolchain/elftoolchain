@@ -318,7 +318,7 @@ dwarf_locdesc(Dwarf_Die die, uint64_t attr, Dwarf_Locdesc **llbuf,
 		*lenp = 1;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_NOT_IMPLEMENTED);
+		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
