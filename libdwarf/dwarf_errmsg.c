@@ -28,32 +28,32 @@
 
 const char *_libdwarf_errors[] = {
 #define	DEFINE_ERROR(N,S)		[DW_DLE_##N] = S
-	DEFINE_ERROR(NONE,		"No Error"),
-	DEFINE_ERROR(ERROR,		"An error"),
-	DEFINE_ERROR(NO_ENTRY,		"No entry found"),
-	DEFINE_ERROR(ARGUMENT,		"Invalid argument"),
+	DEFINE_ERROR(NONE, "No Error"),
+	DEFINE_ERROR(ERROR, "An error"),
+	DEFINE_ERROR(NO_ENTRY, "No entry found"),
+	DEFINE_ERROR(ARGUMENT, "Invalid argument"),
 	DEFINE_ERROR(DEBUG_INFO_NULL, "Debug info NULL"),
-	DEFINE_ERROR(MEMORY,		"Insufficient memory"),
-	DEFINE_ERROR(ELF,		"ELF error"),
-	DEFINE_ERROR(CU_LENGTH_ERROR,	"Invalid compilation unit data"),
+	DEFINE_ERROR(MEMORY, "Insufficient memory"),
+	DEFINE_ERROR(ELF, "ELF error"),
+	DEFINE_ERROR(CU_LENGTH_ERROR, "Invalid compilation unit data"),
 	DEFINE_ERROR(VERSION_STAMP_ERROR, "Unsupported version"),
 	DEFINE_ERROR(DEBUG_ABBREV_NULL, "Abbrev not found"),
 	DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"),
-	DEFINE_ERROR(LOC_EXPR_BAD,	"Invalid location expression"),
-	DEFINE_ERROR(EXPR_LENGTH_BAD,	"Invalid DWARF expression length"),
+	DEFINE_ERROR(LOC_EXPR_BAD, "Invalid location expression"),
+	DEFINE_ERROR(EXPR_LENGTH_BAD, "Invalid DWARF expression length"),
 	DEFINE_ERROR(DEBUG_LOC_SECTION_SHORT, "Loclist section too short"),
-	DEFINE_ERROR(ATTR_FORM_BAD,	"Invalid attribute form"),
+	DEFINE_ERROR(ATTR_FORM_BAD, "Invalid attribute form"),
 	DEFINE_ERROR(DEBUG_LINE_LENGTH_BAD, "Line info section too short"),
 	DEFINE_ERROR(LINE_FILE_NUM_BAD, "Invalid file number."),
 	DEFINE_ERROR(DEBUG_FRAME_LENGTH_BAD, "Frame section too short"),
-	DEFINE_ERROR(NO_CIE_FOR_FDE,	"FDE without corresponding CIE"),
+	DEFINE_ERROR(NO_CIE_FOR_FDE, "FDE without corresponding CIE"),
 	DEFINE_ERROR(FRAME_INSTR_EXEC_ERROR, "Frame instruction exec error"),
-	DEFINE_ERROR(FRAME_VERSION_BAD,	"Unsupported frame section version"),
+	DEFINE_ERROR(FRAME_VERSION_BAD, "Unsupported frame section version"),
 	DEFINE_ERROR(DF_REG_NUM_TOO_HIGH, "Register number too large"),
-	DEFINE_ERROR(ARANGE_OFFSET_BAD,	"Invalid address range offset"),
+	DEFINE_ERROR(ARANGE_OFFSET_BAD, "Invalid address range offset"),
 	DEFINE_ERROR(DEBUG_MACRO_INCONSISTENT, "Invalid macinfo data"),
-	DEFINE_ERROR(ELF_SECT_ERR,	"Application callback failed"),
-	DEFINE_ERROR(NUM,		"Unknown DWARF error")
+	DEFINE_ERROR(ELF_SECT_ERR, "Application callback failed"),
+	DEFINE_ERROR(NUM, "Unknown DWARF error")
 #undef	DEFINE_ERROR
 };
 
