@@ -125,6 +125,9 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	assert(dbg != NULL && dbg->write_alloc != NULL);
 
+	if (dbg->dbgp_root_die == NULL)
+		return (DW_DLE_NONE);
+
 	/* Create the single CU for this debugging object. */
 	if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
 		DWARF_SET_ERROR(error, DW_DLE_MEMORY);

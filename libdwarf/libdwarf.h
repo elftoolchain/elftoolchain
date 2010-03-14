@@ -270,7 +270,6 @@ enum {
 	DW_DLE_DF_REG_NUM_TOO_HIGH,	/* Insufficient regtable space. */
 	DW_DLE_ARANGE_OFFSET_BAD,	/* Invalid arange offset. */
 	DW_DLE_DEBUG_MACRO_INCONSISTENT,/* Invalid macinfo data. */
-	DWARF_E_NO_ROOT_DIE,		/* Root DIE is not specified. */
 	DW_DLE_ELF_SECT_ERR,		/* Application callback failed. */
 	DWARF_E_NUM			/* Max error number. */
 };
