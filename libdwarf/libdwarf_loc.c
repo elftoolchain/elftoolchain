@@ -459,8 +459,8 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 
 	/* All other operations cause an error. */
 	default:
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_EXPR);
-		return (DWARF_E_INVALID_EXPR);
+		DWARF_SET_ERROR(error, DW_DLE_EXPR_LENGTH_BAD);
+		return (DW_DLE_EXPR_LENGTH_BAD);
 	}
 
 	if (length)
@@ -482,8 +482,8 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 	/* Compute the number of locations. */
 	if ((num = _dwarf_loc_fill_loc(dbg, NULL, pointer_size, in, in_len)) <
 	    0) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_EXPR);
-		return (DWARF_E_INVALID_EXPR);
+		DWARF_SET_ERROR(error, DW_DLE_EXPR_LENGTH_BAD);
+		return (DW_DLE_EXPR_LENGTH_BAD);
 	}
 
 	llbuf->ld_cents = num;

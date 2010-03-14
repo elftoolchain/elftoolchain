@@ -258,7 +258,7 @@ enum {
 	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
 	DW_DLE_DIE_NO_CU_CONTEXT,	/* No current compilation unit. */
 	DWARF_E_BAD_FORM,		/* Wrong form type for attrib value. */
-	DWARF_E_INVALID_EXPR,		/* Invalid DWARF expression. */
+	DW_DLE_EXPR_LENGTH_BAD,		/* Invalid DWARF expression. */
 	DWARF_E_INVALID_LOCLIST,	/* Invalid loclist data. */
 	DWARF_E_INVALID_ATTR,		/* Invalid attribute. */
 	DWARF_E_INVALID_LINE,		/* Invalid line info data. */
