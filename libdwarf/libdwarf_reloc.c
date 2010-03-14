@@ -282,8 +282,8 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	    drs->drs_addend ? SHT_RELA : SHT_REL, 0, 0, drs->drs_ref->ds_ndx,
 	    &ds->ds_symndx, NULL);
 	if (ret < 0) {
-		DWARF_SET_ERROR(error, DWARF_E_USER_CALLBACK);
-		return (DWARF_E_USER_CALLBACK);
+		DWARF_SET_ERROR(error, DW_DLE_ELF_SECT_ERR);
+		return (DW_DLE_ELF_SECT_ERR);
 	}
 	ds->ds_ndx = ret;
 

@@ -126,7 +126,7 @@ _dwarf_section_callback(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 	ndx = _dwarf_pro_callback(dbg, ds->ds_name, (int) ds->ds_size,
 	    type, flags, link, info, &ds->ds_symndx, NULL);
 	if (ndx < 0) {
-		ret = DWARF_E_USER_CALLBACK;
+		ret = DW_DLE_ELF_SECT_ERR;
 		DWARF_SET_ERROR(error, ret);
 		return (ret);
 	}

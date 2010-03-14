@@ -271,7 +271,7 @@ enum {
 	DW_DLE_ARANGE_OFFSET_BAD,	/* Invalid arange offset. */
 	DW_DLE_DEBUG_MACRO_INCONSISTENT,/* Invalid macinfo data. */
 	DWARF_E_NO_ROOT_DIE,		/* Root DIE is not specified. */
-	DWARF_E_USER_CALLBACK,		/* Application callback failed. */
+	DW_DLE_ELF_SECT_ERR,		/* Application callback failed. */
 	DWARF_E_NUM			/* Max error number. */
 };
 
