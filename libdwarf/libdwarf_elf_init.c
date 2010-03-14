@@ -94,7 +94,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 
 	if (gelf_getehdr(elf, &eh) == NULL) {
 		DWARF_SET_ELF_ERROR(error);
-		return (DWARF_E_ELF);
+		return (DW_DLE_ELF);
 	}
 
 	scn = NULL;
@@ -102,7 +102,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 	while ((scn = elf_nextscn(elf, scn)) != NULL) {
 		if (gelf_getshdr(scn, &sh) == NULL) {
 			DWARF_SET_ELF_ERROR(error);
-			return (DWARF_E_ELF);
+			return (DW_DLE_ELF);
 		}
 
 		if (sh.sh_type != SHT_RELA || sh.sh_size == 0)
@@ -112,9 +112,9 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 			if ((rel = elf_getdata(scn, NULL)) == NULL) {
 				elferr = elf_errno();
 				if (elferr != 0) {
-					_DWARF_SET_ERROR(error, DWARF_E_ELF,
+					_DWARF_SET_ERROR(error, DW_DLE_ELF,
 					    elferr);
-					return (DWARF_E_ELF);
+					return (DW_DLE_ELF);
 				} else
 					return (DW_DLE_NONE);
 			}
@@ -128,7 +128,7 @@ _dwarf_elf_relocate(Elf *elf, Elf_Data *d, size_t shndx, size_t symtab,
 	elferr = elf_errno();
 	if (elferr != 0) {
 		DWARF_SET_ELF_ERROR(error);
-		return (DWARF_E_ELF);
+		return (DW_DLE_ELF);
 	}
 
 	return (DW_DLE_NONE);
@@ -174,13 +174,13 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 	if (gelf_getehdr(elf, &e->eo_ehdr) == NULL) {
 		DWARF_SET_ELF_ERROR(error);
-		ret = DWARF_E_ELF;
+		ret = DW_DLE_ELF;
 		goto fail_cleanup;
 	}
 
 	if (!elf_getshstrndx(elf, &e->eo_strndx)) {
 		DWARF_SET_ELF_ERROR(error);
-		ret = DWARF_E_ELF;
+		ret = DW_DLE_ELF;
 		goto fail_cleanup;
 	}
 
@@ -192,14 +192,14 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	while ((scn = elf_nextscn(elf, scn)) != NULL) {
 		if (gelf_getshdr(scn, &sh) == NULL) {
 			DWARF_SET_ELF_ERROR(error);
-			ret = DWARF_E_ELF;
+			ret = DW_DLE_ELF;
 			goto fail_cleanup;
 		}
 
 		if ((name = elf_strptr(elf, e->eo_strndx, sh.sh_name)) ==
 		    NULL) {
 			DWARF_SET_ELF_ERROR(error);
-			ret = DWARF_E_ELF;
+			ret = DW_DLE_ELF;
 			goto fail_cleanup;
 		}
 
@@ -208,9 +208,9 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 			if ((symtab_data = elf_getdata(scn, NULL)) == NULL) {
 				elferr = elf_errno();
 				if (elferr != 0) {
-					_DWARF_SET_ERROR(error, DWARF_E_ELF,
+					_DWARF_SET_ERROR(error, DW_DLE_ELF,
 					    elferr);
-					ret = DWARF_E_ELF;
+					ret = DW_DLE_ELF;
 					goto fail_cleanup;
 				}
 			}
@@ -225,7 +225,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	elferr = elf_errno();
 	if (elferr != 0) {
 		DWARF_SET_ELF_ERROR(error);
-		return (DWARF_E_ELF);
+		return (DW_DLE_ELF);
 	}
 
 	e->eo_seccnt = n;
@@ -242,7 +242,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	while ((scn = elf_nextscn(elf, scn)) != NULL && j < n) {
 		if (gelf_getshdr(scn, &sh) == NULL) {
 			DWARF_SET_ELF_ERROR(error);
-			ret = DWARF_E_ELF;
+			ret = DW_DLE_ELF;
 			goto fail_cleanup;
 		}
 
@@ -251,7 +251,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 		if ((name = elf_strptr(elf, e->eo_strndx, sh.sh_name)) ==
 		    NULL) {
 			DWARF_SET_ELF_ERROR(error);
-			ret = DWARF_E_ELF;
+			ret = DW_DLE_ELF;
 			goto fail_cleanup;
 		}
 
@@ -263,9 +263,9 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 			if ((e->eo_data[j] = elf_getdata(scn, NULL)) == NULL) {
 				elferr = elf_errno();
 				if (elferr != 0) {
-					_DWARF_SET_ERROR(error, DWARF_E_ELF,
+					_DWARF_SET_ERROR(error, DW_DLE_ELF,
 					    elferr);
-					ret = DWARF_E_ELF;
+					ret = DW_DLE_ELF;
 					goto fail_cleanup;
 				}
 			}

@@ -56,7 +56,7 @@ _dwarf_elf_get_section_info(void *obj, Dwarf_Half ndx,
 	ret_section->name = elf_strptr(e->eo_elf, e->eo_strndx, sh->sh_name);
 	if (ret_section->name == NULL) {
 		if (error)
-			*error = DWARF_E_ELF;
+			*error = DW_DLE_ELF;
 		return (DW_DLV_ERROR);
 	}
 
