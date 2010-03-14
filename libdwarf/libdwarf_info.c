@@ -63,8 +63,8 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		 */
 		if (length > ds->ds_size - offset) {
 			free(cu);
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_CU);
-			return (DWARF_E_INVALID_CU);
+			DWARF_SET_ERROR(error, DW_DLE_CU_LENGTH_ERROR);
+			return (DW_DLE_CU_LENGTH_ERROR);
 		}
 
 		/* Compute the offset to the next compilation unit: */

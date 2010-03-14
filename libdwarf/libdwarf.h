@@ -252,7 +252,7 @@ enum {
 	DW_DLE_NO_ENTRY,		/* No entry. */
 	DW_DLE_MEMORY,			/* Insufficient memory. */
 	DW_DLE_ELF,			/* ELF error. */
-	DWARF_E_INVALID_CU,		/* Invalid compilation unit data. */
+	DW_DLE_CU_LENGTH_ERROR,		/* Invalid compilation unit data. */
 	DWARF_E_CU_VERSION,		/* Wrong CU version. */
 	DWARF_E_MISSING_ABBREV,		/* Abbrev not found. */
 	DWARF_E_NOT_IMPLEMENTED,	/* Not implemented. */
