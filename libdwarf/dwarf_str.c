@@ -39,7 +39,7 @@ dwarf_get_str(Dwarf_Debug dbg, Dwarf_Off offset, char **string,
 
 	ds = _dwarf_find_section(dbg, ".debug_str");
 	if (ds == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -49,7 +49,7 @@ dwarf_get_str(Dwarf_Debug dbg, Dwarf_Off offset, char **string,
 	}
 
 	if ((Dwarf_Unsigned) offset == ds->ds_size) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

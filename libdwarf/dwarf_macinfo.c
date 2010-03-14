@@ -57,7 +57,7 @@ dwarf_get_macro_details(Dwarf_Debug dbg, Dwarf_Off offset,
 	}
 
 	if (STAILQ_EMPTY(&dbg->dbg_mslist)) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -75,7 +75,7 @@ dwarf_get_macro_details(Dwarf_Debug dbg, Dwarf_Off offset,
 			}
 	}
 
-	DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+	DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 
 	return (DW_DLV_NO_ENTRY);
 }

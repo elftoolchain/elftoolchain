@@ -36,7 +36,7 @@ dwarf_get_$1s(Dwarf_Debug dbg, Dwarf_$2 **$1s,
 	}
 
 	if (dbg->dbg_$1s == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

@@ -44,7 +44,7 @@ _dwarf_elf_get_section_info(void *obj, Dwarf_Half ndx,
 
 	if (ndx >= e->eo_seccnt) {
 		if (error)
-			*error = DWARF_E_NO_ENTRY;
+			*error = DW_DLE_NO_ENTRY;
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -141,7 +141,7 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
 
 	if (ndx >= e->eo_seccnt) {
 		if (error)
-			*error = DWARF_E_NO_ENTRY;
+			*error = DW_DLE_NO_ENTRY;
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -149,7 +149,7 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
 
 	if (d == NULL) {
 		if (error)
-			*error = DWARF_E_NO_ENTRY;
+			*error = DW_DLE_NO_ENTRY;
 		return (DW_DLV_NO_ENTRY);
 	}
 

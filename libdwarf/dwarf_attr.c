@@ -40,7 +40,7 @@ dwarf_attr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Attribute *atp,
 	}
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -62,14 +62,14 @@ dwarf_attrlist(Dwarf_Die die, Dwarf_Attribute **attrbuf,
 	}
 
 	if (die->die_ab->ab_atnum == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	*attrcount = die->die_ab->ab_atnum;
 
 	if (*attrcount == 0) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 

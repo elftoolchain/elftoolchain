@@ -66,7 +66,7 @@ _dwarf_ranges_find(Dwarf_Debug dbg, uint64_t off, Dwarf_Rangelist *ret_rl)
 			break;
 
 	if (rl == NULL)
-		return (DWARF_E_NO_ENTRY);
+		return (DW_DLE_NO_ENTRY);
 
 	if (ret_rl != NULL)
 		*ret_rl = rl;
@@ -99,11 +99,11 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	int ret;
 
 	if ((ds = _dwarf_find_section(dbg, ".debug_ranges")) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_NO_ENTRY);
-		return (DWARF_E_NO_ENTRY);
+		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		return (DW_DLE_NO_ENTRY);
 	}
 
-	if (_dwarf_ranges_find(dbg, off, NULL) != DWARF_E_NO_ENTRY)
+	if (_dwarf_ranges_find(dbg, off, NULL) != DW_DLE_NO_ENTRY)
 		return (DW_DLE_NONE);
 
 	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
