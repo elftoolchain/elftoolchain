@@ -560,6 +560,21 @@ gen_fail:
 #undef	RESET_REGISTERS
 }
 
+static uint8_t
+_dwarf_get_minlen(Dwarf_P_Debug dbg)
+{
+
+	assert(dbg != NULL);
+
+	switch (dbg->dbgp_isa) {
+	case DW_DLC_ISA_X86:
+	case DW_DLC_ISA_X86_64:
+		return (1);
+	default:
+		return (4);
+	}
+}
+
 static uint8_t oplen[] = {0, 1, 1, 1, 1, 0, 0, 0, 1};
 
 int
@@ -581,7 +596,7 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	li->li_length = 0;
 	li->li_version = 2;
 	li->li_hdrlen = 0;
-	li->li_minlen = 1;
+	li->li_minlen = _dwarf_get_minlen(dbg);
 	li->li_defstmt = 1;
 	li->li_lbase = -5;
 	li->li_lrange = 14;
