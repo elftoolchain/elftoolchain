@@ -268,7 +268,7 @@ enum {
 	DW_DLE_FRAME_INSTR_EXEC_ERROR,	/* Frame instruction exec error. */
 	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
 	DW_DLE_DF_REG_NUM_TOO_HIGH,	/* Insufficient regtable space. */
-	DWARF_E_INVALID_ARANGE,		/* Invalid address range data. */
+	DW_DLE_ARANGE_OFFSET_BAD,	/* Invalid arange offset. */
 	DWARF_E_INVALID_MACINFO,	/* Invalid macinfo data. */
 	DWARF_E_SEQUENCE,		/* API called in wrong sequence. */
 	DWARF_E_NO_ROOT_DIE,		/* Root DIE is not specified. */

@@ -81,8 +81,8 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		as->as_length = length;
 		as->as_version = dbg->read(ds->ds_data, &offset, 2);
 		if (as->as_version != 2) {
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_ARANGE);
-			ret = DWARF_E_INVALID_ARANGE;
+			DWARF_SET_ERROR(error, DW_DLE_VERSION_STAMP_ERROR);
+			ret = DW_DLE_VERSION_STAMP_ERROR;
 			goto fail_cleanup;
 		}
 
@@ -92,8 +92,8 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 				break;
 		}
 		if (cu == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_INVALID_ARANGE);
-			ret = DWARF_E_INVALID_ARANGE;
+			DWARF_SET_ERROR(error, DW_DLE_ARANGE_OFFSET_BAD);
+			ret = DW_DLE_ARANGE_OFFSET_BAD;
 			goto fail_cleanup;
 		}
 		as->as_cu = cu;
