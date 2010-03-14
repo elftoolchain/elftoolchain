@@ -67,8 +67,8 @@ _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 	}
 
 	if (expr->pe_length <= 0) {
-		DWARF_SET_ERROR(error, DWARF_E_INVALID_EXPR);
-		return (DWARF_E_INVALID_EXPR);
+		DWARF_SET_ERROR(error, DW_DLE_EXPR_LENGTH_BAD);
+		return (DW_DLE_EXPR_LENGTH_BAD);
 	}
 
 

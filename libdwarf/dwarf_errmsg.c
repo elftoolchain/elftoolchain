@@ -41,7 +41,7 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
 	/* DEFINE_ERROR(DIE_NO_CU_CONTEXT,	"No current compilation unit"), */
 	DEFINE_ERROR(BAD_FORM,		"Wrong form type for attribute value"),
-	DEFINE_ERROR(INVALID_EXPR,	"Invalid DWARF expression"),
+	/* DEFINE_ERROR(EXPR_LENGTH_BAD,	"Invalid DWARF expression length"), */
 	DEFINE_ERROR(INVALID_LOCLIST,	"Invalid loclist data"),
 	DEFINE_ERROR(INVALID_ATTR,	"Invalid attribute"),
 	DEFINE_ERROR(INVALID_LINE,	"Invalid line info data"),
