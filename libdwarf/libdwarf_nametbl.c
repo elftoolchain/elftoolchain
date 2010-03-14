@@ -162,6 +162,7 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 	Dwarf_P_Section ds;
 	Dwarf_Rel_Section drs;
 	Dwarf_NamePair np;
+	uint64_t offset;
 	int ret;
 
 	assert(dbg != NULL && name != NULL && nt != NULL);
@@ -196,6 +197,11 @@ _dwarf_nametbl_gen(Dwarf_P_Debug dbg, const char *name, Dwarf_NameTbl nt,
 		RCHECK(WRITE_STRING(np->np_name));
 	}
 	RCHECK(WRITE_VALUE(0, 4));
+
+	/* Fill in the length field. */
+	nt->nt_length = ds->ds_size - 4;
+	offset = 0;
+	dbg->write(ds->ds_data, &offset, nt->nt_length, 4);
 
 	/* Inform application the creation of name lookup ELF section. */
 	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
