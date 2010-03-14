@@ -659,7 +659,7 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	RCHECK(_dwarf_section_callback(dbg, ds, SHT_PROGBITS, 0, 0, 0, error));
 
 	/* Finalize relocation section for .debug_line. */
-	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, NULL));
+	RCHECK(_dwarf_reloc_section_finalize(dbg, drs, error));
 
 	return (DWARF_E_NONE);
 
