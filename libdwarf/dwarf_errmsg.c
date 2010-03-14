@@ -36,8 +36,8 @@ const char *_libdwarf_errors[] = {
 	/* DEFINE_ERROR(MEMORY,		"Insufficient memory"), */
 	/* DEFINE_ERROR(ELF,		"ELF error"), */
 	/* DEFINE_ERROR(CU_LENGTH_ERROR,	"Invalid compilation unit data"), */
-	DEFINE_ERROR(CU_VERSION,	"Wrong CU version. Only 2 and 3 supported"),
-	DEFINE_ERROR(MISSING_ABBREV,	"Abbrev not found"),
+	/* DEFINE_ERROR(VERSION_STAMP_ERROR, "Unsupported version"), */
+	/* DEFINE_ERROR(ABBREV_NULL,	"Abbrev not found"), */
 	DEFINE_ERROR(NOT_IMPLEMENTED,	"Unimplemented code at"),
 	DEFINE_ERROR(CU_CURRENT,	"No current compilation unit"),
 	DEFINE_ERROR(BAD_FORM,		"Wrong form type for attribute value"),

@@ -133,8 +133,8 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		}
 
 		if ((ab = _dwarf_abbrev_find(cu, abnum)) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MISSING_ABBREV);
-			return (DWARF_E_MISSING_ABBREV);
+			DWARF_SET_ERROR(error, DW_DLE_ABBREV_NULL);
+			return (DW_DLE_ABBREV_NULL);
 		}
 
 		if ((ret = _dwarf_die_add(cu, die_offset, abnum, ab, &die,
