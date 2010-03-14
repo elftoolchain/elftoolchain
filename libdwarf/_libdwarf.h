@@ -560,6 +560,8 @@ int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,
 int		_dwarf_nametbl_init(Dwarf_Debug, Dwarf_NameSec *,
 		    Dwarf_Section *, Dwarf_Error *);
 void		_dwarf_nametbl_cleanup(Dwarf_NameSec);
+int		_dwarf_nametbl_gen(Dwarf_P_Debug, const char *, Dwarf_NameTbl,
+		    Dwarf_Error *);
 int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
