@@ -37,7 +37,7 @@ dwarf_new_fde(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	}
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -59,7 +59,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	}
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
-		DWARF_SET_ERROR(error,DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error,DW_DLE_MEMORY);
 		return (DW_DLV_NOCOUNT);
 	}
 	STAILQ_INSERT_TAIL(&dbg->dbgp_cielist, cie, cie_next);
@@ -69,7 +69,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	if (augmenter != NULL) {
 		cie->cie_augment = (uint8_t *) strdup(augmenter);
 		if (cie->cie_augment == NULL) {
-			DWARF_SET_ERROR(error,DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error,DW_DLE_MEMORY);
 			return (DW_DLV_NOCOUNT);
 		}
 	}
@@ -80,7 +80,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	if (initinst != NULL && inst_len > 0) {
 		cie->cie_initinst = malloc(inst_len);
 		if (cie->cie_initinst == NULL) {
-			DWARF_SET_ERROR(error,DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error,DW_DLE_MEMORY);
 			return (DW_DLV_NOCOUNT);
 		}
 		memcpy(cie->cie_initinst, initinst, inst_len);

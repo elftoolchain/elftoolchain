@@ -42,8 +42,8 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	offset = 0;
 	while (offset < ds->ds_size) {
 		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 
 		cu->cu_dbg = dbg;
@@ -127,8 +127,8 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 
 	/* Create the single CU for this debugging object. */
 	if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	cu->cu_dbg = dbg;
 	cu->cu_version = 2;	/* DWARF2 */

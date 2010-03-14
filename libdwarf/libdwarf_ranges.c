@@ -107,8 +107,8 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 		return (DW_DLE_NONE);
 
 	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	rl->rl_cu = cu;
@@ -124,8 +124,8 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
 	    NULL) {
 		free(rl);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray, NULL);

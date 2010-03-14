@@ -37,8 +37,8 @@ _dwarf_attr_alloc(Dwarf_Die die, Dwarf_Attribute *atp, Dwarf_Error *error)
 	assert(atp != NULL);
 
 	if ((at = calloc(1, sizeof(struct _Dwarf_Attribute))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	*atp = at;

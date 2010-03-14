@@ -35,7 +35,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 
 	dbg->dbgp_mdlist = realloc(dbg->dbgp_mdlist, dbg->dbgp_mdcnt + 1);
 	if (dbg->dbgp_mdlist == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -53,7 +53,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	else if (str2 == NULL) {
 		if ((md->dmd_macro = strdup(str1)) == NULL) {
 			dbg->dbgp_mdcnt--;
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		return (DW_DLV_OK);
@@ -61,7 +61,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 		len = strlen(str1) + strlen(str2) + 2;
 		if ((md->dmd_macro = malloc(len)) == NULL) {
 			dbg->dbgp_mdcnt--;
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		snprintf(md->dmd_macro, len, "%s %s", str1, str2);

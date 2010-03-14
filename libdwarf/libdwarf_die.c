@@ -36,8 +36,8 @@ _dwarf_die_alloc(Dwarf_Die *ret_die, Dwarf_Error *error)
 	assert(ret_die != NULL);
 
 	if ((die = calloc(1, sizeof(struct _Dwarf_Die))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	STAILQ_INIT(&die->die_attr);

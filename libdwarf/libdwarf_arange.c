@@ -64,8 +64,8 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	while (offset < ds->ds_size) {
 
 		if ((as = malloc(sizeof(struct _Dwarf_ArangeSet))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 		STAILQ_INIT(&as->as_arlist);
 		STAILQ_INSERT_TAIL(&dbg->dbg_aslist, as, as_next);
@@ -112,7 +112,7 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 				break;
 			if ((ar = calloc(1, sizeof(struct _Dwarf_Arange))) ==
 			    NULL) {
-				DWARF_SET_ERROR(error, DWARF_E_MEMORY);
+				DWARF_SET_ERROR(error, DW_DLE_MEMORY);
 				goto fail_cleanup;
 			}
 			ar->ar_as = as;
@@ -127,8 +127,8 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	if (dbg->dbg_arange_cnt > 0) {
 		if  ((dbg->dbg_arange_array = malloc(dbg->dbg_arange_cnt *
 		    sizeof(struct _Dwarf_Arange))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			ret = DWARF_E_MEMORY;
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
 

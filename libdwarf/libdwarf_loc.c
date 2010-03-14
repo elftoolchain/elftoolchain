@@ -491,8 +491,8 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 		return (DW_DLE_NONE);
 
 	if ((llbuf->ld_s = calloc(num, sizeof(Dwarf_Loc))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	(void) _dwarf_loc_fill_loc(dbg, llbuf, pointer_size, in, in_len);
@@ -508,8 +508,8 @@ _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 	int ret;
 
 	if ((llbuf = malloc(sizeof(Dwarf_Locdesc))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	llbuf->ld_lopc = 0;
 	llbuf->ld_hipc = (pointer_size == 4 ? ~0U : ~0ULL);

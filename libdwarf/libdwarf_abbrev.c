@@ -35,8 +35,8 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 	Dwarf_Abbrev ab;
 
 	if ((ab = malloc(sizeof(struct _Dwarf_Abbrev))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	/* Initialise the abbrev structure. */
@@ -71,8 +71,8 @@ _dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
 	}
 
 	if ((ad = malloc(sizeof(struct _Dwarf_AttrDef))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	/* Initialise the attribute definition structure. */

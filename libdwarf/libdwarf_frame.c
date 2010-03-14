@@ -60,8 +60,8 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		return (DW_DLE_NONE);
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&fs->fs_cielist, cie, cie_next);
 
@@ -158,8 +158,8 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	int dwarf_size, ret;
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&fs->fs_fdelist, fde, fde_next);
 
@@ -280,8 +280,8 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 	assert(*frame_sec == NULL);
 
 	if ((fs = calloc(1, sizeof(struct _Dwarf_FrameSec))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&fs->fs_cielist);
 	STAILQ_INIT(&fs->fs_fdelist);
@@ -337,7 +337,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 	if (fs->fs_cielen > 0) {
 		if ((fs->fs_ciearray = malloc(sizeof(Dwarf_Cie) *
 		    fs->fs_cielen)) == NULL) {
-			ret = DWARF_E_MEMORY;
+			ret = DW_DLE_MEMORY;
 			DWARF_SET_ERROR(error, ret);
 			goto fail_cleanup;
 		}
@@ -352,7 +352,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 	if (fs->fs_fdelen > 0) {
 		if ((fs->fs_fdearray = malloc(sizeof(Dwarf_Fde) *
 		    fs->fs_fdelen)) == NULL) {
-			ret = DWARF_E_MEMORY;
+			ret = DW_DLE_MEMORY;
 			DWARF_SET_ERROR(error, ret);
 			goto fail_cleanup;
 		}
@@ -796,8 +796,8 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		if (fop3 != NULL) {					\
 			fop3[*count].fp_expr_block = malloc((len));	\
 			if (fop3[*count].fp_expr_block == NULL)	{	\
-				DWARF_SET_ERROR(error, DWARF_E_MEMORY);	\
-				return (DWARF_E_MEMORY);		\
+				DWARF_SET_ERROR(error, DW_DLE_MEMORY);	\
+				return (DW_DLE_MEMORY);		\
 			}						\
 			memcpy(&fop3[*count].fp_expr_block,		\
 			    (addr), (len));				\
@@ -948,8 +948,8 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		return (ret);
 
 	if ((oplist = calloc(count, sizeof(Dwarf_Frame_Op))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	ret = _dwarf_frame_convert_inst(dbg, insts, len, &count, oplist, NULL,
@@ -984,16 +984,16 @@ _dwarf_frame_regtable_copy(Dwarf_Debug dbg, Dwarf_Regtable3 **dest,
 
 	if (*dest == NULL) {
 		if ((*dest = malloc(sizeof(Dwarf_Regtable3))) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 		(*dest)->rt3_reg_table_size = src->rt3_reg_table_size;
 		(*dest)->rt3_rules = malloc(src->rt3_reg_table_size *
 		    sizeof(Dwarf_Regtable_Entry3));
 		if ((*dest)->rt3_rules == NULL) {
 			free(*dest);
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 	}
 
@@ -1091,16 +1091,16 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	/* Initialise internal register table. */
 	if ((rt = calloc(1, sizeof(Dwarf_Regtable3))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	rt->rt3_reg_table_size = dbg->dbg_frame_rule_table_size;
 	if ((rt->rt3_rules = calloc(rt->rt3_reg_table_size,
 	    sizeof(Dwarf_Regtable_Entry3))) == NULL) {
 		free(rt);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	/*
@@ -1151,8 +1151,8 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 		fde->fde_instcap = _FDE_INST_INIT_SIZE;
 		fde->fde_instlen = 0;
 		if ((fde->fde_inst = malloc(fde->fde_instcap)) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 	}
 	assert(fde->fde_instcap != 0);

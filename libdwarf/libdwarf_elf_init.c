@@ -149,14 +149,14 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 	ret = DW_DLE_NONE;
 
 	if ((iface = calloc(1, sizeof(*iface))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	if ((e = calloc(1, sizeof(*e))) == NULL) {
 		free(iface);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	e->eo_elf = elf;
@@ -232,8 +232,8 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 	if ((e->eo_data = calloc(n, sizeof(Elf_Data *))) == NULL ||
 	    (e->eo_shdr = calloc(n, sizeof(GElf_Shdr))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		ret = DWARF_E_MEMORY;
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		ret = DW_DLE_MEMORY;
 		goto fail_cleanup;
 	}
 

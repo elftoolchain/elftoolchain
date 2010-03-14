@@ -67,8 +67,8 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 	assert(dbg != NULL && drsp != NULL && ref != NULL);
 
 	if ((drs = calloc(1, sizeof(struct _Dwarf_Rel_Section))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	drs->drs_ref = ref;
@@ -92,8 +92,8 @@ _dwarf_reloc_section_init(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp,
 	if (_dwarf_section_init(dbg, &drs->drs_ds, name, pseudo, error) !=
 	    DW_DLE_NONE) {
 		free(drs);
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 
 	STAILQ_INIT(&drs->drs_dre);
@@ -168,8 +168,8 @@ _dwarf_reloc_entry_add(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 		ds->ds_size = offset;
 
 	if ((dre = calloc(1, sizeof(struct _Dwarf_Rel_Entry))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&drs->drs_dre, dre, dre_next);
 	dre->dre_type = type;
@@ -207,8 +207,8 @@ _dwarf_reloc_entry_add_pair(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 		ds->ds_size = offset;
 
 	if ((dre = calloc(2, sizeof(struct _Dwarf_Rel_Entry))) == NULL) {
-		DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-		return (DWARF_E_MEMORY);
+		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&drs->drs_dre, &dre[0], dre_next);
 	STAILQ_INSERT_TAIL(&drs->drs_dre, &dre[1], dre_next);
@@ -267,8 +267,8 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
 		ds->ds_cap = size;
 		if ((ds->ds_data = realloc(ds->ds_data, ds->ds_cap)) == NULL) {
-			DWARF_SET_ERROR(error, DWARF_E_MEMORY);
-			return (DWARF_E_MEMORY);
+			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
 		}
 	}
 
