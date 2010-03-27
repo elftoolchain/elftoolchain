@@ -174,8 +174,6 @@ dwarf_die_CU_offset_range(Dwarf_Die die, Dwarf_Off *cu_offset,
 	return (DW_DLV_OK);
 }
 
-extern char *anon_name;
-
 int
 dwarf_diename(Dwarf_Die die, char **ret_name, Dwarf_Error *error)
 {
