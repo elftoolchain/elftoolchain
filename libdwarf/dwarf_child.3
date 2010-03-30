@@ -93,12 +93,14 @@ entry descriptors for a compilation unit.
 .Pp
 Function
 .Fn dwarf_offdie
-returns the debugging information entry descriptor at global offset
+retrieves the debugging information entry descriptor at global offset
 .Ar offset
 in the
 .Dq .debug_info
-sections of the compilation units associated with argument
+section of the object associated with argument
 .Ar dbg .
+The returned descriptor is written to the location pointed to by argument
+.Ar ret_die .
 .Sh RETURN VALUES
 These functions return the following values:
 .Bl -tag -width ".Bq Er DW_DLV_NO_ENTRY"
