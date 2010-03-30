@@ -80,7 +80,8 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf_dealloc.3					\
+MAN=	dwarf_child.3					\
+	dwarf_dealloc.3					\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
@@ -88,7 +89,9 @@ MAN=	dwarf_dealloc.3					\
 	dwarf_init.3
 
 MLINKS+= \
-        dwarf_init.3    dwarf_elf_init.3
+	dwarf_child.3	dwarf_offdie.3			\
+	dwarf_child.3	dwarf_siblingof.3		\
+	dwarf_init.3	dwarf_elf_init.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
 dwarf_pubtypes.c:	dwarf_nametbl.m4 dwarf_pubtypes.m4
