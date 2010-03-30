@@ -97,11 +97,14 @@ dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *caller_ret_die,
 	}
 
 	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
+		if ((uint64_t) offset > cu->cu_next_offset)
+			continue;
 		STAILQ_FOREACH(die, &cu->cu_die, die_next)
-			if (die->die_offset == (uint64_t)offset) {
+			if (die->die_offset == (uint64_t) offset) {
 				*caller_ret_die = die;
 				return (DW_DLV_OK);
-			}
+			} else if (die->die_offset > (uint64_t) offset)
+				return (DW_DLV_NO_ENTRY);
 	}
 
 	return (DW_DLV_NO_ENTRY);
