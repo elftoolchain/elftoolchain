@@ -24,61 +24,64 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2010
+.Dd March 31, 2010
 .Os
 .Dt DWARF_DIENAME 3
 .Sh NAME
 .Nm dwarf_diename
-.Nd retrieve the debugging information entry name
+.Nd retrieve the name associated with a debugging information entry
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
 .In libdwarf.h
 .Ft int
-.Fo dwarf_diename
-.Fa "Dwarf_Die die"
-.Fa "char **ret_name"
-.Fa "Dwarf_Error *err"
-.Fc
+.Fn dwarf_diename "Dwarf_Die die" "char **ret_name" "Dwarf_Error *err"
 .Sh DESCRIPTION
 Function
-.Nm dwarf_diename
-retrieves the null-terminated string associated with the
+.Fn dwarf_diename
+retrieves a pointer to the NUL-terminated string associated with the
 .Dv DW_AT_name
-attribute of
-.Vt Dwarf_Die
-descriptor
-.Ar die ,
-and stroes it in
-.No \&* Ns Va ret_name .
+attribute of the debugging information entry descriptor referenced by
+argument
+.Ar die .
+If the pointer was successfully retrieved, it is stored in the location
+pointed to by argument
+.Ar ret_name .
 .Sh RETURN VALUES
-On success, function
+Function
 .Fn dwarf_diename
 returns
-.Dv DW_DLV_OK .
-In case of an error, it returns
-.Dv DW_DLV_ERROR
-and sets argument
-.Ar err .
-If
-.Vt Dwarf_Die
-descriptor
+.Dv DW_DLV_OK on success.
+.Pp
+If the debugging information entry descriptor denoted by argument
 .Ar die
 does not contain a
 .Dv DW_AT_name
 attribute, the function returns
-.Dv DW_DLV_NO_ENTRY .
+.Dv DW_DLV_NO_ENTRY
+and sets argument
+.Ar err .
+For other errors, it returns
+.Dv DW_DLV_ERROR
+and sets argument
+.Ar err .
 .Sh ERRORS
 Function
 .Fn dwarf_diename
-can fail with the following error:
+can fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Argument
-.Va die
+Either of arguments
+.Ar die
 or
-.Va ret_name
+.Ar ret_name
 was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+Argument
+.Ar die
+had no
+.Dv DW_AT_name
+attribute.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
