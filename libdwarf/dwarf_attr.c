@@ -68,11 +68,6 @@ dwarf_attrlist(Dwarf_Die die, Dwarf_Attribute **attrbuf,
 
 	*attrcount = die->die_ab->ab_atnum;
 
-	if (*attrcount == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
-	}
-
 	if (die->die_attrarray != NULL) {
 		*attrbuf = die->die_attrarray;
 		return (DW_DLV_OK);
