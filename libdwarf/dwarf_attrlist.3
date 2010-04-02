@@ -1,0 +1,108 @@
+.\" Copyright (c) 2010 Kai Wang
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" $Id$
+.\"
+.Dd April 2, 2010
+.Os
+.Dt DWARF_ATTRLIST 3
+.Sh NAME
+.Nm dwarf_attrlist
+.Nd retrieve the array of DWARF attributes
+.Sh LIBRARY
+.Lb libdwarf
+.Sh SYNOPSIS
+.In libdwarf.h
+.Ft int
+.Fo dwarf_attrlist
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Attribute **attrbuf"
+.Fa "Dwarf_Signed *attrcount"
+.Fa "Dwarf_Error *err"
+.Fc
+.Sh DESCRIPTION
+Function
+.Fn dwarf_attrlist
+retrieves the array of DWARF attribute
+descriptors associated with the debugging information entry
+descriptor referenced by argument
+.Ar die .
+If it is called the first time, function
+.Fn dwarf_attrlist
+will allocate a buffer sufficiently large to hold the DWARF
+attributes array internally.
+On sucess, the pointer to the internal array buffer
+is stored in the location pointed to by argument
+.Ar attrbuf .
+The total number of descriptors in this array is stored in the
+location pointed to by argument
+.Ar attrcount .
+.Pp
+The DWARF attribute descritpors in the returned array are
+represented by the
+.Vt Dwarf_Attribute
+opaque type. Application could pass these opaque descritpors
+to form query functions to access the attribute data.
+.Sh RETURN VALUES
+Function
+.Fn dwarf_attrlist
+returns
+.Dv DW_DLV_OK on success.
+.Pp
+If the debugging information entry descriptor denoted by argument
+.Ar die
+does not contain any attribute, the function returns
+.Dv DW_DLV_NO_ENTRY
+and sets argument
+.Ar err .
+For other errors, it returns
+.Dv DW_DLV_ERROR
+and sets argument
+.Ar err .
+.Sh ERRORS
+Function
+.Fn dwarf_diename
+can fail with the following errors:
+.Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
+.It Bq Er DW_DLE_ARGUMENT
+Arguments
+.Ar die ,
+.Ar attrbuf ,
+or
+.Ar attrcount
+were NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+Argument
+.Ar die
+had no attribute.
+.It Bq Er DW_DLE_MEMORY
+Out of memory when allocating internal buffer.
+.El
+.Sh SEE ALSO
+.Xr dwarf 3 ,
+.Xr dwarf_attr 3 ,
+.Xr dwarf_hasattr 3 ,
+.Xr dwarf_hasform 3 ,
+.Xr dwarf_whatattr 3 ,
+.Xr dwarf_whatform 3
