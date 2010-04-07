@@ -94,6 +94,27 @@ _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 	return (DW_DLE_NONE);
 }
 
+void
+_dwarf_expr_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_P_Expr pe, tpe;
+	struct _Dwarf_P_Expr_Entry *ee, *tee;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	STAILQ_FOREACH_SAFE(pe, &dbg->dbgp_pelist, pe_next, tpe) {
+		STAILQ_REMOVE(&dbg->dbgp_pelist, pe, _Dwarf_P_Expr, pe_next);
+		STAILQ_FOREACH_SAFE(ee, &pe->pe_eelist, ee_next, tee) {
+			STAILQ_REMOVE(&pe->pe_eelist, ee, _Dwarf_P_Expr_Entry,
+			    ee_next);
+			free(ee);
+		}
+		if (pe->pe_block)
+			free(pe->pe_block);
+		free(pe);
+	}
+}
+
 Dwarf_P_Expr
 dwarf_new_expr(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {

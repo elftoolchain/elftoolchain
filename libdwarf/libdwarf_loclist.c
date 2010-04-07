@@ -176,13 +176,13 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 
 fail_cleanup:
 
-	_dwarf_loclist_cleanup(ll);
+	_dwarf_loclist_free(ll);
 
 	return (ret);
 }
 
 void
-_dwarf_loclist_cleanup(Dwarf_Loclist ll)
+_dwarf_loclist_free(Dwarf_Loclist ll)
 {
 	int i;
 
@@ -197,6 +197,18 @@ _dwarf_loclist_cleanup(Dwarf_Loclist ll)
 		}
 		free(ll->ll_ldlist);
 	}
-
 	free(ll);
+}
+
+void
+_dwarf_loclist_cleanup(Dwarf_Debug dbg)
+{
+	Dwarf_Loclist ll, tll;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
+	TAILQ_FOREACH_SAFE(ll, &dbg->dbg_loclist, ll_next, tll) {
+		TAILQ_REMOVE(&dbg->dbg_loclist, ll, ll_next);
+		_dwarf_loclist_free(ll);
+	}
 }

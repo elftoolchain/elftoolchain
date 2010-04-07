@@ -127,6 +127,11 @@ _dwarf_reloc_section_free(Dwarf_P_Debug dbg, Dwarf_Rel_Section *drsp)
 		}
 		if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0)
 			_dwarf_section_free(dbg, &drs->drs_ds);
+		else {
+			if (drs->drs_ds->ds_name)
+				free(drs->drs_ds->ds_name);
+			free(drs->drs_ds);
+		}
 		free(drs);
 		*drsp = NULL;
 		dbg->dbgp_drscnt--;
@@ -387,4 +392,33 @@ _dwarf_reloc_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	}
 
 	return (DW_DLE_NONE);
+}
+
+void
+_dwarf_reloc_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_Rel_Section drs, tdrs;
+	Dwarf_Rel_Entry dre, tdre;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	STAILQ_FOREACH_SAFE(drs, &dbg->dbgp_drslist, drs_next, tdrs) {
+		STAILQ_REMOVE(&dbg->dbgp_drslist, drs, _Dwarf_Rel_Section,
+		    drs_next);
+		STAILQ_FOREACH_SAFE(dre, &drs->drs_dre, dre_next, tdre) {
+			STAILQ_REMOVE(&drs->drs_dre, dre, _Dwarf_Rel_Entry,
+			    dre_next);
+			free(dre);
+		}
+		if (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) {
+			if (drs->drs_ds) {
+				if (drs->drs_ds->ds_name)
+					free(drs->drs_ds->ds_name);
+				free(drs->drs_ds);
+			}
+		}
+		free(drs);
+	}
+	dbg->dbgp_drscnt = 0;
+	dbg->dbgp_drspos = NULL;
 }

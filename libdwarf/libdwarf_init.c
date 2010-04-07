@@ -285,119 +285,59 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
 	return (DW_DLE_NONE);
 }
 
+static void
+_dwarf_producer_deinit(Dwarf_P_Debug dbg)
+{
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	_dwarf_info_pro_cleanup(dbg);
+	_dwarf_die_pro_cleanup(dbg);
+	_dwarf_expr_cleanup(dbg);
+	_dwarf_lineno_pro_cleanup(dbg);
+	_dwarf_frame_pro_cleanup(dbg);
+	_dwarf_arange_pro_cleanup(dbg);
+	_dwarf_macinfo_pro_cleanup(dbg);
+	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_pubs);
+	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_weaks);
+	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_funcs);
+	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_types);
+	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_vars);
+	_dwarf_section_cleanup(dbg);
+	_dwarf_reloc_cleanup(dbg);
+}
+
+static void
+_dwarf_consumer_deinit(Dwarf_Debug dbg)
+{
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
+	_dwarf_info_cleanup(dbg);
+	_dwarf_loclist_cleanup(dbg);
+	_dwarf_ranges_cleanup(dbg);
+	_dwarf_frame_cleanup(dbg);
+	_dwarf_arange_cleanup(dbg);
+	_dwarf_macinfo_cleanup(dbg);
+	_dwarf_strtab_cleanup(dbg);
+	_dwarf_nametbl_cleanup(&dbg->dbg_globals);
+	_dwarf_nametbl_cleanup(&dbg->dbg_pubtypes);
+	_dwarf_nametbl_cleanup(&dbg->dbg_weaks);
+	_dwarf_nametbl_cleanup(&dbg->dbg_funcs);
+	_dwarf_nametbl_cleanup(&dbg->dbg_vars);
+	_dwarf_nametbl_cleanup(&dbg->dbg_types);
+}
+
 void
 _dwarf_deinit(Dwarf_Debug dbg)
 {
-	Dwarf_Abbrev ab;
-	Dwarf_Abbrev tab;
-	Dwarf_AttrDef ad;
-	Dwarf_AttrDef tad;
-	Dwarf_Attribute at;
-	Dwarf_Attribute tat;
-	Dwarf_CU cu;
-	Dwarf_CU tcu;
-	Dwarf_Die die;
-	Dwarf_Die tdie;
-	Dwarf_Loclist ll;
-	Dwarf_Loclist tll;
-	Dwarf_LineInfo li;
-	Dwarf_LineFile lf, tlf;
-	Dwarf_Line ln, tln;
 
 	assert(dbg != NULL);
 
-	/* Free entries in the compilation unit list. */
-	STAILQ_FOREACH_SAFE(cu, &dbg->dbg_cu, cu_next, tcu) {
-		/* Free entries in the die list */
-		STAILQ_FOREACH_SAFE(die, &cu->cu_die, die_next, tdie) {
-			/* Free entries in the attribute list */
-			STAILQ_FOREACH_SAFE(at, &die->die_attr, at_next, tat) {
-				STAILQ_REMOVE(&die->die_attr, at,
-				    _Dwarf_Attribute, at_next);
-				if (at->at_ld != NULL)
-					free(at->at_ld);
-				free(at);
-			}
-
-			if (die->die_attrarray)
-				free(die->die_attrarray);
-
-			STAILQ_REMOVE(&cu->cu_die, die, _Dwarf_Die, die_next);
-
-			free(die);
-
-		}
-
-		/* Free entries in the abbrev list */
-		STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
-			/* Free entries in the attribute list */
-			STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
-				STAILQ_REMOVE(&ab->ab_attrdef, ad,
-				    _Dwarf_AttrDef, ad_next);
-				free(ad);
-			}
-
-			STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev,
-			    ab_next);
-			free(ab);
-		}
-
-		/* Free lineinfo. */
-		if (cu->cu_lineinfo != NULL) {
-			li = cu->cu_lineinfo;
-			STAILQ_FOREACH_SAFE(lf, &li->li_lflist, lf_next, tlf) {
-				STAILQ_REMOVE(&li->li_lflist, lf,
-				    _Dwarf_LineFile, lf_next);
-				if (lf->lf_fullpath)
-					free(lf->lf_fullpath);
-				free(lf);
-			}
-			STAILQ_FOREACH_SAFE(ln, &li->li_lnlist, ln_next, tln) {
-				STAILQ_REMOVE(&li->li_lnlist, ln, _Dwarf_Line,
-				    ln_next);
-				free(ln);
-			}
-			if (li->li_oplen)
-				free(li->li_oplen);
-			if (li->li_incdirs)
-				free(li->li_incdirs);
-			if (li->li_lnarray)
-				free(li->li_lnarray);
-			free(li);
-		}
-
-		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
-		free(cu);
-	}
-
-	/* Free loclist list. */
-	TAILQ_FOREACH_SAFE(ll, &dbg->dbg_loclist, ll_next, tll) {
-		TAILQ_REMOVE(&dbg->dbg_loclist, ll, ll_next);
-		_dwarf_loclist_cleanup(ll);
-	}
-
-	_dwarf_ranges_cleanup(dbg);
-
-	if (dbg->dbg_globals)
-		_dwarf_nametbl_cleanup(dbg->dbg_globals);
-	if (dbg->dbg_pubtypes)
-		_dwarf_nametbl_cleanup(dbg->dbg_pubtypes);
-	if (dbg->dbg_weaks)
-		_dwarf_nametbl_cleanup(dbg->dbg_weaks);
-	if (dbg->dbg_funcs)
-		_dwarf_nametbl_cleanup(dbg->dbg_funcs);
-	if (dbg->dbg_vars)
-		_dwarf_nametbl_cleanup(dbg->dbg_vars);
-	if (dbg->dbg_types)
-		_dwarf_nametbl_cleanup(dbg->dbg_types);
-
-	_dwarf_frame_cleanup(dbg);
-
-	_dwarf_arange_cleanup(dbg);
-
-	_dwarf_macinfo_cleanup(dbg);
-
-	_dwarf_strtab_cleanup(dbg);
+	if (dbg->dbg_mode == DW_DLC_READ)
+		_dwarf_consumer_deinit(dbg);
+	else if (dbg->dbg_mode == DW_DLC_WRITE)
+		_dwarf_producer_deinit(dbg);
 }
 
 int

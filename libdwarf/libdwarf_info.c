@@ -114,6 +114,25 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	return (ret);
 }
 
+void
+_dwarf_info_cleanup(Dwarf_Debug dbg)
+{
+	Dwarf_CU cu, tcu;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
+	STAILQ_FOREACH_SAFE(cu, &dbg->dbg_cu, cu_next, tcu) {
+		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+		_dwarf_die_cleanup(dbg, cu);
+		_dwarf_abbrev_cleanup(cu);
+		if (cu->cu_lineinfo != NULL) {
+			_dwarf_lineno_cleanup(cu->cu_lineinfo);
+			cu->cu_lineinfo = NULL;
+		}
+		free(cu);
+	}
+}
+
 int
 _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
@@ -200,3 +219,17 @@ gen_fail1:
 
 	return (ret);
 }
+
+void
+_dwarf_info_pro_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_CU cu;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	cu = STAILQ_FIRST(&dbg->dbg_cu);
+	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+	_dwarf_abbrev_cleanup(cu);
+	free(cu);
+}
+

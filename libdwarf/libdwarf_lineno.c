@@ -423,6 +423,35 @@ fail_cleanup:
 	return (ret);
 }
 
+void
+_dwarf_lineno_cleanup(Dwarf_LineInfo li)
+{
+	Dwarf_LineFile lf, tlf;
+	Dwarf_Line ln, tln;
+
+	if (li == NULL)
+		return;
+	STAILQ_FOREACH_SAFE(lf, &li->li_lflist, lf_next, tlf) {
+		STAILQ_REMOVE(&li->li_lflist, lf,
+		    _Dwarf_LineFile, lf_next);
+		if (lf->lf_fullpath)
+			free(lf->lf_fullpath);
+		free(lf);
+	}
+	STAILQ_FOREACH_SAFE(ln, &li->li_lnlist, ln_next, tln) {
+		STAILQ_REMOVE(&li->li_lnlist, ln, _Dwarf_Line,
+		    ln_next);
+		free(ln);
+	}
+	if (li->li_oplen)
+		free(li->li_oplen);
+	if (li->li_incdirs)
+		free(li->li_incdirs);
+	if (li->li_lnarray)
+		free(li->li_lnarray);
+	free(li);
+}
+
 static int
 _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
     Dwarf_Rel_Section drs, Dwarf_Error * error)
@@ -685,4 +714,37 @@ gen_fail1:
 	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
+}
+
+void
+_dwarf_lineno_pro_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_LineInfo li;
+	Dwarf_LineFile lf, tlf;
+	Dwarf_Line ln, tln;
+	int i;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+	if (dbg->dbgp_lineinfo == NULL)
+		return;
+
+	li = dbg->dbgp_lineinfo;
+	STAILQ_FOREACH_SAFE(lf, &li->li_lflist, lf_next, tlf) {
+		STAILQ_REMOVE(&li->li_lflist, lf, _Dwarf_LineFile,
+		    lf_next);
+		if (lf->lf_fname)
+			free(lf->lf_fname);
+		free(lf);
+	}
+	STAILQ_FOREACH_SAFE(ln, &li->li_lnlist, ln_next, tln) {
+		STAILQ_REMOVE(&li->li_lnlist, ln, _Dwarf_Line, ln_next);
+		free(ln);
+	}
+	if (li->li_incdirs) {
+		for (i = 0; (Dwarf_Unsigned) i < li->li_inclen; i++)
+			free(li->li_incdirs[i]);
+		free(li->li_incdirs);
+	}
+	free(li);
+	dbg->dbgp_lineinfo = NULL;
 }
