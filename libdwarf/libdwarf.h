@@ -616,6 +616,7 @@ int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *,
 		    Dwarf_Error *);
+Dwarf_Unsigned	dwarf_producer_finish(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_P_Debug	dwarf_producer_init(Dwarf_Unsigned, Dwarf_Callback_Func,
 		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
 Dwarf_P_Debug	dwarf_producer_init_b(Dwarf_Unsigned, Dwarf_Callback_Func_b,

@@ -26,6 +26,7 @@ SRCS=	\
 	dwarf_pro_attr.c	\
 	dwarf_pro_die.c		\
 	dwarf_pro_expr.c	\
+	dwarf_pro_finish.c	\
 	dwarf_pro_frame.c	\
 	dwarf_pro_funcs.c	\
 	dwarf_pro_init.c	\
