@@ -218,3 +218,23 @@ _dwarf_pro_find_section(Dwarf_P_Debug dbg, const char *name)
 
 	return (NULL);
 }
+
+void
+_dwarf_section_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_P_Section ds, tds;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	STAILQ_FOREACH_SAFE(ds, &dbg->dbgp_seclist, ds_next, tds) {
+		STAILQ_REMOVE(&dbg->dbgp_seclist, ds, _Dwarf_P_Section,
+		    ds_next);
+		if (ds->ds_name)
+			free(ds->ds_name);
+		if (ds->ds_data)
+			free(ds->ds_data);
+		free(ds);
+	}
+	dbg->dbgp_seccnt = 0;
+	dbg->dbgp_secpos = 0;
+}

@@ -1065,17 +1065,24 @@ _dwarf_frame_cleanup(Dwarf_Debug dbg)
 {
 	Dwarf_Regtable3 *rt;
 
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
 	if (dbg->dbg_internal_reg_table) {
 		rt = dbg->dbg_internal_reg_table;
 		free(rt->rt3_rules);
 		free(rt);
+		dbg->dbg_internal_reg_table = NULL;
 	}
 
-	if (dbg->dbg_frame)
+	if (dbg->dbg_frame) {
 		_dwarf_frame_section_cleanup(dbg->dbg_frame);
+		dbg->dbg_frame = NULL;
+	}
 
-	if (dbg->dbg_eh_frame)
+	if (dbg->dbg_eh_frame) {
 		_dwarf_frame_section_cleanup(dbg->dbg_eh_frame);
+		dbg->dbg_eh_frame = NULL;
+	}
 }
 
 int
@@ -1366,4 +1373,31 @@ gen_fail0:
 	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
+}
+
+void
+_dwarf_frame_pro_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_P_Cie cie, tcie;
+	Dwarf_P_Fde fde, tfde;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	STAILQ_FOREACH_SAFE(cie, &dbg->dbgp_cielist, cie_next, tcie) {
+		STAILQ_REMOVE(&dbg->dbgp_cielist, cie, _Dwarf_Cie, cie_next);
+		if (cie->cie_augment)
+			free(cie->cie_augment);
+		if (cie->cie_initinst)
+			free(cie->cie_initinst);
+		free(cie);
+	}
+	dbg->dbgp_cielen = 0;
+
+	STAILQ_FOREACH_SAFE(fde, &dbg->dbgp_fdelist, fde_next, tfde) {
+		STAILQ_REMOVE(&dbg->dbgp_fdelist, fde, _Dwarf_Fde, fde_next);
+		if (fde->fde_inst != NULL)
+			free(fde->fde_inst);
+		free(fde);
+	}
+	dbg->dbgp_fdelen = 0;
 }

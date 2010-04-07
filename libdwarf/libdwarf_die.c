@@ -171,6 +171,30 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 }
 
 void
+_dwarf_die_cleanup(Dwarf_Debug dbg, Dwarf_CU cu)
+{
+	Dwarf_Die die, tdie;
+	Dwarf_Attribute at, tat;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+	assert(cu != NULL);
+
+	STAILQ_FOREACH_SAFE(die, &cu->cu_die, die_next, tdie) {
+		STAILQ_REMOVE(&cu->cu_die, die, _Dwarf_Die, die_next);
+		STAILQ_FOREACH_SAFE(at, &die->die_attr, at_next, tat) {
+			STAILQ_REMOVE(&die->die_attr, at,
+			    _Dwarf_Attribute, at_next);
+			if (at->at_ld != NULL)
+				free(at->at_ld);
+			free(at);
+		}
+		if (die->die_attrarray)
+			free(die->die_attrarray);
+		free(die);
+	}
+}
+
+void
 _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
     Dwarf_P_Die left_sibling, Dwarf_P_Die right_sibling)
 {
@@ -407,14 +431,30 @@ gen_fail:
 
 	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
 		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
-			STAILQ_REMOVE(&ab->ab_attrdef, ad,
-			    _Dwarf_AttrDef, ad_next);
+			STAILQ_REMOVE(&ab->ab_attrdef, ad, _Dwarf_AttrDef,
+			    ad_next);
 			free(ad);
 		}
-		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev,
-		    ab_next);
+		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev, ab_next);
 		free(ab);
 	}
 
 	return (ret);
+}
+
+void
+_dwarf_die_pro_cleanup(Dwarf_P_Debug dbg)
+{
+	Dwarf_P_Die die, tdie;
+	Dwarf_P_Attribute at, tat;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
+
+	STAILQ_FOREACH_SAFE(die, &dbg->dbgp_dielist, die_next, tdie) {
+		STAILQ_FOREACH_SAFE(at, &die->die_attr, at_next, tat) {
+			STAILQ_REMOVE(&die->die_attr, at, _Dwarf_Attribute,
+			    at_next);
+			free(at);
+		}
+	}
 }

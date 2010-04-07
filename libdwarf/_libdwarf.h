@@ -376,7 +376,7 @@ typedef struct _Dwarf_Rel_Entry {
 	Dwarf_Unsigned	dre_offset;	/* Reloc storage unit offset. */
 	Dwarf_Unsigned	dre_addend;	/* Reloc addend. */
 	Dwarf_Unsigned	dre_symndx;	/* Reloc symbol index. */
-	const char *dre_secname;	/* Refer to some debug section. */
+	const char	*dre_secname;	/* Refer to some debug section. */
 	STAILQ_ENTRY(_Dwarf_Rel_Entry) dre_next; /* Next reloc entry. */
 } *Dwarf_Rel_Entry;
 
@@ -480,6 +480,7 @@ struct _Dwarf_Debug {
 
 int		_dwarf_abbrev_add(Dwarf_CU, uint64_t, uint64_t, uint8_t,
 		    uint64_t, Dwarf_Abbrev *, Dwarf_Error *);
+void		_dwarf_abbrev_cleanup(Dwarf_CU);
 int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
 Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
 int		_dwarf_abbrev_gen(Dwarf_P_Debug, Dwarf_Error *);
@@ -492,6 +493,7 @@ int		_dwarf_alloc(Dwarf_Debug *, int, Dwarf_Error *);
 void		_dwarf_arange_cleanup(Dwarf_Debug);
 int		_dwarf_arange_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_arange_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
+void		_dwarf_arange_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_attr_alloc(Dwarf_Die, Dwarf_Attribute *, Dwarf_Error *);
 Dwarf_Attribute	_dwarf_attr_find(Dwarf_Die, Dwarf_Half);
 int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_P_Section, Dwarf_Rel_Section,
@@ -509,6 +511,7 @@ void		_dwarf_deinit(Dwarf_Debug);
 int		_dwarf_die_add(Dwarf_CU, uint64_t, uint64_t, Dwarf_Abbrev,
 		    Dwarf_Die *, Dwarf_Error *);
 int		_dwarf_die_alloc(Dwarf_Die *, Dwarf_Error *);
+void		_dwarf_die_cleanup(Dwarf_Debug, Dwarf_CU);
 int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
@@ -518,6 +521,7 @@ void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
 		    uint64_t, uint64_t, Dwarf_Error *);
+void		_dwarf_die_pro_cleanup(Dwarf_P_Debug);
 void		_dwarf_elf_deinit(Dwarf_Debug);
 int		_dwarf_elf_init(Dwarf_Debug, Elf *, Dwarf_Error *);
 int		_dwarf_elf_load_section(void *, Dwarf_Half, Dwarf_Small **,
@@ -528,17 +532,9 @@ Dwarf_Small	_dwarf_elf_get_pointer_size(void *);
 Dwarf_Unsigned	_dwarf_elf_get_section_count(void *);
 int		_dwarf_elf_get_section_info(void *, Dwarf_Half,
 		    Dwarf_Obj_Access_Section *, int *);
+void		_dwarf_expr_cleanup(Dwarf_P_Debug);
 int		_dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Error *);
 Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
-int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
-Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
-int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
-int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
-int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
-int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
-		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
-		    Dwarf_Unsigned *, int *);
-Dwarf_P_Section	_dwarf_pro_find_section(Dwarf_P_Debug, const char *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
@@ -549,10 +545,20 @@ int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
 int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
 		    Dwarf_Regtable3 **, Dwarf_Addr *, Dwarf_Error *);
 int		_dwarf_frame_init(Dwarf_Debug, Dwarf_Error *);
+void		_dwarf_frame_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_frame_regtable_copy(Dwarf_Debug, Dwarf_Regtable3 **,
 		    Dwarf_Regtable3 *, Dwarf_Error *);
+int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
+Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
+void		_dwarf_info_cleanup(Dwarf_Debug);
+int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
+int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
+void		_dwarf_info_pro_cleanup(Dwarf_P_Debug);
+int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
 int		_dwarf_lineno_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_lineno_init(Dwarf_Die, uint64_t, Dwarf_Error *);
+void		_dwarf_lineno_cleanup(Dwarf_LineInfo);
+void		_dwarf_lineno_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_loc_fill_locdesc(Dwarf_Debug, Dwarf_Locdesc *, uint8_t *,
 		    uint64_t, uint8_t, Dwarf_Error *);
 int		_dwarf_loc_fill_locexpr(Dwarf_Debug, Dwarf_Locdesc **,
@@ -562,18 +568,25 @@ int		_dwarf_loc_expr_add_atom(Dwarf_Debug, uint8_t *, uint8_t *,
 		    Dwarf_Small, Dwarf_Unsigned, Dwarf_Unsigned, int *,
 		    Dwarf_Error *);
 int		_dwarf_loclist_find(Dwarf_Debug, uint64_t, Dwarf_Loclist *);
+void		_dwarf_loclist_cleanup(Dwarf_Debug);
+void		_dwarf_loclist_free(Dwarf_Loclist);
 int		_dwarf_loclist_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
-void		_dwarf_loclist_cleanup(Dwarf_Loclist);
 void		_dwarf_macinfo_cleanup(Dwarf_Debug);
 int		_dwarf_macinfo_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,
 		    Dwarf_Error *);
+void		_dwarf_macinfo_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_nametbl_init(Dwarf_Debug, Dwarf_NameSec *,
 		    Dwarf_Section *, Dwarf_Error *);
-void		_dwarf_nametbl_cleanup(Dwarf_NameSec);
+void		_dwarf_nametbl_cleanup(Dwarf_NameSec *);
 int		_dwarf_nametbl_gen(Dwarf_P_Debug, const char *, Dwarf_NameTbl,
 		    Dwarf_Error *);
+void		_dwarf_nametbl_pro_cleanup(Dwarf_NameTbl *);
+int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
+		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
+		    Dwarf_Unsigned *, int *);
+Dwarf_P_Section	_dwarf_pro_find_section(Dwarf_P_Debug, const char *);
 int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
 		    Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
@@ -594,12 +607,14 @@ int		_dwarf_reloc_entry_add_pair(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_P_Section, unsigned char, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
+void		_dwarf_reloc_cleanup(Dwarf_P_Debug);
 int		_dwarf_reloc_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_reloc_section_gen(Dwarf_P_Debug, Dwarf_Rel_Section,
 		    Dwarf_Error *);
 int		_dwarf_reloc_section_init(Dwarf_P_Debug, Dwarf_Rel_Section *,
 		    Dwarf_P_Section, Dwarf_Error *);
 void		_dwarf_reloc_section_free(Dwarf_P_Debug, Dwarf_Rel_Section *);
+void		_dwarf_section_cleanup(Dwarf_P_Debug);
 int		_dwarf_section_callback(Dwarf_P_Debug, Dwarf_P_Section,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);

@@ -27,12 +27,15 @@
 #include "_libdwarf.h"
 
 void
-_dwarf_nametbl_cleanup(Dwarf_NameSec ns)
+_dwarf_nametbl_cleanup(Dwarf_NameSec *nsp)
 {
+	Dwarf_NameSec ns;
 	Dwarf_NameTbl nt, tnt;
 	Dwarf_NamePair np, tnp;
 
-	assert(ns != NULL);
+	assert(nsp != NULL);
+	if ((ns = *nsp) == NULL)
+		return;
 
 	STAILQ_FOREACH_SAFE(nt, &ns->ns_ntlist, nt_next, tnt) {
 		STAILQ_FOREACH_SAFE(np, &nt->nt_nplist, np_next, tnp) {
@@ -43,11 +46,10 @@ _dwarf_nametbl_cleanup(Dwarf_NameSec ns)
 		STAILQ_REMOVE(&ns->ns_ntlist, nt, _Dwarf_NameTbl, nt_next);
 		free(nt);
 	}
-
 	if (ns->ns_array)
 		free(ns->ns_array);
-
 	free(ns);
+	*nsp = NULL;
 }
 
 int
@@ -150,7 +152,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 
 fail_cleanup:
 
-	_dwarf_nametbl_cleanup(ns);
+	_dwarf_nametbl_cleanup(&ns);
 
 	return (ret);
 }
@@ -220,4 +222,24 @@ gen_fail0:
 	_dwarf_section_free(dbg, &ds);
 
 	return (ret);
+}
+
+void
+_dwarf_nametbl_pro_cleanup(Dwarf_NameTbl *ntp)
+{
+	Dwarf_NameTbl nt;
+	Dwarf_NamePair np, tnp;
+
+	assert(ntp != NULL);
+	if ((nt = *ntp) == NULL)
+		return;
+
+	STAILQ_FOREACH_SAFE(np, &nt->nt_nplist, np_next, tnp) {
+		STAILQ_REMOVE(&nt->nt_nplist, np, _Dwarf_NamePair, np_next);
+		if (np->np_name)
+			free(np->np_name);
+		free(np);
+	}
+	free(nt);
+	*ntp = NULL;
 }

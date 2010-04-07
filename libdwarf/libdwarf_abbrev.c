@@ -163,6 +163,25 @@ _dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry)
 	return (ab);
 }
 
+void
+_dwarf_abbrev_cleanup(Dwarf_CU cu)
+{
+	Dwarf_Abbrev ab, tab;
+	Dwarf_AttrDef ad, tad;
+
+	assert(cu != NULL);
+
+	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
+		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev, ab_next);
+		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
+			STAILQ_REMOVE(&ab->ab_attrdef, ad, _Dwarf_AttrDef,
+			    ad_next);
+			free(ad);
+		}
+		free(ab);
+	}
+}
+
 int
 _dwarf_abbrev_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
