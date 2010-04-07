@@ -242,7 +242,6 @@ _dwarf_arange_pro_cleanup(Dwarf_P_Debug dbg)
 		STAILQ_REMOVE(&as->as_arlist, ar, _Dwarf_Arange, ar_next);
 		free(ar);
 	}
-	STAILQ_REMOVE(&dbg->dbg_aslist, as, _Dwarf_ArangeSet, as_next);
 	free(as);
 	dbg->dbgp_as = NULL;
 }
