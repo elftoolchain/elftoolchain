@@ -87,12 +87,19 @@ MAN=	dwarf_child.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
 	dwarf_get_elf.3					\
+	dwarf_highpc.3					\
 	dwarf_init.3
 
 MLINKS+= \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_siblingof.3		\
-	dwarf_init.3	dwarf_elf_init.3
+	dwarf_init.3	dwarf_elf_init.3		\
+	dwarf_highpc.3	dwarf_arrayorder.3		\
+	dwarf_highpc.3	dwarf_bitoffset.3		\
+	dwarf_highpc.3	dwarf_bitsize.3			\
+	dwarf_highpc.3	dwarf_bytesize.3		\
+	dwarf_highpc.3	dwarf_lowpc.3			\
+	dwarf_highpc.3	dwarf_srclang.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
 dwarf_pubtypes.c:	dwarf_nametbl.m4 dwarf_pubtypes.m4
