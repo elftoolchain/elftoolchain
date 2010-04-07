@@ -24,22 +24,46 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 2, 2010
+.Dd April 7, 2010
 .Os
 .Dt DWARF_HIGHPC 3
 .Sh NAME
+.Nm dwarf_arrayorder ,
+.Nm dwarf_bitoffset ,
+.Nm dwarf_bitsize ,
+.Nm dwarf_bytesize ,
 .Nm dwarf_highpc ,
 .Nm dwarf_lowpc ,
-.Nm dwarf_bytesize ,
-.Nm dwarf_bitsize ,
-.Nm dwarf_bitoffset ,
-.Nm dwarf_srclang ,
-.Nm dwarf_arrayorder ,
-.Nd retrieve DWARF attribute value
+.Nm dwarf_srclang
+.Nd retrieve the value of a DWARF attribute
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
 .In libdwarf.h
+.Ft int
+.Fo dwarf_arrayorder
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Unsigned *ret_order"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_bitoffset
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Unsigned *ret_size"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_bitsize
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Unsigned *ret_size"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_bytesize
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Unsigned *ret_size"
+.Fa "Dwarf_Error *err"
+.Fc
 .Ft int
 .Fo dwarf_highpc
 .Fa "Dwarf_Die die"
@@ -53,76 +77,50 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
-.Fo dwarf_bytesize
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Unsigned *ret_size"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
-.Fo dwarf_bitsize
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Unsigned *ret_size"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
-.Fo dwarf_bitoffset
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Unsigned *ret_size"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
 .Fo dwarf_srclang
 .Fa "Dwarf_Die die"
 .Fa "Dwarf_Unsigned *ret_lang"
 .Fa "Dwarf_Error *err"
 .Fc
-.Ft int
-.Fo dwarf_arrayorder
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Unsigned *ret_order"
-.Fa "Dwarf_Error *err"
-.Fc
 .Sh DESCRIPTION
-These convenience functions are used to retrieve certain attribute
-values associated with Debugging Information Entry (DIE) descriptor
+These convenience functions are used to retrieve DWARF attribute
+values associated with a Debugging Information Entry (DIE) descriptor
 denoted by argument
 .Ar die .
-If such attributes exist in the debugging information entry
-.Ar die ,
-these functions store the attribute values in the location pointed
-to by their second arguments.
+These functions store the value of the requested attribute into the
+location pointed to by their second argument, provided that the requested
+attribute exists in the debugging information entry.
 .Pp
-The following is a list of the fucntions and the corresponding
-attribute they retrieve:
+The list of functions and the DWARF attribute that they retrieve are:
 .Pp
 .Bl -tag -width ".Fn dwarf_arrayorder" -compact
-.It Fn dwarf_lowpc
+.It Fn dwarf_arrayorder
 Retrieve the
-.Dv DW_AT_low_pc
-attribute value.
-.It Fn dwarf_highpc
-Retrieve the
-.Dv DW_AT_high_pc
-attribute value.
-.It Fn dwarf_bytesize
-Retrieve the
-.Dv DW_AT_byte_size
-attribute value.
-.It Fn dwarf_bitsize
-Retrieve the
-.Dv DW_AT_bit_size
+.Dv DW_AT_ordering
 attribute value.
 .It Fn dwarf_bitoffset
 Retrieve the
 .Dv DW_AT_bit_offset
 attribute value.
+.It Fn dwarf_bitsize
+Retrieve the
+.Dv DW_AT_bit_size
+attribute value.
+.It Fn dwarf_bytesize
+Retrieve the
+.Dv DW_AT_byte_size
+attribute value.
+.It Fn dwarf_highpc
+Retrieve the
+.Dv DW_AT_high_pc
+attribute value.
+.It Fn dwarf_lowpc
+Retrieve the
+.Dv DW_AT_low_pc
+attribute value.
 .It Fn dwarf_srclang
 Retrieve the
 .Dv DW_AT_language
-attribute value.
-.It Fn dwarf_arrayorder
-Retrieve the
-.Dv DW_AT_ordering
 attribute value.
 .El
 .Sh RETURN VALUES
