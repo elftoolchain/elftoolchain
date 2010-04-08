@@ -1,7 +1,6 @@
 /*-
- * Copyright (c) 2009, 2010 Kai Wang
- * All rights reserved.
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
+ * Copyright (c) 2009, 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
