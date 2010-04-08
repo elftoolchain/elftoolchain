@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 2, 2010
+.Dd April 8, 2010
 .Os
 .Dt DWARF_ATTR 3
 .Sh NAME
 .Nm dwarf_attr
-.Nd retrieve DWARF attribute assoicated with debugging information entry
+.Nd retrieve an attribute descriptor associated with a DWARF debugging information entry
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -44,19 +44,38 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_attr
-retrieves DWARF attribute descriptor with attribute
-.Ar attr
-of the debugging information entry descriptor referenced by argument
+retrieves the attribute descriptor for an attribute associated
+with the DWARF debugging information entry descriptor in
+argument
 .Ar die .
-If the descriptor was successfully retrieved, it is stored in the location
-pointed to by argument
-.Ar atp .
 .Pp
-The DWARF attribute descriptor retrieved by this function is
-represented by the
-.Vt Dwarf_Attribute
-opaque type. Application could pass this opaque descriptor
-to form query functions to access the attribute data.
+DWARF attribute descriptors are represented by value of the opaque
+type
+.Vt Dwarf_Attribute ,
+see
+.Xr dwarf 3 .
+.Pp
+Argument
+.Ar attr
+names the desired DWARF attribute.
+Legal values for argument
+.Ar attr
+are those denoted by the
+.Dv DW_AT_*
+constants in the DWARF specification.
+.Pp
+Argument
+.Ar atp
+points to a location into which the returned attribute descriptor
+will be written.
+The returned descriptor may then be passed to the form query functions in the
+.Xr dwarf 3
+API set to access the data associated with the attribute.
+.Pp
+If argument
+.Ar err
+is non-NULL, it will be used to return an error descriptor in case
+of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_attr
@@ -65,9 +84,7 @@ returns
 .Pp
 If the debugging information entry descriptor denoted by argument
 .Ar die
-does not contain a
-.Ar attr
-attribute, the function returns
+does not contain the named attribute, the function returns
 .Dv DW_DLV_NO_ENTRY
 and sets argument
 .Ar err .
@@ -89,9 +106,9 @@ was NULL.
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar die
-had no
-.Ar attr
-attribute.
+had no attribute corresponding to the value
+in argument
+.Ar attr .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
