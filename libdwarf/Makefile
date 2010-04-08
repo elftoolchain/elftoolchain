@@ -81,7 +81,8 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf_child.3					\
+MAN=	dwarf_attr.3					\
+	dwarf_child.3					\
 	dwarf_dealloc.3					\
 	dwarf_diename.3					\
 	dwarf_errmsg.3					\
