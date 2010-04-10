@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 2, 2010
+.Dd April 9, 2010
 .Os
 .Dt DWARF_ATTRLIST 3
 .Sh NAME
 .Nm dwarf_attrlist
-.Nd retrieve the array of DWARF attributes
+.Nd retrieve DWARF attribute descriptors
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -44,26 +44,40 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_attrlist
-retrieves the array of DWARF attribute
-descriptors associated with the debugging information entry
-descriptor referenced by argument
+retrieves the DWARF attribute descriptors associated with a
+debugging information entry descriptor in argument
 .Ar die .
-If it is called the first time, function
-.Fn dwarf_attrlist
-will allocate a buffer sufficiently large to hold the DWARF
-attributes array internally.
-On sucess, the pointer to the internal array buffer
-is stored in the location pointed to by argument
-.Ar attrbuf .
-The total number of descriptors in this array is stored in the
-location pointed to by argument
-.Ar attrcount .
+The descriptors are returned as an array of values of the opaque type
+.Vt Dwarf_Attribute .
+The data associated with each returned attribute descriptor may be
+queried using the form query functions in the
+.Xr dwarf 3
+API set.
 .Pp
-The DWARF attribute descritpors in the returned array are
-represented by the
-.Vt Dwarf_Attribute
-opaque type. Application could pass these opaque descritpors
-to form query functions to access the attribute data.
+Argument
+.Ar attrbuf
+points to a location that will hold a pointer to the returned
+array of DWARF attribute descriptors.
+Argument
+.Ar attrcount
+points to a location that will hold the number of descriptors in
+the returned array.
+.Pp
+If argument
+.Ar err
+is non-NULL, it is used to return an error descriptor in case of an
+error.
+.Ss Memory Management
+In the current implementation, the memory allocated for each DWARF
+attribute descriptor and for the returned array of descriptors is
+managed by the library and the application does not need to explicitly
+free the returned pointers.
+However, for compatibility with other implementations of the
+.Xr dwarf 3
+API, the application is permitted to pass the pointers returned by to
+the
+.Fn dwarf_dealloc
+function.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_attrlist
@@ -80,6 +94,27 @@ For other errors, it returns
 .Dv DW_DLV_ERROR
 and sets argument
 .Ar err .
+.Sh EXAMPLES
+To retrieve the attribute list for a DWARF debugging information
+entry use:
+.Bd -literal
+	Dwarf_Error dw_e;
+	Dwarf_Debug dw_dbg;
+	Dwarf_Unsigned dw_count;
+	Dwarf_Attribute *dw_attributes;
+	int error, i;
+
+	\&... allocate dw_dbg using dwarf_init() etc...
+
+	if ((error = dwarf_attrlist(dw_dbg, &dw_attributes, &dw_count,
+		&dw_e)) != DW_DLV_OK)
+		errx(1, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
+
+        for (i = 0; i < dw_count; ++i) {
+		/* Use the returned pointers in dw_attributes[i] here. */
+        }
+}
+.Ed
 .Sh ERRORS
 Function
 .Fn dwarf_diename
@@ -95,13 +130,15 @@ were NULL.
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar die
-had no attribute.
+had no attributes.
 .It Bq Er DW_DLE_MEMORY
-Out of memory when allocating internal buffer.
+An out of memory condition was encountered during the execution of the
+function.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_attr 3 ,
+.Xr dwarf_dealloc 3 ,
 .Xr dwarf_hasattr 3 ,
 .Xr dwarf_hasform 3 ,
 .Xr dwarf_whatattr 3 ,
