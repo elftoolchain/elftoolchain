@@ -163,7 +163,9 @@ archive may be opened in read mode (with argument
 set to
 .Dv ELF_C_READ )
 using
-.Fn elf_begin .
+.Fn elf_begin
+or
+.Fn elf_memory .
 The returned ELF descriptor can be passed into to
 subsequent calls to
 .Fn elf_begin
