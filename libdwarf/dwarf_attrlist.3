@@ -98,18 +98,20 @@ and sets argument
 To retrieve the attribute list for a DWARF debugging information
 entry use:
 .Bd -literal
+	Dwarf_Die dw_die;
 	Dwarf_Error dw_e;
-	Dwarf_Debug dw_dbg;
 	Dwarf_Unsigned dw_count;
 	Dwarf_Attribute *dw_attributes;
 	int error, i;
 
-	\&... allocate dw_dbg using dwarf_init() etc...
+	\&... variable dw_die contains a reference to the DIE of interest ...
 
-	if ((error = dwarf_attrlist(dw_dbg, &dw_attributes, &dw_count,
+	/* Retrieve the attribute list from the DIE. */
+	if ((error = dwarf_attrlist(dw_die, &dw_attributes, &dw_count,
 		&dw_e)) != DW_DLV_OK)
 		errx(1, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
 
+	/* Process the attribute list. */
         for (i = 0; i < dw_count; ++i) {
 		/* Use the returned pointers in dw_attributes[i] here. */
         }
