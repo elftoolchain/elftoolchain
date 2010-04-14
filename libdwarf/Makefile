@@ -90,6 +90,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
+	dwarf_get_address_size.3			\
 	dwarf_get_elf.3					\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
