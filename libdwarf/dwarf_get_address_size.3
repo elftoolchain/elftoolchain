@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2010
+.Dd April 14, 2010
 .Os
 .Dt DWARF_GET_ADDRESS_SIZE 3
 .Sh NAME
 .Nm dwarf_get_address_size
-.Nd retrieve the debugging object address size.
+.Nd return the number of bytes needed to represent an address
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -43,13 +43,18 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_address_size
-retrieves the size of an address in bytes for the debugging object
-associated with
-.Vt Dwarf_Debug
-descriptor
-.Ar dbg ,
-and stores it in
-.No \&* Ns Va addr_size .
+returns the size in bytes of a native address for a program object.
+.Pp
+Argument
+.Ar dbg
+should denote a DWARF debug context created from a program object using
+.Xr dwarf_init 3 .
+Argument
+.Ar addr_size
+should point to a location that will hold the returned size.
+Argument
+.Ar err ,
+if non-NULL, it will be used to return error information.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_tag
@@ -65,11 +70,13 @@ Function
 can fail with the following error:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Argument
-.El
-.Va dbg
+Either of arguments
+.Ar dbg
 or
-.Va addr_size
+.Ar addr_size
 was NULL.
+.El
 .Sh SEE ALSO
-.Xr dwarf 3
+.Xr dwarf 3 ,
+.Xr dwarf_init 3 ,
+.Xr dwarf_finish 3
