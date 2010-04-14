@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2010
+.Dd April 14, 2010
 .Os
 .Dt DWARF_TAG 3
 .Sh NAME
 .Nm dwarf_tag
-.Nd retrieve the debugging information entry tag
+.Nd retrieve the tag associated with a DWARF debugging information entry
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -43,12 +43,16 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_tag
-retrieves the tag of
-.Vt Dwarf_Die
-descriptor
+retrieves the tag associated with the debugging information entry
+referenced by argument
 .Ar die ,
-and stores it in
-.No \&* Ns Va tag .
+and stores it into the location pointed to by argument
+.Ar tag .
+.Pp
+If argument
+.Ar err
+if non-NULL, it will be used to return an error descriptor in case of
+an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_tag
