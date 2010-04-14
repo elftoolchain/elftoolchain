@@ -24,35 +24,32 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2010
+.Dd April 14, 2010
 .Os
 .Dt DWARF_DIE_ABBREV_CODE 3
 .Sh NAME
 .Nm dwarf_die_abbrev_code
-.Nd retrieve the debugging information entry abbreviation code
+.Nd retrieve the abbreviation code for a DWARF debugging information entry
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
 .In libdwarf.h
 .Ft int
-.Fo dwarf_die_abbrev_code
-.Fa "Dwarf_Die die"
-.Fc
+.Fn dwarf_die_abbrev_code "Dwarf_Die die"
 .Sh DESCRIPTION
 Function
 .Fn dwarf_die_abbrev_code
-returns the abbreviation code of
-.Vt Dwarf_Die
-descriptor
+returns the abbreviation code for the debugging information entry descriptor
+referenced by argument
 .Ar die .
-This function can not fail. The calling application must
-ensure that the
-.Vt Dwarf_Die
-descriptor
+Argument
 .Ar die
-is not NULL.
+should be a valid pointer to a value of type
+.Vt Dwarf_Die .
+.Sh RETURN VALUES
+The function returns an integral value.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
-.Xr dwarf_tag 3 ,
 .Xr dwarf_diename 3 ,
-.Xr dwarf_dieoffset 3
+.Xr dwarf_dieoffset 3 ,
+.Xr dwarf_tag 3
