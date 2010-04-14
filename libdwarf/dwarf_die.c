@@ -112,14 +112,15 @@ dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *caller_ret_die,
 int
 dwarf_tag(Dwarf_Die die, Dwarf_Half *tag, Dwarf_Error *error)
 {
-	Dwarf_Abbrev ab;
 
-	if (die == NULL || tag == NULL || (ab = die->die_ab) == NULL) {
+	if (die == NULL || tag == NULL) {
 		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	*tag = (Dwarf_Half) ab->ab_tag;
+	assert(die->die_ab != NULL);
+
+	*tag = (Dwarf_Half) die->die_ab->ab_tag;
 
 	return (DW_DLV_OK);
 }
