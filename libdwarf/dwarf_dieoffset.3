@@ -28,21 +28,15 @@
 .Os
 .Dt DWARF_DIEOFFSET 3
 .Sh NAME
-.Nm dwarf_dieoffset ,
 .Nm dwarf_die_CU_offset ,
 .Nm dwarf_die_CU_offset_range ,
+.Nm dwarf_dieoffset ,
 .Nm dwarf_get_cu_die_offset_given_cu_header_offset
-retrieve the debugging information entry offset
+.Nd return offsets of DWARF debugging information entries
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
 .In libdwarf.h
-.Ft int
-.Fo dwarf_dieoffset
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Off *ret_offset"
-.Fa "Dwarf_Error *err"
-.Fc
 .Ft int
 .Fo dwarf_die_CU_offset
 .Fa "Dwarf_Die die"
@@ -57,6 +51,12 @@ retrieve the debugging information entry offset
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
+.Fo dwarf_dieoffset
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Off *ret_offset"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
 .Fo dwarf_get_cu_die_offset_given_cu_header_offset
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Off in_cu_header_offset"
@@ -64,63 +64,88 @@ retrieve the debugging information entry offset
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
-These functions are used to retrieve the offset of 
-debugging information entries.
-.Pp
-Function
-.Fn dwarf_dieoffset
-retrieves the offset of the debugging information entry associated with
-.Vt Dwarf_Die
-descritpor
-.Va die
-in the .debug_info section, and stores it in
-.No \&* Ns Va ret_offset .
+These functions are used to retrieve offsets for DWARF debugging
+information entries.
 .Pp
 Function
 .Fn dwarf_die_CU_offset
-retrieves the relative offset of the debugging
-information entry
-.Va die
-to the start of the containing compilation unit, and stores it in
-.No \&* Ns Va ret_offset .
+returns the offset of the debugging information entry referenced by
+argument
+.Ar die
+relative to the start of its containing compilation unit.
+Argument
+.Ar ret_offset
+should point to the location that is to hold the returned offset.
+If argument
+.Ar err
+is non-NULL, it will be used to return an error descriptor in case of
+an error.
 .Pp
 Function
 .Fn dwarf_die_CU_offset_range
-restrieves the offset and length of compilation unit that contains
-the debugging information entry
-.Va die ,
-and stores them in
-.No \&* Ns Va cu_offset
-and
-.No \&* Ns Va cu_length ,
-respectively.
+returns the section-relative offset and length of the compilation unit
+containing the debugging information entry referenced by argument
+.Ar die .
+Argument
+.Ar cu_offset
+should point to a location that will hold the returned offset.
+Argument
+.Ar cu_length
+should point to a location that will hold then returned length of the
+compilation unit.
+If argument
+.Ar err
+is non-NULL, it will be used to return an error descriptor in case of
+an error.
+.Pp
+Function
+.Fn dwarf_dieoffset
+retrieves the section-relative offset of the debugging information
+entry referenced by argument
+.Ar die .
+Argument
+.Ar ret_offset
+should point to a location that is to hold the returned
+section-relative offset.
+If argument
+.Ar err
+is non-NULL, it will be used to return an error descriptor in case of
+an error.
 .Pp
 Function
 .Fn dwarf_get_cu_die_offset_given_cu_header_offset
-retrieve the compilation unit DIE offset, given the
-compilation unit offset
-.Va in_cu_header_offset ,
-and stores it in
-.No \&* Ns Va out_cu_die_offset .
-This function converts a compilation unit offset
-into the offset of the first DIE
-.Pq the compilation unit DIE
-inside the compilation unit, skipping the CU header.
+returns the offset for the debugging information entry for a
+compilation unit, given an offset to the header of the compilation
+unit.
+Argument
+.Ar dbg
+should reference a valid debugging context allocated using
+.Xr dwarf_init 3 .
+Argument
+.Ar in_cu_header_offset
+contains the offset to the start of a compilation unit.
+Argument
+.Ar out_cu_die_offset
+points to a location that will hold the returned offset.
+If argument
+.Ar err
+is non-NULL, it will be used to return an error descriptor in case of
+an error.
 .Sh RETURN VALUES
 On success, these functions returns
 .Dv DW_DLV_OK .
-In case of an error, it returns
+In case of an error, these functions return
 .Dv DW_DLV_ERROR
-and sets argument
+and set argument
 .Ar err .
 .Pp
 Function
 .Fn dwarf_get_cu_die_offset_given_cu_header_offset
 returns
 .Dv DW_DLV_NO_ENTRY
-when there is no compilation unit locate at the given
-offset
-.Va in_cu_header_offset .
+if there is no compilation unit located at the
+offset specified in argument
+.Ar in_cu_header_offset .
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
