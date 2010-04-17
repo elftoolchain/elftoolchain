@@ -87,6 +87,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_dealloc.3					\
 	dwarf_die_abbrev_code.3				\
 	dwarf_diename.3					\
+	dwarf_dieoffset.3				\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
@@ -100,6 +101,9 @@ MLINKS+= \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_siblingof.3		\
 	dwarf_init.3	dwarf_elf_init.3		\
+	dwarf_dieoffset.3	dwarf_die_CU_offset.3	\
+	dwarf_dieoffset.3	dwarf_die_CU_offset_range.3 \
+	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
 	dwarf_highpc.3	dwarf_arrayorder.3		\
 	dwarf_highpc.3	dwarf_bitoffset.3		\
 	dwarf_highpc.3	dwarf_bitsize.3			\
