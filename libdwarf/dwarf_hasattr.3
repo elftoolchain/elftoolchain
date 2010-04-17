@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 2, 2010
+.Dd April 17, 2010
 .Os
 .Dt DWARF_HASATTR 3
 .Sh NAME
 .Nm dwarf_hasattr
-.Nd attribute presence test
+.Nd check for the presence of an attribute
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -44,15 +44,27 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_hasattr
-test whether the debugging information entry denoted by argument
+tests whether the debugging information entry referenced in argument
 .Ar die
-contains the attribute
+contains the attribute named by argument
 .Ar attr .
-It stores a non-zero value in the location pointed to by argument
-.Ar ret_bool
-if the attribute
+Legal values for argument
 .Ar attr
-presents, and zero otherwise.
+are those denoted by the
+.Dv DW_AT_*
+constants in the DWARF specification.
+.Pp
+If the named attribute is present in the debugging information entry,
+function
+.Fn dwarf_hasattr
+returns a non-zero value in the location pointed to by argument
+.Ar ret_bool .
+If the named attribute is not present, a zero is written instead.
+.Pp
+If argument
+.Ar err
+is not NULL, it will be used to return an error descriptor in case
+of an error. 
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_hasattr
@@ -75,5 +87,5 @@ or
 was NULL.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
-.Xr dwarf_attr 3,
+.Xr dwarf_attr 3 ,
 .Xr dwarf_whatattr 3
