@@ -143,6 +143,8 @@ Function
 .Fn dwarf_get_cu_die_offset_given_cu_header_offset
 returns
 .Dv DW_DLV_NO_ENTRY
+and sets argument
+.Ar err
 if there is no compilation unit located at the
 offset specified in argument
 .Ar in_cu_header_offset .
@@ -150,23 +152,19 @@ offset specified in argument
 These functions may fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Argument
-.Va die
+One of the arguments
+.Va cu_length ,
+.Va cu_offset ,
+.Va dbg ,
+.Va die ,
+.Va out_cu_die_offset
 or
 .Va ret_offset
 was NULL.
-.It Bq Er DW_DLE_ARGUMENT
+.It Bq Er DW_DLE_NO_ENTRY
 Argument
-.Va cu_offset
-or
-.Va cu_length
-was NULL.
-.It Bq Er DW_DLE_ARGUMENT
-Argument
-.Va dbg
-or
-.Va out_cu_die_offset
-was NULL.
+.Ar in_cu_header_offset
+specified an unknown offset.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
