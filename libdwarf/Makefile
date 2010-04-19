@@ -96,6 +96,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_hasattr.3					\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
+	dwarf_next_cu_header.3				\
 	dwarf_tag.3
 
 MLINKS+= \
