@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2010
+.Dd April 18, 2010
 .Os
 .Dt DWARF_NEXT_CU_HEADER 3
 .Sh NAME
 .Nm dwarf_next_cu_header
-.Nd retrieve the next compilation unit header
+.Nd step through compilation units in a DWARF debug context
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -47,39 +47,65 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_next_cu_header
-sets the internal compilation unit context assoicaited with
-.Vt Dwarf_Debug
-descriptor
+steps to the next compilation unit context associated with the DWARF
+debug context and optionally returns information about the unit.
+.Pp
+Argument
 .Ar dbg
-to the next compilation unit.
+should reference a DWARF debug context allocated using
+.Xr dwarf_init 3 .
 .Pp
-On success,
-.No \&* Ns Va cu_header_length
-is set to the length of the CU header,
-.No \&* Ns Va cu_version
-is set to the CU version,
-.No \&* Ns Va cu_abbrev_offset
-is set to the offset in the .debug_abbrev section
-of the set of debugging
-information entry abbreviations associated with
-this CU.
-.No \&* Ns Va cu_pointer_size
-is set to the size of an address in bytes for
-the target architecture.
-.No \&* Ns Va cu_next_offset
-is set to the offset of the next compilation unit
-in the .debug_info section.
+Argument
+.Ar cu_header_length
+should point to a location that will be set to the
+length of the compilation unit header.
+Argument
+.Ar cu_version
+should point to a location that will be set to the
+version number for the compilation unit.
+Argument
+.Ar cu_abbrev_offset
+should point to a location that will be set to the
+starting offset in the
+.Dq .debug_abbrev
+section of the set of debugging information entry abbreviations
+associated with this compilation unit.
+Argument
+.Ar cu_pointer_size
+should point to a location that will be set to the
+size of an address in bytes for the machine architecture of the
+underlying debugging object.
+Argument
+.Ar cu_next_offset
+should point to a location that will be set to the
+offset of the next compilation unit.
+Argument
+.Ar err
+should point to a location that will hold an error descriptor in case
+of an error.
 .Pp
-If there is no more compilation unit in the
-.Vt Dwarf_Debug
-descriptor
-.Ar dbg ,
-function
+A value of NULL may be used for any of the arguments
+.Ar cu_header_length ,
+.Ar cu_version ,
+.Ar cu_abbrev_offset ,
+.Ar cu_pointer_size ,
+.Ar cu_next_offset
+and
+.Ar err
+indicating that the caller is not interested in the
+respective value.
+.Ss Iterating Through Compilation Units in a Debug Context
+.Pp
+The first call to function
 .Fn dwarf_next_cu_header
-sets the internal CU context to NULL and returns
-.Dv DW_DLV_NO_ENTRY .
-The subsequent call to this function will rewind
-the internal CU context to the first compilation unit.
+for a given debug context will return information about the first
+compilation unit in the debug context.
+Subsequent calls to this function will step through the compilation
+units in the debug context.
+On stepping past the last compilation unit in the debug context,
+.Fn dwarf_next_cu_header
+resets its internal state so that a subsequent call to the function
+will start again from the first compilation unit in the debug context.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_next_cu_header
@@ -89,7 +115,7 @@ In case of an error, it returns
 .Dv DW_DLV_ERROR
 and sets argument
 .Ar err .
-If there is no more compilation unit, it returns
+If the is no more compilation unit, it returns
 .Dv DW_DLV_NO_ENTRY .
 .Sh ERRORS
 Function
@@ -103,4 +129,4 @@ was NULL.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
-.Xr dwarf_siblingof 3
+.Xr dwarf_init 3
