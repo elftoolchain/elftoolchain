@@ -608,7 +608,7 @@ Dwarf_P_Die	dwarf_new_die(Dwarf_P_Debug, Dwarf_Tag, Dwarf_P_Die,
 Dwarf_P_Expr	dwarf_new_expr(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_P_Fde	dwarf_new_fde(Dwarf_P_Debug, Dwarf_Error *);
 int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
-		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Half *,
+		    Dwarf_Half *, Dwarf_Off *, Dwarf_Half *,
 		    Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_object_finish(Dwarf_Debug, Dwarf_Error *);
 int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
