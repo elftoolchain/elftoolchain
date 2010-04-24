@@ -337,7 +337,6 @@ struct _Dwarf_CU {
 	Dwarf_Debug	cu_dbg;		/* Ptr to containing dbg. */
 	uint64_t	cu_offset;	/* Offset to the this CU. */
 	uint32_t	cu_length;	/* Length of CU data. */
-	uint32_t	cu_header_length; /* Length of the CU header. */
 	uint16_t	cu_version;	/* DWARF version. */
 	uint64_t	cu_abbrev_offset; /* Offset into .debug_abbrev. */
 	uint64_t	cu_abbrev_cnt;	/* Abbrev entry count. */
