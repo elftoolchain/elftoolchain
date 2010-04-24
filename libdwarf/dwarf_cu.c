@@ -49,7 +49,7 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
 	}
 
 	if (cu_header_length)
-		*cu_header_length = dbg->dbg_cu_current->cu_header_length;
+		*cu_header_length = dbg->dbg_cu_current->cu_length;
 	if (cu_version)
 		*cu_version = dbg->dbg_cu_current->cu_version;
 	if (cu_abbrev_offset)

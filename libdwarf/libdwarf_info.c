@@ -71,7 +71,6 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 
 		/* Initialise the compilation unit. */
 		cu->cu_length 		= length;
-		cu->cu_header_length	= (dwarf_size == 4) ? 4 : 12;
 		cu->cu_version		= dbg->read(ds->ds_data, &offset, 2);
 		cu->cu_abbrev_offset	= dbg->read(ds->ds_data, &offset,
 		    dwarf_size);
