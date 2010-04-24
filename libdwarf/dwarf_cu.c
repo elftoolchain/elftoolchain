@@ -28,7 +28,7 @@
 
 int
 dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
-    Dwarf_Half *cu_version, Dwarf_Unsigned *cu_abbrev_offset,
+    Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
     Dwarf_Half *cu_pointer_size, Dwarf_Unsigned *cu_next_offset,
     Dwarf_Error *error)
 {
@@ -53,7 +53,8 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
 	if (cu_version)
 		*cu_version = dbg->dbg_cu_current->cu_version;
 	if (cu_abbrev_offset)
-		*cu_abbrev_offset = dbg->dbg_cu_current->cu_abbrev_offset;
+		*cu_abbrev_offset =
+		    (Dwarf_Off) dbg->dbg_cu_current->cu_abbrev_offset;
 	if (cu_pointer_size)
 		*cu_pointer_size = dbg->dbg_cu_current->cu_pointer_size;
 	if (cu_next_offset)
