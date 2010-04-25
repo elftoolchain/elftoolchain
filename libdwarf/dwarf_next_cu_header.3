@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 24, 2010
+.Dd April 25, 2010
 .Os
 .Dt DWARF_NEXT_CU_HEADER 3
 .Sh NAME
@@ -37,7 +37,7 @@
 .Ft int
 .Fo dwarf_next_cu_header
 .Fa "Dwarf_Debug dbg"
-.Fa "Dwarf_Unsigned *cu_header_length"
+.Fa "Dwarf_Unsigned *cu_length"
 .Fa "Dwarf_Half *cu_version"
 .Fa "Dwarf_Off *cu_abbrev_offset"
 .Fa "Dwarf_Half *cu_pointer_size"
@@ -56,9 +56,9 @@ should reference a DWARF debug context allocated using
 .Xr dwarf_init 3 .
 .Pp
 Argument
-.Ar cu_header_length
+.Ar cu_length
 should point to a location that will be set to the
-length of the compilation unit header.
+length of the compilation unit.
 Argument
 .Ar cu_version
 should point to a location that will be set to the
@@ -85,7 +85,7 @@ should point to a location that will hold an error descriptor in case
 of an error.
 .Pp
 A value of NULL may be used for any of the arguments
-.Ar cu_header_length ,
+.Ar cu_length ,
 .Ar cu_version ,
 .Ar cu_abbrev_offset ,
 .Ar cu_pointer_size ,
