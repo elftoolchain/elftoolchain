@@ -27,7 +27,7 @@
 #include "_libdwarf.h"
 
 int
-dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
+dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
     Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
     Dwarf_Half *cu_pointer_size, Dwarf_Unsigned *cu_next_offset,
     Dwarf_Error *error)
@@ -48,8 +48,8 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_header_length,
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	if (cu_header_length)
-		*cu_header_length = dbg->dbg_cu_current->cu_length;
+	if (cu_length)
+		*cu_length = dbg->dbg_cu_current->cu_length;
 	if (cu_version)
 		*cu_version = dbg->dbg_cu_current->cu_version;
 	if (cu_abbrev_offset)
