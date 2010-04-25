@@ -172,7 +172,7 @@ dwarf_die_CU_offset_range(Dwarf_Die die, Dwarf_Off *cu_offset,
 	assert(cu != NULL);
 
 	*cu_offset = cu->cu_offset;
-	*cu_length = cu->cu_length;
+	*cu_length = cu->cu_length + cu->cu_length_size;
 
 	return (DW_DLV_OK);
 }
