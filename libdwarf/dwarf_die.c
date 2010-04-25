@@ -223,6 +223,7 @@ dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug dbg,
 			die = STAILQ_FIRST(&cu->cu_die);
 			assert(die != NULL);
 			*out_cu_die_offset = die->die_offset;
+			break;
 		}
 	}
 
