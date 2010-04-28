@@ -1,4 +1,4 @@
-.\" Copyright (c) 2009 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2009,2010 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,12 +23,13 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 12, 2009
+.Dd April 28, 2010
 .Os
 .Dt DWARF_DEALLOC 3
 .Sh NAME
-.Nm dwarf_dealloc
-.Nd release a resource
+.Nm dwarf_dealloc ,
+.Nm dwarf_srclines_dealloc
+.Nd release resources
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -39,19 +40,31 @@
 .Fa "Dwarf_Ptr ptr"
 .Fa "Dwarf_Unsigned type"
 .Fc
+.Ft void
+.Fo dwarf_srclines_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Line *lines"
+.Fa "Dwarf_Signed linecount"
+.Fc
 .Sh DESCRIPTION
-The function
+The functions
 .Fn dwarf_dealloc
-is provided for compatibility with other implementations of the
-DWARF(3) API and is a no-op in this implementation.
+and
+.Fn dwarf_srclines_dealloc
+are provided for compatibility with other implementations of the
+DWARF(3) API.
+Due to the way memory is managed in the current implementation, these
+functions are effectively no-ops.
 .Pp
 See
 .Xr dwarf 3
-for more information about memory management for this implementation
-of the DWARF(3) API.
+for more information about the memory management scheme in this
+implementation of the DWARF(3) API.
 .Sh RETURN VALUES
-Function
+Functions
 .Fn dwarf_dealloc
-has no return value.
+and
+.Fn dwarf_srclines_dealloc
+have no return value.
 .Sh SEE ALSO
 .Xr dwarf 3
