@@ -40,3 +40,17 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 
 	(void) dbg; (void) p; (void) alloc_type;
 }
+
+void
+dwarf_srclines_dealloc(Dwarf_Debug dbg, Dwarf_Line *linebuf,
+	Dwarf_Signed count)
+{
+	/*
+	 * In this libdwarf implementation, line information remains
+	 * associated with the DIE for a compilation unit for the
+	 * lifetime of the DIE.  The client does not need to free
+	 * the memory returned by `dwarf_srclines()`.
+	 */ 
+
+	(void) dbg; (void) linebuf; (void) count;
+}

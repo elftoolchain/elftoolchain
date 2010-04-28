@@ -657,6 +657,8 @@ int		dwarf_srcfiles(Dwarf_Die, char ***, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_srclang(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_srclines(Dwarf_Die, Dwarf_Line **, Dwarf_Signed *,
 		    Dwarf_Error *);
+void		dwarf_srclines_dealloc(Dwarf_Debug, Dwarf_Line *,
+		    Dwarf_Signed);
 int		dwarf_start_macro_file(Dwarf_P_Debug, Dwarf_Unsigned,
 		    Dwarf_Unsigned, Dwarf_Error *);
 int		dwarf_tag(Dwarf_Die, Dwarf_Half *, Dwarf_Error *);
