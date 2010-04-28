@@ -102,6 +102,7 @@ MAN=	dwarf_attr.3					\
 MLINKS+= \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_siblingof.3		\
+	dwarf_dealloc.3	dwarf_srclines_dealloc.3	\
 	dwarf_init.3	dwarf_elf_init.3		\
 	dwarf_dieoffset.3	dwarf_die_CU_offset.3	\
 	dwarf_dieoffset.3	dwarf_die_CU_offset_range.3 \
