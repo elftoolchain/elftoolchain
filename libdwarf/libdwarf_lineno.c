@@ -449,6 +449,8 @@ _dwarf_lineno_cleanup(Dwarf_LineInfo li)
 		free(li->li_incdirs);
 	if (li->li_lnarray)
 		free(li->li_lnarray);
+	if (li->li_lfnarray)
+		free(li->li_lfnarray);
 	free(li);
 }
 
