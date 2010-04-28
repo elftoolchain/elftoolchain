@@ -32,12 +32,11 @@ void
 dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {
 	/*
-	 * This libdwarf implementation doesn't use this style
-	 * of memory allocation. It doesn't copy things to return
-	 * them to the client, so the client doesn't need to
-	 * remember to free them.
+	 * This libdwarf implementation does not use the SGI/libdwarf
+	 * style of memory allocation. It does not copy things to return
+	 * to the client, so the client does not need to remember to
+	 * free them.
 	 */
 
 	(void) dbg; (void) p; (void) alloc_type;
-	return;
 }
