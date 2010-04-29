@@ -248,7 +248,7 @@ incct(const char *pathname)
 }
 
 static void
-usage()
+usage(void)
 {
 	fprintf(stderr, "usage: ardiff archive1 archive2\n");
 	exit(EX_USAGE);

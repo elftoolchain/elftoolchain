@@ -138,7 +138,7 @@ main(int argc, char **argv)
 }
 
 static void
-usage()
+usage(void)
 {
 	fprintf(stderr, "usage: teraser [-ce] [-t name] archive ...\n");
 	exit(EX_USAGE);
