@@ -67,6 +67,11 @@ If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
+.Pp
+The returned
+.Vt Dwarf_Line
+descriptors may be passed to the other line number functions in the
+API set to retrieve specific information about each source line.
 .Ss Memory Management
 The memory area used for the array of
 .Vt Dwarf_Line
@@ -112,7 +117,49 @@ does not have associated line number information.
 An out of memory condition was encountered during the execution of
 this function.
 .El
+.Sh EXAMPLE
+To obtain an array of
+.Vt Dwarf_Line
+descriptors and to retrieve the source file, line number, and virtual address
+associated with each descriptor:
+.Bd -literal
+	int n;
+	Dwarf_Die die;
+	Dwarf_Error de;
+	char *filename;
+	Dwarf_Line *lines;
+	Dwarf_Signed nlines;
+	Dwarf_Addr lineaddr;
+	Dwarf_Unsigned lineno;
+
+	\&...variable die contains a reference to a DIE for a compilation unit...
+
+	if (dwarf_srclines(die, &lines, &nlines, &de) != DW_DLV_OK)
+		errx(1, "dwarf_srclines: %s", dwarf_errmsg(de));
+
+	for (n = 0; n < nlines; n++) {
+		/* Retrieve the file name for this descriptor. */
+		if (dwarf_linesrc(lines[n], &filename, &de))
+			errx(1, "dwarf_linesrc: %s", dwarf_errmsg(de));
+
+		/* Retrieve the line number in the source file. */
+		if (dwarf_lineno(lines[n], &lineno, &de))
+			errx(1, "dwarf_lineno: %s", dwarf_errmsg(de));
+
+		/* Retrieve the virtual address associated with this line. */
+		if (dwarf_lineaddr(lines[n], &lineaddr, &de))
+			errx(1, "dwarf_lineaddr: %s", dwarf_errmsg(de));
+	}
+.Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
+.Xr dwarf_line_srcfileno 3 ,
+.Xr dwarf_lineaddr 3 ,
+.Xr dwarf_linebeginstatement 3 ,
+.Xr dwarf_lineblock 3 ,
+.Xr dwarf_lineendsequence 3 ,
+.Xr dwarf_lineno 3 ,
+.Xr dwarf_lineoff 3 ,
+.Xr dwarf_linesrc 3 ,
 .Xr dwarf_srcfiles 3 ,
 .Xr dwarf_srclines_dealloc 3
