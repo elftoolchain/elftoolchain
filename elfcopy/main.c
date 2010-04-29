@@ -476,7 +476,8 @@ create_tempfile(char **fn, int *fd)
 	char		*cp, *tmpf;
 	size_t		 tlen, plen;
 
-#define	TEMPLATE "/tmp/ecp.XXXXXXXX"
+#define	_TEMPFILE "ecp.XXXXXXXX"
+#define	_TEMPFILEPATH "/tmp/ecp.XXXXXXXX"
 
 	if (fn == NULL || fd == NULL)
 		return;
@@ -484,7 +485,7 @@ create_tempfile(char **fn, int *fd)
 	tmpdir = getenv("TMPDIR");
 	if (tmpdir != NULL && *tmpdir != '\0') {
 		tlen = strlen(tmpdir);
-		plen = strlen(TEMPLATE);
+		plen = strlen(_TEMPFILE);
 		tmpf = malloc(tlen + plen + 2);
 		if (tmpf == NULL)
 			err(EX_SOFTWARE, "malloc failed");
@@ -492,10 +493,10 @@ create_tempfile(char **fn, int *fd)
 		cp = &tmpf[tlen - 1];
 		if (*cp++ != '/')
 			*cp++ = '/';
-		strncpy(cp, TEMPLATE, plen);
+		strncpy(cp, _TEMPFILE, plen);
 		cp[plen] = '\0';
 	} else {
-		tmpf = strdup(TEMPLATE);
+		tmpf = strdup(_TEMPFILEPATH);
 		if (tmpf == NULL)
 			err(EX_SOFTWARE, "strdup failed");
 	}
@@ -504,6 +505,9 @@ create_tempfile(char **fn, int *fd)
 	if (fchmod(*fd, 0755) == -1)
 		err(EX_IOERR, "fchmod %s failed", tmpf);
 	*fn = tmpf;
+
+#undef _TEMPFILE
+#undef _TEMPFILEPATH
 }
 
 static void
