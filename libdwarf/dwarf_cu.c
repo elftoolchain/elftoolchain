@@ -27,11 +27,13 @@
 #include "_libdwarf.h"
 
 int
-dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
+dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
     Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
-    Dwarf_Half *cu_pointer_size, Dwarf_Unsigned *cu_next_offset,
+    Dwarf_Half *cu_pointer_size, Dwarf_Half *cu_offset_size,
+    Dwarf_Half *cu_extension_size, Dwarf_Unsigned *cu_next_offset,
     Dwarf_Error *error)
 {
+	Dwarf_CU cu;
 
 	if (dbg == NULL) {
 		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
@@ -47,18 +49,42 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
 		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
+	cu = dbg->dbg_cu_current;
 
 	if (cu_length)
-		*cu_length = dbg->dbg_cu_current->cu_length;
+		*cu_length = cu->cu_length;
 	if (cu_version)
-		*cu_version = dbg->dbg_cu_current->cu_version;
+		*cu_version = cu->cu_version;
 	if (cu_abbrev_offset)
-		*cu_abbrev_offset =
-		    (Dwarf_Off) dbg->dbg_cu_current->cu_abbrev_offset;
+		*cu_abbrev_offset = (Dwarf_Off) cu->cu_abbrev_offset;
 	if (cu_pointer_size)
-		*cu_pointer_size = dbg->dbg_cu_current->cu_pointer_size;
+		*cu_pointer_size = cu->cu_pointer_size;
+	if (cu_offset_size) {
+		if (cu->cu_length_size == 4)
+			*cu_offset_size = 4;
+		else
+			*cu_offset_size = 8;
+	}
+	if (cu_extension_size) {
+		if (cu->cu_length_size == 4)
+			*cu_extension_size = 0;
+		else
+			*cu_extension_size = 4;
+	}
 	if (cu_next_offset)
 		*cu_next_offset	= dbg->dbg_cu_current->cu_next_offset;
 
 	return (DW_DLV_OK);
+}
+
+int
+dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
+    Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
+    Dwarf_Half *cu_pointer_size, Dwarf_Unsigned *cu_next_offset,
+    Dwarf_Error *error)
+{
+
+	return (dwarf_next_cu_header_b(dbg, cu_length, cu_version,
+	    cu_abbrev_offset, cu_pointer_size, NULL, NULL, cu_next_offset,
+	    error));
 }
