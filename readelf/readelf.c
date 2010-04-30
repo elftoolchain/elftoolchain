@@ -2675,7 +2675,7 @@ dump_dwarf_info(struct readelf *re)
 	Dwarf_Error de;
 	Dwarf_Half tag, version, pointer_size;
 	Dwarf_Off cu_offset, cu_length;
-	Dwarf_Unsigned aboff;
+	Dwarf_Off aboff;
 	Elf_Data *d;
 	int i, elferr, ret;
 
@@ -2740,8 +2740,8 @@ static void
 dump_dwarf_abbrev(struct readelf *re)
 {
 	Dwarf_Abbrev ab;
-	Dwarf_Off atoff;
-	Dwarf_Unsigned aboff, length, attr_count;
+	Dwarf_Off aboff, atoff;
+	Dwarf_Unsigned length, attr_count;
 	Dwarf_Signed flag, form;
 	Dwarf_Half tag, attr;
 	Dwarf_Error de;
