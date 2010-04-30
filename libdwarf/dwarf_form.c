@@ -206,7 +206,6 @@ dwarf_formudata(Dwarf_Attribute at, Dwarf_Unsigned *return_uvalue,
 	case DW_FORM_data2:
 	case DW_FORM_data4:
 	case DW_FORM_data8:
-	case DW_FORM_sdata:
 	case DW_FORM_udata:
 		*return_uvalue = at->u[0].u64;
 		ret = DW_DLV_OK;
