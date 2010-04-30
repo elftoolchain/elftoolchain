@@ -123,8 +123,9 @@ struct _Dwarf_Attribute {
 		uint64_t	u64;		/* Unsigned value. */
 		int64_t		s64;		/* Signed value. */
 		char		*s;   		/* String. */
-		uint8_t		*u8p;		/* Block. */
+		uint8_t		*u8p;		/* Block data. */
 	} u[2];					/* Value. */
+	Dwarf_Block		at_block;	/* Block. */
 	Dwarf_Locdesc		*at_ld;		/* at value is locdesc. */
 	Dwarf_P_Expr		at_expr;	/* at value is expr. */
 	uint64_t		at_relsym;	/* Relocation symbol index. */

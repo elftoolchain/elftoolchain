@@ -453,7 +453,7 @@ int		dwarf_funcname(Dwarf_Func, char **, Dwarf_Error *);
 int		dwarf_global_formref(Dwarf_Attribute, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_formaddr(Dwarf_Attribute, Dwarf_Addr *, Dwarf_Error *);
-int		dwarf_formblock(Dwarf_Attribute, Dwarf_Block *, Dwarf_Error *);
+int		dwarf_formblock(Dwarf_Attribute, Dwarf_Block **, Dwarf_Error *);
 int		dwarf_formflag(Dwarf_Attribute, Dwarf_Bool *, Dwarf_Error *);
 int		dwarf_formstring(Dwarf_Attribute, char **, Dwarf_Error *);
 int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Signed *, Dwarf_Error *);
