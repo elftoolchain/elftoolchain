@@ -109,7 +109,7 @@ dwarf_formref(Dwarf_Attribute at, Dwarf_Off *return_offset, Dwarf_Error *error)
 		break;
 	default:
 		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
-		ret = DW_DLV_OK;
+		ret = DW_DLV_ERROR;
 	}
 
 	return (ret);
@@ -142,7 +142,7 @@ dwarf_global_formref(Dwarf_Attribute at, Dwarf_Off *return_offset,
 		break;
 	default:
 		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
-		ret = DW_DLV_OK;
+		ret = DW_DLV_ERROR;
 	}
 
 	return (ret);
