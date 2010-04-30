@@ -249,7 +249,7 @@ dwarf_formsdata(Dwarf_Attribute at, Dwarf_Signed *return_svalue,
 }
 
 int
-dwarf_formblock(Dwarf_Attribute at, Dwarf_Block *return_block,
+dwarf_formblock(Dwarf_Attribute at, Dwarf_Block **return_block,
     Dwarf_Error *error)
 {
 	int ret;
@@ -264,8 +264,7 @@ dwarf_formblock(Dwarf_Attribute at, Dwarf_Block *return_block,
 	case DW_FORM_block1:
 	case DW_FORM_block2:
 	case DW_FORM_block4:
-		return_block->bl_len = at->u[0].u64;
-		return_block->bl_data = at->u[1].u8p;
+		*return_block = &at->at_block;
 		ret = DW_DLV_OK;
 		break;
 	default:

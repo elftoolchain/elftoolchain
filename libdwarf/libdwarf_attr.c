@@ -243,8 +243,14 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		break;
 	}
 
-	if (ret == DW_DLE_NONE)
+	if (ret == DW_DLE_NONE) {
+		if (form == DW_FORM_block || form == DW_FORM_block1 ||
+		    form == DW_FORM_block2 || form == DW_FORM_block4) {
+			atref.at_block.bl_len = atref.u[0].u64;
+			atref.at_block.bl_data = atref.u[1].u8p;
+		}
 		ret = _dwarf_attr_add(die, &atref, NULL, error);
+	}
 
 	return (ret);
 }
