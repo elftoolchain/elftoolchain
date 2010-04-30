@@ -232,11 +232,19 @@ dwarf_formsdata(Dwarf_Attribute at, Dwarf_Signed *return_svalue,
 
 	switch (at->at_form) {
 	case DW_FORM_data1:
+		*return_svalue = (int8_t) at->u[0].s64;
+		ret = DW_DLV_OK;
+		break;
 	case DW_FORM_data2:
+		*return_svalue = (int16_t) at->u[0].s64;
+		ret = DW_DLV_OK;
+		break;
 	case DW_FORM_data4:
+		*return_svalue = (int32_t) at->u[0].s64;
+		ret = DW_DLV_OK;
+		break;
 	case DW_FORM_data8:
 	case DW_FORM_sdata:
-	case DW_FORM_udata:
 		*return_svalue = at->u[0].s64;
 		ret = DW_DLV_OK;
 		break;
