@@ -2464,7 +2464,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
 	Dwarf_Half tag, attr, form;
-	Dwarf_Block v_block;
+	Dwarf_Block *v_block;
 	Dwarf_Bool v_bool;
 	Dwarf_Error de;
 	const char *tag_str, *attr_str, *ate_str;
@@ -2629,9 +2629,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju byte block:", v_block.bl_len);
-			b = v_block.bl_data;
-			for (j = 0; (Dwarf_Unsigned) j < v_block.bl_len; j++)
+			printf("%ju byte block:", v_block->bl_len);
+			b = v_block->bl_data;
+			for (j = 0; (Dwarf_Unsigned) j < v_block->bl_len; j++)
 				printf(" %x", b[j]);
 			break;
 		}
