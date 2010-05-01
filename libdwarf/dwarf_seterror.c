@@ -26,16 +26,28 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID();
+
+#define	_SET_FIELD(R, F, V)					\
+	do {							\
+		(R) = (F);					\
+		(F) = (V);					\
+	} while (0)
+
+#define	SET_FIELD(D, R, F)					\
+	do {							\
+		if (D)						\
+			_SET_FIELD(R, (D)->dbg_##F, F);		\
+		else						\
+			_SET_FIELD(R, _libdwarf.F, F);		\
+	} while (0)
+
 Dwarf_Handler
 dwarf_seterrhand(Dwarf_Debug dbg, Dwarf_Handler errhand)
 {
 	Dwarf_Handler oldhandler;
 
-	if (dbg == NULL)
-		return (NULL);
-
-	oldhandler = dbg->dbg_errhand;
-	dbg->dbg_errhand = errhand;
+	SET_FIELD(dbg, oldhandler, errhand);
 
 	return (oldhandler);
 }
@@ -45,18 +57,7 @@ dwarf_seterrarg(Dwarf_Debug dbg, Dwarf_Ptr errarg)
 {
 	Dwarf_Ptr oldarg;
 
-	if (dbg == NULL)
-		return (NULL);
-
-	oldarg = dbg->dbg_errarg;
-	dbg->dbg_errarg = errarg;
+	SET_FIELD(dbg, oldarg, errarg);
 
 	return (oldarg);
-}
-
-void
-dwarf_set_default_error_handler(Dwarf_Handler errhand, Dwarf_Ptr errarg)
-{
-	_libdwarf.errhand = errhand;
-	_libdwarf.errarg = errarg;
 }
