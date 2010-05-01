@@ -75,11 +75,26 @@ Function
 .Fn dwarf_seterrhand
 returns the previous error handler associated with argument
 .Ar dbg .
+If argument
+.Ar dbg
+is NULL, function
+.Fn dwarf_seterrhand
+returns the previous library-wide error handler.
 .Pp
 Function
 .Fn dwarf_seterrarg
-returns the previous error argument associated with argument
+returns the previous callback argument associated with argument
 .Ar dbg .
+If argument
+.Ar dbg
+is NULL, function
+.Fn dwarf_seterrarg
+returns the previous library-wide callback argument.
+.Pp
+.Sh COMPATIBILITY
+The behavior of these functions when argument
+.Ar dbg
+is NULL is a local extension.
 .Sh ERRORS
 These functions do not set an error code.
 .Sh SEE ALSO
