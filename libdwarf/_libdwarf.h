@@ -57,7 +57,7 @@ extern struct _libdwarf_globals _libdwarf;
 		Dwarf_Error _de;					\
 									\
 		_de.err_error = _err;					\
-		_de.elf_error = _elf_err;				\
+		_de.err_elferror = _elf_err;				\
 		_de.err_func  = __func__;				\
 		_de.err_line  = __LINE__;				\
 		_de.err_msg[0] = '\0';					\
