@@ -512,7 +512,7 @@ _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 		return (DW_DLE_MEMORY);
 	}
 	llbuf->ld_lopc = 0;
-	llbuf->ld_hipc = (pointer_size == 4 ? ~0U : ~0ULL);
+	llbuf->ld_hipc = ~0ULL;
 	llbuf->ld_s = NULL;
 
 	ret = _dwarf_loc_fill_locdesc(dbg, llbuf, in, in_len, pointer_size,
