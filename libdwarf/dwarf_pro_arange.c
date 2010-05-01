@@ -44,19 +44,19 @@ dwarf_add_arange_b(Dwarf_P_Debug dbg, Dwarf_Addr start, Dwarf_Unsigned length,
 	Dwarf_Arange ar;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (0);
 	}
 	as = dbg->dbgp_as;
 
 	if (end_symbol_index > 0 &&
 	    (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
 	if ((ar = calloc(1, sizeof(struct _Dwarf_Arange))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (0);
 	}
 	ar->ar_as = as;

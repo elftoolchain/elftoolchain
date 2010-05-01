@@ -33,20 +33,17 @@ dwarf_producer_init(Dwarf_Unsigned flags, Dwarf_Callback_Func func,
 	Dwarf_P_Debug dbg;
 	int mode;
 
-	_libdwarf.errhand = errhand;
-	_libdwarf.errarg = errarg;
-
 	if (flags & DW_DLC_WRITE)
 		mode = DW_DLC_WRITE;
 	else if (flags & DW_DLC_RDWR)
 		mode = DW_DLC_RDWR;
 	else {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
 	if (func == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -55,7 +52,7 @@ dwarf_producer_init(Dwarf_Unsigned flags, Dwarf_Callback_Func func,
 
 	dbg->dbg_mode = mode;
 
-	if (_dwarf_init(dbg, flags, error) != DW_DLE_NONE) {
+	if (_dwarf_init(dbg, flags, errhand, errarg, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_BADADDR);
 	}
@@ -72,20 +69,17 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 	Dwarf_P_Debug dbg;
 	int mode;
 
-	_libdwarf.errhand = errhand;
-	_libdwarf.errarg = errarg;
-
 	if (flags & DW_DLC_WRITE)
 		mode = DW_DLC_WRITE;
 	else if (flags & DW_DLC_RDWR)
 		mode = DW_DLC_RDWR;
 	else {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
 	if (func == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -94,7 +88,7 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 
 	dbg->dbg_mode = mode;
 
-	if (_dwarf_init(dbg, flags, error) != DW_DLE_NONE) {
+	if (_dwarf_init(dbg, flags, errhand, errarg, error) != DW_DLE_NONE) {
 		free(dbg);
 		return (DW_DLV_BADADDR);
 	}
@@ -110,7 +104,7 @@ dwarf_producer_set_isa(Dwarf_P_Debug dbg, Dwarf_Unsigned isa,
 {
 
 	if (dbg == NULL || (isa >= DW_DLC_ISA_MAX && isa != DW_DLC_ISA_IA64)) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

@@ -31,15 +31,18 @@ int
 dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 {
 	Dwarf_Die next;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || ret_die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if ((next = die->die_child) == NULL) {
 		*ret_die = NULL;
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	} else
 		*ret_die = next;
@@ -55,12 +58,12 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 	int ret;
 
 	if (dbg == NULL || caller_ret_die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if ((cu = dbg->dbg_cu_current) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_DIE_NO_CU_CONTEXT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DIE_NO_CU_CONTEXT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -69,13 +72,13 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *caller_ret_die,
 	if (die == NULL) {
 		*caller_ret_die = STAILQ_FIRST(&cu->cu_die);
 		if (*caller_ret_die == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 			ret = DW_DLV_NO_ENTRY;
 		}
 	} else {
 		*caller_ret_die = die->die_right;
 		if (*caller_ret_die == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 			ret = DW_DLV_NO_ENTRY;
 		}
 	}
@@ -91,7 +94,7 @@ dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *caller_ret_die,
 	Dwarf_Die die;
 
 	if (dbg == NULL || caller_ret_die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -112,9 +115,12 @@ dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *caller_ret_die,
 int
 dwarf_tag(Dwarf_Die die, Dwarf_Half *tag, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || tag == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -128,9 +134,12 @@ dwarf_tag(Dwarf_Die die, Dwarf_Half *tag, Dwarf_Error *error)
 int
 dwarf_dieoffset(Dwarf_Die die, Dwarf_Off *ret_offset, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -142,10 +151,13 @@ dwarf_dieoffset(Dwarf_Die die, Dwarf_Off *ret_offset, Dwarf_Error *error)
 int
 dwarf_die_CU_offset(Dwarf_Die die, Dwarf_Off *ret_offset, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
 	Dwarf_CU cu;
 
+	dbg = die != NULL ? die->die_dbg : NULL;
+
 	if (die == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -161,10 +173,13 @@ int
 dwarf_die_CU_offset_range(Dwarf_Die die, Dwarf_Off *cu_offset,
     Dwarf_Off *cu_length, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
 	Dwarf_CU cu;
 
+	dbg = die != NULL ? die->die_dbg : NULL;
+
 	if (die == NULL || cu_offset == NULL || cu_length == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -180,14 +195,17 @@ dwarf_die_CU_offset_range(Dwarf_Die die, Dwarf_Off *cu_offset,
 int
 dwarf_diename(Dwarf_Die die, char **ret_name, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || ret_name == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (die->die_name == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -214,7 +232,7 @@ dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug dbg,
 	Dwarf_Die die;
 
 	if (dbg == NULL || out_cu_die_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -228,7 +246,7 @@ dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug dbg,
 	}
 
 	if (cu == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -241,7 +259,7 @@ dwarf_get_address_size(Dwarf_Debug dbg, Dwarf_Half *addr_size,
 {
 
 	if (dbg == NULL || addr_size == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

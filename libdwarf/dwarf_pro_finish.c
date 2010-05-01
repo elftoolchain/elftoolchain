@@ -31,7 +31,7 @@ dwarf_producer_finish(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 
 	if (dbg == NULL || dbg->dbg_mode != DW_DLC_WRITE) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 

@@ -52,29 +52,12 @@ struct _libdwarf_globals {
 
 extern struct _libdwarf_globals _libdwarf;
 
-#define	_DWARF_SET_ERROR(_e, _err, _elf_err)				\
-	do {								\
-		Dwarf_Error _de;					\
-									\
-		_de.err_error = _err;					\
-		_de.err_elferror = _elf_err;				\
-		_de.err_func  = __func__;				\
-		_de.err_line  = __LINE__;				\
-		_de.err_msg[0] = '\0';					\
-									\
-		if (_e)							\
-			*_e = _de;					\
-									\
-		if (_libdwarf.errhand)					\
-			_libdwarf.errhand(_de, _libdwarf.errarg);	\
-									\
-		if (_e == NULL && _libdwarf.errhand == NULL)		\
-			abort();					\
-	} while (0)
-
-#define	DWARF_SET_ERROR(_e, _err)	_DWARF_SET_ERROR(_e, _err, 0)
-#define	DWARF_SET_ELF_ERROR(_e)						\
-	_DWARF_SET_ERROR(_e, DW_DLE_ELF, elf_errno())
+#define	_DWARF_SET_ERROR(_d, _e, _err, _elf_err)			\
+	_dwarf_set_error(_d, _e, _err, _elf_err, __func__, __LINE__)
+#define	DWARF_SET_ERROR(_d, _e, _err)					\
+	_DWARF_SET_ERROR(_d, _e, _err, 0)
+#define	DWARF_SET_ELF_ERROR(_d, _e)					\
+	_DWARF_SET_ERROR(_d, _e, DW_DLE_ELF, elf_errno())
 
 /*
  * Convenient macros for producer bytes stream generation.
@@ -503,16 +486,14 @@ int		_dwarf_attr_gen(Dwarf_P_Debug, Dwarf_P_Section, Dwarf_Rel_Section,
 int		_dwarf_attr_init(Dwarf_Debug, Dwarf_Section *, uint64_t *, int,
 		    Dwarf_CU, Dwarf_Die, Dwarf_AttrDef, uint64_t, int,
 		    Dwarf_Error *);
-int		_dwarf_attrdef_add(Dwarf_Abbrev, uint64_t, uint64_t, uint64_t,
-		    Dwarf_AttrDef *, Dwarf_Error *);
+int		_dwarf_attrdef_add(Dwarf_Debug, Dwarf_Abbrev, uint64_t,
+		    uint64_t, uint64_t, Dwarf_AttrDef *, Dwarf_Error *);
 uint64_t	_dwarf_decode_lsb(uint8_t **, int);
 uint64_t	_dwarf_decode_msb(uint8_t **, int);
 int64_t		_dwarf_decode_sleb128(uint8_t **);
 uint64_t	_dwarf_decode_uleb128(uint8_t **);
 void		_dwarf_deinit(Dwarf_Debug);
-int		_dwarf_die_add(Dwarf_CU, uint64_t, uint64_t, Dwarf_Abbrev,
-		    Dwarf_Die *, Dwarf_Error *);
-int		_dwarf_die_alloc(Dwarf_Die *, Dwarf_Error *);
+int		_dwarf_die_alloc(Dwarf_Debug, Dwarf_Die *, Dwarf_Error *);
 void		_dwarf_die_cleanup(Dwarf_Debug, Dwarf_CU);
 int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
@@ -556,7 +537,8 @@ void		_dwarf_info_cleanup(Dwarf_Debug);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
 void		_dwarf_info_pro_cleanup(Dwarf_P_Debug);
-int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Error *);
+int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Handler,
+		    Dwarf_Ptr, Dwarf_Error *);
 int		_dwarf_lineno_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_lineno_init(Dwarf_Die, uint64_t, Dwarf_Error *);
 void		_dwarf_lineno_cleanup(Dwarf_LineInfo);

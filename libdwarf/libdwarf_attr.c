@@ -36,7 +36,7 @@ _dwarf_attr_alloc(Dwarf_Die die, Dwarf_Attribute *atp, Dwarf_Error *error)
 	assert(atp != NULL);
 
 	if ((at = calloc(1, sizeof(struct _Dwarf_Attribute))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(die->die_dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -238,7 +238,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		atref.u[1].s = (char *) str->ds_data + atref.u[0].u64;
 		break;
 	default:
-		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	}
@@ -376,7 +376,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		break;
 	case DW_FORM_indirect:
 		/* TODO. */
-		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	case DW_FORM_ref_addr:
@@ -405,7 +405,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		    4, ds->ds_size, 0, at->u[0].u64, ".debug_str", error);
 		break;
 	default:
-		DWARF_SET_ERROR(error, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLE_ATTR_FORM_BAD;
 		break;
 	}
@@ -449,12 +449,15 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
     char *string, Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
 	int ret;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	assert(atp != NULL);
 
 	if (die == NULL || string == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
@@ -464,12 +467,12 @@ _dwarf_add_string_attr(Dwarf_P_Die die, Dwarf_P_Attribute *atp, Dwarf_Half attr,
 	at->at_die = die;
 	at->at_attrib = attr;
 	at->at_form = DW_FORM_strp;
-	if ((ret = _dwarf_strtab_add(die->die_dbg, string, &at->u[0].u64,
+	if ((ret = _dwarf_strtab_add(dbg, string, &at->u[0].u64,
 	    error)) != DW_DLE_NONE) {
 		free(at);
 		return (ret);
 	}
-	at->u[1].s = _dwarf_strtab_get_table(die->die_dbg) + at->u[0].u64;
+	at->u[1].s = _dwarf_strtab_get_table(dbg) + at->u[0].u64;
 
 	*atp = at;
 

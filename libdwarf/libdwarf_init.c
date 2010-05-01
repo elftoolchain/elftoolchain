@@ -78,21 +78,21 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	cnt = m->get_section_count(obj);
 
 	if (cnt == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_DEBUG_INFO_NULL);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_INFO_NULL);
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
 	dbg->dbg_seccnt = cnt;
 
 	if ((dbg->dbg_section = calloc(cnt, sizeof(Dwarf_Section))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
 	for (i = 0; i < cnt; i++) {
 		if (m->get_section_info(obj, i, &sec, &ret) != DW_DLV_OK) {
 			free(dbg->dbg_section);
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			return (ret);
 		}
 
@@ -102,7 +102,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		if (m->load_section(obj, i, &dbg->dbg_section[i].ds_data, &ret)
 		    != DW_DLV_OK) {
 			free(dbg->dbg_section);
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			return (ret);
 		}
 	}
@@ -110,7 +110,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
 	    ((s = _dwarf_find_section(dbg, ".debug_info")) == NULL)) {
 		free(dbg->dbg_section);
-		DWARF_SET_ERROR(error, DW_DLE_DEBUG_INFO_NULL);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_INFO_NULL);
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
@@ -176,7 +176,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 {
 
 	if (pf & DW_DLC_SIZE_32 && pf & DW_DLC_SIZE_64) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
@@ -186,7 +186,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		dbg->dbg_pointer_size = 4;
 
 	if (pf & DW_DLC_ISA_IA64 && pf & DW_DLC_ISA_MIPS) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
@@ -196,7 +196,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		dbg->dbgp_isa = DW_DLC_ISA_MIPS;
 
 	if (pf & DW_DLC_TARGET_BIGENDIAN && pf & DW_DLC_TARGET_LITTLEENDIAN) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
@@ -218,7 +218,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	if (pf & DW_DLC_STREAM_RELOCATIONS &&
 	    pf & DW_DLC_SYMBOLIC_RELOCATIONS) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
@@ -231,7 +231,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	if ((dbg->dbgp_lineinfo = calloc(1, sizeof(struct _Dwarf_LineInfo))) ==
 	    NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&dbg->dbgp_lineinfo->li_lflist);
@@ -239,7 +239,7 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 
 	if ((dbg->dbgp_as = calloc(1, sizeof(struct _Dwarf_ArangeSet))) ==
 	    NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&dbg->dbgp_as->as_arlist);
@@ -248,11 +248,19 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 }
 
 int
-_dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Error *error)
+_dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Handler errhand,
+    Dwarf_Ptr errarg, Dwarf_Error *error)
 {
 	int ret;
 
 	ret = DW_DLE_NONE;
+	
+	/*
+	 * Set the error handler fields early, so that the application
+	 * is notified of initialization errors.
+	 */
+	dbg->dbg_errhand = errhand;
+	dbg->dbg_errarg = errarg;
 
 	STAILQ_INIT(&dbg->dbg_cu);
 	STAILQ_INIT(&dbg->dbg_rllist);
@@ -346,7 +354,7 @@ _dwarf_alloc(Dwarf_Debug *ret_dbg, int mode, Dwarf_Error *error)
 	Dwarf_Debug dbg;
 
 	if ((dbg = calloc(sizeof(struct _Dwarf_Debug), 1)) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 

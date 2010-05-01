@@ -74,7 +74,8 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 		case DW_MACINFO_end_file:
 			break;
 		default:
-			DWARF_SET_ERROR(error, DW_DLE_DEBUG_MACRO_INCONSISTENT);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_DEBUG_MACRO_INCONSISTENT);
 			return (DW_DLE_DEBUG_MACRO_INCONSISTENT);
 		}
 
@@ -127,7 +128,7 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			break;
 
 		if ((ms = calloc(1, sizeof(struct _Dwarf_MacroSet))) == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
@@ -135,7 +136,7 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 
 		if ((ms->ms_mdlist = calloc(cnt, sizeof(Dwarf_Macro_Details)))
 		    == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
@@ -148,7 +149,7 @@ _dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 		    NULL, error);
 
 		if (ret != DW_DLE_NONE) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}

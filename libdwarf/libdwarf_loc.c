@@ -459,7 +459,7 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 
 	/* All other operations cause an error. */
 	default:
-		DWARF_SET_ERROR(error, DW_DLE_LOC_EXPR_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_LOC_EXPR_BAD);
 		return (DW_DLE_LOC_EXPR_BAD);
 	}
 
@@ -482,7 +482,7 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 	/* Compute the number of locations. */
 	if ((num = _dwarf_loc_fill_loc(dbg, NULL, pointer_size, in, in_len)) <
 	    0) {
-		DWARF_SET_ERROR(error, DW_DLE_LOC_EXPR_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_LOC_EXPR_BAD);
 		return (DW_DLE_LOC_EXPR_BAD);
 	}
 
@@ -491,7 +491,7 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 		return (DW_DLE_NONE);
 
 	if ((llbuf->ld_s = calloc(num, sizeof(Dwarf_Loc))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -508,7 +508,7 @@ _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 	int ret;
 
 	if ((llbuf = malloc(sizeof(Dwarf_Locdesc))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	llbuf->ld_lopc = 0;

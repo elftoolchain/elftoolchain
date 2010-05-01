@@ -32,12 +32,12 @@ dwarf_get_relocation_info_count(Dwarf_P_Debug dbg, Dwarf_Unsigned *reloc_cnt,
 {
 
 	if (dbg == NULL || reloc_cnt == NULL || drd_buffer_version == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -59,18 +59,18 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 	if (dbg == NULL || elf_section_index == NULL ||
 	    elf_section_link == NULL || reloc_entry_count == NULL ||
 	    reloc_buffer == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (dbg->dbgp_drscnt == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	if (dbg->dbgp_drspos == NULL) {
 		/* FIXME Use other error code. */
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -86,7 +86,7 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 		drs->drs_drd = calloc(*reloc_entry_count,
 		    sizeof(struct Dwarf_Relocation_Data_s));
 		if (drs->drs_drd == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		for (i = 0, dre = STAILQ_FIRST(&drs->drs_dre);

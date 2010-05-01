@@ -33,7 +33,7 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL || loc_expr == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -101,9 +101,12 @@ dwarf_add_AT_const_value_signedint(Dwarf_P_Die die, Dwarf_Signed value,
     Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -125,9 +128,12 @@ dwarf_add_AT_const_value_unsignedint(Dwarf_P_Die die, Dwarf_Unsigned value,
     Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -173,7 +179,7 @@ dwarf_add_AT_targ_address_b(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -199,7 +205,7 @@ dwarf_add_AT_dataref(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	int ret;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -219,7 +225,7 @@ dwarf_add_AT_ref_address(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -244,7 +250,7 @@ dwarf_add_AT_unsigned_const(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -276,7 +282,7 @@ dwarf_add_AT_signed_const(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -310,7 +316,7 @@ dwarf_add_AT_reference(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	(void) ref_die;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -338,7 +344,7 @@ dwarf_add_AT_flag(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -362,7 +368,7 @@ dwarf_add_AT_string(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	Dwarf_Attribute at;
 
 	if (dbg == NULL || die == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 

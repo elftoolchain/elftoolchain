@@ -35,7 +35,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 
 	dbg->dbgp_mdlist = realloc(dbg->dbgp_mdlist, dbg->dbgp_mdcnt + 1);
 	if (dbg->dbgp_mdlist == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -53,7 +53,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	else if (str2 == NULL) {
 		if ((md->dmd_macro = strdup(str1)) == NULL) {
 			dbg->dbgp_mdcnt--;
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		return (DW_DLV_OK);
@@ -61,7 +61,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 		len = strlen(str1) + strlen(str2) + 2;
 		if ((md->dmd_macro = malloc(len)) == NULL) {
 			dbg->dbgp_mdcnt--;
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLV_ERROR);
 		}
 		snprintf(md->dmd_macro, len, "%s %s", str1, str2);
@@ -75,7 +75,7 @@ dwarf_def_macro(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno, char *name,
 {
 
 	if (dbg == NULL || name == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -89,7 +89,7 @@ dwarf_undef_macro(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno, char *name,
 {
 
 	if (dbg == NULL || name == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -103,7 +103,7 @@ dwarf_start_macro_file(Dwarf_P_Debug dbg, Dwarf_Unsigned lineno,
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -116,7 +116,7 @@ dwarf_end_macro_file(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -130,7 +130,7 @@ dwarf_vendor_ext(Dwarf_P_Debug dbg, Dwarf_Unsigned constant, char *string,
 {
 
 	if (dbg == NULL || string == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

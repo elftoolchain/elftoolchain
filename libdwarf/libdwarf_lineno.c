@@ -28,7 +28,7 @@
 
 static int
 _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
-    Dwarf_Error *error)
+    Dwarf_Error *error, Dwarf_Debug dbg)
 {
 	Dwarf_LineFile lf;
 	uint8_t *src;
@@ -37,7 +37,7 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 	src = *p;
 
 	if ((lf = malloc(sizeof(struct _Dwarf_LineFile))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -48,7 +48,7 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 		slen = strlen(compdir) + strlen(lf->lf_fname) + 2;
 		if ((lf->lf_fullpath = malloc(slen)) == NULL) {
 			free(lf);
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}
 		snprintf(lf->lf_fullpath, slen, "%s/%s", compdir, lf->lf_fname);
@@ -94,7 +94,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 		ln = malloc(sizeof(struct _Dwarf_Line));	\
 		if (ln == NULL) {				\
 			ret = DW_DLE_MEMORY;			\
-			DWARF_SET_ERROR(error, ret);		\
+			DWARF_SET_ERROR(dbg, error, ret);	\
 			goto prog_fail;				\
 		}						\
 		ln->ln_li     = li;				\
@@ -146,7 +146,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 			case DW_LNE_define_file:
 				p++;
 				ret = _dwarf_lineno_add_file(li, &p, compdir,
-				    error);
+				    error, dbg);
 				if (ret != DW_DLE_NONE)
 					goto prog_fail;
 				break;
@@ -290,12 +290,12 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - offset) {
-		DWARF_SET_ERROR(error, DW_DLE_DEBUG_LINE_LENGTH_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_LINE_LENGTH_BAD);
 		return (DW_DLE_DEBUG_LINE_LENGTH_BAD);
 	}
 
 	if ((li = calloc(1, sizeof(struct _Dwarf_LineInfo))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -317,13 +317,13 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 
 	if ((int)li->li_hdrlen - 5 < li->li_opbase - 1) {
 		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
-		DWARF_SET_ERROR(error, ret);
+		DWARF_SET_ERROR(dbg, error, ret);
 		goto fail_cleanup;
 	}
 
 	if ((li->li_oplen = malloc(li->li_opbase)) == NULL) {
 		ret = DW_DLE_MEMORY;
-		DWARF_SET_ERROR(error, ret);
+		DWARF_SET_ERROR(dbg, error, ret);
 		goto fail_cleanup;
 	}
 
@@ -349,13 +349,13 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	/* Sanity check. */
 	if (p - ds->ds_data > (int) ds->ds_size) {
 		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
-		DWARF_SET_ERROR(error, ret);
+		DWARF_SET_ERROR(dbg, error, ret);
 		goto fail_cleanup;
 	}
 
 	if ((li->li_incdirs = malloc(length * sizeof(char *))) == NULL) {
 		ret = DW_DLE_MEMORY;
-		DWARF_SET_ERROR(error, ret);
+		DWARF_SET_ERROR(dbg, error, ret);
 		goto fail_cleanup;
 	}
 
@@ -374,12 +374,12 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	 * Process file list.
 	 */
 	while (*p != '\0') {
-		ret = _dwarf_lineno_add_file(li, &p, compdir, error);
+		ret = _dwarf_lineno_add_file(li, &p, compdir, error, dbg);
 		if (ret != DW_DLE_NONE)
 			goto fail_cleanup;
 		if (p - ds->ds_data > (int) ds->ds_size) {
 			ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;
 		}
 	}
@@ -389,7 +389,7 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	/* Sanity check. */
 	if (p - ds->ds_data - hdroff != li->li_hdrlen) {
 		ret = DW_DLE_DEBUG_LINE_LENGTH_BAD;
-		DWARF_SET_ERROR(error, ret);
+		DWARF_SET_ERROR(dbg, error, ret);
 		goto fail_cleanup;
 	}
 
