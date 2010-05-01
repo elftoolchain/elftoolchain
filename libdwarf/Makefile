@@ -99,6 +99,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
 	dwarf_next_cu_header.3				\
+	dwarf_seterrarg.3				\
 	dwarf_srcfiles.3				\
 	dwarf_srclines.3				\
 	dwarf_tag.3
@@ -116,7 +117,8 @@ MLINKS+= \
 	dwarf_highpc.3	dwarf_bitsize.3			\
 	dwarf_highpc.3	dwarf_bytesize.3		\
 	dwarf_highpc.3	dwarf_lowpc.3			\
-	dwarf_highpc.3	dwarf_srclang.3
+	dwarf_highpc.3	dwarf_srclang.3			\
+	dwarf_seterrarg.3	dwarf_seterrhand.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
 dwarf_pubtypes.c:	dwarf_nametbl.m4 dwarf_pubtypes.m4
