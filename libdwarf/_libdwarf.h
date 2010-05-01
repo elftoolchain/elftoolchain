@@ -408,6 +408,8 @@ struct _Dwarf_Debug {
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
 	int		dbg_offset_size;  /* DWARF offset size. */
+	Dwarf_Handler	dbg_errhand;	/* Error handler. */
+	Dwarf_Ptr	dbg_errarg;	/* Argument to the error handler. */
 	STAILQ_HEAD(, _Dwarf_CU) dbg_cu;/* List of compilation units. */
 	Dwarf_CU	dbg_cu_current; /* Ptr to the current CU. */
 	TAILQ_HEAD(, _Dwarf_Loclist) dbg_loclist; /* List of location list. */
@@ -621,6 +623,8 @@ int		_dwarf_section_callback(Dwarf_P_Debug, Dwarf_P_Section,
 void		_dwarf_section_free(Dwarf_P_Debug, Dwarf_P_Section *);
 int		_dwarf_section_init(Dwarf_P_Debug, Dwarf_P_Section *,
 		    const char *, int, Dwarf_Error *);
+void		_dwarf_set_error(Dwarf_Debug, Dwarf_Error *, int, int,
+		    const char *, int);
 int		_dwarf_strtab_add(Dwarf_Debug, char *, uint64_t *,
 		    Dwarf_Error *);
 void		_dwarf_strtab_cleanup(Dwarf_Debug);
