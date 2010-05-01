@@ -62,7 +62,8 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 		/* Otherwise it's normal entry. */
 		len = dbg->read(ds->ds_data, off, 2);
 		if (*off + len > ds->ds_size) {
-			DWARF_SET_ERROR(error, DW_DLE_DEBUG_LOC_SECTION_SHORT);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_DEBUG_LOC_SECTION_SHORT);
 			return (DW_DLE_DEBUG_LOC_SECTION_SHORT);
 		}
 
@@ -115,7 +116,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	ret = DW_DLE_NONE;
 
 	if ((ds = _dwarf_find_section(dbg, ".debug_loc")) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLE_NO_ENTRY);
 	}
 
@@ -124,7 +125,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 		return (ret);
 
 	if ((ll = malloc(sizeof(struct _Dwarf_Loclist))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -142,13 +143,13 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	 */
 	ll->ll_ldlen = ldlen;
 	if ((ll->ll_ldlist = calloc(ldlen, sizeof(Dwarf_Locdesc *))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		ret = DW_DLE_MEMORY;
 		goto fail_cleanup;
 	}
 	for (i = 0; (uint64_t) i < ldlen; i++) {
 		if ((ll->ll_ldlist[i] = calloc(1, sizeof(Dwarf_Locdesc))) == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}

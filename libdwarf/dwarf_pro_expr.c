@@ -31,7 +31,10 @@ _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
     Dwarf_Unsigned val2, Dwarf_Error *error)
 {
 	struct _Dwarf_P_Expr_Entry *ee;
+	Dwarf_Debug dbg;
 	int len;
+
+	dbg = expr != NULL ? expr->pe_dbg : NULL;
 
 	if (_dwarf_loc_expr_add_atom(expr->pe_dbg, NULL, NULL, opcode, val1,
 	    val2, &len, error) != DW_DLE_NONE)
@@ -39,7 +42,7 @@ _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 	assert(len > 0);
 
 	if ((ee = calloc(1, sizeof(*ee))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (NULL);
 	}
 
@@ -59,7 +62,10 @@ int
 _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 {
 	struct _Dwarf_P_Expr_Entry *ee;
+	Dwarf_Debug dbg;
 	int len, pos, ret;
+
+	dbg = expr != NULL ? expr->pe_dbg : NULL;
 
 	if (expr->pe_block != NULL) {
 		free(expr->pe_block);
@@ -67,13 +73,13 @@ _dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Error *error)
 	}
 
 	if (expr->pe_length <= 0) {
-		DWARF_SET_ERROR(error, DW_DLE_EXPR_LENGTH_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_EXPR_LENGTH_BAD);
 		return (DW_DLE_EXPR_LENGTH_BAD);
 	}
 
 
 	if ((expr->pe_block = calloc((size_t) expr->pe_length, 1)) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -121,12 +127,12 @@ dwarf_new_expr(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Expr pe;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
 	if ((pe = calloc(1, sizeof(struct _Dwarf_P_Expr))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_BADADDR);
 	}
 	STAILQ_INIT(&pe->pe_eelist);
@@ -143,7 +149,7 @@ dwarf_add_expr_gen(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
 {
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -168,7 +174,7 @@ dwarf_add_expr_addr_b(Dwarf_P_Expr expr, Dwarf_Unsigned address,
 	struct _Dwarf_P_Expr_Entry *ee;
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -185,7 +191,7 @@ dwarf_expr_current_offset(Dwarf_P_Expr expr, Dwarf_Error *error)
 {
 
 	if (expr == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -196,9 +202,12 @@ Dwarf_Addr
 dwarf_expr_into_block(Dwarf_P_Expr expr, Dwarf_Unsigned *length,
     Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = expr != NULL ? expr->pe_dbg : NULL;
 
 	if (expr == NULL || length == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return ((Dwarf_Addr) (uintptr_t) DW_DLV_BADADDR);
 	}
 

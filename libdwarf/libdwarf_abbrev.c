@@ -32,9 +32,12 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
     uint64_t aboff, Dwarf_Abbrev *abp, Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
+	Dwarf_Debug dbg;
+
+	dbg = cu != NULL ? cu->cu_dbg : NULL;
 
 	if ((ab = malloc(sizeof(struct _Dwarf_Abbrev))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -59,18 +62,18 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 }
 
 int
-_dwarf_attrdef_add(Dwarf_Abbrev ab, uint64_t attr, uint64_t form,
-    uint64_t adoff, Dwarf_AttrDef *adp, Dwarf_Error *error)
+_dwarf_attrdef_add(Dwarf_Debug dbg, Dwarf_Abbrev ab, uint64_t attr,
+    uint64_t form, uint64_t adoff, Dwarf_AttrDef *adp, Dwarf_Error *error)
 {
 	Dwarf_AttrDef ad;
 
 	if (ab == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
 
 	if ((ad = malloc(sizeof(struct _Dwarf_AttrDef))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -137,8 +140,8 @@ _dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
 			attr = _dwarf_read_uleb128(ds->ds_data, &offset);
 			form = _dwarf_read_uleb128(ds->ds_data, &offset);
 			if (attr != 0)
-				if ((ret = _dwarf_attrdef_add(ab, attr, form,
-				    adoff, NULL, error)) != DW_DLE_NONE)
+				if ((ret = _dwarf_attrdef_add(dbg, ab, attr,
+				    form, adoff, NULL, error)) != DW_DLE_NONE)
 					return (ret);
 		} while (attr != 0);
 

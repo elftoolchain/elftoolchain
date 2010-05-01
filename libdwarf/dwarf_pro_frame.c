@@ -32,12 +32,12 @@ dwarf_new_fde(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_P_Fde fde;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -54,12 +54,12 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	Dwarf_P_Cie cie;
 
 	if (dbg == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
-		DWARF_SET_ERROR(error,DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error,DW_DLE_MEMORY);
 		return (DW_DLV_NOCOUNT);
 	}
 	STAILQ_INSERT_TAIL(&dbg->dbgp_cielist, cie, cie_next);
@@ -69,7 +69,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	if (augmenter != NULL) {
 		cie->cie_augment = (uint8_t *) strdup(augmenter);
 		if (cie->cie_augment == NULL) {
-			DWARF_SET_ERROR(error,DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLV_NOCOUNT);
 		}
 	}
@@ -80,7 +80,7 @@ dwarf_add_frame_cie(Dwarf_P_Debug dbg, char *augmenter, Dwarf_Small caf,
 	if (initinst != NULL && inst_len > 0) {
 		cie->cie_initinst = malloc(inst_len);
 		if (cie->cie_initinst == NULL) {
-			DWARF_SET_ERROR(error,DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLV_NOCOUNT);
 		}
 		memcpy(cie->cie_initinst, initinst, inst_len);
@@ -116,7 +116,7 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	 */
 
 	if (dbg == NULL || fde == NULL || die == NULL || fde->fde_dbg != dbg) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -127,13 +127,13 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 			break;
 	}
 	if (ciep == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
 	if (end_symbol_index > 0 &&
 	    (dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
 
@@ -154,9 +154,12 @@ dwarf_fde_cfa_offset(Dwarf_P_Fde fde, Dwarf_Unsigned reg, Dwarf_Signed offset,
     Dwarf_Error *error)
 {
 	int ret;
+	Dwarf_Debug dbg;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || reg > 0x3f) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 
@@ -176,7 +179,7 @@ dwarf_add_fde_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 	int ret;
 
 	if (fde == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
 	}
 

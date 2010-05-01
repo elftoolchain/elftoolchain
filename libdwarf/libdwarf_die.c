@@ -28,14 +28,14 @@
 #include "_libdwarf.h"
 
 int
-_dwarf_die_alloc(Dwarf_Die *ret_die, Dwarf_Error *error)
+_dwarf_die_alloc(Dwarf_Debug dbg, Dwarf_Die *ret_die, Dwarf_Error *error)
 {
 	Dwarf_Die die;
 
 	assert(ret_die != NULL);
 
 	if ((die = calloc(1, sizeof(struct _Dwarf_Die))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -46,20 +46,21 @@ _dwarf_die_alloc(Dwarf_Die *ret_die, Dwarf_Error *error)
 	return (DW_DLE_NONE);
 }
 
-int
+static int
 _dwarf_die_add(Dwarf_CU cu, uint64_t offset, uint64_t abnum, Dwarf_Abbrev ab,
     Dwarf_Die *diep, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
 	Dwarf_Die die;
 	uint64_t key;
 	int ret;
 
-	if (cu == NULL || ab == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
-		return (DW_DLE_ARGUMENT);
-	}
+	assert(cu != NULL);
+	assert(ab != NULL);
 
-	if ((ret = _dwarf_die_alloc(&die, error)) != DW_DLE_NONE)
+	dbg = cu->cu_dbg;
+
+	if ((ret = _dwarf_die_alloc(dbg, &die, error)) != DW_DLE_NONE)
 		return (ret);
 
 	die->die_offset	= offset;
@@ -109,6 +110,8 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 	uint64_t die_offset;
 	int ret;
 
+	assert(cu != NULL);
+
 	die = NULL;
 	parent = NULL;
 	left = NULL;
@@ -132,7 +135,7 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		}
 
 		if ((ab = _dwarf_abbrev_find(cu, abnum)) == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_DEBUG_ABBREV_NULL);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_ABBREV_NULL);
 			return (DW_DLE_DEBUG_ABBREV_NULL);
 		}
 
@@ -287,7 +290,8 @@ _dwarf_die_count_links(Dwarf_P_Die parent, Dwarf_P_Die child,
 
 static int
 _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
-    Dwarf_P_Die die, int pass2, Dwarf_Error *error) {
+    Dwarf_P_Die die, int pass2, Dwarf_Error *error)
+{
 	Dwarf_P_Section ds;
 	Dwarf_Abbrev ab;
 	Dwarf_Attribute at;
@@ -346,8 +350,8 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 		if (ret != DW_DLE_NONE)
 			return (ret);
 		STAILQ_FOREACH(at, &die->die_attr, at_next) {
-			ret = _dwarf_attrdef_add(ab, at->at_attrib, at->at_form,
-			    0, NULL, error);
+			ret = _dwarf_attrdef_add(dbg, ab, at->at_attrib,
+			    at->at_form, 0, NULL, error);
 			if (ret != DW_DLE_NONE)
 				return (ret);
 		}

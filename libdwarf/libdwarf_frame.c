@@ -60,7 +60,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		return (DW_DLE_NONE);
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&fs->fs_cielist, cie, cie_next);
@@ -76,7 +76,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - *off) {
-		DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 		return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 	}
 
@@ -85,7 +85,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 
 	cie->cie_version = dbg->read(ds->ds_data, off, 1);
 	if (cie->cie_version != 1 && cie->cie_version != 3) {
-		DWARF_SET_ERROR(error, DW_DLE_FRAME_VERSION_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_VERSION_BAD);
 		return (DW_DLE_FRAME_VERSION_BAD);
 	}
 
@@ -158,7 +158,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	int dwarf_size, ret;
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INSERT_TAIL(&fs->fs_fdelist, fde, fde_next);
@@ -176,7 +176,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		dwarf_size = 4;
 
 	if (length > ds->ds_size - *off) {
-		DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 		return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 	}
 
@@ -187,7 +187,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		fde->fde_cieoff = *off - (4 + delta);
 		/* This delta should never be 0. */
 		if (fde->fde_cieoff == fde->fde_offset) {
-			DWARF_SET_ERROR(error, DW_DLE_NO_CIE_FOR_FDE);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_CIE_FOR_FDE);
 			return (DW_DLE_NO_CIE_FOR_FDE);
 		}
 	} else
@@ -280,7 +280,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 	assert(*frame_sec == NULL);
 
 	if ((fs = calloc(1, sizeof(struct _Dwarf_FrameSec))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&fs->fs_cielist);
@@ -298,7 +298,8 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 
 		if (length > ds->ds_size - offset ||
 		    (length == 0 && !eh_frame)) {
-			DWARF_SET_ERROR(error, DW_DLE_DEBUG_FRAME_LENGTH_BAD);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 			return (DW_DLE_DEBUG_FRAME_LENGTH_BAD);
 		}
 
@@ -338,7 +339,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 		if ((fs->fs_ciearray = malloc(sizeof(Dwarf_Cie) *
 		    fs->fs_cielen)) == NULL) {
 			ret = DW_DLE_MEMORY;
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;
 		}
 		i = 0;
@@ -353,7 +354,7 @@ _dwarf_frame_section_init(Dwarf_Debug dbg, Dwarf_FrameSec *frame_sec,
 		if ((fs->fs_fdearray = malloc(sizeof(Dwarf_Fde) *
 		    fs->fs_fdelen)) == NULL) {
 			ret = DW_DLE_MEMORY;
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;
 		}
 		i = 0;
@@ -393,7 +394,7 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #define CHECK_TABLE_SIZE(x)						\
 	do {								\
 		if ((x) >= rt->rt3_reg_table_size) {			\
-			DWARF_SET_ERROR(error,				\
+			DWARF_SET_ERROR(dbg, error,			\
 			    DW_DLE_DF_REG_NUM_TOO_HIGH);		\
 			ret = DW_DLE_DF_REG_NUM_TOO_HIGH;		\
 			goto program_done;				\
@@ -466,7 +467,7 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #endif
 				break;
 			default:
-				DWARF_SET_ERROR(error,
+				DWARF_SET_ERROR(dbg, error,
 				    DW_DLE_FRAME_INSTR_EXEC_ERROR);
 				ret = DW_DLE_FRAME_INSTR_EXEC_ERROR;
 				goto program_done;
@@ -711,7 +712,8 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 #endif
 			break;
 		default:
-			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_FRAME_INSTR_EXEC_ERROR);
 			ret = DW_DLE_FRAME_INSTR_EXEC_ERROR;
 			goto program_done;
 		}
@@ -798,8 +800,9 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		if (fop3 != NULL) {					\
 			fop3[*count].fp_expr_block = malloc((len));	\
 			if (fop3[*count].fp_expr_block == NULL)	{	\
-				DWARF_SET_ERROR(error, DW_DLE_MEMORY);	\
-				return (DW_DLE_MEMORY);		\
+				DWARF_SET_ERROR(dbg, error,		\
+				    DW_DLE_MEMORY);			\
+				return (DW_DLE_MEMORY);			\
 			}						\
 			memcpy(&fop3[*count].fp_expr_block,		\
 			    (addr), (len));				\
@@ -843,7 +846,7 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 				SET_REGISTER(low6);
 				break;
 			default:
-				DWARF_SET_ERROR(error,
+				DWARF_SET_ERROR(dbg, error,
 				    DW_DLE_FRAME_INSTR_EXEC_ERROR);
 				return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 			}
@@ -927,7 +930,8 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 			SET_OFFSET(soff);
 			break;
 		default:
-			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_FRAME_INSTR_EXEC_ERROR);
 			return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 		}
 
@@ -951,7 +955,7 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		return (ret);
 
 	if ((oplist = calloc(count, sizeof(Dwarf_Frame_Op))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -987,7 +991,7 @@ _dwarf_frame_regtable_copy(Dwarf_Debug dbg, Dwarf_Regtable3 **dest,
 
 	if (*dest == NULL) {
 		if ((*dest = malloc(sizeof(Dwarf_Regtable3))) == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}
 		(*dest)->rt3_reg_table_size = src->rt3_reg_table_size;
@@ -995,7 +999,7 @@ _dwarf_frame_regtable_copy(Dwarf_Debug dbg, Dwarf_Regtable3 **dest,
 		    sizeof(Dwarf_Regtable_Entry3));
 		if ((*dest)->rt3_rules == NULL) {
 			free(*dest);
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}
 	}
@@ -1101,7 +1105,7 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	/* Initialise internal register table. */
 	if ((rt = calloc(1, sizeof(Dwarf_Regtable3))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -1109,7 +1113,7 @@ _dwarf_frame_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if ((rt->rt3_rules = calloc(rt->rt3_reg_table_size,
 	    sizeof(Dwarf_Regtable_Entry3))) == NULL) {
 		free(rt);
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
@@ -1161,7 +1165,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 		fde->fde_instcap = _FDE_INST_INIT_SIZE;
 		fde->fde_instlen = 0;
 		if ((fde->fde_inst = malloc(fde->fde_instcap)) == NULL) {
-			DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}
 	}
@@ -1183,7 +1187,8 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 			RCHECK(WRITE_ULEB128(val1));
 			break;
 		default:
-			DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_FRAME_INSTR_EXEC_ERROR);
 			return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 		}
 		return (DW_DLE_NONE);
@@ -1219,7 +1224,7 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 	case DW_CFA_restore_state:
 		break;
 	default:
-		DWARF_SET_ERROR(error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_INSTR_EXEC_ERROR);
 		return (DW_DLE_FRAME_INSTR_EXEC_ERROR);
 	}
 

@@ -30,16 +30,19 @@ int
 dwarf_attrval_flag(Dwarf_Die die, uint64_t attr, Dwarf_Bool *valp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	*valp = 0;
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -48,7 +51,7 @@ dwarf_attrval_flag(Dwarf_Die die, uint64_t attr, Dwarf_Bool *valp, Dwarf_Error *
 		*valp = (Dwarf_Bool) at->u[0].u64;
 		break;
 	default:
-		DWARF_SET_ERROR(err, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
@@ -59,16 +62,19 @@ int
 dwarf_attrval_string(Dwarf_Die die, uint64_t attr, const char **strp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || strp == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	*strp = NULL;
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -80,7 +86,7 @@ dwarf_attrval_string(Dwarf_Die die, uint64_t attr, const char **strp, Dwarf_Erro
 		*strp = at->u[0].s;
 		break;
 	default:
-		DWARF_SET_ERROR(err, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
@@ -91,16 +97,19 @@ int
 dwarf_attrval_signed(Dwarf_Die die, uint64_t attr, Dwarf_Signed *valp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	*valp = 0;
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -110,7 +119,7 @@ dwarf_attrval_signed(Dwarf_Die die, uint64_t attr, Dwarf_Signed *valp, Dwarf_Err
 		*valp = at->u[0].s64;
 		break;
 	default:
-		DWARF_SET_ERROR(err, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
@@ -123,16 +132,19 @@ dwarf_attrval_unsigned(Dwarf_Die die, uint64_t attr, Dwarf_Unsigned *valp, Dwarf
 	Dwarf_Attribute at;
 	Dwarf_Die die1;
 	Dwarf_Unsigned val;
+	Dwarf_Debug dbg;
+
+	dbg = die != NULL ? die->die_dbg : NULL;
 
 	if (die == NULL || valp == NULL) {
-		DWARF_SET_ERROR(err, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	*valp = 0;
 
 	if ((at = _dwarf_attr_find(die, attr)) == NULL && attr != DW_AT_type) {
-		DWARF_SET_ERROR(err, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -152,12 +164,12 @@ dwarf_attrval_unsigned(Dwarf_Die die, uint64_t attr, Dwarf_Unsigned *valp, Dwarf
 			val = at->u[0].u64;
 			if ((die1 = _dwarf_die_find(die, val)) == NULL ||
 			    (at = _dwarf_attr_find(die1, attr)) == NULL) {
-				DWARF_SET_ERROR(err, DW_DLE_NO_ENTRY);
+				DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 				return (DW_DLV_NO_ENTRY);
 			}
 			break;
 		default:
-			DWARF_SET_ERROR(err, DW_DLE_ATTR_FORM_BAD);
+			DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 			return (DW_DLV_ERROR);
 		}
 	}
@@ -176,7 +188,7 @@ dwarf_attrval_unsigned(Dwarf_Die die, uint64_t attr, Dwarf_Unsigned *valp, Dwarf
 		*valp = at->u[0].u64;
 		break;
 	default:
-		DWARF_SET_ERROR(err, DW_DLE_ATTR_FORM_BAD);
+		DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
 

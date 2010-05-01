@@ -34,18 +34,18 @@ dwarf_get_fde_list(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 
 	if (dbg == NULL || cie_list == NULL || cie_count == NULL ||
 	    fde_list == NULL || fde_count == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (dbg->dbg_frame == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	if (dbg->dbg_frame->fs_ciearray == NULL ||
 	    dbg->dbg_frame->fs_fdearray == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -65,18 +65,18 @@ dwarf_get_fde_list_eh(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 
 	if (dbg == NULL || cie_list == NULL || cie_count == NULL ||
 	    fde_list == NULL || fde_count == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (dbg->dbg_eh_frame == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	if (dbg->dbg_eh_frame->fs_ciearray == NULL ||
 	    dbg->dbg_eh_frame->fs_fdearray == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -93,9 +93,12 @@ dwarf_get_fde_n(Dwarf_Fde *fdelist, Dwarf_Unsigned fde_index,
     Dwarf_Fde *ret_fde, Dwarf_Error *error)
 {
 	Dwarf_FrameSec fs;
+	Dwarf_Debug dbg;
+
+	dbg = fdelist != NULL ? (*fdelist)->fde_dbg : NULL;
 
 	if (fdelist == NULL || ret_fde == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -103,7 +106,7 @@ dwarf_get_fde_n(Dwarf_Fde *fdelist, Dwarf_Unsigned fde_index,
 	assert(fs != NULL);
 
 	if (fde_index >= fs->fs_fdelen) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -117,12 +120,15 @@ dwarf_get_fde_at_pc(Dwarf_Fde *fdelist, Dwarf_Addr pc, Dwarf_Fde *ret_fde,
     Dwarf_Addr *lopc, Dwarf_Addr *hipc, Dwarf_Error *error)
 {
 	Dwarf_FrameSec fs;
+	Dwarf_Debug dbg;
 	Dwarf_Fde fde;
 	int i;
 
+	dbg = fdelist != NULL ? (*fdelist)->fde_dbg : NULL;
+
 	if (fdelist == NULL || ret_fde == NULL || lopc == NULL ||
 	    hipc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -140,16 +146,19 @@ dwarf_get_fde_at_pc(Dwarf_Fde *fdelist, Dwarf_Addr pc, Dwarf_Fde *ret_fde,
 		}
 	}
 
-	DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+	DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 	return (DW_DLV_NO_ENTRY);
 }
 
 int
 dwarf_get_cie_of_fde(Dwarf_Fde fde, Dwarf_Cie *ret_cie, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || ret_cie == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -163,11 +172,14 @@ dwarf_get_fde_range(Dwarf_Fde fde, Dwarf_Addr *low_pc, Dwarf_Unsigned *func_len,
     Dwarf_Ptr *fde_bytes, Dwarf_Unsigned *fde_byte_len, Dwarf_Off *cie_offset,
     Dwarf_Signed *cie_index, Dwarf_Off *fde_offset, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || low_pc == NULL || func_len == NULL ||
 	    fde_bytes == NULL || fde_byte_len == NULL || cie_offset == NULL ||
 	    cie_index == NULL || fde_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -197,7 +209,7 @@ dwarf_get_cie_info(Dwarf_Cie cie, Dwarf_Unsigned *bytes_in_cie,
 	if (cie == NULL || bytes_in_cie == NULL || version == NULL ||
 	    augmenter == NULL || caf == NULL || daf == NULL || ra == NULL ||
 	    initinst == NULL || inst_len == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -218,9 +230,12 @@ int
 dwarf_get_fde_instr_bytes(Dwarf_Fde fde, Dwarf_Ptr *ret_inst,
     Dwarf_Unsigned *ret_len, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || ret_inst == NULL || ret_len == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -240,12 +255,15 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
     Dwarf_Error *error)
 {
 	Dwarf_Regtable3 *rt;
+	Dwarf_Debug dbg;
 	Dwarf_Addr pc;
 	int ret;
 
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
+
 	if (fde == NULL || offset_relevant == NULL || register_num == NULL ||
 	    offset == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -283,12 +301,13 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	Dwarf_Addr pc;
 	int i, ret;
 
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
+
 	if (fde == NULL || reg_table == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	dbg = fde->fde_dbg;
 	assert(dbg != NULL);
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
@@ -328,13 +347,16 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
     Dwarf_Addr *row_pc, Dwarf_Error *error)
 {
 	Dwarf_Regtable3 *rt;
+	Dwarf_Debug dbg;
 	Dwarf_Addr pc;
 	int ret;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || value_type == NULL || offset_relevant == NULL ||
 	    register_num == NULL || offset_or_block_len == NULL ||
 	    block_ptr == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -360,13 +382,16 @@ dwarf_get_fde_info_for_cfa_reg3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
     Dwarf_Ptr *block_ptr, Dwarf_Addr *row_pc, Dwarf_Error *error)
 {
 	Dwarf_Regtable3 *rt;
+	Dwarf_Debug dbg;
 	Dwarf_Addr pc;
 	int ret;
+
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
 	if (fde == NULL || value_type == NULL || offset_relevant == NULL ||
 	    register_num == NULL || offset_or_block_len == NULL ||
 	    block_ptr == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -392,17 +417,18 @@ int
 dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
     Dwarf_Regtable3 *reg_table, Dwarf_Addr *row_pc, Dwarf_Error *error)
 {
-	Dwarf_Debug dbg;
 	Dwarf_Regtable3 *rt;
+	Dwarf_Debug dbg;
 	Dwarf_Addr pc;
 	int ret;
 
+	dbg = fde != NULL ? fde->fde_dbg : NULL;
+
 	if (fde == NULL || reg_table == NULL || row_pc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	dbg = fde->fde_dbg;
 	assert(dbg != NULL);
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
@@ -428,7 +454,7 @@ dwarf_expand_frame_instructions(Dwarf_Debug dbg, Dwarf_Ptr instruction,
 
 	if (dbg == NULL || instruction == NULL || len == 0 ||
 	    ret_oplist == NULL || ret_opcnt == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -446,7 +472,7 @@ dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *oplist, Dwarf_Signed opcnt,
 {
 
 	if (oplist == NULL || opcnt == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

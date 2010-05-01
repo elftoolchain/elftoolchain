@@ -32,12 +32,12 @@ dwarf_get_aranges(Dwarf_Debug dbg, Dwarf_Arange **arlist,
 {
 
 	if (dbg == NULL || arlist == NULL || ret_arange_cnt == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (dbg->dbg_arange_cnt == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -54,10 +54,18 @@ dwarf_get_arange(Dwarf_Arange *arlist, Dwarf_Unsigned arange_cnt,
     Dwarf_Addr addr, Dwarf_Arange *ret_arange, Dwarf_Error *error)
 {
 	Dwarf_Arange ar;
+	Dwarf_Debug dbg;
 	int i;
 
-	if (arlist == NULL || ret_arange == NULL || arange_cnt == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+	if (arlist == NULL) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	dbg = (*arlist)->ar_as->as_cu->cu_dbg;
+
+	if (ret_arange == NULL || arange_cnt == 0) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -70,7 +78,7 @@ dwarf_get_arange(Dwarf_Arange *arlist, Dwarf_Unsigned arange_cnt,
 		}
 	}
 
-	DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+	DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 
 	return (DW_DLV_NO_ENTRY);
 }
@@ -83,8 +91,8 @@ dwarf_get_cu_die_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 	Dwarf_Die die;
 	Dwarf_ArangeSet as;
 
-	if (ar == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+	if (ar == NULL) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -94,6 +102,11 @@ dwarf_get_cu_die_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 	assert(cu != NULL);
 	die = STAILQ_FIRST(&cu->cu_die);
 	assert(die != NULL);
+
+	if (ret_offset == NULL) {
+		DWARF_SET_ERROR(cu->cu_dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
 
 	*ret_offset = die->die_offset;
 
@@ -106,13 +119,18 @@ dwarf_get_arange_cu_header_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 {
 	Dwarf_ArangeSet as;
 
-	if (ar == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+	if (ar == NULL) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	as = ar->ar_as;
 	assert(as != NULL);
+
+	if (ret_offset == NULL) {
+		DWARF_SET_ERROR(as->as_cu->cu_dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
 
 	*ret_offset = as->as_cu_offset;
 
@@ -127,9 +145,8 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
 	Dwarf_Die die;
 	Dwarf_ArangeSet as;
 
-	if (ar == NULL || start == NULL || length == NULL ||
-	    cu_die_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+	if (ar == NULL) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -139,6 +156,12 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
 	assert(cu != NULL);
 	die = STAILQ_FIRST(&cu->cu_die);
 	assert(die != NULL);
+
+	if (start == NULL || length == NULL ||
+	    cu_die_offset == NULL) {
+		DWARF_SET_ERROR(cu->cu_dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
 
 	*start = ar->ar_address;
 	*length = ar->ar_range;

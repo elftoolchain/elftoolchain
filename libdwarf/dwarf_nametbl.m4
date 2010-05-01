@@ -31,12 +31,12 @@ dwarf_get_$1s(Dwarf_Debug dbg, Dwarf_$2 **$1s,
 {
 
 	if (dbg == NULL || $1s == NULL || ret_count == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (dbg->dbg_$1s == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -49,9 +49,12 @@ dwarf_get_$1s(Dwarf_Debug dbg, Dwarf_$2 **$1s,
 int
 dwarf_$3name(Dwarf_$2 $1, char **ret_name, Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
+
+	dbg = $1 != NULL ? $1->np_nt->nt_cu->cu_dbg : NULL;
 
 	if ($1 == NULL || ret_name == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -65,9 +68,12 @@ dwarf_$1_die_offset(Dwarf_$2 $1, Dwarf_Off *ret_offset,
     Dwarf_Error *error)
 {
 	Dwarf_NameTbl nt;
+	Dwarf_Debug dbg;
+
+	dbg = $1 != NULL ? $1->np_nt->nt_cu->cu_dbg : NULL;
 
 	if ($1 == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -84,9 +90,12 @@ dwarf_$1_cu_offset(Dwarf_$2 $1, Dwarf_Off *ret_offset,
     Dwarf_Error *error)
 {
 	Dwarf_NameTbl nt;
+	Dwarf_Debug dbg;
+
+	dbg = $1 != NULL ? $1->np_nt->nt_cu->cu_dbg : NULL;
 
 	if ($1 == NULL || ret_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -104,11 +113,14 @@ dwarf_$1_name_offsets(Dwarf_$2 $1, char **ret_name, Dwarf_Off *die_offset,
 {
 	Dwarf_CU cu;
 	Dwarf_Die die;
+	Dwarf_Debug dbg;
 	Dwarf_NameTbl nt;
+
+	dbg = $1 != NULL ? $1->np_nt->nt_cu->cu_dbg : NULL;
 
 	if ($1 == NULL || ret_name == NULL || die_offset == NULL ||
 	    cu_offset == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

@@ -30,24 +30,27 @@ int
 dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
     Dwarf_Error *error)
 {
-	Dwarf_CU cu;
 	Dwarf_LineInfo li;
+	Dwarf_Debug dbg;
 	Dwarf_Line ln;
+	Dwarf_CU cu;
 	int i;
 
+	dbg = die != NULL ? die->die_dbg : NULL;
+
 	if (die == NULL || linebuf == NULL || linecount == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (die->die_ab->ab_tag != DW_TAG_compile_unit) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	cu = die->die_cu;
 	if (cu->cu_lineinfo == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -55,7 +58,7 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 	*linecount = (Dwarf_Signed) li->li_lnlen;
 
 	if (*linecount == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -66,7 +69,7 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 
 	if ((li->li_lnarray = malloc(*linecount *
 	    sizeof(struct _Dwarf_Line))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -83,24 +86,27 @@ int
 dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
     Dwarf_Error *error)
 {
-	Dwarf_CU cu;
 	Dwarf_LineInfo li;
 	Dwarf_LineFile lf;
+	Dwarf_Debug dbg;
+	Dwarf_CU cu;
 	int i;
 
+	dbg = die != NULL ? die->die_dbg : NULL;
+
 	if (die == NULL || srcfiles == NULL || srccount == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	if (die->die_ab->ab_tag != DW_TAG_compile_unit) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
 	cu = die->die_cu;
 	if (cu->cu_lineinfo == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -108,7 +114,7 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 	*srccount = (Dwarf_Signed) li->li_lflen;
 
 	if (*srccount == 0) {
-		DWARF_SET_ERROR(error, DW_DLE_NO_ENTRY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
@@ -118,7 +124,7 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 	}
 
 	if ((li->li_lfnarray = malloc(*srccount * sizeof(char *))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
 
@@ -137,7 +143,7 @@ dwarf_linebeginstatement(Dwarf_Line ln, Dwarf_Bool *ret_bool,
 {
 
 	if (ln == NULL || ret_bool == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -151,7 +157,7 @@ dwarf_lineendsequence(Dwarf_Line ln, Dwarf_Bool *ret_bool, Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_bool == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -165,7 +171,7 @@ dwarf_lineno(Dwarf_Line ln, Dwarf_Unsigned *ret_lineno, Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_lineno == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -175,11 +181,12 @@ dwarf_lineno(Dwarf_Line ln, Dwarf_Unsigned *ret_lineno, Dwarf_Error *error)
 }
 
 int
-dwarf_line_srcfileno(Dwarf_Line ln, Dwarf_Unsigned *ret_fileno, Dwarf_Error *error)
+dwarf_line_srcfileno(Dwarf_Line ln, Dwarf_Unsigned *ret_fileno,
+    Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_fileno == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -193,7 +200,7 @@ dwarf_lineaddr(Dwarf_Line ln, Dwarf_Addr *ret_lineaddr, Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_lineaddr == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -207,7 +214,7 @@ dwarf_lineoff(Dwarf_Line ln, Dwarf_Signed *ret_lineoff, Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_lineoff == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -227,7 +234,7 @@ dwarf_linesrc(Dwarf_Line ln, char **ret_linesrc, Dwarf_Error *error)
 	int i;
 
 	if (ln == NULL || ret_linesrc == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
@@ -240,7 +247,7 @@ dwarf_linesrc(Dwarf_Line ln, char **ret_linesrc, Dwarf_Error *error)
 		;
 
 	if (lf == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_LINE_FILE_NUM_BAD);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_LINE_FILE_NUM_BAD);
 		return (DW_DLV_ERROR);
 	}
 
@@ -259,7 +266,7 @@ dwarf_lineblock(Dwarf_Line ln, Dwarf_Bool *ret_bool, Dwarf_Error *error)
 {
 
 	if (ln == NULL || ret_bool == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_ARGUMENT);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 

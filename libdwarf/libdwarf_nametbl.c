@@ -67,7 +67,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 	assert(*namesec == NULL);
 
 	if ((ns = malloc(sizeof(struct _Dwarf_NameSec))) == NULL) {
-		DWARF_SET_ERROR(error, DW_DLE_MEMORY);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 	STAILQ_INIT(&ns->ns_ntlist);
@@ -80,7 +80,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 		/* Allocate a new name table. */
 		if ((nt = malloc(sizeof(struct _Dwarf_NameTbl))) == NULL) {
 			ret = DW_DLE_MEMORY;
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;
 		}
 		STAILQ_INIT(&nt->nt_nplist);
@@ -115,7 +115,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 			if ((np = malloc(sizeof(struct _Dwarf_NamePair))) ==
 			    NULL) {
 				ret = DW_DLE_MEMORY;
-				DWARF_SET_ERROR(error, ret);
+				DWARF_SET_ERROR(dbg, error, ret);
 				goto fail_cleanup;
 			}
 			np->np_nt = nt;
@@ -134,7 +134,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 		if ((ns->ns_array = malloc(sizeof(Dwarf_NamePair) *
 		    ns->ns_len)) == NULL) {
 			ret = DW_DLE_MEMORY;
-			DWARF_SET_ERROR(error, ret);
+			DWARF_SET_ERROR(dbg, error, ret);
 			goto fail_cleanup;
 		}
 
