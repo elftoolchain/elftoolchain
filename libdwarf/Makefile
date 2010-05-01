@@ -41,6 +41,7 @@ SRCS=	\
 	dwarf_pubnames.c	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\
+	dwarf_seterror.c	\
 	dwarf_str.c		\
 	dwarf_types.c		\
 	dwarf_vars.c		\
@@ -50,6 +51,7 @@ SRCS=	\
 	libdwarf_arange.c	\
 	libdwarf_attr.c		\
 	libdwarf_die.c		\
+	libdwarf_error.c	\
 	libdwarf_elf_access.c	\
 	libdwarf_elf_init.c	\
 	libdwarf_frame.c	\
