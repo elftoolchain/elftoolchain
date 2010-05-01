@@ -274,7 +274,7 @@ enum {
 
 typedef struct _Dwarf_Error {
 	int		err_error;	/* DWARF error. */
-	int		elf_error;	/* ELF error. */
+	int		err_elferror;	/* ELF error. */
 	const char	*err_func;	/* Function name where error occurred. */
 	int		err_line;	/* Line number where error occurred. */
 	char		err_msg[1024];	/* Formatted error message. */

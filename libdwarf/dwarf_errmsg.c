@@ -74,7 +74,7 @@ _dwarf_errmsg(Dwarf_Error *error)
 
 	if (error->err_error == DW_DLE_ELF)
 		snprintf(error->err_msg, sizeof(error->err_msg),
-		    "ELF error : %s [%s(%d)]", elf_errmsg(error->elf_error),
+		    "ELF error : %s [%s(%d)]", elf_errmsg(error->err_elferror),
 		    error->err_func, error->err_line);
 	else
 		snprintf(error->err_msg, sizeof(error->err_msg),
