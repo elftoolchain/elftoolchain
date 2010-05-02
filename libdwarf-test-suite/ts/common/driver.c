@@ -250,7 +250,7 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 	if (!strcmp(el, "ic")) {
 		if (_cur_ic != NULL)
 			errx(1, "Nested IC at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_ic = calloc(1, sizeof(*_cur_ic));
 		STAILQ_INIT(&_cur_ic->tplist);
 		if (_cur_ic == NULL)
@@ -265,15 +265,15 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 		}
 		if (_cur_ic->file == NULL)
 			errx(1, "IC without 'file' attribute at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 
 	} else if (!strcmp(el, "tp")) {
 		if (_cur_ic == NULL)
 			errx(1, "TP without containing IC at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_cur_tp != NULL)
 			errx(1, "Nested TP at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_tp = calloc(1, sizeof(*_cur_tp));
 		STAILQ_INIT(&_cur_tp->vclist);
 		if (_cur_tp == NULL)
@@ -296,15 +296,15 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 		}
 		if (_cur_tp->dtp == NULL)
 			errx(1, "TP without 'func' attribute at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 
 	} else if (!strcmp(el, "vc")) {
 		if (_cur_tp == NULL)
 			errx(1, "VC without containing IC at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_cur_vc != NULL)
 			errx(1, "Nested VC at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_vc = calloc(1, sizeof(*_cur_vc));
 		
 		_cur_vc->op = _OP_EQ;
@@ -328,7 +328,7 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 				else
 					errx(1, "Unknown value type %s at "
 					    "line %jd", attr[i + 1],
-					    XML_GetCurrentLineNumber(p));
+					    (intmax_t) XML_GetCurrentLineNumber(p));
 			} else if (!strcmp(attr[i], "op")) {
 				if (!strcmp(attr[i + 1], "ne"))
 					_cur_vc->op = _OP_NE;
@@ -337,14 +337,16 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 					_cur_vc->fail = _FAIL_ABORT;
 			} else
 				errx(1, "Unknown attr %s at line %jd",
-				    attr[i], XML_GetCurrentLineNumber(p));
+				    attr[i],
+				    (intmax_t) XML_GetCurrentLineNumber(p));
 		}
 		if (_cur_vc->var == NULL || _cur_vc->vt == _VTYPE_NONE)
 			errx(1, "VC without 'var' or 'type' attribute at"
-			    " line %jd", XML_GetCurrentLineNumber(p));
+			    " line %jd",
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 	} else
 		errx(1, "Unknown element %s at line %jd", el,
-		    XML_GetCurrentLineNumber(p));
+		    (intmax_t) XML_GetCurrentLineNumber(p));
 }
 
 static void
@@ -357,13 +359,13 @@ _xml_end_cb(void *data, const char *el)
 	if (!strcmp(el, "ic")) {
 		if (_cur_ic == NULL)
 			errx(1, "bogus IC end tag at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		STAILQ_INSERT_TAIL(&_iclist, _cur_ic, next);
 		_cur_ic = NULL;
 	} else if (!strcmp(el, "tp")) {
 		if (_cur_tp == NULL)
 			errx(1, "bogus TP end tag at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		assert(_cur_ic != NULL);
 		_test_cnt++;
 		_cur_tp->testnum = _test_cnt;
@@ -373,10 +375,10 @@ _xml_end_cb(void *data, const char *el)
 	} else if (!strcmp(el, "vc")) {
 		if (_cur_vc == NULL)
 			errx(1, "bogus VC end tag at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_xml_data_pos == 0)
 			errx(1, "VC element without value defined at line %jd",
-			    XML_GetCurrentLineNumber(p));
+			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_xml_data[_xml_data_pos] = '\0';
 		switch (_cur_vc->vt) {
 		case _VTYPE_INT:
@@ -463,7 +465,7 @@ driver_parse_ic_desc(const char *fname)
 			final = 1;
 		if (!XML_Parse(p, _xml_buf, (int) bytes, final))
 			errx(1, "XML_Parse error at line %jd: %s\n",
-			    XML_GetCurrentLineNumber(p),
+			    (intmax_t) XML_GetCurrentLineNumber(p),
 			    XML_ErrorString(XML_GetErrorCode(p)));
 		if (final)
 			break;
