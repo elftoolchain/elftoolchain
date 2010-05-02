@@ -483,9 +483,9 @@ driver_parse_ic(void)
 	if ((dirp = opendir(".")) == NULL)
 		err(1, "opendir");
 	while ((dp = readdir(dirp)) != NULL) {
-		if (dp->d_namlen <= 7)
+		if (strlen(dp->d_name) <= 7)
 			continue;
-		if (!strcmp(&dp->d_name[dp->d_namlen - 7], ".xml.gz"))
+		if (!strcmp(&dp->d_name[strlen(dp->d_name) - 7], ".xml.gz"))
 			driver_parse_ic_desc(dp->d_name);
 	}
 	(void) closedir(dirp);
