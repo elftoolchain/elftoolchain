@@ -45,6 +45,7 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(ATTR_FORM_BAD, "Invalid attribute form"),
 	DEFINE_ERROR(DEBUG_LINE_LENGTH_BAD, "Line info section too short"),
 	DEFINE_ERROR(LINE_FILE_NUM_BAD, "Invalid file number."),
+	DEFINE_ERROR(DIR_INDEX_BAD, "Invalid dir index."),
 	DEFINE_ERROR(DEBUG_FRAME_LENGTH_BAD, "Frame section too short"),
 	DEFINE_ERROR(NO_CIE_FOR_FDE, "FDE without corresponding CIE"),
 	DEFINE_ERROR(FRAME_INSTR_EXEC_ERROR, "Frame instruction exec error"),

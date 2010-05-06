@@ -31,7 +31,9 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
     Dwarf_Error *error, Dwarf_Debug dbg)
 {
 	Dwarf_LineFile lf;
+	const char *dirname;
 	uint8_t *src;
+	
 	int slen;
 
 	src = *p;
@@ -42,19 +44,31 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 	}
 
 	lf->lf_fname = (char *) src;
-
-	/* Make full pathname if need. */
-	if (compdir != NULL && *lf->lf_fname != '/') {
-		slen = strlen(compdir) + strlen(lf->lf_fname) + 2;
-		if ((lf->lf_fullpath = malloc(slen)) == NULL) {
-			free(lf);
-			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
-			return (DW_DLE_MEMORY);
-		}
-		snprintf(lf->lf_fullpath, slen, "%s/%s", compdir, lf->lf_fname);
-	}
 	src += strlen(lf->lf_fname) + 1;
 	lf->lf_dirndx = _dwarf_decode_uleb128(&src);
+	if (lf->lf_dirndx > li->li_inclen) {
+		free(lf);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_DIR_INDEX_BAD);
+		return (DW_DLE_DIR_INDEX_BAD);
+	}
+
+	/* Make full pathname if need. */
+	if (*lf->lf_fname != '/') {
+		dirname = compdir;
+		if (lf->lf_dirndx > 0)
+			dirname = li->li_incdirs[lf->lf_dirndx - 1];
+		if (dirname != NULL) {
+			slen = strlen(dirname) + strlen(lf->lf_fname) + 2;
+			if ((lf->lf_fullpath = malloc(slen)) == NULL) {
+				free(lf);
+				DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
+				return (DW_DLE_MEMORY);
+			}
+			snprintf(lf->lf_fullpath, slen, "%s/%s", dirname,
+			    lf->lf_fname);
+		}
+	}
+
 	lf->lf_mtime = _dwarf_decode_uleb128(&src);
 	lf->lf_size = _dwarf_decode_uleb128(&src);
 	STAILQ_INSERT_TAIL(&li->li_lflist, lf, lf_next);
