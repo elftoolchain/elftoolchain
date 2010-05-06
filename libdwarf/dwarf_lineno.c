@@ -129,8 +129,12 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 	}
 
 	for (i = 0, lf = STAILQ_FIRST(&li->li_lflist);
-	     i < *srccount && lf != NULL; i++, lf = STAILQ_NEXT(lf, lf_next))
-		li->li_lfnarray[i] = lf->lf_fname;
+	     i < *srccount && lf != NULL; i++, lf = STAILQ_NEXT(lf, lf_next)) {
+		if (lf->lf_fullpath)
+			li->li_lfnarray[i] = lf->lf_fullpath;
+		else
+			li->li_lfnarray[i] = lf->lf_fname;
+	}
 
 	*srcfiles = li->li_lfnarray;
 
