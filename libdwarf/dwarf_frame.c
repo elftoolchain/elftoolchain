@@ -290,6 +290,7 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	Dwarf_Debug dbg;
 	Dwarf_Regtable3 *rt;
 	Dwarf_Addr pc;
+	Dwarf_Half cfa;
 	int i, ret;
 
 	dbg = fde != NULL ? fde->fde_dbg : NULL;
@@ -306,21 +307,31 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	/* Copy the CFA rule to the first column of the reg table. */
-	reg_table->rules[0].dw_offset_relevant = CFA.dw_offset_relevant;
-	reg_table->rules[0].dw_regnum = CFA.dw_regnum;
-	reg_table->rules[0].dw_offset = CFA.dw_offset_or_block_len;
+	/*
+	 * Copy the CFA rule to the column intended for holding the CFA,
+	 * if it's within the range of regtable.
+	 */
+	cfa = dbg->dbg_frame_cfa_value;
+	if (cfa < DW_REG_TABLE_SIZE) {
+		reg_table->rules[cfa].dw_offset_relevant =
+		    CFA.dw_offset_relevant;
+		reg_table->rules[cfa].dw_regnum = CFA.dw_regnum;
+		reg_table->rules[cfa].dw_offset = CFA.dw_offset_or_block_len;
+	}
 
-	/* Copy the normal columns. */
-	for (i = 1; i < DW_REG_TABLE_SIZE && i < dbg->dbg_frame_rule_table_size;
+	/*
+	 * Copy other columns.
+	 */
+	for (i = 0; i < DW_REG_TABLE_SIZE && i < dbg->dbg_frame_rule_table_size;
 	     i++) {
+
+		/* Do not overwrite CFA column */
+		if (i == cfa)
+			continue;
+
 		reg_table->rules[i].dw_offset_relevant =
 		    rt->rt3_rules[i].dw_offset_relevant;
-		if (rt->rt3_rules[i].dw_regnum == DW_FRAME_CFA_COL3)
-			reg_table->rules[i].dw_regnum = DW_FRAME_CFA_COL;
-		else
-			reg_table->rules[i].dw_regnum =
-			    rt->rt3_rules[i].dw_regnum;
+		reg_table->rules[i].dw_regnum = rt->rt3_rules[i].dw_regnum;
 		reg_table->rules[i].dw_offset =
 		    rt->rt3_rules[i].dw_offset_or_block_len;
 	}
