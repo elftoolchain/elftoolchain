@@ -186,11 +186,6 @@ dwarf_get_fde_range(Dwarf_Fde fde, Dwarf_Addr *low_pc, Dwarf_Unsigned *func_len,
 	*low_pc = fde->fde_initloc;
 	*func_len = fde->fde_adrange;
 	*fde_bytes = fde->fde_addr;
-
-	/*
-	 * XXX should we return a real length, or length excluding
-	 * initial length?
-	 */
 	*fde_byte_len = fde->fde_length;
 	*cie_offset = fde->fde_cieoff;
 	*cie_index = fde->fde_cie->cie_index;
@@ -213,7 +208,6 @@ dwarf_get_cie_info(Dwarf_Cie cie, Dwarf_Unsigned *bytes_in_cie,
 		return (DW_DLV_ERROR);
 	}
 
-	/* XXX probably wrong, see above. */
 	*bytes_in_cie = cie->cie_length;
 	*version = cie->cie_version;
 	*augmenter = (char *) cie->cie_augment;
