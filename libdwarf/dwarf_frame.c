@@ -266,7 +266,7 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	if (table_column == DW_FRAME_CFA_COL) {
+	if (table_column == dbg->dbg_frame_cfa_value) {
 		/* Application ask for CFA. */
 		*offset_relevant = CFA.dw_offset_relevant;
 		*register_num = CFA.dw_regnum;
@@ -274,10 +274,7 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 	} else {
 		/* Application ask for normal registers. */
 		*offset_relevant = RL.dw_offset_relevant;
-		if (RL.dw_regnum == DW_FRAME_CFA_COL3)
-			*register_num = DW_FRAME_CFA_COL;
-		else
-			*register_num = RL.dw_regnum;
+		*register_num = RL.dw_regnum;
 		*offset = RL.dw_offset_or_block_len;
 	}
 
