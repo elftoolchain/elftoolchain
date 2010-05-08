@@ -43,9 +43,9 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 		return (DW_DLV_ERROR);
 	}
 
-	if (die->die_ab->ab_tag != DW_TAG_compile_unit) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
+	if (_dwarf_attr_find(die, DW_AT_stmt_list) == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
 	}
 
 	cu = die->die_cu;
@@ -99,9 +99,9 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 		return (DW_DLV_ERROR);
 	}
 
-	if (die->die_ab->ab_tag != DW_TAG_compile_unit) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
+	if (_dwarf_attr_find(die, DW_AT_stmt_list) == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
 	}
 
 	cu = die->die_cu;
