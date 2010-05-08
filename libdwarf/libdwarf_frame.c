@@ -1037,6 +1037,11 @@ _dwarf_frame_get_internal_table(Dwarf_Fde fde, Dwarf_Addr pc_req,
 
 	rt = dbg->dbg_internal_reg_table;
 
+	/* Clear the content of regtable from previous run. */
+	memset(&rt->rt3_cfa_rule, 0, sizeof(Dwarf_Regtable_Entry3));
+	memset(rt->rt3_rules, 0, rt->rt3_reg_table_size *
+	    sizeof(Dwarf_Regtable_Entry3));
+
 	/* Set rules to initial values. */
 	for (i = 0; i < rt->rt3_reg_table_size; i++)
 		rt->rt3_rules[i].dw_regnum = dbg->dbg_frame_rule_initial_value;
