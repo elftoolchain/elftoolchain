@@ -376,7 +376,7 @@ _xml_end_cb(void *data, const char *el)
 		if (_cur_vc == NULL)
 			errx(1, "bogus VC end tag at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
-		if (_xml_data_pos == 0)
+		if (_xml_data_pos == 0 && _cur_vc->vt != _VTYPE_STRING)
 			errx(1, "VC element without value defined at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_xml_data[_xml_data_pos] = '\0';
