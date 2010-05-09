@@ -593,7 +593,6 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 			*row_pc = pc;
 			reg = _dwarf_decode_uleb128(&p);
 			CFA.dw_regnum = reg;
-			CFA.dw_offset_relevant = 0;
 #ifdef FRAME_DEBUG
 			printf("DW_CFA_def_cfa_register(%ju)\n", reg);
 #endif
