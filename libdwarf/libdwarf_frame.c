@@ -593,6 +593,12 @@ _dwarf_frame_run_inst(Dwarf_Debug dbg, Dwarf_Regtable3 *rt, uint8_t *insts,
 			*row_pc = pc;
 			reg = _dwarf_decode_uleb128(&p);
 			CFA.dw_regnum = reg;
+			/*
+			 * Note that DW_CFA_def_cfa_register change the CFA
+			 * rule register while keep the old offset. So we
+			 * should not touch the CFA.dw_offset_relevant flag
+			 * here.
+			 */
 #ifdef FRAME_DEBUG
 			printf("DW_CFA_def_cfa_register(%ju)\n", reg);
 #endif
