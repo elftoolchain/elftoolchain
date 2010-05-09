@@ -49,8 +49,8 @@ Source file names are returned as an array of NUL-terminated strings.
 Argument
 .Ar die
 should reference a DWARF debugging information entry descriptor with
-tag value
-.Dv DW_TAG_compile_unit .
+source file information, see
+.Xr dwarf 3 .
 Argument
 .Ar filenames
 should point to a location that will hold a pointer to the returned array
@@ -91,10 +91,6 @@ One of the arguments
 or
 .Ar filenamecount
 was NULL.
-.It Bq Er DW_DLE_ARGUMENT
-Argument
-.Ar die
-did not reference a compilation unit.
 .It Bq Er DW_DLE_NO_ENTRY
 The compilation unit referenced by argument
 .Ar die
