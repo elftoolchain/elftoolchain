@@ -502,6 +502,8 @@ int		dwarf_global_formref(Dwarf_Attribute, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_formaddr(Dwarf_Attribute, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_formblock(Dwarf_Attribute, Dwarf_Block **, Dwarf_Error *);
+int		dwarf_formexprloc(Dwarf_Attribute, Dwarf_Unsigned *,
+		    Dwarf_Ptr *, Dwarf_Error *);
 int		dwarf_formflag(Dwarf_Attribute, Dwarf_Bool *, Dwarf_Error *);
 int		dwarf_formref(Dwarf_Attribute, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_formsig8(Dwarf_Attribute, Dwarf_Sig8 *, Dwarf_Error *);
