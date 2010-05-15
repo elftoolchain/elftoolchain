@@ -175,6 +175,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			break;
 
 		/* Operations with 2-byte operands. */
+		case DW_OP_call2:
 		case DW_OP_const2u:
 		case DW_OP_const2s:
 		case DW_OP_bra:
@@ -183,6 +184,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			break;
 
 		/* Operations with 4-byte operands. */
+		case DW_OP_call4:
 		case DW_OP_const4u:
 		case DW_OP_const4s:
 			operand1 = dbg->decode(&p, 4);
@@ -392,6 +394,58 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 
 	case DW_OP_nop:
 		*p++ = atom;
+		break;
+
+	/* Operations with 1-byte operands. */
+	case DW_OP_const1u:
+	case DW_OP_const1s:
+	case DW_OP_pick:
+	case DW_OP_deref_size:
+	case DW_OP_xderef_size:
+		*p++ = atom;
+		*p++ = (uint8_t) operand1;
+		break;
+
+	/* Operations with 2-byte operands. */
+	case DW_OP_call2:
+	case DW_OP_const2u:
+	case DW_OP_const2s:
+	case DW_OP_bra:
+	case DW_OP_skip:
+		*p++ = atom;
+		offset = 0;
+		dbg->write(p, &offset, operand1, 2);
+		p += 2;
+		break;
+
+	/* Operations with 4-byte operands. */
+	case DW_OP_call4:
+	case DW_OP_const4u:
+	case DW_OP_const4s:
+		*p++ = atom;
+		offset = 0;
+		dbg->write(p, &offset, operand1, 4);
+		p += 4;
+		break;
+
+	/* Operations with 8-byte operands. */
+	case DW_OP_const8u:
+	case DW_OP_const8s:
+		*p++ = atom;
+		offset = 0;
+		dbg->write(p, &offset, operand1, 8);
+		p += 8;
+		break;
+
+	/* Operations with an unsigned LEB128 operand. */
+	case DW_OP_constu:
+	case DW_OP_plus_uconst:
+	case DW_OP_regx:
+	case DW_OP_piece:
+		*p++ = atom;
+		len = _dwarf_write_uleb128(p, pe, operand1);
+		assert(len > 0);
+		p += len;
 		break;
 
 	/* Operations with a signed LEB128 operand. */
