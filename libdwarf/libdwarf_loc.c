@@ -407,7 +407,6 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 		break;
 
 	/* Operations with 2-byte operands. */
-	case DW_OP_call2:
 	case DW_OP_const2u:
 	case DW_OP_const2s:
 	case DW_OP_bra:
@@ -419,7 +418,6 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 		break;
 
 	/* Operations with 4-byte operands. */
-	case DW_OP_call4:
 	case DW_OP_const4u:
 	case DW_OP_const4s:
 		*p++ = atom;
