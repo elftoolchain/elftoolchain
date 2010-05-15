@@ -175,6 +175,9 @@ static int
 _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 {
 
+	/* Producer only support DWARF2 which has fixed 32bit offset. */
+	dbg->dbg_offset_size = 4;
+
 	if (pf & DW_DLC_SIZE_32 && pf & DW_DLC_SIZE_64) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
