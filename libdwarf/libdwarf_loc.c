@@ -278,6 +278,18 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			operand1 = dbg->decode(&p, pointer_size);
 			break;
 
+		/*
+		 * XXX Opcode DW_OP_call_ref has an operand with size
+		 * "dwarf_size". Here we use dbg->dbg_offset_size
+		 * as "dwarf_size" to be compatible with SGI libdwarf.
+		 * However note that dbg->dbg_offset_size is just
+		 * a "guess" value so the parsing result of
+		 * DW_OP_call_ref might not be correct at all. XXX
+		 */
+		case DW_OP_call_ref:
+			operand1 = dbg->decode(&p, dbg->dbg_offset_size);
+			break;
+
 		/* All other operations cause an error. */
 		default:
 			count = -1;
