@@ -146,6 +146,7 @@ dwarf_global_formref(Dwarf_Attribute at, Dwarf_Off *return_offset,
 
 	switch (at->at_form) {
 	case DW_FORM_ref_addr:
+	case DW_FORM_sec_offset:
 		*return_offset = (Dwarf_Off) at->u[0].u64;
 		ret = DW_DLV_OK;
 		break;
