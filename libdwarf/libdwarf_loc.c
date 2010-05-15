@@ -163,6 +163,9 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_ne:
 
 		case DW_OP_nop:
+		case DW_OP_form_tls_address:
+		case DW_OP_call_frame_cfa:
+		case DW_OP_stack_value:
 			break;
 
 		/* Operations with 1-byte operands. */
@@ -243,12 +246,31 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			break;
 
 		/*
+		 * Oeration with two unsigned LEB128 operands.
+		 */
+		case DW_OP_bit_piece:
+			operand1 = _dwarf_decode_uleb128(&p);
+			operand2 = _dwarf_decode_uleb128(&p);
+			break;
+
+		/*
 		 * Operations with an unsigned LEB128 operand
 		 * followed by a signed LEB128 operand.
 		 */
 		case DW_OP_bregx:
 			operand1 = _dwarf_decode_uleb128(&p);
 			operand2 = _dwarf_decode_sleb128(&p);
+			break;
+
+		/*
+		 * Operation with an unsigned LEB128 operand
+		 * followed by a block. Store a pointer to the
+		 * block in the operand2.
+		 */
+		case DW_OP_implicit_value:
+			operand1 = _dwarf_decode_uleb128(&p);
+			operand2 = (Dwarf_Unsigned) (uintptr_t) p;
+			p += operand1;
 			break;
 
 		/* Target address size operand. */
