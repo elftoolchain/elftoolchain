@@ -237,6 +237,11 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		assert(str != NULL);
 		atref.u[1].s = (char *) str->ds_data + atref.u[0].u64;
 		break;
+	case DW_FORM_ref_sig8:
+		atref.u[0].u64 = 8;
+		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
+		    atref.u[0].u64);
+		break;
 	default:
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
 		ret = DW_DLE_ATTR_FORM_BAD;
