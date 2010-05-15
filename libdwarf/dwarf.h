@@ -87,6 +87,9 @@
 #define DW_TAG_imported_unit            0x3d
 #define DW_TAG_condition                0x3f
 #define DW_TAG_shared_type              0x40
+#define DW_TAG_type_unit		0x41
+#define DW_TAG_rvalue_reference_type	0x42
+#define DW_TAG_template_alias		0x43
 
 #define DW_TAG_lo_user			0x4080
 
@@ -185,6 +188,12 @@
 #define DW_AT_elemental			0x66
 #define DW_AT_pure			0x67
 #define DW_AT_recursive			0x68
+#define DW_AT_signature			0x69
+#define DW_AT_main_subprogram		0x6a
+#define DW_AT_data_bit_offset		0x6b
+#define DW_AT_const_expr		0x6c
+#define DW_AT_enum_class		0x6d
+#define DW_AT_linkage_name		0x6e
 
 #define DW_AT_lo_user			0x2000
 
@@ -211,6 +220,10 @@
 #define DW_FORM_ref8			0x14
 #define DW_FORM_ref_udata		0x15
 #define DW_FORM_indirect		0x16
+#define DW_FORM_sec_offset		0x17
+#define DW_FORM_exprloc			0x18
+#define DW_FORM_flag_present		0x19
+#define DW_FORM_ref_sig8		0x20
 
 #define DW_OP_addr			0x03
 #define DW_OP_deref			0x06
