@@ -370,6 +370,15 @@
 #define DW_OP_deref_size		0x94
 #define DW_OP_xderef_size		0x95
 #define DW_OP_nop			0x96
+#define DW_OP_push_object_address	0x97
+#define DW_OP_call2			0x98
+#define DW_OP_call4			0x99
+#define DW_OP_call_ref			0x9a
+#define DW_OP_form_tls_address		0x9b
+#define DW_OP_call_frame_cfa		0x9c
+#define DW_OP_bit_piece			0x9d
+#define DW_OP_implicit_value		0x9e
+#define DW_OP_stack_value		0x9f
 
 #define DW_OP_lo_user		 	0xe0
 
