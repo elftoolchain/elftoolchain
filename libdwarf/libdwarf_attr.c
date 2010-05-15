@@ -172,6 +172,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		    cu->cu_pointer_size);
 		break;
 	case DW_FORM_block:
+	case DW_FORM_exprloc:
 		atref.u[0].u64 = _dwarf_read_uleb128(ds->ds_data, offsetp);
 		atref.u[1].u8p = _dwarf_read_block(ds->ds_data, offsetp,
 		    atref.u[0].u64);

@@ -339,6 +339,31 @@ dwarf_formsig8(Dwarf_Attribute at, Dwarf_Sig8 *return_sig8, Dwarf_Error *error)
 }
 
 int
+dwarf_formexprloc(Dwarf_Attribute at, Dwarf_Unsigned *return_exprlen,
+    Dwarf_Ptr *return_expr, Dwarf_Error *error)
+{
+
+	Dwarf_Debug dbg;
+
+	dbg = at != NULL ? at->at_die->die_dbg : NULL;
+
+	if (at == NULL || return_exprlen == NULL || return_expr == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	if (at->at_form != DW_FORM_exprloc) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
+		return (DW_DLV_ERROR);
+	}
+
+	*return_exprlen = at->u[0].u64;
+	*return_expr = (void *) at->u[1].u8p;
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_formstring(Dwarf_Attribute at, char **return_string,
     Dwarf_Error *error)
 {
