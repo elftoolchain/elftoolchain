@@ -125,6 +125,10 @@ typedef struct {
 } Dwarf_Locdesc;
 
 typedef struct {
+	char signature[8];
+} Dwarf_Sig8;
+
+typedef struct {
 	Dwarf_Unsigned	bl_len;
 	Dwarf_Ptr	bl_data;
 } Dwarf_Block;
@@ -486,7 +490,6 @@ Dwarf_P_Fde	dwarf_fde_cfa_offset(Dwarf_P_Fde, Dwarf_Unsigned, Dwarf_Signed,
 		    Dwarf_Error *);
 char		*dwarf_find_macro_value_start(char *);
 int		dwarf_finish(Dwarf_Debug, Dwarf_Error *);
-int		dwarf_formref(Dwarf_Attribute, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *, Dwarf_Signed,
 		    Dwarf_Error *);
 int		dwarf_func_cu_offset(Dwarf_Func, Dwarf_Off *, Dwarf_Error *);
@@ -500,6 +503,8 @@ int		dwarf_global_formref(Dwarf_Attribute, Dwarf_Off *,
 int		dwarf_formaddr(Dwarf_Attribute, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_formblock(Dwarf_Attribute, Dwarf_Block **, Dwarf_Error *);
 int		dwarf_formflag(Dwarf_Attribute, Dwarf_Bool *, Dwarf_Error *);
+int		dwarf_formref(Dwarf_Attribute, Dwarf_Off *, Dwarf_Error *);
+int		dwarf_formsig8(Dwarf_Attribute, Dwarf_Sig8 *, Dwarf_Error *);
 int		dwarf_formstring(Dwarf_Attribute, char **, Dwarf_Error *);
 int		dwarf_formsdata(Dwarf_Attribute, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_formudata(Dwarf_Attribute, Dwarf_Unsigned *,
