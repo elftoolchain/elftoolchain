@@ -228,6 +228,9 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 	case DW_FORM_sdata:
 		atref.u[0].s64 = _dwarf_read_sleb128(ds->ds_data, offsetp);
 		break;
+	case DW_FORM_sec_offset:
+		atref.u[0].u64 = dbg->read(ds->ds_data, offsetp, dwarf_size);
+		break;
 	case DW_FORM_string:
 		atref.u[0].s = _dwarf_read_string(ds->ds_data, ds->ds_size,
 		    offsetp);
