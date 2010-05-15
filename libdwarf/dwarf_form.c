@@ -204,7 +204,8 @@ dwarf_formflag(Dwarf_Attribute at, Dwarf_Bool *return_bool, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if (at->at_form == DW_FORM_flag) {
+	if (at->at_form == DW_FORM_flag ||
+	    at->at_form == DW_FORM_flag_present) {
 		*return_bool = (Dwarf_Bool) at->u[0].u64;
 		ret = DW_DLV_OK;
 	} else {
