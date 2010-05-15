@@ -74,6 +74,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	}
 
 	dbg->dbg_pointer_size = m->get_pointer_size(obj);
+	dbg->dbg_offset_size = m->get_length_size(obj);
 
 	cnt = m->get_section_count(obj);
 
