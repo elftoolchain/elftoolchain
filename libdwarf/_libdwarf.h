@@ -257,6 +257,7 @@ struct _Dwarf_Fde {
 };
 
 struct _Dwarf_Cie {
+	Dwarf_Debug	cie_dbg;	/* Ptr to containing dbg. */
 	Dwarf_Unsigned	cie_index;	/* Index of the CIE. */
 	Dwarf_Unsigned	cie_offset;	/* Offset of the CIE. */
 	Dwarf_Unsigned	cie_length;	/* Length of the CIE. */
