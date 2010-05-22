@@ -3011,7 +3011,7 @@ dump_dwarf_macinfo(struct readelf *re)
 }
 
 static void
-dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
+dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
     Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc)
 {
 	Dwarf_Frame_Op *oplist;
@@ -3021,7 +3021,7 @@ dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
 	const char *op_str;
 	int i;
 
-	if (dwarf_expand_frame_instructions(re->dbg, insts, len, &oplist,
+	if (dwarf_expand_frame_instructions(cie, insts, len, &oplist,
 	    &opcnt, &de) != DW_DLV_OK) {
 		warnx("dwarf_expand_frame_instructions failed: %s",
 		    dwarf_errmsg(de));
@@ -3030,7 +3030,7 @@ dump_dwarf_frame_inst(struct readelf *re, uint8_t *insts, Dwarf_Unsigned len,
 
 	for (i = 0; i < opcnt; i++) {
 		if (oplist[i].fp_base_op != 0)
-			op = oplist[i].fp_base_op;
+			op = oplist[i].fp_base_op << 6;
 		else
 			op = oplist[i].fp_extended_op;
 		if (dwarf_get_CFA_name(op, &op_str) != DW_DLV_OK) {
@@ -3285,7 +3285,7 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				printf("  Return address column:\t%ju\n",
 				    (uintmax_t) cie_ra);
 				putchar('\n');
-				dump_dwarf_frame_inst(re, cie_inst,
+				dump_dwarf_frame_inst(cie, cie_inst,
 				    cie_instlen, cie_caf, cie_daf, 0);
 				putchar('\n');
 			} else {
@@ -3307,7 +3307,7 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 		    (uintmax_t) cie_offset,
 		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
 		if (!alt)
-			dump_dwarf_frame_inst(re, fde_inst, fde_instlen,
+			dump_dwarf_frame_inst(cie, fde_inst, fde_instlen,
 			    cie_caf, cie_daf, low_pc);
 		else
 			dump_dwarf_frame_regtable(fde, low_pc, func_len,
