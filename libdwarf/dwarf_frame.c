@@ -451,7 +451,8 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 
 	dbg = fde != NULL ? fde->fde_dbg : NULL;
 
-	if (fde == NULL || reg_table == NULL || row_pc == NULL) {
+	if (fde == NULL || reg_table == NULL || reg_table->rt3_rules == NULL ||
+	    row_pc == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
