@@ -757,9 +757,9 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 #define	SET_BASE_OP(x)						\
 	do {							\
 		if (fop != NULL)				\
-			fop[*count].fp_base_op = (x);		\
+			fop[*count].fp_base_op = (x) >> 6;	\
 		if (fop3 != NULL)				\
-			fop3[*count].fp_base_op = (x);		\
+			fop3[*count].fp_base_op = (x) >> 6;	\
 	} while(0)
 
 #define	SET_EXTENDED_OP(x)					\
