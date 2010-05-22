@@ -155,7 +155,8 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 {
 	Dwarf_Cie cie;
 	Dwarf_Fde fde;
-	uint64_t length, delta;
+	Dwarf_Unsigned cieoff;
+	uint64_t length;
 	int dwarf_size, ret;
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
@@ -184,24 +185,25 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	fde->fde_length = length;
 
 	if (eh_frame) {
-		delta = dbg->read(ds->ds_data, off, 4);
-		fde->fde_cieoff = *off - (4 + delta);
+		fde->fde_cieoff = dbg->read(ds->ds_data, off, 4);
+		cieoff = *off - (4 + fde->fde_cieoff);
 		/* This delta should never be 0. */
-		if (fde->fde_cieoff == fde->fde_offset) {
+		if (cieoff == fde->fde_offset) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_CIE_FOR_FDE);
 			return (DW_DLE_NO_CIE_FOR_FDE);
 		}
-	} else
+	} else {
 		fde->fde_cieoff = dbg->read(ds->ds_data, off, dwarf_size);
+		cieoff = fde->fde_cieoff;
+	}
 
-	if (_dwarf_frame_find_cie(fs, fde->fde_cieoff, &cie) ==
+	if (_dwarf_frame_find_cie(fs, cieoff, &cie) ==
 	    DW_DLE_NO_ENTRY) {
-		ret = _dwarf_frame_add_cie(dbg, fs, ds, &fde->fde_cieoff, &cie,
+		ret = _dwarf_frame_add_cie(dbg, fs, ds, &cieoff, &cie,
 		    error);
 		if (ret != DW_DLE_NONE)
 			return (ret);
 	}
-	fde->fde_cieoff = cie->cie_offset;
 	fde->fde_cie = cie;
 	if (eh_frame) {
 		fde->fde_initloc = dbg->read(ds->ds_data, off, 4);

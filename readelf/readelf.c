@@ -3303,8 +3303,9 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 		}
 		printf("%08jx %08jx %08jx FDE cie=%08jx pc=%08jx..%08jx\n",
 		    (uintmax_t) fde_offset, (uintmax_t) fde_length,
-		    (uintmax_t) (eh_frame ? (fde_offset + 4) : cie_offset),
 		    (uintmax_t) cie_offset,
+		    (uintmax_t) (eh_frame ? fde_offset + 4 - cie_offset :
+			cie_offset),
 		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
 		if (!alt)
 			dump_dwarf_frame_inst(cie, fde_inst, fde_instlen,
