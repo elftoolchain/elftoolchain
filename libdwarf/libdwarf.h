@@ -549,6 +549,7 @@ int		dwarf_get_arange_cu_header_offset(Dwarf_Arange, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_get_arange_info(Dwarf_Arange, Dwarf_Addr *,
 		    Dwarf_Unsigned *, Dwarf_Off *, Dwarf_Error *);
+int		dwarf_get_cie_index(Dwarf_Cie, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_get_cie_info(Dwarf_Cie, Dwarf_Unsigned *, Dwarf_Small *,
 		    char **, Dwarf_Unsigned *, Dwarf_Unsigned *, Dwarf_Half *,
 		    Dwarf_Ptr *, Dwarf_Unsigned *, Dwarf_Error *);
