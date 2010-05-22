@@ -270,6 +270,7 @@ enum {
 	DW_DLE_NO_CIE_FOR_FDE,		/* CIE not found for certain FDE. */
 	DW_DLE_FRAME_INSTR_EXEC_ERROR,	/* Frame instruction exec error. */
 	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
+	DW_DLE_FRAME_TABLE_COL_BAD,	/* Invalid table column. */
 	DW_DLE_DF_REG_NUM_TOO_HIGH,	/* Insufficient regtable space. */
 	DW_DLE_ARANGE_OFFSET_BAD,	/* Invalid arange offset. */
 	DW_DLE_DEBUG_MACRO_INCONSISTENT,/* Invalid macinfo data. */
