@@ -287,6 +287,12 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 		*offset = CFA.dw_offset_or_block_len;
 	} else {
 		/* Application ask for normal registers. */
+		if (table_column >= dbg->dbg_frame_rule_table_size ||
+		    table_column >= DW_REG_TABLE_SIZE) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_TABLE_COL_BAD);
+			return (DW_DLV_ERROR);
+		}
+
 		*offset_relevant = RL.dw_offset_relevant;
 		*register_num = RL.dw_regnum;
 		*offset = RL.dw_offset_or_block_len;
@@ -380,6 +386,11 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
 	    error);
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
+
+	if (table_column >= dbg->dbg_frame_rule_table_size) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_TABLE_COL_BAD);
+		return (DW_DLV_ERROR);
+	}
 
 	*value_type = RL.dw_value_type;
 	*offset_relevant = RL.dw_offset_relevant;

@@ -50,6 +50,7 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(NO_CIE_FOR_FDE, "FDE without corresponding CIE"),
 	DEFINE_ERROR(FRAME_INSTR_EXEC_ERROR, "Frame instruction exec error"),
 	DEFINE_ERROR(FRAME_VERSION_BAD, "Unsupported frame section version"),
+	DEFINE_ERROR(FRAME_TABLE_COL_BAD, "Invalid table column value"),
 	DEFINE_ERROR(DF_REG_NUM_TOO_HIGH, "Register number too large"),
 	DEFINE_ERROR(ARANGE_OFFSET_BAD, "Invalid address range offset"),
 	DEFINE_ERROR(DEBUG_MACRO_INCONSISTENT, "Invalid macinfo data"),
