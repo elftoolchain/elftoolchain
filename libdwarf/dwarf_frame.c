@@ -474,13 +474,16 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 }
 
 int
-dwarf_expand_frame_instructions(Dwarf_Debug dbg, Dwarf_Ptr instruction,
+dwarf_expand_frame_instructions(Dwarf_Cie cie, Dwarf_Ptr instruction,
     Dwarf_Unsigned len, Dwarf_Frame_Op **ret_oplist, Dwarf_Signed *ret_opcnt,
     Dwarf_Error *error)
 {
+	Dwarf_Debug dbg;
 	int ret;
 
-	if (dbg == NULL || instruction == NULL || len == 0 ||
+	dbg = cie != NULL ? cie->cie_dbg : NULL;
+
+	if (cie == NULL || instruction == NULL || len == 0 ||
 	    ret_oplist == NULL || ret_opcnt == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);

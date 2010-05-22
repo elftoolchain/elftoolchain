@@ -65,6 +65,7 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	}
 	STAILQ_INSERT_TAIL(&fs->fs_cielist, cie, cie_next);
 
+	cie->cie_dbg = dbg;
 	cie->cie_index = fs->fs_cielen;
 	cie->cie_offset = *off;
 
