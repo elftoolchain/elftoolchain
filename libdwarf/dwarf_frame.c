@@ -221,6 +221,20 @@ dwarf_get_cie_info(Dwarf_Cie cie, Dwarf_Unsigned *bytes_in_cie,
 }
 
 int
+dwarf_get_cie_index(Dwarf_Cie cie, Dwarf_Signed *cie_index, Dwarf_Error *error)
+{
+
+	if (cie == NULL || cie_index == NULL) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	*cie_index = cie->cie_index;
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_fde_instr_bytes(Dwarf_Fde fde, Dwarf_Ptr *ret_inst,
     Dwarf_Unsigned *ret_len, Dwarf_Error *error)
 {
