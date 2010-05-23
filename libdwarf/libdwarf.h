@@ -268,6 +268,7 @@ enum {
 	DW_DLE_DIR_INDEX_BAD,		/* Invalid dir index. */
 	DW_DLE_DEBUG_FRAME_LENGTH_BAD,	/* Frame section too short. */
 	DW_DLE_NO_CIE_FOR_FDE,		/* CIE not found for certain FDE. */
+	DW_DLE_FRAME_AUGMENTATION_UNKNOWN, /* Unknown CIE augmentation. */
 	DW_DLE_FRAME_INSTR_EXEC_ERROR,	/* Frame instruction exec error. */
 	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
 	DW_DLE_FRAME_TABLE_COL_BAD,	/* Invalid table column. */

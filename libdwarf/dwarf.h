@@ -524,4 +524,24 @@
 
 #define DW_CFA_high_user	 	0x3f
 
+/*
+ * LSB(Linux Standard Base) extension to DWARF2.
+ */
+
+#define	DW_EH_PE_absptr			0x00
+#define	DW_EH_PE_uleb128		0x01
+#define	DW_EH_PE_udata2			0x02
+#define	DW_EH_PE_udata4			0x03
+#define	DW_EH_PE_udata8			0x04
+#define	DW_EH_PE_sleb128		0x09
+#define	DW_EH_PE_sdata2			0x0a
+#define	DW_EH_PE_sdata4			0x0b
+#define	DW_EH_PE_sdata8			0x0c
+#define	DW_EH_PE_pcrel			0x10
+#define	DW_EH_PE_textrel		0x20
+#define	DW_EH_PE_datarel		0x30
+#define	DW_EH_PE_funcrel		0x40
+#define	DW_EH_PE_aligned		0x50
+#define	DW_EH_PE_omit			0xff
+
 #endif /* !_DWARF_H_ */

@@ -47,12 +47,137 @@ _dwarf_frame_find_cie(Dwarf_FrameSec fs, Dwarf_Unsigned offset,
 }
 
 static int
+_dwarf_frame_read_lsb_encoded(Dwarf_Debug dbg, uint64_t *val, uint8_t *data,
+    uint64_t *offsetp, uint8_t encode, Dwarf_Addr pc, Dwarf_Error *error)
+{
+	uint8_t application;
+
+	if (encode == DW_EH_PE_omit)
+		return (DW_DLE_NONE);
+
+	application = encode & 0xf0;
+	encode &= 0x0f;
+
+	printf("encode=%#x\n", encode);
+
+	switch (encode) {
+	case DW_EH_PE_absptr:
+		*val = dbg->read(data, offsetp, dbg->dbg_pointer_size);
+		break;
+	case DW_EH_PE_uleb128:
+		*val = _dwarf_read_uleb128(data, offsetp);
+		break;
+	case DW_EH_PE_udata2:
+		*val = dbg->read(data, offsetp, 2);
+		break;
+	case DW_EH_PE_udata4:
+		*val = dbg->read(data, offsetp, 4);
+		break;
+	case DW_EH_PE_udata8:
+		*val = dbg->read(data, offsetp, 8);
+		break;
+	case DW_EH_PE_sleb128:
+		*val = _dwarf_read_sleb128(data, offsetp);
+		break;
+	case DW_EH_PE_sdata2:
+		*val = (int16_t) dbg->read(data, offsetp, 2);
+		break;
+	case DW_EH_PE_sdata4:
+		*val = (int32_t) dbg->read(data, offsetp, 4);
+		break;
+	case DW_EH_PE_sdata8:
+		*val = dbg->read(data, offsetp, 8);
+		break;
+	default:
+		DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_AUGMENTATION_UNKNOWN);
+		return (DW_DLE_FRAME_AUGMENTATION_UNKNOWN);
+	}
+
+	if (application == DW_EH_PE_pcrel) {
+		/*
+		 * Value is relative to .eh_frame section virtual addr.
+		 */
+		switch (encode) {
+		case DW_EH_PE_uleb128:
+		case DW_EH_PE_udata2:
+		case DW_EH_PE_udata4:
+		case DW_EH_PE_udata8:
+			*val += pc;
+			break;
+		case DW_EH_PE_sleb128:
+		case DW_EH_PE_sdata2:
+		case DW_EH_PE_sdata4:
+		case DW_EH_PE_sdata8:
+			*val = pc + (int64_t) *val;
+			printf("val=%#jx\n", *val);
+			break;
+		default:
+			/* DW_EH_PE_absptr is absolute value. */
+			break;
+		}
+	}
+
+	/* XXX Applications other than DW_EH_PE_pcrel are not handled. */
+
+	return (DW_DLE_NONE);
+}
+
+static int
+_dwarf_frame_parse_lsb_cie_augment(Dwarf_Debug dbg, Dwarf_Cie cie,
+    Dwarf_Error *error)
+{
+	char *aug_p, *augdata_p;
+	uint64_t val, offset;
+	uint8_t encode;
+	int ret;
+
+	assert(cie->cie_augment != NULL && *cie->cie_augment == 'z');
+
+	/*
+	 * Here we're only interested in the presence of augment 'R'
+	 * and associated CIE augment data, which describes the
+	 * encoding scheme of FDE PC begin and range.
+	 */
+	aug_p = &cie->cie_augment[1];
+	augdata_p = cie->cie_augdata;
+	while (*aug_p != '\0') {
+		switch (*aug_p) {
+		case 'L':
+			/* Skip one augment in augment data. */
+			augdata_p++;
+			break;
+		case 'P':
+			/* Skip two augments in augment data. */
+			encode = (uint8_t) *augdata_p++;
+			offset = 0;
+			ret = _dwarf_frame_read_lsb_encoded(dbg, &val,
+			    (uint8_t *) augdata_p, &offset, encode, 0, error);
+			if (ret != DW_DLE_NONE)
+				return (ret);
+			augdata_p += offset;
+			break;
+		case 'R':
+			cie->cie_fde_encode = (uint8_t) *augdata_p++;
+			printf("cie->cie_fde_encode=%#x\n", cie->cie_fde_encode);
+			break;
+		default:
+			DWARF_SET_ERROR(dbg, error,
+			    DW_DLE_FRAME_AUGMENTATION_UNKNOWN);
+			return (DW_DLE_FRAME_AUGMENTATION_UNKNOWN);
+		}
+		aug_p++;
+	}
+
+	return (DW_DLE_NONE);
+}
+
+static int
 _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
     Dwarf_Unsigned *off, Dwarf_Cie *ret_cie, Dwarf_Error *error)
 {
 	Dwarf_Cie cie;
 	uint64_t length;
-	int dwarf_size;
+	int dwarf_size, ret;
 	char *p;
 
 	/* Check if we already added this CIE. */
@@ -116,11 +241,20 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	else
 		cie->cie_ra = _dwarf_read_uleb128(ds->ds_data, off);
 
-	/* Optional augmentation data for .eh_frame section. */
+	/* Optional CIE augmentation data for .eh_frame section. */
 	if (*cie->cie_augment == 'z') {
 		cie->cie_auglen = _dwarf_read_uleb128(ds->ds_data, off);
 		cie->cie_augdata = ds->ds_data + *off;
 		*off += cie->cie_auglen;
+		/*
+		 * XXX Use DW_EH_PE_absptr for default FDE PC start/range,
+		 * in case _dwarf_frame_parse_lsb_cie_augment fails to
+		 * find out the real encode.
+		 */
+		cie->cie_fde_encode = DW_EH_PE_absptr;
+		ret = _dwarf_frame_parse_lsb_cie_augment(dbg, cie, error);
+		if (ret != DW_DLE_NONE)
+			return (ret);
 	}
 
 	/* CIE Initial instructions. */
@@ -156,7 +290,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	Dwarf_Cie cie;
 	Dwarf_Fde fde;
 	Dwarf_Unsigned cieoff;
-	uint64_t length;
+	uint64_t length, val;
 	int dwarf_size, ret;
 
 	if ((fde = calloc(1, sizeof(struct _Dwarf_Fde))) == NULL) {
@@ -206,8 +340,24 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	}
 	fde->fde_cie = cie;
 	if (eh_frame) {
-		fde->fde_initloc = dbg->read(ds->ds_data, off, 4);
-		fde->fde_adrange = dbg->read(ds->ds_data, off, 4);
+		/*
+		 * The FDE PC start/range for .eh_frame is encoded according
+		 * to the LSB spec's extension to DWARF2.
+		 */
+		ret = _dwarf_frame_read_lsb_encoded(dbg, &val, ds->ds_data,
+		    off, cie->cie_fde_encode, ds->ds_addr + *off, error);
+		if (ret != DW_DLE_NONE)
+			return (ret);
+		fde->fde_initloc = val;
+		/*
+		 * FDE PC range should not be relative value to anything.
+		 * So pass 0 for pc value.
+		 */
+		ret = _dwarf_frame_read_lsb_encoded(dbg, &val, ds->ds_data,
+		    off, cie->cie_fde_encode, 0, error);
+		if (ret != DW_DLE_NONE)
+			return (ret);
+		fde->fde_adrange = val;
 	} else {
 		fde->fde_initloc = dbg->read(ds->ds_data, off,
 		    dbg->dbg_pointer_size);
@@ -215,7 +365,7 @@ _dwarf_frame_add_fde(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 		    dbg->dbg_pointer_size);
 	}
 
-	/* Optional augmentation data for .eh_frame section. */
+	/* Optional FDE augmentation data for .eh_frame section. (ignored) */
 	if (eh_frame && *cie->cie_augment == 'z') {
 		fde->fde_auglen = _dwarf_read_uleb128(ds->ds_data, off);
 		fde->fde_augdata = ds->ds_data + *off;
