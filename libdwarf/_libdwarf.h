@@ -269,6 +269,7 @@ struct _Dwarf_Cie {
 	Dwarf_Unsigned	cie_ra;		/* Return address register. */
 	Dwarf_Unsigned	cie_auglen;	/* Augmentation length. */
 	uint8_t		*cie_augdata;	/* Augmentation data; */
+	uint8_t		cie_fde_encode; /* FDE PC start/range encode. */
 	Dwarf_Ptr	cie_initinst;	/* Initial instructions. */
 	Dwarf_Unsigned	cie_instlen;	/* Length of init instructions. */
 	STAILQ_ENTRY(_Dwarf_Cie) cie_next;  /* Next CIE in list. */
@@ -341,6 +342,7 @@ struct _Dwarf_CU {
 typedef struct _Dwarf_Section {
 	const char	*ds_name;	/* Section name. */
 	Dwarf_Small	*ds_data;	/* Section data. */
+	Dwarf_Unsigned	ds_addr;	/* Section virtual addr. */
 	Dwarf_Unsigned	ds_size;	/* Section size. */
 } Dwarf_Section;
 

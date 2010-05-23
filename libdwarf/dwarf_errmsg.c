@@ -48,6 +48,7 @@ const char *_libdwarf_errors[] = {
 	DEFINE_ERROR(DIR_INDEX_BAD, "Invalid dir index."),
 	DEFINE_ERROR(DEBUG_FRAME_LENGTH_BAD, "Frame section too short"),
 	DEFINE_ERROR(NO_CIE_FOR_FDE, "FDE without corresponding CIE"),
+	DEFINE_ERROR(FRAME_AUGMENTATION_UNKNOWN, "Unknown CIE augmentation"),
 	DEFINE_ERROR(FRAME_INSTR_EXEC_ERROR, "Frame instruction exec error"),
 	DEFINE_ERROR(FRAME_VERSION_BAD, "Unsupported frame section version"),
 	DEFINE_ERROR(FRAME_TABLE_COL_BAD, "Invalid table column value"),

@@ -97,6 +97,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 			return (ret);
 		}
 
+		dbg->dbg_section[i].ds_addr = sec.addr;
 		dbg->dbg_section[i].ds_size = sec.size;
 		dbg->dbg_section[i].ds_name = sec.name;
 
