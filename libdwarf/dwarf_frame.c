@@ -141,7 +141,7 @@ dwarf_get_fde_at_pc(Dwarf_Fde *fdelist, Dwarf_Addr pc, Dwarf_Fde *ret_fde,
 		    fde->fde_adrange) {
 			*ret_fde = fde;
 			*lopc = fde->fde_initloc;
-			*hipc = fde->fde_initloc + fde->fde_adrange;
+			*hipc = fde->fde_initloc + fde->fde_adrange - 1;
 			return (DW_DLV_OK);
 		}
 	}
