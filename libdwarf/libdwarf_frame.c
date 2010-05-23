@@ -58,8 +58,6 @@ _dwarf_frame_read_lsb_encoded(Dwarf_Debug dbg, uint64_t *val, uint8_t *data,
 	application = encode & 0xf0;
 	encode &= 0x0f;
 
-	printf("encode=%#x\n", encode);
-
 	switch (encode) {
 	case DW_EH_PE_absptr:
 		*val = dbg->read(data, offsetp, dbg->dbg_pointer_size);
@@ -109,7 +107,6 @@ _dwarf_frame_read_lsb_encoded(Dwarf_Debug dbg, uint64_t *val, uint8_t *data,
 		case DW_EH_PE_sdata4:
 		case DW_EH_PE_sdata8:
 			*val = pc + (int64_t) *val;
-			printf("val=%#jx\n", *val);
 			break;
 		default:
 			/* DW_EH_PE_absptr is absolute value. */
@@ -158,7 +155,6 @@ _dwarf_frame_parse_lsb_cie_augment(Dwarf_Debug dbg, Dwarf_Cie cie,
 			break;
 		case 'R':
 			cie->cie_fde_encode = (uint8_t) *augdata_p++;
-			printf("cie->cie_fde_encode=%#x\n", cie->cie_fde_encode);
 			break;
 		default:
 			DWARF_SET_ERROR(dbg, error,
