@@ -96,6 +96,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_address_size.3			\
 	dwarf_get_elf.3					\
 	dwarf_hasattr.3					\
+	dwarf_hasform.3					\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
 	dwarf_next_cu_header.3				\
@@ -112,6 +113,8 @@ MLINKS+= \
 	dwarf_dieoffset.3	dwarf_die_CU_offset.3	\
 	dwarf_dieoffset.3	dwarf_die_CU_offset_range.3 \
 	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
+	dwarf_hasform.3	dwarf_whatform.3		\
+	dwarf_hasform.3	dwarf_whatform_direct.3		\
 	dwarf_highpc.3	dwarf_arrayorder.3		\
 	dwarf_highpc.3	dwarf_bitoffset.3		\
 	dwarf_highpc.3	dwarf_bitsize.3			\
