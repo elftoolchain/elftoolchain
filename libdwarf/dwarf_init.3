@@ -41,7 +41,7 @@
 .Fa "Dwarf_Handler errhand"
 .Fa "Dwarf_Ptr errarg"
 .Fa "Dwarf_Debug *ret"
-.Fa "Dwarf_Error *error"
+.Fa "Dwarf_Error *err"
 .Fc
 .Ft in
 .Fo dwarf_elf_init
@@ -50,7 +50,7 @@
 .Fa "Dwarf_Handler errhand"
 .Fa "Dwarf_Ptr errarg"
 .Fa "Dwarf_Debug *ret"
-.Fa "Dwarf_Error *error"
+.Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
 These functions allocate and return a
@@ -128,7 +128,7 @@ points to the memory location that will hold a
 reference on a successful call these functions.
 .Pp
 Argument
-.Ar error
+.Ar err
 references a memory location that would hold a
 .Vt Dwarf_Error
 descriptor in case of an error.
@@ -162,11 +162,12 @@ To initialize a
 instance from a open file descriptor referencing an ELF object, and
 with the default error handler, use:
 .Bd -literal
-	Dwarf_Error de;
+	Dwarf_Error err;
 	Dwarf_Debug dbg;
 
-	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de) != DW_DLV_OK)
-		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
+	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &err) !=
+	    DW_DLV_OK)
+		errx(1, "dwarf_init: %s", dwarf_errmsg(err));
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
