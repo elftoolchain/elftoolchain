@@ -103,7 +103,8 @@ MAN=	dwarf_attr.3					\
 	dwarf_seterrarg.3				\
 	dwarf_srcfiles.3				\
 	dwarf_srclines.3				\
-	dwarf_tag.3
+	dwarf_tag.3					\
+	dwarf_whatattr.3
 
 MLINKS+= \
 	dwarf_child.3	dwarf_offdie.3			\
