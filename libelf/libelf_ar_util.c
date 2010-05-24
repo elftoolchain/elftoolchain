@@ -29,6 +29,7 @@
 #include <ar.h>
 #include <assert.h>
 #include <libelf.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "_libelf.h"
