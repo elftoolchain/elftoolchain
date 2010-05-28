@@ -26,15 +26,17 @@
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
+#include <dwarf.h>
 #include <err.h>
 #include <fcntl.h>
+#include <gelf.h>
 #include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <dwarf.h>
 #include <libdwarf.h>
 #include <libelftc.h>
 #include <libgen.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "_elftc.h"
 
@@ -45,15 +47,15 @@ static struct option longopts[] = {
 	{"demangle", no_argument, NULL, 'C'},
 	{"exe", required_argument, NULL, 'e'},
 	{"functions", no_argument, NULL, 'f'},
+	{"section", required_argument, NULL, 'j'},
 	{"basename", no_argument, NULL, 's'},
 	{"help", no_argument, NULL, 'H'},
 	{"version", no_argument, NULL, 'V'},
 	{NULL, 0, NULL, 0}
 };
-
 static int demangle, func, base;
-
 static char unknown[] = { '?', '?', '\0' };
+static Dwarf_Addr section_base;
 
 static void
 usage(void)
@@ -163,6 +165,7 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 	int i, ret;
 
 	addr = strtoull(addrstr, NULL, 16);
+	addr += section_base;
 	lineno = 0;
 	file = unknown;
 
@@ -259,18 +262,78 @@ out:
 	}
 }
 
+static void
+find_section_base(const char *exe, Elf *e, const char *section)
+{
+	Dwarf_Addr off;
+	Elf_Scn *scn;
+	GElf_Ehdr eh;
+	GElf_Shdr sh;
+	size_t shstrndx;
+	int elferr;
+	const char *name;
+
+	if (gelf_getehdr(e, &eh) != &eh) {
+		warnx("gelf_getehdr failed: %s", elf_errmsg(-1));
+		return;
+	}
+
+	if (!elf_getshstrndx(e, &shstrndx)) {
+		warnx("elf_getshstrndx failed: %s", elf_errmsg(-1));
+		return;
+	}
+
+	(void) elf_errno();
+	off = 0;
+	scn = NULL;
+	while ((scn = elf_nextscn(e, scn)) != NULL) {
+		if (gelf_getshdr(scn, &sh) == NULL) {
+			warnx("gelf_getshdr failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if ((name = elf_strptr(e, shstrndx, sh.sh_name)) == NULL)
+			goto next;
+		if (!strcmp(section, name)) {
+			if (eh.e_type == ET_EXEC || eh.e_type == ET_DYN) {
+				/*
+				 * For executables, section base is the virtual
+				 * address of the specified section.
+				 */
+				section_base = sh.sh_addr;
+			} else if (eh.e_type == ET_REL) {
+				/*
+				 * For relocatables, section base is the
+				 * relative offset of the specified section
+				 * to the start of the first section.
+				 */
+				section_base = off;
+			} else
+				warnx("unknown e_type %u", eh.e_type);
+			return;
+		}
+	next:
+		off += sh.sh_size;
+	}
+	elferr = elf_errno();
+	if (elferr != 0)
+		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
+
+	errx(1, "%s: cannot find section %s", exe, section);
+}
+
 int
 main(int argc, char **argv)
 {
 	Elf *e;
 	Dwarf_Debug dbg;
 	Dwarf_Error de;
-	const char *exe;
+	const char *exe, *section;
 	char line[1024];
 	int fd, i, opt;
 
 	exe = NULL;
-	while ((opt = getopt_long(argc, argv, "b:Ce:fsHV", longopts, NULL)) !=
+	section = NULL;
+	while ((opt = getopt_long(argc, argv, "b:Ce:fj:sHV", longopts, NULL)) !=
 	    -1) {
 		switch (opt) {
 		case 'b':
@@ -284,6 +347,9 @@ main(int argc, char **argv)
 			break;
 		case 'f':
 			func = 1;
+			break;
+		case 'j':
+			section = optarg;
 			break;
 		case 's':
 			base = 1;
@@ -309,15 +375,20 @@ main(int argc, char **argv)
 	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de))
 		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
 
+	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
+		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(de));
+
+	if (section)
+		find_section_base(exe, e, section);
+	else
+		section_base = 0;
+
 	if (argc > 0)
 		for (i = 0; i < argc; i++)
 			translate(dbg, argv[i]);
 	else
 		while (fgets(line, sizeof(line), stdin) != NULL)
 			translate(dbg, line);
-
-	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
-		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(de));
 
 	dwarf_finish(dbg, &de);
 
