@@ -394,6 +394,7 @@ struct _Dwarf_Debug {
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
 	int		dbg_offset_size;  /* DWARF offset size. */
+	Dwarf_Half	dbg_machine;	/* ELF machine architecture. */
 	Dwarf_Handler	dbg_errhand;	/* Error handler. */
 	Dwarf_Ptr	dbg_errarg;	/* Argument to the error handler. */
 	STAILQ_HEAD(, _Dwarf_CU) dbg_cu;/* List of compilation units. */
@@ -536,6 +537,7 @@ int		_dwarf_frame_regtable_copy(Dwarf_Debug, Dwarf_Regtable3 **,
 		    Dwarf_Regtable3 *, Dwarf_Error *);
 int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
+int		_dwarf_get_reloc_size(Dwarf_Debug, Dwarf_Unsigned);
 void		_dwarf_info_cleanup(Dwarf_Debug);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);

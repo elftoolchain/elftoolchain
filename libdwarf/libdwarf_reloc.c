@@ -26,6 +26,10 @@
 
 #include "_libdwarf.h"
 
+#ifndef	R_MIPS_64
+#define	R_MIPS_64	18
+#endif
+
 Dwarf_Unsigned
 _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 {
@@ -40,20 +44,65 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 	case DW_DLC_ISA_SPARC:
 		return (is64 ? R_SPARC_UA64 : R_SPARC_UA32);
 	case DW_DLC_ISA_PPC:
-		/* TODO */
-		return (0);
+		return R_PPC_ADDR32;
 	case DW_DLC_ISA_ARM:
 		/* TODO */
 		return (0);
 	case DW_DLC_ISA_MIPS:
-		/* XXX Should be return (is64 ? R_MIPS_64 : R_MIPS_32); */
-		return (R_MIPS_32);
+		return (is64 ? R_MIPS_64 : R_MIPS_32);
 	case DW_DLC_ISA_IA64:
 		return (is64 ? R_IA_64_DIR64LSB : R_IA_64_DIR32LSB);
 	default:
 		break;
 	}
 	return (0);		/* NOT REACHED */
+}
+
+int
+_dwarf_get_reloc_size(Dwarf_Debug dbg, Dwarf_Unsigned rel_type)
+{
+
+	switch (dbg->dbg_machine) {
+	case EM_NONE:
+		break;
+	case EM_386:
+		if (rel_type == R_386_32)
+			return (4);
+		break;
+	case EM_X86_64:
+		if (rel_type == R_X86_64_32)
+			return (4);
+		else if (rel_type == R_X86_64_64)
+			return (8);
+		break;
+	case EM_SPARC:
+		if (rel_type == R_SPARC_UA32)
+			return (4);
+		else if (rel_type == R_SPARC_UA64)
+			return (8);
+		break;
+	case EM_PPC:
+		if (rel_type == R_PPC_ADDR32)
+			return (4);
+		break;
+	case EM_MIPS:
+		if (rel_type == R_MIPS_32)
+			return (4);
+		else if (rel_type == R_MIPS_64)
+			return (8);
+		break;
+	case EM_IA_64:
+		if (rel_type == R_IA_64_SECREL32LSB)
+			return (4);
+		else if (rel_type == R_IA_64_DIR64LSB)
+			return (8);
+		break;
+	default:
+		break;
+	}
+
+	/* unknown relocation. */
+	return (0);
 }
 
 int

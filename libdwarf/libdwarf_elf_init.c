@@ -47,30 +47,33 @@ static const char *debug_name[] = {
 };
 
 static void
-_dwarf_elf_apply_reloc(Elf_Data *d, Elf_Data *rel_data, Elf_Data *symtab_data,
-    int pointer_size, int endian)
+_dwarf_elf_apply_reloc(Dwarf_Debug dbg, Elf_Data *d, Elf_Data *rel_data,
+    Elf_Data *symtab_data, int endian)
 {
+	Dwarf_Unsigned type;
 	GElf_Rela rela;
 	GElf_Sym sym;
 	size_t symndx;
 	uint64_t offset;
-	int j;
+	int size, j;
 
 	j = 0;
 	while (gelf_getrela(rel_data, j++, &rela) != NULL) {
 		symndx = GELF_R_SYM(rela.r_info);
+		type = GELF_R_TYPE(rela.r_info);
 
 		if (gelf_getsym(symtab_data, symndx, &sym) == NULL)
 			continue;
 
 		offset = rela.r_offset;
+		size = _dwarf_get_reloc_size(dbg, type);
 
 		if (endian == ELFDATA2MSB)
 			_dwarf_write_msb(d->d_buf, &offset, rela.r_addend,
-			    pointer_size);
+			    size);
 		else
 			_dwarf_write_lsb(d->d_buf, &offset, rela.r_addend,
-			    pointer_size);
+			    size);
 	}
 }
 
@@ -82,15 +85,10 @@ _dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Elf_Data *d, size_t shndx,
 	GElf_Shdr sh;
 	Elf_Scn *scn;
 	Elf_Data *rel;
-	int elferr, pointer_size;
+	int elferr;
 
 	if (symtab == 0 || symtab_data == NULL)
 		return (DW_DLE_NONE);
-
-	if (gelf_getclass(elf) == ELFCLASS32)
-		pointer_size = 4;
-	else
-		pointer_size = 8;
 
 	if (gelf_getehdr(elf, &eh) == NULL) {
 		DWARF_SET_ELF_ERROR(dbg, error);
@@ -119,8 +117,8 @@ _dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Elf_Data *d, size_t shndx,
 					return (DW_DLE_NONE);
 			}
 
-			_dwarf_elf_apply_reloc(d, rel, symtab_data,
-			    pointer_size, eh.e_ident[EI_DATA]);
+			_dwarf_elf_apply_reloc(dbg, d, rel, symtab_data,
+			    eh.e_ident[EI_DATA]);
 
 			return (DW_DLE_NONE);
 		}
@@ -177,6 +175,8 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 		ret = DW_DLE_ELF;
 		goto fail_cleanup;
 	}
+
+	dbg->dbg_machine = e->eo_ehdr.e_machine;
 
 	if (!elf_getshstrndx(elf, &e->eo_strndx)) {
 		DWARF_SET_ELF_ERROR(dbg, error);
