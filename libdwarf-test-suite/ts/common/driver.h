@@ -65,19 +65,19 @@ struct dwarf_tp {
 
 #ifndef	TCGEN
 
-#define	_TS_CHECK_VAR(X) do {						\
+#define	_TS_CHECK_VAR(X,S) do {						\
 	struct _drv_vc *_next_vc;					\
 	int skip = 0;							\
-	if (strcmp(_cur_vc->var, #X)) {					\
+	if (strcmp(_cur_vc->var, S)) {					\
 		tet_printf("VC var(%s) does not match %s, possibly"	\
 		    " caused by the skip of previous VCs, try finding"	\
 		    " the next var with maching name", _cur_vc->var,	\
-		    #X);						\
+		    S);							\
 		_next_vc = _cur_vc;					\
 		do {							\
 			_next_vc = STAILQ_NEXT(_next_vc, next);		\
 			skip++;						\
-			if (!strcmp(_next_vc->var, #X))			\
+			if (!strcmp(_next_vc->var, S))			\
 				break;					\
 		} while (_next_vc != NULL);				\
 		if (_next_vc != NULL) {					\
@@ -89,7 +89,7 @@ struct dwarf_tp {
 
 #define	TS_CHECK_INT(X)	do {						\
 	assert(_cur_vc != NULL);					\
-	_TS_CHECK_VAR(X);						\
+	_TS_CHECK_VAR(X,#X);						\
 	if (X != _cur_vc->v.i64) {					\
 		tet_printf("assertion %s(%jd) == %jd failed",		\
 		    _cur_vc->var, (intmax_t) (X),			\
@@ -101,7 +101,7 @@ struct dwarf_tp {
 
 #define	TS_CHECK_UINT(X) do {						\
 	assert(_cur_vc != NULL);					\
-	_TS_CHECK_VAR(X);						\
+	_TS_CHECK_VAR(X,#X);						\
 	if (X != _cur_vc->v.u64) {					\
 		tet_printf("assertion %s(%ju) == %ju failed",		\
 		    _cur_vc->var, (uintmax_t) (X),			\
@@ -113,7 +113,7 @@ struct dwarf_tp {
 
 #define	TS_CHECK_STRING(X) do {						\
 	assert(_cur_vc != NULL);					\
-	_TS_CHECK_VAR(X);						\
+	_TS_CHECK_VAR(X,#X);						\
 	if (strcmp(X, _cur_vc->v.str)) {				\
 		tet_printf("assertion %s('%s') == '%s' failed",		\
 		    _cur_vc->var, (X), _cur_vc->v.str);			\
@@ -124,7 +124,7 @@ struct dwarf_tp {
 
 #define	TS_CHECK_BLOCK(B,S) do {					\
 	assert(_cur_vc != NULL);					\
-	_TS_CHECK_VAR(B);						\
+	_TS_CHECK_VAR(B,#B);						\
 	if ((S) != _cur_vc->v.b.len ||					\
 	    memcmp((B), _cur_vc->v.b.data, _cur_vc->v.b.len)) {		\
 		tet_printf("assertion block %s failed\n", _cur_vc->var);\
