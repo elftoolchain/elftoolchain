@@ -14,5 +14,8 @@ SUBDIR+=	dwarf_attr
 SUBDIR+=	dwarf_attrlist
 SUBDIR+=	dwarf_form
 SUBDIR+=	dwarf_loclist
+SUBDIR+=	dwarf_lineno
+SUBDIR+=	dwarf_frame
+SUBDIR+=	dwarf_arange
 
 .include <bsd.subdir.mk>
