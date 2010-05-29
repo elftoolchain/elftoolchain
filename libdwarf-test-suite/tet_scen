@@ -12,6 +12,9 @@ all
 	^dwarf_attrlist
 	^dwarf_form
 	^dwarf_loclist
+	^dwarf_lineno
+	^dwarf_frame
+	^dwarf_arange
 	"Complete Test Suite"
 
 dwarf_init
@@ -73,3 +76,18 @@ dwarf_loclist
 	"Starting dwarf_loclist Test Case"
 	/ts/dwarf_loclist/tc_dwarf_loclist
 	"Complete dwarf_loclist Test Case"
+
+dwarf_lineno
+	"Starting dwarf_lineno Test Case"
+	/ts/dwarf_lineno/tc_dwarf_lineno
+	"Complete dwarf_lineno Test Case"
+
+dwarf_frame
+	"Starting dwarf_frame Test Case"
+	/ts/dwarf_frame/tc_dwarf_frame
+	"Complete dwarf_frame Test Case"
+
+dwarf_arange
+	"Starting dwarf_arange Test Case"
+	/ts/dwarf_arange/tc_dwarf_arange
+	"Complete dwarf_arange Test Case"
