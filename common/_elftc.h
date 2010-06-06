@@ -362,10 +362,17 @@
 #define	SHN_XINDEX		0xFFFFU
 #endif
 
+#ifndef	SHT_GNU_ATTRIBUTES
+#define	SHT_GNU_ATTRIBUTES	0x6FFFFFF5U
+#endif
+
 #ifndef	SHT_GNU_HASH
 #define	SHT_GNU_HASH		0x6FFFFFF6U
 #endif
 
+#ifndef	SHT_GNU_LIBLIST
+#define	SHT_GNU_LIBLIST		0x6FFFFFF7U
+#endif
 
 /*
  * VCS Ids.
@@ -452,6 +459,9 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
 #define	ELFTC_HAVE_STRMODE	1
+
+/* Whether we need to define ElfXX_Lib. */
+#define	ELFTC_NEED_ELF_LIB_DEFINITION		1
 #endif	/* __FreeBSD__ */
 
 
@@ -464,6 +474,9 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
 #define	ELFTC_HAVE_STRMODE	1
+
+/* Whether we need to define ElfXX_Lib. */
+#define	ELFTC_NEED_ELF_LIB_DEFINITION		1
 #endif	/* __NetBSD __ */
 
 #endif	/* _ELFTC_H */
