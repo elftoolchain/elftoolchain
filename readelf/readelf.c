@@ -1474,7 +1474,7 @@ aeabi_t2ee(uint64_t t2ee)
 	case 1: return "Allowed";
 	default:
 		snprintf(s_t2ee, sizeof(s_t2ee), "Unknown(%ju)",
-		    (uintmax_t) s_t2ee);
+		    (uintmax_t) t2ee);
 		return (s_t2ee);
 	}
 
