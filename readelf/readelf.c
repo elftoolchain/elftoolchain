@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,24 @@
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
+
+#if defined(ELFTC_NEED_ELF_LIB_DEFINITION)
+typedef struct {
+	Elf32_Word l_name;
+	Elf32_Word l_time_stamp;
+	Elf32_Word l_checksum;
+	Elf32_Word l_version;
+	Elf32_Word l_flags;
+} Elf32_Lib;
+
+typedef struct {
+	Elf64_Word l_name;
+	Elf64_Word l_time_stamp;
+	Elf64_Word l_checksum;
+	Elf64_Word l_version;
+	Elf64_Word l_flags;
+} Elf64_Lib;
+#endif
 
 /*
  * readelf(1) options.
@@ -1011,6 +1029,650 @@ r_type(unsigned int mach, unsigned int type)
 		default: return "";
 		}
 	default: return "";
+	}
+}
+
+static const char *
+top_tag(unsigned int tag)
+{
+	static char s_top_tag[32];
+
+	switch (tag) {
+	case 1: return "File Attributes";
+	case 2: return "Section Attributes";
+	case 3: return "Symbol Attributes";
+	default:
+		snprintf(s_top_tag, sizeof(s_top_tag), "Unknown tag: %u", tag);
+		return (s_top_tag);
+	}
+}
+
+static const char *
+aeabi_cpu_arch(uint64_t arch)
+{
+	static char s_cpu_arch[32];
+
+	switch (arch) {
+	case 0: return "Pre-V4";
+	case 1: return "ARM v4";
+	case 2: return "ARM v4T";
+	case 3: return "ARM v5T";
+	case 4: return "ARM v5TE";
+	case 5: return "ARM v5TEJ";
+	case 6: return "ARM v6";
+	case 7: return "ARM v6KZ";
+	case 8: return "ARM v6T2";
+	case 9: return "ARM v6K";
+	case 10: return "ARM v7";
+	case 11: return "ARM v6-M";
+	case 12: return "ARM v6S-M";
+	case 13: return "ARM v7E-M";
+	default:
+		snprintf(s_cpu_arch, sizeof(s_cpu_arch), 
+		    "Unknown (%ju)", (uintmax_t) arch);
+		return (s_cpu_arch);
+	}
+}
+
+static const char *
+aeabi_cpu_arch_profile(uint64_t pf)
+{
+	static char s_arch_profile[32];
+
+	switch (pf) {
+	case 0:
+		return "Not applicable";
+	case 0x41:		/* 'A' */
+		return "Application Profile";
+	case 0x52:		/* 'R' */
+		return "Real-Time Profile";
+	case 0x4D:		/* 'M' */
+		return "Microcontroller Profile";
+	case 0x53:		/* 'S' */
+		return "Application or Real-Time Profile";
+	default:
+		snprintf(s_arch_profile, sizeof(s_arch_profile),
+		    "Unknown (%ju)\n", (uintmax_t) pf);
+		return (s_arch_profile);
+	}
+}
+
+static const char *
+aeabi_arm_isa(uint64_t ai)
+{
+	static char s_ai[32];
+
+	switch (ai) {
+	case 0: return "No";
+	case 1: return "Yes";
+	default:
+		snprintf(s_ai, sizeof(s_ai), "Unknown (%ju)\n",
+		    (uintmax_t) ai);
+		return (s_ai);
+	}
+}
+
+static const char *
+aeabi_thumb_isa(uint64_t ti)
+{
+	static char s_ti[32];
+
+	switch (ti) {
+	case 0: return "No";
+	case 1: return "16-bit Thumb";
+	case 2: return "32-bit Thumb";
+	default:
+		snprintf(s_ti, sizeof(s_ti), "Unknown (%ju)\n",
+		    (uintmax_t) ti);
+		return (s_ti);
+	}
+}
+
+static const char *
+aeabi_fp_arch(uint64_t fp)
+{
+	static char s_fp_arch[32];
+
+	switch (fp) {
+	case 0: return "No";
+	case 1: return "VFPv1";
+	case 2: return "VFPv2";
+	case 3: return "VFPv3";
+	case 4: return "VFPv3-D16";
+	case 5: return "VFPv4";
+	case 6: return "VFPv4-D16";
+	default:
+		snprintf(s_fp_arch, sizeof(s_fp_arch), "Unknown (%ju)",
+		    (uintmax_t) fp);
+		return (s_fp_arch);
+	}
+}
+
+static const char *
+aeabi_wmmx_arch(uint64_t wmmx)
+{
+	static char s_wmmx[32];
+
+	switch (wmmx) {
+	case 0: return "No";
+	case 1: return "WMMXv1";
+	case 2: return "WMMXv2";
+	default:
+		snprintf(s_wmmx, sizeof(s_wmmx), "Unknown (%ju)",
+		    (uintmax_t) wmmx);
+		return (s_wmmx);
+	}
+}
+
+static const char *
+aeabi_adv_simd_arch(uint64_t simd)
+{
+	static char s_simd[32];
+
+	switch (simd) {
+	case 0: return "No";
+	case 1: return "NEONv1";
+	case 2: return "NEONv2";
+	default:
+		snprintf(s_simd, sizeof(s_simd), "Unknown (%ju)",
+		    (uintmax_t) simd);
+		return (s_simd);
+	}
+}
+
+static const char *
+aeabi_pcs_config(uint64_t pcs)
+{
+	static char s_pcs[32];
+
+	switch (pcs) {
+	case 0: return "None";
+	case 1: return "Bare platform";
+	case 2: return "Linux";
+	case 3: return "Linux DSO";
+	case 4: return "Palm OS 2004";
+	case 5: return "Palm OS (future)";
+	case 6: return "Symbian OS 2004";
+	case 7: return "Symbian OS (future)";
+	default:
+		snprintf(s_pcs, sizeof(s_pcs), "Unknown (%ju)",
+		    (uintmax_t) pcs);
+		return (s_pcs);
+	}
+}
+
+static const char *
+aeabi_pcs_r9(uint64_t r9)
+{
+	static char s_r9[32];
+
+	switch (r9) {
+	case 0: return "V6";
+	case 1: return "SB";
+	case 2: return "TLS pointer";
+	case 3: return "Unused";
+	default:
+		snprintf(s_r9, sizeof(s_r9), "Unknown (%ju)", (uintmax_t) r9);
+		return (s_r9);
+	}
+}
+
+static const char *
+aeabi_pcs_rw(uint64_t rw)
+{
+	static char s_rw[32];
+
+	switch (rw) {
+	case 0: return "Absolute";
+	case 1: return "PC-relative";
+	case 2: return "SB-relative";
+	case 3: return "None";
+	default:
+		snprintf(s_rw, sizeof(s_rw), "Unknown (%ju)", (uintmax_t) rw);
+		return (s_rw);
+	}
+}
+
+static const char *
+aeabi_pcs_ro(uint64_t ro)
+{
+	static char s_ro[32];
+
+	switch (ro) {
+	case 0: return "Absolute";
+	case 1: return "PC-relative";
+	case 2: return "None";
+	default:
+		snprintf(s_ro, sizeof(s_ro), "Unknown (%ju)", (uintmax_t) ro);
+		return (s_ro);
+	}
+}
+
+static const char *
+aeabi_pcs_got(uint64_t got)
+{
+	static char s_got[32];
+
+	switch (got) {
+	case 0: return "None";
+	case 1: return "direct";
+	case 2: return "indirect via GOT";
+	default:
+		snprintf(s_got, sizeof(s_got), "Unknown (%ju)",
+		    (uintmax_t) got);
+		return (s_got);
+	}
+}
+
+static const char *
+aeabi_pcs_wchar_t(uint64_t wt)
+{
+	static char s_wt[32];
+
+	switch (wt) {
+	case 0: return "None";
+	case 2: return "wchar_t size 2";
+	case 4: return "wchar_t size 4";
+	default:
+		snprintf(s_wt, sizeof(s_wt), "Unknown (%ju)", (uintmax_t) wt);
+		return (s_wt);
+	}
+}
+
+static const char *
+aeabi_enum_size(uint64_t es)
+{
+	static char s_es[32];
+
+	switch (es) {
+	case 0: return "None";
+	case 1: return "smallest";
+	case 2: return "32-bit";
+	case 3: return "visible 32-bit";
+	default:
+		snprintf(s_es, sizeof(s_es), "Unknown (%ju)", (uintmax_t) es);
+		return (s_es);
+	}
+}
+
+static const char *
+aeabi_align_needed(uint64_t an)
+{
+	static char s_align_n[64];
+
+	switch (an) {
+	case 0: return "No";
+	case 1: return "8-byte align";
+	case 2: return "4-byte align";
+	case 3: return "Reserved";
+	default:
+		if (an >= 4 && an <= 12)
+			snprintf(s_align_n, sizeof(s_align_n), "8-byte align"
+			    " and up to 2^%ju-byte extended align",
+			    (uintmax_t) an);
+		else
+			snprintf(s_align_n, sizeof(s_align_n), "Unknown (%ju)",
+			    (uintmax_t) an);
+		return (s_align_n);
+	}
+}
+
+static const char *
+aeabi_align_preserved(uint64_t ap)
+{
+	static char s_align_p[128];
+
+	switch (ap) {
+	case 0: return "No";
+	case 1: return "8-byte align";
+	case 2: return "8-byte align and SP % 8 == 0";
+	case 3: return "Reserved";
+	default:
+		if (ap >= 4 && ap <= 12)
+			snprintf(s_align_p, sizeof(s_align_p), "8-byte align"
+			    " and SP %% 8 == 0 and up to 2^%ju-byte extended"
+			    " align", (uintmax_t) ap);
+		else
+			snprintf(s_align_p, sizeof(s_align_p), "Unknown (%ju)",
+			    (uintmax_t) ap);
+		return (s_align_p);
+	}
+}
+
+static const char *
+aeabi_fp_rounding(uint64_t fr)
+{
+	static char s_fp_r[32];
+
+	switch (fr) {
+	case 0: return "Unused";
+	case 1: return "Needed";
+	default:
+		snprintf(s_fp_r, sizeof(s_fp_r), "Unknown (%ju)",
+		    (uintmax_t) fr);
+		return (s_fp_r);
+	}
+}
+
+static const char *
+aeabi_fp_denormal(uint64_t fd)
+{
+	static char s_fp_d[32];
+
+	switch (fd) {
+	case 0: return "Unused";
+	case 1: return "Needed";
+	case 2: return "Sign Only";
+	default:
+		snprintf(s_fp_d, sizeof(s_fp_d), "Unknown (%ju)",
+		    (uintmax_t) fd);
+		return (s_fp_d);
+	}
+}
+
+static const char *
+aeabi_fp_exceptions(uint64_t fe)
+{
+	static char s_fp_e[32];
+
+	switch (fe) {
+	case 0: return "Unused";
+	case 1: return "Needed";
+	default:
+		snprintf(s_fp_e, sizeof(s_fp_e), "Unknown (%ju)",
+		    (uintmax_t) fe);
+		return (s_fp_e);
+	}
+}
+
+static const char *
+aeabi_fp_user_exceptions(uint64_t fu)
+{
+	static char s_fp_u[32];
+
+	switch (fu) {
+	case 0: return "Unused";
+	case 1: return "Needed";
+	default:
+		snprintf(s_fp_u, sizeof(s_fp_u), "Unknown (%ju)",
+		    (uintmax_t) fu);
+		return (s_fp_u);
+	}
+}
+
+static const char *
+aeabi_fp_number_model(uint64_t fn)
+{
+	static char s_fp_n[32];
+
+	switch (fn) {
+	case 0: return "Unused";
+	case 1: return "IEEE 754 normal";
+	case 2: return "RTABI";
+	case 3: return "IEEE 754";
+	default:
+		snprintf(s_fp_n, sizeof(s_fp_n), "Unknown (%ju)",
+		    (uintmax_t) fn);
+		return (s_fp_n);
+	}
+}
+
+static const char *
+aeabi_fp_16bit_format(uint64_t fp16)
+{
+	static char s_fp_16[64];
+
+	switch (fp16) {
+	case 0: return "None";
+	case 1: return "IEEE 754";
+	case 2: return "VFPv3/Advanced SIMD (alternative format)";
+	default:
+		snprintf(s_fp_16, sizeof(s_fp_16), "Unknown (%ju)",
+		    (uintmax_t) fp16);
+		return (s_fp_16);
+	}
+}
+
+static const char *
+aeabi_mpext(uint64_t mp)
+{
+	static char s_mp[32];
+
+	switch (mp) {
+	case 0: return "Not allowed";
+	case 1: return "Allowed";
+	default:
+		snprintf(s_mp, sizeof(s_mp), "Unknown (%ju)",
+		    (uintmax_t) mp);
+		return (s_mp);
+	}
+}
+
+static const char *
+aeabi_div(uint64_t du)
+{
+	static char s_du[32];
+
+	switch (du) {
+	case 0: return "Yes (V7-R/V7-M)";
+	case 1: return "No";
+	case 2: return "Yes (V7-A)";
+	default:
+		snprintf(s_du, sizeof(s_du), "Unknown (%ju)",
+		    (uintmax_t) du);
+		return (s_du);
+	}
+}
+
+static const char *
+aeabi_t2ee(uint64_t t2ee)
+{
+	static char s_t2ee[32];
+
+	switch (t2ee) {
+	case 0: return "Not allowed";
+	case 1: return "Allowed";
+	default:
+		snprintf(s_t2ee, sizeof(s_t2ee), "Unknown(%ju)",
+		    (uintmax_t) s_t2ee);
+		return (s_t2ee);
+	}
+
+}
+
+static const char *
+aeabi_hardfp(uint64_t hfp)
+{
+	static char s_hfp[32];
+
+	switch (hfp) {
+	case 0: return "Tag_FP_arch";
+	case 1: return "only SP";
+	case 2: return "only DP";
+	case 3: return "both SP and DP";
+	default:
+		snprintf(s_hfp, sizeof(s_hfp), "Unknown (%ju)",
+		    (uintmax_t) hfp);
+		return (s_hfp);
+	}
+}
+
+static const char *
+aeabi_vfp_args(uint64_t va)
+{
+	static char s_va[32];
+
+	switch (va) {
+	case 0: return "AAPCS (base variant)";
+	case 1: return "AAPCS (VFP variant)";
+	case 2: return "toolchain-specific";
+	default:
+		snprintf(s_va, sizeof(s_va), "Unknown (%ju)", (uintmax_t) va);
+		return (s_va);
+	}
+}
+
+static const char *
+aeabi_wmmx_args(uint64_t wa)
+{
+	static char s_wa[32];
+
+	switch (wa) {
+	case 0: return "AAPCS (base variant)";
+	case 1: return "Intel WMMX";
+	case 2: return "toolchain-specific";
+	default:
+		snprintf(s_wa, sizeof(s_wa), "Unknown(%ju)", (uintmax_t) wa);
+		return (s_wa);
+	}
+}
+
+static const char *
+aeabi_unaligned_access(uint64_t ua)
+{
+	static char s_ua[32];
+
+	switch (ua) {
+	case 0: return "Not allowed";
+	case 1: return "Allowed";
+	default:
+		snprintf(s_ua, sizeof(s_ua), "Unknown(%ju)", (uintmax_t) ua);
+		return (s_ua);
+	}
+}
+
+static const char *
+aeabi_fp_hpext(uint64_t fh)
+{
+	static char s_fh[32];
+
+	switch (fh) {
+	case 0: return "Not allowed";
+	case 1: return "Allowed";
+	default:
+		snprintf(s_fh, sizeof(s_fh), "Unknown(%ju)", (uintmax_t) fh);
+		return (s_fh);
+	}
+}
+
+static const char *
+aeabi_optm_goal(uint64_t og)
+{
+	static char s_og[32];
+
+	switch (og) {
+	case 0: return "None";
+	case 1: return "Speed";
+	case 2: return "Speed aggressive";
+	case 3: return "Space";
+	case 4: return "Space aggressive";
+	case 5: return "Debugging";
+	case 6: return "Best Debugging";
+	default:
+		snprintf(s_og, sizeof(s_og), "Unknown(%ju)", (uintmax_t) og);
+		return (s_og);
+	}
+}
+
+static const char *
+aeabi_fp_optm_goal(uint64_t fog)
+{
+	static char s_fog[32];
+
+	switch (fog) {
+	case 0: return "None";
+	case 1: return "Speed";
+	case 2: return "Speed aggressive";
+	case 3: return "Space";
+	case 4: return "Space aggressive";
+	case 5: return "Accurary";
+	case 6: return "Best Accurary";
+	default:
+		snprintf(s_fog, sizeof(s_fog), "Unknown(%ju)",
+		    (uintmax_t) fog);
+		return (s_fog);
+	}
+}
+
+static const char *
+aeabi_virtual(uint64_t vt)
+{
+	static char s_virtual[64];
+
+	switch (vt) {
+	case 0: return "No";
+	case 1: return "TrustZone";
+	case 2: return "Virtualization extension";
+	case 3: return "TrustZone and virtualization extension";
+	default:
+		snprintf(s_virtual, sizeof(s_virtual), "Unknown(%ju)",
+		    (uintmax_t) vt);
+		return (s_virtual);
+	}
+}
+
+static struct {
+	uint64_t tag;
+	const char *s_tag;
+	const char *(*get_desc)(uint64_t val);
+} aeabi_tags[] = {
+	{4, "Tag_CPU_raw_name", NULL},
+	{5, "Tag_CPU_name", NULL},
+	{6, "Tag_CPU_arch", aeabi_cpu_arch},
+	{7, "Tag_CPU_arch_profile", aeabi_cpu_arch_profile},
+	{8, "Tag_ARM_ISA_use", aeabi_arm_isa},
+	{9, "Tag_THUMB_ISA_use", aeabi_thumb_isa},
+	{10, "Tag_FP_arch", aeabi_fp_arch},
+	{11, "Tag_WMMX_arch", aeabi_wmmx_arch},
+	{12, "Tag_Advanced_SIMD_arch", aeabi_adv_simd_arch},
+	{13, "Tag_PCS_config", aeabi_pcs_config},
+	{14, "Tag_ABI_PCS_R9_use", aeabi_pcs_r9},
+	{15, "Tag_ABI_PCS_RW_data", aeabi_pcs_rw},
+	{16, "Tag_ABI_PCS_RO_data", aeabi_pcs_ro},
+	{17, "Tag_ABI_PCS_GOT_use", aeabi_pcs_got},
+	{18, "Tag_ABI_PCS_wchar_t", aeabi_pcs_wchar_t},
+	{19, "Tag_ABI_FP_rounding", aeabi_fp_rounding},
+	{20, "Tag_ABI_FP_denormal", aeabi_fp_denormal},
+	{21, "Tag_ABI_FP_exceptions", aeabi_fp_exceptions},
+	{22, "Tag_ABI_FP_user_exceptions", aeabi_fp_user_exceptions},
+	{23, "Tag_ABI_FP_number_model", aeabi_fp_number_model},
+	{24, "Tag_ABI_align_needed", aeabi_align_needed},
+	{25, "Tag_ABI_align_preserved", aeabi_align_preserved},
+	{26, "Tag_ABI_enum_size", aeabi_enum_size},
+	{27, "Tag_ABI_HardFP_use", aeabi_hardfp},
+	{28, "Tag_ABI_VFP_args", aeabi_vfp_args},
+	{29, "Tag_ABI_WMMX_args", aeabi_wmmx_args},
+	{30, "Tag_ABI_optimization_goals", aeabi_optm_goal},
+	{31, "Tag_ABI_FP_optimization_goals", aeabi_fp_optm_goal},
+	{32, "Tag_compatibility", NULL},
+	{34, "Tag_CPU_unaligned_access", aeabi_unaligned_access},
+	{36, "Tag_FP_HP_extension", aeabi_fp_hpext},
+	{38, "Tag_ABI_FP_16bit_format", aeabi_fp_16bit_format},
+	{42, "Tag_MPextension_use", aeabi_mpext},
+	{44, "Tag_DIV_use", aeabi_div},
+	{64, "Tag_nodefaults", NULL},
+	{65, "Tag_also_compatible_with", NULL},
+	{66, "Tag_T2EE_use", aeabi_t2ee},
+	{67, "Tag_conformance", NULL},
+	{68, "Tag_Virtualization_use", aeabi_virtual},
+	{70, "Tag_MPextension_use", aeabi_mpext},
+};
+
+static const char *
+mips_abi_fp(uint64_t fp)
+{
+	static char s_mips_abi_fp[32];
+
+	switch (fp) {
+	case 0: return "Hard or soft float";
+	case 1: return "Hard float (-mdouble-float)";
+	case 2: return "Hard float (-msingle-float)";
+	case 3: return "Soft float";
+	case 4: return "64-bit float (-mips32r2 -mfp64)";
+	default:
+		snprintf(s_mips_abi_fp, sizeof(s_mips_abi_fp), "Unknown(%ju)",
+		    (uintmax_t) fp);
+		return (s_mips_abi_fp);
 	}
 }
 
@@ -2126,7 +2788,7 @@ search_ver(struct readelf *re)
 	Elf_Data *d;
 	int elferr, i;
 
-	for (i = 0; (size_t)i < re->shnum; i++) {
+	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type == SHT_SUNW_versym)
 			re->vs_s = s;
@@ -2160,6 +2822,274 @@ search_ver(struct readelf *re)
 #undef	Elf_Verneed
 #undef	Elf_Vernaux
 #undef	SAVE_VERSION_NAME
+
+/*
+ * Elf32_Lib and Elf64_Lib are identical.
+ */
+#define	Elf_Lib		Elf32_Lib
+
+static void
+dump_liblist(struct readelf *re)
+{
+	struct section *s;
+	struct tm *t;
+	time_t ti;
+	char tbuf[20];
+	Elf_Data *d;
+	Elf_Lib *lib;
+	int i, j, elferr;
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->type != SHT_GNU_LIBLIST)
+			continue;
+		(void) elf_errno();
+		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s",
+				    elf_errmsg(elferr));
+			continue;
+		}
+		if (d->d_size <= 0)
+			continue;
+		lib = d->d_buf;
+		printf("\nLibrary list section '%s' ", s->name);
+		printf("contains %ju entries:\n", s->sz / s->entsize);
+		printf("%12s%24s%18s%10s%6s\n", "Library", "Time Stamp",
+		    "Checksum", "Version", "Flags");
+		for (j = 0; (uint64_t) j < s->sz / s->entsize; j++) {
+			printf("%3d: ", j);
+			printf("%-20.20s ",
+			    get_string(re, s->link, lib->l_name));
+			ti = lib->l_time_stamp;
+			t = gmtime(&ti);
+			snprintf(tbuf, sizeof(tbuf), "%04d-%02d-%02dT%02d:%02d"
+			    ":%2d", t->tm_year + 1900, t->tm_mon + 1,
+			    t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+			printf("%-19.19s ", tbuf);
+			printf("0x%08x ", lib->l_checksum);
+			printf("%-7d %-7d\n", lib->l_version, lib->l_flags);
+			lib++;
+		}
+	}
+}
+
+#undef Elf_Lib
+
+static uint8_t *
+dump_unknown_tag(uint64_t tag, uint8_t *p)
+{
+	uint64_t val;
+
+	/*
+	 * According to ARM EABI: For tags > 32, even numbered tags have
+	 * a ULEB128 param and odd numbered ones have NUL-terminated
+	 * string param. This rule probably also applies for tags <= 32
+	 * if the object arch is not ARM.
+	 */
+
+	printf("  Tag_unknown_%ju: ", (uintmax_t) tag);
+
+	if (tag & 1) {
+		printf("%s\n", (char *) p);
+		p += strlen((char *) p) + 1;
+	} else {
+		val = _dwarf_decode_uleb128(&p);
+		printf("%ju\n", (uintmax_t) val);
+	}
+
+	return (p);
+}
+
+static uint8_t *
+dump_compatibility_tag(uint8_t *p)
+{
+	uint64_t val;
+
+	val = _dwarf_decode_uleb128(&p);
+	printf("flag = %ju, vendor = %s\n", val, p);
+	p += strlen((char *) p) + 1;
+
+	return (p);
+}
+
+static void
+dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
+{
+	uint64_t tag, val;
+	size_t i;
+	int found, desc;
+
+	(void) re;
+
+	while (p < pe) {
+		tag = _dwarf_decode_uleb128(&p);
+		found = desc = 0;
+		for (i = 0; i < sizeof(aeabi_tags) / sizeof(aeabi_tags[0]);
+		     i++) {
+			if (tag == aeabi_tags[i].tag) {
+				found = 1;
+				printf("  %s: ", aeabi_tags[i].s_tag);
+				if (aeabi_tags[i].get_desc) {
+					desc = 1;
+					val = _dwarf_decode_uleb128(&p);
+					printf("%s\n",
+					    aeabi_tags[i].get_desc(val));
+				}
+				break;
+			}
+			if (tag < aeabi_tags[i].tag)
+				break;
+		}
+		if (!found) {
+			p = dump_unknown_tag(tag, p);
+			continue;
+		}
+		if (desc)
+			continue;
+
+		switch (tag) {
+		case 4:		/* Tag_CPU_raw_name */
+		case 5:		/* Tag_CPU_name */
+		case 67:	/* Tag_conformance */
+			printf("%s\n", (char *) p);
+			p += strlen((char *) p) + 1;
+			break;
+		case 32:	/* Tag_compatibility */
+			p = dump_compatibility_tag(p);
+			break;
+		case 64:	/* Tag_nodefaults */
+			/* ignored, written as 0. */
+			(void) _dwarf_decode_uleb128(&p);
+			printf("True\n");
+			break;
+		case 65:	/* Tag_also_compatible_with */
+			val = _dwarf_decode_uleb128(&p);
+			/* Must be Tag_CPU_arch */
+			if (val != 6) {
+				printf("unknown\n");
+				break;
+			}
+			val = _dwarf_decode_uleb128(&p);
+			printf("%s\n", aeabi_cpu_arch(val));
+			/* Skip NUL terminator. */
+			p++;
+			break;
+		default:
+			putchar('\n');
+			break;
+		}
+	}
+}
+
+#ifndef	Tag_GNU_MIPS_ABI_FP
+#define	Tag_GNU_MIPS_ABI_FP	4
+#endif
+
+static void
+dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
+{
+	uint64_t tag, val;
+
+	(void) re;
+
+	while (p < pe) {
+		tag = _dwarf_decode_uleb128(&p);
+		if (tag == Tag_GNU_MIPS_ABI_FP) {
+			val = _dwarf_decode_uleb128(&p);
+			printf("  Tag_GNU_MIPS_ABI_FP: %s\n", mips_abi_fp(val));
+		}
+	}
+}
+
+static void
+dump_ppc_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
+{
+
+	(void) re;
+	(void) p;
+	(void) pe;
+}
+
+static void
+dump_attributes(struct readelf *re)
+{
+	struct section *s;
+	Elf_Data *d;
+	uint8_t *p, *sp;
+	size_t len, seclen, nlen, sublen;
+	uint64_t val;
+	int tag, i, elferr;
+
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->type != SHT_GNU_ATTRIBUTES &&
+		    (re->ehdr.e_machine != EM_ARM || s->type != SHT_LOPROC + 3))
+			continue;
+		(void) elf_errno();
+		if ((d = elf_rawdata(s->scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_rawdata failed: %s",
+				    elf_errmsg(elferr));
+			continue;
+		}
+		if (d->d_size <= 0)
+			continue;
+		p = d->d_buf;
+		if (*p != 'A') {
+			printf("Unknown Attribute Section Format: %c\n",
+			    (char) *p);
+			continue;
+		}
+		len = d->d_size - 1;
+		p++;
+		while (len > 0) {
+			seclen = re->dw_decode(&p, 4);
+			if (seclen > len) {
+				warnx("invalid attribute section length");
+				break;
+			}
+			len -= seclen;
+			printf("Attribute Section: %s\n", (char *) p);
+			nlen = strlen((char *) p) + 1;
+			p += nlen;
+			seclen -= nlen + 4;
+			while (seclen > 0) {
+				sp = p;
+				tag = *p++;
+				sublen = re->dw_decode(&p, 4);
+				if (sublen > seclen) {
+					warnx("invalid attribute sub-section"
+					    " length");
+					break;
+				}
+				seclen -= sublen;
+				printf("%s", top_tag(tag));
+				if (tag == 2 || tag == 3) {
+					putchar(':');
+					for (;;) {
+						val = _dwarf_decode_uleb128(&p);
+						if (val == 0)
+							break;
+						printf(" %ju", (uintmax_t) val);
+					}
+				}
+				putchar('\n');
+				if (re->ehdr.e_machine == EM_ARM &&
+				    s->type == SHT_LOPROC + 3)
+					dump_arm_attributes(re, p, sp + sublen);
+				else if (re->ehdr.e_machine == EM_MIPS)
+					dump_mips_attributes(re, p,
+					    sp + sublen);
+				else if (re->ehdr.e_machine == EM_PPC)
+					dump_ppc_attributes(re, p, sp + sublen);
+				p = sp + sublen;
+			}
+		}
+	}
+}
 
 static void
 dump_dwarf_line(struct readelf *re)
@@ -3816,12 +4746,13 @@ hex_dump(struct readelf *re)
 	for (i = 1; (size_t)i < re->shnum; i++) {
 		if (find_dumpop(re, (size_t)i, HEX_DUMP) == NULL)
 			continue;
-		s =& re->sl[i];
+		s = &re->sl[i];
 		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
 			if (elferr != 0)
-				warnx("elf_getdata failed: %s", elf_errmsg(-1));
+				warnx("elf_getdata failed: %s",
+				    elf_errmsg(elferr));
 			continue;
 		}
 		if (d->d_size <= 0)
@@ -3938,6 +4869,14 @@ dump_elf(struct readelf *re)
 		warnx("gelf_getclass failed: %s", elf_errmsg(-1));
 		return;
 	}
+	if (re->ehdr.e_ident[EI_DATA] == ELFDATA2MSB) {
+		re->dw_read = _dwarf_read_msb;
+		re->dw_decode = _dwarf_decode_msb;
+	} else {
+		re->dw_read = _dwarf_read_lsb;
+		re->dw_decode = _dwarf_decode_lsb;
+	}
+
 	if (re->options & ~RE_H)
 		load_sections(re);
 	if ((re->options & RE_VV) || (re->options && RE_S))
@@ -3960,6 +4899,10 @@ dump_elf(struct readelf *re)
 		hex_dump(re);
 	if (re->options & RE_VV)
 		dump_ver(re);
+	if (re->options & RE_AA)
+		dump_liblist(re);
+	if (re->options & RE_AA)
+		dump_attributes(re);
 	if (re->options & RE_W)
 		dump_dwarf(re);
 }
@@ -3968,18 +4911,6 @@ static void
 dump_dwarf(struct readelf *re)
 {
 	Dwarf_Error de;
-
-	if (gelf_getehdr(re->elf, &re->ehdr) == NULL) {
-		warnx("gelf_getehdr failed: %s", elf_errmsg(-1));
-		return;
-	}
-	if (re->ehdr.e_ident[EI_DATA] == ELFDATA2MSB) {
-		re->dw_read = _dwarf_read_msb;
-		re->dw_decode = _dwarf_decode_msb;
-	} else {
-		re->dw_read = _dwarf_read_lsb;
-		re->dw_decode = _dwarf_decode_lsb;
-	}
 
 	if (dwarf_elf_init(re->elf, DW_DLC_READ, NULL, NULL, &re->dbg, &de))
 		errx(EX_SOFTWARE, "dwarf_elf_init failed: %s",
