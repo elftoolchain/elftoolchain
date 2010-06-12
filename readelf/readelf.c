@@ -66,7 +66,15 @@ typedef struct {
 	Elf64_Word l_version;
 	Elf64_Word l_flags;
 } Elf64_Lib;
-#endif
+
+#define	LL_NONE			0x00000000
+#define	LL_EXACT_MATCH		0x00000001
+#define	LL_IGNORE_INT_VER	0x00000002
+#define	LL_REQUIRE_MINOR	0x00000004
+#define	LL_EXPORTS		0x00000008
+#define	LL_DELAY_LOAD		0x00000010
+#define	LL_DELTA		0x00000020
+#endif	/* ELFTC_NEED_ELF_LIB_DEFINITION */
 
 /*
  * readelf(1) options.
@@ -1031,6 +1039,19 @@ r_type(unsigned int mach, unsigned int type)
 	default: return "";
 	}
 }
+
+static struct {
+	const char *name;
+	int value;
+} l_flag[] = {
+	{"EXACT_MATCH", LL_EXACT_MATCH},
+	{"IGNORE_INT_VER", LL_IGNORE_INT_VER},
+	{"REQUIRE_MINOR", LL_REQUIRE_MINOR},
+	{"EXPORTS", LL_EXPORTS},
+	{"DELAY_LOAD", LL_DELAY_LOAD},
+	{"DELTA", LL_DELTA},
+	{NULL, 0}
+};
 
 static const char *
 top_tag(unsigned int tag)
@@ -2870,7 +2891,7 @@ dump_liblist(struct readelf *re)
 	char tbuf[20];
 	Elf_Data *d;
 	Elf_Lib *lib;
-	int i, j, elferr;
+	int i, j, k, elferr, first;
 
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
@@ -2902,7 +2923,23 @@ dump_liblist(struct readelf *re)
 			    t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 			printf("%-19.19s ", tbuf);
 			printf("0x%08x ", lib->l_checksum);
-			printf("%-7d %-7d\n", lib->l_version, lib->l_flags);
+			printf("%-7d %#x", lib->l_version, lib->l_flags);
+			if (lib->l_flags != 0) {
+				first = 1;
+				putchar('(');
+				for (k = 0; l_flag[k].name != NULL; k++) {
+					if ((l_flag[k].value & lib->l_flags) ==
+					    0)
+						continue;
+					if (!first)
+						putchar(',');
+					else
+						first = 0;
+					printf("%s", l_flag[k].name);
+				}
+				putchar(')');
+			}
+			putchar('\n');
 			lib++;
 		}
 	}
