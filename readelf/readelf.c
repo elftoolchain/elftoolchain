@@ -170,11 +170,6 @@ struct readelf {
 	uint64_t	(*dw_decode)(uint8_t **, int);
 };
 
-struct elf_define {
-	const char	*name;
-	int		 value;
-};
-
 enum options
 {
 	OPTION_DEBUG_DUMP
