@@ -318,6 +318,10 @@
 #define	R_IA_64_DIR64LSB	0x27
 #endif
 
+#ifndef	R_IA_64_SECREL32LSB
+#define	R_IA_64_SECREL32LSB	0x65
+#endif
+
 #ifndef	R_MIPS_32
 #define	R_MIPS_32		0x2
 #endif
