@@ -326,6 +326,26 @@
 #define	R_MIPS_32		0x2
 #endif
 
+#ifndef	R_PPC_ADDR32
+#define	R_PPC_ADDR32		0x1
+#endif
+
+#ifndef	R_SPARC_UA32
+#define	R_SPARC_UA32		23
+#endif
+
+#ifndef	R_SPARC_UA64
+#define	R_SPARC_UA64		54
+#endif
+
+#ifndef	R_X86_64_32
+#define	R_X86_64_32		10
+#endif
+
+#ifndef	R_X86_64_64
+#define	R_X86_64_64		1
+#endif
+
 #ifndef	SHT_AMD64_UNWIND
 #define	SHT_AMD64_UNWIND	0x70000001
 #endif
