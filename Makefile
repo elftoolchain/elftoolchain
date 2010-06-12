@@ -23,7 +23,7 @@ SUBDIR += size
 SUBDIR += strings
 
 # Build test suites.
-SUBDIR += libelf-test-suite
+# SUBDIR += libelf-test-suite
 
 # Build documentation at the end.
 SUBDIR += documentation
