@@ -3066,9 +3066,17 @@ dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
 
 	while (p < pe) {
 		tag = _dwarf_decode_uleb128(&p);
-		if (tag == Tag_GNU_MIPS_ABI_FP) {
+		switch (tag) {
+		case Tag_GNU_MIPS_ABI_FP:
 			val = _dwarf_decode_uleb128(&p);
 			printf("  Tag_GNU_MIPS_ABI_FP: %s\n", mips_abi_fp(val));
+			break;
+		case 32:	/* Tag_compatibility */
+			p = dump_compatibility_tag(p);
+			break;
+		default:
+			p = dump_unknown_tag(tag, p);
+			break;
 		}
 	}
 }
