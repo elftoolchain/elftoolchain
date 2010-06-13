@@ -123,7 +123,7 @@ static int
 _dwarf_frame_parse_lsb_cie_augment(Dwarf_Debug dbg, Dwarf_Cie cie,
     Dwarf_Error *error)
 {
-	char *aug_p, *augdata_p;
+	uint8_t *aug_p, *augdata_p;
 	uint64_t val, offset;
 	uint8_t encode;
 	int ret;
@@ -145,16 +145,16 @@ _dwarf_frame_parse_lsb_cie_augment(Dwarf_Debug dbg, Dwarf_Cie cie,
 			break;
 		case 'P':
 			/* Skip two augments in augment data. */
-			encode = (uint8_t) *augdata_p++;
+			encode = *augdata_p++;
 			offset = 0;
 			ret = _dwarf_frame_read_lsb_encoded(dbg, &val,
-			    (uint8_t *) augdata_p, &offset, encode, 0, error);
+			    augdata_p, &offset, encode, 0, error);
 			if (ret != DW_DLE_NONE)
 				return (ret);
 			augdata_p += offset;
 			break;
 		case 'R':
-			cie->cie_fde_encode = (uint8_t) *augdata_p++;
+			cie->cie_fde_encode = *augdata_p++;
 			break;
 		default:
 			DWARF_SET_ERROR(dbg, error,
