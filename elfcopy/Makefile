@@ -13,7 +13,7 @@ DPADD=	${LIBELF} ${LIBELFTC}
 LDADD=	-lelf -lelftc
 
 .if !defined(LIBELF_AR)
-LDADD+= -larchive -lbz2 -lz
+LDADD+= -larchive
 .endif
 
 NO_SHARED?=	yes
