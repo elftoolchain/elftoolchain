@@ -216,7 +216,6 @@ struct elfcopy {
 	/*
 	 * Fields for the ar(1) archive.
 	 */
-	int		 compression;	/* archive compression mode. */
 	char		*as;		/* buffer for archive string table. */
 	size_t		 as_sz;		/* current size of as table. */
 	size_t		 as_cap;	/* capacity of as table buffer. */

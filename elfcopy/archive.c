@@ -343,7 +343,7 @@ ac_detect_ar(int ifd)
 	r = -1;
 	if ((a = archive_read_new()) == NULL)
 		return (0);
-	archive_read_support_compression_all(a);
+	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	if (archive_read_open_fd(a, ifd, 10240) == ARCHIVE_OK)
 		r = archive_read_next_header(a, &entry);
@@ -378,7 +378,7 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 		err(EX_IOERR, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
 		errx(EX_SOFTWARE, "%s", archive_error_string(a));
-	archive_read_support_compression_all(a);
+	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, ifd, 10240));
 	for(;;) {
@@ -391,8 +391,6 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 			warnx("%s", archive_error_string(a));
 		if (r == ARCHIVE_RETRY)
 			continue;
-
-		ecp->compression = archive_compression(a);
 
 		name = archive_entry_pathname(entry);
 
@@ -441,12 +439,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	if ((a = archive_write_new()) == NULL)
 		errx(EX_SOFTWARE, "%s", archive_error_string(a));
 	archive_write_set_format_ar_svr4(a);
-	if (ecp->compression == ARCHIVE_COMPRESSION_BZIP2)
-		archive_write_set_compression_bzip2(a);
-	else if (ecp->compression == ARCHIVE_COMPRESSION_GZIP)
-		archive_write_set_compression_gzip(a);
-	else
-		archive_write_set_compression_none(a);
+	archive_write_set_compression_none(a);
 	AC(archive_write_open_fd(a, ofd));
 
 	/* Write the archive symbol table, even if it's empty. */
