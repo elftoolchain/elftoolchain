@@ -10,7 +10,8 @@ WARNS?=	6
 DPADD=	${LIBDWARF} ${LIBELF}
 LDADD=	-ldwarf -lelf
 .if !defined(LIBELF_AR)
-LDADD+=	-larchive -lbz2 -lz
+DPADD+= ${LIBARCHIVE}
+LDADD+=	-larchive
 .endif
 
 MAN1=	readelf.1

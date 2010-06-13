@@ -5057,7 +5057,7 @@ ac_detect_ar(int fd)
 	r = -1;
 	if ((a = archive_read_new()) == NULL)
 		return (0);
-	archive_read_support_compression_all(a);
+	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	if (archive_read_open_fd(a, fd, 10240) == ARCHIVE_OK)
 		r = archive_read_next_header(a, &entry);
@@ -5080,7 +5080,7 @@ ac_dump_ar(struct readelf *re, int fd)
 		err(EX_IOERR, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
 		errx(EX_SOFTWARE, "%s", archive_error_string(a));
-	archive_read_support_compression_all(a);
+	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, fd, 10240));
 	for(;;) {
