@@ -571,9 +571,9 @@ cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 		if (!cpp_demangle_push_str(ddata, "[]", 2))
 			return (0);
 	} else {
-		if (isdigit(*ddata->cur) != 0) {
+		if (ELFTC_ISDIGIT(*ddata->cur) != 0) {
 			num = ddata->cur;
-			while (isdigit(*ddata->cur) != 0)
+			while (ELFTC_ISDIGIT(*ddata->cur) != 0)
 				++ddata->cur;
 			if (*ddata->cur != '_')
 				return (0);
@@ -701,7 +701,7 @@ cpp_demangle_read_expr_primary(struct cpp_demangle_data *ddata)
 		}
 		num = ddata->cur;
 		while (*ddata->cur != 'E') {
-			if (!isdigit(*ddata->cur))
+			if (!ELFTC_ISDIGIT(*ddata->cur))
 				return (0);
 			++ddata->cur;
 		}
@@ -1251,7 +1251,7 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 	}
 	if (*ddata->cur == '_') {
 		++ddata->cur;
-		while (isdigit(*ddata->cur) != 0)
+		while (ELFTC_ISDIGIT(*ddata->cur) != 0)
 			++ddata->cur;
 	}
 
@@ -1432,7 +1432,7 @@ cpp_demangle_read_number(struct cpp_demangle_data *ddata, long *rtn)
 
 		++ddata->cur;
 	}
-	if (isdigit(*ddata->cur) == 0)
+	if (ELFTC_ISDIGIT(*ddata->cur) == 0)
 		return (0);
 
 	errno = 0;
@@ -1440,7 +1440,7 @@ cpp_demangle_read_number(struct cpp_demangle_data *ddata, long *rtn)
 	    errno != 0)
 		return (0);
 
-	while (isdigit(*ddata->cur) != 0)
+	while (ELFTC_ISDIGIT(*ddata->cur) != 0)
 		++ddata->cur;
 
 	assert(len >= 0);
@@ -2662,7 +2662,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 	};
 
 	/* vendor extened operator */
-	if (*ddata->cur == 'v' && isdigit(*(ddata->cur + 1))) {
+	if (*ddata->cur == 'v' && ELFTC_ISDIGIT(*(ddata->cur + 1))) {
 		if (!cpp_demangle_push_str(ddata, "vendor extened operator ",
 		    24))
 			return (0);
@@ -2708,7 +2708,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 	};
 
 	/* source name */
-	if (isdigit(*ddata->cur) != 0)
+	if (ELFTC_ISDIGIT(*ddata->cur) != 0)
 		return (cpp_demangle_read_sname(ddata));
 
 	return (1);

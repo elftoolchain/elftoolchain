@@ -55,6 +55,7 @@ struct vector_str {
 
 #define BUFFER_GROWFACTOR	1.618
 #define VECTOR_DEF_CAPACITY	8
+#define	ELFTC_ISDIGIT(C) 	(isdigit((C) & 0xFF))
 
 void	vector_str_dest(struct vector_str *);
 int	vector_str_find(const struct vector_str *v, const char *o, size_t l);

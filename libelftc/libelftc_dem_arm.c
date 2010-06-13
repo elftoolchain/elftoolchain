@@ -347,7 +347,7 @@ read_array(struct demangle_data *d)
 		if (*end == '\0')
 			return (false);
 
-		if (isdigit(*end) == 0)
+		if (ELFTC_ISDIGIT(*end) == 0)
 			break;
 
 		++end;
@@ -418,12 +418,12 @@ read_func(struct demangle_data *d)
 
 	d->p = delim + 2;
 
-	if (*d->p == 'Q' && isdigit(*(d->p + 1))) {
+	if (*d->p == 'Q' && ELFTC_ISDIGIT(*(d->p + 1))) {
 		++d->p;
 
 		if (read_qual_name(d) == false)
 			return (false);
-	} else if (isdigit(*d->p)) {
+	} else if (ELFTC_ISDIGIT(*d->p)) {
 		if (read_class(d) == false)
 			return (false);
 
@@ -467,7 +467,7 @@ read_func_name(struct demangle_data *d)
 		d->p += 2;
 
 		/* assume delimiter is removed */
-		if (*d->p == 'Q' && isdigit(*(d->p + 1))) {
+		if (*d->p == 'Q' && ELFTC_ISDIGIT(*(d->p + 1))) {
 			++d->p;
 
 			assert(d->vec.size > 0);
@@ -491,7 +491,7 @@ read_func_name(struct demangle_data *d)
 				goto clean;
 
 			rtn = true;
-		} else if (isdigit(*d->p)) {
+		} else if (ELFTC_ISDIGIT(*d->p)) {
 			assert(d->vec.size > 0);
 
 			len = strlen(d->vec.container[d->vec.size - 1]);
@@ -859,11 +859,11 @@ read_op(struct demangle_data *d)
 		d->p += 4;
 		d->type = ENCODE_OP_CT;
 
-		if (*d->p == 'Q' && isdigit(*(d->p + 1))) {
+		if (*d->p == 'Q' && ELFTC_ISDIGIT(*(d->p + 1))) {
 			++d->p;
 
 			return (read_qual_name(d));
-		} else if (isdigit(*d->p))
+		} else if (ELFTC_ISDIGIT(*d->p))
 			return (read_class(d));
 
 		return (false);
@@ -871,11 +871,11 @@ read_op(struct demangle_data *d)
 		d->p += 4;
 		d->type = ENCODE_OP_DT;
 
-		if (*d->p == 'Q' && isdigit(*(d->p + 1))) {
+		if (*d->p == 'Q' && ELFTC_ISDIGIT(*(d->p + 1))) {
 			++d->p;
 
 			return (read_qual_name(d));
-		} else if (isdigit(*d->p))
+		} else if (ELFTC_ISDIGIT(*d->p))
 			return (read_class(d));
 
 		return (false);
@@ -1172,7 +1172,7 @@ read_type(struct demangle_data *d)
 		};
 	};
 
-	if (isdigit(*d->p))
+	if (ELFTC_ISDIGIT(*d->p))
 		return (read_class(d));
 
 	switch (*d->p) {
