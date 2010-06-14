@@ -3,7 +3,9 @@
 TOP=	..
 
 PROG=	ar
-SRCS=	ar.c acplex.l acpyacc.y read.c util.c write.c y.tab.h
+SRCS=	ar.c read.c util.c write.c
+LSRC=	acplex.l
+YSRC=	acpyacc.y
 
 WARNS?=	5
 
