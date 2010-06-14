@@ -37,7 +37,7 @@
 
 ELFTC_VCSID("$Id$");
 
-#include "y.tab.h"
+#include "acpyacc.h"
 
 #define YY_NO_UNPUT
 int lineno = 1;
