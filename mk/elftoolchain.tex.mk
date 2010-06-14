@@ -63,7 +63,7 @@ CLEANFILES+=	${DOC}.${f}
 depend:
 
 # Include rules for `make obj` and `make clean`
-.include <bsd.obj.mk>
+.include <bsd.prog.mk>
 
 .else
 
