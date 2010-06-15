@@ -96,6 +96,7 @@ struct bsdar {
 	const char	 *posarg;	/* position arg for modifiers -a, -b. */
 	char		  mode;		/* program mode */
 	int		  options;	/* command line options */
+	FILE		 *output;	/* default output stream */
 
 	const char	 *progname;	/* program name */
 	int		  argc;

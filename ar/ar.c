@@ -107,6 +107,8 @@ main(int argc, char **argv)
 	bsdar = &bsdar_storage;
 	memset(bsdar, 0, sizeof(*bsdar));
 
+	bsdar->output = stdout;
+
 	if ((bsdar->progname = ELFTC_GETPROGNAME()) == NULL)
 		bsdar->progname = "ar";
 
