@@ -107,8 +107,16 @@
 #define	ELFOSABI_86OPEN		5
 #endif
 
+#ifndef	ELFOSABI_AIX
+#define	ELFOSABI_AIX		7
+#endif
+
 #ifndef	ELFOSABI_HURD
 #define	ELFOSABI_HURD		4
+#endif
+
+#ifndef	ELFOSABI_NONE
+#define	ELFOSABI_NONE		0
 #endif
 
 #ifndef	ELFOSABI_NSK
