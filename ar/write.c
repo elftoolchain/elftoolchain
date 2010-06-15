@@ -459,8 +459,8 @@ write_archive(struct bsdar *bsdar, char mode)
 			}
 
 			if (bsdar->options & AR_V)
-				(void)fprintf(stdout, "%c - %s\n", mode,
-				    *av);
+				(void)fprintf(bsdar->output, "%c - %s\n",
+				    mode, *av);
 
 			TAILQ_REMOVE(&bsdar->v_obj, obj, objs);
 			if (mode == 'd' || mode == 'r') {
@@ -495,7 +495,7 @@ new_archive:
 			if (nobj != NULL)
 				insert_obj(bsdar, nobj, pos);
 			if (bsdar->options & AR_V && nobj != NULL)
-				(void)fprintf(stdout, "a - %s\n", *av);
+				(void)fprintf(bsdar->output, "a - %s\n", *av);
 			*av = NULL;
 		}
 	}

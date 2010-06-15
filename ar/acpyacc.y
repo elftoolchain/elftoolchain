@@ -438,8 +438,8 @@ arscp_dir(char *archive, struct list *list, char *rlt)
 	/* If rlt != NULL, redirect output to it */
 	out = NULL;
 	if (rlt) {
-		out = stdout;
-		if ((stdout = fopen(rlt, "w")) == NULL)
+		out = bsdar->output;
+		if ((bsdar->output = fopen(rlt, "w")) == NULL)
 			bsdar_errc(bsdar, EX_IOERR, errno,
 			    "fopen %s failed", rlt);
 	}
@@ -457,10 +457,10 @@ arscp_dir(char *archive, struct list *list, char *rlt)
 	bsdar->options &= ~AR_V;
 
 	if (rlt) {
-		if (fclose(stdout) == EOF)
+		if (fclose(bsdar->output) == EOF)
 			bsdar_errc(bsdar, EX_IOERR, errno,
 			    "fclose %s failed", rlt);
-		stdout = out;
+		bsdar->output = out;
 		free(rlt);
 	}
 	free(archive);

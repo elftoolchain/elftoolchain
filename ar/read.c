@@ -68,6 +68,7 @@ ar_mode_x(struct bsdar *bsdar)
 static void
 read_archive(struct bsdar *bsdar, char mode)
 {
+	FILE			 *out;
 	struct archive		 *a;
 	struct archive_entry	 *entry;
 	struct stat		  sb;
@@ -89,6 +90,8 @@ read_archive(struct bsdar *bsdar, char mode)
 	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_file(a, bsdar->filename, DEF_BLKSZ));
+
+	out = bsdar->output;
 
 	for (;;) {
 		r = archive_read_next_header(a, &entry);
@@ -135,19 +138,19 @@ read_archive(struct bsdar *bsdar, char mode)
 				gid = archive_entry_gid(entry);
 				size = archive_entry_size(entry);
 				mtime = archive_entry_mtime(entry);
-				(void)fprintf(stdout, "%s %6d/%-6d %8ju ",
+				(void)fprintf(out, "%s %6d/%-6d %8ju ",
 				    bsdar_strmode(md) + 1, uid, gid,
 				    (uintmax_t)size);
 				tp = localtime(&mtime);
 				(void)strftime(buf, sizeof(buf),
 				    "%b %e %H:%M %Y", tp);
-				(void)fprintf(stdout, "%s %s", buf, name);
+				(void)fprintf(out, "%s %s", buf, name);
 			} else
-				(void)fprintf(stdout, "%s", name);
+				(void)fprintf(out, "%s", name);
 			r = archive_read_data_skip(a);
 			if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY ||
 			    r == ARCHIVE_FATAL) {
-				(void)fprintf(stdout, "\n");
+				(void)fprintf(out, "\n");
 				bsdar_warnc(bsdar, 0, "%s",
 				    archive_error_string(a));
 			}
@@ -155,16 +158,16 @@ read_archive(struct bsdar *bsdar, char mode)
 			if (r == ARCHIVE_FATAL)
 				break;
 
-			(void)fprintf(stdout, "\n");
+			(void)fprintf(out, "\n");
 		} else {
 			/* mode == 'x' || mode = 'p' */
 			if (mode == 'p') {
 				if (bsdar->options & AR_V) {
-					(void)fprintf(stdout, "\n<%s>\n\n",
+					(void)fprintf(out, "\n<%s>\n\n",
 					    name);
-					fflush(stdout);
+					fflush(out);
 				}
-				r = archive_read_data_into_fd(a, 1);
+				r = archive_read_data_into_fd(a, fileno(out));
 			} else {
 				/* mode == 'x' */
 				if (stat(name, &sb) != 0) {
@@ -185,7 +188,7 @@ read_archive(struct bsdar *bsdar, char mode)
 				}
 
 				if (bsdar->options & AR_V)
-					(void)fprintf(stdout, "x - %s\n", name);
+					(void)fprintf(out, "x - %s\n", name);
 				flags = 0;
 				if (bsdar->options & AR_O)
 					flags |= ARCHIVE_EXTRACT_TIME;
