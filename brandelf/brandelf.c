@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <sys/errno.h>
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <libelf.h>
