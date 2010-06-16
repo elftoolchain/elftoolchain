@@ -1592,6 +1592,7 @@ get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs)
 	Elf_Data	*data;
 	int		 j, elferr;
 
+	s = NULL;
 	for (j = 0; (size_t)j < ed->shnum; j++) {
 		s = &ed->sl[j];
 		if (s->type == SHT_SUNW_versym && s->link == (uint32_t)i)
@@ -1719,6 +1720,7 @@ elf_print_dynamic(struct elfdump *ed)
 	GElf_Dyn	 dyn;
 	int		 elferr, i, len;
 
+	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (s->type == SHT_DYNAMIC &&
@@ -2033,6 +2035,7 @@ elf_print_got(struct elfdump *ed)
 	Elf_Data		*data, dst;
 	int			 elferr, i, len;
 
+	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (s->name && !strcmp(s->name, ".got") &&
@@ -2145,6 +2148,7 @@ elf_print_note(struct elfdump *ed)
 	int		 elferr, i;
 	char		*src, idx[10];
 
+	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (s->type == SHT_NOTE && s->name &&
