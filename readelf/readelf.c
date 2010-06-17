@@ -3211,6 +3211,7 @@ dump_dwarf_line(struct readelf *re)
 
 	printf("\nDump of debug contents of section .debug_line:\n");
 
+	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && !strcmp(s->name, ".debug_line"))
@@ -3710,6 +3711,7 @@ dump_dwarf_info(struct readelf *re)
 
 	printf("\nDump of debug contents of section .debug_info:\n");
 
+	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && !strcmp(s->name, ".debug_info"))
@@ -3849,6 +3851,7 @@ dump_dwarf_pubnames(struct readelf *re)
 
 	printf("\nContents of the .debug_pubnames section:\n");
 
+	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && !strcmp(s->name, ".debug_pubnames"))
@@ -3928,6 +3931,7 @@ dump_dwarf_aranges(struct readelf *re)
 
 	printf("\nContents of section .debug_aranges:\n");
 
+	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && !strcmp(s->name, ".debug_aranges"))
@@ -4370,6 +4374,7 @@ dump_dwarf_str(struct readelf *re)
 
 	printf("\nContents of section .debug_str:\n");
 
+	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && !strcmp(s->name, ".debug_str"))
@@ -5122,7 +5127,11 @@ ac_dump_ar(struct readelf *re, int fd)
 		}
 	}
 	AC(archive_read_close(a));
+#if ARCHIVE_VERSION_NUMBER >= 2000000
 	AC(archive_read_finish(a));
+#else
+	archive_read_finish(a);
+#endif
 }
 #endif	/* ! LIBELF_AR */
 
