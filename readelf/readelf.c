@@ -206,6 +206,90 @@ static struct option longopts[] = {
 	{NULL, 0, NULL, 0}
 };
 
+static void add_dumpop(struct readelf *re, size_t sn, int op);
+static const char *aeabi_adv_simd_arch(uint64_t simd);
+static const char *aeabi_align_needed(uint64_t an);
+static const char *aeabi_align_preserved(uint64_t ap);
+static const char *aeabi_arm_isa(uint64_t ai);
+static const char *aeabi_cpu_arch(uint64_t arch);
+static const char *aeabi_cpu_arch_profile(uint64_t pf);
+static const char *aeabi_div(uint64_t du);
+static const char *aeabi_enum_size(uint64_t es);
+static const char *aeabi_fp_16bit_format(uint64_t fp16);
+static const char *aeabi_fp_arch(uint64_t fp);
+static const char *aeabi_fp_denormal(uint64_t fd);
+static const char *aeabi_fp_exceptions(uint64_t fe);
+static const char *aeabi_fp_hpext(uint64_t fh);
+static const char *aeabi_fp_number_model(uint64_t fn);
+static const char *aeabi_fp_optm_goal(uint64_t fog);
+static const char *aeabi_fp_rounding(uint64_t fr);
+static const char *aeabi_hardfp(uint64_t hfp);
+static const char *aeabi_mpext(uint64_t mp);
+static const char *aeabi_optm_goal(uint64_t og);
+static const char *aeabi_pcs_config(uint64_t pcs);
+static const char *aeabi_pcs_got(uint64_t got);
+static const char *aeabi_pcs_r9(uint64_t r9);
+static const char *aeabi_pcs_ro(uint64_t ro);
+static const char *aeabi_pcs_rw(uint64_t rw);
+static const char *aeabi_pcs_wchar_t(uint64_t wt);
+static const char *aeabi_t2ee(uint64_t t2ee);
+static const char *aeabi_thumb_isa(uint64_t ti);
+static const char *aeabi_fp_user_exceptions(uint64_t fu);
+static const char *aeabi_unaligned_access(uint64_t ua);
+static const char *aeabi_vfp_args(uint64_t va);
+static const char *aeabi_virtual(uint64_t vt);
+static const char *aeabi_wmmx_arch(uint64_t wmmx);
+static const char *aeabi_wmmx_args(uint64_t wa);
+static const char *elf_class(unsigned int class);
+static const char *elf_endian(unsigned int endian);
+static const char *elf_machine(unsigned int mach);
+static const char *elf_osabi(unsigned int abi);
+static const char *elf_type(unsigned int type);
+static const char *elf_ver(unsigned int ver);
+static const char *dt_type(unsigned int dtype);
+static void dump_dwarf(struct readelf *re);
+static void dump_elf(struct readelf *re);
+static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
+static void dump_dynamic(struct readelf *re);
+static void dump_svr4_hash(struct section *s);
+static void dump_svr4_hash64(struct readelf *re, struct section *s);
+static void dump_gnu_hash(struct readelf *re, struct section *s);
+static void dump_hash(struct readelf *re);
+static void dump_phdr(struct readelf *re);
+static void dump_symtab(struct readelf *re, int i);
+static void dump_symtabs(struct readelf *re);
+static void dump_ver(struct readelf *re);
+static void dump_verdef(struct readelf *re, int dump);
+static void dump_verneed(struct readelf *re, int dump);
+static void dump_versym(struct readelf *re);
+static struct dumpop *find_dumpop(struct readelf *re, size_t sn, int op);
+static const char *get_string(struct readelf *re, int strtab, size_t off);
+static const char *get_symbol_name(struct readelf *re, int symtab, int i);
+static uint64_t get_symbol_value(struct readelf *re, int symtab, int i);
+static void load_sections(struct readelf *re);
+static const char *mips_abi_fp(uint64_t fp);
+static const char *phdr_type(unsigned int ptype);
+static const char *ppc_abi_fp(uint64_t fp);
+static const char *ppc_abi_vector(uint64_t vec);
+static const char *r_type(unsigned int mach, unsigned int type);
+static void readelf_help(void);
+static void readelf_usage(void);
+static void readelf_version(void);
+static void search_ver(struct readelf *re);
+static const char *section_type(unsigned int stype);
+static const char *st_bind(unsigned int sbind);
+static const char *st_shndx(unsigned int shndx);
+static const char *st_type(unsigned int stype);
+static const char *top_tag(unsigned int tag);
+static uint64_t _dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp,
+		    int bytes_to_read);
+static uint64_t _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp,
+		    int bytes_to_read);
+uint64_t _dwarf_decode_lsb(uint8_t **data, int bytes_to_read);
+uint64_t _dwarf_decode_msb(uint8_t **data, int bytes_to_read);
+int64_t	 _dwarf_decode_sleb128(uint8_t **dp);
+uint64_t _dwarf_decode_uleb128(uint8_t **dp);
+
 static const char *
 elf_osabi(unsigned int abi)
 {
@@ -1724,40 +1808,6 @@ ppc_abi_vector(uint64_t vec)
 		return (s_vec);
 	}
 }
-
-static void	 add_dumpop(struct readelf *re, size_t sn, int op);
-static void	 dump_dwarf(struct readelf *re);
-static void	 dump_elf(struct readelf *re);
-static void	 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
-static void	 dump_dynamic(struct readelf *re);
-static void	 dump_svr4_hash(struct section *s);
-static void	 dump_svr4_hash64(struct readelf *re, struct section *s);
-static void	 dump_gnu_hash(struct readelf *re, struct section *s);
-static void	 dump_hash(struct readelf *re);
-static void	 dump_phdr(struct readelf *re);
-static void	 dump_symtab(struct readelf *re, int i);
-static void	 dump_symtabs(struct readelf *re);
-static void	 dump_ver(struct readelf *re);
-static void	 dump_verdef(struct readelf *re, int dump);
-static void	 dump_verneed(struct readelf *re, int dump);
-static void	 dump_versym(struct readelf *re);
-static struct dumpop *find_dumpop(struct readelf *re, size_t sn, int op);
-static const char *get_string(struct readelf *re, int strtab, size_t off);
-static const char *get_symbol_name(struct readelf *re, int symtab, int i);
-static uint64_t	 get_symbol_value(struct readelf *re, int symtab, int i);
-static void	 load_sections(struct readelf *re);
-static void	 readelf_help(void);
-static void	 readelf_usage(void);
-static void	 readelf_version(void);
-static void	 search_ver(struct readelf *re);
-static uint64_t	_dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp,
-		    int bytes_to_read);
-static uint64_t	_dwarf_read_msb(Elf_Data *d, uint64_t *offsetp,
-		    int bytes_to_read);
-uint64_t	_dwarf_decode_lsb(uint8_t **data, int bytes_to_read);
-uint64_t	_dwarf_decode_msb(uint8_t **data, int bytes_to_read);
-int64_t		_dwarf_decode_sleb128(uint8_t **dp);
-uint64_t	_dwarf_decode_uleb128(uint8_t **dp);
 
 static void
 dump_ehdr(struct readelf *re)
