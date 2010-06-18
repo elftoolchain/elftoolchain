@@ -2199,6 +2199,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_VERDEF:
 	case DT_VERNEED:
 	case DT_VERSYM:
+	case DT_GNU_HASH:
 		printf(" 0x%jx\n", (uintmax_t)dyn->d_un.d_val);
 		break;
 	case DT_PLTRELSZ:
