@@ -614,7 +614,7 @@ handle_elf(char const *name)
 			return (EX_DATAERR);
 		}
 		if (elf_kind(elf) != ELF_K_ELF ||
-			(gelf_getehdr(elf, &elfhdr) == NULL)) {
+		    (gelf_getehdr(elf, &elfhdr) == NULL)) {
 			elf_cmd = elf_next(elf);
 			(void) elf_end(elf);
 			warnx("%s: File format not recognized",
