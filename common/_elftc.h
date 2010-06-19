@@ -75,8 +75,28 @@
 #define	DT_DEPRECATED_SPARC_REGISTER	0x70000001
 #endif
 
+#ifndef	DT_GNU_PRELINKED
+#define	DT_GNU_PRELINKED	0x6FFFFDF5U
+#endif
+
+#ifndef	DT_GNU_CONFLICTSZ
+#define	DT_GNU_CONFLICTSZ	0x6FFFFDF6U
+#endif
+
+#ifndef	DT_GNU_LIBLISTSZ
+#define	DT_GNU_LIBLISTSZ	0x6FFFFDF7U
+#endif
+
 #ifndef	DT_GNU_HASH
 #define	DT_GNU_HASH		0x6FFFFEF5U
+#endif
+
+#ifndef	DT_GNU_CONFLICT
+#define	DT_GNU_CONFLICT		0x6FFFFEF8U
+#endif
+
+#ifndef	DT_GNU_LIBLIST
+#define	DT_GNU_LIBLIST		0x6FFFFEF9U
 #endif
 
 #ifndef	DT_MAXPOSTAGS
