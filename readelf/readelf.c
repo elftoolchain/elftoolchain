@@ -1971,6 +1971,8 @@ dump_phdr(struct readelf *re)
 	}
 
 	/* Dump section to segment mapping. */
+	if (re->shnum == 0)
+		return;
 	printf("\n Section to Segment mapping:\n");
 	printf("  Segment Sections...\n");
 	for (i = 0; (size_t)i < phnum; i++) {
