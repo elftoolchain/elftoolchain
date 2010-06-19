@@ -150,7 +150,7 @@ main(int argc, char **argv)
 		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	while ((ch = getopt_long(argc, argv, "AVdhotx", size_longopts,
+	while ((ch = getopt_long(argc, argv, "ABVdhotx", size_longopts,
 	    NULL)) != -1)
 		switch((char)ch) {
 		case 'A':
