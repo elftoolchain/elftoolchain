@@ -630,6 +630,8 @@ dt_type(unsigned int dtype)
 	case DT_SYMINSZ: return "SYMINSZ";
 	case DT_SYMINENT: return "SYMINENT";
 	case DT_GNU_HASH: return "GNU_HASH";
+	case DT_GNU_CONFLICT: return "GNU_CONFLICT";
+	case DT_GNU_LIBLIST: return "GNU_LIBLIST";
 	case DT_CONFIG: return "CONFIG";
 	case DT_DEPAUDIT: return "DEPAUDIT";
 	case DT_AUDIT: return "AUDIT";
@@ -648,6 +650,9 @@ dt_type(unsigned int dtype)
 	case DT_AUXILIARY: return "AUXILIARY";
 	case DT_USED: return "USED";
 	case DT_FILTER: return "FILTER";
+	case DT_GNU_PRELINKED: return "GNU_PRELINKED";
+	case DT_GNU_CONFLICTSZ: return "GNU_CONFLICTSZ";
+	case DT_GNU_LIBLISTSZ: return "GNU_LIBLISTSZ";
 	default:
 		snprintf(s_dtype, sizeof(s_dtype), "<unknown: %#x>", dtype);
 		return (s_dtype);
@@ -1168,7 +1173,7 @@ aeabi_cpu_arch(uint64_t arch)
 	case 12: return "ARM v6S-M";
 	case 13: return "ARM v7E-M";
 	default:
-		snprintf(s_cpu_arch, sizeof(s_cpu_arch), 
+		snprintf(s_cpu_arch, sizeof(s_cpu_arch),
 		    "Unknown (%ju)", (uintmax_t) arch);
 		return (s_cpu_arch);
 	}
@@ -2167,7 +2172,9 @@ dump_dynamic(struct readelf *re)
 static void
 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 {
+	struct tm *t;
 	const char *name;
+	time_t ti;
 
 	/* These entry values are index into the string table. */
 	name = NULL;
@@ -2200,6 +2207,8 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_VERNEED:
 	case DT_VERSYM:
 	case DT_GNU_HASH:
+	case DT_GNU_LIBLIST:
+	case DT_GNU_CONFLICT:
 		printf(" 0x%jx\n", (uintmax_t)dyn->d_un.d_val);
 		break;
 	case DT_PLTRELSZ:
@@ -2211,6 +2220,8 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_RELENT:
 	case DT_INIT_ARRAYSZ:
 	case DT_FINI_ARRAYSZ:
+	case DT_GNU_CONFLICTSZ:
+	case DT_GNU_LIBLISTSZ:
 		printf(" %ju (bytes)\n", dyn->d_un.d_val);
 		break;
  	case DT_RELACOUNT:
@@ -2233,6 +2244,13 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		break;
 	case DT_PLTREL:
 		printf(" %s\n", dt_type(dyn->d_un.d_val));
+		break;
+	case DT_GNU_PRELINKED:
+		ti = dyn->d_un.d_val;
+		t = gmtime(&ti);
+		printf(" %04d-%02d-%02dT%02d:%02d:%2d\n", t->tm_year + 1900,
+		    t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min,
+		    t->tm_sec);
 		break;
 	default:
 		printf("\n");
