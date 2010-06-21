@@ -62,10 +62,10 @@ dwarf_get_macro_details(Dwarf_Debug dbg, Dwarf_Off offset,
 	}
 
 	STAILQ_FOREACH(ms, &dbg->dbg_mslist, ms_next) {
-		for (i = 0; (Dwarf_Unsigned)i < ms->ms_cnt; i++)
+		for (i = 0; (Dwarf_Unsigned) i < ms->ms_cnt; i++)
 			if (ms->ms_mdlist[i].dmd_offset == offset) {
 				cnt = ms->ms_cnt - i;
-				if (cnt > max_count)
+				if (max_count != 0 && cnt > max_count)
 					cnt = max_count;
 
 				*details = &ms->ms_mdlist[i];
