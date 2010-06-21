@@ -34,12 +34,13 @@ dwarf_find_macro_value_start(char *macro_string)
 	if (macro_string == NULL)
 		return (NULL);
 
-	p = strchr(macro_string, ' ');
+	p = macro_string;
+	while (*p != '\0' && *p != ' ')
+		p++;
+	if (*p == ' ')
+		p++;
 
-	if (p != NULL)
-		return (++p);
-	else
-		return (NULL);
+	return (p);
 }
 
 int
