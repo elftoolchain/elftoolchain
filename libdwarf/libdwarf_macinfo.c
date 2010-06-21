@@ -26,15 +26,20 @@
 
 #include "_libdwarf.h"
 
+#define	_FILEINDEX_STACK_SIZE	16384
+
 static int
 _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
     Dwarf_Macro_Details *dmd, Dwarf_Unsigned *cnt, Dwarf_Error *error)
 {
-	Dwarf_Unsigned lineno, fileindex;
+	Dwarf_Unsigned lineno;
+	Dwarf_Signed fileindex[_FILEINDEX_STACK_SIZE];
 	char *p;
-	int i, type;
+	int i, type, sp;
 
 	i = 0;
+	sp = 0;
+	fileindex[sp] = -1;
 	while (*off < ds->ds_size) {
 
 		if (dmd != NULL)
@@ -44,7 +49,7 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 
 		if (dmd != NULL) {
 			dmd[i].dmd_type = type;
-			dmd[i].dmd_fileindex = -1;
+			dmd[i].dmd_fileindex = fileindex[sp];
 		}
 
 		switch (type) {
@@ -65,13 +70,17 @@ _dwarf_macinfo_parse(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *off,
 			break;
 		case DW_MACINFO_start_file:
 			lineno = _dwarf_read_uleb128(ds->ds_data, off);
-			fileindex = _dwarf_read_uleb128(ds->ds_data, off);
+			if (sp >= _FILEINDEX_STACK_SIZE - 1) {
+				assert(0);
+			}
+			fileindex[++sp] = _dwarf_read_uleb128(ds->ds_data, off);
 			if (dmd != NULL) {
 				dmd[i].dmd_lineno = lineno;
-				dmd[i].dmd_fileindex = fileindex;
+				dmd[i].dmd_fileindex = fileindex[sp];
 			}
 			break;
 		case DW_MACINFO_end_file:
+			sp--;
 			break;
 		default:
 			DWARF_SET_ERROR(dbg, error,
