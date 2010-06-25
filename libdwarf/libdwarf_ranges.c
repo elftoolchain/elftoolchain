@@ -40,8 +40,15 @@ _dwarf_ranges_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 		end = dbg->read(ds->ds_data, &off, cu->cu_pointer_size);
 
 		if (rg != NULL) {
-			rg[i].rg_start = start;
-			rg[i].rg_end = end;
+			rg[i].dwr_addr1 = start;
+			rg[i].dwr_addr2 = end;
+			if (start == 0 && end == 0)
+				rg[i].dwr_type = DW_RANGES_END;
+			else if ((start == ~0U && cu->cu_pointer_size == 4) ||
+			    (start == ~0ULL && cu->cu_pointer_size == 8))
+				rg[i].dwr_type = DW_RANGES_ADDRESS_SELECTION;
+			else
+				rg[i].dwr_type = DW_RANGES_ENTRY;
 		}
 
 		i++;

@@ -133,9 +133,16 @@ typedef struct {
 	Dwarf_Ptr	bl_data;
 } Dwarf_Block;
 
+enum Dwarf_Ranges_Entry_Type {
+	DW_RANGES_ENTRY,
+	DW_RANGES_ADDRESS_SELECTION,
+	DW_RANGES_END
+};
+
 typedef struct {
-	Dwarf_Unsigned	rg_start;	/* Beginning of address range. */
-	Dwarf_Unsigned	rg_end;		/* End of address range. */
+	Dwarf_Unsigned	dwr_addr1;
+	Dwarf_Unsigned	dwr_addr2;
+	enum Dwarf_Ranges_Entry_Type dwr_type;
 } Dwarf_Ranges;
 
 #ifndef	DW_FRAME_HIGHEST_NORMAL_REGISTER
