@@ -50,8 +50,8 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 
 found_ab:
 	if (ab == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
 	}
 
 	*return_abbrev = ab;
