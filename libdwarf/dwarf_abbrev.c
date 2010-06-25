@@ -121,8 +121,8 @@ dwarf_get_abbrev_entry(Dwarf_Abbrev abbrev, Dwarf_Signed ndx,
 	}
 
 	if (ndx < 0 || (uint64_t) ndx >= abbrev->ab_atnum) {
-		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
+		DWARF_SET_ERROR(NULL, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
 	}
 
 	ad = STAILQ_FIRST(&abbrev->ab_attrdef);
