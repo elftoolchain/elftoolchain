@@ -54,3 +54,17 @@ dwarf_srclines_dealloc(Dwarf_Debug dbg, Dwarf_Line *linebuf,
 
 	(void) dbg; (void) linebuf; (void) count;
 }
+
+void
+dwarf_ranges_dealloc(Dwarf_Debug dbg, Dwarf_Ranges *ranges,
+    Dwarf_Signed range_count)
+{
+	/*
+	 * In this libdwarf implementation, ranges information is
+	 * kept by a STAILQ inside Dwarf_Debug object. The client
+	 * does not need to free the memory returned by
+	 * `dwarf_get_ranges()` or `dwarf_get_ranges_a()`.
+	 */
+
+	(void) dbg; (void) ranges; (void) range_count;
+}

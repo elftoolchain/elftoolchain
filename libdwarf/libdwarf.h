@@ -686,7 +686,7 @@ int		dwarf_pubtype_die_offset(Dwarf_Type, Dwarf_Off *,
 int		dwarf_pubtype_name_offsets(Dwarf_Type, char **,
 		    Dwarf_Off *, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_pubtypename(Dwarf_Type, char **, Dwarf_Error *);
-int		dwarf_ranges_dealloc(Dwarf_Debug, Dwarf_Ranges *, Dwarf_Signed);
+void		dwarf_ranges_dealloc(Dwarf_Debug, Dwarf_Ranges *, Dwarf_Signed);
 void		dwarf_reset_section_bytes(Dwarf_P_Debug);
 Dwarf_Half	dwarf_set_frame_cfa_value(Dwarf_Debug, Dwarf_Half);
 Dwarf_Half	dwarf_set_frame_rule_initial_value(Dwarf_Debug, Dwarf_Half);
