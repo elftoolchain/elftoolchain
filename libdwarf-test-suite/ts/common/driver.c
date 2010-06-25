@@ -100,11 +100,12 @@ const char *_cur_file = NULL;
 
 static void driver_startup(void);
 static void driver_cleanup(void);
+static  __attribute__ ((unused)) char * driver_string_encode(const char *str);
 #ifndef	TCGEN
 static void driver_base64_decode(const char *code, int codesize, char **plain,
     int *plainsize);
 #else
-static void __attribute__ ((unused)) driver_base64_encode(const char *plain,
+static __attribute__ ((unused)) void driver_base64_encode(const char *plain,
     int plainsize, char **code, int *codesize);
 #endif	/* !TCGEN */
 
@@ -540,6 +541,61 @@ driver_gen_ic(void)
 
 #endif	/* !TCGEN */
 
+#define	_MAX_STRING_SIZE	65535
+
+static char *
+driver_string_encode(const char *str)
+{
+	static char enc[_MAX_STRING_SIZE];
+	size_t len;
+	int pos;
+
+#define	_ENCODE_STRING(S)	do {			\
+	len = strlen(S);				\
+	if (pos + len < _MAX_STRING_SIZE) {		\
+		strncpy(enc + pos, S, len);		\
+		pos += len;				\
+	} else {					\
+		assert(0);				\
+		return (NULL);				\
+	}						\
+	} while(0)
+
+	pos = 0;
+	for (; *str != '\0'; str++) {
+		switch (*str) {
+		case '"':
+			_ENCODE_STRING("&quot;");
+			break;
+		case '\'':
+			_ENCODE_STRING("&apos;");
+			break;
+		case '<':
+			_ENCODE_STRING("&lt;");
+			break;
+		case '>':
+			_ENCODE_STRING("&gt;");
+			break;
+		case '&':
+			_ENCODE_STRING("&amp;");
+			break;
+		default:
+			/* Normal chars. */
+			if (pos < _MAX_STRING_SIZE - 1)
+				enc[pos++] = *str;
+			else {
+				enc[pos] = '\0';
+				assert(0);
+				return (NULL);
+			}
+			break;
+		}
+	}
+	enc[pos] = '\0';
+
+	return (enc);
+#undef _ENCODE_STRING
+}
 
 static void
 driver_startup(void)

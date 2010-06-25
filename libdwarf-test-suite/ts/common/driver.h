@@ -149,7 +149,7 @@ struct dwarf_tp {
 
 #define	TS_CHECK_STRING(X) do {						\
 	fprintf(_cur_fp, "    <vc var='%s' type='str'>%s</vc>\n", #X,	\
-	    X);								\
+	    driver_string_encode(X));					\
 	} while (0)
 
 #define	TS_CHECK_BLOCK(B,S) do {					\
