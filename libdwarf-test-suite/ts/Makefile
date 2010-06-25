@@ -17,5 +17,9 @@ SUBDIR+=	dwarf_loclist
 SUBDIR+=	dwarf_lineno
 SUBDIR+=	dwarf_frame
 SUBDIR+=	dwarf_arange
+SUBDIR+=	dwarf_abbrev
+SUBDIR+=	dwarf_pubnames
+SUBDIR+=	dwarf_macinfo
+SUBDIR+=	dwarf_ranges
 
 .include <bsd.subdir.mk>

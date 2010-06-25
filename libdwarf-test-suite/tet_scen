@@ -91,3 +91,23 @@ dwarf_arange
 	"Starting dwarf_arange Test Case"
 	/ts/dwarf_arange/tc_dwarf_arange
 	"Complete dwarf_arange Test Case"
+
+dwarf_abbrev
+	"Starting dwarf_abbrev Test Case"
+	/ts/dwarf_abbrev/tc_dwarf_abbrev
+	"Complete dwarf_abbrev Test Case"
+
+dwarf_pubnames
+	"Starting dwarf_pubnames Test Case"
+	/ts/dwarf_pubnames/tc_dwarf_pubnames
+	"Complete dwarf_pubnames Test Case"
+
+dwarf_macinfo
+	"Starting dwarf_macinfo Test Case"
+	/ts/dwarf_macinfo/tc_dwarf_macinfo
+	"Complete dwarf_macinfo Test Case"
+
+dwarf_ranges
+	"Starting dwarf_ranges Test Case"
+	/ts/dwarf_ranges/tc_dwarf_ranges
+	"Complete dwarf_ranges Test Case"
