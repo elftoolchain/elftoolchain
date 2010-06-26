@@ -41,6 +41,12 @@
 .Fa "Dwarf_Unsigned type"
 .Fc
 .Ft void
+.Fo dwarf_ranges_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Ranges *ranges"
+.Fa "Dwarf_Signed rangecount"
+.Fc
+.Ft void
 .Fo dwarf_srclines_dealloc
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Line *lines"
@@ -48,7 +54,8 @@
 .Fc
 .Sh DESCRIPTION
 The functions
-.Fn dwarf_dealloc
+.Fn dwarf_dealloc ,
+.Fn dwarf_ranges_dealloc
 and
 .Fn dwarf_srclines_dealloc
 are provided for compatibility with other implementations of the
@@ -62,7 +69,8 @@ for more information about the memory management scheme in this
 implementation of the DWARF(3) API.
 .Sh RETURN VALUES
 Functions
-.Fn dwarf_dealloc
+.Fn dwarf_dealloc ,
+.Fn dwarf_ranges_dealloc
 and
 .Fn dwarf_srclines_dealloc
 have no return value.
