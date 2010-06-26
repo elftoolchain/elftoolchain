@@ -145,6 +145,21 @@ typedef struct {
 	enum Dwarf_Ranges_Entry_Type dwr_type;
 } Dwarf_Ranges;
 
+enum Dwarf_Form_Class {
+	DW_FORM_CLASS_UNKNOWN,
+	DW_FORM_CLASS_ADDRESS,
+	DW_FORM_CLASS_BLOCK,
+	DW_FORM_CLASS_CONSTANT,
+	DW_FORM_CLASS_EXPRLOC,
+	DW_FORM_CLASS_FLAG,
+	DW_FORM_CLASS_LINEPTR,
+	DW_FORM_CLASS_LOCLISTPTR,
+	DW_FORM_CLASS_MACPTR,
+	DW_FORM_CLASS_RANGELISTPTR,
+	DW_FORM_CLASS_REFERENCE,
+	DW_FORM_CLASS_STRING
+};
+
 #ifndef	DW_FRAME_HIGHEST_NORMAL_REGISTER
 #define	DW_FRAME_HIGHEST_NORMAL_REGISTER 63
 #endif
@@ -594,6 +609,8 @@ int		dwarf_get_fde_n(Dwarf_Fde *, Dwarf_Unsigned, Dwarf_Fde *,
 int		dwarf_get_fde_range(Dwarf_Fde, Dwarf_Addr *, Dwarf_Unsigned *,
 		    Dwarf_Ptr *, Dwarf_Unsigned *, Dwarf_Off *, Dwarf_Signed *,
 		    Dwarf_Off *, Dwarf_Error *);
+enum Dwarf_Form_Class dwarf_get_form_class(Dwarf_Half, Dwarf_Half, Dwarf_Half,
+		    Dwarf_Half);
 int		dwarf_get_funcs(Dwarf_Debug, Dwarf_Func **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_get_globals(Dwarf_Debug, Dwarf_Global **, Dwarf_Signed *,
