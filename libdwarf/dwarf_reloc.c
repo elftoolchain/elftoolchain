@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,13 @@
 
 #include "_libdwarf.h"
 
-struct _libdwarf_globals _libdwarf = {
-	.errhand	= NULL,
-	.errarg		= NULL,
-	.applyrela	= 1
-};
+int
+dwarf_set_reloc_application(int apply)
+{
+	int oldapply;
+
+	oldapply = _libdwarf.applyrela;
+	_libdwarf.applyrela = apply;
+
+	return (oldapply);
+}
