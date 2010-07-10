@@ -270,10 +270,12 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 				}
 			}
 
-			if (_dwarf_elf_relocate(dbg, elf,  e->eo_data[j],
-			    elf_ndxscn(scn), symtab_ndx, symtab_data, error) !=
-			    DW_DLE_NONE)
-				goto fail_cleanup;
+			if (_libdwarf.applyrela) {
+				if (_dwarf_elf_relocate(dbg, elf, e->eo_data[j],
+				    elf_ndxscn(scn), symtab_ndx, symtab_data,
+				    error) != DW_DLE_NONE)
+					goto fail_cleanup;
+			}
 
 			j++;
 		}

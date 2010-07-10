@@ -717,6 +717,7 @@ Dwarf_Half	dwarf_set_frame_rule_initial_value(Dwarf_Debug, Dwarf_Half);
 Dwarf_Half	dwarf_set_frame_rule_table_size(Dwarf_Debug, Dwarf_Half);
 Dwarf_Half	dwarf_set_frame_same_value(Dwarf_Debug, Dwarf_Half);
 Dwarf_Half	dwarf_set_frame_undefined_value(Dwarf_Debug, Dwarf_Half);
+int		dwarf_set_reloc_application(int);
 Dwarf_Ptr	dwarf_seterrarg(Dwarf_Debug, Dwarf_Ptr);
 Dwarf_Handler	dwarf_seterrhand(Dwarf_Debug, Dwarf_Handler);
 int		dwarf_type_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);

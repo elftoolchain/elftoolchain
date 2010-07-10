@@ -48,6 +48,7 @@
 struct _libdwarf_globals {
 	Dwarf_Handler	errhand;
 	Dwarf_Ptr	errarg;
+	int		applyrela;
 };
 
 extern struct _libdwarf_globals _libdwarf;
