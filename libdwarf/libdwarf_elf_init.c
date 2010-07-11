@@ -47,7 +47,7 @@ static const char *debug_name[] = {
 };
 
 static void
-_dwarf_elf_apply_reloc(Dwarf_Debug dbg, Elf_Data *d, Elf_Data *rel_data,
+_dwarf_elf_apply_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
     Elf_Data *symtab_data, int endian)
 {
 	Dwarf_Unsigned type;
@@ -69,16 +69,14 @@ _dwarf_elf_apply_reloc(Dwarf_Debug dbg, Elf_Data *d, Elf_Data *rel_data,
 		size = _dwarf_get_reloc_size(dbg, type);
 
 		if (endian == ELFDATA2MSB)
-			_dwarf_write_msb(d->d_buf, &offset, rela.r_addend,
-			    size);
+			_dwarf_write_msb(buf, &offset, rela.r_addend, size);
 		else
-			_dwarf_write_lsb(d->d_buf, &offset, rela.r_addend,
-			    size);
+			_dwarf_write_lsb(buf, &offset, rela.r_addend, size);
 	}
 }
 
 static int
-_dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Elf_Data *d, size_t shndx,
+_dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Dwarf_Elf_Data *ed, size_t shndx,
     size_t symtab, Elf_Data *symtab_data, Dwarf_Error *error)
 {
 	GElf_Ehdr eh;
@@ -117,8 +115,15 @@ _dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Elf_Data *d, size_t shndx,
 					return (DW_DLE_NONE);
 			}
 
-			_dwarf_elf_apply_reloc(dbg, d, rel, symtab_data,
-			    eh.e_ident[EI_DATA]);
+			ed->ed_alloc = malloc(ed->ed_data->d_size);
+			if (ed->ed_alloc == NULL) {
+				DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
+				return (DW_DLE_MEMORY);
+			}
+			memcpy(ed->ed_alloc, ed->ed_data->d_buf,
+			    ed->ed_data->d_size);
+			_dwarf_elf_apply_reloc(dbg, ed->ed_alloc, rel,
+			    symtab_data, eh.e_ident[EI_DATA]);
 
 			return (DW_DLE_NONE);
 		}
@@ -230,7 +235,7 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 	e->eo_seccnt = n;
 
-	if ((e->eo_data = calloc(n, sizeof(Elf_Data *))) == NULL ||
+	if ((e->eo_data = calloc(n, sizeof(Dwarf_Elf_Data))) == NULL ||
 	    (e->eo_shdr = calloc(n, sizeof(GElf_Shdr))) == NULL) {
 		DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 		ret = DW_DLE_MEMORY;
@@ -260,7 +265,8 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 				continue;
 
 			(void) elf_errno();
-			if ((e->eo_data[j] = elf_getdata(scn, NULL)) == NULL) {
+			if ((e->eo_data[j].ed_data = elf_getdata(scn, NULL)) ==
+			    NULL) {
 				elferr = elf_errno();
 				if (elferr != 0) {
 					_DWARF_SET_ERROR(dbg, error,
@@ -271,9 +277,9 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 			}
 
 			if (_libdwarf.applyrela) {
-				if (_dwarf_elf_relocate(dbg, elf, e->eo_data[j],
-				    elf_ndxscn(scn), symtab_ndx, symtab_data,
-				    error) != DW_DLE_NONE)
+				if (_dwarf_elf_relocate(dbg, elf,
+				    &e->eo_data[j], elf_ndxscn(scn), symtab_ndx,
+				    symtab_data, error) != DW_DLE_NONE)
 					goto fail_cleanup;
 			}
 
@@ -297,6 +303,7 @@ _dwarf_elf_deinit(Dwarf_Debug dbg)
 {
 	Dwarf_Obj_Access_Interface *iface;
 	Dwarf_Elf_Object *e;
+	int i;
 
 	iface = dbg->dbg_iface;
 	assert(iface != NULL);
@@ -304,8 +311,13 @@ _dwarf_elf_deinit(Dwarf_Debug dbg)
 	e = iface->object;
 	assert(e != NULL);
 
-	if (e->eo_data)
+	if (e->eo_data) {
+		for (i = 0; (Dwarf_Unsigned) i < e->eo_seccnt; i++) {
+			if (e->eo_data[i].ed_alloc)
+				free(e->eo_data[i].ed_alloc);
+		}
 		free(e->eo_data);
+	}
 	if (e->eo_shdr)
 		free(e->eo_shdr);
 
