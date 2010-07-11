@@ -379,10 +379,15 @@ typedef struct _Dwarf_Rel_Section {
 } *Dwarf_Rel_Section;
 
 typedef struct {
+	Elf_Data *ed_data;
+	void *ed_alloc;
+} Dwarf_Elf_Data;
+
+typedef struct {
 	Elf		*eo_elf;
 	GElf_Ehdr	eo_ehdr;
 	GElf_Shdr	*eo_shdr;
-	Elf_Data	**eo_data;
+	Dwarf_Elf_Data	*eo_data;
 	Dwarf_Unsigned	eo_seccnt;
 	size_t		eo_strndx;
 	Dwarf_Obj_Access_Methods eo_methods;

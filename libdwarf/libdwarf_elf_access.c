@@ -128,7 +128,7 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
     int *error)
 {
 	Dwarf_Elf_Object *e;
-	Elf_Data *d;
+	Dwarf_Elf_Data *ed;
 
 	e = obj;
 	assert(e != NULL);
@@ -145,15 +145,18 @@ _dwarf_elf_load_section(void *obj, Dwarf_Half ndx, Dwarf_Small** ret_data,
 		return (DW_DLV_NO_ENTRY);
 	}
 
-	d = e->eo_data[ndx];
+	ed = &e->eo_data[ndx];
 
-	if (d == NULL) {
-		if (error)
-			*error = DW_DLE_NO_ENTRY;
-		return (DW_DLV_NO_ENTRY);
+	if (ed->ed_alloc != NULL)
+		*ret_data = ed->ed_alloc;
+	else {
+		if (ed->ed_data == NULL) {
+			if (error)
+				*error = DW_DLE_NO_ENTRY;
+			return (DW_DLV_NO_ENTRY);
+		}
+		*ret_data = ed->ed_data->d_buf;
 	}
-
-	*ret_data = d->d_buf;
 
 	return (DW_DLV_OK);
 }
