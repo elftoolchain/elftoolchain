@@ -711,6 +711,7 @@ sysv_footer(void)
 	tbl_print("Total", 0);
 	tbl_print_num(text_size_total, radix, 1);
 	tbl_flush();
+	printf("\n\n");
 }
 
 /*
