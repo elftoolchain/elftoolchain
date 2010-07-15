@@ -87,29 +87,25 @@ enum radix_style {
 	RADIX_HEX
 };
 
-uint64_t bss_size, data_size, text_size, total_size;
-uint64_t bss_size_total, data_size_total, text_size_total;
+static uint64_t bss_size, data_size, text_size, total_size;
+static uint64_t bss_size_total, data_size_total, text_size_total;
+static int show_totals;
+static int size_option;
+static enum radix_style radix = RADIX_DECIMAL;
+static enum output_style style = STYLE_BERKELEY;
+static const char *default_args[2] = { "a.out", NULL };
 
-int show_totals;
-
-enum radix_style radix	= RADIX_DECIMAL;
-enum output_style style = STYLE_BERKELEY;
-
-const char *default_args[2] = { "a.out", NULL };
-
-enum {
-	OPT_FORMAT,
-	OPT_RADIX
-};
-
-struct {
+static struct {
 	int row;
 	int col;
 	int *width;
 	char ***tbl;
 } *tb;
 
-int	size_option;
+enum {
+	OPT_FORMAT,
+	OPT_RADIX
+};
 
 static struct option size_longopts[] = {
 	{ "format",	required_argument, &size_option, OPT_FORMAT },
@@ -120,25 +116,25 @@ static struct option size_longopts[] = {
 	{ NULL, 0, NULL, 0 }  
 };
 
-void	berkeley_calc(GElf_Shdr *);
-void	berkeley_footer(const char *, const char *, const char *);
-void	berkeley_header(void);
-void	berkeley_totals(void);
-int	handle_core(char const *, Elf *elf, GElf_Ehdr *);
-void	handle_core_note(Elf *, GElf_Ehdr *, GElf_Phdr *, char **);
-int	handle_elf(char const *);
-void	handle_phdr(Elf *, GElf_Ehdr *, GElf_Phdr *, uint32_t,
-    	    const char *);
-void	show_version(void);
-void	sysv_header(const char *, Elf_Arhdr *);
-void	sysv_footer(void);
-void	sysv_calc(Elf *, GElf_Ehdr *, GElf_Shdr *);
-void	usage(void);
-void	tbl_new(int);
-void	tbl_print(const char *, int);
-void	tbl_print_num(uint64_t, enum radix_style, int);
-void	tbl_append(void);
-void	tbl_flush(void);
+static void	berkeley_calc(GElf_Shdr *);
+static void	berkeley_footer(const char *, const char *, const char *);
+static void	berkeley_header(void);
+static void	berkeley_totals(void);
+static int	handle_core(char const *, Elf *elf, GElf_Ehdr *);
+static void	handle_core_note(Elf *, GElf_Ehdr *, GElf_Phdr *, char **);
+static int	handle_elf(char const *);
+static void	handle_phdr(Elf *, GElf_Ehdr *, GElf_Phdr *, uint32_t,
+		    const char *);
+static void	show_version(void);
+static void	sysv_header(const char *, Elf_Arhdr *);
+static void	sysv_footer(void);
+static void	sysv_calc(Elf *, GElf_Ehdr *, GElf_Shdr *);
+static void	usage(void);
+static void	tbl_new(int);
+static void	tbl_print(const char *, int);
+static void	tbl_print_num(uint64_t, enum radix_style, int);
+static void	tbl_append(void);
+static void	tbl_flush(void);
 
 /*
  * size utility using elf(3) and gelf(3) API to list section sizes and
@@ -287,7 +283,7 @@ xlatetom(Elf *elf, GElf_Ehdr *elfhdr, void *_src, void *_dst,
 /*
  * Parse individual note entries inside a PT_NOTE segment.
  */
-void
+static void
 handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
     char **cmd_line)
 {
@@ -458,7 +454,7 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
  * style only PT_LOAD segments are handled, and text,
  * data, bss size is calculated for them.
  */
-void
+static void
 handle_phdr(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
     uint32_t idx, const char *name)
 {
@@ -510,7 +506,7 @@ handle_phdr(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 /*
  * Given a core dump file, this function maps program headers to segments.
  */
-int
+static int
 handle_core(char const *name, Elf *elf, GElf_Ehdr *elfhdr)
 {
 	GElf_Phdr phdr;
@@ -594,7 +590,7 @@ handle_core(char const *name, Elf *elf, GElf_Ehdr *elfhdr)
  * and radix format the various sections and their length will be printed
  * or the size of the text, data, bss sections will be printed out.
  */
-int
+static int
 handle_elf(char const *name)
 {
 	GElf_Ehdr elfhdr;
@@ -674,7 +670,7 @@ handle_elf(char const *name)
 /*
  * Sysv formatting helper functions.
  */
-void
+static void
 sysv_header(const char *name, Elf_Arhdr *arhdr)
 {
 
@@ -690,7 +686,7 @@ sysv_header(const char *name, Elf_Arhdr *arhdr)
 	tbl_print("addr", 2);
 }
 
-void
+static void
 sysv_calc(Elf *elf, GElf_Ehdr *elfhdr, GElf_Shdr *shdr)
 {
 	char *section_name;
@@ -708,7 +704,7 @@ sysv_calc(Elf *elf, GElf_Ehdr *elfhdr, GElf_Shdr *shdr)
 	text_size_total += shdr->sh_size;
 }
 
-void
+static void
 sysv_footer(void)
 {
 	tbl_append();
@@ -720,7 +716,7 @@ sysv_footer(void)
 /*
  * berkeley style output formatting helper functions.
  */
-void
+static void
 berkeley_header(void)
 {
 	static int printed;
@@ -742,7 +738,7 @@ berkeley_header(void)
 	}
 }
 
-void
+static void
 berkeley_calc(GElf_Shdr *shdr)
 {
 	if (shdr != NULL) {
@@ -761,7 +757,7 @@ berkeley_calc(GElf_Shdr *shdr)
 	}
 }
 
-void
+static void
 berkeley_totals(void)
 {
 	long unsigned int grand_total;
@@ -778,7 +774,7 @@ berkeley_totals(void)
 	tbl_print_num(grand_total, RADIX_HEX, 4);
 }
 
-void
+static void
 berkeley_footer(const char *name, const char *ar_name, const char *msg)
 {
 	char buf[BUF_SIZE];
@@ -810,7 +806,7 @@ berkeley_footer(const char *name, const char *ar_name, const char *msg)
 }
 
 
-void
+static void
 tbl_new(int col)
 {
 
@@ -826,7 +822,7 @@ tbl_new(int col)
 	tb->row = 0;
 }
 
-void
+static void
 tbl_print(const char *s, int col)
 {
 	int len;
@@ -840,7 +836,7 @@ tbl_print(const char *s, int col)
 		tb->width[col] = len;
 }
 
-void
+static void
 tbl_print_num(uint64_t num, enum radix_style rad, int col)
 {
 	char buf[BUF_SIZE];
@@ -850,7 +846,7 @@ tbl_print_num(uint64_t num, enum radix_style rad, int col)
 	tbl_print(buf, col);
 }
 
-void
+static void
 tbl_append(void)
 {
 	int i;
@@ -865,7 +861,7 @@ tbl_append(void)
 	}
 }
 
-void
+static void
 tbl_flush(void)
 {
 	const char *str;
@@ -921,14 +917,14 @@ Usage: size [options] file ...\n\
   -t                 Equivalent to option --totals.\n\
   -x                 Equivalent to `--radix=16'.\n";
 
-void
+static void
 usage(void)
 {
 	(void) fprintf(stderr, "%s", usagemsg);
 	exit(EX_USAGE);
 }
 
-void
+static void
 show_version(void)
 {
 	(void) fprintf(stdout, SIZE_VERSION_STRING "\n");
