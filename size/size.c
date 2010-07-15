@@ -94,7 +94,6 @@ int show_totals;
 
 enum radix_style radix	= RADIX_DECIMAL;
 enum output_style style = STYLE_BERKELEY;
-int elfclass		= ELFCLASS32;
 
 const char *default_args[2] = { "a.out", NULL };
 
@@ -630,7 +629,6 @@ handle_elf(char const *name)
 			    arhdr->ar_name);
 			continue;
 		}
-		elfclass = elfhdr.e_ident[EI_CLASS];
 		/* Core dumps are handled seperately */
 		if (elfhdr.e_shnum == 0 && elfhdr.e_type == ET_CORE) {
 			exit_code = handle_core(name, elf, &elfhdr);
