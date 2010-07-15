@@ -25,9 +25,10 @@
  */
 
 #include <sys/cdefs.h>
-
+#include <assert.h>
 #include <err.h>
 #include <fcntl.h>
+#include <gelf.h>
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -36,15 +37,11 @@
 #include <sysexits.h>
 #include <unistd.h>
 
-#include <libelf.h>
-#include <gelf.h>
-
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
 
-#define	BUF_SIZE			40
-#define	DEFAULT_SECTION_NAME_LENGTH	19
+#define	BUF_SIZE			1024
 #define	ELF_ALIGN(val,x) (((val)+(x)-1) & ~((x)-1))
 #define	SIZE_VERSION_STRING		"size 1.0"
 
@@ -90,14 +87,14 @@ enum radix_style {
 	RADIX_HEX
 };
 
-uint32_t bss_size, data_size, text_size, total_size;
-uint32_t bss_size_total, data_size_total, text_size_total;
+uint64_t bss_size, data_size, text_size, total_size;
+uint64_t bss_size_total, data_size_total, text_size_total;
 
 int show_totals;
 
-size_t sec_name_len	= DEFAULT_SECTION_NAME_LENGTH;
 enum radix_style radix	= RADIX_DECIMAL;
 enum output_style style = STYLE_BERKELEY;
+int elfclass		= ELFCLASS32;
 
 const char *default_args[2] = { "a.out", NULL };
 
@@ -105,6 +102,13 @@ enum {
 	OPT_FORMAT,
 	OPT_RADIX
 };
+
+struct {
+	int row;
+	int col;
+	int *width;
+	char ***tbl;
+} *tb;
 
 int	size_option;
 
@@ -126,12 +130,16 @@ void	handle_core_note(Elf *, GElf_Ehdr *, GElf_Phdr *, char **);
 int	handle_elf(char const *);
 void	handle_phdr(Elf *, GElf_Ehdr *, GElf_Phdr *, uint32_t,
     	    const char *);
-void	print_number(int, uint32_t, enum radix_style, char);
 void	show_version(void);
 void	sysv_header(const char *, Elf_Arhdr *);
 void	sysv_footer(void);
-void	sysv_calc(Elf *, GElf_Ehdr *, GElf_Shdr *, int);
+void	sysv_calc(Elf *, GElf_Ehdr *, GElf_Shdr *);
 void	usage(void);
+void	tbl_new(int);
+void	tbl_print(const char *, int);
+void	tbl_print_num(uint64_t, enum radix_style, int);
+void	tbl_append(void);
+void	tbl_flush(void);
 
 /*
  * size utility using elf(3) and gelf(3) API to list section sizes and
@@ -225,8 +233,11 @@ main(int argc, char **argv)
 			      "%s: File format not recognized", fn);
 		files++;
 	}
-	if (style == STYLE_BERKELEY && show_totals)
-		berkeley_totals();
+	if (style == STYLE_BERKELEY) {
+		if (show_totals)
+			berkeley_totals();
+		tbl_flush();
+	}
         return (exitcode);
 }
 
@@ -342,17 +353,15 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 			if (raw_size != 0 && style == STYLE_SYSV) {
 				(void) snprintf(buf, BUF_SIZE, "%s/%d",
 				    ".reg", pid);
-				(void) printf("%-18s ", buf);
-				print_number(10, (uint32_t)raw_size,
-				    radix, ' ');
-				print_number(10, (uint32_t)0,
-				    radix, '\n');
+				tbl_append();
+				tbl_print(buf, 0);
+				tbl_print_num(raw_size, radix, 1);
+				tbl_print_num(0, radix, 2);
 				if (!reg_pseudo) {
-					(void) printf("%-18s ", ".reg");
-					print_number(10, (uint32_t)raw_size,
-					    radix, ' ');
-					print_number(10, (uint32_t)0, radix,
-					    '\n');
+					tbl_append();
+					tbl_print(".reg", 0);
+					tbl_print_num(raw_size, radix, 1);
+					tbl_print_num(0, radix, 2);
 					reg_pseudo = 1;
 					text_size_total += raw_size;
 				}
@@ -364,17 +373,16 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 			if (style == STYLE_SYSV) {
 				(void) snprintf(buf, BUF_SIZE,
 				    "%s/%d", ".reg2", pid);
-				(void) printf("%-18s ", buf);
-				print_number(10, (uint32_t)nhdr_l.n_descsz,
-				    radix, ' ');
-				print_number(10, (uint32_t)0, radix, '\n');
+				tbl_append();
+				tbl_print(buf, 0);
+				tbl_print_num(nhdr_l.n_descsz, radix, 1);
+				tbl_print_num(0, radix, 2);
 				if (!reg2_pseudo) {
-					(void) printf("%-18s ", ".reg2");
-					print_number(10,
-					    (uint32_t)nhdr_l.n_descsz,
-					    radix, ' ');
-					print_number(10, (uint32_t)0, radix,
-					    '\n');
+					tbl_append();
+					tbl_print(".reg2", 0);
+					tbl_print_num(nhdr_l.n_descsz, radix,
+					    1);
+					tbl_print_num(0, radix, 2);
 					reg2_pseudo = 1;
 					text_size_total += nhdr_l.n_descsz;
 				}
@@ -383,28 +391,27 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 			break;
 		case NT_AUXV:
 			if (style == STYLE_SYSV) {
-				(void) printf("%-18s ", ".auxv");
-				print_number(10, (uint32_t)nhdr_l.n_descsz,
-				    radix, ' ');
-				print_number(10, (uint32_t)0, radix, '\n');
+				tbl_append();
+				tbl_print(".auxv", 0);
+				tbl_print_num(nhdr_l.n_descsz, radix, 1);
+				tbl_print_num(0, radix, 2);
 				text_size_total += nhdr_l.n_descsz;
 			}
 			break;
 		case NT_PRXFPREG:
 			if (style == STYLE_SYSV) {
-				(void) snprintf(buf, BUF_SIZE,
-				    "%s/%d", ".reg-xfp", pid);
-				(void) printf("%-18s ", buf);
-				print_number(10, (uint32_t)nhdr_l.n_descsz,
-				    radix, ' ');
-				print_number(10, (uint32_t)0, radix, '\n');
+				(void) snprintf(buf, BUF_SIZE, "%s/%d",
+				    ".reg-xfp", pid);
+				tbl_append();
+				tbl_print(buf, 0);
+				tbl_print_num(nhdr_l.n_descsz, radix, 1);
+				tbl_print_num(0, radix, 2);
 				if (!regxfp_pseudo) {
-					(void) printf("%-18s ", ".reg-xfp");
-					print_number(10,
-					    (uint32_t)nhdr_l.n_descsz,
-					    radix, ' ');
-					print_number(10, (uint32_t)0,
-					    radix, '\n');
+					tbl_append();
+					tbl_print(".reg-xfp", 0);
+					tbl_print_num(nhdr_l.n_descsz, radix,
+					    1);
+					tbl_print_num(0, radix, 2);
 					regxfp_pseudo = 1;
 					text_size_total += nhdr_l.n_descsz;
 				}
@@ -456,7 +463,7 @@ void
 handle_phdr(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
     uint32_t idx, const char *name)
 {
-	uint32_t addr, size;
+	uint64_t addr, size;
 	int split;
 	char buf[BUF_SIZE];
 
@@ -470,19 +477,21 @@ handle_phdr(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 	if (style == STYLE_SYSV) {
 		(void) snprintf(buf, BUF_SIZE,
 		    "%s%d%s", name, idx, (split ? "a" : ""));
-		(void) printf("%-18s ", buf);
-		print_number(10, (uint32_t)phdr->p_filesz, radix, ' ');
-		print_number(10, (uint32_t)phdr->p_vaddr, radix, '\n');
+		tbl_append();
+		tbl_print(buf, 0);
+		tbl_print_num(phdr->p_filesz, radix, 1);
+		tbl_print_num(phdr->p_vaddr, radix, 2);
 		text_size_total += phdr->p_filesz;
 		if (split) {
-			size = (uint32_t)(phdr->p_memsz - phdr->p_filesz);
-			addr = (uint32_t)(phdr->p_vaddr + phdr->p_filesz);
+			size = phdr->p_memsz - phdr->p_filesz;
+			addr = phdr->p_vaddr + phdr->p_filesz;
 			(void) snprintf(buf, BUF_SIZE, "%s%d%s", name,
 			    idx, "b");
 			text_size_total += phdr->p_memsz - phdr->p_filesz;
-			(void) printf("%-18s ", buf);
-			print_number(10, size, radix, ' ');
-			print_number(10, addr, radix, '\n');
+			tbl_append();
+			tbl_print(buf, 0);
+			tbl_print_num(size, radix, 1);
+			tbl_print_num(addr, radix, 2);
 		}
 	} else {
 		if (phdr->p_type != PT_LOAD)
@@ -621,6 +630,7 @@ handle_elf(char const *name)
 			    arhdr->ar_name);
 			continue;
 		}
+		elfclass = elfhdr.e_ident[EI_CLASS];
 		/* Core dumps are handled seperately */
 		if (elfhdr.e_shnum == 0 && elfhdr.e_type == ET_CORE) {
 			exit_code = handle_core(name, elf, &elfhdr);
@@ -637,22 +647,11 @@ handle_elf(char const *name)
 						berkeley_calc(&shdr);
 				}
 			} else {
-				/*
-				 * Perform a dry run to find the length of
-				 * the largest segment name.
-				 */
-				while ((scn = elf_nextscn(elf, scn)) != NULL) {
-					if (gelf_getshdr(scn, &shdr) !=	NULL) {
-						sysv_calc(elf, &elfhdr,
-						    &shdr, 1);
-					}
-				}
 				sysv_header(name, arhdr);
 				scn = NULL;
 				while ((scn = elf_nextscn(elf, scn)) != NULL) {
 					if (gelf_getshdr(scn, &shdr) !=	NULL)
-						sysv_calc(elf, &elfhdr,
-						    &shdr, 0);
+						sysv_calc(elf, &elfhdr, &shdr);
 				}
 			}
 			if (style == STYLE_BERKELEY) {
@@ -674,63 +673,50 @@ handle_elf(char const *name)
 	return (EX_OK);
 }
 
-void
-print_number(int width, uint32_t num, enum radix_style rad, char c)
-{
-	char buffer[BUF_SIZE];
-
-	(void) snprintf(buffer, BUF_SIZE, (rad == RADIX_DECIMAL ? "%lu" :
-	    ((rad == RADIX_OCTAL) ? "0%lo" : "0x%lx")),
-	    (unsigned long int)num);
-	(void) printf("%-*s%c", width, buffer, c);
-}
-
 /*
  * Sysv formatting helper functions.
  */
 void
 sysv_header(const char *name, Elf_Arhdr *arhdr)
 {
+
 	text_size_total = 0;
-	if (arhdr != NULL) {
-		(void) printf("%s   (ex %s):\n%-*s%-10s %-10s\n",
-		    arhdr->ar_name, name, (int)sec_name_len,
-		    "section","size","addr");
-	} else {
-		(void) printf("%s  :\n%-*s%-10s %-10s\n",
-		    name, (int)sec_name_len, "section",
-		    "size", "addr");
-	}
+	if (arhdr != NULL)
+		(void) printf("%s   (ex %s):\n", arhdr->ar_name, name);
+	else
+		(void) printf("%s  :\n", name);
+	tbl_new(3);
+	tbl_append();
+	tbl_print("section", 0);
+	tbl_print("size", 1);
+	tbl_print("addr", 2);
 }
 
 void
-sysv_calc(Elf *elf, GElf_Ehdr *elfhdr, GElf_Shdr *shdr, int dry_run)
+sysv_calc(Elf *elf, GElf_Ehdr *elfhdr, GElf_Shdr *shdr)
 {
 	char *section_name;
 
 	section_name = elf_strptr(elf, elfhdr->e_shstrndx,
-					(size_t)shdr->sh_name);
-	if (!dry_run) {
-		if ((shdr->sh_type == SHT_SYMTAB ||
-		    shdr->sh_type == SHT_STRTAB || shdr->sh_type == SHT_RELA ||
-		    shdr->sh_type == SHT_REL) && shdr->sh_addr == 0)
-			return;
-		(void) printf("%-*s", (int)sec_name_len, section_name);
-		print_number(10, (uint32_t)shdr->sh_size, radix, ' ');
-		print_number(10, (uint32_t)shdr->sh_addr, radix, '\n');
-		text_size_total += shdr->sh_size;
-	} else {
-		if (sec_name_len < strlen(section_name))
-			sec_name_len = strlen(section_name) + 3;
-	}
+	    (size_t) shdr->sh_name);
+	if ((shdr->sh_type == SHT_SYMTAB ||
+	    shdr->sh_type == SHT_STRTAB || shdr->sh_type == SHT_RELA ||
+	    shdr->sh_type == SHT_REL) && shdr->sh_addr == 0)
+		return;
+	tbl_append();
+	tbl_print(section_name, 0);
+	tbl_print_num(shdr->sh_size, radix, 1);
+	tbl_print_num(shdr->sh_addr, radix, 2);
+	text_size_total += shdr->sh_size;
 }
 
 void
 sysv_footer(void)
 {
-	(void) printf("%-*s", (int)sec_name_len, "Total");
-	print_number(10, text_size_total, radix, '\n');
-	(void) printf("\n");
+	tbl_append();
+	tbl_print("Total", 0);
+	tbl_print_num(text_size_total, radix, 1);
+	tbl_flush();
 }
 
 /*
@@ -739,7 +725,23 @@ sysv_footer(void)
 void
 berkeley_header(void)
 {
+	static int printed;
+
 	text_size = data_size = bss_size = 0;
+	if (!printed) {
+		tbl_new(6);
+		tbl_append();
+		tbl_print("text", 0);
+		tbl_print("data", 1);
+		tbl_print("bss", 2);
+		if (radix == RADIX_OCTAL)
+			tbl_print("oct", 3);
+		else
+			tbl_print("dec", 3);
+		tbl_print("hex", 4);
+		tbl_print("filename", 5);
+		printed = 1;
+	}
 }
 
 void
@@ -767,29 +769,21 @@ berkeley_totals(void)
 	long unsigned int grand_total;
 
 	grand_total = text_size_total + data_size_total + bss_size_total;
-	print_number(10, text_size_total, radix, ' ');
-	print_number(10, data_size_total, radix, ' ');
-	print_number(10, bss_size_total, radix, ' ');
+	tbl_append();
+	tbl_print_num(text_size_total, radix, 0);
+	tbl_print_num(data_size_total, radix, 1);
+	tbl_print_num(bss_size_total, radix, 2);
 	if (radix == RADIX_OCTAL)
-		print_number(10, grand_total, RADIX_OCTAL, ' ');
+		tbl_print_num(grand_total, RADIX_OCTAL, 3);
 	else
-		print_number(10, grand_total, RADIX_DECIMAL, ' ');
-	(void) printf("%-10lx (TOTALS)\n", grand_total);
+		tbl_print_num(grand_total, RADIX_DECIMAL, 3);
+	tbl_print_num(grand_total, RADIX_HEX, 4);
 }
 
 void
 berkeley_footer(const char *name, const char *ar_name, const char *msg)
 {
-	static int header_printed;
-	const char *col_name;
-
-	if (!header_printed) {
-		(radix == RADIX_OCTAL) ? (col_name = "oct") :
-		    (col_name = "dec");
-		(void) printf("%-10s %-10s %-10s %-10s %-10s filename\n",
-		    "text","data","bss",col_name,"hex");
-		header_printed = 1;
-	}
+	char buf[BUF_SIZE];
 
 	total_size = text_size + data_size + bss_size;
 	if (show_totals) {
@@ -798,20 +792,115 @@ berkeley_footer(const char *name, const char *ar_name, const char *msg)
 		data_size_total += data_size;
 	}
 
-	print_number(10, text_size, radix, ' ');
-	print_number(10, data_size, radix, ' ');
-	print_number(10, bss_size, radix, ' ');
+	tbl_append();
+	tbl_print_num(text_size, radix, 0);
+	tbl_print_num(data_size, radix, 1);
+	tbl_print_num(bss_size, radix, 2);
 	if (radix == RADIX_OCTAL)
-		print_number(10, total_size, RADIX_OCTAL, ' ');
+		tbl_print_num(total_size, RADIX_OCTAL, 3);
 	else
-		print_number(10, total_size, RADIX_DECIMAL, ' ');
-	(void) printf("%-10lx\t", (long unsigned int)total_size);
+		tbl_print_num(total_size, RADIX_DECIMAL, 3);
+	tbl_print_num(total_size, RADIX_HEX, 4);
 	if (ar_name != NULL && name != NULL)
-		(void) printf("%s (%s %s)\n", ar_name, msg, name);
+		(void) snprintf(buf, BUF_SIZE, "%s (%s %s)", ar_name, msg,
+		    name);
 	else if (ar_name != NULL && name == NULL)
-		(void) printf("%s (%s)\n", ar_name, msg);
+		(void) snprintf(buf, BUF_SIZE, "%s (%s)", ar_name, msg);
 	else
-		(void) printf("%s\n", name);
+		(void) snprintf(buf, BUF_SIZE, "%s", name);
+	tbl_print(buf, 5);
+}
+
+
+void
+tbl_new(int col)
+{
+
+	assert(tb == NULL);
+	assert(col > 0);
+	if ((tb = calloc(1, sizeof(*tb))) == NULL)
+		err(EX_SOFTWARE, "calloc");
+	if ((tb->tbl = calloc(col, sizeof(*tb->tbl))) == NULL)
+		err(EX_SOFTWARE, "calloc");
+	if ((tb->width = calloc(col, sizeof(*tb->width))) == NULL)
+		err(EX_SOFTWARE, "calloc");
+	tb->col = col;
+	tb->row = 0;
+}
+
+void
+tbl_print(const char *s, int col)
+{
+	int len;
+
+	assert(tb != NULL && tb->col > 0 && tb->row > 0 && col < tb->col);
+	assert(s != NULL && tb->tbl[col][tb->row - 1] == NULL);
+	if ((tb->tbl[col][tb->row - 1] = strdup(s)) == NULL)
+		err(EX_SOFTWARE, "strdup");
+	len = strlen(s);
+	if (len > tb->width[col])
+		tb->width[col] = len;
+}
+
+void
+tbl_print_num(uint64_t num, enum radix_style rad, int col)
+{
+	char buf[BUF_SIZE];
+
+	(void) snprintf(buf, BUF_SIZE, (rad == RADIX_DECIMAL ? "%ju" :
+	    ((rad == RADIX_OCTAL) ? "0%jo" : "0x%jx")), (uintmax_t) num);
+	tbl_print(buf, col);
+}
+
+void
+tbl_append(void)
+{
+	int i;
+
+	assert(tb != NULL && tb->col > 0);
+	tb->row++;
+	for (i = 0; i < tb->col; i++) {
+		tb->tbl[i] = realloc(tb->tbl[i], sizeof(*tb->tbl[i]) * tb->row);
+		if (tb->tbl[i] == NULL)
+			err(EX_SOFTWARE, "realloc");
+		tb->tbl[i][tb->row - 1] = NULL;
+	}
+}
+
+void
+tbl_flush(void)
+{
+	const char *str;
+	int i, j;
+
+	assert(tb != NULL && tb->col > 0);
+	for (i = 0; i < tb->row; i++) {
+		if (style == STYLE_BERKELEY)
+			printf("  ");
+		for (j = 0; j < tb->col; j++) {
+			str = (tb->tbl[j][i] != NULL ? tb->tbl[j][i] : "");
+			if (style == STYLE_SYSV && j == 0)
+				printf("%-*s", tb->width[j], str);
+			else if (style == STYLE_BERKELEY && j == tb->col - 1)
+				printf("%s", str);
+			else
+				printf("%*s", tb->width[j], str);
+			if (j == tb->col -1)
+				putchar('\n');
+			else
+				printf("   ");
+		}
+	}
+
+	for (i = 0; i < tb->col; i++) {
+		for (j = 0; j < tb->row; j++) {
+			if (tb->tbl[i][j])
+				free(tb->tbl[i][j]);
+		}
+		free(tb->tbl[i]);
+	}
+	free(tb);
+	tb = NULL;
 }
 
 static const char *usagemsg = "\
