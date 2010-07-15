@@ -894,6 +894,7 @@ tbl_flush(void)
 		}
 		free(tb->tbl[i]);
 	}
+	free(tb->width);
 	free(tb);
 	tb = NULL;
 }
