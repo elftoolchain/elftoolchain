@@ -281,14 +281,14 @@ static const char *st_bind(unsigned int sbind);
 static const char *st_shndx(unsigned int shndx);
 static const char *st_type(unsigned int stype);
 static const char *top_tag(unsigned int tag);
-static uint64_t _dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp,
-		    int bytes_to_read);
-static uint64_t _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp,
-		    int bytes_to_read);
-uint64_t _dwarf_decode_lsb(uint8_t **data, int bytes_to_read);
-uint64_t _dwarf_decode_msb(uint8_t **data, int bytes_to_read);
-int64_t	 _dwarf_decode_sleb128(uint8_t **dp);
-uint64_t _dwarf_decode_uleb128(uint8_t **dp);
+static uint64_t _read_lsb(Elf_Data *d, uint64_t *offsetp,
+    int bytes_to_read);
+static uint64_t _read_msb(Elf_Data *d, uint64_t *offsetp,
+    int bytes_to_read);
+static uint64_t _decode_lsb(uint8_t **data, int bytes_to_read);
+static uint64_t _decode_msb(uint8_t **data, int bytes_to_read);
+static int64_t _decode_sleb128(uint8_t **dp);
+static uint64_t _decode_uleb128(uint8_t **dp);
 
 static const char *
 elf_osabi(unsigned int abi)
@@ -3031,7 +3031,7 @@ dump_unknown_tag(uint64_t tag, uint8_t *p)
 		printf("%s\n", (char *) p);
 		p += strlen((char *) p) + 1;
 	} else {
-		val = _dwarf_decode_uleb128(&p);
+		val = _decode_uleb128(&p);
 		printf("%ju\n", (uintmax_t) val);
 	}
 
@@ -3043,7 +3043,7 @@ dump_compatibility_tag(uint8_t *p)
 {
 	uint64_t val;
 
-	val = _dwarf_decode_uleb128(&p);
+	val = _decode_uleb128(&p);
 	printf("flag = %ju, vendor = %s\n", val, p);
 	p += strlen((char *) p) + 1;
 
@@ -3060,7 +3060,7 @@ dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
 	(void) re;
 
 	while (p < pe) {
-		tag = _dwarf_decode_uleb128(&p);
+		tag = _decode_uleb128(&p);
 		found = desc = 0;
 		for (i = 0; i < sizeof(aeabi_tags) / sizeof(aeabi_tags[0]);
 		     i++) {
@@ -3069,7 +3069,7 @@ dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
 				printf("  %s: ", aeabi_tags[i].s_tag);
 				if (aeabi_tags[i].get_desc) {
 					desc = 1;
-					val = _dwarf_decode_uleb128(&p);
+					val = _decode_uleb128(&p);
 					printf("%s\n",
 					    aeabi_tags[i].get_desc(val));
 				}
@@ -3097,17 +3097,17 @@ dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
 			break;
 		case 64:	/* Tag_nodefaults */
 			/* ignored, written as 0. */
-			(void) _dwarf_decode_uleb128(&p);
+			(void) _decode_uleb128(&p);
 			printf("True\n");
 			break;
 		case 65:	/* Tag_also_compatible_with */
-			val = _dwarf_decode_uleb128(&p);
+			val = _decode_uleb128(&p);
 			/* Must be Tag_CPU_arch */
 			if (val != 6) {
 				printf("unknown\n");
 				break;
 			}
-			val = _dwarf_decode_uleb128(&p);
+			val = _decode_uleb128(&p);
 			printf("%s\n", aeabi_cpu_arch(val));
 			/* Skip NUL terminator. */
 			p++;
@@ -3131,10 +3131,10 @@ dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe)
 	(void) re;
 
 	while (p < pe) {
-		tag = _dwarf_decode_uleb128(&p);
+		tag = _decode_uleb128(&p);
 		switch (tag) {
 		case Tag_GNU_MIPS_ABI_FP:
-			val = _dwarf_decode_uleb128(&p);
+			val = _decode_uleb128(&p);
 			printf("  Tag_GNU_MIPS_ABI_FP: %s\n", mips_abi_fp(val));
 			break;
 		case 32:	/* Tag_compatibility */
@@ -3161,14 +3161,14 @@ dump_ppc_attributes(uint8_t *p, uint8_t *pe)
 	uint64_t tag, val;
 
 	while (p < pe) {
-		tag = _dwarf_decode_uleb128(&p);
+		tag = _decode_uleb128(&p);
 		switch (tag) {
 		case Tag_GNU_Power_ABI_FP:
-			val = _dwarf_decode_uleb128(&p);
+			val = _decode_uleb128(&p);
 			printf("  Tag_GNU_Power_ABI_FP: %s\n", ppc_abi_fp(val));
 			break;
 		case Tag_GNU_Power_ABI_Vector:
-			val = _dwarf_decode_uleb128(&p);
+			val = _decode_uleb128(&p);
 			printf("  Tag_GNU_Power_ABI_Vector: %s\n",
 			    ppc_abi_vector(val));
 			break;
@@ -3240,7 +3240,7 @@ dump_attributes(struct readelf *re)
 				if (tag == 2 || tag == 3) {
 					putchar(':');
 					for (;;) {
-						val = _dwarf_decode_uleb128(&p);
+						val = _decode_uleb128(&p);
 						if (val == 0)
 							break;
 						printf(" %ju", (uintmax_t) val);
@@ -3379,9 +3379,9 @@ dump_dwarf_line(struct readelf *re)
 			i++;
 			pn = (char *) p;
 			p += strlen(pn) + 1;
-			dirndx = _dwarf_decode_uleb128(&p);
-			mtime = _dwarf_decode_uleb128(&p);
-			fsize = _dwarf_decode_uleb128(&p);
+			dirndx = _decode_uleb128(&p);
+			mtime = _decode_uleb128(&p);
+			fsize = _decode_uleb128(&p);
 			printf("  %d\t%ju\t%ju\t%ju\t%s\n", i,
 			    (uintmax_t) dirndx, (uintmax_t) mtime,
 			    (uintmax_t) fsize, pn);
@@ -3417,7 +3417,7 @@ dump_dwarf_line(struct readelf *re)
 				 * Extended Opcodes.
 				 */
 				p++;
-				opsize = _dwarf_decode_uleb128(&p);
+				opsize = _decode_uleb128(&p);
 				printf("  Extended opcode %u: ", *p);
 				switch (*p) {
 				case DW_LNE_end_sequence:
@@ -3437,9 +3437,9 @@ dump_dwarf_line(struct readelf *re)
 					p++;
 					pn = (char *) p;
 					p += strlen(pn) + 1;
-					dirndx = _dwarf_decode_uleb128(&p);
-					mtime = _dwarf_decode_uleb128(&p);
-					fsize = _dwarf_decode_uleb128(&p);
+					dirndx = _decode_uleb128(&p);
+					mtime = _decode_uleb128(&p);
+					fsize = _decode_uleb128(&p);
 					printf("define new file: %s\n", pn);
 					break;
 				default:
@@ -3459,7 +3459,7 @@ dump_dwarf_line(struct readelf *re)
 					printf("  Copy\n");
 					break;
 				case DW_LNS_advance_pc:
-					udelta = _dwarf_decode_uleb128(&p) *
+					udelta = _decode_uleb128(&p) *
 					    minlen;
 					address += udelta;
 					printf("  Advance PC by %ju to %#jx\n",
@@ -3467,19 +3467,19 @@ dump_dwarf_line(struct readelf *re)
 					    (uintmax_t) address);
 					break;
 				case DW_LNS_advance_line:
-					sdelta = _dwarf_decode_sleb128(&p);
+					sdelta = _decode_sleb128(&p);
 					line += sdelta;
 					printf("  Advance Line by %jd to %ju\n",
 					    (intmax_t) sdelta,
 					    (uintmax_t) line);
 					break;
 				case DW_LNS_set_file:
-					file = _dwarf_decode_uleb128(&p);
+					file = _decode_uleb128(&p);
 					printf("  Set File to %ju\n",
 					    (uintmax_t) file);
 					break;
 				case DW_LNS_set_column:
-					column = _dwarf_decode_uleb128(&p);
+					column = _decode_uleb128(&p);
 					printf("  Set Column to %ju\n",
 					    (uintmax_t) column);
 					break;
@@ -3515,7 +3515,7 @@ dump_dwarf_line(struct readelf *re)
 					printf("  Set epilogue begin flag\n");
 					break;
 				case DW_LNS_set_isa:
-					isa = _dwarf_decode_uleb128(&p);
+					isa = _decode_uleb128(&p);
 					printf("  Set isa to %ju\n", isa);
 					break;
 				default:
@@ -5045,11 +5045,11 @@ dump_elf(struct readelf *re)
 		return;
 	}
 	if (re->ehdr.e_ident[EI_DATA] == ELFDATA2MSB) {
-		re->dw_read = _dwarf_read_msb;
-		re->dw_decode = _dwarf_decode_msb;
+		re->dw_read = _read_msb;
+		re->dw_decode = _decode_msb;
 	} else {
-		re->dw_read = _dwarf_read_lsb;
-		re->dw_decode = _dwarf_decode_lsb;
+		re->dw_read = _read_lsb;
+		re->dw_decode = _decode_lsb;
 	}
 
 	if (re->options & ~RE_H)
@@ -5335,12 +5335,8 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 	free(bp);
 }
 
-/*
- * Dwarf helper functions.
- */
-
 static uint64_t
-_dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
+_read_lsb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 {
 	uint64_t ret;
 	uint8_t *src;
@@ -5369,7 +5365,7 @@ _dwarf_read_lsb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 }
 
 static uint64_t
-_dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
+_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 {
 	uint64_t ret;
 	uint8_t *src;
@@ -5398,6 +5394,114 @@ _dwarf_read_msb(Elf_Data *d, uint64_t *offsetp, int bytes_to_read)
 	}
 
 	*offsetp += bytes_to_read;
+
+	return (ret);
+}
+
+static uint64_t
+_decode_lsb(uint8_t **data, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = *data;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 8:
+		ret |= ((uint64_t) src[4]) << 32 | ((uint64_t) src[5]) << 40;
+		ret |= ((uint64_t) src[6]) << 48 | ((uint64_t) src[7]) << 56;
+	case 4:
+		ret |= ((uint64_t) src[2]) << 16 | ((uint64_t) src[3]) << 24;
+	case 2:
+		ret |= ((uint64_t) src[1]) << 8;
+	case 1:
+		ret |= src[0];
+		break;
+	default:
+		return (0);
+	}
+
+	*data += bytes_to_read;
+
+	return (ret);
+}
+
+static uint64_t
+_decode_msb(uint8_t **data, int bytes_to_read)
+{
+	uint64_t ret;
+	uint8_t *src;
+
+	src = *data;
+
+	ret = 0;
+	switch (bytes_to_read) {
+	case 1:
+		ret = src[0];
+		break;
+	case 2:
+		ret = src[1] | ((uint64_t) src[0]) << 8;
+		break;
+	case 4:
+		ret = src[3] | ((uint64_t) src[2]) << 8;
+		ret |= ((uint64_t) src[1]) << 16 | ((uint64_t) src[0]) << 24;
+		break;
+	case 8:
+		ret = src[7] | ((uint64_t) src[6]) << 8;
+		ret |= ((uint64_t) src[5]) << 16 | ((uint64_t) src[4]) << 24;
+		ret |= ((uint64_t) src[3]) << 32 | ((uint64_t) src[2]) << 40;
+		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
+		break;
+	default:
+		return (0);
+		break;
+	}
+
+	*data += bytes_to_read;
+
+	return (ret);
+}
+
+static int64_t
+_decode_sleb128(uint8_t **dp)
+{
+	int64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+		ret |= ((b & 0x7f) << shift);
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	if (shift < 32 && (b & 0x40) != 0)
+		ret |= (-1 << shift);
+
+	*dp = src;
+
+	return (ret);
+}
+
+static uint64_t
+_decode_uleb128(uint8_t **dp)
+{
+	uint64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+		ret |= ((b & 0x7f) << shift);
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	*dp = src;
 
 	return (ret);
 }
