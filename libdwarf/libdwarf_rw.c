@@ -48,7 +48,7 @@ _dwarf_read_lsb(uint8_t *data, uint64_t *offsetp, int bytes_to_read)
 		ret |= src[0];
 		break;
 	default:
-		return 0;
+		return (0);
 	}
 
 	*offsetp += bytes_to_read;
@@ -77,12 +77,12 @@ _dwarf_decode_lsb(uint8_t **data, int bytes_to_read)
 		ret |= src[0];
 		break;
 	default:
-		return 0;
+		return (0);
 	}
 
 	*data += bytes_to_read;
 
-	return ret;
+	return (ret);
 }
 
 uint64_t
@@ -111,12 +111,12 @@ _dwarf_read_msb(uint8_t *data, uint64_t *offsetp, int bytes_to_read)
 		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
 		break;
 	default:
-		return 0;
+		return (0);
 	}
 
 	*offsetp += bytes_to_read;
 
-	return ret;
+	return (ret);
 }
 
 uint64_t
@@ -146,13 +146,13 @@ _dwarf_decode_msb(uint8_t **data, int bytes_to_read)
 		ret |= ((uint64_t) src[1]) << 48 | ((uint64_t) src[0]) << 56;
 		break;
 	default:
-		return 0;
+		return (0);
 		break;
 	}
 
 	*data += bytes_to_read;
 
-	return ret;
+	return (ret);
 }
 
 void
