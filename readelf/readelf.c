@@ -34,6 +34,7 @@
 #include <gelf.h>
 #include <getopt.h>
 #include <libdwarf.h>
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,12 +109,13 @@ typedef struct {
 #define	DW_FF	0x00000002
 #define	DW_F	0x00000004
 #define	DW_I	0x00000008
-#define	DW_L	0x00000010
-#define	DW_M	0x00000020
-#define	DW_O	0x00000040
-#define	DW_P	0x00000080
-#define	DW_R	0x00000100
-#define	DW_S	0x00000200
+#define	DW_LL	0x00000010
+#define	DW_L	0x00000020
+#define	DW_M	0x00000040
+#define	DW_O	0x00000080
+#define	DW_P	0x00000100
+#define	DW_R	0x00000200
+#define	DW_S	0x00000400
 
 /*
  * readelf(1) run control flags.
@@ -3554,6 +3556,58 @@ dump_dwarf_line(struct readelf *re)
 }
 
 static void
+dump_dwarf_line_decoded(struct readelf *re)
+{
+	Dwarf_Die die;
+	Dwarf_Line *linebuf, ln;
+	Dwarf_Addr lineaddr;
+	Dwarf_Signed linecount, srccount;
+	Dwarf_Unsigned lineno, fn;
+	Dwarf_Error de;
+	const char *dir, *file;
+	char **srcfiles;
+	int i, ret;
+
+	printf("Decoded dump of debug contents of section .debug_line:\n\n");
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
+	    NULL, &de)) == DW_DLV_OK) {
+		if (dwarf_siblingof(re->dbg, NULL, &die, &de) != DW_DLV_OK)
+			continue;
+		if (dwarf_attrval_string(die, DW_AT_name, &file, &de) !=
+		    DW_DLV_OK)
+			file = NULL;
+		if (dwarf_attrval_string(die, DW_AT_comp_dir, &dir, &de) !=
+		    DW_DLV_OK)
+			dir = NULL;
+		printf("CU: ");
+		if (dir && file)
+			printf("%s/", dir);
+		if (file)
+			printf("%s", file);
+		putchar('\n');
+		printf("%-37s %11s   %s\n", "Filename", "Line Number",
+		    "Starting Address");
+		if (dwarf_srclines(die, &linebuf, &linecount, &de) != DW_DLV_OK)
+			continue;
+		if (dwarf_srcfiles(die, &srcfiles, &srccount, &de) != DW_DLV_OK)
+			continue;
+		for (i = 0; i < linecount; i++) {
+			ln = linebuf[i];
+			if (dwarf_line_srcfileno(ln, &fn, &de) != DW_DLV_OK)
+				continue;
+			if (dwarf_lineno(ln, &lineno, &de) != DW_DLV_OK)
+				continue;
+			if (dwarf_lineaddr(ln, &lineaddr, &de) != DW_DLV_OK)
+				continue;
+			printf("%-37s %11ju %#18jx\n",
+			    basename(srcfiles[fn - 1]), (uintmax_t) lineno,
+			    (uintmax_t) lineaddr);
+		}
+		putchar('\n');
+	}
+}
+
+static void
 dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 {
 	Dwarf_Attribute *attr_list;
@@ -5094,6 +5148,8 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_abbrev(re);
 	if (re->dop & DW_L)
 		dump_dwarf_line(re);
+	if (re->dop & DW_LL)
+		dump_dwarf_line_decoded(re);
 	if (re->dop & DW_I)
 		dump_dwarf_info(re);
 	if (re->dop & DW_P)
@@ -5285,7 +5341,8 @@ static struct {
 	char sn;
 	int value;
 } dwarf_op[] = {
-	{"line", 'l', DW_L},
+	{"rawline", 'l', DW_L},
+	{"decodedline", 'L', DW_LL},
 	{"info", 'i', DW_I},
 	{"abbrev", 'a', DW_A},
 	{"pubnames", 'p', DW_P},
