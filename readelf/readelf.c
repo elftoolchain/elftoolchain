@@ -114,8 +114,9 @@ typedef struct {
 #define	DW_M	0x00000040
 #define	DW_O	0x00000080
 #define	DW_P	0x00000100
-#define	DW_R	0x00000200
-#define	DW_S	0x00000400
+#define	DW_RR	0x00000200
+#define	DW_R	0x00000400
+#define	DW_S	0x00000800
 
 /*
  * readelf(1) run control flags.
@@ -4119,6 +4120,122 @@ dump_dwarf_aranges(struct readelf *re)
 }
 
 static void
+dump_dwarf_ranges_foreach(struct readelf *re, Dwarf_Die die, Dwarf_Addr base)
+{
+	Dwarf_Attribute *attr_list;
+	Dwarf_Ranges *ranges;
+	Dwarf_Die ret_die;
+	Dwarf_Error de;
+	Dwarf_Addr base0;
+	Dwarf_Half attr;
+	Dwarf_Signed cnt;
+	Dwarf_Unsigned off, attr_count, bytecnt;
+	int i, j, ret;
+
+	if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
+	    DW_DLV_OK) {
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
+		goto cont_search;
+	}
+
+	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+		if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
+			warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (attr != DW_AT_ranges)
+			continue;
+		if (dwarf_formudata(attr_list[i], &off, &de) != DW_DLV_OK) {
+			warnx("dwarf_formudata failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		if (dwarf_get_ranges(re->dbg, (Dwarf_Off) off, &ranges, &cnt,
+		    &bytecnt, &de) != DW_DLV_OK)
+			continue;
+		base0 = base;
+		for (j = 0; j < cnt; j++) {
+			printf("    %08jx ", (uintmax_t) off);
+			if (ranges[j].dwr_type == DW_RANGES_END) {
+				printf("%s\n", "<End of list>");
+				continue;
+			} else if (ranges[j].dwr_type ==
+			    DW_RANGES_ADDRESS_SELECTION) {
+				base0 = ranges[j].dwr_addr2;
+				continue;
+			}
+			if (re->ec == ELFCLASS32)
+				printf("%08jx %08jx\n",
+				    ranges[j].dwr_addr1 + base0,
+				    ranges[j].dwr_addr2 + base0);
+			else
+				printf("%016jx %016jx\n",
+				    ranges[j].dwr_addr1 + base0,
+				    ranges[j].dwr_addr2 + base0);
+		}
+	}
+
+cont_search:
+	/* Search children. */
+	ret = dwarf_child(die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_child: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		dump_dwarf_ranges_foreach(re, ret_die, base);
+
+	/* Search sibling. */
+	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		dump_dwarf_ranges_foreach(re, ret_die, base);
+}
+
+static void
+dump_dwarf_ranges(struct readelf *re)
+{
+	Dwarf_Ranges *ranges;
+	Dwarf_Die die;
+	Dwarf_Signed cnt;
+	Dwarf_Unsigned bytecnt;
+	Dwarf_Half tag;
+	Dwarf_Error de;
+	Dwarf_Unsigned lowpc;
+	int ret;
+
+	if (dwarf_get_ranges(re->dbg, 0, &ranges, &cnt, &bytecnt, &de) !=
+	    DW_DLV_OK)
+		return;
+
+	printf("Contents of the .debug_ranges section:\n\n");
+	if (re->ec == ELFCLASS32)
+		printf("    %-8s %-8s %s\n", "Offset", "Begin", "End");
+	else
+		printf("    %-8s %-16s %s\n", "Offset", "Begin", "End");
+
+	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
+	    NULL, &de)) == DW_DLV_OK) {
+		die = NULL;
+		if (dwarf_siblingof(re->dbg, die, &die, &de) != DW_DLV_OK)
+			continue;
+		if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+			warnx("dwarf_tag failed: %s", dwarf_errmsg(de));
+			continue;
+		}
+		/* XXX: What about DW_TAG_partial_unit? */
+		lowpc = 0;
+		if (tag == DW_TAG_compile_unit) {
+			if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lowpc,
+			    &de) != DW_DLV_OK)
+				lowpc = 0;
+		}
+
+		dump_dwarf_ranges_foreach(re, die, (Dwarf_Addr) lowpc);
+	}
+	putchar('\n');
+}
+
+static void
 dump_dwarf_macinfo(struct readelf *re)
 {
 	Dwarf_Unsigned offset;
@@ -5156,6 +5273,8 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_pubnames(re);
 	if (re->dop & DW_R)
 		dump_dwarf_aranges(re);
+	if (re->dop & DW_RR)
+		dump_dwarf_ranges(re);
 	if (re->dop & DW_M)
 		dump_dwarf_macinfo(re);
 	if (re->dop & DW_F)
@@ -5346,7 +5465,9 @@ static struct {
 	{"info", 'i', DW_I},
 	{"abbrev", 'a', DW_A},
 	{"pubnames", 'p', DW_P},
+	{"aranges", 'r', DW_R},
 	{"ranges", 'r', DW_R},
+	{"Ranges", 'R', DW_RR},
 	{"macro", 'm', DW_M},
 	{"frames", 'f', DW_F},
 	{"", 'F', DW_FF},
