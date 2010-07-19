@@ -110,7 +110,7 @@ main(int argc, char **argv)
 		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	while ((ch = getopt_long(argc, argv, "1234567890ae:fhn:ot:v",
+	while ((ch = getopt_long(argc, argv, "1234567890ae:fhn:ot:Vv",
 	    strings_longopts, NULL)) != -1)
 		switch((char)ch) {
 		case 'a':
@@ -160,6 +160,7 @@ main(int argc, char **argv)
 			        /* NOTREACHED */
 			break;
 		case 'v':
+		case 'V':
 			show_version();
 			/* NOTREACHED */
 		case '0':
