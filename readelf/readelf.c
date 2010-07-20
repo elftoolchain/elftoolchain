@@ -143,6 +143,7 @@ struct section {
 struct dumpop {
 	size_t		 sn;		/* section index */
 #define HEX_DUMP	0x0001
+#define STR_DUMP	0x0002
 	int		 op;		/* dump op type */
 	STAILQ_ENTRY(dumpop) dumpop_list;
 };
@@ -5089,8 +5090,8 @@ hex_dump(struct readelf *re)
 	uint64_t addr;
 	int elferr, i, j;
 
-	for (i = 1; (size_t)i < re->shnum; i++) {
-		if (find_dumpop(re, (size_t)i, HEX_DUMP) == NULL)
+	for (i = 1; (size_t) i < re->shnum; i++) {
+		if (find_dumpop(re, (size_t) i, HEX_DUMP) == NULL)
 			continue;
 		s = &re->sl[i];
 		(void) elf_errno();
@@ -5129,6 +5130,57 @@ hex_dump(struct readelf *re)
 			addr += nbytes;
 			sz -= nbytes;
 		}
+	}
+}
+
+static void
+str_dump(struct readelf *re)
+{
+	struct section *s;
+	Elf_Data *d;
+	char *start, *end, *buf_end;
+	unsigned int len;
+	int i, j, elferr, found;
+
+	for (i = 1; (size_t) i < re->shnum; i++) {
+		if (find_dumpop(re, (size_t) i, STR_DUMP) == NULL)
+			continue;
+		s = &re->sl[i];
+		(void) elf_errno();
+		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s",
+				    elf_errmsg(elferr));
+			continue;
+		}
+		if (d->d_size <= 0)
+			continue;
+		buf_end = (char *) d->d_buf + d->d_size;
+		start = d->d_buf;
+		found = 0;
+		printf("\nString dump of section '%s':\n", s->name);
+		for (;;) {
+			while (start < buf_end && !isprint(*start))
+				start++;
+			if (start >= buf_end)
+				break;
+			end = start + 1;
+			while (end < buf_end && isprint(*end))
+				end++;
+			printf("  [%6lx]  ", (long) (start - (char *) d->d_buf));
+			len = end - start;
+			for (j = 0; (unsigned int) j < len; j++)
+				putchar(start[j]);
+			putchar('\n');
+			found = 1;
+			if (end >= buf_end)
+				break;
+			start = end + 1;
+		}
+		if (!found)
+			printf("  No strings found in this section.");
+		putchar('\n');
 	}
 }
 
@@ -5243,6 +5295,8 @@ dump_elf(struct readelf *re)
 		dump_hash(re);
 	if (re->options & RE_X)
 		hex_dump(re);
+	if (re->options & RE_P)
+		str_dump(re);
 	if (re->options & RE_VV)
 		dump_ver(re);
 	if (re->options & RE_AA)
@@ -5720,7 +5774,7 @@ main(int argc, char **argv)
 	memset(re, 0, sizeof(*re));
 	STAILQ_INIT(&re->v_dumpop);
 
-	while ((opt = getopt_long(argc, argv, "AacDdegHhIi:lNnprSstuVvWw:x:",
+	while ((opt = getopt_long(argc, argv, "AacDdegHhIi:lNnp:rSstuVvWw:x:",
 	    longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'A':
@@ -5768,6 +5822,8 @@ main(int argc, char **argv)
 			break;
 		case 'p':
 			re->options |= RE_P;
+			sn = strtoul(optarg, NULL, 10);
+			add_dumpop(re, (size_t) sn, STR_DUMP);
 			break;
 		case 'r':
 			re->options |= RE_R;
@@ -5800,7 +5856,7 @@ main(int argc, char **argv)
 		case 'x':
 			re->options |= RE_X;
 			sn = strtoul(optarg, NULL, 10);
-			add_dumpop(re, (size_t)sn, HEX_DUMP);
+			add_dumpop(re, (size_t) sn, HEX_DUMP);
 			break;
 		case OPTION_DEBUG_DUMP:
 			re->options |= RE_W;
