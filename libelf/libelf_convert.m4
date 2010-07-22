@@ -873,12 +873,14 @@ CONVERTER_NAMES(ELF_TYPE_LIST)
 		.tom64 = libelf_cvt_BYTE_tox
 	},
 
+#if	LIBELF_CONFIG_GNUHASH
 	[ELF_T_GNUHASH] = {
 		.tof32 = libelf_cvt32_GNUHASH_tof,
 		.tom32 = libelf_cvt32_GNUHASH_tom,
 		.tof64 = libelf_cvt64_GNUHASH_tof,
 		.tom64 = libelf_cvt64_GNUHASH_tom
 	},
+#endif	/* LIBELF_CONFIG_GNUHASH */
 
 #if	LIBELF_CONFIG_NOTE
 	[ELF_T_NOTE] = {
