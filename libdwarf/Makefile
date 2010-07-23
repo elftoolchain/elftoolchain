@@ -94,6 +94,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_finish.3					\
+	dwarf_formaddr.3				\
 	dwarf_formblock.3				\
 	dwarf_formflag.3				\
 	dwarf_formref.3					\
