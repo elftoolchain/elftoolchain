@@ -65,7 +65,7 @@ error.
 .Ss Memory Management
 The memory areas used for the file names and for array of pointers
 being returned are managed by the DWARF(3) library.
-The application should not attempt to free these memory areas.
+The application should not attempt to directly free these memory areas.
 Portable code should indicate that the memory areas are to be freed
 by using
 .Xr dwarf_dealloc 3 .
