@@ -96,6 +96,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_finish.3					\
 	dwarf_formaddr.3				\
 	dwarf_formblock.3				\
+	dwarf_formexprloc.3				\
 	dwarf_formflag.3				\
 	dwarf_formref.3					\
 	dwarf_formsig8.3				\
