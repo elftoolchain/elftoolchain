@@ -255,6 +255,9 @@ static void dump_dwarf(struct readelf *re);
 static void dump_elf(struct readelf *re);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void dump_dynamic(struct readelf *re);
+static void dump_notes(struct readelf *re);
+static void dump_notes_content(struct readelf *re, const char *buf, size_t sz,
+    off_t off);
 static void dump_svr4_hash(struct section *s);
 static void dump_svr4_hash64(struct readelf *re, struct section *s);
 static void dump_gnu_hash(struct readelf *re, struct section *s);
@@ -1948,7 +1951,7 @@ dump_phdr(struct readelf *re)
 	else
 		printf("  %-15s%-19s%-19s%s\n                 %-19s%-20s"
 		    "%-7s%s\n", PH_HDR);
-	for (i = 0; (size_t)i < phnum; i++) {
+	for (i = 0; (size_t) i < phnum; i++) {
 		if (gelf_getphdr(re->elf, i, &phdr) != &phdr) {
 			warnx("gelf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
@@ -2699,7 +2702,7 @@ dump_hash(struct readelf *re)
 	struct section	*s;
 	int		 i;
 
-	for (i = 0; (size_t)i < re->shnum; i++) {
+	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type == SHT_HASH || s->type == SHT_GNU_HASH) {
 			if (s->type == SHT_GNU_HASH)
@@ -2710,6 +2713,90 @@ dump_hash(struct readelf *re)
 			else
 				dump_svr4_hash(s);
 		}
+	}
+}
+
+static void
+dump_notes(struct readelf *re)
+{
+	struct section *s;
+	const char *rawfile;
+	GElf_Phdr phdr;
+	Elf_Data *d;
+	size_t phnum;
+	int i, elferr;
+
+	if (re->ehdr.e_type == ET_CORE) {
+		/*
+		 * Search program headers in the core file for
+		 * PT_NOTE entry.
+		 */
+		if (elf_getphnum(re->elf, &phnum) == 0) {
+			warnx("elf_getphnum failed: %s", elf_errmsg(-1));
+			return;
+		}
+		if (phnum == 0)
+			return;
+		if ((rawfile = elf_rawfile(re->elf, NULL)) == NULL) {
+			warnx("elf_rawfile failed: %s", elf_errmsg(-1));
+			return;
+		}
+		for (i = 0; (size_t) i < phnum; i++) {
+			if (gelf_getphdr(re->elf, i, &phdr) != &phdr) {
+				warnx("gelf_getphdr failed: %s",
+				    elf_errmsg(-1));
+				continue;
+			}
+			if (phdr.p_type == PT_NOTE)
+				dump_notes_content(re, rawfile + phdr.p_offset,
+				    phdr.p_filesz, phdr.p_offset);
+		}
+
+	} else {
+		/*
+		 * For objects other than core files, Search for
+		 * SHT_NOTE sections.
+		 */
+		for (i = 0; (size_t) i < re->shnum; i++) {
+			s = &re->sl[i];
+			if (s->type == SHT_NOTE) {
+				(void) elf_errno();
+				if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+					elferr = elf_errno();
+					if (elferr != 0)
+						warnx("elf_getdata failed: %s",
+						    elf_errmsg(elferr));
+					continue;
+				}
+				dump_notes_content(re, d->d_buf, d->d_size,
+				    s->off);
+			}
+		}
+	}
+}
+
+static void
+dump_notes_content(struct readelf *re, const char *buf, size_t sz, off_t off)
+{
+	Elf_Note *note;
+	const char *end;
+
+	printf("\nNotes at offset %#010jx with length %#010jx:\n",
+	    (uintmax_t) off, (uintmax_t) sz);
+	printf("  %-13s %-15s %s\n", "Owner", "Data size", "Description");
+	end = buf + sz;
+	while (buf < end) {
+		note = (Elf_Note *)(uintptr_t) buf;
+		printf("  %-13s %#010jx\n", (char *)(uintptr_t) (note + 1),
+		    (uintmax_t) note->n_descsz);
+		buf += sizeof(Elf_Note);
+		/* TODO: Dump note->n_type. */
+		if (re->ec == ELFCLASS32)
+			buf += roundup2(note->n_namesz, 4) +
+			    roundup2(note->n_descsz, 4);
+		else
+			buf += roundup2(note->n_namesz, 8) +
+			    roundup2(note->n_descsz, 8);
 	}
 }
 
@@ -5291,6 +5378,8 @@ dump_elf(struct readelf *re)
 		dump_reloc(re);
 	if (re->options & RE_S)
 		dump_symtabs(re);
+	if (re->options & RE_N)
+		dump_notes(re);
 	if (re->options & RE_II)
 		dump_hash(re);
 	if (re->options & RE_X)
