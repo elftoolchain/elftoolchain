@@ -157,6 +157,7 @@ struct readelf {
 	int		  flags;	/* run control flags. */
 	int		  dop;		/* dwarf dump options. */
 	Elf		 *elf;		/* underlying ELF descriptor. */
+	Elf		 *ar;		/* archive ELF descriptor. */
 	Dwarf_Debug	  dbg;		/* DWARF handle. */
 	GElf_Ehdr	  ehdr;		/* ELF header. */
 	int		  ec;		/* ELF class. */
@@ -251,6 +252,7 @@ static const char *elf_osabi(unsigned int abi);
 static const char *elf_type(unsigned int type);
 static const char *elf_ver(unsigned int ver);
 static const char *dt_type(unsigned int dtype);
+static void dump_ar(struct readelf *re, int);
 static void dump_dwarf(struct readelf *re);
 static void dump_elf(struct readelf *re);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
@@ -5432,7 +5434,7 @@ dump_dwarf(struct readelf *re)
 	dwarf_finish(re->dbg, &de);
 }
 
-#ifndef LIBELF_AR
+#if 0
 /*
  * Convenient wrapper for general libarchive error handling.
  */
@@ -5522,7 +5524,28 @@ ac_dump_ar(struct readelf *re, int fd)
 	archive_read_finish(a);
 #endif
 }
-#endif	/* ! LIBELF_AR */
+#endif
+
+static void
+dump_ar(struct readelf *re, int fd)
+{
+	Elf_Arhdr *arhdr;
+	Elf_Cmd cmd;
+
+	re->ar = re->elf;
+	cmd = ELF_C_READ;
+	while ((re->elf = elf_begin(fd, cmd, re->ar)) != NULL) {
+		if ((arhdr = elf_getarhdr(re->elf)) == NULL) {
+			warnx("elf_getarhdr() failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		printf("\nFile: %s(%s)\n", re->filename, arhdr->ar_name);
+		dump_elf(re);
+		cmd = elf_next(re->elf);
+		elf_end(re->elf);
+	}
+	re->elf = re->ar;
+}
 
 static void
 dump_object(struct readelf *re)
@@ -5534,7 +5557,7 @@ dump_object(struct readelf *re)
 		return;
 	}
 
-#ifndef	LIBELF_AR
+#if 0
 	/*
 	 * Detect and process ar(1) archive using libarchive.
 	 */
@@ -5542,7 +5565,7 @@ dump_object(struct readelf *re)
 		ac_dump_ar(re, fd);
 		return;
 	}
-#endif	/* ! LIBELF_AR */
+#endif
 
 	if ((re->flags & DISPLAY_FILENAME) != 0)
 		printf("\nFile: %s\n", re->filename);
@@ -5560,7 +5583,7 @@ dump_object(struct readelf *re)
 		dump_elf(re);
 		break;
 	case ELF_K_AR:
-		/* dump_ar(re); */
+		dump_ar(re, fd);
 		break;
 	default:
 		warnx("Internal: libelf returned unknown elf kind.");
