@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,9 +116,8 @@ define(`ELF64_TYPES',
  * the additional arguments specified to `DOELFTYPES' below.
  */
 define(`_DOTYPE',`
-#if __FreeBSD_version >= $3 /* $1 */
 indir(`__F__',$1,$2,__ARGS__)
-#endif')
+')
 
 /*
  * _DOELFTYPES: iterate over an ELF type list.
