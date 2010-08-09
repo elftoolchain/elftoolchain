@@ -61,13 +61,15 @@ if [ ${#} -eq 0 ]; then
 fi
 
 exec > ${output}
-echo "
-/* WARNING GENERATED FILE */
-#include <tet_api.h>
+echo "\
+/*
+ * WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+ *
+ * THIS FILE IS GENERATED FROM: ${@}
+ */
+#include <tet_api.h>"
 
-"
-
-if ! nm ${*} | sort -n +1 | awk '
+if ! nm ${*} | sort -n -k +1 | awk '
 	BEGIN {	do_scaffolding = 1; }
 	$2 == "T" && $3 ~ "^tc" {
 		fnname = substr($3,3);
