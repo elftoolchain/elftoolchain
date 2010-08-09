@@ -140,7 +140,8 @@ tcWrite_tpFDREAD(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	(void) strlcpy(pathname, "/tmp/TCXXXXXX", sizeof(pathname));
+	(void) strncpy(pathname, "/tmp/TCXXXXXX", sizeof(pathname));
+	pathname[sizeof(pathname) - 1] = '\0';
 
 	if ((fd = mkstemp(pathname)) == -1 ||
 	    (e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
@@ -176,7 +177,8 @@ tcWrite_tpFDDONE(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	(void) strlcpy(pathname, "/tmp/TCXXXXXX", sizeof(pathname));
+	(void) strncpy(pathname, "/tmp/TCXXXXXX", sizeof(pathname));
+	pathname[sizeof(pathname) - 1] = '\0';
 
 	if ((fd = mkstemp(pathname)) == -1 ||
 	    (e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
