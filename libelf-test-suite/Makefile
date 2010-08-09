@@ -18,7 +18,7 @@ TET_OPTIONS+=	-c
 TET_OPTIONS+=	-e
 .endif
 
-.MAIN: obj all
+.MAIN: all
 
 _cmd:	.USE
 	TET_EXECUTE=${TET_EXECUTE} TET_SUITE_ROOT=${.CURDIR} \
