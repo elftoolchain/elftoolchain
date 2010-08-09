@@ -38,10 +38,16 @@
 
 #include <sys/cdefs.h>
 
-#define	TS_ICFUNC	__CONCAT(elf,__CONCAT(TS_EHDRSZ,TS_EHDRFUNC))
-#define	TS_EHDR		__CONCAT(Elf,__CONCAT(TS_EHDRSZ,_Ehdr))
+/* Variations of __CONCAT and __STRING which expand their arguments. */
+#define __XCONCAT(x,y)	__CONCAT(x,y)
+#ifndef __XSTRING
+#define __XSTRING(x)	__STRING(x)
+#endif
+
+#define	TS_ICFUNC	__XCONCAT(elf,__XCONCAT(TS_EHDRSZ,TS_EHDRFUNC))
+#define	TS_EHDR		__XCONCAT(Elf,__XCONCAT(TS_EHDRSZ,_Ehdr))
 #define	TS_ICNAME	__XSTRING(TS_ICFUNC)
-#define	TS_ELFCLASS	__CONCAT(ELFCLASS,TS_EHDRSZ)
+#define	TS_ELFCLASS	__XCONCAT(ELFCLASS,TS_EHDRSZ)
 
 IC_REQUIRES_VERSION_INIT();
 

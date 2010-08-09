@@ -36,12 +36,17 @@
 #include <sys/param.h>
 #include <sys/cdefs.h>
 
+#define	__XCONCAT(x,y)	__CONCAT(x,y)
+#ifndef	__XSTRING
+#define __XSTRING(x)	__STRING(x)
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define	TS_XLATETOF	__CONCAT(elf,__CONCAT(TS_XLATESZ,_xlatetof))
-#define	TS_XLATETOM	__CONCAT(elf,__CONCAT(TS_XLATESZ,_xlatetom))
+#define	TS_XLATETOF	__XCONCAT(elf,__XCONCAT(TS_XLATESZ,_xlatetof))
+#define	TS_XLATETOM	__XCONCAT(elf,__XCONCAT(TS_XLATESZ,_xlatetom))
 
 #define	BYTE_VAL	0xFF
 #define	BYTE_SEQ_LSB	0xFF,
@@ -67,14 +72,14 @@
 #define	IDENT_SEQ_MSB	IDENT_BYTES,
 
 
-#define	TYPEDEFNAME(E,N)	__CONCAT(__CONCAT(td_,			\
-	__CONCAT(E,TS_XLATESZ)), __CONCAT(_,N))
-#define	TYPEDEFINITION(E,N) __CONCAT(ELF_TYPE_E,__CONCAT(TS_XLATESZ,	\
-	__CONCAT(_, N)))
-#define	CHKFNNAME(N)	__CONCAT(__CONCAT(td_chk_,TS_XLATESZ),		\
-	__CONCAT(_,N))
-#define	MEMSIZENAME(N)	__CONCAT(N,__CONCAT(TS_XLATESZ,_SIZE))
-#define	MEMSTRUCTNAME(N)	__CONCAT(N,__CONCAT(TS_XLATESZ,_mem))
+#define	TYPEDEFNAME(E,N)	__XCONCAT(__XCONCAT(td_,		\
+	__XCONCAT(E,TS_XLATESZ)), __XCONCAT(_,N))
+#define	TYPEDEFINITION(E,N) __XCONCAT(ELF_TYPE_E,__XCONCAT(TS_XLATESZ,	\
+	__XCONCAT(_, N)))
+#define	CHKFNNAME(N)	__XCONCAT(__XCONCAT(td_chk_,TS_XLATESZ),	\
+	__XCONCAT(_,N))
+#define	MEMSIZENAME(N)	__XCONCAT(N,__XCONCAT(TS_XLATESZ,_SIZE))
+#define	MEMSTRUCTNAME(N)	__XCONCAT(N,__XCONCAT(TS_XLATESZ,_mem))
 
 /*
  * Definitions of 32 bit ELF file structures.
@@ -688,7 +693,7 @@ struct testdata {
 };
 #endif	/*_TESTDATA_STRUCT_*/
 
-#define	TESTDATASET	__CONCAT(tests,TS_XLATESZ)
+#define	TESTDATASET	__XCONCAT(tests,TS_XLATESZ)
 static struct testdata 	TESTDATASET [] = {
 #undef	DEFINE_TEST_DATA
 #define	DEFINE_TEST_DATA(N)  {				\
@@ -798,7 +803,7 @@ check_xlate(Elf_Data *xlator(Elf_Data *d, const Elf_Data *s, unsigned int enc),
  */
 
 void
-__CONCAT(tcXlate_tpByte,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpByte,TS_XLATESZ)(void)
 {
 	Elf_Data dst, src;
 	int i, offset, sz;
@@ -946,7 +951,7 @@ __CONCAT(tcXlate_tpByte,TS_XLATESZ)(void)
  */
 
 void
-__CONCAT(tcXlate_tpByteShared,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpByteShared,TS_XLATESZ)(void)
 {
 	int i;
 	size_t sz;
@@ -1045,7 +1050,7 @@ __CONCAT(tcXlate_tpByteShared,TS_XLATESZ)(void)
  * Check non-byte conversions from file representations to memory.
  */
 void
-__CONCAT(tcXlate_tpToM,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpToM,TS_XLATESZ)(void)
 {
 	Elf_Data dst, src;
 	struct testdata *td;
@@ -1059,7 +1064,7 @@ __CONCAT(tcXlate_tpToM,TS_XLATESZ)(void)
 	/* Loop over all types */
 	for (td = TESTDATASET; td->tsd_name; td++) {
 
-		fsz = __CONCAT(__CONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
+		fsz = __XCONCAT(__XCONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
 		    1, EV_CURRENT);
 
 		msz = td->tsd_msz;
@@ -1169,7 +1174,7 @@ __CONCAT(tcXlate_tpToM,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcXlate_tpToMShared,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpToMShared,TS_XLATESZ)(void)
 {
 	Elf_Data dst, src;
 	struct testdata *td;
@@ -1184,7 +1189,7 @@ __CONCAT(tcXlate_tpToMShared,TS_XLATESZ)(void)
 		tet_printf("assertion: in-place "__XSTRING(TS_XLATETOM)"(\"%s\").",
 		    td->tsd_name);
 
-		fsz = __CONCAT(__CONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
+		fsz = __XCONCAT(__XCONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
 		    1, EV_CURRENT);
 		msz = td->tsd_msz;
 
@@ -1277,7 +1282,7 @@ __CONCAT(tcXlate_tpToMShared,TS_XLATESZ)(void)
  * Check non-byte conversions from memory to file.
  */
 void
-__CONCAT(tcXlate_tpToF,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpToF,TS_XLATESZ)(void)
 {
 	Elf_Data dst, src;
 	struct testdata *td;
@@ -1291,7 +1296,7 @@ __CONCAT(tcXlate_tpToF,TS_XLATESZ)(void)
 	/* Loop over all types */
 	for (td = TESTDATASET; td->tsd_name; td++) {
 
-		fsz = __CONCAT(__CONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
+		fsz = __XCONCAT(__XCONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
 		    1, EV_CURRENT);
 
 		msz = td->tsd_msz;
@@ -1406,7 +1411,7 @@ __CONCAT(tcXlate_tpToF,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcXlate_tpToFShared,TS_XLATESZ)(void)
+__XCONCAT(tcXlate_tpToFShared,TS_XLATESZ)(void)
 {
 	Elf_Data dst, src;
 	struct testdata *td;
@@ -1421,7 +1426,7 @@ __CONCAT(tcXlate_tpToFShared,TS_XLATESZ)(void)
 		tet_printf("assertion: in-place "__XSTRING(TS_XLATETOF)"(\"%s\").",
 		    td->tsd_name);
 
-		fsz = __CONCAT(__CONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
+		fsz = __XCONCAT(__XCONCAT(elf,TS_XLATESZ),_fsize)(td->tsd_type,
 		    1, EV_CURRENT);
 		msz = td->tsd_msz;
 
@@ -1484,7 +1489,7 @@ __CONCAT(tcXlate_tpToFShared,TS_XLATESZ)(void)
  */
 
 void
-__CONCAT(tcArgs_tpNullArgs,TS_XLATESZ)(void)
+__XCONCAT(tcArgs_tpNullArgs,TS_XLATESZ)(void)
 {
 	Elf_Data ed;
 	int result;
@@ -1515,7 +1520,7 @@ __CONCAT(tcArgs_tpNullArgs,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcArgs_tpBadType,TS_XLATESZ)(void)
+__XCONCAT(tcArgs_tpBadType,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1555,7 +1560,7 @@ __CONCAT(tcArgs_tpBadType,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcArgs_tpBadEncoding,TS_XLATESZ)(void)
+__XCONCAT(tcArgs_tpBadEncoding,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1584,7 +1589,7 @@ __CONCAT(tcArgs_tpBadEncoding,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcArg_tpDstSrcVersionToF,TS_XLATESZ)(void)
+__XCONCAT(tcArg_tpDstSrcVersionToF,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1617,7 +1622,7 @@ __CONCAT(tcArg_tpDstSrcVersionToF,TS_XLATESZ)(void)
  * Check for an unimplemented type.
  */
 void
-__CONCAT(tcArg_tpUnimplemented,TS_XLATESZ)(void)
+__XCONCAT(tcArg_tpUnimplemented,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int i, result;
@@ -1690,7 +1695,7 @@ __CONCAT(tcArg_tpUnimplemented,TS_XLATESZ)(void)
  * Check for null buffer pointers.
  */
 void
-__CONCAT(tcBuffer_tpNullDataPtr,TS_XLATESZ)(void)
+__XCONCAT(tcBuffer_tpNullDataPtr,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1735,7 +1740,7 @@ __CONCAT(tcBuffer_tpNullDataPtr,TS_XLATESZ)(void)
  */
 
 void
-__CONCAT(tcBuffer_tpMisaligned,TS_XLATESZ)(void)
+__XCONCAT(tcBuffer_tpMisaligned,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1803,7 +1808,7 @@ __CONCAT(tcBuffer_tpMisaligned,TS_XLATESZ)(void)
  * Overlapping buffers.
  */
 void
-__CONCAT(tcBuffer_tpOverlap,TS_XLATESZ)(void)
+__XCONCAT(tcBuffer_tpOverlap,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1838,7 +1843,7 @@ __CONCAT(tcBuffer_tpOverlap,TS_XLATESZ)(void)
  * Non-integral number of src elements.
  */
 void
-__CONCAT(tcBuffer_tpSrcExtra,TS_XLATESZ)(void)
+__XCONCAT(tcBuffer_tpSrcExtra,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
@@ -1897,7 +1902,7 @@ __CONCAT(tcBuffer_tpSrcExtra,TS_XLATESZ)(void)
 }
 
 void
-__CONCAT(tcBuffer_tpDstTooSmall,TS_XLATESZ)(void)
+__XCONCAT(tcBuffer_tpDstTooSmall,TS_XLATESZ)(void)
 {
 	Elf_Data ed, es;
 	int result;
