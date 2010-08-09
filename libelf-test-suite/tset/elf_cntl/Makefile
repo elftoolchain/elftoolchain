@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		cntl.m4
 TS_DATA=		a.ar
 CLEANFILES+=		a.c a.o
@@ -11,4 +13,4 @@ a.ar:	a.o
 	rm -f ${.TARGET}
 	ar crv ${.TARGET} ${.ALLSRC}
 
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"
