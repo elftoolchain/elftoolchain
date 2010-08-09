@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		getarhdr.m4
 
 # These names must match those in the test case code.
@@ -19,4 +21,4 @@ a.ar: a1.o a2.o
 	echo 's-3.' > "s 3"
 	ar crv ${.TARGET} s1 a1.o ${TS_LONGNAME} a2.o "s 3"
 
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"

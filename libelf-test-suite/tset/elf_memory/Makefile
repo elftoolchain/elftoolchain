@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		memory.c
 
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"

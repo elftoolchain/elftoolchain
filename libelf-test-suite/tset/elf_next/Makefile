@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		next.m4
 TS_DATA=		a1.ar a1.o a2.ar a2.o a3.ar
 TS_LONGNAME=		"s------------------------2"
@@ -31,4 +33,4 @@ a3.ar: s1 ${TS_LONGNAME} a1.o a2.o
 	rm -f ${.TARGET}
 	ar crv ${.TARGET} ${.ALLSRC}
 
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"

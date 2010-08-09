@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		getarsym.m4
 
 # These names must match those in the test case code.
@@ -26,4 +28,4 @@ a2.ar: s1 ${TS_LONGNAME}
 	rm -f ${.TARGET}
 	ar crv ${.TARGET} ${.ALLSRC}
 	
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"

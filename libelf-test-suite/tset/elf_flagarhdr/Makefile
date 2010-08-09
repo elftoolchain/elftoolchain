@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	../../..
+
 TS_SRCS=		flagarhdr.m4
 
 TS_DATA=		a.ar
@@ -11,4 +13,4 @@ a1:
 a.ar: a1
 	ar crv ${.TARGET} a1
 
-.include "../Makefile.tset"
+.include "${TOP}/mk/elftoolchain.tet.mk"
