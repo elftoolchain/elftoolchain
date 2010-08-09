@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006-2008 Joseph Koshy
+ * Copyright (c) 2006-2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -472,7 +472,7 @@ _libelf_resync_elf(Elf *e)
 
 	if (e->e_cmd != ELF_C_WRITE &&
 	    (e->e_flags & LIBELF_F_SHDRS_LOADED) == 0 &&
-	    _libelf_load_scn(e, ehdr) == 0)
+	    _libelf_load_section_headers(e, ehdr) == 0)
 		return ((off_t) -1);
 
 	if ((rc = _libelf_resync_sections(e, rc)) < 0)
