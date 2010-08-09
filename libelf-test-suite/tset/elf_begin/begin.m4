@@ -137,7 +137,8 @@ setup_tempfile(void)
 {
 	int fd;
 
-	strlcpy(filename, TEMPLATE, sizeof(filename));
+	(void) strncpy(filename, TEMPLATE, sizeof(filename));
+	filename[sizeof(filename) - 1] = '\0';
 
 	if ((fd = mkstemp(filename)) < 0 ||
 	    write(fd, TEMPLATE, sizeof(TEMPLATE)) < 0)
