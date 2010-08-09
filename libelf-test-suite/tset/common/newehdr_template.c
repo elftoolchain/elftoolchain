@@ -134,7 +134,7 @@ tcAllocate_tpFlag(void)
 #define TD_NAME		testdata_update_
 
 static void
-__CONCAT(tcUpdate_helper,TS_EHDRSZ)(int byteorder, char *ref)
+__XCONCAT(tcUpdate_helper,TS_EHDRSZ)(int byteorder, char *ref)
 {
 	TS_EHDR *eh;
 	Elf *e;
@@ -171,7 +171,7 @@ __CONCAT(tcUpdate_helper,TS_EHDRSZ)(int byteorder, char *ref)
 	}
 
 	/* check that the correct number of bytes were written out. */
-	fsz =__CONCAT(__CONCAT(elf, TS_EHDRSZ), _fsize)(ELF_T_EHDR, 1,
+	fsz =__XCONCAT(__XCONCAT(elf, TS_EHDRSZ), _fsize)(ELF_T_EHDR, 1,
 	    EV_CURRENT);
 
 	if (offset != fsz) {
@@ -244,15 +244,15 @@ __CONCAT(tcUpdate_helper,TS_EHDRSZ)(int byteorder, char *ref)
 }
 
 void
-__CONCAT(tcUpdate_tpElfLSB,TS_EHDRSZ)(void)
+__XCONCAT(tcUpdate_tpElfLSB,TS_EHDRSZ)(void)
 {
-	__CONCAT(tcUpdate_helper,TS_EHDRSZ)(ELFDATA2LSB,
+	__XCONCAT(tcUpdate_helper,TS_EHDRSZ)(ELFDATA2LSB,
 	    TS_REFELF ".lsb" __XSTRING(TS_EHDRSZ));
 }
 
 void
-__CONCAT(tcUpdate_tpElfMSB,TS_EHDRSZ)(void)
+__XCONCAT(tcUpdate_tpElfMSB,TS_EHDRSZ)(void)
 {
-	__CONCAT(tcUpdate_helper,TS_EHDRSZ)(ELFDATA2MSB,
+	__XCONCAT(tcUpdate_helper,TS_EHDRSZ)(ELFDATA2MSB,
 	    TS_REFELF ".msb" __XSTRING(TS_EHDRSZ));
 }

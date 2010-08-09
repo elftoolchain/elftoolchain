@@ -38,13 +38,19 @@
 
 #include <sys/cdefs.h>
 
-#define	TS_ICFUNC	__CONCAT(elf,__CONCAT(TS_PHDRSZ,TS_PHDRFUNC))
-#define	TS_PHDR		__CONCAT(Elf,__CONCAT(TS_PHDRSZ,_Phdr))
-#define	TS_ICNAME	__XSTRING(TS_ICFUNC)
-#define	TS_ELFCLASS	__CONCAT(ELFCLASS,TS_PHDRSZ)
+/* Variations of __CONCAT and __STRING which expand their arguments. */
+#define __XCONCAT(x,y)	__CONCAT(x,y)
+#ifndef __XSTRING
+#define __XSTRING(x)	__STRING(x)
+#endif
 
-#define	TS_GETEHDR	__CONCAT(elf,__CONCAT(TS_PHDRSZ,_getehdr))
-#define	TS_EHDR		__CONCAT(Elf,__CONCAT(TS_PHDRSZ,_Ehdr))
+#define	TS_ICFUNC	__XCONCAT(elf,__XCONCAT(TS_PHDRSZ,TS_PHDRFUNC))
+#define	TS_PHDR		__XCONCAT(Elf,__XCONCAT(TS_PHDRSZ,_Phdr))
+#define	TS_ICNAME	__XSTRING(TS_ICFUNC)
+#define	TS_ELFCLASS	__XCONCAT(ELFCLASS,TS_PHDRSZ)
+
+#define	TS_GETEHDR	__XCONCAT(elf,__XCONCAT(TS_PHDRSZ,_getehdr))
+#define	TS_EHDR		__XCONCAT(Elf,__XCONCAT(TS_PHDRSZ,_Ehdr))
 
 #define	TS_NPHDR	3	/* should match "phdr.yaml" */
 
