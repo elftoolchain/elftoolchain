@@ -1,6 +1,6 @@
 pushdef(`_DIVNUM',divnum)divert(-1)
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,9 @@ pushdef(`_DIVNUM',divnum)divert(-1)
  *
  * $Id$
  */
+
+dnl `mkstemp' is a built-in in GNU m4.
+ifdef(`mkstemp',`undefine(`mkstemp')')
 
 /*
  * Macros for use with `m4'.
