@@ -25,7 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$Id$");
 
 #include <libelf.h>
 #include <stdint.h>
