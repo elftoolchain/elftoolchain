@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ LIBELF_VCSID("$Id$");
  * Load an ELF section table and create a list of Elf_Scn structures.
  */
 int
-_libelf_load_scn(Elf *e, void *ehdr)
+_libelf_load_section_headers(Elf *e, void *ehdr)
 {
 	int ec, swapbytes;
 	size_t fsz, i, shnum;
@@ -142,7 +142,7 @@ elf_getscn(Elf *e, size_t index)
 
 	if (e->e_cmd != ELF_C_WRITE &&
 	    (e->e_flags & LIBELF_F_SHDRS_LOADED) == 0 &&
-	    _libelf_load_scn(e, ehdr) == 0)
+	    _libelf_load_section_headers(e, ehdr) == 0)
 		return (NULL);
 
 	STAILQ_FOREACH(s, &e->e_u.e_elf.e_scn, s_next)
@@ -195,7 +195,7 @@ elf_newscn(Elf *e)
 	 */
 	if (e->e_cmd != ELF_C_WRITE &&
 	    (e->e_flags & LIBELF_F_SHDRS_LOADED) == 0 &&
-	    _libelf_load_scn(e, ehdr) == 0)
+	    _libelf_load_section_headers(e, ehdr) == 0)
 		return (NULL);
 
 	if (STAILQ_EMPTY(&e->e_u.e_elf.e_scn)) {
