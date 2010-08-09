@@ -28,9 +28,9 @@
 
 #include <libelf.h>
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <vis.h>
 
 #include "tet_api.h"
 
@@ -55,13 +55,29 @@ static struct htab {
 	H(NULL,			0)
 };
 
+static void
+to_printable_string(char *dst, const char *src)
+{
+	int c;
+	char *s;
+	
+	s = dst;
+	while (c = *src++) {
+		if (isprint(c))
+			*s++ = c;
+		else
+			s += sprintf(s, "\\%3.3o", (c & 0xFF));
+	}
+	*s = '\0';
+}
+
 void
 tpCheckHash(void)
 {
 	unsigned long h;
 	struct htab *ht;
 	int result;
-	char *p;
+	char *tmp;
 
 	tet_infoline("assertion: check elf_hash() against several constant "
 	    "strings.");
@@ -69,11 +85,11 @@ tpCheckHash(void)
 	result = TET_PASS;
 	for (ht = htab; ht->s; ht++) {
 		if ((h = elf_hash(ht->s)) != ht->h) {
-			if ((p = malloc(4 * strlen(ht->s) + 1)) != NULL) {
-				(void) strvis(p, ht->s, VIS_CSTYLE);
+			if ((tmp = malloc(4 * strlen(ht->s) + 1)) != NULL) {
+				to_printable_string(tmp, ht->s);
 				tet_printf("fail: elf_hash(\"%s\") = 0x%x != "
-				    "expected 0x%x.", p, h, ht->h);
-				free(p);
+				    "expected 0x%x.", tmp, h, ht->h);
+				free(tmp);
 			}
 			result = TET_FAIL;
 		}
