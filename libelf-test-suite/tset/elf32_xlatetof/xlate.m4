@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 #include <libelf.h>
 #include <stdlib.h>
 #include <string.h>
-#include <osreldate.h>
 #include <unistd.h>
 
 #include "tet_api.h"
