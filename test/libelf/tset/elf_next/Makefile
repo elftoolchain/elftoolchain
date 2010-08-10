@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 TS_SRCS=		next.m4
 TS_DATA=		a1.ar a1.o a2.ar a2.o a3.ar

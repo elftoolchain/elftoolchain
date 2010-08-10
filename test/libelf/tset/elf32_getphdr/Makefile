@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 TS_SRCS=		phdr.c
 TS_DATA=		ehdr.msb32 ehdr.lsb32 \

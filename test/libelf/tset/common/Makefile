@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 YAML_FILES=	check_elf getclass ehdr fsize newehdr newscn phdr shdr u1 \
 		xlate xscn-1 xscn-2 xscn-3

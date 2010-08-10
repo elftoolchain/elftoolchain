@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 TS_SRCS=		errno.c
 

@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 TS_SRCS=		phdr.c
 TS_DATA=		ehdr.lsb64 ehdr.msb64 \
