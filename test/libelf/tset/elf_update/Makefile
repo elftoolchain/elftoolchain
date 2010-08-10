@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	../../..
+TOP=	../../../..
 
 TS_SRCS=		update.m4
 TS_DATA=		newehdr.lsb32 newehdr.lsb64 newehdr.msb32 newehdr.msb64 \

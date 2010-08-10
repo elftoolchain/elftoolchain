@@ -4,6 +4,6 @@
 #
 
 # SUBDIR+=	tet
-# SUBDIR+=	libelf
+SUBDIR+=	libelf
 
 .include <bsd.subdir.mk>
