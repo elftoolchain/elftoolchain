@@ -84,6 +84,10 @@ _libelf_xlate_shtype(uint32_t sht)
 	case SHT_SYMTAB_SHNDX:
 		return (ELF_T_WORD);
 #endif
+#if	defined(SHT_SUNW_dof)
+	case SHT_SUNW_dof:
+		return (ELF_T_BYTE);
+#endif
 #if	defined(SHT_SUNW_verdef)
 	case SHT_SUNW_verdef:	/* == SHT_GNU_verdef */
 		return (ELF_T_VDEF);
