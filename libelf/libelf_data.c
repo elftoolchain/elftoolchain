@@ -88,6 +88,14 @@ _libelf_xlate_shtype(uint32_t sht)
 	case SHT_SUNW_dof:
 		return (ELF_T_BYTE);
 #endif
+#if	defined(SHT_SUNW_move)
+	case SHT_SUNW_move:
+		return (ELF_T_MOVE);
+#endif
+#if	defined(SHT_SUNW_syminfo)
+	case SHT_SUNW_syminfo:
+		return (ELF_T_SYMINFO);
+#endif
 #if	defined(SHT_SUNW_verdef)
 	case SHT_SUNW_verdef:	/* == SHT_GNU_verdef */
 		return (ELF_T_VDEF);
@@ -99,14 +107,6 @@ _libelf_xlate_shtype(uint32_t sht)
 #if	defined(SHT_SUNW_versym)
 	case SHT_SUNW_versym:	/* == SHT_GNU_versym */
 		return (ELF_T_HALF);
-#endif
-#if	defined(SHT_SUNW_move)
-	case SHT_SUNW_move:
-		return (ELF_T_MOVE);
-#endif
-#if	defined(SHT_SUNW_syminfo)
-	case SHT_SUNW_syminfo:
-		return (ELF_T_SYMINFO);
 #endif
 	default:
 		return (-1);
