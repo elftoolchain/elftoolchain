@@ -4,6 +4,8 @@
 DPADD+=		${LIBELF}
 LDADD+=		-lelf
 
+GENERATE_TEST_SCAFFOLDING=	yes
+
 # Copy ELF binaries used by test cases to the build directory so that
 # the test binaries have access to them.
 _TS_YAMLOBJ?=	${TS_DATA:M*.msb32} ${TS_DATA:M*.lsb32} ${TS_DATA:M*.msb64} \
