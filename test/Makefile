@@ -5,5 +5,6 @@
 
 # SUBDIR+=	tet
 SUBDIR+=	libelf
+SUBDIR+=	libdwarf
 
 .include <bsd.subdir.mk>
