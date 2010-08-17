@@ -1,8 +1,5 @@
 # $Id$
 
-DPADD+=		${LIBELF}
-LDADD+=		-lelf -lbsdxml
-
 # libdwarf test suite uses libdwarf in /usr/local (i.e. SGI libdwarf),
 # if TCGEN is defined.
 .if defined(TCGEN)
@@ -11,8 +8,17 @@ DWARF_LIBS?=	/usr/local/lib
 CFLAGS+=	-DTCGEN -I${DWARF_INC}
 LDADD+=		-L${DWARF_LIBS}
 .endif
-
 LDADD+=		-ldwarf
+
+DPADD+=		${LIBELF}
+LDADD+=		-lelf
+
+OS_HOST != uname -s
+.if ${OS_HOST} == FreeBSD
+LDADD+=		-lbsdxml
+.else
+LDADD+=		-lexpat
+.endif
 
 .if !defined(TCGEN)
 TS_SRCS+=	${.OBJDIR}/ic_count.c
