@@ -439,10 +439,13 @@ driver_parse_ic_desc(const char *fname)
 	XML_Parser p;
 	ssize_t bytes;
 	int fd, final;
-	char *xml_name, *ext;
+	char *xml_name, *ext, *fname0;
 	char cmd[_CMD_SIZE];
 
-	snprintf(cmd, _CMD_SIZE, "gunzip -f -k %s", fname);
+	if ((fname0 = strdup(fname)) == NULL)
+		err(1, "strduo");
+	fname0[strlen(fname) - 3] = '\0';
+	snprintf(cmd, _CMD_SIZE, "gunzip -f -c %s > %s", fname, fname0);
 	if (system(cmd) < 0)
 		err(1, "systemp");
 
