@@ -32,9 +32,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <bsdxml.h>
 #include <err.h>
 #include <unistd.h>
+#ifdef	__FreeBSD__
+#include <bsdxml.h>
+#else
+#include <expat.h>
+#endif
 
 #include "driver.h"
 #include "tet_api.h"
