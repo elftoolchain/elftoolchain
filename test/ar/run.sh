@@ -7,7 +7,7 @@
 trap 'rm -rf /tmp/bsdar-*; exit' 0 2 3 15
 
 # load functions.
-. func.sh
+. ./func.sh
 
 # global initialization.
 init
