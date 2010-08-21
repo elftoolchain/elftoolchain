@@ -111,7 +111,7 @@ run()
     tpstart
     cmdline=`echo $1 | sed -e 's/@/ -/g' -e 's/%/ /g'`
     tet_infoline "$cmdline"
-    check_exit "$TET_SUITE_ROOT/../elfdump $cmdline" 0
+    check_exit "$TET_SUITE_ROOT/../../elfdump/elfdump $cmdline" 0
     check_stderr $1
     check_stdout $1
     tpresult
