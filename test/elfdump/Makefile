@@ -1,6 +1,14 @@
-.if !defined(TET_ROOT)
-.error TET_ROOT must be defined!
+# $Id$
+
+TET_ROOT?=	/home/tmp/tet
+
+.if !defined(TET_EXECUTE)
+TET_EXECUTE=	${.OBJDIR}
 .endif
 
-test:
+all:
+
+clean:
+
+execute:
 	TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc -e .
