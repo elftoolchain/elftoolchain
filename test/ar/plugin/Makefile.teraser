@@ -1,6 +1,11 @@
+# $Id$
+
+TOP=	../../..
+
 PROG=	teraser
+
 NO_MAN=
-SRC=	teraser.c
+
 WARNS?=	6
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"

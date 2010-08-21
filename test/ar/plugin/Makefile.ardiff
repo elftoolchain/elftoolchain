@@ -1,8 +1,14 @@
+# $Id$
+
+TOP=	../../..
+
 PROG=	ardiff
+
 NO_MAN=
-SRC=	ardiff.c
+
 WARNS?=	6
+
 DPADD=	${LIBARCHIVE}
 LDADD=	-larchive
 
-.include <bsd.prog.mk>
+.include "${TOP}/mk/elftoolchain.prog.mk"
