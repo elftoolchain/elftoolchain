@@ -29,7 +29,7 @@ main(int argc, char **argv)
 	char opt;
 	char checktime;
 	char erasetime;
-	char buf[TSLEN + 1];
+	char buf[TSLEN + 1], *_buf;
 	char *tc;
 	int fd;
 	int ts;
@@ -86,7 +86,7 @@ main(int argc, char **argv)
 			if (ts <= now && ts >= now - TDELAY) {
 				fprintf(stderr, "%s - timestamp ok\n", tc);
 				if ((ps = fopen(PASSED, "r")) != NULL) {
-					fgets(buf, TSLEN, ps);
+					_buf = fgets(buf, TSLEN, ps);
 					snprintf(buf, TSLEN, "%d\n",
 					    atoi(buf) + 1);
 					fclose(ps);
@@ -99,7 +99,7 @@ main(int argc, char **argv)
 				fprintf(stderr, "%s - timestamp not ok\n", tc);
 			}
 			if ((ct = fopen(COUNTER, "r")) != NULL) {
-				fgets(buf, TSLEN, ct);
+				_buf = fgets(buf, TSLEN, ct);
 				snprintf(buf, TSLEN, "%d\n", atoi(buf) + 1);
 				fclose(ct);
 			}
