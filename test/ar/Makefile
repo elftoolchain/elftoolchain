@@ -8,7 +8,7 @@ RANLIB=		${TOP}/ar/ranlib
 
 # check if ar(1) executable is available.
 _check_ar:
-	/bin/test -f ${AR}
+	test -f ${AR}
 
 execute: _check_ar
 	/bin/sh run.sh
