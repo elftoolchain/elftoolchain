@@ -1,7 +1,7 @@
 inittest arscript-5 tc/arscript-5
 extshar ${TESTDIR}
 extshar ${RLTDIR}
-runcmd "../ar -M < liba.script.bsd" work true
+runcmd "${AR} -M < liba.script.bsd" work true
 rundiff false
 runcmd "plugin/teraser -c -t arscript-5 liba.a" work false
 runcmd "plugin/teraser -c -t arscript-5 libb.a" work false
