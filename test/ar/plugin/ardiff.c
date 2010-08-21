@@ -234,10 +234,10 @@ static void
 incct(const char *pathname)
 {
 	FILE *fp;
-	char buf[10];
+	char buf[10], *_buf;
 
 	if ((fp = fopen(pathname, "r")) != NULL) {
-		(void) fgets(buf, 10, fp);
+		_buf = fgets(buf, 10, fp);
 		snprintf(buf, 10, "%d\n", atoi(buf) + 1);
 		fclose(fp);
 	}
