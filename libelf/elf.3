@@ -144,24 +144,24 @@ In the current implementation, all three versions have to be
 .Ss Namespace use
 The ELF library uses the following prefixes:
 .Bl -tag -width "ELF_F_*"
-.It elf_*
+.It Dv elf_
 Used for class-independent functions.
-.It elf32_*
+.It Dv elf32_
 Used for functions working with 32 bit ELF objects.
-.It elf64_*
+.It Dv elf64_
 Used for functions working with 64 bit ELF objects.
-.It Elf_*
+.It Dv Elf_
 Used for class-independent data types.
-.It ELF_C_*
+.It Dv ELF_C_
 Used for command values used in a few functions.
 These symbols are defined as members of the
-.Vt Elf_Cmd
+.Vt Dv Elf_Cmd
 enumeration.
-.It ELF_E_*
+.It Dv ELF_E_
 Used for error numbers.
-.It ELF_F_*
+.It Dv ELF_F_
 Used for flags.
-.It ELF_K_*
+.It Dv ELF_K_
 These constants define the kind of file associated with an ELF
 descriptor.
 See
@@ -169,12 +169,18 @@ See
 The symbols are defined by the
 .Vt Elf_Kind
 enumeration.
-.It ELF_T_*
+.It Dv ELF_T_
 These values are defined by the
 .Vt Elf_Type
 enumeration, and denote the types of ELF data structures
 that can be present in an ELF object.
 .El
+.Pp
+In addition, the library uses symbols with prefixes
+.Dv _ELF
+and
+.Dv _libelf
+for its internal use.
 .Ss Descriptors
 Applications communicate with the library using descriptors.
 These are:
