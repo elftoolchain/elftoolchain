@@ -6,5 +6,6 @@
 # SUBDIR+=	tet
 SUBDIR+=	libelf
 SUBDIR+=	libdwarf
+SUBDIR+=	elfdump
 
 .include <bsd.subdir.mk>
