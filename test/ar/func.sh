@@ -2,6 +2,9 @@
 #
 init() {
     THISDIR=`/bin/pwd`
+    TOPDIR=${THISDIR}/../..
+    AR=${TOPDIR}/ar/ar
+    RANLIB=${TOPDIR}/ar/ranlib
 
     # keep a record of total tests and number of tests passed.
     TOTALCT=/tmp/bsdar-test-total
