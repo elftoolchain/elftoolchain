@@ -6,8 +6,7 @@
 .error Make variable \"TOP\" has not been defined.
 .endif
 
-# Set TET_ROOT
-TET_ROOT?= ${TOP}/test/tet/
+.include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 # Inform make(1) about the suffixes we use.
 .SUFFIXES: .lsb32 .lsb64 .m4 .msb32 .msb64 .yaml
