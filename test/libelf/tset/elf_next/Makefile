@@ -23,14 +23,14 @@ a2.c:	.SILENT
 a1.ar:	s1 .SILENT
 	rm -f ${.TARGET}
 	echo 's-3.' > "s 3"
-	ar crv ${.TARGET} s1 "s 3"
+	${AR} crv ${.TARGET} s1 "s 3" > /dev/null
 
 a2.ar:	s1 ${TS_LONGNAME} .SILENT
 	rm -f ${.TARGET}
-	ar crv ${.TARGET} ${.ALLSRC}
+	${AR} crv ${.TARGET} ${.ALLSRC} > /dev/null
 
 a3.ar:	s1 ${TS_LONGNAME} a1.o a2.o .SILENT
 	rm -f ${.TARGET}
-	ar crv ${.TARGET} ${.ALLSRC}
+	${AR} crv ${.TARGET} ${.ALLSRC} > /dev/null
 
 .include "${TOP}/mk/elftoolchain.tet.mk"

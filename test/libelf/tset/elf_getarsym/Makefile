@@ -22,10 +22,10 @@ ${TS_LONGNAME}:	.SILENT
 a.ar:	a1.o a2.o ${TS_LONGNAME} s1 .SILENT
 	rm -f ${.TARGET}
 	echo 's-3.' > "s 3"
-	ar crv ${.TARGET} s1 a1.o ${TS_LONGNAME} a2.o "s 3"
+	${AR} crv ${.TARGET} s1 a1.o ${TS_LONGNAME} a2.o "s 3" > /dev/null
 
 a2.ar:	s1 ${TS_LONGNAME} .SILENT
 	rm -f ${.TARGET}
-	ar crv ${.TARGET} ${.ALLSRC}
+	${AR} crv ${.TARGET} ${.ALLSRC} > /dev/null
 	
 .include "${TOP}/mk/elftoolchain.tet.mk"

@@ -11,6 +11,6 @@ a.c:	.SILENT
 
 a.ar:	a.o .SILENT
 	rm -f ${.TARGET}
-	ar crv ${.TARGET} ${.ALLSRC}
+	${AR} crv ${.TARGET} ${.ALLSRC} > /dev/null
 
 .include "${TOP}/mk/elftoolchain.tet.mk"

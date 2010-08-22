@@ -11,6 +11,6 @@ a1:	.SILENT
 	echo "a1" > ${.TARGET}
 
 a.ar:	a1 .SILENT
-	ar crv ${.TARGET} a1
+	${AR} crv ${.TARGET} a1 > /dev/null
 
 .include "${TOP}/mk/elftoolchain.tet.mk"
