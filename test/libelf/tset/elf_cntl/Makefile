@@ -6,10 +6,10 @@ TS_SRCS=		cntl.m4
 TS_DATA=		a.ar
 CLEANFILES+=		a.c a.o
 
-a.c:
+a.c:	.SILENT
 	echo "int foobar;" > ${.TARGET}
 
-a.ar:	a.o
+a.ar:	a.o .SILENT
 	rm -f ${.TARGET}
 	ar crv ${.TARGET} ${.ALLSRC}
 
