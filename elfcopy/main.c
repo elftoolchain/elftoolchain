@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2009 Kai Wang
+ * Copyright (c) 2007-2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <err.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <libelftc.h>
@@ -193,6 +194,7 @@ static struct {
 	{NULL, 0}
 };
 
+static int	copy_tempfile(int fd, const char *out);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
 static void	create_object(struct elfcopy *ecp, int ifd, int ofd);
@@ -510,6 +512,39 @@ create_tempfile(char **fn, int *fd)
 #undef _TEMPFILEPATH
 }
 
+static int
+copy_tempfile(int fd, const char *out)
+{
+	struct stat sb;
+	char *buf;
+	int out_fd, bytes;
+
+	if (fstat(fd, &sb) == -1)
+		err(EX_IOERR, "fstat tmpfile failed");
+	if ((buf = malloc((size_t) sb.st_blksize)) == NULL)
+		err(EX_SOFTWARE, "malloc failed");
+	if (unlink(out) < 0)
+		err(EX_IOERR, "unlink %s failed", out);
+	if ((out_fd = open(out, O_CREAT | O_WRONLY, 0755)) == -1)
+		err(EX_IOERR, "create %s failed", out);
+
+	while ((bytes = read(fd, buf, sb.st_blksize)) > 0) {
+		if (write(out_fd, buf, (size_t) bytes) != bytes) {
+			(void) unlink(out);
+			err(EX_IOERR, "write %s failed", out);
+		}
+	}
+	if (bytes < 0) {
+		(void) unlink(out);
+		err(EX_IOERR, "read failed");
+	}
+
+	free(buf);
+	close(fd);
+
+	return (out_fd);
+}
+
 static void
 create_file(struct elfcopy *ecp, const char *src, const char *dst)
 {
@@ -537,9 +572,13 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	create_object(ecp, ifd, ofd);
 
 	if (dst == NULL && tempfile != NULL) {
-		if (rename(tempfile, src) == -1)
-			err(EX_IOERR, "rename %s to %s failed",
-			    tempfile, src);
+		if (rename(tempfile, src) == -1) {
+			if (errno == EXDEV)
+				ofd = copy_tempfile(ofd, src);
+			else
+				err(EX_IOERR, "rename %s to %s failed",
+				    tempfile, src);
+		}
 		free(tempfile);
 	}
 
