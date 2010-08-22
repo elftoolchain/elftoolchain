@@ -2,6 +2,10 @@
 #
 init() {
     THISDIR=`/bin/pwd`
+    TOPDIR=${THISDIR}/../..
+    ELFCOPY=${TOPDIR}/elfcopy/elfcopy
+    STRIP=${TOPDIR}/elfcopy/strip
+    MCS=${TOPDIR}/elfcopy/mcs
 
     # keep a record of total tests and number of tests passed.
     TOTALCT=/tmp/elfcopy-test-total

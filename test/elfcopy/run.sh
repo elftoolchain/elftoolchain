@@ -7,7 +7,7 @@
 trap 'rm -rf /tmp/elfcopy-*; rm -rf /tmp/strip-*; exit' 0 2 3 15
 
 # load functions.
-. func.sh
+. ./func.sh
 
 # global initialization.
 init
