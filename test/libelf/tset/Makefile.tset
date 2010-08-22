@@ -19,5 +19,5 @@ _YO=	${TS_ROOT}/common/obj/${f}
 _YO=	/nonexistent
 .endif
 ${f}:	${_YO}
-	cp ${.ALLSRC} ${.TARGET}
+	@cp ${.ALLSRC} ${.TARGET}
 .endfor
