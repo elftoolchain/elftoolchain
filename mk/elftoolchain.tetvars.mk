@@ -4,6 +4,10 @@
 # $Id$
 #
 
+.if !defined(TOP)
+.error Make variable \"TOP\" has not been defined.
+.endif
+
 # Set TET_ROOT and version.
 TET_VERSION?=		3.8
 TET_ROOT?=		${TOP}/test/tet/tet${TET_VERSION}
