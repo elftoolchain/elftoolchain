@@ -1,21 +1,19 @@
-# $FreeBSD$
+# $Id$
 
-ELFCOPY=	../elfcopy
-ECPDIR!=	dirname ${ELFCOPY}
-STRIP:=		${ECPDIR}/strip
-MCS:=		${ECPDIR}/mcs
-PLUGINDIR=	plugin
+TOP=		../..
+ELFCOPY=	${TOP}/elfcopy/elfcopy
+STRIP=		${TOP}/elfcopy/strip
+MCS=		${TOP}/elfcopy/mcs
 
-# list all the C plugins here.
-CPLUGIN=	ardiff teraser
+.MAIN:	all ${STRIP} ${MCS}
 
-test: ${ELFCOPY} ${STRIP} ${MCS} ${CPLUGIN}
+_check_elfcopy:
+	test -f ${ELFCOPY}
+
+execute: _check_elfcopy
 	/bin/sh run.sh
 
-clean: ecpclean stripclean mcsclean pluginclean
-
-${ELFCOPY}:
-	cd ${ECPDIR} && ${MAKE}
+clean: stripclean mcsclean
 
 ${STRIP}: ${ELFCOPY}
 	ln -f ${ELFCOPY} ${STRIP}
@@ -23,21 +21,12 @@ ${STRIP}: ${ELFCOPY}
 ${MCS}: ${ELFCOPY}
 	ln -f ${ELFCOPY} ${MCS}
 
-${CPLUGIN}:
-.for plugin in ${.TARGET}
-	cd ${PLUGINDIR} && ${MAKE} -f Makefile.${plugin}
-.endfor
-
-ecpclean:
-	cd ${ECPDIR} && ${MAKE} clean
-
 stripclean:
 	rm -f ${STRIP}
 
 mcsclean:
 	rm -f ${MCS}
 
-pluginclean:
-.for plugin in ${CPLUGIN}
-	cd ${PLUGINDIR} && ${MAKE} -f Makefile.${plugin} clean
-.endfor
+SUBDIR=		plugin
+
+.include <bsd.subdir.mk>
