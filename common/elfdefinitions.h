@@ -41,6 +41,100 @@
 #include <stdint.h>
 
 /*
+ * Flags used with dynamic linking entries.
+ */
+
+#define	_ELF_DEFINE_DYN_FLAGS()					\
+_ELF_DEFINE_DF(DF_ORIGIN,           0x1,			\
+	"object being loaded may refer to $ORIGIN")		\
+_ELF_DEFINE_DF(DF_SYMBOLIC,         0x2,			\
+	"search library for references before executable")	\
+_ELF_DEFINE_DF(DF_TEXTREL,          0x4,			\
+	"relocation entries may modify text segment")		\
+_ELF_DEFINE_DF(DF_BIND_NOW,         0x8,			\
+	"process relocation entries at load time")		\
+_ELF_DEFINE_DF(DF_STATIC_TLS,       0x10,			\
+	"uses static thread-local storage")
+#undef	_ELF_DEFINE_DF
+#define	_ELF_DEFINE_DF(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_DYN_FLAGS() };
+
+
+/*
+ * Dynamic linking entry types.
+ */
+
+#define	_ELF_DEFINE_DYN_TYPES()						\
+_ELF_DEFINE_DT(DT_NULL,             0, "end of array")			\
+_ELF_DEFINE_DT(DT_NEEDED,           1, "names a needed library")	\
+_ELF_DEFINE_DT(DT_PLTRELSZ,         2,					\
+	"size in bytes of associated relocation entries")		\
+_ELF_DEFINE_DT(DT_PLTGOT,           3,					\
+	"address associated with the procedure linkage table")		\
+_ELF_DEFINE_DT(DT_HASH,             4,					\
+	"address of the symbol hash table")				\
+_ELF_DEFINE_DT(DT_STRTAB,           5,					\
+	"address of the string table")					\
+_ELF_DEFINE_DT(DT_SYMTAB,           6,					\
+	"address of the symbol table")					\
+_ELF_DEFINE_DT(DT_RELA,             7,					\
+	"address of the relocation table")				\
+_ELF_DEFINE_DT(DT_RELASZ,           8, "size of the DT_RELA table")	\
+_ELF_DEFINE_DT(DT_RELAENT,          9, "size of each DT_RELA entry")	\
+_ELF_DEFINE_DT(DT_STRSZ,            10, "size of the string table")	\
+_ELF_DEFINE_DT(DT_SYMENT,           11,					\
+	"size of a symbol table entry")					\
+_ELF_DEFINE_DT(DT_INIT,             12,					\
+	"address of the initialization function")			\
+_ELF_DEFINE_DT(DT_FINI,             13,					\
+	"address of the finalization function")				\
+_ELF_DEFINE_DT(DT_SONAME,           14, "names the shared object")	\
+_ELF_DEFINE_DT(DT_RPATH,            15,					\
+	"runtime library search path")					\
+_ELF_DEFINE_DT(DT_SYMBOLIC,         16,					\
+	"alter symbol resolution algorithm")				\
+_ELF_DEFINE_DT(DT_REL,              17,					\
+	"address of the DT_REL table")					\
+_ELF_DEFINE_DT(DT_RELSZ,            18, "size of the DT_REL table")	\
+_ELF_DEFINE_DT(DT_RELENT,           19, "size of each DT_REL entry")	\
+_ELF_DEFINE_DT(DT_PLTREL,           20,					\
+	"type of relocation entry in the procedure linkage table")	\
+_ELF_DEFINE_DT(DT_DEBUG,            21, "used for debugging")		\
+_ELF_DEFINE_DT(DT_TEXTREL,          22,					\
+	"text segment may be written to during relocation")		\
+_ELF_DEFINE_DT(DT_JMPREL,           23,					\
+	"address of relocation entries associated with the procedure linkage table") \
+_ELF_DEFINE_DT(DT_BIND_NOW,         24,					\
+	"bind symbols at loading time")					\
+_ELF_DEFINE_DT(DT_INIT_ARRAY,       25,					\
+	"pointers to initialization functions")				\
+_ELF_DEFINE_DT(DT_FINI_ARRAY,       26,					\
+	"pointers to termination functions")				\
+_ELF_DEFINE_DT(DT_INIT_ARRAYSZ,     27, "size of the DT_INIT_ARRAY")	\
+_ELF_DEFINE_DT(DT_FINI_ARRAYSZ,     28, "size of the DT_FINI_ARRAY")	\
+_ELF_DEFINE_DT(DT_RUNPATH,          29,					\
+	"index of library search path string")				\
+_ELF_DEFINE_DT(DT_FLAGS,            30,					\
+	"flags specific to the object being loaded")			\
+_ELF_DEFINE_DT(DT_ENCODING,         32, "standard semantics")		\
+_ELF_DEFINE_DT(DT_PREINIT_ARRAY,    32,					\
+	"pointers to pre-initialization functions")			\
+_ELF_DEFINE_DT(DT_PREINIT_ARRAYSZ,  33,					\
+	"size of pre-initialization array")				\
+_ELF_DEFINE_DT(DT_LOOS,             0x6000000D,				\
+    "start of OS-specific types")					\
+_ELF_DEFINE_DT(DT_HIOS,             0x6ffff000,				\
+    "end of OS-specific types")						\
+_ELF_DEFINE_DT(DT_LOPROC,           0x70000000,				\
+	"start of processor-specific types")				\
+_ELF_DEFINE_DT(DT_HIPROC,           0x7fffffff,				\
+	"end of processor-specific types")
+
+#undef	_ELF_DEFINE_DT
+#define	_ELF_DEFINE_DT(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_DYN_TYPES() };
+
+/*
  * Offsets in the `ei_ident[]` field of an ELF executable header.
  */
 #define	_ELF_DEFINE_EI_OFFSETS()			\
@@ -57,7 +151,7 @@ _ELF_DEFINE_EI(EI_PAD,	    9, "padding start")		\
 _ELF_DEFINE_EI(EI_NIDENT,  16, "total size")
 
 #undef	_ELF_DEFINE_EI
-#define	_ELF_DEFINE_EI(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_EI(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_EI_OFFSETS() };
 
 /*
@@ -69,7 +163,7 @@ _ELF_DEFINE_EC(ELFCLASS32,   1, "32 bit objects")	\
 _ELF_DEFINE_EC(ELFCLASS64,   2, "64 bit objects")
 
 #undef	_ELF_DEFINE_EC
-#define	_ELF_DEFINE_EC(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_EC(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_ELFCLASS() };
 
 /*
@@ -82,7 +176,7 @@ _ELF_DEFINE_ED(ELFDATA2LSB, 1, "little endian")			\
 _ELF_DEFINE_ED(ELFDATA2MSB, 2, "big endian")
 
 #undef	_ELF_DEFINE_ED
-#define	_ELF_DEFINE_ED(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_ED(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_ELF_DATA_ENDIANNESS() };
 
 /*
@@ -95,7 +189,7 @@ _ELF_DEFINE_EMAG(ELFMAG2, 'L')			\
 _ELF_DEFINE_EMAG(ELFMAG3, 'F')
 
 #undef	_ELF_DEFINE_EMAG
-#define	_ELF_DEFINE_EMAG(N, V) N = V ,
+#define	_ELF_DEFINE_EMAG(N, V)		N = V ,
 enum { _ELF_DEFINE_ELF_MAGIC() };
 
 /*
@@ -122,7 +216,7 @@ _ELF_DEFINE_EABI(ELFOSABI_FENIXOS,    16,				\
 	"The FenixOS highly scalable multi-core OS")
 
 #undef	_ELF_DEFINE_EABI
-#define	_ELF_DEFINE_EABI(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_EABI(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_ELF_OSABI() };
 
 /*
@@ -351,7 +445,7 @@ _ELF_DEFINE_EM(EM_MICROBLAZE,       189,				\
 _ELF_DEFINE_EM(EM_CUDA,             190, "NVIDIA CUDA architecture")
 
 #undef	_ELF_DEFINE_EM
-#define	_ELF_DEFINE_EM(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_ELF_MACHINES() };
 
 
@@ -370,14 +464,101 @@ _ELF_DEFINE_ET(ET_LOPROC, 0xFF00U,  "Begin processor-specific range")	\
 _ELF_DEFINE_ET(ET_HIPROC, 0xFFFFU,  "End processor-specific range")
 
 #undef	_ELF_DEFINE_ET
-#define	_ELF_DEFINE_ET(N, V, DESCR) N = V ,
+#define	_ELF_DEFINE_ET(N, V, DESCR)	N = V ,
 enum {	_ELF_DEFINE_ELF_TYPES() };
 
 /* ELF file format version numbers. */
 #define	EV_NONE		0
 #define	EV_CURRENT	1
 
-#define _ELF_DEFINE_ELF_SHNS()						\
+/*
+ * Flags for section groups.
+ */
+#define	GRP_COMDAT 	0x1		/* COMDAT semantics */
+#define	GRP_MASKOS 	0x0ff00000	/* OS-specific flags */
+#define	GRP_MASKPROC 	0xf0000000	/* processor-specific flags */
+
+/*
+ * Flags used by program header table entries.
+ */
+
+#define	_ELF_DEFINE_PHDR_FLAGS()					\
+_ELF_DEFINE_PF(PF_X,                0x1, "Execute")			\
+_ELF_DEFINE_PF(PF_W,                0x2, "Write")			\
+_ELF_DEFINE_PF(PF_R,                0x4, "Read")			\
+_ELF_DEFINE_PF(PF_MASKOS,           0x0ff00000, "OS-specific flags")	\
+_ELF_DEFINE_PF(PF_MASKPROC,         0xf0000000, "Processor-specific flags")
+
+#undef	_ELF_DEFINE_PF
+#define	_ELF_DEFINE_PF(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_PHDR_FLAGS() };
+
+/*
+ * Types of program header table entries.
+ */
+
+#define	_ELF_DEFINE_PHDR_TYPES()				\
+_ELF_DEFINE_PT(PT_NULL,             0, "ignored entry")		\
+_ELF_DEFINE_PT(PT_LOAD,             1, "loadable segment")	\
+_ELF_DEFINE_PT(PT_DYNAMIC,          2,				\
+	"contains dynamic linking information")			\
+_ELF_DEFINE_PT(PT_INTERP,           3, "names an interpreter")	\
+_ELF_DEFINE_PT(PT_NOTE,             4, "auxiliary information")	\
+_ELF_DEFINE_PT(PT_SHLIB,            5, "reserved")		\
+_ELF_DEFINE_PT(PT_PHDR,             6,				\
+	"describes the program header itself")			\
+_ELF_DEFINE_PT(PT_TLS,              7, "thread local storage")	\
+_ELF_DEFINE_PT(PT_LOOS,             0x60000000,			\
+    "start of OS-specific range")				\
+_ELF_DEFINE_PT(PT_HIOS,             0x6fffffff,			\
+    "end of OS-specific range")					\
+_ELF_DEFINE_PT(PT_LOPROC,           0x70000000,			\
+	"start of processor-specific range")			\
+_ELF_DEFINE_PT(PT_HIPROC,           0x7fffffff,			\
+	"end of processor-specific range")
+
+#undef	_ELF_DEFINE_PT
+#define	_ELF_DEFINE_PT(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_PHDR_TYPES() };
+
+
+/*
+ * Section flags.
+ */
+
+#define	_ELF_DEFINE_SECTION_FLAGS()					\
+_ELF_DEFINE_SHF(SHF_WRITE,           0x1,				\
+	"writable during program execution")				\
+_ELF_DEFINE_SHF(SHF_ALLOC,           0x2,				\
+	"occupies memory during program execution")			\
+_ELF_DEFINE_SHF(SHF_EXECINSTR,       0x4, "executable instructions")	\
+_ELF_DEFINE_SHF(SHF_MERGE,           0x10,				\
+	"may be merged to prevent duplication")				\
+_ELF_DEFINE_SHF(SHF_STRINGS,         0x20,				\
+	"NUL-terminated character strings")				\
+_ELF_DEFINE_SHF(SHF_INFO_LINK,       0x40,				\
+	"the sh_info field holds a link")				\
+_ELF_DEFINE_SHF(SHF_LINK_ORDER,      0x80,				\
+	"special ordering requirements during linking")			\
+_ELF_DEFINE_SHF(SHF_OS_NONCONFORMING, 0x100,				\
+	"requires OS-specific processing during linking")		\
+_ELF_DEFINE_SHF(SHF_GROUP,           0x200,				\
+	"member of a section group")					\
+_ELF_DEFINE_SHF(SHF_TLS,             0x400,				\
+	"holds thread-local storage")					\
+_ELF_DEFINE_SHF(SHF_MASKOS,          0x0ff00000,			\
+	"bits reserved for OS-specific semantics")			\
+_ELF_DEFINE_SHF(SHF_MASKPROC,        0xf0000000,			\
+	"bits reserved for processor-specific semantics")
+
+#undef	_ELF_DEFINE_SHF
+#define	_ELF_DEFINE_SHF(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SECTION_FLAGS() };
+
+/*
+ * Special section indices.
+ */
+#define _ELF_DEFINE_SECTION_INDICES()					\
 _ELF_DEFINE_SHN(SHN_UNDEF, 	0, 	 "undefined section")		\
 _ELF_DEFINE_SHN(SHN_LORESERVE, 	0xFF00U, "start of reserved area")	\
 _ELF_DEFINE_SHN(SHN_LOPROC, 	0XFF00U,				\
@@ -394,9 +575,117 @@ _ELF_DEFINE_SHN(SHN_XINDEX, 	0xFFFFU, "extended index")		\
 _ELF_DEFINE_SHN(SHN_HIRESERVE, 	0xFFFFU, "end of reserved area")
 
 #undef	_ELF_DEFINE_SHN
-#define	_ELF_DEFINE_SHN(N, V, DESCR) N = V ,
-enum { _ELF_DEFINE_ELF_SHNS() };
+#define	_ELF_DEFINE_SHN(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SECTION_INDICES() };
 
+/*
+ * Section types.
+ */
+
+#define	_ELF_DEFINE_SECTION_TYPES()					\
+_ELF_DEFINE_SHT(SHT_NULL,            0, "inactive header")		\
+_ELF_DEFINE_SHT(SHT_PROGBITS,        1, "program defined information")	\
+_ELF_DEFINE_SHT(SHT_SYMTAB,          2, "symbol table")			\
+_ELF_DEFINE_SHT(SHT_STRTAB,          3, "string table")			\
+_ELF_DEFINE_SHT(SHT_RELA,            4,					\
+	"relocation entries with addends")				\
+_ELF_DEFINE_SHT(SHT_HASH,            5, "symbol hash table")		\
+_ELF_DEFINE_SHT(SHT_DYNAMIC,         6,					\
+	"information for dynamic linking")				\
+_ELF_DEFINE_SHT(SHT_NOTE,            7, "additional notes")		\
+_ELF_DEFINE_SHT(SHT_NOBITS,          8, "section occupying no space")	\
+_ELF_DEFINE_SHT(SHT_REL,             9,					\
+	"relocation entries without addends")				\
+_ELF_DEFINE_SHT(SHT_SHLIB,           10, "reserved")			\
+_ELF_DEFINE_SHT(SHT_DYNSYM,          11, "symbol table")		\
+_ELF_DEFINE_SHT(SHT_INIT_ARRAY,      14,				\
+	"pointers to initialization functions")				\
+_ELF_DEFINE_SHT(SHT_FINI_ARRAY,      15,				\
+	"pointers to termination functions")				\
+_ELF_DEFINE_SHT(SHT_PREINIT_ARRAY,   16,				\
+	"pointers to functions called before initialization")		\
+_ELF_DEFINE_SHT(SHT_GROUP,           17, "defines a section group")	\
+_ELF_DEFINE_SHT(SHT_SYMTAB_SHNDX,    18,				\
+	"used for extended section numbering")				\
+_ELF_DEFINE_SHT(SHT_LOOS,            0x60000000,			\
+	"start of OS-specific range")					\
+_ELF_DEFINE_SHT(SHT_HIOS,            0x6fffffff,			\
+	"end of OS-specific range")					\
+_ELF_DEFINE_SHT(SHT_LOPROC,          0x70000000,			\
+	"start of processor-specific range")				\
+_ELF_DEFINE_SHT(SHT_HIPROC,          0x7fffffff,			\
+	"end of processor-specific range")				\
+_ELF_DEFINE_SHT(SHT_LOUSER,          0x80000000,			\
+	"start of application-specific range")				\
+_ELF_DEFINE_SHT(SHT_HIUSER,          0xffffffff,			\
+	"end of application-specific range")
+
+#undef	_ELF_DEFINE_SHT
+#define	_ELF_DEFINE_SHT(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SECTION_TYPES() };
+
+/*
+ * Symbol binding information.
+ */
+
+#define	_ELF_DEFINE_SYMBOL_BINDING()					\
+_ELF_DEFINE_STB(STB_LOCAL,           0,					\
+	"not visible outside defining object file")			\
+_ELF_DEFINE_STB(STB_GLOBAL,          1,					\
+	"visible across all object files being combined")		\
+_ELF_DEFINE_STB(STB_WEAK,            2,					\
+	"visible across all object files but with low precedence")	\
+_ELF_DEFINE_STB(STB_LOOS,            10, "start of OS-specific range")	\
+_ELF_DEFINE_STB(STB_HIOS,            12, "end of OS-specific range")	\
+_ELF_DEFINE_STB(STB_LOPROC,          13,				\
+	"start of processor-specific range")				\
+_ELF_DEFINE_STB(STB_HIPROC,          15,				\
+	"end of processor-specific range")
+
+#undef	_ELF_DEFINE_STB
+#define	_ELF_DEFINE_STB(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SYMBOL_BINDING() };
+
+/*
+ * Symbol types
+ */
+
+#define	_ELF_DEFINE_SYMBOL_TYPES()					\
+_ELF_DEFINE_STT(STT_NOTYPE,          0, "unspecified type")		\
+_ELF_DEFINE_STT(STT_OBJECT,          1, "data object")			\
+_ELF_DEFINE_STT(STT_FUNC,            2, "executable code")		\
+_ELF_DEFINE_STT(STT_SECTION,         3, "section")			\
+_ELF_DEFINE_STT(STT_FILE,            4, "source file")			\
+_ELF_DEFINE_STT(STT_COMMON,          5, "uninitialized common block")	\
+_ELF_DEFINE_STT(STT_TLS,             6, "thread local storage")		\
+_ELF_DEFINE_STT(STT_LOOS,            10, "start of OS-specific types")	\
+_ELF_DEFINE_STT(STT_HIOS,            12, "end of OS-specific types")	\
+_ELF_DEFINE_STT(STT_LOPROC,          13,				\
+	"start of processor-specific types")				\
+_ELF_DEFINE_STT(STT_HIPROC,          15,				\
+	"end of processor-specific types")
+
+#undef	_ELF_DEFINE_STT
+#define	_ELF_DEFINE_STT(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SYMBOL_TYPES() };
+
+/*
+ * Symbol visibility.
+ */
+
+#define	_ELF_DEFINE_SYMBOL_VISIBILITY()		\
+_ELF_DEFINE_STV(STV_DEFAULT,         0,		\
+	"as specified by symbol type")		\
+_ELF_DEFINE_STV(STV_INTERNAL,        1,		\
+	"as defined by processor semantics")	\
+_ELF_DEFINE_STV(STV_HIDDEN,          2,		\
+	"hidden from other components")		\
+_ELF_DEFINE_STV(STV_PROTECTED,       3,		\
+	"local references are not preemptable")
+
+#undef	_ELF_DEFINE_STV
+#define	_ELF_DEFINE_STV(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SYMBOL_VISIBILITY() };
 
 /**
  ** ELF Types.
@@ -417,19 +706,25 @@ typedef uint64_t	Elf64_Xword;	/* Unsigned long integer. */
 typedef int64_t		Elf64_Sxword;	/* Signed long integer. */
 
 
+/*
+ * Dynamic section entries.
+ */
+
+/* 32-bit entry. */
 typedef struct {
-	Elf32_Sword	d_tag;
+	Elf32_Sword	d_tag;	     /* Type of entry. */
 	union {
-		Elf32_Word	d_val;
-		Elf32_Addr	d_ptr;
+		Elf32_Word	d_val; /* Integer value. */
+		Elf32_Addr	d_ptr; /* Pointer value. */
 	} d_un;
 } Elf32_Dyn;
 
+/* 64-bit entry. */
 typedef struct {
-	Elf64_Sxword	d_tag;
+	Elf64_Sxword	d_tag;	     /* Type of entry. */
 	union {
-		Elf64_Xword	d_val;
-		Elf64_Addr	d_ptr;
+		Elf64_Xword	d_val; /* Integer value. */
+		Elf64_Addr	d_ptr; /* Pointer value; */
 	} d_un;
 } Elf64_Dyn;
 
@@ -453,7 +748,7 @@ typedef struct {
 	Elf32_Half      e_phnum;     /* Number of PHDR entries. */
 	Elf32_Half      e_shentsize; /* SHDR table entry size in bytes. */
 	Elf32_Half      e_shnum;     /* Number of SHDR entries. */
-	Elf32_Half      e_shstrndx;  /* Index of the section name string table. */
+	Elf32_Half      e_shstrndx;  /* Index of section name string table. */
 } Elf32_Ehdr;
 
 
@@ -472,7 +767,7 @@ typedef struct {
 	Elf64_Half      e_phnum;     /* Number of PHDR entries. */
 	Elf64_Half      e_shentsize; /* SHDR table entry size in bytes. */
 	Elf64_Half      e_shnum;     /* Number of SHDR entries. */
-	Elf64_Half      e_shstrndx;  /* Index of the section name string table. */
+	Elf64_Half      e_shstrndx;  /* Index of section name string table. */
 } Elf64_Ehdr;
 
 
@@ -482,26 +777,26 @@ typedef struct {
 
 /* 32 bit PHDR entry. */
 typedef struct {
-	Elf32_Word	p_type;
-	Elf32_Off	p_offset;
-	Elf32_Addr	p_vaddr;
-	Elf32_Addr	p_paddr;
-	Elf32_Word	p_filesz;
-	Elf32_Word	p_memsz;
-	Elf32_Word	p_flags;
-	Elf32_Word	p_align;
+	Elf32_Word	p_type;	     /* Type of segment. */
+	Elf32_Off	p_offset;    /* File offset to segment. */
+	Elf32_Addr	p_vaddr;     /* Virtual address in memory. */
+	Elf32_Addr	p_paddr;     /* Physical address (if relevant). */
+	Elf32_Word	p_filesz;    /* Size of segment in file. */
+	Elf32_Word	p_memsz;     /* Size of segment in memory. */
+	Elf32_Word	p_flags;     /* Segment flags. */
+	Elf32_Word	p_align;     /* Alignment constraints. */
 } Elf32_Phdr;
 
 /* 64 bit PHDR entry. */
 typedef struct {
-	Elf64_Word	p_type;
-	Elf64_Word	p_flags;
-	Elf64_Off	p_offset;
-	Elf64_Addr	p_vaddr;
-	Elf64_Addr	p_paddr;
-	Elf64_Xword	p_filesz;
-	Elf64_Xword	p_memsz;
-	Elf64_Xword	p_align;
+	Elf64_Word	p_type;	     /* Type of segment. */
+	Elf64_Word	p_flags;     /* File offset to segment. */
+	Elf64_Off	p_offset;    /* Virtual address in memory. */
+	Elf64_Addr	p_vaddr;     /* Physical address (if relevant). */
+	Elf64_Addr	p_paddr;     /* Size of segment in file. */
+	Elf64_Xword	p_filesz;    /* Size of segment in memory. */
+	Elf64_Xword	p_memsz;     /* Segment flags. */
+	Elf64_Xword	p_align;     /* Alignment constraints. */
 } Elf64_Phdr;
 
 /*
@@ -537,55 +832,27 @@ typedef struct {
 } Elf64_Shdr;
 
 
+/*
+ * Symbol table entries.
+ */
+
 typedef struct {
-	Elf32_Word	st_name;
-	Elf32_Addr	st_value;
-	Elf32_Word	st_size;
-	unsigned char	st_info;
-	unsigned char	st_other;
-	Elf32_Half	st_shndx;
+	Elf32_Word	st_name;     /* index of symbol's name */
+	Elf32_Addr	st_value;    /* value for the symbol */
+	Elf32_Word	st_size;     /* size of associated data */
+	unsigned char	st_info;     /* type and binding attributes */
+	unsigned char	st_other;    /* visibility */
+	Elf32_Half	st_shndx;    /* index of related section */
 } Elf32_Sym;
 
 typedef struct {
-	Elf64_Word	st_name;
-	unsigned char	st_info;
-	unsigned char	st_other;
-	Elf64_Half	st_shndx;
-	Elf64_Addr	st_value;
-	Elf64_Xword	st_size;
+	Elf64_Word	st_name;     /* index of symbol's name */
+	unsigned char	st_info;     /* value for the symbol */
+	unsigned char	st_other;    /* size of associated data */
+	Elf64_Half	st_shndx;    /* type and binding attributes */
+	Elf64_Addr	st_value;    /* visibility */
+	Elf64_Xword	st_size;     /* index of related section */
 } Elf64_Sym;
-
-
-typedef struct {
-	Elf32_Addr	r_offset;
-	Elf32_Word	r_info;
-} Elf32_Rel;
-
-typedef struct {
-	Elf32_Addr	r_offset;
-	Elf32_Word	r_info;
-	Elf32_Sword	r_addend;
-} Elf32_Rela;
-
-typedef struct {
-	Elf64_Addr	r_offset;
-	Elf64_Xword	r_info;
-} Elf64_Rel;
-
-typedef struct {
-	Elf64_Addr	r_offset;
-	Elf64_Xword	r_info;
-	Elf64_Sxword	r_addend;
-} Elf64_Rela;
-
-
-#define ELF32_R_SYM(I)		((I) >> 8)
-#define ELF32_R_TYPE(I)		((unsigned char) (I))
-#define ELF32_R_INFO(S,T)	(((S) << 8) + (unsigned char) (T))
-
-#define ELF64_R_SYM(I)		((I) >> 32)
-#define ELF64_R_TYPE(I)		((I) & 0xFFFFFFFFUL)
-#define ELF64_R_INFO(S,T)	(((S) << 32) + ((T) & 0xFFFFFFFFUL))
 
 #define ELF32_ST_BIND(I)	((I) >> 4)
 #define ELF32_ST_TYPE(I)	((I) & 0xFU)
@@ -597,5 +864,41 @@ typedef struct {
 
 #define ELF32_ST_VISIBILITY(O)	((O) & 0x3)
 #define ELF64_ST_VISIBILITY(O)	((O) & 0x3)
+
+
+/*
+ * Relocation descriptors.
+ */
+
+typedef struct {
+	Elf32_Addr	r_offset;    /* location to apply relocation to */
+	Elf32_Word	r_info;	     /* type+section for relocation */
+} Elf32_Rel;
+
+typedef struct {
+	Elf32_Addr	r_offset;    /* location to apply relocation to */
+	Elf32_Word	r_info;      /* type+section for relocation */
+	Elf32_Sword	r_addend;    /* constant addend */
+} Elf32_Rela;
+
+typedef struct {
+	Elf64_Addr	r_offset;    /* location to apply relocation to */
+	Elf64_Xword	r_info;      /* type+section for relocation */
+} Elf64_Rel;
+
+typedef struct {
+	Elf64_Addr	r_offset;    /* location to apply relocation to */
+	Elf64_Xword	r_info;      /* type+section for relocation */
+	Elf64_Sxword	r_addend;    /* constant addend */
+} Elf64_Rela;
+
+
+#define ELF32_R_SYM(I)		((I) >> 8)
+#define ELF32_R_TYPE(I)		((unsigned char) (I))
+#define ELF32_R_INFO(S,T)	(((S) << 8) + (unsigned char) (T))
+
+#define ELF64_R_SYM(I)		((I) >> 32)
+#define ELF64_R_TYPE(I)		((I) & 0xFFFFFFFFUL)
+#define ELF64_R_INFO(S,T)	(((S) << 32) + ((T) & 0xFFFFFFFFUL))
 
 #endif	/* _ELFDEFINITIONS_H_ */
