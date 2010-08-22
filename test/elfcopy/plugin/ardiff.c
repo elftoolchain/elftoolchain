@@ -98,7 +98,7 @@ main(int argc, char **argv)
 	archive_read_support_format_all(a1);
 	if (archive_read_open_file(a1, argv[0],
 	    1024*10)) {
-		warnx(archive_error_string(a1));
+		warnx("%s", archive_error_string(a1));
 		filediff(tc, "archive open failed", NULL);
 	}
 
@@ -108,7 +108,7 @@ main(int argc, char **argv)
 	archive_read_support_format_all(a2);
 	if (archive_read_open_file(a2, argv[1],
 	    1024*10)) {
-		warnx(archive_error_string(a2));
+		warnx("%s", archive_error_string(a2));
 		filediff(tc, "archive open failed", NULL);
 	}
 
@@ -125,7 +125,7 @@ main(int argc, char **argv)
 			a1end = 1;
 		if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY ||
 		    r == ARCHIVE_FATAL) {
-			warnx(archive_error_string(a1));
+			warnx("%s", archive_error_string(a1));
 			filediff(tc, "archive data error", NULL);
 		}
 		r = archive_read_next_header(a2, &e2);
@@ -140,7 +140,7 @@ main(int argc, char **argv)
 		}
 		if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY ||
 		    r == ARCHIVE_FATAL) {
-			warnx(archive_error_string(a2));
+			warnx("%s", archive_error_string(a2));
 			filediff(tc, "archive data error", NULL);
 		}
 		if (a1end > 0) {
@@ -234,10 +234,10 @@ static void
 incct(const char *pathname)
 {
 	FILE *fp;
-	char buf[10];
+	char buf[10], *_buf;
 
 	if ((fp = fopen(pathname, "r")) != NULL) {
-		fgets(buf, 10, fp);
+		_buf = fgets(buf, 10, fp);
 		snprintf(buf, 10, "%d\n", atoi(buf) + 1);
 		fclose(fp);
 	}
