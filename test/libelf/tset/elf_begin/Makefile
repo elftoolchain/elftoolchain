@@ -11,6 +11,6 @@ a.c:	.SILENT
 	echo "int dummy;" > a.c
 
 a.ar:	a.o .SILENT
-	${AR} crv ${.TARGET} ${.ALLSRC}	
+	${AR} crv ${.TARGET} ${.ALLSRC}	> /dev/null
 
 .include "${TOP}/mk/elftoolchain.tet.mk"
