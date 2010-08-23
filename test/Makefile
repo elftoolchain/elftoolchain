@@ -3,9 +3,14 @@
 # TET-based test suites used by the Elftoolchain project.
 #
 
-# SUBDIR+=	tet
+# Build TET first.
+SUBDIR+=	tet
+
+# Build tests for libraries.
 SUBDIR+=	libelf
 SUBDIR+=	libdwarf
+
+# Build tests for tools.
 SUBDIR+=	ar
 SUBDIR+=	elfcopy
 SUBDIR+=	elfdump
