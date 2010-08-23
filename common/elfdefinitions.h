@@ -41,6 +41,19 @@
 #include <stdint.h>
 
 /*
+ * Types of capabilities.
+ */
+
+#define	_ELF_DEFINE_CAPABILITIES()				\
+_ELF_DEFINE_CA(CA_SUNW_NULL,	0,	"ignored")		\
+_ELF_DEFINE_CA(CA_SUNW_HW_1,	1,	"hardware capability")	\
+_ELF_DEFINE_CA(CA_SUNW_SW_1,	2,	"software capability")
+
+#undef	_ELF_DEFINE_CA
+#define	_ELF_DEFINE_CA(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_CAPABILITIES() };
+
+/*
  * Flags used with dynamic linking entries.
  */
 
@@ -670,6 +683,22 @@ _ELF_DEFINE_STT(STT_HIPROC,          15,				\
 enum { _ELF_DEFINE_SYMBOL_TYPES() };
 
 /*
+ * Symbol binding.
+ */
+
+#define	_ELF_DEFINE_SYMBOL_BINDING()			\
+_ELF_DEFINE_SYB(SYMINFO_BT_SELF,	0xFFFFU,	\
+	"bound to self")				\
+_ELF_DEFINE_SYB(SYMINFO_BT_PARENT,	0xFFFEU,	\
+	"bound to parent")				\
+_ELF_DEFINE_SYB(SYMINFO_BT_NONE,	0xFFFDU,	\
+	"no special binding")
+
+#undef	_ELF_DEFINE_SYB
+#define	_ELF_DEFINE_SYB(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SYMBOL_BINDING() };
+
+/*
  * Symbol visibility.
  */
 
@@ -687,6 +716,65 @@ _ELF_DEFINE_STV(STV_PROTECTED,       3,		\
 #define	_ELF_DEFINE_STV(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_SYMBOL_VISIBILITY() };
 
+/*
+ * Symbol flags.
+ */
+#define	_ELF_DEFINE_SYMBOL_FLAGS()		\
+_ELF_DEFINE_SYF(SYMINFO_FLG_DIRECT,	0x01,	\
+	"directly assocated reference")		\
+_ELF_DEFINE_SYF(SYMINFO_FLG_COPY,	0x04,	\
+	"definition by copy-relocation")	\
+_ELF_DEFINE_SYF(SYMINFO_FLG_LAZYLOAD,	0x08,	\
+	"object should be lazily loaded")	\
+_ELF_DEFINE_SYF(SYMINFO_FLG_DIRECTBIND,	0x10,	\
+	"reference should be directly bound")	\
+_ELF_DEFINE_SYF(SYMINFO_FLG_NOEXTDIRECT, 0x20,	\
+	"external references not allowed to bind to definition")
+
+#undef	_ELF_DEFINE_SYF
+#define	_ELF_DEFINE_SYF(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_SYMBOL_FLAGS() };
+
+/*
+ * Version dependencies.
+ */
+#define	_ELF_DEFINE_VERSIONING_DEPENDENCIES()			\
+_ELF_DEFINE_VERD(VER_NDX_LOCAL,		0,	"local scope")	\
+_ELF_DEFINE_VERD(VER_NDX_GLOBAL,	1,	"global scope")
+#undef	_ELF_DEFINE_VERD
+#define	_ELF_DEFINE_VERD(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_VERSIONING_DEPENDENCIES() };
+
+/*
+ * Version flags.
+ */
+#define	_ELF_DEFINE_VERSIONING_FLAGS()				\
+_ELF_DEFINE_VERF(VER_FLG_BASE,		0x1,	"file version") \
+_ELF_DEFINE_VERF(VER_FLG_WEAK,		0x2,	"weak version")
+#undef	_ELF_DEFINE_VERF
+#define	_ELF_DEFINE_VERF(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_VERSIONING_FLAGS() };
+
+/*
+ * Version needs
+ */
+#define	_ELF_DEFINE_VERSIONING_NEEDS()					\
+_ELF_DEFINE_VRN(VER_NEED_NONE,		0,	"invalid version")	\
+_ELF_DEFINE_VRN(VER_NEED_CURRENT,	1,	"current version")
+#undef	_ELF_DEFINE_VRN
+#define	_ELF_DEFINE_VRN(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_VERSIONING_NEEDS() };
+
+/*
+ * Version numbers.
+ */
+#define	_ELF_DEFINE_VERSIONING_NUMBERS()				\
+_ELF_DEFINE_VRNU(VER_DEF_NONE,		0,	"invalid version")	\
+_ELF_DEFINE_VRNU(VER_DEF_CURRENT,	1, 	"current version")
+#undef	_ELF_DEFINE_VRNU
+#define	_ELF_DEFINE_VRNU(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_VERSIONING_NUMBERS() };
+
 /**
  ** ELF Types.
  **/
@@ -696,15 +784,39 @@ typedef uint16_t	Elf32_Half;	/* Unsigned medium integer. */
 typedef uint32_t	Elf32_Off;	/* File offset. */
 typedef int32_t		Elf32_Sword;	/* Signed integer. */
 typedef uint32_t	Elf32_Word;	/* Unsigned integer. */
+typedef uint64_t	Elf32_Lword;	/* Unsigned long integer. */
 
 typedef uint64_t	Elf64_Addr;	/* Program address. */
 typedef uint16_t	Elf64_Half;	/* Unsigned medium integer. */
 typedef uint64_t	Elf64_Off;	/* File offset. */
 typedef int32_t		Elf64_Sword;	/* Signed integer. */
 typedef uint32_t	Elf64_Word;	/* Unsigned integer. */
+typedef uint64_t	Elf64_Lword;	/* Unsigned long integer. */
 typedef uint64_t	Elf64_Xword;	/* Unsigned long integer. */
 typedef int64_t		Elf64_Sxword;	/* Signed long integer. */
 
+
+/*
+ * Capability descriptors.
+ */
+
+/* 32-bit capability descriptor. */
+typedef struct {
+	Elf32_Word	c_tag;	     /* Type of entry. */
+	union {
+		Elf32_Word	c_val; /* Integer value. */
+		Elf32_Addr	c_ptr; /* Pointer value. */
+	} c_un;
+} Elf32_Cap;
+
+/* 64-bit capability descriptor. */
+typedef struct {
+	Elf64_Xword	c_tag;	     /* Type of entry. */
+	union {
+		Elf64_Xword	c_val; /* Integer value. */
+		Elf64_Addr	c_ptr; /* Pointer value. */
+	} c_un;
+} Elf64_Cap;
 
 /*
  * Dynamic section entries.
@@ -772,6 +884,25 @@ typedef struct {
 
 
 /*
+ * Note descriptors.
+ */
+
+/* 32-bit note header. */
+typedef struct {
+	Elf32_Word	n_namesz;	/* Length of note's name. */
+	Elf32_Word	n_descsz;	/* Length of note's value. */
+	Elf32_Word	n_type;		/* Type of note. */
+} Elf32_Nhdr;
+
+/* 64-bit note header. */
+typedef struct {
+	Elf64_Word	n_namesz;	/* Length of note's name */
+	Elf64_Word	n_descsz;	/* Length of note's value. */
+	Elf64_Word	n_type;		/* Type of note. */
+} Elf64_Nhdr;
+
+
+/*
  * Program Header Table (PHDR) entries.
  */
 
@@ -798,6 +929,38 @@ typedef struct {
 	Elf64_Xword	p_memsz;     /* Segment flags. */
 	Elf64_Xword	p_align;     /* Alignment constraints. */
 } Elf64_Phdr;
+
+
+/*
+ * Move entries, for describing data in COMMON blocks in a compact
+ * manner.
+ */
+
+/* 32-bit move entry. */
+typedef struct {
+	Elf32_Lword	m_value;     /* Initialization value. */
+	Elf32_Word 	m_info;	     /* Encoded size and index. */
+	Elf32_Word	m_poffset;   /* Offset relative to symbol. */
+	Elf32_Half	m_repeat;    /* Repeat count. */
+	Elf32_Half	m_stride;    /* Number of units to skip. */
+} Elf32_Move;
+
+/* 64-bit move entry. */
+typedef struct {
+	Elf64_Lword	m_value;     /* Initialization value. */
+	Elf64_Xword 	m_info;	     /* Encoded size and index. */
+	Elf64_Xword	m_poffset;   /* Offset relative to symbol. */
+	Elf64_Half	m_repeat;    /* Repeat count. */
+	Elf64_Half	m_stride;    /* Number of units to skip. */
+} Elf64_Move;
+
+#define ELF32_M_SYM(I)		((I) >> 8)
+#define ELF32_M_SIZE(I)		((unsigned char) (I))
+#define ELF32_M_INFO(M, S)	(((M) << 8) + (unsigned char) (S))
+
+#define ELF64_M_SYM(I)		((I) >> 8)
+#define ELF64_M_SIZE(I)		((unsigned char) (I))
+#define ELF64_M_INFO(M, S)	(((M) << 8) + (unsigned char) (S))
 
 /*
  * Section Header Table (SHDR) entries.
@@ -865,6 +1028,21 @@ typedef struct {
 #define ELF32_ST_VISIBILITY(O)	((O) & 0x3)
 #define ELF64_ST_VISIBILITY(O)	((O) & 0x3)
 
+/*
+ * Syminfo descriptors, containing additional symbol information.
+ */
+
+/* 32-bit entry. */
+typedef struct {
+	Elf32_Half	si_boundto;  /* Entry index with additional flags. */
+	Elf32_Half	si_flags;    /* Flags. */
+} Elf32_Syminfo;
+
+/* 64-bit entry. */
+typedef struct {
+	Elf64_Half	si_boundto;  /* Entry index with additional flags. */
+	Elf64_Half	si_flags;    /* Flags. */
+} Elf64_Syminfo;
 
 /*
  * Relocation descriptors.
@@ -900,5 +1078,94 @@ typedef struct {
 #define ELF64_R_SYM(I)		((I) >> 32)
 #define ELF64_R_TYPE(I)		((I) & 0xFFFFFFFFUL)
 #define ELF64_R_INFO(S,T)	(((S) << 32) + ((T) & 0xFFFFFFFFUL))
+
+/*
+ * Symbol versioning structures.
+ */
+
+/* 32-bit structures. */
+typedef struct
+{
+	Elf32_Word	vda_name;    /* Index to name. */
+	Elf32_Word	vda_next;    /* Offset to next entry. */
+} Elf32_Verdaux;
+
+typedef struct
+{
+	Elf32_Word	vna_hash;    /* Hash value of dependency name. */
+	Elf32_Half	vna_flags;   /* Flags. */
+	Elf32_Half	vna_other;   /* Unused. */
+	Elf32_Word	vna_name;    /* Offset to dependency name. */
+	Elf32_Word	vna_next;    /* Offset to next vernaux entry. */
+} Elf32_Vernaux;
+
+typedef struct
+{
+	Elf32_Half	vd_version;  /* Version information. */
+	Elf32_Half	vd_flags;    /* Flags. */
+	Elf32_Half	vd_ndx;	     /* Index into the versym section. */
+	Elf32_Half	vd_cnt;	     /* Number of aux entries. */
+	Elf32_Word	vd_hash;     /* Hash value of name. */
+	Elf32_Word	vd_aux;	     /* Offset to aux entries. */
+	Elf32_Word	vd_next;     /* Offset to next version definition. */
+} Elf32_Verdef;
+
+typedef struct
+{
+	Elf32_Half	vn_version;  /* Version number. */
+	Elf32_Half	vn_cnt;	     /* Number of aux entries. */
+	Elf32_Word	vn_file;     /* Offset of associated file name. */
+	Elf32_Word	vn_aux;	     /* Offset of vernaux array. */
+	Elf32_Word	vn_next;     /* Offset of next verneed entry. */
+} Elf32_Verneed;
+
+typedef Elf32_Half	Elf32_Versym;
+
+/* 64-bit structures. */
+
+typedef struct {
+	Elf64_Word	vda_name;    /* Index to name. */
+	Elf64_Word	vda_next;    /* Offset to next entry. */
+} Elf64_Verdaux;
+
+typedef struct {
+	Elf64_Word	vna_hash;    /* Hash value of dependency name. */
+	Elf64_Half	vna_flags;   /* Flags. */
+	Elf64_Half	vna_other;   /* Unused. */
+	Elf64_Word	vna_name;    /* Offset to dependency name. */
+	Elf64_Word	vna_next;    /* Offset to next vernaux entry. */
+} Elf64_Vernaux;
+
+typedef struct {
+	Elf64_Half	vd_version;  /* Version information. */
+	Elf64_Half	vd_flags;    /* Flags. */
+	Elf64_Half	vd_ndx;	     /* Index into the versym section. */
+	Elf64_Half	vd_cnt;	     /* Number of aux entries. */
+	Elf64_Word	vd_hash;     /* Hash value of name. */
+	Elf64_Word	vd_aux;	     /* Offset to aux entries. */
+	Elf64_Word	vd_next;     /* Offset to next version definition. */
+} Elf64_Verdef;
+
+typedef struct {
+	Elf64_Half	vn_version;  /* Version number. */
+	Elf64_Half	vn_cnt;	     /* Number of aux entries. */
+	Elf64_Word	vn_file;     /* Offset of associated file name. */
+	Elf64_Word	vn_aux;	     /* Offset of vernaux array. */
+	Elf64_Word	vn_next;     /* Offset of next verneed entry. */
+} Elf64_Verneed;
+
+typedef Elf64_Half	Elf64_Versym;
+
+
+/*
+ * The header for GNU-style hash sections.
+ */
+
+typedef struct {
+	u_int32_t	gh_nbuckets;	/* Number of hash buckets. */
+	u_int32_t	gh_symndx;	/* First visible symbol in .dynsym. */
+	u_int32_t	gh_maskwords;	/* #maskwords used in bloom filter. */
+	u_int32_t	gh_shift2;	/* Bloom filter shift count. */
+} Elf_GNU_Hash_Header;
 
 #endif	/* _ELFDEFINITIONS_H_ */
