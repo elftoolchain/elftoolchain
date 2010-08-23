@@ -686,7 +686,7 @@ enum { _ELF_DEFINE_SYMBOL_TYPES() };
  * Symbol binding.
  */
 
-#define	_ELF_DEFINE_SYMBOL_BINDING()			\
+#define	_ELF_DEFINE_SYMBOL_BINDING_KINDS()		\
 _ELF_DEFINE_SYB(SYMINFO_BT_SELF,	0xFFFFU,	\
 	"bound to self")				\
 _ELF_DEFINE_SYB(SYMINFO_BT_PARENT,	0xFFFEU,	\
@@ -696,7 +696,7 @@ _ELF_DEFINE_SYB(SYMINFO_BT_NONE,	0xFFFDU,	\
 
 #undef	_ELF_DEFINE_SYB
 #define	_ELF_DEFINE_SYB(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_BINDING() };
+enum { _ELF_DEFINE_SYMBOL_BINDING_KINDS() };
 
 /*
  * Symbol visibility.
@@ -1162,10 +1162,10 @@ typedef Elf64_Half	Elf64_Versym;
  */
 
 typedef struct {
-	u_int32_t	gh_nbuckets;	/* Number of hash buckets. */
-	u_int32_t	gh_symndx;	/* First visible symbol in .dynsym. */
-	u_int32_t	gh_maskwords;	/* #maskwords used in bloom filter. */
-	u_int32_t	gh_shift2;	/* Bloom filter shift count. */
+	uint32_t	gh_nbuckets;	/* Number of hash buckets. */
+	uint32_t	gh_symndx;	/* First visible symbol in .dynsym. */
+	uint32_t	gh_maskwords;	/* #maskwords used in bloom filter. */
+	uint32_t	gh_shift2;	/* Bloom filter shift count. */
 } Elf_GNU_Hash_Header;
 
 #endif	/* _ELFDEFINITIONS_H_ */
