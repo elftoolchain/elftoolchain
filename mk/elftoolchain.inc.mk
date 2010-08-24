@@ -9,6 +9,20 @@
 
 .include "${TOP}/mk/elftoolchain.os.mk"
 
-# Use the standard rules in <bsd.inc.mk>.
 .include <bsd.own.mk>
-.include <${BSDINCMK}>
+
+.if ${OS_HOST} == "FreeBSD"
+# Simulate <bsd.inc.mk>.
+.PHONY:		incinstall
+includes:	${INCS}	incinstall
+.for inc in ${INCS}
+incinstall::	${DESTDIR}${INCSDIR}/${inc}
+.PRECIOUS:	${DESTDIR}${INCSDIR}/${inc}
+${DESTDIR}${INCSDIR}/${inc}: ${inc}
+	cmp -s $> $@ > /dev/null 2>&1 || \
+		${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NOBINMODE} $> $@
+.endfor
+.else
+# Use the standard <bsd.inc.mk>.
+.include <bsd.inc.mk>
+.endif
