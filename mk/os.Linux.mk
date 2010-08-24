@@ -3,6 +3,8 @@
 #
 # $Id$
 
+BSDINCMK=	bsd.inc.mk
+
 MKLINT=		no
 MKPIC=		no
 MKTEX=		yes
