@@ -2,7 +2,6 @@
 # Build definitions for FreeBSD
 #
 
-BSDINCMK=	bsd.incs.mk
 
 # TeX and friends are packaged in the teTeX package.
 MKTEX?=yes
