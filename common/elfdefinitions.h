@@ -148,6 +148,22 @@ _ELF_DEFINE_DT(DT_HIPROC,           0x7fffffff,				\
 enum { _ELF_DEFINE_DYN_TYPES() };
 
 /*
+ * Flags used in the executable header (field: e_flags).
+ */
+#define	_ELF_DEFINE_EHDR_FLAGS()					\
+_ELF_DEFINE_EF(EF_SPARC_EXT_MASK,   0xffff00, "Vendor Extension mask")	\
+_ELF_DEFINE_EF(EF_SPARC_32PLUS,     0x000100, "Generic V8+ features")	\
+_ELF_DEFINE_EF(EF_SPARC_SUN_US1,    0x000200,				\
+	"Sun UltraSPARCTM 1 Extensions")				\
+_ELF_DEFINE_EF(EF_SPARC_HAL_R1,     0x000400, "HAL R1 Extensions")	\
+_ELF_DEFINE_EF(EF_SPARC_SUN_US3,    0x000800,				\
+	"Sun UltraSPARC 3 Extensions")					\
+_ELF_DEFINE_EF(EF_SPARCV9_MM,       0x3, "Mask for Memory Model")	\
+_ELF_DEFINE_EF(EF_SPARCV9_TSO,      0x0, "Total Store Ordering")	\
+_ELF_DEFINE_EF(EF_SPARCV9_PSO,      0x1, "Partial Store Ordering")	\
+_ELF_DEFINE_EF(EF_SPARCV9_RMO,      0x2, "Relaxed Memory Ordering")
+
+/*
  * Offsets in the `ei_ident[]` field of an ELF executable header.
  */
 #define	_ELF_DEFINE_EI_OFFSETS()			\
