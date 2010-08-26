@@ -227,6 +227,7 @@ enum { _ELF_DEFINE_ELF_MAGIC() };
 #define	_ELF_DEFINE_ELF_OSABI()						\
 _ELF_DEFINE_EABI(ELFOSABI_NONE,       0,				\
 	"No extensions or unspecified")					\
+_ELF_DEFINE_EABI(ELFOSABI_SYSV,       0, "SYSV")			\
 _ELF_DEFINE_EABI(ELFOSABI_HPUX,       1, "Hewlett-Packard HP-UX")	\
 _ELF_DEFINE_EABI(ELFOSABI_NETBSD,     2, "NetBSD")			\
 _ELF_DEFINE_EABI(ELFOSABI_LINUX,      3, "Linux")			\
@@ -242,7 +243,11 @@ _ELF_DEFINE_EABI(ELFOSABI_NSK,        14,				\
 	"Hewlett-Packard Non-Stop Kernel")				\
 _ELF_DEFINE_EABI(ELFOSABI_AROS,       15, "Amiga Research OS")		\
 _ELF_DEFINE_EABI(ELFOSABI_FENIXOS,    16,				\
-	"The FenixOS highly scalable multi-core OS")
+	"The FenixOS highly scalable multi-core OS")			\
+_ELF_DEFINE_EABI(ELFOSABI_ARM_AEABI,  64,				\
+	"ARM specific symbol versioning extensions")			\
+_ELF_DEFINE_EABI(ELFOSABI_STANDALONE, 255,				\
+	"Standalone (embedded) application")
 
 #undef	_ELF_DEFINE_EABI
 #define	_ELF_DEFINE_EABI(N, V, DESCR)	N = V ,
