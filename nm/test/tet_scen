@@ -2,10 +2,6 @@
 
 all
         "Starting Test Suite"
-        ^vector_str
-        ^cpp_demangle
-        ^cpp_demangle_arm
-        ^cpp_demangle_gnu2
         ^nm_object1
         ^nm_object2
         ^nm_archive1
