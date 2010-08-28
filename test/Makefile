@@ -14,5 +14,6 @@ SUBDIR+=	libdwarf
 SUBDIR+=	ar
 SUBDIR+=	elfcopy
 SUBDIR+=	elfdump
+SUBDIR+=	nm
 
 .include <bsd.subdir.mk>
