@@ -57,6 +57,6 @@ M4FLAGS+=	-I${TS_ROOT}/common
 	m4 ${M4FLAGS} ${.IMPSRC} > ${.TARGET}
 
 LDADD+=		${TET_OBJS} -L${TET_LIBS} -lapi
-CLEANFILES+=	tet_xres
+CLEANFILES+=	tet_xres tet_captured
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
