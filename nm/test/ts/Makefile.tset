@@ -1,6 +1,6 @@
 # $Id$
 
-NM?=		${TOP}/nm/nm
+NM?=		${.CURDIR}/../../../../nm/nm
 CSTD?=		iso9899:1999
 
 CFLAGS+=	-DNM=\"${NM}\" -DTC_DIR=\"$(.CURDIR)\" -DTESTFILE=\"$(TS_DATA)\"
