@@ -12,62 +12,42 @@ all
         ^nm_debug
         "Complete Test Suite"
 
-vector_str
-        "Starting vector_str Test"
-        /ts/vector_str/vector_str-tc
-        "Complete vector_str Test"
-
-cpp_demangle
-        "Starting cpp demangle Test"
-        /ts/cpp_demangle/cpp_demangle-tc
-        "Complete cpp demangle Test"
-
-cpp_demangle_arm
-        "Starting cpp demangle ARM Test"
-        /ts/cpp_demangle_ARM/cpp_demangle_ARM-tc
-        "Complete cpp demangle ARM Test"
-
-cpp_demangle_gnu2
-        "Starting cpp demangle GNU 2 Test"
-        /ts/cpp_demangle_gnu2/cpp_demangle_gnu2-tc
-        "Complete cpp demangle GNU 2 Test"
-
 nm_object1
         "Starting nm Object Test 1"
-        /ts/nm_object1/nm_object1-tc
+        /ts/nm_object1/tc_nm_object1
         "Complete nm Object Test 1"
 
 nm_object2
         "Starting nm Object Test 2"
-        /ts/nm_object2/nm_object2-tc
+        /ts/nm_object2/tc_nm_object2
         "Complete nm Object Test 2"
 
 nm_archive1
         "Starting nm Archive Test 1"
-        /ts/nm_archive1/nm_archive1-tc
+        /ts/nm_archive1/tc_nm_archive1
         "Complete nm Archive Test 1"
 
 nm_archive2
         "Starting nm Archive Test 2"
-        /ts/nm_archive2/nm_archive2-tc
+        /ts/nm_archive2/tc_nm_archive2
         "Complete nm Archive Test 2"
 
 nm_shared_object1
         "Starting nm Shared Object Test 1"
-        /ts/nm_shared_object1/nm_shared_object1-tc
+        /ts/nm_shared_object1/tc_nm_shared_object1
         "Complete nm Shared Object Test 1"
 
 nm_shared_object2
         "Starting nm Shared Object Test 2"
-        /ts/nm_shared_object2/nm_shared_object2-tc
+        /ts/nm_shared_object2/tc_nm_shared_object2
         "Complete nm Shared Object Test 2"
 
 nm_option
         "Starting nm Option Test"
-        /ts/nm_option/nm_option-tc
+        /ts/nm_option/tc_nm_option
         "Complete nm Option Test"
 
 nm_debug
         "Starting nm Debug Option Test"
-        /ts/nm_debug/nm_debug-tc
+        /ts/nm_debug/tc_nm_debug
         "Complete nm Debug Option Test"
