@@ -1,14 +1,31 @@
+# $Id$
+
 TET_ROOT?=	/usr/tet
-TET_CMD=	TET_ROOT=${TET_ROOT} TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc
 
-all: build
+.if !defined(TET_EXECUTE)
+TET_EXECUTE=	${.OBJDIR}
+.endif
 
-build:
-	${TET_CMD} -b .
+.if make(tccbuild)
+TET_OPTIONS+=	-b
+.endif
 
-clean:
-	${TET_CMD} -c .
+.if make(tccclean)
+TET_OPTIONS+=	-c
+.endif
 
-test:
-	${TET_CMD} -e .
+.if make(execute)
+TET_OPTIONS+=	-e
+.endif
 
+.MAIN: all
+
+_cmd:	.USE
+	TET_EXECUTE=${TET_EXECUTE} TET_SUITE_ROOT=${.CURDIR} \
+		${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
+
+tccbuild tccclean execute:	_cmd
+
+SUBDIR=		ts
+
+.include <bsd.subdir.mk>
