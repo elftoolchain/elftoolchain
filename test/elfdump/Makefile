@@ -6,9 +6,7 @@ TET_ROOT?=	/home/tmp/tet
 TET_EXECUTE=	${.OBJDIR}
 .endif
 
-all:
-
-clean:
+all clean depend:
 
 execute:
 	TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc -e .
