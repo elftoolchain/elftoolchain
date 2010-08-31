@@ -134,12 +134,26 @@ _ELF_DEFINE_DT(DT_PREINIT_ARRAY,    32,					\
 	"pointers to pre-initialization functions")			\
 _ELF_DEFINE_DT(DT_PREINIT_ARRAYSZ,  33,					\
 	"size of pre-initialization array")				\
-_ELF_DEFINE_DT(DT_LOOS,             0x6000000D,				\
-    "start of OS-specific types")					\
-_ELF_DEFINE_DT(DT_HIOS,             0x6ffff000,				\
-    "end of OS-specific types")						\
+_ELF_DEFINE_DT(DT_LOOS,             0x6000000DUL,			\
+	"start of OS-specific types")					\
+_ELF_DEFINE_DT(DT_HIOS,             0x6FFFF000UL,			\
+	"end of OS-specific types")					\
+_ELF_DEFINE_DT(DT_VERSYM,	    0x6FFFFFF0UL,			\
+	"address of the version section")				\
+_ELF_DEFINE_DT(DT_VERDEF,	    0x6FFFFFFCUL,			\
+	"address of the version definition segment")			\
+_ELF_DEFINE_DT(DT_VERDEFNUM,	    0x6FFFFFFDUL,			\
+	"the number of version definition entries")			\
+_ELF_DEFINE_DT(DT_VERNEED,	    0x6FFFFFFEUL,			\
+	"address of section with needed versions")			\
+_ELF_DEFINE_DT(DT_VERNEEDNUM,       0x6FFFFFFFUL,			\
+	"the number of version needed entries")				\
 _ELF_DEFINE_DT(DT_LOPROC,           0x70000000,				\
 	"start of processor-specific types")				\
+_ELF_DEFINE_DT(DT_ARM_SYMTABSZ,	    0x70000001,				\
+	"number of entries in the dynamic symbol table")		\
+_ELF_DEFINE_DT(DT_ARM_PREEMPTMAP,   0x70000002,				\
+	"address of the preemption map")				\
 _ELF_DEFINE_DT(DT_HIPROC,           0x7fffffff,				\
 	"end of processor-specific types")
 
@@ -1056,23 +1070,59 @@ typedef struct {
 
 
 /*
+ * Shared object information.
+ */
+
+/* 32-bit entry. */
+typedef struct {
+	Elf32_Word l_name;	     /* The name of a shared object. */
+	Elf32_Word l_time_stamp;     /* 32-bit timestamp. */
+	Elf32_Word l_checksum;	     /* Checksum of visible symbols, sizes. */
+	Elf32_Word l_version;	     /* Interface version string index. */
+	Elf32_Word l_flags;	     /* Flags (LL_*). */
+} Elf32_Lib;
+
+/* 64-bit entry. */
+typedef struct {
+	Elf64_Word l_name;
+	Elf64_Word l_time_stamp;
+	Elf64_Word l_checksum;
+	Elf64_Word l_version;
+	Elf64_Word l_flags;
+} Elf64_Lib;
+
+#define	_ELF_DEFINE_LL_FLAGS()			\
+_ELF_DEFINE_LL(LL_NONE,			0,	\
+	"no flags")				\
+_ELF_DEFINE_LL(LL_EXACT_MATCH,		0x1,	\
+	"require an exact match")		\
+_ELF_DEFINE_LL(LL_IGNORE_INT_VER,	0x2,	\
+	"ignore version incompatibilities")	\
+_ELF_DEFINE_LL(LL_REQUIRE_MINOR,	0x4,	\
+	"")					\
+_ELF_DEFINE_LL(LL_EXPORTS,		0x8,	\
+	"")					\
+_ELF_DEFINE_LL(LL_DELAY_LOAD,		0x10,	\
+	"")					\
+_ELF_DEFINE_LL(LL_DELTA,		0x20,	\
+	"")
+
+#undef	_ELF_DEFINE_LL
+#define	_ELF_DEFINE_LL(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_LL_FLAGS() };
+
+/*
  * Note descriptors.
  */
 
-/* 32-bit note header. */
-typedef struct {
-	Elf32_Word	n_namesz;	/* Length of note's name. */
-	Elf32_Word	n_descsz;	/* Length of note's value. */
-	Elf32_Word	n_type;		/* Type of note. */
-} Elf32_Nhdr;
+typedef	struct {
+	uint32_t	n_namesz;    /* Length of note's name. */
+	uint32_t	n_descsz;    /* Length of note's value. */
+	uint32_t	n_type;	     /* Type of note. */
+} Elf_Note;
 
-/* 64-bit note header. */
-typedef struct {
-	Elf64_Word	n_namesz;	/* Length of note's name */
-	Elf64_Word	n_descsz;	/* Length of note's value. */
-	Elf64_Word	n_type;		/* Type of note. */
-} Elf64_Nhdr;
-
+typedef Elf_Note Elf32_Nhdr;	     /* 32-bit note header. */
+typedef Elf_Note Elf64_Nhdr;	     /* 64-bit note header. */
 
 /*
  * Program Header Table (PHDR) entries.
