@@ -60,10 +60,16 @@ ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 CLEANFILES+=	${DOC}.${f}
 .endfor
 
-depend:
+# Do something sensible for the `depend` and `cleandepend` targets.
+depend:		.depend
+	@true
+.depend:
+	@echo ${DOC}.pdf: ${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g} > ${.TARGET}
+cleandepend:	.PHONY
+	rm -f .depend
 
 # Include rules for `make obj` and `make clean`
-.include <bsd.prog.mk>
+.include <bsd.obj.mk>
 
 .else
 
