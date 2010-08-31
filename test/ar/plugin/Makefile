@@ -9,7 +9,7 @@ ${PLUGINS}:
 	${MAKE} -f Makefile.${plugin}
 .endfor
 
-clean:
+clean depend:
 .for plugin in ${PLUGINS}
-	${MAKE} -f Makefile.${plugin} clean
+	${MAKE} -f Makefile.${plugin} ${.TARGET}
 .endfor
