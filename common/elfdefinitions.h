@@ -501,6 +501,8 @@ _ELF_DEFINE_EM(EM_CUDA,             190, "NVIDIA CUDA architecture")
 #define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_ELF_MACHINES() };
 
+/* Older synonyms. */
+#define	EM_ARC_A5		EM_ARC_COMPACT
 
 /*
  * ELF file types: (ET_*).
