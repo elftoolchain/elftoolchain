@@ -138,6 +138,8 @@ _ELF_DEFINE_DT(DT_LOOS,             0x6000000DUL,			\
 	"start of OS-specific types")					\
 _ELF_DEFINE_DT(DT_HIOS,             0x6FFFF000UL,			\
 	"end of OS-specific types")					\
+_ELF_DEFINE_DT(DT_GNU_HASH,	    0x6FFFFEF5UL,			\
+	"GNU style hash tables")					\
 _ELF_DEFINE_DT(DT_VERSYM,	    0x6FFFFFF0UL,			\
 	"address of the version section")				\
 _ELF_DEFINE_DT(DT_VERDEF,	    0x6FFFFFFCUL,			\
@@ -676,6 +678,8 @@ _ELF_DEFINE_SHT(SHT_SUNW_cap,	     0x6FFFFFF5UL,			\
 	"capability requirements")					\
 _ELF_DEFINE_SHT(SHT_SUNW_SIGNATURE,  0x6FFFFFF6UL,			\
 	"module verification signature")				\
+_ELF_DEFINE_SHT(SHT_GNU_HASH,	     0x6FFFFFF6UL,			\
+	"GNU Hash sections")						\
 _ELF_DEFINE_SHT(SHT_SUNW_ANNOTATE,   0x6FFFFFF7UL,			\
 	"special section where unresolved references are allowed")	\
 _ELF_DEFINE_SHT(SHT_SUNW_DEBUGSTR,   0x6FFFFFF8UL,			\
