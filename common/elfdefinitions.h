@@ -27,12 +27,14 @@
  */
 
 /*
- *
- * These definitions are based on the public specification of the ELF
- * format defined in the October 2009 draft of System V ABI.
- *
- * See: http://www.sco.com/developers/gabi/latest/ch4.intro.html
- *
+ * These definitions are based on:
+ * - The public specification of the ELF format as defined in the
+ *   October 2009 draft of System V ABI.
+ *   See: http://www.sco.com/developers/gabi/latest/ch4.intro.html
+ * - The May 1998 (version 1.5) draft of "The ELF-64 object format".
+ * - Processor-specific ELF ABI definitions for sparc, i386, amd64, mips,
+ *   ia64, and powerpc processors.
+ * - The "Linkers and Libraries Guide", from Sun Microsystems.
  */
 
 #ifndef _ELFDEFINITIONS_H_
@@ -136,12 +138,58 @@ _ELF_DEFINE_DT(DT_PREINIT_ARRAYSZ,  33,					\
 	"size of pre-initialization array")				\
 _ELF_DEFINE_DT(DT_LOOS,             0x6000000DUL,			\
 	"start of OS-specific types")					\
+_ELF_DEFINE_DT(DT_SUNW_AUXILIARY,   0x6000000DUL,			\
+	"offset of string naming auxiliary filtees")			\
+_ELF_DEFINE_DT(DT_SUNW_RTLDINF,     0x6000000EUL, "rtld internal use")	\
+_ELF_DEFINE_DT(DT_SUNW_FILTER,      0x6000000EUL,			\
+	"offset of string naming standard filtees")			\
+_ELF_DEFINE_DT(DT_SUNW_CAP,         0x60000010UL,			\
+	"address of hardware capabilities section")			\
 _ELF_DEFINE_DT(DT_HIOS,             0x6FFFF000UL,			\
 	"end of OS-specific types")					\
+_ELF_DEFINE_DT(DT_VALRNGLO,         0x6FFFFD00UL,			\
+	"start of range using the d_val field")				\
+_ELF_DEFINE_DT(DT_CHECKSUM,         0x6FFFFDF8UL,			\
+	"checksum for the object")					\
+_ELF_DEFINE_DT(DT_PLTPADSZ,         0x6FFFFDF9UL,			\
+	"size of PLT padding")						\
+_ELF_DEFINE_DT(DT_MOVEENT,          0x6FFFFDFAUL,			\
+	"size of DT_MOVETAB entries")					\
+_ELF_DEFINE_DT(DT_MOVESZ,           0x6FFFFDFBUL,			\
+	"total size of the MOVETAB table")				\
+_ELF_DEFINE_DT(DT_FEATURE_1,        0x6FFFFDFCUL, "feature values")	\
+_ELF_DEFINE_DT(DT_POSFLAG_1,        0x6FFFFDFDUL,			\
+	"dynamic position flags")					\
+_ELF_DEFINE_DT(DT_SYMINSZ,          0x6FFFFDFEUL,			\
+	"size of the DT_SYMINFO table")					\
+_ELF_DEFINE_DT(DT_SYMINENT,         0x6FFFFDFFUL,			\
+	"size of a DT_SYMINFO entry")					\
+_ELF_DEFINE_DT(DT_VALRNGHI,         0x6FFFFDFFUL,			\
+	"end of range using the d_val field")				\
+_ELF_DEFINE_DT(DT_ADDRRNGLO,        0x6FFFFE00UL,			\
+	"start of range using the d_ptr field")				\
 _ELF_DEFINE_DT(DT_GNU_HASH,	    0x6FFFFEF5UL,			\
 	"GNU style hash tables")					\
+_ELF_DEFINE_DT(DT_CONFIG,           0x6FFFFEFAUL,			\
+	"configuration file")						\
+_ELF_DEFINE_DT(DT_DEPAUDIT,         0x6FFFFEFBUL,			\
+	"string defining audit libraries")				\
+_ELF_DEFINE_DT(DT_AUDIT,            0x6FFFFEFCUL,			\
+	"string defining audit libraries")				\
+_ELF_DEFINE_DT(DT_PLTPAD,           0x6FFFFEFDUL, "PLT padding")	\
+_ELF_DEFINE_DT(DT_MOVETAB,          0x6FFFFEFEUL,			\
+	"address of a move table")					\
+_ELF_DEFINE_DT(DT_SYMINFO,          0x6FFFFEFFUL,			\
+	"address of the symbol information table")			\
+_ELF_DEFINE_DT(DT_ADDRRNGHI,        0x6FFFFEFFUL,			\
+	"end of range using the d_ptr field")				\
 _ELF_DEFINE_DT(DT_VERSYM,	    0x6FFFFFF0UL,			\
 	"address of the version section")				\
+_ELF_DEFINE_DT(DT_RELACOUNT,        0x6FFFFFF9UL,			\
+	"count of RELA relocations")					\
+_ELF_DEFINE_DT(DT_RELCOUNT,         0x6FFFFFFAUL,			\
+	"count of REL relocations")					\
+_ELF_DEFINE_DT(DT_FLAGS_1,          0x6FFFFFFBUL, "flag values")	\
 _ELF_DEFINE_DT(DT_VERDEF,	    0x6FFFFFFCUL,			\
 	"address of the version definition segment")			\
 _ELF_DEFINE_DT(DT_VERDEFNUM,	    0x6FFFFFFDUL,			\
@@ -154,8 +202,15 @@ _ELF_DEFINE_DT(DT_LOPROC,           0x70000000,				\
 	"start of processor-specific types")				\
 _ELF_DEFINE_DT(DT_ARM_SYMTABSZ,	    0x70000001,				\
 	"number of entries in the dynamic symbol table")		\
+_ELF_DEFINE_DT(DT_SPARC_REGISTER,   0x70000001UL,			\
+	"index of an STT_SPARC_REGISTER symbol")			\
 _ELF_DEFINE_DT(DT_ARM_PREEMPTMAP,   0x70000002,				\
 	"address of the preemption map")				\
+_ELF_DEFINE_DT(DT_AUXILIARY,        0x7FFFFFFDUL,			\
+	"offset of string naming auxiliary filtees")			\
+_ELF_DEFINE_DT(DT_USED,             0x7FFFFFFEUL, "ignored")		\
+_ELF_DEFINE_DT(DT_FILTER,           0x7FFFFFFFUL,			\
+	"index of string naming filtees")				\
 _ELF_DEFINE_DT(DT_HIPROC,           0x7fffffff,				\
 	"end of processor-specific types")
 
