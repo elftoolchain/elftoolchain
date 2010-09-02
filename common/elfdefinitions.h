@@ -692,6 +692,8 @@ _ELF_DEFINE_SHT(SHT_SUNW_verdef,     0x6FFFFFFDUL,			\
 	"symbol versioning information")				\
 _ELF_DEFINE_SHT(SHT_SUNW_verneed,    0x6FFFFFFEUL,			\
 	"symbol versioning requirements")				\
+_ELF_DEFINE_SHT(SHT_SUNW_versym,     0x6FFFFFFFUL,			\
+	"symbol versioning table")					\
 _ELF_DEFINE_SHT(SHT_HIOS,            0x6FFFFFFFUL,			\
 	"end of OS-specific range")					\
 _ELF_DEFINE_SHT(SHT_LOPROC,          0x70000000UL,			\
