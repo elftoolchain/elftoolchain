@@ -47,6 +47,8 @@ ${f:R}.eps: ${.CURDIR}/${f}
 CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 .endfor
 
+CLEANFILES+=	mpxerr.tex mpxerr.log makempx.log missfont.log
+
 ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 	${_TEX} ${.CURDIR}/${DOC}.tex || (rm ${.TARGET}; exit 1)
 	@if grep 'undefined references' ${DOC}.log > /dev/null; then \
@@ -68,7 +70,10 @@ depend:		.depend
 cleandepend:	.PHONY
 	rm -f .depend
 
-# Include rules for `make obj` and `make clean`
+clean:
+	rm -f ${CLEANFILES}
+
+# Include rules for `make obj`
 .include <bsd.obj.mk>
 
 .else
