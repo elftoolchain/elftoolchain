@@ -245,6 +245,8 @@ _ELF_DEFINE_EABI(ELFOSABI_SYSV,       0, "SYSV")			\
 _ELF_DEFINE_EABI(ELFOSABI_HPUX,       1, "Hewlett-Packard HP-UX")	\
 _ELF_DEFINE_EABI(ELFOSABI_NETBSD,     2, "NetBSD")			\
 _ELF_DEFINE_EABI(ELFOSABI_LINUX,      3, "Linux")			\
+_ELF_DEFINE_EABI(ELFOSABI_HURD,       4, "GNU/HURD")			\
+_ELF_DEFINE_EABI(ELFOSABI_86OPEN,     5, "86Open Common ABI")		\
 _ELF_DEFINE_EABI(ELFOSABI_SOLARIS,    6, "Sun Solaris")			\
 _ELF_DEFINE_EABI(ELFOSABI_AIX,        7, "AIX")				\
 _ELF_DEFINE_EABI(ELFOSABI_IRIX,       8, "IRIX")			\
@@ -260,6 +262,7 @@ _ELF_DEFINE_EABI(ELFOSABI_FENIXOS,    16,				\
 	"The FenixOS highly scalable multi-core OS")			\
 _ELF_DEFINE_EABI(ELFOSABI_ARM_AEABI,  64,				\
 	"ARM specific symbol versioning extensions")			\
+_ELF_DEFINE_EABI(ELFOSABI_ARM,        97, "ARM ABI")			\
 _ELF_DEFINE_EABI(ELFOSABI_STANDALONE, 255,				\
 	"Standalone (embedded) application")
 
