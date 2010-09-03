@@ -141,7 +141,7 @@ _ELF_DEFINE_DT(DT_LOOS,             0x6000000DUL,			\
 _ELF_DEFINE_DT(DT_SUNW_AUXILIARY,   0x6000000DUL,			\
 	"offset of string naming auxiliary filtees")			\
 _ELF_DEFINE_DT(DT_SUNW_RTLDINF,     0x6000000EUL, "rtld internal use")	\
-_ELF_DEFINE_DT(DT_SUNW_FILTER,      0x6000000EUL,			\
+_ELF_DEFINE_DT(DT_SUNW_FILTER,      0x6000000FUL,			\
 	"offset of string naming standard filtees")			\
 _ELF_DEFINE_DT(DT_SUNW_CAP,         0x60000010UL,			\
 	"address of hardware capabilities section")			\
