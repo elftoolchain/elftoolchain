@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,7 @@
 #include <sys/param.h>
 #include <sys/queue.h>
 
-#if defined(__FreeBSD__)
-#include <sys/elf32.h>
-#include <sys/elf64.h>
-#elif defined(__NetBSD__)
-#include <sys/exec_elf.h>
-#elif defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
-#include <elf.h>
-#endif
+#include <elfdefinitions.h>
 
 /* Library private data structures */
 typedef struct _Elf Elf;
