@@ -52,32 +52,6 @@
 
 ELFTC_VCSID("$Id$");
 
-#if defined(ELFTC_NEED_ELF_LIB_DEFINITION)
-typedef struct {
-	Elf32_Word l_name;
-	Elf32_Word l_time_stamp;
-	Elf32_Word l_checksum;
-	Elf32_Word l_version;
-	Elf32_Word l_flags;
-} Elf32_Lib;
-
-typedef struct {
-	Elf64_Word l_name;
-	Elf64_Word l_time_stamp;
-	Elf64_Word l_checksum;
-	Elf64_Word l_version;
-	Elf64_Word l_flags;
-} Elf64_Lib;
-
-#define	LL_NONE			0x00000000
-#define	LL_EXACT_MATCH		0x00000001
-#define	LL_IGNORE_INT_VER	0x00000002
-#define	LL_REQUIRE_MINOR	0x00000004
-#define	LL_EXPORTS		0x00000008
-#define	LL_DELAY_LOAD		0x00000010
-#define	LL_DELTA		0x00000020
-#endif	/* ELFTC_NEED_ELF_LIB_DEFINITION */
-
 /*
  * readelf(1) options.
  */
