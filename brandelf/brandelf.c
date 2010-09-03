@@ -62,9 +62,7 @@ static struct ELFtypes elftypes[] = {
 	{ "86Open",	ELFOSABI_86OPEN },
 	{ "AIX",	ELFOSABI_AIX },
 	{ "ARM",	ELFOSABI_ARM },
-#if	defined(ELFOSABI_AROS)
 	{ "AROS",	ELFOSABI_AROS },
-#endif
 	{ "FreeBSD",	ELFOSABI_FREEBSD },
 	{ "HP/UX",	ELFOSABI_HPUX},
 	{ "Hurd",	ELFOSABI_HURD },
@@ -77,7 +75,7 @@ static struct ELFtypes elftypes[] = {
 	{ "OpenBSD",	ELFOSABI_OPENBSD },
 	{ "OpenVMS",	ELFOSABI_OPENVMS },
 	{ "Standalone",	ELFOSABI_STANDALONE },
-	{ "SVR4",	ELFOSABI_SYSV },
+	{ "SVR4",	ELFOSABI_NONE },
 	{ "Solaris",	ELFOSABI_SOLARIS },
 	{ "Tru64",	ELFOSABI_TRU64 }
 };
