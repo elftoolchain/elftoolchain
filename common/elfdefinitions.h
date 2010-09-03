@@ -136,6 +136,8 @@ _ELF_DEFINE_DT(DT_PREINIT_ARRAY,    32,					\
 	"pointers to pre-initialization functions")			\
 _ELF_DEFINE_DT(DT_PREINIT_ARRAYSZ,  33,					\
 	"size of pre-initialization array")				\
+_ELF_DEFINE_DT(DT_MAXPOSTAGS,	    34,					\
+	"the number of positive tags")					\
 _ELF_DEFINE_DT(DT_LOOS,             0x6000000DUL,			\
 	"start of OS-specific types")					\
 _ELF_DEFINE_DT(DT_SUNW_AUXILIARY,   0x6000000DUL,			\
@@ -149,6 +151,12 @@ _ELF_DEFINE_DT(DT_HIOS,             0x6FFFF000UL,			\
 	"end of OS-specific types")					\
 _ELF_DEFINE_DT(DT_VALRNGLO,         0x6FFFFD00UL,			\
 	"start of range using the d_val field")				\
+_ELF_DEFINE_DT(DT_GNU_PRELINKED,    0x6FFFFDF5UL,			\
+	"prelinking timestamp")						\
+_ELF_DEFINE_DT(DT_GNU_CONFLICTSZ,   0x6FFFFDF6UL,			\
+	"size of conflict section")					\
+_ELF_DEFINE_DT(DT_GNU_LIBLISTSZ,    0x6FFFFDF7UL,			\
+	"size of library list")						\
 _ELF_DEFINE_DT(DT_CHECKSUM,         0x6FFFFDF8UL,			\
 	"checksum for the object")					\
 _ELF_DEFINE_DT(DT_PLTPADSZ,         0x6FFFFDF9UL,			\
@@ -170,6 +178,10 @@ _ELF_DEFINE_DT(DT_ADDRRNGLO,        0x6FFFFE00UL,			\
 	"start of range using the d_ptr field")				\
 _ELF_DEFINE_DT(DT_GNU_HASH,	    0x6FFFFEF5UL,			\
 	"GNU style hash tables")					\
+_ELF_DEFINE_DT(DT_GNU_CONFLICT,     0x6FFFFEF8UL,			\
+	"address of conflict section")					\
+_ELF_DEFINE_DT(DT_GNU_LIBLIST,      0x6FFFFEF9UL,			\
+	"address of conflict section")					\
 _ELF_DEFINE_DT(DT_CONFIG,           0x6FFFFEFAUL,			\
 	"configuration file")						\
 _ELF_DEFINE_DT(DT_DEPAUDIT,         0x6FFFFEFBUL,			\
@@ -198,25 +210,27 @@ _ELF_DEFINE_DT(DT_VERNEED,	    0x6FFFFFFEUL,			\
 	"address of section with needed versions")			\
 _ELF_DEFINE_DT(DT_VERNEEDNUM,       0x6FFFFFFFUL,			\
 	"the number of version needed entries")				\
-_ELF_DEFINE_DT(DT_LOPROC,           0x70000000,				\
+_ELF_DEFINE_DT(DT_LOPROC,           0x70000000UL,			\
 	"start of processor-specific types")				\
-_ELF_DEFINE_DT(DT_ARM_SYMTABSZ,	    0x70000001,				\
+_ELF_DEFINE_DT(DT_ARM_SYMTABSZ,	    0x70000001UL,			\
 	"number of entries in the dynamic symbol table")		\
 _ELF_DEFINE_DT(DT_SPARC_REGISTER,   0x70000001UL,			\
 	"index of an STT_SPARC_REGISTER symbol")			\
-_ELF_DEFINE_DT(DT_ARM_PREEMPTMAP,   0x70000002,				\
+_ELF_DEFINE_DT(DT_ARM_PREEMPTMAP,   0x70000002UL,			\
 	"address of the preemption map")				\
 _ELF_DEFINE_DT(DT_AUXILIARY,        0x7FFFFFFDUL,			\
 	"offset of string naming auxiliary filtees")			\
 _ELF_DEFINE_DT(DT_USED,             0x7FFFFFFEUL, "ignored")		\
 _ELF_DEFINE_DT(DT_FILTER,           0x7FFFFFFFUL,			\
 	"index of string naming filtees")				\
-_ELF_DEFINE_DT(DT_HIPROC,           0x7fffffff,				\
+_ELF_DEFINE_DT(DT_HIPROC,           0x7FFFFFFFUL,			\
 	"end of processor-specific types")
 
 #undef	_ELF_DEFINE_DT
 #define	_ELF_DEFINE_DT(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_DYN_TYPES() };
+
+#define	DT_DEPRECATED_SPARC_REGISTER	DT_SPARC_REGISTER
 
 /*
  * Flags used in the executable header (field: e_flags).
@@ -618,13 +632,15 @@ _ELF_DEFINE_PT(PT_SHLIB,            5, "reserved")		\
 _ELF_DEFINE_PT(PT_PHDR,             6,				\
 	"describes the program header itself")			\
 _ELF_DEFINE_PT(PT_TLS,              7, "thread local storage")	\
-_ELF_DEFINE_PT(PT_LOOS,             0x60000000,			\
-    "start of OS-specific range")				\
-_ELF_DEFINE_PT(PT_HIOS,             0x6fffffff,			\
-    "end of OS-specific range")					\
-_ELF_DEFINE_PT(PT_LOPROC,           0x70000000,			\
+_ELF_DEFINE_PT(PT_LOOS,             0x60000000UL,		\
+	"start of OS-specific range")				\
+_ELF_DEFINE_PT(PT_GNU_EH_FRAME,     0X6474E550UL,		\
+	"GCC generated .eh_frame_hdr segment ")			\
+_ELF_DEFINE_PT(PT_HIOS,             0x6FFFFFFFUL,		\
+	"end of OS-specific range")				\
+_ELF_DEFINE_PT(PT_LOPROC,           0x70000000UL,		\
 	"start of processor-specific range")			\
-_ELF_DEFINE_PT(PT_HIPROC,           0x7fffffff,			\
+_ELF_DEFINE_PT(PT_HIPROC,           0x7FFFFFFFUL,		\
 	"end of processor-specific range")
 
 #undef	_ELF_DEFINE_PT
@@ -733,14 +749,20 @@ _ELF_DEFINE_SHT(SHT_SUNW_dof,	     0x6FFFFFF4UL,			\
 	"used by dtrace")						\
 _ELF_DEFINE_SHT(SHT_SUNW_cap,	     0x6FFFFFF5UL,			\
 	"capability requirements")					\
+_ELF_DEFINE_SHT(SHT_GNU_ATTRIBUTES,  0x6FFFFFF5UL,			\
+	"object attributes")						\
 _ELF_DEFINE_SHT(SHT_SUNW_SIGNATURE,  0x6FFFFFF6UL,			\
 	"module verification signature")				\
 _ELF_DEFINE_SHT(SHT_GNU_HASH,	     0x6FFFFFF6UL,			\
 	"GNU Hash sections")						\
+_ELF_DEFINE_SHT(SHT_GNU_LIBLIST,     0x6FFFFFF7UL,			\
+	"List of libraries to be prelinked")				\
 _ELF_DEFINE_SHT(SHT_SUNW_ANNOTATE,   0x6FFFFFF7UL,			\
 	"special section where unresolved references are allowed")	\
 _ELF_DEFINE_SHT(SHT_SUNW_DEBUGSTR,   0x6FFFFFF8UL,			\
 	"debugging information")					\
+_ELF_DEFINE_SHT(SHT_CHECKSUM, 	     0x6FFFFFF8UL,			\
+	"checksum for dynamic shared objects")				\
 _ELF_DEFINE_SHT(SHT_SUNW_DEBUG,      0x6FFFFFF9UL,			\
 	"debugging information")					\
 _ELF_DEFINE_SHT(SHT_SUNW_move,       0x6FFFFFFAUL,			\
