@@ -33,8 +33,6 @@
 
 LIBELF_VCSID("$Id$");
 
-#if	LIBELF_CONFIG_MOVE
-
 GElf_Move *
 gelf_getmove(Elf_Data *d, int ndx, GElf_Move *dst)
 {
@@ -150,5 +148,3 @@ gelf_update_move(Elf_Data *d, int ndx, GElf_Move *gm)
 
 	return (1);
 }
-
-#endif	/* LIBELF_CONFIG_MOVE */
