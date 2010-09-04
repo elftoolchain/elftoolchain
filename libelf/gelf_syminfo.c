@@ -33,8 +33,6 @@
 
 LIBELF_VCSID("$Id$");
 
-#if	LIBELF_CONFIG_SYMINFO
-
 GElf_Syminfo *
 gelf_getsyminfo(Elf_Data *d, int ndx, GElf_Syminfo *dst)
 {
@@ -145,5 +143,3 @@ gelf_update_syminfo(Elf_Data *d, int ndx, GElf_Syminfo *gs)
 
 	return (1);
 }
-
-#endif	/* LIBELF_CONFIG_SYMINFO */

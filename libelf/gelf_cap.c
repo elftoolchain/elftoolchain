@@ -33,8 +33,6 @@
 
 LIBELF_VCSID("$Id$");
 
-#if	LIBELF_CONFIG_CAP
-
 GElf_Cap *
 gelf_getcap(Elf_Data *d, int ndx, GElf_Cap *dst)
 {
@@ -144,5 +142,3 @@ gelf_update_cap(Elf_Data *d, int ndx, GElf_Cap *gc)
 
 	return (1);
 }
-
-#endif	/* LIBELF_CONFIG_CAP */
