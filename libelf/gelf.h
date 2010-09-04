@@ -49,12 +49,9 @@ typedef Elf64_Sym	GElf_Sym;	/* Symbol table entries */
 typedef Elf64_Rel	GElf_Rel;	/* Relocation entries */
 typedef Elf64_Rela	GElf_Rela;	/* Relocation entries with addend */
 
-#if	(defined(__FreeBSD_version) && __FreeBSD_version >= 700025) || \
-	(defined(__NetBSD_Version) && __NetBSD_Version > 400000003)
 typedef	Elf64_Cap	GElf_Cap;	/* SW/HW capabilities */
 typedef Elf64_Move	GElf_Move;	/* Move entries */
 typedef Elf64_Syminfo	GElf_Syminfo;	/* Symbol information */
-#endif
 
 #define	GELF_M_INFO			ELF64_M_INFO
 #define	GELF_M_SIZE			ELF64_M_SIZE
@@ -100,15 +97,12 @@ int		gelf_update_symshndx(Elf_Data *_symdst, Elf_Data *_shindexdst,
 Elf_Data 	*gelf_xlatetof(Elf *_elf, Elf_Data *_dst, const Elf_Data *_src, unsigned int _encode);
 Elf_Data 	*gelf_xlatetom(Elf *_elf, Elf_Data *_dst, const Elf_Data *_src, unsigned int _encode);
 
-#if	(defined(__FreeBSD_version) && __FreeBSD_version >= 700025) || \
-	(defined(__NetBSD_Version) && __NetBSD_Version > 400000003)
 GElf_Cap	*gelf_getcap(Elf_Data *_data, int _index, GElf_Cap *_cap);
 GElf_Move	*gelf_getmove(Elf_Data *_src, int _index, GElf_Move *_dst);
 GElf_Syminfo	*gelf_getsyminfo(Elf_Data *_src, int _index, GElf_Syminfo *_dst);
 int		gelf_update_cap(Elf_Data *_dst, int _index, GElf_Cap *_src);
 int		gelf_update_move(Elf_Data *_dst, int _index, GElf_Move *_src);
 int		gelf_update_syminfo(Elf_Data *_dst, int _index, GElf_Syminfo *_src);
-#endif
 __END_DECLS
 
 #endif	/* _GELF_H_ */
