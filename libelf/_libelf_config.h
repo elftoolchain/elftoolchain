@@ -33,41 +33,6 @@
 #define	LIBELF_CONFIG_STRL_FUNCTIONS	1
 #endif
 
-#if __FreeBSD_version >= 600102
-#define	LIBELF_CONFIG_ADDR	1
-#define	LIBELF_CONFIG_BYTE	1
-#define	LIBELF_CONFIG_DYN	1
-#define	LIBELF_CONFIG_EHDR	1
-#define	LIBELF_CONFIG_HALF	1
-#define	LIBELF_CONFIG_NOTE	1
-#define	LIBELF_CONFIG_OFF	1
-#define	LIBELF_CONFIG_PHDR	1
-#define	LIBELF_CONFIG_REL	1
-#define	LIBELF_CONFIG_RELA	1
-#define	LIBELF_CONFIG_SHDR	1
-#define	LIBELF_CONFIG_SWORD	1
-#define	LIBELF_CONFIG_SYM	1
-#define	LIBELF_CONFIG_WORD	1
-#endif
-
-#if __FreeBSD_version >= 700009
-#define	LIBELF_CONFIG_VDEF	1
-#define	LIBELF_CONFIG_VNEED	1
-#define	LIBELF_CONFIG_XWORD	1
-#endif
-
-#if __FreeBSD_version >= 700025
-#define	LIBELF_CONFIG_CAP	1
-#define	LIBELF_CONFIG_LWORD	1
-#define	LIBELF_CONFIG_MOVE	1
-#define	LIBELF_CONFIG_MOVEP	1
-#define	LIBELF_CONFIG_SYMINFO	1
-#endif
-
-#if __FreeBSD_version >= 800062
-#define	LIBELF_CONFIG_GNUHASH	1
-#endif
-
 #define	LIBELF_VCSID(ID)	__FBSDID(ID)
 
 #define	LIBELF_ARCH		ELF_ARCH
@@ -83,35 +48,6 @@
 #include <machine/elf_machdep.h>
 
 #define	LIBELF_CONFIG_STRL_FUNCTIONS	1
-
-#define	LIBELF_CONFIG_ADDR	1
-#define	LIBELF_CONFIG_BYTE	1
-#define	LIBELF_CONFIG_DYN	1
-#define	LIBELF_CONFIG_EHDR	1
-#define	LIBELF_CONFIG_HALF	1
-#define	LIBELF_CONFIG_NOTE	1
-#define	LIBELF_CONFIG_OFF	1
-#define	LIBELF_CONFIG_PHDR	1
-#define	LIBELF_CONFIG_REL	1
-#define	LIBELF_CONFIG_RELA	1
-#define	LIBELF_CONFIG_SHDR	1
-#define	LIBELF_CONFIG_SWORD	1
-#define	LIBELF_CONFIG_SYM	1
-#define	LIBELF_CONFIG_WORD	1
-
-#define	LIBELF_CONFIG_SXWORD	1
-#define	LIBELF_CONFIG_XWORD	1
-
-#define	LIBELF_CONFIG_MOVEP	1
-
-#if	__NetBSD_Version > 400000003	/* NetBSD 4.0 */
-#define	LIBELF_CONFIG_CAP	1
-#define	LIBELF_CONFIG_MOVE	1
-#define	LIBELF_CONFIG_SYMINFO	1
-#define	LIBELF_CONFIG_LWORD	1
-#define	LIBELF_CONFIG_VDEF	1
-#define	LIBELF_CONFIG_VNEED	1
-#endif	/* __NetBSD_Version > 400000003 */
 
 #define	LIBELF_VCSID(ID)	__RCSID(ID)
 
@@ -156,30 +92,6 @@
 
 #endif	/* defined(__linux__) */
 
-/*
- * Common configuration for the GNU environment.
- */
-
-#define	LIBELF_CONFIG_ADDR	1
-#define	LIBELF_CONFIG_BYTE	1
-#define	LIBELF_CONFIG_DYN	1
-#define	LIBELF_CONFIG_EHDR	1
-#define	LIBELF_CONFIG_HALF	1
-#define	LIBELF_CONFIG_MOVEP	1
-#define	LIBELF_CONFIG_NOTE	1
-#define	LIBELF_CONFIG_OFF	1
-#define	LIBELF_CONFIG_PHDR	1
-#define	LIBELF_CONFIG_REL	1
-#define	LIBELF_CONFIG_RELA	1
-#define	LIBELF_CONFIG_SHDR	1
-#define	LIBELF_CONFIG_SWORD	1
-#define	LIBELF_CONFIG_SXWORD	1
-#define	LIBELF_CONFIG_SYM	1
-#define	LIBELF_CONFIG_VDEF	1
-#define	LIBELF_CONFIG_VNEED	1
-#define	LIBELF_CONFIG_WORD	1
-#define	LIBELF_CONFIG_XWORD	1
-
 #define	LIBELF_VCSID(ID)
 
 #if	LIBELF_CLASS == ELFCLASS32
@@ -194,17 +106,3 @@
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
 
-#ifndef	LIBELF_CONFIG_GNUHASH
-#define	LIBELF_CONFIG_GNUHASH	1
-
-/*
- * The header for GNU-style hash sections.
- */
-
-typedef struct {
-	u_int32_t	gh_nbuckets;	/* Number of hash buckets. */
-	u_int32_t	gh_symndx;	/* First visible symbol in .dynsym. */
-	u_int32_t	gh_maskwords;	/* #maskwords used in bloom filter. */
-	u_int32_t	gh_shift2;	/* Bloom filter shift count. */
-} Elf_GNU_Hash_Header;
-#endif
