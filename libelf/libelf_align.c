@@ -63,22 +63,14 @@ struct align {
 static struct align malign[ELF_T_NUM] = {
 	[ELF_T_ADDR]	= MALIGN(Addr),
 	[ELF_T_BYTE]	= { .a32 = 1, .a64 = 1 },
-#if	LIBELF_CONFIG_CAP
 	[ELF_T_CAP]	= MALIGN(Cap),
-#endif
 	[ELF_T_DYN]	= MALIGN(Dyn),
 	[ELF_T_EHDR]	= MALIGN(Ehdr),
 	[ELF_T_HALF]	= MALIGN(Half),
-#if	LIBELF_CONFIG_LWORD
 	[ELF_T_LWORD]	= MALIGN(Lword),
-#endif
-#if	LIBELF_CONFIG_MOVE
 	[ELF_T_MOVE]	= MALIGN(Move),
-#endif
 	[ELF_T_MOVEP] 	= UNSUPPORTED(),
-#if	LIBELF_CONFIG_NOTE
 	[ELF_T_NOTE]	= MALIGN(Nhdr),
-#endif
 	[ELF_T_OFF]	= MALIGN(Off),
 	[ELF_T_PHDR]	= MALIGN(Phdr),
 	[ELF_T_REL]	= MALIGN(Rel),
@@ -87,15 +79,9 @@ static struct align malign[ELF_T_NUM] = {
 	[ELF_T_SWORD]	= MALIGN(Sword),
 	[ELF_T_SXWORD]	= MALIGN64(Sxword),
 	[ELF_T_SYM]	= MALIGN(Sym),
-#if	LIBELF_CONFIG_SYMINFO
 	[ELF_T_SYMINFO]	= MALIGN(Syminfo),
-#endif
-#if	LIBELF_CONFIG_VDEF
 	[ELF_T_VDEF]	= MALIGN(Verdef),
-#endif
-#if	LIBELF_CONFIG_VNEED
 	[ELF_T_VNEED]	= MALIGN(Verneed),
-#endif
 	[ELF_T_WORD]	= MALIGN(Word),
 	[ELF_T_XWORD]	= MALIGN64(Xword),
 	[ELF_T_GNUHASH] = MALIGN_WORD()
@@ -116,22 +102,14 @@ _libelf_malign(Elf_Type t, int elfclass)
 static struct align falign[ELF_T_NUM] = {
 	[ELF_T_ADDR]	= FALIGN(4,8),
 	[ELF_T_BYTE]	= FALIGN(1,1),
-#if	LIBELF_CONFIG_CAP
 	[ELF_T_CAP]	= FALIGN(4,8),
-#endif
 	[ELF_T_DYN]	= FALIGN(4,8),
 	[ELF_T_EHDR]	= FALIGN(4,8),
 	[ELF_T_HALF]	= FALIGN(2,2),
-#if	LIBELF_CONFIG_LWORD
 	[ELF_T_LWORD]	= FALIGN(8,8),
-#endif
-#if	LIBELF_CONFIG_MOVE
 	[ELF_T_MOVE]	= FALIGN(8,8),
-#endif
 	[ELF_T_MOVEP] 	= UNSUPPORTED(),
-#if	LIBELF_CONFIG_NOTE
 	[ELF_T_NOTE]	= FALIGN(4,4),
-#endif
 	[ELF_T_OFF]	= FALIGN(4,8),
 	[ELF_T_PHDR]	= FALIGN(4,8),
 	[ELF_T_REL]	= FALIGN(4,8),
@@ -140,15 +118,9 @@ static struct align falign[ELF_T_NUM] = {
 	[ELF_T_SWORD]	= FALIGN(4,4),
 	[ELF_T_SXWORD]	= FALIGN(0,8),
 	[ELF_T_SYM]	= FALIGN(4,8),
-#if	LIBELF_CONFIG_SYMINFO
 	[ELF_T_SYMINFO]	= FALIGN(2,2),
-#endif
-#if	LIBELF_CONFIG_VDEF
 	[ELF_T_VDEF]	= FALIGN(4,4),
-#endif
-#if	LIBELF_CONFIG_VNEED
 	[ELF_T_VNEED]	= FALIGN(4,4),
-#endif
 	[ELF_T_WORD]	= FALIGN(4,4),
 	[ELF_T_XWORD]	= FALIGN(0,8),
 	[ELF_T_GNUHASH] = FALIGN(4,8)
