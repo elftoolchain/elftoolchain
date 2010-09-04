@@ -26,8 +26,7 @@
 
 #ifdef __FreeBSD__
 
-#include <sys/limits.h>
-#include <machine/elf.h>
+#include <osreldate.h>	/* Bring in __FreeBSD_version. */
 
 #if __FreeBSD_version >= 330000
 #define	LIBELF_CONFIG_STRL_FUNCTIONS	1
@@ -35,10 +34,44 @@
 
 #define	LIBELF_VCSID(ID)	__FBSDID(ID)
 
-#define	LIBELF_ARCH		ELF_ARCH
-#define	LIBELF_BYTEORDER	ELF_TARG_DATA
-#define	LIBELF_CLASS		ELF_TARG_CLASS
+/*
+ * Define LIBELF_{ARCH,BYTEORDER,CLASS} based on the machine architecture.
+ * See also: <machine/elf.h>.
+ */
 
+#if	defined(__i386__)
+
+#define	LIBELF_ARCH		EM_386
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS32
+
+#elif	defined(__amd64__)
+
+#define	LIBELF_ARCH		EM_X86_64
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS64
+
+#elif	defined(__sparc__)
+
+#define	LIBELF_ARCH		EM_SPARCV9
+#define	LIBELF_BYTEORDER	ELFDATA2MSB
+#define	LIBELF_CLASS		ELFCLASS64
+
+#elif	defined(__arm__)
+
+#define	LIBELF_ARCH		EM_ARM
+
+#if	defined(__ARMEB__)	/* Big-endian ARM. */
+#define	LIBELF_BYTEORDER	ELFDATA2MSB
+#else
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#endif
+
+#define	LIBELF_CLASS		ELFCLASS32
+
+#else
+#error	Unknown FreeBSD architecture.
+#endif
 #endif  /* __FreeBSD__ */
 
 
