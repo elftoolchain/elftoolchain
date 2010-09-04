@@ -71,9 +71,8 @@ define(`DEFINE_ELF_MSIZES',
 DEFINE_ELF_MSIZES(ELF_TYPE_LIST)
 
 define(`MSIZE',
-  `#if	LIBELF_CONFIG_$1
-    [ELF_T_$1] = { .msz32 = $1_SIZE32, .msz64 = $1_SIZE64 },
-#endif')
+  `[ELF_T_$1] = { .msz32 = $1_SIZE32, .msz64 = $1_SIZE64 },
+')
 define(`MSIZES',
   `ifelse($#,1,`',
     `MSIZE($1)

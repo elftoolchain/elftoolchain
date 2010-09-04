@@ -119,9 +119,8 @@ DEFINE_ELF_FSIZES(ELF_TYPE_LIST)
 DEFINE_ELF_FSIZE(`IDENT',`')	# `IDENT' is a pseudo type
 
 define(`FSIZE',
-  `#if	LIBELF_CONFIG_$1
-    [ELF_T_$1] = { .fsz32 = $1_SIZE32, .fsz64 = $1_SIZE64 },
-#endif')
+  `[ELF_T_$1] = { .fsz32 = $1_SIZE32, .fsz64 = $1_SIZE64 },
+')
 define(`FSIZES',
   `ifelse($#,1,`',
     `FSIZE($1)
