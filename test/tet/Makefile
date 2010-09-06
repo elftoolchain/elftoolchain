@@ -21,7 +21,7 @@ clean:
 	rm -f ${TET_BUILD_MARKER}
 
 depend:	.SILENT
-	/bin/true
+	true
 .else
 all depend:	.SILENT
 	echo "ERROR: The distribution of TET v${TET_VERSION} is missing."
