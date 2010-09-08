@@ -7,7 +7,7 @@
 # information statically at compile time.
 
 program=`basename $0`
-tmp_c=`mktemp nefXXXXXX`.c
+tmp_c=`mktemp -u nefXXXXXX`.c
 tmp_o=`echo ${tmp_c} | sed -e 's/.c$/.o/'`
 
 trap "rm -f ${tmp_c} ${tmp_o}"	0 1 2 3 15
