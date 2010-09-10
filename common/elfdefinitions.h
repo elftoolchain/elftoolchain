@@ -638,6 +638,8 @@ _ELF_DEFINE_PT(PT_GNU_EH_FRAME,     0x6474E550UL,		\
 	"GCC generated .eh_frame_hdr segment ")			\
 _ELF_DEFINE_PT(PT_GNU_STACK,	    0x6474E551UL,		\
 	"Stack flags")						\
+_ELF_DEFINE_PT(PT_GNU_RELRO,	    0x6474E552UL,		\
+	"Segment becomes read-only after relocation")		\
 _ELF_DEFINE_PT(PT_HIOS,             0x6FFFFFFFUL,		\
 	"end of OS-specific range")				\
 _ELF_DEFINE_PT(PT_LOPROC,           0x70000000UL,		\
