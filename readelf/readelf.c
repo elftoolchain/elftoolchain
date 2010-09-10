@@ -41,9 +41,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
+#include <time.h>
 #include <unistd.h>
 
-#ifndef LIBELF_AR
+#if 0
 #include <archive.h>
 #include <archive_entry.h>
 #endif	/* ! LIBELF_AR */
