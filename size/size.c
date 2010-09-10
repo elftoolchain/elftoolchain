@@ -45,30 +45,6 @@ ELFTC_VCSID("$Id$");
 #define	ELF_ALIGN(val,x) (((val)+(x)-1) & ~((x)-1))
 #define	SIZE_VERSION_STRING		"size 1.0"
 
-#ifndef	NT_AUXV
-#define	NT_AUXV			6
-#endif
-#ifndef	NT_LWPSTATUS
-#define	NT_LWPSTATUS		16
-#endif
-#ifndef	NT_PRFPREG
-#define	NT_PRFPREG		2
-#endif
-#ifndef	NT_PRPSINFO
-#define	NT_PRPSINFO		3
-#endif
-#ifndef	NT_PRSTATUS
-#define	NT_PRSTATUS		1
-#endif
-#ifndef	NT_PRXFPREG
-#define	NT_PRXFPREG		0x46e62b7f
-#endif
-#ifndef	NT_PSINFO
-#define	NT_PSINFO		13
-#endif
-#ifndef	NT_PSTATUS
-#define	NT_PSTATUS		10
-#endif
 #ifndef	PT_GNU_EH_FRAME
 #define	PT_GNU_EH_FRAME		(PT_LOOS + 0x474e550)
 #endif
@@ -364,7 +340,7 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 			}
 		}
 		break;
-		case NT_PRFPREG: /* same as NT_FPREGSET */
+		case NT_FPREGSET:	/* same as NT_PRFPREG */
 			if (style == STYLE_SYSV) {
 				(void) snprintf(buf, BUF_SIZE,
 				    "%s/%d", ".reg2", pid);
