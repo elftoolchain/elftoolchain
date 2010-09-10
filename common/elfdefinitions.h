@@ -1493,6 +1493,38 @@ _ELF_DEFINE_LL(LL_DELTA,		0x20,	\
 enum { _ELF_DEFINE_LL_FLAGS() };
 
 /*
+ * Note tags
+ */
+
+#define	_ELF_DEFINE_NOTE_ENTRY_TYPES()					\
+_ELF_DEFINE_NT(NT_ABI_TAG,	1,	"Tag indicating the ABI")	\
+_ELF_DEFINE_NT(NT_GNU_HWCAP,	2,	"Hardware capabilities")	\
+_ELF_DEFINE_NT(NT_GNU_BUILD_ID,	3,	"Build id, set by ld(1)")	\
+_ELF_DEFINE_NT(NT_GNU_GOLD_VERSION, 4,					\
+	"Version number of the GNU gold linker")			\
+_ELF_DEFINE_NT(NT_PRSTATUS,	1,	"Process status")		\
+_ELF_DEFINE_NT(NT_FPREGSET,	2,	"Floating point information")	\
+_ELF_DEFINE_NT(NT_PRPSINFO,	3,	"Process information")		\
+_ELF_DEFINE_NT(NT_AUXV,		6,	"Auxiliary vector")		\
+_ELF_DEFINE_NT(NT_PRXFPREG,	0x46E62B7FUL,				\
+	"Linux user_xfpregs structure")					\
+_ELF_DEFINE_NT(NT_PSTATUS,	10,	"Linux process status")		\
+_ELF_DEFINE_NT(NT_FPREGS,	12,	"Linux floating point regset")	\
+_ELF_DEFINE_NT(NT_PSINFO,	13,	"Linux process information")	\
+_ELF_DEFINE_NT(NT_LWPSTATUS,	16,	"Linux lwpstatus_t type")	\
+_ELF_DEFINE_NT(NT_LWPSINFO,	17,	"Linux lwpinfo_t type")
+
+#undef	_ELF_DEFINE_NT
+#define	_ELF_DEFINE_NT(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_NOTE_ENTRY_TYPES() };
+
+/* Aliases for the ABI tag. */
+#define	NT_FREEBSD_ABI_TAG	NT_ABI_TAG
+#define	NT_GNU_ABI_TAG		NT_ABI_TAG
+#define	NT_NETBSD_IDENT		NT_ABI_TAG
+#define	NT_OPENBSD_IDENT	NT_ABI_TAG
+
+/*
  * Note descriptors.
  */
 
