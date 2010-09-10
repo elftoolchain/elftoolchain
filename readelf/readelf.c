@@ -47,7 +47,7 @@
 #if 0
 #include <archive.h>
 #include <archive_entry.h>
-#endif	/* ! LIBELF_AR */
+#endif
 
 #include "_elftc.h"
 
