@@ -488,12 +488,8 @@ phdr_type(unsigned int ptype)
 	case PT_PHDR: return "PHDR";
 	case PT_TLS: return "TLS";
 	case PT_GNU_EH_FRAME: return "GNU_EH_FRAME";
-#ifdef PT_GNU_STACK
 	case PT_GNU_STACK: return "GNU_STACK";
-#endif
-#ifdef PT_GNU_RELRO
 	case PT_GNU_RELRO: return "GNU_RELRO";
-#endif
 	default:
 		if (ptype >= PT_LOPROC && ptype <= PT_HIPROC)
 			snprintf(s_ptype, sizeof(s_ptype), "LOPROC+%#x",
