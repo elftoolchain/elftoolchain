@@ -252,6 +252,8 @@ static const char *get_symbol_name(struct readelf *re, int symtab, int i);
 static uint64_t get_symbol_value(struct readelf *re, int symtab, int i);
 static void load_sections(struct readelf *re);
 static const char *mips_abi_fp(uint64_t fp);
+static const char *note_type(unsigned int osabi, unsigned int et,
+    unsigned int nt);
 static const char *phdr_type(unsigned int ptype);
 static const char *ppc_abi_fp(uint64_t fp);
 static const char *ppc_abi_vector(uint64_t vec);
@@ -1101,6 +1103,63 @@ r_type(unsigned int mach, unsigned int type)
 		default: return "";
 		}
 	default: return "";
+	}
+}
+
+static const char *
+note_type(unsigned int osabi, unsigned int et, unsigned int nt)
+{
+	static char s_nt[32];
+
+	if (et == ET_CORE) {
+		switch (nt) {
+		case NT_PRSTATUS:
+			return "NT_PRSTATUS (Process status)";
+		case NT_FPREGSET:
+			return "NT_FPREGSET (Floating point information)";
+		case NT_PRPSINFO:
+			return "NT_PRPSINFO (Process information)";
+		case NT_AUXV:
+			return "NT_AUXV (Auxiliary vector)";
+		case NT_PRXFPREG:
+			return "NT_PRXFPREG (Linux user_xfpregs structure)";
+		case NT_PSTATUS:
+			return "NT_PSTATUS (Linux process status)";
+		case NT_FPREGS:
+			return "NT_FPREGS (Linux floating point regset)";
+		case NT_PSINFO:
+			return "NT_PSINFO (Linux process information)";
+		case NT_LWPSTATUS:
+			return "NT_LWPSTATUS (Linux lwpstatus_t type)";
+		case NT_LWPSINFO:
+			return "NT_LWPSINFO (Linux lwpinfo_t type)";
+		default:
+			snprintf(s_nt, sizeof(s_nt), "<unknown: %u>", nt);
+			return (s_nt);
+		}
+	} else {
+		switch (nt) {
+		case NT_ABI_TAG:
+			switch (osabi) {
+			case ELFOSABI_FREEBSD:
+				return "NT_FREEBSD_ABI_TAG";
+			case ELFOSABI_NETBSD:
+				return "NT_NETBSD_IDENT";
+			case ELFOSABI_OPENBSD:
+				return "NT_OPENBSD_IDENT";
+			default:
+				return "NT_GNU_ABI_TAG";
+			}
+		case NT_GNU_HWCAP:
+			return "NT_GNU_HWCAP (Hardware capabilities)";
+		case NT_GNU_BUILD_ID:
+			return "NT_GNU_BUILD_ID (Build id set by ld(1))";
+		case NT_GNU_GOLD_VERSION:
+			return "NT_GNU_GOLD_VERSION (GNU gold version)";
+		default:
+			snprintf(s_nt, sizeof(s_nt), "<unknown: %u>", nt);
+			return (s_nt);
+		}
 	}
 }
 
@@ -2760,10 +2819,11 @@ dump_notes_content(struct readelf *re, const char *buf, size_t sz, off_t off)
 	end = buf + sz;
 	while (buf < end) {
 		note = (Elf_Note *)(uintptr_t) buf;
-		printf("  %-13s %#010jx\n", (char *)(uintptr_t) (note + 1),
+		printf("  %-13s %#010jx", (char *)(uintptr_t) (note + 1),
 		    (uintmax_t) note->n_descsz);
+		printf("      %s\n", note_type(re->ehdr.e_ident[EI_OSABI],
+		    re->ehdr.e_type, note->n_type));
 		buf += sizeof(Elf_Note);
-		/* TODO: Dump note->n_type. */
 		if (re->ec == ELFCLASS32)
 			buf += roundup2(note->n_namesz, 4) +
 			    roundup2(note->n_descsz, 4);
