@@ -45,13 +45,6 @@ ELFTC_VCSID("$Id$");
 #define	ELF_ALIGN(val,x) (((val)+(x)-1) & ~((x)-1))
 #define	SIZE_VERSION_STRING		"size 1.0"
 
-#ifndef	PT_GNU_EH_FRAME
-#define	PT_GNU_EH_FRAME		(PT_LOOS + 0x474e550)
-#endif
-#ifndef	PT_GNU_STACK
-#define	PT_GNU_STACK		(PT_LOOS + 0x474e551)
-#endif
-
 enum output_style {
 	STYLE_BERKELEY,
 	STYLE_SYSV
