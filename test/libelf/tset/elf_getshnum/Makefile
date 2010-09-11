@@ -3,8 +3,6 @@
 TOP=	../../../..
 
 TS_SRCS=		getshnum.m4
-TS_DATA=		newscn.lsb32 newscn.lsb64 newscn.msb32 newscn.msb64 \
-			xscn-1.lsb32 xscn-1.lsb64 xscn-1.msb32 xscn-1.msb64 \
-			xscn-2.lsb32 xscn-2.lsb64 xscn-2.msb32 xscn-2.msb64
+TS_YAML=		newscn xscn-1 xscn-2
 
 .include "${TOP}/mk/elftoolchain.tet.mk"
