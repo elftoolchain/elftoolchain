@@ -7,8 +7,8 @@ SRCS=	cxxfilt.c
 
 WARNS?=	6
 
-DPADD=	${LIBELFTC}
-LDADD=	-lelftc
+DPADD=	${LIBELFTC} ${LIBELF}
+LDADD=	-lelftc -lelf
 
 MAN1=	c++filt.1
 
