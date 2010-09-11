@@ -6,7 +6,7 @@
 
 .include "${TOP}/mk/elftoolchain.os.mk"
 
-.if defined(MKTEX) # && ${MKTEX} == "yes"
+.if defined(MKTEX) && ${MKTEX} == "yes" && exists(${MPOST}) && exists(${PDFLATEX})
 
 TEXINPUTS=	`kpsepath tex`:${.CURDIR}
 _TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX}
@@ -78,7 +78,12 @@ clean:
 
 .else
 
-all clean obj depend:
-	@echo WARNING: documentation build skipped: MKTEX=\"${MKTEX}\"
-	@true
+all clean obj depend:	.SILENT
+	echo -n WARNING: building \"${.CURDIR:T}\" skipped:
+.if	defined(MKTEX) && ${MKTEX} == "yes"
+	echo " missing tools."
+.else
+	echo " builds of TeX documentation are disabled."
+.endif
+	true
 .endif
