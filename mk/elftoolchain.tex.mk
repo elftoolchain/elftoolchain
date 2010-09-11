@@ -37,10 +37,10 @@ index:	.PHONY
 # Rules to build MetaPost figures.
 .mp.eps:
 	@if [ "${.OBJDIR}" != "${.CURDIR}" ]; then cp ${.CURDIR}/${.IMPSRC:T} ${.OBJDIR}/; fi
-	TEX=${MPOSTTEX} ${MPOST} -halt-on-error ${.IMPSRC:T}
+	TEX=${MPOSTTEX} ${MPOST} -halt-on-error ${.IMPSRC:T} || (rm ${.IMPSRC:T:R}.1; false)
 	mv ${.IMPSRC:T:R}.1 ${.TARGET}
 .eps.pdf:
-	${EPSTOPDF} ${.IMPSRC} > ${.TARGET}
+	${EPSTOPDF} ${.IMPSRC} > ${.TARGET} || (rm ${.TARGET}; false)
 
 .for f in ${IMAGES_MP}
 ${f:R}.eps: ${.CURDIR}/${f}
