@@ -6,6 +6,16 @@ LDADD+=		-lelf
 
 GENERATE_TEST_SCAFFOLDING=	yes
 
+# Add a file name to TS_YAML if all four variants of the generated ELF
+# object are needed.
+.if defined(TS_YAML)
+.for yaml in ${TS_YAML}
+.for sufx in lsb32 lsb64 msb32 msb64
+TS_DATA+=		${yaml}.${sufx}
+.endfor
+.endfor
+.endif
+
 # Copy ELF binaries used by test cases to the build directory so that
 # the test binaries have access to them.
 _TS_YAMLOBJ?=	${TS_DATA:M*.msb32} ${TS_DATA:M*.lsb32} ${TS_DATA:M*.msb64} \
