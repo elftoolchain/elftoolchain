@@ -223,7 +223,7 @@ _libelf_ar_process_symtab(Elf *e, size_t *count)
 		return (NULL);
 	}
 
-	p = e->e_u.e_ar.e_rawsymtab;
+	p = (unsigned char *) e->e_u.e_ar.e_rawsymtab;
 	end = p + e->e_u.e_ar.e_rawsymtabsz;
 
 	GET_WORD(p, nentries);
@@ -248,8 +248,8 @@ _libelf_ar_process_symtab(Elf *e, size_t *count)
 		GET_WORD(p, off);
 
 		sym->as_off = off;
-		sym->as_hash = elf_hash(s);
-		sym->as_name = s;
+		sym->as_hash = elf_hash((char *) s);
+		sym->as_name = (char *) s;
 
 		p += INTSZ;
 		sym++;
