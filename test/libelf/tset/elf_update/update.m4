@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <libelf.h>
+#include <gelf.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
@@ -844,3 +845,104 @@ FN(64,`msb')
 
 /* XXX: check that overlapping sections are rejected */
 /* XXX: check that non-overlapping sections are permitted */
+
+/* 
+ * Ensure that updating a section header on an ELF object opened
+ * in ELF_C_RDWR mode in an idempotent manner leaves the object
+ * in a sane state.  See ticket #269.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcRdwrIdempotent_tp$2$1(void)
+{
+	Elf *e;
+	size_t strtabidx;
+	Elf_Scn *strtabscn;
+	int error, fd, tfd, result;
+	GElf_Shdr strtabshdr;
+	char *srcfile = "newscn.$2$1", *tfn;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: no-op update of section headers "
+	    "works as expected");
+
+	result = TET_UNRESOLVED;
+	e = NULL;
+	tfn = NULL;
+	fd = tfd = -1;
+
+	/* Make a copy of the reference object. */
+	if ((tfn = elfts_copy_file(srcfile, &error)) < 0) {
+		TP_UNRESOLVED("elfts_copyfile(%s) failed: \"%s\".", srcfile,
+		    strerror(error));
+		goto done;
+	}
+
+	/* Open the copied object in RDWR mode. */
+	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, tfd, goto done;);
+
+	/* Retrieve the index of the section name string table. */
+	if (elf_getshdrstrndx(e, &strtabidx) != 0) {
+		TP_UNRESOLVED("elf_getshdrstrndx() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/*
+	 * Retrieve the section descriptor for the section name string table.
+	 */
+	if ((strtabscn = elf_getscn(e, strtabidx)) == NULL) {
+		TP_UNRESOLVED("elf_getscn() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Read the section header ... */
+	if (gelf_getshdr(strtabscn, &strtabshdr) == NULL) {
+		TP_UNRESOLVED("gelf_getshdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* ... and write it back. */
+	if (gelf_update_shdr(strtabscn, &strtabshdr) == 0) {
+		TP_UNRESOLVED("gelf_update_shdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Update the underlying ELF object. */
+	if (elf_update(e, ELF_C_WRITE) < 0) {
+		TP_UNRESOLVED("elf_update() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Close the temporary file. */
+	if ((error = elf_end(e)) != 0) {
+		TP_UNRESOLVED("elf_end() returned %d.", error);
+		goto done;
+	}
+
+	e = NULL;
+	/* Compare against the original. */
+	result = elfts_compare_files(srcfile, tfn);
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	if (tfd != -1)
+		(void) close(tfd);
+	if (tfn != NULL)
+/*	   	(void) unlink(tfn); */
+
+	tet_result(result);
+}')
+
+FN(32,`lsb')
+FN(32,`msb')
+FN(64,`lsb')
+FN(64,`msb')
