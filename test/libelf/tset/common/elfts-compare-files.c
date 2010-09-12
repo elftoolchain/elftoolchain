@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ elfts_compare_files(const char *rfn, const char *fn)
 	int fd, result, rfd;
 	struct stat sb, rsb;
 	char *m, *rm;
-	size_t c;
+	size_t c, nc;
 
 	fd = rfd = -1;
 	m = rm = NULL;
@@ -100,13 +100,15 @@ elfts_compare_files(const char *rfn, const char *fn)
 	}
 
 	result = TET_PASS;
-	for (c = 0; c < sb.st_size; c++) {
-		if (m[c] != rm[c]) {
-			tet_printf("F: @ offset 0x%x ref[%d] != actual[%d].",
-			    c, rm[c], m[c]);
-			result = TET_FAIL;
-			break;
-		}
+	nc = sb.st_size;
+
+	/* Compare bytes. */
+	for (c = 0; c < nc && *m == *rm; c++, m++, rm++)
+		;
+	if (c != nc) {
+		tet_printf("F: @ offset 0x%x ref[%d] != actual[%d].", c,
+		     *rm, *m);
+		result = TET_FAIL;
 	}
 
  done:
