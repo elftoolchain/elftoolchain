@@ -95,6 +95,9 @@ if ! nm ${*} | sort -n -k +1 | awk '
 	$1 == "U" && $2 == "elfts_compare_files" {
 		printf("#include \"elfts-compare-files.c\"\n");
 	}
+	$1 == "U" && $2 == "elfts_copy_file" {
+		printf("#include \"elfts-copy-file.c\"\n");
+	}
 	$1 == "U" && $2 == "elfts_init_version" {
 		printf("#include \"elfts-initversion.c\"\n");
 	}
