@@ -113,5 +113,6 @@ void	elfts_init_version(void);
 
 Elf	*elfts_open_file(const char *_fn, Elf_Cmd _cmd, int *_fdp);
 int	elfts_compare_files(const char *_reffn, const char *fn);
+char	*elfts_copy_file(const char *_fn, int *_error);
 
 #endif	/* _LIBELF_TS_H_ */
