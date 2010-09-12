@@ -33,13 +33,15 @@
 
 #include "tet_api.h"
 
+#include "elfts.h"
+
 /*
  * A TET startup() function for test cases that need elf_version()
  * to be called before each invocable component.
  */
 
 Elf *
-elfts_open_file(char *fn, Elf_Cmd cmd, int *fdp)
+elfts_open_file(const char *fn, Elf_Cmd cmd, int *fdp)
 {
 	Elf *e;
 	int fd, mode;
