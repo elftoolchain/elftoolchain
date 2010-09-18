@@ -218,6 +218,95 @@ _ELF_DEFINE_DT(DT_SPARC_REGISTER,   0x70000001UL,			\
 	"index of an STT_SPARC_REGISTER symbol")			\
 _ELF_DEFINE_DT(DT_ARM_PREEMPTMAP,   0x70000002UL,			\
 	"address of the preemption map")				\
+_ELF_DEFINE_DT(DT_MIPS_RLD_VERSION, 0x70000001UL,			\
+	"version ID for runtime linker interface")			\
+_ELF_DEFINE_DT(DT_MIPS_TIME_STAMP,  0x70000002UL,			\
+	"timestamp")							\
+_ELF_DEFINE_DT(DT_MIPS_ICHECKSUM,   0x70000003UL,			\
+	"checksum of all external strings and common sizes")		\
+_ELF_DEFINE_DT(DT_MIPS_IVERSION,    0x70000004UL,			\
+	"string table index of a version string")			\
+_ELF_DEFINE_DT(DT_MIPS_FLAGS,       0x70000005UL,			\
+	"MIPS-specific flags")						\
+_ELF_DEFINE_DT(DT_MIPS_BASE_ADDRESS, 0x70000006UL,			\
+	"base address for the executable/DSO")				\
+_ELF_DEFINE_DT(DT_MIPS_CONFLICT,    0x70000008UL,			\
+	"address of .conflict section")					\
+_ELF_DEFINE_DT(DT_MIPS_LIBLIST,     0x70000009UL,			\
+	"address of .liblist section")					\
+_ELF_DEFINE_DT(DT_MIPS_LOCAL_GOTNO, 0x7000000AUL,			\
+	"number of local GOT entries")					\
+_ELF_DEFINE_DT(DT_MIPS_CONFLICTNO,  0x7000000BUL,			\
+	"number of entries in the .conflict section")			\
+_ELF_DEFINE_DT(DT_MIPS_LIBLISTNO,   0x70000010UL,			\
+	"number of entries in the .liblist section")			\
+_ELF_DEFINE_DT(DT_MIPS_SYMTABNO,    0x70000011UL,			\
+	"number of entries in the .dynsym section")			\
+_ELF_DEFINE_DT(DT_MIPS_UNREFEXTNO,  0x70000012UL,			\
+	"index of first external dynamic symbol not ref'ed locally")	\
+_ELF_DEFINE_DT(DT_MIPS_GOTSYM,      0x70000013UL,			\
+	"index of first dynamic symbol corresponds to a GOT entry")	\
+_ELF_DEFINE_DT(DT_MIPS_HIPAGENO,    0x70000014UL,			\
+	"number of page table entries in GOT")				\
+_ELF_DEFINE_DT(DT_MIPS_RLD_MAP,     0x70000016UL,			\
+	"address of runtime linker map")				\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_CLASS, 0x70000017UL,			\
+	"Delta C++ class definition")					\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_CLASS_NO, 0x70000018UL,			\
+	"number of entries in DT_MIPS_DELTA_CLASS")			\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_INSTANCE, 0x70000019UL,			\
+	"Delta C++ class instances")					\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_INSTANCE_NO, 0x7000001AUL,			\
+	"number of entries in DT_MIPS_DELTA_INSTANCE")			\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_RELOC, 0x7000001BUL,			\
+	"Delta relocations")						\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_RELOC_NO, 0x7000001CUL,			\
+	"number of entries in DT_MIPS_DELTA_RELOC")			\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_SYM,   0x7000001DUL,			\
+	"Delta symbols refered by Delta relocations")			\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_SYM_NO, 0x7000001EUL,			\
+	"number of entries in DT_MIPS_DELTA_SYM")			\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_CLASSSYM, 0x70000020UL,			\
+	"Delta symbols for class declarations")				\
+_ELF_DEFINE_DT(DT_MIPS_DELTA_CLASSSYM_NO, 0x70000021UL,			\
+	"number of entries in DT_MIPS_DELTA_CLASSSYM")			\
+_ELF_DEFINE_DT(DT_MIPS_CXX_FLAGS,   0x70000022UL,			\
+	"C++ flavor flags")						\
+_ELF_DEFINE_DT(DT_MIPS_PIXIE_INIT,  0x70000023UL,			\
+	"address of an initialization routine created by pixie")	\
+_ELF_DEFINE_DT(DT_MIPS_SYMBOL_LIB,  0x70000024UL,			\
+	"address of .MIPS.symlib section")				\
+_ELF_DEFINE_DT(DT_MIPS_LOCALPAGE_GOTIDX, 0x70000025UL,			\
+	"GOT index of first page table entry for a segment")		\
+_ELF_DEFINE_DT(DT_MIPS_LOCAL_GOTIDX, 0x70000026UL,			\
+	"GOT index of first page table entry for a local symbol")	\
+_ELF_DEFINE_DT(DT_MIPS_HIDDEN_GOTIDX, 0x70000027UL,			\
+	"GOT index of first page table entry for a hidden symbol")	\
+_ELF_DEFINE_DT(DT_MIPS_PROTECTED_GOTIDX, 0x70000028UL,			\
+	"GOT index of first page table entry for a protected symbol")	\
+_ELF_DEFINE_DT(DT_MIPS_OPTIONS,     0x70000029UL,			\
+	"address of .MIPS.options section")				\
+_ELF_DEFINE_DT(DT_MIPS_INTERFACE,   0x7000002AUL,			\
+	"address of .MIPS.interface section")				\
+_ELF_DEFINE_DT(DT_MIPS_DYNSTR_ALIGN, 0x7000002BUL, "???")		\
+_ELF_DEFINE_DT(DT_MIPS_INTERFACE_SIZE, 0x7000002CUL,			\
+	"size of .MIPS.interface section")				\
+_ELF_DEFINE_DT(DT_MIPS_RLD_TEXT_RESOLVE_ADDR, 0x7000002DUL,		\
+	"address of _rld_text_resolve in GOT")				\
+_ELF_DEFINE_DT(DT_MIPS_PERF_SUFFIX, 0x7000002EUL,			\
+	"default suffix of DSO to be appended by dlopen")		\
+_ELF_DEFINE_DT(DT_MIPS_COMPACT_SIZE, 0x7000002FUL,			\
+	"size of a ucode compact relocation record (o32)")		\
+_ELF_DEFINE_DT(DT_MIPS_GP_VALUE,    0x70000030UL,			\
+	"GP value of a specified GP relative range")			\
+_ELF_DEFINE_DT(DT_MIPS_AUX_DYNAMIC, 0x70000031UL,			\
+	"address of an auxiliary dynamic table")			\
+_ELF_DEFINE_DT(DT_MIPS_PLTGOT,      0x70000032UL,			\
+	"address of the PLTGOT")					\
+_ELF_DEFINE_DT(DT_MIPS_RLD_OBJ_UPDATE, 0x70000033UL,			\
+	"object list update callback")					\
+_ELF_DEFINE_DT(DT_MIPS_RWPLT,       0x70000034UL,			\
+	"address of a writable PLT")					\
 _ELF_DEFINE_DT(DT_AUXILIARY,        0x7FFFFFFDUL,			\
 	"offset of string naming auxiliary filtees")			\
 _ELF_DEFINE_DT(DT_USED,             0x7FFFFFFEUL, "ignored")		\
@@ -236,6 +325,26 @@ enum { _ELF_DEFINE_DYN_TYPES() };
  * Flags used in the executable header (field: e_flags).
  */
 #define	_ELF_DEFINE_EHDR_FLAGS()					\
+_ELF_DEFINE_EF(EF_MIPS_NOREORDER,   0x00000001,				\
+	"at least one .noreorder directive appeared in the source")	\
+_ELF_DEFINE_EF(EF_MIPS_PIC,         0x00000002,				\
+	"file contains position independent code")			\
+_ELF_DEFINE_EF(EF_MIPS_CPIC,        0x00000004,				\
+	"file's code uses standard conventions for calling PIC")	\
+_ELF_DEFINE_EF(EF_MIPS_UCODE,       0x00000010,				\
+	"file contains UCODE (obsolete)")				\
+_ELF_DEFINE_EF(EF_MIPS_ABI2,        0x00000020,				\
+	"file follows MIPS III 32-bit ABI")				\
+_ELF_DEFINE_EF(EF_MIPS_OPTIONS_FIRST, 0x00000080,			\
+	"ld(1) should process .MIPS.options section first")		\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE,    0x0f000000,				\
+	"file uses application-specific architectural extensions")	\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_MDMX, 0x08000000,			\
+	"file uses MDMX multimedia extensions")				\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_M16, 0x04000000,			\
+	"file uses MIPS-16 ISA extensions")				\
+_ELF_DEFINE_EF(EF_MIPS_ARCH,         0xf0000000,			\
+	"4-bit MIPS architecture field")				\
 _ELF_DEFINE_EF(EF_SPARC_EXT_MASK,   0xffff00, "Vendor Extension mask")	\
 _ELF_DEFINE_EF(EF_SPARC_32PLUS,     0x000100, "Generic V8+ features")	\
 _ELF_DEFINE_EF(EF_SPARC_SUN_US1,    0x000200,				\
@@ -644,6 +753,12 @@ _ELF_DEFINE_PT(PT_HIOS,             0x6FFFFFFFUL,		\
 	"end of OS-specific range")				\
 _ELF_DEFINE_PT(PT_LOPROC,           0x70000000UL,		\
 	"start of processor-specific range")			\
+_ELF_DEFINE_PT(PT_MIPS_REGINFO,     0x70000000UL,		\
+	"register usage information")				\
+_ELF_DEFINE_PT(PT_MIPS_RTPROC,      0x70000001UL,		\
+	"runtime procedure table")				\
+_ELF_DEFINE_PT(PT_MIPS_OPTIONS,     0x70000002UL,		\
+	"options segment")					\
 _ELF_DEFINE_PT(PT_HIPROC,           0x7FFFFFFFUL,		\
 	"end of processor-specific range")
 
@@ -680,6 +795,22 @@ _ELF_DEFINE_SHF(SHF_MASKOS,          0x0FF00000UL,			\
 	"bits reserved for OS-specific semantics")			\
 _ELF_DEFINE_SHF(SHF_AMD64_LARGE,     0x10000000UL,			\
 	"section uses large code model")				\
+_ELF_DEFINE_SHF(SHF_MIPS_GPREL,      0x10000000UL,			\
+	"section must be part of global data area")			\
+_ELF_DEFINE_SHF(SHF_MIPS_MERGE,      0x20000000UL,			\
+	"section data should be merged to eliminate duplication")	\
+_ELF_DEFINE_SHF(SHF_MIPS_ADDR,       0x40000000UL,			\
+	"section data is addressed by default")				\
+_ELF_DEFINE_SHF(SHF_MIPS_STRING,     0x80000000UL,			\
+	"section data is string data by default")			\
+_ELF_DEFINE_SHF(SHF_MIPS_NOSTRIP,    0x08000000UL,			\
+	"section data may not be stripped")				\
+_ELF_DEFINE_SHF(SHF_MIPS_LOCAL,      0x04000000UL,			\
+	"section data local to process")				\
+_ELF_DEFINE_SHF(SHF_MIPS_NAMES,      0x02000000UL,			\
+	"linker must generate implicit hidden weak names")		\
+_ELF_DEFINE_SHF(SHF_MIPS_NODUPE,     0x01000000UL,			\
+	"linker must retain only one copy")				\
 _ELF_DEFINE_SHF(SHF_ORDERED,         0x40000000UL,			\
 	"section is ordered with respect to other sections")		\
 _ELF_DEFINE_SHF(SHF_EXCLUDE,	     0x80000000UL,			\
@@ -702,6 +833,17 @@ _ELF_DEFINE_SHN(SHN_LOPROC, 	0xFF00U,				\
 _ELF_DEFINE_SHN(SHN_BEFORE,	0xFF00U, "used for section ordering")	\
 _ELF_DEFINE_SHN(SHN_AFTER,	0xFF01U, "used for section ordering")	\
 _ELF_DEFINE_SHN(SHN_AMD64_LCOMMON, 0xFF02U, "large common block label") \
+_ELF_DEFINE_SHN(SHN_MIPS_ACOMMON, 0xFF00U,				\
+	"allocated common symbols in a DSO")				\
+_ELF_DEFINE_SHN(SHN_MIPS_TEXT,	0xFF01U, "Reserved (obsolete)")		\
+_ELF_DEFINE_SHN(SHN_MIPS_DATA,	0xFF02U, "Reserved (obsolete)")		\
+_ELF_DEFINE_SHN(SHN_MIPS_SCOMMON, 0xFF03U,				\
+	"gp-addressable common symbols")				\
+_ELF_DEFINE_SHN(SHN_MIPS_SUNDEFINED, 0xFF04U,				\
+	"gp-addressable undefined symbols")				\
+_ELF_DEFINE_SHN(SHN_MIPS_LCOMMON, 0xFF05U, "local common symbols")	\
+_ELF_DEFINE_SHN(SHN_MIPS_LUNDEFINED, 0xFF06U,				\
+	"local undefined symbols")					\
 _ELF_DEFINE_SHN(SHN_HIPROC, 	0xFF1FU,				\
 	"end of processor-specific range")				\
 _ELF_DEFINE_SHN(SHN_LOOS, 	0xFF20U,				\
@@ -785,6 +927,62 @@ _ELF_DEFINE_SHT(SHT_HIOS,            0x6FFFFFFFUL,			\
 	"end of OS-specific range")					\
 _ELF_DEFINE_SHT(SHT_LOPROC,          0x70000000UL,			\
 	"start of processor-specific range")				\
+_ELF_DEFINE_SHT(SHT_MIPS_LIBLIST,    0x70000000UL,			\
+	"DSO library information used in link")				\
+_ELF_DEFINE_SHT(SHT_MIPS_MSYM,       0x70000001UL,			\
+	"MIPS symbol table extension")					\
+_ELF_DEFINE_SHT(SHT_MIPS_CONFLICT,   0x70000002UL,			\
+	"symbol conflicting with DSO-defined symbols ")			\
+_ELF_DEFINE_SHT(SHT_MIPS_GPTAB,      0x70000003UL,			\
+	"global pointer table")						\
+_ELF_DEFINE_SHT(SHT_MIPS_UCODE,      0x70000004UL,			\
+	"reserved")							\
+_ELF_DEFINE_SHT(SHT_MIPS_DEBUG,      0x70000005UL,			\
+	"reserved (obsolete debug information)")			\
+_ELF_DEFINE_SHT(SHT_MIPS_REGINFO,    0x70000006UL,			\
+	"register usage information")					\
+_ELF_DEFINE_SHT(SHT_MIPS_PACKAGE,    0x70000007UL,			\
+	"OSF reserved")							\
+_ELF_DEFINE_SHT(SHT_MIPS_PACKSYM,    0x70000008UL,			\
+	"OSF reserved")							\
+_ELF_DEFINE_SHT(SHT_MIPS_RELD,       0x70000009UL,			\
+	"dynamic relocation")						\
+_ELF_DEFINE_SHT(SHT_MIPS_IFACE,      0x7000000BUL,			\
+	"subprogram interface information")				\
+_ELF_DEFINE_SHT(SHT_MIPS_CONTENT,    0x7000000CUL,			\
+	"section content classification")				\
+_ELF_DEFINE_SHT(SHT_MIPS_OPTIONS,     0x7000000DUL,			\
+	"general options")						\
+_ELF_DEFINE_SHT(SHT_MIPS_DELTASYM,   0x7000001BUL,			\
+	"Delta C++: symbol table")					\
+_ELF_DEFINE_SHT(SHT_MIPS_DELTAINST,  0x7000001CUL,			\
+	"Delta C++: instance table")					\
+_ELF_DEFINE_SHT(SHT_MIPS_DELTACLASS, 0x7000001DUL,			\
+	"Delta C++: class table")					\
+_ELF_DEFINE_SHT(SHT_MIPS_DWARF,      0x7000001EUL,			\
+	"DWARF debug information")					\
+_ELF_DEFINE_SHT(SHT_MIPS_DELTADECL,  0x7000001FUL,			\
+	"Delta C++: declarations")					\
+_ELF_DEFINE_SHT(SHT_MIPS_SYMBOL_LIB, 0x70000020UL,			\
+	"symbol-to-library mapping")					\
+_ELF_DEFINE_SHT(SHT_MIPS_EVENTS,     0x70000021UL,			\
+	"event locations")						\
+_ELF_DEFINE_SHT(SHT_MIPS_TRANSLATE,  0x70000022UL,			\
+	"???")								\
+_ELF_DEFINE_SHT(SHT_MIPS_PIXIE,      0x70000023UL,			\
+	"special pixie sections")					\
+_ELF_DEFINE_SHT(SHT_MIPS_XLATE,      0x70000024UL,			\
+	"address translation table")					\
+_ELF_DEFINE_SHT(SHT_MIPS_XLATE_DEBUG, 0x70000025UL,			\
+	"SGI internal address translation table")			\
+_ELF_DEFINE_SHT(SHT_MIPS_WHIRL,      0x70000026UL,			\
+	"intermediate code")						\
+_ELF_DEFINE_SHT(SHT_MIPS_EH_REGION,  0x70000027UL,			\
+	"C++ exception handling region info")				\
+_ELF_DEFINE_SHT(SHT_MIPS_XLATE_OLD,  0x70000028UL,			\
+	"obsolete")							\
+_ELF_DEFINE_SHT(SHT_MIPS_PDR_EXCEPTION, 0x70000029UL,			\
+	"runtime procedure descriptor table exception information")	\
 _ELF_DEFINE_SHT(SHT_SPARC_GOTDATA,   0x70000000UL,			\
 	"SPARC-specific data")						\
 _ELF_DEFINE_SHT(SHT_AMD64_UNWIND,    0x70000001UL,			\
@@ -1394,6 +1592,20 @@ typedef struct {
 } Elf64_Cap;
 
 /*
+ * MIPS .conflict section entries.
+ */
+
+/* 32-bit entry. */
+typedef struct {
+	Elf32_Addr	c_index;
+} Elf32_Conflict;
+
+/* 64-bit entry. */
+typedef struct {
+	Elf64_Addr	c_index;
+} Elf64_Conflict;
+
+/*
  * Dynamic section entries.
  */
 
@@ -1544,6 +1756,143 @@ typedef	struct {
 
 typedef Elf_Note Elf32_Nhdr;	     /* 32-bit note header. */
 typedef Elf_Note Elf64_Nhdr;	     /* 64-bit note header. */
+
+/*
+ * MIPS ELF options descriptor header.
+ */
+
+typedef struct {
+	Elf64_Byte	kind;        /* Type of options. */
+	Elf64_Byte     	size;	     /* Size of option descriptor. */
+	Elf64_Half	section;     /* Index of section affected. */
+	Elf64_Word	info;        /* Kind-specific information. */
+} Elf_Options;
+
+/*
+ * Option kinds.
+ */
+
+#define	_ELF_DEFINE_OPTION_KINDS()					\
+_ELF_DEFINE_ODK(ODK_NULL,       0,      "undefined")			\
+_ELF_DEFINE_ODK(ODK_REGINFO,    1,      "register usage info")		\
+_ELF_DEFINE_ODK(ODK_EXCEPTIONS, 2,      "exception processing info")	\
+_ELF_DEFINE_ODK(ODK_PAD,        3,      "section padding")		\
+_ELF_DEFINE_ODK(ODK_HWPATCH,    4,      "hardware patch applied")	\
+_ELF_DEFINE_ODK(ODK_FILL,       5,      "fill value used by linker")	\
+_ELF_DEFINE_ODK(ODK_TAGS,       6,      "reserved space for tools")	\
+_ELF_DEFINE_ODK(ODK_HWAND,      7,      "hardware AND patch applied")	\
+_ELF_DEFINE_ODK(ODK_HWOR,       8,      "hardware OR patch applied")	\
+_ELF_DEFINE_ODK(ODK_GP_GROUP,   9,					\
+	"GP group to use for text/data sections")			\
+_ELF_DEFINE_ODK(ODK_IDENT,      10,     "ID information")		\
+_ELF_DEFINE_ODK(ODK_PAGESIZE,   11,     "page size infomation")
+
+#undef	_ELF_DEFINE_ODK
+#define	_ELF_DEFINE_ODK(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_OPTION_KINDS() };
+
+/*
+ * ODK_EXCEPTIONS info field masks.
+ */
+
+#define	_ELF_DEFINE_ODK_EXCEPTIONS_MASK()				\
+_ELF_DEFINE_OEX(OEX_FPU_MIN,    0x0000001FUL,				\
+	"minimum FPU exception which must be enabled")			\
+_ELF_DEFINE_OEX(OEX_FPU_MAX,    0x00001F00UL,				\
+	"maximum FPU exception which can be enabled")			\
+_ELF_DEFINE_OEX(OEX_PAGE0,      0x00010000UL,				\
+	"page zero must be mapped")					\
+_ELF_DEFINE_OEX(OEX_SMM,        0x00020000UL,				\
+	"run in sequential memory mode")				\
+_ELF_DEFINE_OEX(OEX_PRECISEFP,  0x00040000UL,				\
+	"run in precise FP exception mode")				\
+_ELF_DEFINE_OEX(OEX_DISMISS,    0x00080000UL,				\
+	"dismiss invalid address traps")
+
+#undef	_ELF_DEFINE_OEX
+#define	_ELF_DEFINE_OEX(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_ODK_EXCEPTIONS_MASK() };
+
+/*
+ * ODK_PAD info field masks.
+ */
+
+#define	_ELF_DEFINE_ODK_PAD_MASK()					\
+_ELF_DEFINE_OPAD(OPAD_PREFIX,   0x0001)					\
+_ELF_DEFINE_OPAD(OPAD_POSTFIX,  0x0002)					\
+_ELF_DEFINE_OPAD(OPAD_SYMBOL,   0x0004)
+
+#undef	_ELF_DEFINE_OPAD
+#define	_ELF_DEFINE_OPAD(N, V)		N = V ,
+enum { _ELF_DEFINE_ODK_PAD_MASK() };
+
+/*
+ * ODK_HWPATCH info field masks.
+ */
+
+#define	_ELF_DEFINE_ODK_HWPATCH_MASK()					\
+_ELF_DEFINE_OHW(OHW_R4KEOP,     0x00000001UL,				\
+	"patch for R4000 branch at end-of-page bug")			\
+_ELF_DEFINE_OHW(OHW_R8KPFETCH,  0x00000002UL,				\
+	"R8000 prefetch bug may occur")					\
+_ELF_DEFINE_OHW(OHW_R5KEOP,     0x00000004UL,				\
+	"patch for R5000 branch at end-of-page bug")			\
+_ELF_DEFINE_OHW(OHW_R5KCVTL,    0x00000008UL,				\
+	"R5000 cvt.[ds].l bug: clean == 1")				\
+_ELF_DEFINE_OHW(OHW_R10KLDL,    0x00000010UL,				\
+	"needd patch for R10000 misaligned load")
+
+#undef	_ELF_DEFINE_OHW
+#define	_ELF_DEFINE_OHW(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_ODK_HWPATCH_MASK() };
+
+/*
+ * ODK_HWAND/ODK_HWOR info field and hwp_flags[12] masks.
+ */
+
+#define	_ELF_DEFINE_ODK_HWP_MASK()					\
+_ELF_DEFINE_HWP(OHWA0_R4KEOP_CHECKED, 0x00000001UL,			\
+	"object checked for R4000 end-of-page bug")			\
+_ELF_DEFINE_HWP(OHWA0_R4KEOP_CLEAN, 0x00000002UL,			\
+	"object verified clean for R4000 end-of-page bug")		\
+_ELF_DEFINE_HWP(OHWO0_FIXADE,   0x00000001UL,				\
+	"object requires call to fixade")
+
+#undef	_ELF_DEFINE_HWP
+#define	_ELF_DEFINE_HWP(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_ODK_HWP_MASK() };
+
+/*
+ * ODK_IDENT/ODK_GP_GROUP info field masks.
+ */
+
+#define	_ELF_DEFINE_ODK_GP_MASK()					\
+_ELF_DEFINE_OGP(OGP_GROUP,      0x0000FFFFUL, "GP group number")	\
+_ELF_DEFINE_OGP(OGP_SELF,       0x00010000UL,				\
+	"GP group is self-contained")
+
+#undef	_ELF_DEFINE_OGP
+#define	_ELF_DEFINE_OGP(N, V, DESCR)	N = V ,
+enum { _ELF_DEFINE_ODK_GP_MASK() };
+
+/*
+ * MIPS ELF register info descriptor.
+ */
+
+/* 32 bit RegInfo entry. */
+typedef struct {
+	Elf32_Word	ri_gprmask;  /* Mask of general register used. */
+	Elf32_Word	ri_cprmask[4]; /* Mask of coprocessor register used. */
+	Elf32_Addr	ri_gp_value; /* GP register value. */
+} Elf32_RegInfo;
+
+/* 64 bit RegInfo entry. */
+typedef struct {
+	Elf64_Word	ri_gprmask;  /* Mask of general register used. */
+	Elf64_Word	ri_pad;	     /* Padding. */
+	Elf64_Word	ri_cprmask[4]; /* Mask of coprocessor register used. */
+	Elf64_Addr	ri_gp_value; /* GP register value. */
+} Elf64_RegInfo;
 
 /*
  * Program Header Table (PHDR) entries.
