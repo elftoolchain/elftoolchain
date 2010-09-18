@@ -1351,15 +1351,19 @@ enum { _ELF_DEFINE_RELOCATIONS() };
  **/
 
 typedef uint32_t	Elf32_Addr;	/* Program address. */
+typedef uint8_t	Elf32_Byte;	/* Unsigned tiny integer. */
 typedef uint16_t	Elf32_Half;	/* Unsigned medium integer. */
 typedef uint32_t	Elf32_Off;	/* File offset. */
+typedef uint16_t	Elf32_Section;	/* Section index. */
 typedef int32_t		Elf32_Sword;	/* Signed integer. */
 typedef uint32_t	Elf32_Word;	/* Unsigned integer. */
 typedef uint64_t	Elf32_Lword;	/* Unsigned long integer. */
 
 typedef uint64_t	Elf64_Addr;	/* Program address. */
+typedef uint8_t	Elf64_Byte;	/* Unsigned tiny integer. */
 typedef uint16_t	Elf64_Half;	/* Unsigned medium integer. */
 typedef uint64_t	Elf64_Off;	/* File offset. */
+typedef uint16_t	Elf64_Section;	/* Section index. */
 typedef int32_t		Elf64_Sword;	/* Signed integer. */
 typedef uint32_t	Elf64_Word;	/* Unsigned integer. */
 typedef uint64_t	Elf64_Lword;	/* Unsigned long integer. */
