@@ -227,12 +227,19 @@ static const char *elf_machine(unsigned int mach);
 static const char *elf_osabi(unsigned int abi);
 static const char *elf_type(unsigned int type);
 static const char *elf_ver(unsigned int ver);
-static const char *dt_type(unsigned int dtype);
+static const char *dt_type(unsigned int mach, unsigned int dtype);
 static void dump_ar(struct readelf *re, int);
+static void dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
+static void dump_attributes(struct readelf *re);
+static uint8_t *dump_compatibility_tag(uint8_t *p);
 static void dump_dwarf(struct readelf *re);
 static void dump_elf(struct readelf *re);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void dump_dynamic(struct readelf *re);
+static void dump_liblist(struct readelf *re);
+static void dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
+static void dump_mips_options(struct readelf *re, struct section *s);
+static void dump_mips_specific_info(struct readelf *re);
 static void dump_notes(struct readelf *re);
 static void dump_notes_content(struct readelf *re, const char *buf, size_t sz,
     off_t off);
@@ -241,8 +248,10 @@ static void dump_svr4_hash64(struct readelf *re, struct section *s);
 static void dump_gnu_hash(struct readelf *re, struct section *s);
 static void dump_hash(struct readelf *re);
 static void dump_phdr(struct readelf *re);
+static void dump_ppc_attributes(uint8_t *p, uint8_t *pe);
 static void dump_symtab(struct readelf *re, int i);
 static void dump_symtabs(struct readelf *re);
+static uint8_t *dump_unknown_tag(uint64_t tag, uint8_t *p);
 static void dump_ver(struct readelf *re);
 static void dump_verdef(struct readelf *re, int dump);
 static void dump_verneed(struct readelf *re, int dump);
@@ -255,6 +264,7 @@ static void load_sections(struct readelf *re);
 static const char *mips_abi_fp(uint64_t fp);
 static const char *note_type(unsigned int osabi, unsigned int et,
     unsigned int nt);
+static const char *option_kind(uint8_t kind);
 static const char *phdr_type(unsigned int ptype);
 static const char *ppc_abi_fp(uint64_t fp);
 static const char *ppc_abi_vector(uint64_t vec);
@@ -263,7 +273,7 @@ static void readelf_help(void);
 static void readelf_usage(void);
 static void readelf_version(void);
 static void search_ver(struct readelf *re);
-static const char *section_type(unsigned int stype);
+static const char *section_type(unsigned int mach, unsigned int stype);
 static const char *st_bind(unsigned int sbind);
 static const char *st_shndx(unsigned int shndx);
 static const char *st_type(unsigned int stype);
@@ -508,9 +518,62 @@ phdr_type(unsigned int ptype)
 }
 
 static const char *
-section_type(unsigned int stype)
+section_type(unsigned int mach, unsigned int stype)
 {
 	static char s_stype[32];
+
+	if (stype >= SHT_LOPROC && stype <= SHT_HIPROC) {
+		switch (mach) {
+		case EM_X86_64:
+			switch (stype) {
+			case SHT_AMD64_UNWIND: return "AMD64_UNWIND";
+			default:
+				break;
+			}
+			break;
+		case EM_MIPS:
+		case EM_MIPS_RS3_LE:
+			switch (stype) {
+			case SHT_MIPS_LIBLIST: return "MIPS_LIBLIST";
+			case SHT_MIPS_MSYM: return "MIPS_MSYM";
+			case SHT_MIPS_CONFLICT: return "MIPS_CONFLICT";
+			case SHT_MIPS_GPTAB: return "MIPS_GPTAB";
+			case SHT_MIPS_UCODE: return "MIPS_UCODE";
+			case SHT_MIPS_DEBUG: return "MIPS_DEBUG";
+			case SHT_MIPS_REGINFO: return "MIPS_REGINFO";
+			case SHT_MIPS_PACKAGE: return "MIPS_PACKAGE";
+			case SHT_MIPS_PACKSYM: return "MIPS_PACKSYM";
+			case SHT_MIPS_RELD: return "MIPS_RELD";
+			case SHT_MIPS_IFACE: return "MIPS_IFACE";
+			case SHT_MIPS_CONTENT: return "MIPS_CONTENT";
+			case SHT_MIPS_OPTIONS: return "MIPS_OPTIONS";
+			case SHT_MIPS_DELTASYM: return "MIPS_DELTASYM";
+			case SHT_MIPS_DELTAINST: return "MIPS_DELTAINST";
+			case SHT_MIPS_DELTACLASS: return "MIPS_DELTACLASS";
+			case SHT_MIPS_DWARF: return "MIPS_DWARF";
+			case SHT_MIPS_DELTADECL: return "MIPS_DELTADECL";
+			case SHT_MIPS_SYMBOL_LIB: return "MIPS_SYMBOL_LIB";
+			case SHT_MIPS_EVENTS: return "MIPS_EVENTS";
+			case SHT_MIPS_TRANSLATE: return "MIPS_TRANSLATE";
+			case SHT_MIPS_PIXIE: return "MIPS_PIXIE";
+			case SHT_MIPS_XLATE: return "MIPS_XLATE";
+			case SHT_MIPS_XLATE_DEBUG: return "MIPS_XLATE_DEBUG";
+			case SHT_MIPS_WHIRL: return "MIPS_WHIRL";
+			case SHT_MIPS_EH_REGION: return "MIPS_EH_REGION";
+			case SHT_MIPS_XLATE_OLD: return "MIPS_XLATE_OLD";
+			case SHT_MIPS_PDR_EXCEPTION: return "MIPS_PDR_EXCEPTION";
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+
+		snprintf(s_stype, sizeof(s_stype), "LOPROC+%#x",
+		    stype - SHT_LOPROC);
+		return (s_stype);
+	}
 
 	switch (stype) {
 	case SHT_NULL: return "NULL";
@@ -542,14 +605,10 @@ section_type(unsigned int stype)
 	case SHT_SUNW_verdef: return "SUNW_verdef";
 	case SHT_SUNW_verneed: return "SUNW_verneed";
 	case SHT_SUNW_versym: return "SUNW_versym";
-	case SHT_AMD64_UNWIND: return "AMD64_UNWIND";
 	default:
 		if (stype >= SHT_LOOS && stype <= SHT_HIOS)
 			snprintf(s_stype, sizeof(s_stype), "LOOS+%#x",
 			    stype - SHT_LOOS);
-		else if (stype >= SHT_LOPROC && stype <= SHT_HIPROC)
-			snprintf(s_stype, sizeof(s_stype), "LOPROC+%#x",
-			    stype - SHT_LOPROC);
 		else if (stype >= SHT_LOUSER)
 			snprintf(s_stype, sizeof(s_stype), "LOUSER+%#x",
 			    stype - SHT_LOUSER);
@@ -561,9 +620,133 @@ section_type(unsigned int stype)
 }
 
 static const char *
-dt_type(unsigned int dtype)
+dt_type(unsigned int mach, unsigned int dtype)
 {
 	static char s_dtype[32];
+
+	if (dtype >= DT_LOPROC && dtype <= DT_HIPROC) {
+		switch (mach) {
+		case EM_ARM:
+			switch (dtype) {
+			case DT_ARM_SYMTABSZ:
+				return "ARM_SYMTABSZ";
+			default:
+				break;
+			}
+			break;
+		case EM_MIPS:
+		case EM_MIPS_RS3_LE:
+			switch (dtype) {
+			case DT_MIPS_RLD_VERSION:
+				return "MIPS_RLD_VERSION";
+			case DT_MIPS_TIME_STAMP:
+				return "MIPS_TIME_STAMP";
+			case DT_MIPS_ICHECKSUM:
+				return "MIPS_ICHECKSUM";
+			case DT_MIPS_IVERSION:
+				return "MIPS_IVERSION";
+			case DT_MIPS_FLAGS:
+				return "MIPS_FLAGS";
+			case DT_MIPS_BASE_ADDRESS:
+				return "MIPS_BASE_ADDRESS";
+			case DT_MIPS_CONFLICT:
+				return "MIPS_CONFLICT";
+			case DT_MIPS_LIBLIST:
+				return "MIPS_LIBLIST";
+			case DT_MIPS_LOCAL_GOTNO:
+				return "MIPS_LOCAL_GOTNO";
+			case DT_MIPS_CONFLICTNO:
+				return "MIPS_CONFLICTNO";
+			case DT_MIPS_LIBLISTNO:
+				return "MIPS_LIBLISTNO";
+			case DT_MIPS_SYMTABNO:
+				return "MIPS_SYMTABNO";
+			case DT_MIPS_UNREFEXTNO:
+				return "MIPS_UNREFEXTNO";
+			case DT_MIPS_GOTSYM:
+				return "MIPS_GOTSYM";
+			case DT_MIPS_HIPAGENO:
+				return "MIPS_HIPAGENO";
+			case DT_MIPS_RLD_MAP:
+				return "MIPS_RLD_MAP";
+			case DT_MIPS_DELTA_CLASS:
+				return "MIPS_DELTA_CLASS";
+			case DT_MIPS_DELTA_CLASS_NO:
+				return "MIPS_DELTA_CLASS_NO";
+			case DT_MIPS_DELTA_INSTANCE:
+				return "MIPS_DELTA_INSTANCE";
+			case DT_MIPS_DELTA_INSTANCE_NO:
+				return "MIPS_DELTA_INSTANCE_NO";
+			case DT_MIPS_DELTA_RELOC:
+				return "MIPS_DELTA_RELOC";
+			case DT_MIPS_DELTA_RELOC_NO:
+				return "MIPS_DELTA_RELOC_NO";
+			case DT_MIPS_DELTA_SYM:
+				return "MIPS_DELTA_SYM";
+			case DT_MIPS_DELTA_SYM_NO:
+				return "MIPS_DELTA_SYM_NO";
+			case DT_MIPS_DELTA_CLASSSYM:
+				return "MIPS_DELTA_CLASSSYM";
+			case DT_MIPS_DELTA_CLASSSYM_NO:
+				return "MIPS_DELTA_CLASSSYM_NO";
+			case DT_MIPS_CXX_FLAGS:
+				return "MIPS_CXX_FLAGS";
+			case DT_MIPS_PIXIE_INIT:
+				return "MIPS_PIXIE_INIT";
+			case DT_MIPS_SYMBOL_LIB:
+				return "MIPS_SYMBOL_LIB";
+			case DT_MIPS_LOCALPAGE_GOTIDX:
+				return "MIPS_LOCALPAGE_GOTIDX";
+			case DT_MIPS_LOCAL_GOTIDX:
+				return "MIPS_LOCAL_GOTIDX";
+			case DT_MIPS_HIDDEN_GOTIDX:
+				return "MIPS_HIDDEN_GOTIDX";
+			case DT_MIPS_PROTECTED_GOTIDX:
+				return "MIPS_PROTECTED_GOTIDX";
+			case DT_MIPS_OPTIONS:
+				return "MIPS_OPTIONS";
+			case DT_MIPS_INTERFACE:
+				return "MIPS_INTERFACE";
+			case DT_MIPS_DYNSTR_ALIGN:
+				return "MIPS_DYNSTR_ALIGN";
+			case DT_MIPS_INTERFACE_SIZE:
+				return "MIPS_INTERFACE_SIZE";
+			case DT_MIPS_RLD_TEXT_RESOLVE_ADDR:
+				return "MIPS_RLD_TEXT_RESOLVE_ADDR";
+			case DT_MIPS_PERF_SUFFIX:
+				return "MIPS_PERF_SUFFIX";
+			case DT_MIPS_COMPACT_SIZE:
+				return "MIPS_COMPACT_SIZE";
+			case DT_MIPS_GP_VALUE:
+				return "MIPS_GP_VALUE";
+			case DT_MIPS_AUX_DYNAMIC:
+				return "MIPS_AUX_DYNAMIC";
+			case DT_MIPS_PLTGOT:
+				return "MIPS_PLTGOT";
+			case DT_MIPS_RLD_OBJ_UPDATE:
+				return "MIPS_RLD_OBJ_UPDATE";
+			case DT_MIPS_RWPLT:
+				return "MIPS_RWPLT";
+			default:
+				break;
+			}
+			break;
+		case EM_SPARC:
+		case EM_SPARC32PLUS:
+		case EM_SPARCV9:
+			switch (dtype) {
+			case DT_SPARC_REGISTER:
+				return "DT_SPARC_REGISTER";
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+		snprintf(s_dtype, sizeof(s_dtype), "<unknown: %#x>", dtype);
+		return (s_dtype);
+	}
 
 	switch (dtype) {
 	case DT_NULL: return "NULL";
@@ -629,7 +812,6 @@ dt_type(unsigned int dtype)
 	case DT_VERDEFNUM: return "VERDEFNUM";
 	case DT_VERNEED: return "VERNEED";
 	case DT_VERNEEDNUM: return "VERNEEDNUM";
-	case DT_DEPRECATED_SPARC_REGISTER: return "DEPRECATED_SPARC_REGISTER";
 	case DT_AUXILIARY: return "AUXILIARY";
 	case DT_USED: return "USED";
 	case DT_FILTER: return "FILTER";
@@ -1176,6 +1358,29 @@ static struct {
 	{"DELTA", LL_DELTA},
 	{NULL, 0}
 };
+
+static const char *
+option_kind(uint8_t kind)
+{
+	static char s_kind[32];
+
+	switch (kind) {
+	case ODK_NULL: return "ODK_NULL";
+	case ODK_REGINFO: return "ODK_REGINFO";
+	case ODK_EXCEPTIONS: return "ODK_EXCEPTIONS";
+	case ODK_PAD: return "ODK_PAD";
+	case ODK_HWPATCH: return "ODK_HWPATCH";
+	case ODK_FILL: return "ODK_FILL";
+	case ODK_TAGS: return "ODK_TAGS";
+	case ODK_HWAND: return "ODK_HWAND";
+	case ODK_HWOR: return "ODK_HWOR";
+	case ODK_GP_GROUP: return "ODK_GP_GROUP";
+	case ODK_IDENT: return "ODK_IDENT";
+	default:
+		snprintf(s_kind, sizeof(s_kind), "<unknown: %u>", kind);
+		return (s_kind);
+	}
+}
 
 static const char *
 top_tag(unsigned int tag)
@@ -2078,18 +2283,18 @@ dump_shdr(struct readelf *re)
 		"Lk", "Inf", "Al", "Flags"
 #define	ST_HDRL	"[Nr] Name", "Type", "Address", "Offset", "Link",	\
 		"Size", "EntSize", "Info", "Align", "Flags"
-#define	S_CT	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
-		(uintmax_t)s->off, (uintmax_t)s->sz,			\
+#define	S_CT	i, s->name, section_type(re->ehdr.e_machine, s->type),	\
+		(uintmax_t)s->addr, (uintmax_t)s->off, (uintmax_t)s->sz,\
 		(uintmax_t)s->entsize, section_flags(re, s),		\
 		s->link, s->info, (uintmax_t)s->align
-#define	ST_CT	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
-		(uintmax_t)s->off, (uintmax_t)s->sz,			\
+#define	ST_CT	i, s->name, section_type(re->ehdr.e_machine, s->type),  \
+		(uintmax_t)s->addr, (uintmax_t)s->off, (uintmax_t)s->sz,\
 		(uintmax_t)s->entsize, s->link, s->info,		\
 		(uintmax_t)s->align, section_flags(re, s)
-#define	ST_CTL	i, s->name, section_type(s->type), (uintmax_t)s->addr,	\
-		(uintmax_t)s->off, s->link, (uintmax_t)s->sz,		\
-		(uintmax_t)s->entsize, s->info, (uintmax_t)s->align,	\
-		section_flags(re, s)
+#define	ST_CTL	i, s->name, section_type(re->ehdr.e_machine, s->type),  \
+		(uintmax_t)s->addr, (uintmax_t)s->off, s->link,		\
+		(uintmax_t)s->sz, (uintmax_t)s->entsize, s->info,	\
+		(uintmax_t)s->align, section_flags(re, s)
 
 	if (re->shnum == 0) {
 		printf("\nThere are no sections in this file.\n");
@@ -2204,7 +2409,8 @@ dump_dynamic(struct readelf *re)
 				printf(" 0x%8.8jx", (uintmax_t)dyn.d_tag);
 			else
 				printf(" 0x%16.16jx", (uintmax_t)dyn.d_tag);
-			printf(" %-20s", dt_type(dyn.d_tag));
+			printf(" %-20s", dt_type(re->ehdr.e_machine,
+			    dyn.d_tag));
 			/* Dump dynamic entry value. */
 			dump_dyn_val(re, &dyn, s->link);
 		}
@@ -2285,7 +2491,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		printf(" Library runpath: [%s]\n", name);
 		break;
 	case DT_PLTREL:
-		printf(" %s\n", dt_type(dyn->d_un.d_val));
+		printf(" %s\n", dt_type(re->ehdr.e_machine, dyn->d_un.d_val));
 		break;
 	case DT_GNU_PRELINKED:
 		ti = dyn->d_un.d_val;
@@ -3375,7 +3581,8 @@ dump_attributes(struct readelf *re)
 				if (re->ehdr.e_machine == EM_ARM &&
 				    s->type == SHT_LOPROC + 3)
 					dump_arm_attributes(re, p, sp + sublen);
-				else if (re->ehdr.e_machine == EM_MIPS)
+				else if (re->ehdr.e_machine == EM_MIPS ||
+				    re->ehdr.e_machine == EM_MIPS_RS3_LE)
 					dump_mips_attributes(re, p,
 					    sp + sublen);
 				else if (re->ehdr.e_machine == EM_PPC)
@@ -3383,6 +3590,69 @@ dump_attributes(struct readelf *re)
 				p = sp + sublen;
 			}
 		}
+	}
+}
+
+static void
+dump_mips_specific_info(struct readelf *re)
+{
+	struct section *s;
+	int i;
+
+	s = NULL;
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && (!strcmp(s->name, ".MIPS.options") ||
+		    (s->type == SHT_MIPS_OPTIONS)))
+			dump_mips_options(re, s);
+	}
+}
+
+static void
+dump_mips_options(struct readelf *re, struct section *s)
+{
+	Elf_Data *d;
+	uint32_t info;
+	uint16_t sndx;
+	uint8_t *p, *pe;
+	uint8_t kind, size;
+	int elferr;
+
+	(void) elf_errno();
+	if ((d = elf_rawdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_rawdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
+
+	p = d->d_buf;
+	pe = p + d->d_size;
+	while (p < pe) {
+		kind = re->dw_decode(&p, 1);
+		size = re->dw_decode(&p, 1);
+		sndx = re->dw_decode(&p, 2);
+		info = re->dw_decode(&p, 4);
+		printf("%s\n", option_kind(kind));
+		printf("size=%u\n", size);
+		p += size - 8;
+	}
+}
+
+static void
+dump_arch_specific_info(struct readelf *re)
+{
+
+	dump_liblist(re);
+	dump_attributes(re);
+
+	switch (re->ehdr.e_machine) {
+	case EM_MIPS:
+	case EM_MIPS_RS3_LE:
+		dump_mips_specific_info(re);
+	default:
+		break;
 	}
 }
 
@@ -5423,9 +5693,7 @@ dump_elf(struct readelf *re)
 	if (re->options & RE_VV)
 		dump_ver(re);
 	if (re->options & RE_AA)
-		dump_liblist(re);
-	if (re->options & RE_AA)
-		dump_attributes(re);
+		dump_arch_specific_info(re);
 	if (re->options & RE_W)
 		dump_dwarf(re);
 }
