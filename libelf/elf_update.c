@@ -117,7 +117,14 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t *rc)
 	if (sh_type == SHT_NULL || sh_type == SHT_NOBITS)
 		return (1);
 
-	if ((s->s_flags & ELF_F_DIRTY) == 0) {
+	/*
+	 * Use the data in the section header entry
+	 * - for sections that are not marked as 'dirty', and,
+	 * - for sections in ELF objects opened in in read/write mode
+	 *   for which data descriptors have not been retrieved.
+	 */
+	if ((s->s_flags & ELF_F_DIRTY) == 0 ||
+	    ((e->e_cmd == ELF_C_RDWR) && STAILQ_EMPTY(&s->s_data))) {
 		if ((size_t) *rc < sh_offset + sh_size)
 			*rc = sh_offset + sh_size;
 		return (1);
