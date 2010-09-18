@@ -325,37 +325,43 @@ enum { _ELF_DEFINE_DYN_TYPES() };
  * Flags used in the executable header (field: e_flags).
  */
 #define	_ELF_DEFINE_EHDR_FLAGS()					\
-_ELF_DEFINE_EF(EF_MIPS_NOREORDER,   0x00000001,				\
+_ELF_DEFINE_EF(EF_MIPS_NOREORDER,   0x00000001UL,			\
 	"at least one .noreorder directive appeared in the source")	\
-_ELF_DEFINE_EF(EF_MIPS_PIC,         0x00000002,				\
+_ELF_DEFINE_EF(EF_MIPS_PIC,         0x00000002UL,			\
 	"file contains position independent code")			\
-_ELF_DEFINE_EF(EF_MIPS_CPIC,        0x00000004,				\
+_ELF_DEFINE_EF(EF_MIPS_CPIC,        0x00000004UL,			\
 	"file's code uses standard conventions for calling PIC")	\
-_ELF_DEFINE_EF(EF_MIPS_UCODE,       0x00000010,				\
+_ELF_DEFINE_EF(EF_MIPS_UCODE,       0x00000010UL,			\
 	"file contains UCODE (obsolete)")				\
-_ELF_DEFINE_EF(EF_MIPS_ABI2,        0x00000020,				\
+_ELF_DEFINE_EF(EF_MIPS_ABI2,        0x00000020UL,			\
 	"file follows MIPS III 32-bit ABI")				\
-_ELF_DEFINE_EF(EF_MIPS_OPTIONS_FIRST, 0x00000080,			\
+_ELF_DEFINE_EF(EF_MIPS_OPTIONS_FIRST, 0x00000080UL,			\
 	"ld(1) should process .MIPS.options section first")		\
-_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE,    0x0f000000,				\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE,    0x0F000000UL,			\
 	"file uses application-specific architectural extensions")	\
-_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_MDMX, 0x08000000,			\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_MDMX, 0x08000000UL,			\
 	"file uses MDMX multimedia extensions")				\
-_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_M16, 0x04000000,			\
+_ELF_DEFINE_EF(EF_MIPS_ARCH_ASE_M16, 0x04000000UL,			\
 	"file uses MIPS-16 ISA extensions")				\
-_ELF_DEFINE_EF(EF_MIPS_ARCH,         0xf0000000,			\
+_ELF_DEFINE_EF(EF_MIPS_ARCH,         0xF0000000UL,			\
 	"4-bit MIPS architecture field")				\
-_ELF_DEFINE_EF(EF_SPARC_EXT_MASK,   0xffff00, "Vendor Extension mask")	\
-_ELF_DEFINE_EF(EF_SPARC_32PLUS,     0x000100, "Generic V8+ features")	\
-_ELF_DEFINE_EF(EF_SPARC_SUN_US1,    0x000200,				\
+_ELF_DEFINE_EF(EF_SPARC_EXT_MASK,   0x00ffff00UL,			\
+	"Vendor Extension mask")					\
+_ELF_DEFINE_EF(EF_SPARC_32PLUS,     0x00000100UL,			\
+	"Generic V8+ features")						\
+_ELF_DEFINE_EF(EF_SPARC_SUN_US1,    0x00000200UL,			\
 	"Sun UltraSPARCTM 1 Extensions")				\
-_ELF_DEFINE_EF(EF_SPARC_HAL_R1,     0x000400, "HAL R1 Extensions")	\
-_ELF_DEFINE_EF(EF_SPARC_SUN_US3,    0x000800,				\
+_ELF_DEFINE_EF(EF_SPARC_HAL_R1,     0x00000400UL, "HAL R1 Extensions")	\
+_ELF_DEFINE_EF(EF_SPARC_SUN_US3,    0x00000800UL,			\
 	"Sun UltraSPARC 3 Extensions")					\
-_ELF_DEFINE_EF(EF_SPARCV9_MM,       0x3, "Mask for Memory Model")	\
-_ELF_DEFINE_EF(EF_SPARCV9_TSO,      0x0, "Total Store Ordering")	\
-_ELF_DEFINE_EF(EF_SPARCV9_PSO,      0x1, "Partial Store Ordering")	\
-_ELF_DEFINE_EF(EF_SPARCV9_RMO,      0x2, "Relaxed Memory Ordering")
+_ELF_DEFINE_EF(EF_SPARCV9_MM,       0x00000003UL,			\
+	"Mask for Memory Model")					\
+_ELF_DEFINE_EF(EF_SPARCV9_TSO,      0x00000000UL,			\
+	"Total Store Ordering")						\
+_ELF_DEFINE_EF(EF_SPARCV9_PSO,      0x00000001UL,			\
+	"Partial Store Ordering")					\
+_ELF_DEFINE_EF(EF_SPARCV9_RMO,      0x00000002UL,			\
+	"Relaxed Memory Ordering")
 
 /*
  * Offsets in the `ei_ident[]` field of an ELF executable header.
