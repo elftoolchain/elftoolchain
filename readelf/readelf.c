@@ -2417,12 +2417,24 @@ dump_dynamic(struct readelf *re)
 	}
 }
 
+static char *
+timestamp(time_t ti)
+{
+	static char ts[32];
+	struct tm *t;
+
+	t = gmtime(&ti);
+	snprintf(ts, sizeof(ts), "%04d-%02d-%02dT%02d:%02d:%2d",
+	    t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour,
+	    t->tm_min, t->tm_sec);
+
+	return (ts);
+}
+
 static void
 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 {
-	struct tm *t;
 	const char *name;
-	time_t ti;
 
 	/* These entry values are index into the string table. */
 	name = NULL;
@@ -2494,11 +2506,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		printf(" %s\n", dt_type(re->ehdr.e_machine, dyn->d_un.d_val));
 		break;
 	case DT_GNU_PRELINKED:
-		ti = dyn->d_un.d_val;
-		t = gmtime(&ti);
-		printf(" %04d-%02d-%02dT%02d:%02d:%2d\n", t->tm_year + 1900,
-		    t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min,
-		    t->tm_sec);
+		printf(" %s\n", timestamp(dyn->d_un.d_val));
 		break;
 	default:
 		printf("\n");
