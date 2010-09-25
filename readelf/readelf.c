@@ -2447,9 +2447,87 @@ dyn_str(struct readelf *re, uint32_t stab, uint64_t d_val)
 }
 
 static void
+dump_arch_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
+{
+	const char *name;
+
+	switch (re->ehdr.e_machine) {
+	case EM_MIPS:
+	case EM_MIPS_RS3_LE:
+		switch (dyn->d_tag) {
+		case DT_MIPS_RLD_VERSION:
+		case DT_MIPS_LOCAL_GOTNO:
+		case DT_MIPS_CONFLICTNO:
+		case DT_MIPS_LIBLISTNO:
+		case DT_MIPS_SYMTABNO:
+		case DT_MIPS_UNREFEXTNO:
+		case DT_MIPS_GOTSYM:
+		case DT_MIPS_HIPAGENO:
+		case DT_MIPS_DELTA_CLASS_NO:
+		case DT_MIPS_DELTA_INSTANCE_NO:
+		case DT_MIPS_DELTA_RELOC_NO:
+		case DT_MIPS_DELTA_SYM_NO:
+		case DT_MIPS_DELTA_CLASSSYM_NO:
+		case DT_MIPS_LOCALPAGE_GOTIDX:
+		case DT_MIPS_LOCAL_GOTIDX:
+		case DT_MIPS_HIDDEN_GOTIDX:
+		case DT_MIPS_PROTECTED_GOTIDX:
+			printf(" %ju\n", (uintmax_t) dyn->d_un.d_val);
+			break;
+		case DT_MIPS_ICHECKSUM:
+		case DT_MIPS_FLAGS:
+		case DT_MIPS_BASE_ADDRESS:
+		case DT_MIPS_CONFLICT:
+		case DT_MIPS_LIBLIST:
+		case DT_MIPS_RLD_MAP:
+		case DT_MIPS_DELTA_CLASS:
+		case DT_MIPS_DELTA_INSTANCE:
+		case DT_MIPS_DELTA_RELOC:
+		case DT_MIPS_DELTA_SYM:
+		case DT_MIPS_DELTA_CLASSSYM:
+		case DT_MIPS_CXX_FLAGS:
+		case DT_MIPS_PIXIE_INIT:
+		case DT_MIPS_SYMBOL_LIB:
+		case DT_MIPS_OPTIONS:
+		case DT_MIPS_INTERFACE:
+		case DT_MIPS_DYNSTR_ALIGN:
+		case DT_MIPS_INTERFACE_SIZE:
+		case DT_MIPS_RLD_TEXT_RESOLVE_ADDR:
+		case DT_MIPS_COMPACT_SIZE:
+		case DT_MIPS_GP_VALUE:
+		case DT_MIPS_AUX_DYNAMIC:
+		case DT_MIPS_PLTGOT:
+		case DT_MIPS_RLD_OBJ_UPDATE:
+		case DT_MIPS_RWPLT:
+			printf(" 0x%jx\n", (uintmax_t) dyn->d_un.d_val);
+			break;
+		case DT_MIPS_IVERSION:
+		case DT_MIPS_PERF_SUFFIX:
+		case DT_AUXILIARY:
+		case DT_FILTER:
+			name = dyn_str(re, stab, dyn->d_un.d_val);;
+			printf(" %s\n", name);
+			break;
+		case DT_MIPS_TIME_STAMP:
+			printf(" %s\n", timestamp(dyn->d_un.d_val));
+			break;
+		}
+		break;
+	default:
+		printf("\n");
+		break;
+	}
+}
+
+static void
 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 {
 	const char *name;
+
+	if (dyn->d_tag >= DT_LOPROC && dyn->d_tag <= DT_HIPROC) {
+		dump_arch_dyn_val(re, dyn, stab);
+		return;
+	}
 
 	/* These entry values are index into the string table. */
 	name = NULL;
@@ -2477,7 +2555,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_GNU_HASH:
 	case DT_GNU_LIBLIST:
 	case DT_GNU_CONFLICT:
-		printf(" 0x%jx\n", (uintmax_t)dyn->d_un.d_val);
+		printf(" 0x%jx\n", (uintmax_t) dyn->d_un.d_val);
 		break;
 	case DT_PLTRELSZ:
 	case DT_RELASZ:
@@ -2490,13 +2568,13 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	case DT_FINI_ARRAYSZ:
 	case DT_GNU_CONFLICTSZ:
 	case DT_GNU_LIBLISTSZ:
-		printf(" %ju (bytes)\n", dyn->d_un.d_val);
+		printf(" %ju (bytes)\n", (uintmax_t) dyn->d_un.d_val);
 		break;
  	case DT_RELACOUNT:
 	case DT_RELCOUNT:
 	case DT_VERDEFNUM:
 	case DT_VERNEEDNUM:
-		printf(" %ju\n", dyn->d_un.d_val);
+		printf(" %ju\n", (uintmax_t) dyn->d_un.d_val);
 		break;
 	case DT_NEEDED:
 		printf(" Shared libarary: [%s]\n", name);
