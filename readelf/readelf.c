@@ -2431,6 +2431,21 @@ timestamp(time_t ti)
 	return (ts);
 }
 
+static const char *
+dyn_str(struct readelf *re, uint32_t stab, uint64_t d_val)
+{
+	const char *name;
+
+	if (stab == SHN_UNDEF)
+		name = "ERROR";
+	else if ((name = elf_strptr(re->elf, stab, d_val)) == NULL) {
+		(void) elf_errno(); /* clear error */
+		name = "ERROR";
+	}
+
+	return (name);
+}
+
 static void
 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 {
@@ -2439,15 +2454,8 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 	/* These entry values are index into the string table. */
 	name = NULL;
 	if (dyn->d_tag == DT_NEEDED || dyn->d_tag == DT_SONAME ||
-	    dyn->d_tag == DT_RPATH || dyn->d_tag == DT_RUNPATH) {
-		if (stab == SHN_UNDEF)
-			name = "ERROR";
-		else if ((name = elf_strptr(re->elf, stab, dyn->d_un.d_val)) ==
-		    NULL) {
-			(void) elf_errno(); /* clear error */
-			name = "ERROR";
-		}
-	}
+	    dyn->d_tag == DT_RPATH || dyn->d_tag == DT_RUNPATH)
+		name = dyn_str(re, stab, dyn->d_un.d_val);
 
 	switch(dyn->d_tag) {
 	case DT_NULL:
