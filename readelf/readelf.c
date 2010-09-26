@@ -238,7 +238,9 @@ static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void dump_dynamic(struct readelf *re);
 static void dump_liblist(struct readelf *re);
 static void dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
+static void dump_mips_odk_reginfo(struct readelf *re, uint8_t *p, size_t sz);
 static void dump_mips_options(struct readelf *re, struct section *s);
+static void dump_mips_reginfo(struct readelf *re, struct section *s);
 static void dump_mips_specific_info(struct readelf *re);
 static void dump_notes(struct readelf *re);
 static void dump_notes_content(struct readelf *re, const char *buf, size_t sz,
@@ -1365,17 +1367,17 @@ option_kind(uint8_t kind)
 	static char s_kind[32];
 
 	switch (kind) {
-	case ODK_NULL: return "ODK_NULL";
-	case ODK_REGINFO: return "ODK_REGINFO";
-	case ODK_EXCEPTIONS: return "ODK_EXCEPTIONS";
-	case ODK_PAD: return "ODK_PAD";
-	case ODK_HWPATCH: return "ODK_HWPATCH";
-	case ODK_FILL: return "ODK_FILL";
-	case ODK_TAGS: return "ODK_TAGS";
-	case ODK_HWAND: return "ODK_HWAND";
-	case ODK_HWOR: return "ODK_HWOR";
-	case ODK_GP_GROUP: return "ODK_GP_GROUP";
-	case ODK_IDENT: return "ODK_IDENT";
+	case ODK_NULL: return "NULL";
+	case ODK_REGINFO: return "REGINFO";
+	case ODK_EXCEPTIONS: return "EXCEPTIONS";
+	case ODK_PAD: return "PAD";
+	case ODK_HWPATCH: return "HWPATCH";
+	case ODK_FILL: return "FILL";
+	case ODK_TAGS: return "TAGS";
+	case ODK_HWAND: return "HWAND";
+	case ODK_HWOR: return "HWOR";
+	case ODK_GP_GROUP: return "GP_GROUP";
+	case ODK_IDENT: return "IDENT";
 	default:
 		snprintf(s_kind, sizeof(s_kind), "<unknown: %u>", kind);
 		return (s_kind);
@@ -3691,15 +3693,53 @@ static void
 dump_mips_specific_info(struct readelf *re)
 {
 	struct section *s;
-	int i;
+	int i, options_found;
 
+	options_found = 0;
 	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && (!strcmp(s->name, ".MIPS.options") ||
-		    (s->type == SHT_MIPS_OPTIONS)))
+		    (s->type == SHT_MIPS_OPTIONS))) {
 			dump_mips_options(re, s);
+			options_found = 1;
+		}
 	}
+
+	/*
+	 * According to SGI mips64 spec, .reginfo should be ignored if
+	 * .MIPS.options section is present.
+	 */
+	if (!options_found) {
+		for (i = 0; (size_t) i < re->shnum; i++) {
+			s = &re->sl[i];
+			if (s->name != NULL && (!strcmp(s->name, ".reginfo") ||
+			    (s->type == SHT_MIPS_REGINFO)))
+				dump_mips_reginfo(re, s);
+		}
+	}
+}
+
+static void
+dump_mips_reginfo(struct readelf *re, struct section *s)
+{
+	Elf_Data *d;
+	int elferr;
+
+	(void) elf_errno();
+	if ((d = elf_rawdata(s->scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_rawdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
+	if (d->d_size <= 0)
+		return;
+
+	printf("\nSection '%s' contains %ju entries:\n", s->name,
+	    s->sz / s->entsize);
+	dump_mips_odk_reginfo(re, d->d_buf, d->d_size);
 }
 
 static void
@@ -3720,7 +3760,10 @@ dump_mips_options(struct readelf *re, struct section *s)
 			    elf_errmsg(elferr));
 		return;
 	}
+	if (d->d_size == 0)
+		return;
 
+	printf("\nSection %s contains:\n", s->name);
 	p = d->d_buf;
 	pe = p + d->d_size;
 	while (p < pe) {
@@ -3728,9 +3771,45 @@ dump_mips_options(struct readelf *re, struct section *s)
 		size = re->dw_decode(&p, 1);
 		sndx = re->dw_decode(&p, 2);
 		info = re->dw_decode(&p, 4);
-		printf("%s\n", option_kind(kind));
-		printf("size=%u\n", size);
+		switch (kind) {
+		case ODK_REGINFO:
+			dump_mips_odk_reginfo(re, p, size - 8);
+			break;
+		default:
+			break;
+		}
 		p += size - 8;
+	}
+}
+
+static void
+dump_mips_odk_reginfo(struct readelf *re, uint8_t *p, size_t sz)
+{
+	uint32_t ri_gprmask;
+	uint32_t ri_cprmask[4];
+	uint64_t ri_gp_value;
+	uint8_t *pe;
+	int i;
+
+	pe = p + sz;
+	while (p < pe) {
+		ri_gprmask = re->dw_decode(&p, 4);
+		/* Skip ri_pad padding field for mips64. */
+		if (re->ec == ELFCLASS64)
+			re->dw_decode(&p, 4);
+		for (i = 0; i < 4; i++)
+			ri_cprmask[i] = re->dw_decode(&p, 4);
+		if (re->ec == ELFCLASS32)
+			ri_gp_value = re->dw_decode(&p, 4);
+		else
+			ri_gp_value = re->dw_decode(&p, 8);
+		printf(" %s    ", option_kind(ODK_REGINFO));
+		printf("ri_gprmask:    0x%08jx\n", (uintmax_t) ri_gprmask);
+		for (i = 0; i < 4; i++)
+			printf("%11.11s ri_cprmask[%d]: 0x%08jx\n", "", i,
+			    (uintmax_t) ri_cprmask[i]);
+		printf("%12.12s", "");
+		printf("ri_gp_value:   %#jx\n", (uintmax_t) ri_gp_value);
 	}
 }
 
