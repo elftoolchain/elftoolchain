@@ -2391,10 +2391,10 @@ dump_dynamic(struct readelf *re)
 			elferr = elf_errno();
 			if (elferr != 0)
 				warnx("elf_getdata failed: %s", elf_errmsg(-1));
-			return;
+			continue;
 		}
 		if (d->d_size <= 0)
-			return;
+			continue;
 		printf("\nDynamic section at offset 0x%jx", (uintmax_t)s->off);
 		printf(" contains %ju entries:\n", s->sz / s->entsize);
 		if (re->ec == ELFCLASS32)
