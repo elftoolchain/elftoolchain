@@ -193,7 +193,7 @@ _dwarf_write_lsb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	while (*offsetp + bytes_to_write > *size) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -246,7 +246,7 @@ _dwarf_write_msb_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	while (*offsetp + bytes_to_write > *size) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -314,7 +314,7 @@ _dwarf_write_sleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 	while ((len = _dwarf_write_sleb128(*block + *offsetp, *block + *size,
 	    val)) < 0) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -377,7 +377,7 @@ _dwarf_write_uleb128_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 	while ((len = _dwarf_write_uleb128(*block + *offsetp, *block + *size,
 	    val)) < 0) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -471,7 +471,7 @@ _dwarf_write_string_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 	len = strlen(string) + 1;
 	while (*offsetp + len > *size) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -515,7 +515,7 @@ _dwarf_write_block_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	while (*offsetp + length > *size) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -546,7 +546,7 @@ _dwarf_write_padding_alloc(uint8_t **block, uint64_t *size, uint64_t *offsetp,
 
 	while (*offsetp + cnt > *size) {
 		*size *= 2;
-		*block = realloc(*block, *size);
+		*block = realloc(*block, (size_t) *size);
 		if (*block == NULL) {
 			DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);

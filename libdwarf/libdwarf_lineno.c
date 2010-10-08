@@ -33,7 +33,6 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 	Dwarf_LineFile lf;
 	const char *dirname;
 	uint8_t *src;
-	
 	int slen;
 
 	src = *p;

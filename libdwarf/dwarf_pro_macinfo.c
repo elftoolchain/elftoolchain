@@ -33,7 +33,8 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	Dwarf_Macro_Details *md;
 	int len;
 
-	dbg->dbgp_mdlist = realloc(dbg->dbgp_mdlist, dbg->dbgp_mdcnt + 1);
+	dbg->dbgp_mdlist = realloc(dbg->dbgp_mdlist,
+	    (size_t) dbg->dbgp_mdcnt + 1);
 	if (dbg->dbgp_mdlist == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);

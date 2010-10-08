@@ -953,7 +953,8 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 #define	SET_EXPR_BLOCK(addr, len)					\
 	do {								\
 		if (fop3 != NULL) {					\
-			fop3[*count].fp_expr_block = malloc((len));	\
+			fop3[*count].fp_expr_block =			\
+			    malloc((size_t) (len));			\
 			if (fop3[*count].fp_expr_block == NULL)	{	\
 				DWARF_SET_ERROR(dbg, error,		\
 				    DW_DLE_MEMORY);			\
@@ -1324,7 +1325,8 @@ _dwarf_frame_fde_add_inst(Dwarf_P_Fde fde, Dwarf_Small op, Dwarf_Unsigned val1,
 	if (fde->fde_inst == NULL) {
 		fde->fde_instcap = _FDE_INST_INIT_SIZE;
 		fde->fde_instlen = 0;
-		if ((fde->fde_inst = malloc(fde->fde_instcap)) == NULL) {
+		if ((fde->fde_inst = malloc((size_t) fde->fde_instcap)) ==
+		    NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}

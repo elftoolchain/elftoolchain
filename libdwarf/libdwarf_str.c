@@ -39,7 +39,8 @@ _dwarf_strtab_add(Dwarf_Debug dbg, char *string, uint64_t *off,
 	len = strlen(string) + 1;
 	while (dbg->dbg_strtab_size + len > dbg->dbg_strtab_cap) {
 		dbg->dbg_strtab_cap *= 2;
-		dbg->dbg_strtab = realloc(dbg->dbg_strtab, dbg->dbg_strtab_cap);
+		dbg->dbg_strtab = realloc(dbg->dbg_strtab,
+		    (size_t) dbg->dbg_strtab_cap);
 		if (dbg->dbg_strtab == NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
@@ -83,7 +84,8 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		dbg->dbg_strtab_cap = dbg->dbg_strtab_size = ds->ds_size;
 
 		if (dbg->dbg_mode == DW_DLC_RDWR) {
-			if ((dbg->dbg_strtab = malloc(ds->ds_size)) == NULL) {
+			if ((dbg->dbg_strtab = malloc((size_t) ds->ds_size)) ==
+			    NULL) {
 				DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 				return (DW_DLE_MEMORY);
 			}
@@ -96,7 +98,8 @@ _dwarf_strtab_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		dbg->dbg_strtab_cap = _INIT_DWARF_STRTAB_SIZE;
 		dbg->dbg_strtab_size = 0;
 
-		if ((dbg->dbg_strtab = malloc(dbg->dbg_strtab_cap)) == NULL) {
+		if ((dbg->dbg_strtab = malloc((size_t) dbg->dbg_strtab_cap)) ==
+		    NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}
@@ -130,7 +133,8 @@ _dwarf_strtab_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		return (ret);
 
 	if (dbg->dbg_strtab_size > ds->ds_cap) {
-		ds->ds_data = realloc(ds->ds_data, dbg->dbg_strtab_size);
+		ds->ds_data = realloc(ds->ds_data,
+		    (size_t) dbg->dbg_strtab_size);
 		if (ds->ds_data == NULL) {
 			_dwarf_section_free(dbg, &ds);
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
