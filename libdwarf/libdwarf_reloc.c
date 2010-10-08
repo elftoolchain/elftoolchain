@@ -320,7 +320,8 @@ _dwarf_reloc_section_finalize(Dwarf_P_Debug dbg, Dwarf_Rel_Section drs,
 	 */
 	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
 		ds->ds_cap = size;
-		if ((ds->ds_data = realloc(ds->ds_data, ds->ds_cap)) == NULL) {
+		if ((ds->ds_data = realloc(ds->ds_data, (size_t) ds->ds_cap)) ==
+		    NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			return (DW_DLE_MEMORY);
 		}

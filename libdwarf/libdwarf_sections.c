@@ -49,7 +49,7 @@ _dwarf_section_init(Dwarf_P_Debug dbg, Dwarf_P_Section *dsp, const char *name,
 
 	if (!pseudo) {
 		ds->ds_cap = _SECTION_INIT_SIZE;
-		if ((ds->ds_data = malloc(ds->ds_cap)) == NULL) {
+		if ((ds->ds_data = malloc((size_t) ds->ds_cap)) == NULL) {
 			free(ds->ds_name);
 			free(ds);
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
