@@ -240,6 +240,7 @@ void	copy_data(struct section *_s);
 void	copy_phdr(struct elfcopy *_ecp);
 void	copy_shdr(struct elfcopy *_ecp, struct section *_s, const char *_name,
     int _copy, int _sec_flags);
+void	create_binary(int _ifd, int _ofd);
 void	create_elf(struct elfcopy *_ecp);
 void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);

@@ -5,7 +5,7 @@ TOP=	..
 PROG=	elfcopy
 VERSION=	1.0.0
 
-SRCS=	archive.c main.c sections.c segments.c symbols.c
+SRCS=	archive.c binary.c main.c sections.c segments.c symbols.c
 
 WARNS?=	5
 
