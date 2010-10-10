@@ -197,7 +197,6 @@ static struct {
 static int	copy_tempfile(int fd, const char *out);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
-static void	create_object(struct elfcopy *ecp, int ifd, int ofd);
 static void	parse_sec_flags(struct sec_action *sac, char *s);
 static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
     unsigned int op);
@@ -427,49 +426,6 @@ create_elf(struct elfcopy *ecp)
                     elf_errmsg(-1));
 }
 
-/* Create ELF_K_ELF object or ELF_K_AR object. */
-static void
-create_object(struct elfcopy *ecp, int ifd, int ofd)
-{
-
-#ifndef LIBELF_AR
-	/* Detect and process ar(1) archive using libarchive. */
-	if (ac_detect_ar(ifd)) {
-		ac_create_ar(ecp, ifd, ofd);
-		return;
-	}
-
-#endif	/* ! LIBELF_AR */
-
-	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL) {
-		errx(EX_DATAERR, "elf_begin() failed: %s",
-		     elf_errmsg(-1));
-		return;
-	}
-
-	switch (elf_kind(ecp->ein)) {
-	case ELF_K_NONE:
-		errx(EX_DATAERR, "file format not recognized");
-		return;
-	case ELF_K_ELF:
-		if ((ecp->eout = elf_begin(ofd, ELF_C_WRITE, NULL)) == NULL)
-			errx(EX_SOFTWARE, "elf_begin() failed: %s",
-			    elf_errmsg(-1));
-
-		elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
-		create_elf(ecp);
-		elf_end(ecp->eout);
-		break;
-
-	case ELF_K_AR:
-		break;
-	default:
-		errx(EX_DATAERR, "file format not supported");
-	}
-
-	elf_end(ecp->ein);
-}
-
 /* Create a temporary file. */
 void
 create_tempfile(char **fn, int *fd)
@@ -551,7 +507,9 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	struct stat	 sb;
 	struct timeval	 tv[2];
 	char		*tempfile;
-	int		 ifd, ofd;
+	int		 ifd, ofd, ofd0;
+
+	tempfile = NULL;
 
 	if (src == NULL)
 		errx(EX_SOFTWARE, "internal: src == NULL");
@@ -569,15 +527,87 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		if ((ofd = open(dst, O_RDWR|O_CREAT, 0755)) == -1)
 			err(EX_IOERR, "open %s failed", dst);
 
-	create_object(ecp, ifd, ofd);
+#ifndef LIBELF_AR
+	/* Detect and process ar(1) archive using libarchive. */
+	if (ac_detect_ar(ifd)) {
+		ac_create_ar(ecp, ifd, ofd);
+		goto copy_done;
+	}
+#endif
 
-	if (dst == NULL && tempfile != NULL) {
-		if (rename(tempfile, src) == -1) {
+	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
+		errx(EX_DATAERR, "elf_begin() failed: %s",
+		     elf_errmsg(-1));
+
+	switch (elf_kind(ecp->ein)) {
+	case ELF_K_NONE:
+		errx(EX_DATAERR, "file format not recognized");
+	case ELF_K_ELF:
+		if ((ecp->eout = elf_begin(ofd, ELF_C_WRITE, NULL)) == NULL)
+			errx(EX_SOFTWARE, "elf_begin() failed: %s",
+			    elf_errmsg(-1));
+
+		/* elfcopy(1) manage ELF layout by itself. */
+		elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
+
+		/*
+		 * Create output ELF object.
+		 */
+		create_elf(ecp);
+		elf_end(ecp->eout);
+
+		/*
+		 * Convert the output ELF object to binary/srec/ihex if need.
+		 */
+		if (ecp->otf != ETF_ELF) {
+			/*
+			 * Create (another) tempfile for binary/srec/ihex
+			 * output object.
+			 */
+			if (tempfile != NULL)
+				free(tempfile);
+			create_tempfile(&tempfile, &ofd0);
+
+			/*
+			 * Call flavour-specific conversion routine.
+			 */
+			switch (ecp->oec) {
+			case ETF_BINARY:
+				/* create_binary(ecp, ofd, ofd0); */
+				break;
+			default:
+				errx(EX_SOFTWARE, "Internal: unsupported output"
+				    " flavour %d", ecp->oec);
+			}
+
+			close(ofd);
+			ofd = ofd0;
+		}
+
+		break;
+
+	case ELF_K_AR:
+		/* XXX: Not yet supported. */
+		break;
+	default:
+		errx(EX_DATAERR, "file format not supported");
+	}
+
+	elf_end(ecp->ein);
+
+#ifndef LIBELF_AR
+copy_done:
+#endif
+
+	if (tempfile != NULL) {
+		if (dst == NULL)
+			dst = src;
+		if (rename(tempfile, dst) == -1) {
 			if (errno == EXDEV)
-				ofd = copy_tempfile(ofd, src);
+				ofd = copy_tempfile(ofd, dst);
 			else
 				err(EX_IOERR, "rename %s to %s failed",
-				    tempfile, src);
+				    tempfile, dst);
 		}
 		free(tempfile);
 	}
@@ -1008,6 +1038,7 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
 		errx(EX_USAGE, "%s: invalid target name", target_name);
+	ecp->otf = elftc_bfd_target_flavor(tgt);
 	ecp->oec = elftc_bfd_target_class(tgt);
 	ecp->oed = elftc_bfd_target_byteorder(tgt);
 }
@@ -1066,6 +1097,7 @@ main(int argc, char **argv)
 		err(EX_SOFTWARE, "malloc failed");
 	memset(ecp, 0, sizeof(*ecp));
 
+	ecp->otf = ETF_ELF;
 	ecp->iec = ecp->oec = ELFCLASSNONE;
 	ecp->oed = ELFDATANONE;
 	ecp->abi = -1;

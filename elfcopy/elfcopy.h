@@ -28,6 +28,7 @@
 
 #include <sys/queue.h>
 #include <gelf.h>
+#include <libelftc.h>
 
 #include "_elftc.h"
 
@@ -157,6 +158,7 @@ struct ar_obj {
 struct elfcopy {
 	const char	*progname;	/* program name */
 	int		 iec;	/* elfclass of intput object */
+	Bfd_Target_Flavor otf;	/* flavour of output object */
 	int		 oec;	/* elfclass of output object */
 	unsigned char	 oed;	/* endianess of output object */
 	int		 abi;	/* OSABI of output object */
