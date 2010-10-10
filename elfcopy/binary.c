@@ -37,7 +37,9 @@
 ELFTC_VCSID("$Id$");
 
 /*
- * Convert ELF object to `binary'.
+ * Convert ELF object to `binary'. Sections with SHF_ALLOC flag set
+ * are copied to the result binary. The relative offsets for each section
+ * are retained, so the result binary file might contain "holes".
  */
 void
 create_binary(int ifd, int ofd)
