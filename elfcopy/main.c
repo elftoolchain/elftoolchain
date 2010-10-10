@@ -571,9 +571,9 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			/*
 			 * Call flavour-specific conversion routine.
 			 */
-			switch (ecp->oec) {
+			switch (ecp->otf) {
 			case ETF_BINARY:
-				/* create_binary(ecp, ofd, ofd0); */
+				create_binary(ofd, ofd0);
 				break;
 			default:
 				errx(EX_SOFTWARE, "Internal: unsupported output"
@@ -1039,8 +1039,10 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
 		errx(EX_USAGE, "%s: invalid target name", target_name);
 	ecp->otf = elftc_bfd_target_flavor(tgt);
-	ecp->oec = elftc_bfd_target_class(tgt);
-	ecp->oed = elftc_bfd_target_byteorder(tgt);
+	if (ecp->otf == ETF_ELF) {
+		ecp->oec = elftc_bfd_target_class(tgt);
+		ecp->oed = elftc_bfd_target_byteorder(tgt);
+	}
 }
 
 static void
