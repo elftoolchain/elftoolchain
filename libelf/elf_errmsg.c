@@ -64,7 +64,8 @@ elf_errmsg(int error)
 {
 	int oserr;
 
-	if (error == 0 && (error = LIBELF_PRIVATE(error)) == 0)
+	if (error == ELF_E_NONE &&
+	    (error = LIBELF_PRIVATE(error)) == 0)
 	    return NULL;
 	else if (error == -1)
 	    error = LIBELF_PRIVATE(error);
@@ -72,7 +73,7 @@ elf_errmsg(int error)
 	oserr = error >> LIBELF_OS_ERROR_SHIFT;
 	error &= LIBELF_ELF_ERROR_MASK;
 
-	if (error < 0 || error >= ELF_E_NUM)
+	if (error < ELF_E_NONE || error >= ELF_E_NUM)
 		return _libelf_errors[ELF_E_NUM];
 	if (oserr) {
 #if	LIBELF_CONFIG_STRL_FUNCTIONS
