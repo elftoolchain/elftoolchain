@@ -26,6 +26,8 @@
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <err.h>
 #include <gelf.h>
 #include <stdio.h>
@@ -120,4 +122,157 @@ create_binary(int ifd, int ofd)
 	elferr = elf_errno();
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
+}
+
+/*
+ * Convert `binary' to ELF object. The input `binary' is converted to
+ * a relocatable (.o) file, a few symbols will also be created to make
+ * it easier to access the binary data in other compilation units.
+ */
+void
+create_elf_from_binary(struct elfcopy *ecp, int ifd)
+{
+	struct section *s, *sec, *sec_temp, *shtab;
+	struct stat sb;
+	GElf_Ehdr oeh;
+	GElf_Shdr osh;
+	Elf_Data *od;
+
+	/* Reset internal section list. */
+	if (!TAILQ_EMPTY(&ecp->v_sec))
+		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
+			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
+			free(sec);
+		}
+
+	if (fstat(ifd, &sb) == -1)
+		err(EX_IOERR, "fstat failed");
+
+	/*
+	 * TODO: copy the input binary to output binary verbatim if -O is not
+	 * specified.
+	 */
+
+	/* Create EHDR for output .o file. */
+	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
+		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		    elf_errmsg(-1));
+	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Initialise e_ident fields. */
+	oeh.e_ident[EI_CLASS] = ecp->oec;
+	oeh.e_ident[EI_DATA] = ecp->oed;
+	oeh.e_ident[EI_OSABI] = ELFOSABI_NONE;
+	oeh.e_machine = ecp->oem;
+	oeh.e_type = ET_REL;
+	oeh.e_entry = 0;
+	
+	ecp->flags |= RELOCATABLE;
+
+	/* Create .shstrtab section */
+	init_shstrtab(ecp);
+	ecp->shstrtab->off = 0;
+
+	/*
+	 * Create .data section which contains the binary data.
+	 */
+
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	s->name = ".data";
+	s->is = NULL;
+	s->off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
+	if (s->off == 0)
+		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+	s->sz = sb.st_size;
+	s->align = 1;
+	s->type = SHT_PROGBITS;
+	s->vma = 0;
+	s->loadable = 1;
+	if ((s->buf = mmap(NULL, (size_t) s->sz, PROT_READ, MAP_PRIVATE, ifd,
+	    (off_t) 0)) == MAP_FAILED) {
+		err(EX_SOFTWARE, "mmap failed");
+	}
+	insert_to_sec_list(ecp, s, 1);
+
+	if ((s->os = elf_newscn(ecp->eout)) == NULL)
+		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		    elf_errmsg(-1));
+	if (gelf_getshdr(s->os, &osh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	osh.sh_type = s->type;
+	osh.sh_addr = s->vma;
+	osh.sh_offset = s->off;
+	osh.sh_size = s->sz;
+	osh.sh_link = 0;
+	osh.sh_info = 0;
+	osh.sh_addralign = s->align;
+	osh.sh_entsize = 0;
+	osh.sh_flags = SHF_ALLOC | SHF_WRITE;
+	add_to_shstrtab(ecp, s->name);
+	if (!gelf_update_shdr(s->os, &osh))
+		errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
+		    elf_errmsg(-1));
+
+	if ((od = elf_newdata(s->os)) == NULL)
+		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		    elf_errmsg(-1));
+	od->d_align = 1;
+	od->d_off = 0;
+	od->d_buf = s->buf;
+	od->d_type = ELF_T_BYTE;
+	od->d_size = s->sz;
+	od->d_version = EV_CURRENT;
+
+	/* Insert .shstrtab after .data section. */
+	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
+		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		    elf_errmsg(-1));
+	insert_to_sec_list(ecp, ecp->shstrtab, 1);
+
+	/*
+	 * TODO: Create symbol table.
+	 */
+
+	/*
+	 * Write the underlying ehdr. Note that it should be called
+	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
+	 */
+	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
+		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Generate section name string table (.shstrtab). */
+	set_shstrtab(ecp);
+
+	/* Update sh_name pointer for each section header entry. */
+	update_shdr(ecp);
+
+	/* Renew oeh to get the updated e_shstrndx. */
+	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Insert section header table */
+	shtab = insert_shtab(ecp, 1);
+	
+	/* Resync section offsets. */
+	resync_sections(ecp);
+
+	/* Store SHDR offset in EHDR. */
+	oeh.e_shoff = shtab->off;
+
+	/* Update ehdr since we modified e_shoff. */
+	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
+		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Write out the output elf object. */
+        if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
+                errx(EX_SOFTWARE, "elf_update() failed: %s",
+                    elf_errmsg(-1));
+
 }

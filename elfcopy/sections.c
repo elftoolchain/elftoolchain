@@ -39,7 +39,6 @@
 ELFTC_VCSID("$Id$");
 
 static void	add_gnu_debuglink(struct elfcopy *ecp);
-static void	add_to_shstrtab(struct elfcopy *ecp, const char *name);
 static uint32_t calc_crc32(const char *p, size_t len, uint32_t crc);
 static void	check_section_rename(struct elfcopy *ecp, struct section *s);
 static void	filter_reloc(struct elfcopy *ecp, struct section *s);
@@ -414,7 +413,7 @@ create_scn(struct elfcopy *ecp)
 }
 
 struct section *
-insert_shtab(struct elfcopy *ecp, uint64_t hint)
+insert_shtab(struct elfcopy *ecp, int tail)
 {
 	struct section	*s, *shtab;
 	GElf_Ehdr	 ieh;
@@ -427,14 +426,14 @@ insert_shtab(struct elfcopy *ecp, uint64_t hint)
 	 */
 	if ((shtab = calloc(1, sizeof(*shtab))) == NULL)
 		errx(EX_SOFTWARE, "calloc failed");
-	if (hint == 0) {
+	if (!tail) {
 		/* shoff of input object is used as a hint. */
 		if (gelf_getehdr(ecp->ein, &ieh) == NULL)
 			errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
 			    elf_errmsg(-1));
 		shtab->off = ieh.e_shoff;
 	} else
-		shtab->off = hint;
+		shtab->off = 0;
 	/* Calculate number of sections in the output object. */
 	nsecs = 0;
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
@@ -448,7 +447,7 @@ insert_shtab(struct elfcopy *ecp, uint64_t hint)
 	shtab->align = (ecp->oec == ELFCLASS32 ? 4 : 8);
 	shtab->loadable = 0;
 	shtab->pseudo = 1;
-	insert_to_sec_list(ecp, shtab, 0);
+	insert_to_sec_list(ecp, shtab, tail);
 
 	return (shtab);
 }
@@ -994,7 +993,7 @@ insert_sections(struct elfcopy *ecp)
 	}
 }
 
-static void
+void
 add_to_shstrtab(struct elfcopy *ecp, const char *name)
 {
 	struct section *s;
