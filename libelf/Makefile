@@ -151,7 +151,7 @@ MLINKS+= \
 	gelf_xlatetof.3	elf${E}_xlatetom.3
 .endfor
 
-LIBELF_TEST_HOOKS?=	1
+LIBELF_TEST_HOOKS?=	0
 .if defined(LIBELF_TEST_HOOKS) && (${LIBELF_TEST_HOOKS} > 0)
 CFLAGS+=	-DLIBELF_TEST_HOOKS=1
 .endif
