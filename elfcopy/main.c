@@ -170,6 +170,7 @@ static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
 static void	strip_main(struct elfcopy *ecp, int argc, char **argv);
 static void	strip_usage(void);
 static void	set_osabi(struct elfcopy *ecp, const char *abi);
+static void	set_input_target(struct elfcopy *ecp, const char *target_name);
 static void	set_output_target(struct elfcopy *ecp, const char *target_name);
 static void	mcs_main(struct elfcopy *ecp, int argc, char **argv);
 static void	mcs_usage(void);
@@ -357,17 +358,6 @@ create_elf(struct elfcopy *ecp)
 	/* Store SHDR offset in EHDR. */
 	oeh.e_shoff = shtab->off;
 
-#if 0
-	fprintf(stderr, "ecp->shstrtab_off = %d\n", (int)ecp->shstrtab_off);
-	fprintf(stderr, "ecp->shstrtab_size = %d\n", (int)ecp->shstrtab_size);
-	fprintf(stderr, "e_shoff = %d\n", (int)oehdr.e_shoff);
-	fprintf(stderr, "ecp->osec_cnt = %d\n", ecp->osec_cnt);
-	fprintf(stderr, "ecp->symtab_off = %d\n", (int)ecp->symtab_off);
-	fprintf(stderr, "ecp->symtab_size = %d\n", (int)ecp->symtab_size);
-	fprintf(stderr, "ecp->strtab_off = %d\n", (int)ecp->strtab_off);
-	fprintf(stderr, "ecp->strtab_size = %d\n", (int)ecp->strtab_size);
-#endif
-
 	/* Put program header table immediately after the Elf header. */
 	if (ecp->ophnum > 0) {
 		oeh.e_phoff = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
@@ -504,11 +494,13 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 
 	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
 		errx(EX_DATAERR, "elf_begin() failed: %s",
-		     elf_errmsg(-1));
+		    elf_errmsg(-1));
 
 	switch (elf_kind(ecp->ein)) {
 	case ELF_K_NONE:
-		errx(EX_DATAERR, "file format not recognized");
+		if (ecp->itf == ETF_ELF)
+			errx(EX_DATAERR, "file format not recognized");
+		/* FALLTHROUGH */
 	case ELF_K_ELF:
 		if ((ecp->eout = elf_begin(ofd, ELF_C_WRITE, NULL)) == NULL)
 			errx(EX_SOFTWARE, "elf_begin() failed: %s",
@@ -520,7 +512,10 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		/*
 		 * Create output ELF object.
 		 */
-		create_elf(ecp);
+		if (ecp->itf == ETF_BINARY)
+			create_elf_from_binary(ecp, ifd);
+		else
+			create_elf(ecp);
 		elf_end(ecp->eout);
 
 		/*
@@ -626,7 +621,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case 'I':
 		case 's':
-			/* ignored */
+			set_input_target(ecp, optarg);
 			break;
 		case 'j':
 			sac = lookup_sec_act(ecp, optarg, 1);
@@ -1002,6 +997,16 @@ process_symfile:
 }
 
 static void
+set_input_target(struct elfcopy *ecp, const char *target_name)
+{
+	Bfd_Target *tgt;
+
+	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
+		errx(EX_USAGE, "%s: invalid target name", target_name);
+	ecp->itf = elftc_bfd_target_flavor(tgt);
+}
+
+static void
 set_output_target(struct elfcopy *ecp, const char *target_name)
 {
 	Bfd_Target *tgt;
@@ -1070,7 +1075,7 @@ main(int argc, char **argv)
 		err(EX_SOFTWARE, "malloc failed");
 	memset(ecp, 0, sizeof(*ecp));
 
-	ecp->otf = ETF_ELF;
+	ecp->itf = ecp->otf = ETF_ELF;
 	ecp->iec = ecp->oec = ELFCLASSNONE;
 	ecp->oed = ELFDATANONE;
 	ecp->abi = -1;

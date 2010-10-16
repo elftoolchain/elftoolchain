@@ -157,7 +157,8 @@ struct ar_obj {
  */
 struct elfcopy {
 	const char	*progname;	/* program name */
-	int		 iec;	/* elfclass of intput object */
+	int		 iec;	/* elfclass of input object */
+	Bfd_Target_Flavor itf;	/* flavour of input object */
 	Bfd_Target_Flavor otf;	/* flavour of output object */
 	int		 oec;	/* elfclass of output object */
 	unsigned char	 oed;	/* endianess of output object */
@@ -233,6 +234,7 @@ struct elfcopy {
 };
 
 void	add_section(struct elfcopy *_ecp, const char *_optarg);
+void	add_to_shstrtab(struct elfcopy *_ecp, const char *_name);
 void	add_to_symop_list(struct elfcopy *_ecp, const char *_name,
     const char *_newname, unsigned int _op);
 int	add_to_inseg_list(struct elfcopy *_ecp, struct section *_sec);
@@ -243,13 +245,14 @@ void	copy_shdr(struct elfcopy *_ecp, struct section *_s, const char *_name,
     int _copy, int _sec_flags);
 void	create_binary(int _ifd, int _ofd);
 void	create_elf(struct elfcopy *_ecp);
+void	create_elf_from_binary(struct elfcopy *_ecp, int _ifd);
 void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
 void	init_shstrtab(struct elfcopy *_ecp);
 void	insert_to_sec_list(struct elfcopy *_ecp, struct section *_sec,
     int _tail);
-struct section *insert_shtab(struct elfcopy *_ecp, uint64_t hint);
+struct section *insert_shtab(struct elfcopy *_ecp, int tail);
 int	is_remove_reloc_sec(struct elfcopy *_ecp, uint32_t _sh_info);
 int	is_remove_section(struct elfcopy *_ecp, const char *_name);
 struct sec_action *lookup_sec_act(struct elfcopy *_ecp,
