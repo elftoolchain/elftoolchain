@@ -345,7 +345,7 @@ create_elf(struct elfcopy *ecp)
 	 * section, so later it will get sorted and resynced just as "normal"
 	 * sections.
 	 */
-	shtab = insert_shtab(ecp);
+	shtab = insert_shtab(ecp, 0);
 
 	/*
 	 * Resync section offsets in the output object. This is needed
@@ -1012,6 +1012,7 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 	if (ecp->otf == ETF_ELF) {
 		ecp->oec = elftc_bfd_target_class(tgt);
 		ecp->oed = elftc_bfd_target_byteorder(tgt);
+		ecp->oem = elftc_bfd_target_machine(tgt);
 	}
 }
 

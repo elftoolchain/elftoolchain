@@ -413,7 +413,7 @@ create_scn(struct elfcopy *ecp)
 }
 
 struct section *
-insert_shtab(struct elfcopy *ecp)
+insert_shtab(struct elfcopy *ecp, uint64_t hint)
 {
 	struct section	*s, *shtab;
 	GElf_Ehdr	 ieh;
@@ -424,13 +424,16 @@ insert_shtab(struct elfcopy *ecp)
 	 * into section list, so later it will get sorted and resynced
 	 * just as normal sections.
 	 */
-	if (gelf_getehdr(ecp->ein, &ieh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
-		    elf_errmsg(-1));
 	if ((shtab = calloc(1, sizeof(*shtab))) == NULL)
 		errx(EX_SOFTWARE, "calloc failed");
-	/* shoff of input object is used as a hint. */
-	shtab->off = ieh.e_shoff;
+	if (hint == 0) {
+		/* shoff of input object is used as a hint. */
+		if (gelf_getehdr(ecp->ein, &ieh) == NULL)
+			errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+			    elf_errmsg(-1));
+		shtab->off = ieh.e_shoff;
+	} else
+		shtab->off = hint;
 	/* Calculate number of sections in the output object. */
 	nsecs = 0;
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
@@ -683,7 +686,7 @@ resync_sections(struct elfcopy *ecp)
 
 		/* Update section header accordingly. */
 		if (gelf_getshdr(s->os, &osh) == NULL)
-			errx(EX_SOFTWARE, "365 gelf_getshdr() failed: %s",
+			errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
 			    elf_errmsg(-1));
 		osh.sh_offset = s->off;
 		osh.sh_size = s->sz;
