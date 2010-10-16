@@ -294,16 +294,7 @@ create_scn(struct elfcopy *ecp)
 	int		 elferr, sec_flags;
 
 	/* Create internal .shstrtab section. */
-	if ((ecp->shstrtab = calloc(1, sizeof(*ecp->shstrtab))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
-	s = ecp->shstrtab;
-	s->name = ".shstrtab";
-	s->is = NULL;
-	s->sz = 0;
-	s->align = 1;
-	s->loadable = 0;
-	s->type = SHT_STRTAB;
-	s->vma = 0;
+	init_shstrtab(ecp);
 
 	if (elf_getshstrndx(ecp->ein, &indx) == 0)
 		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
@@ -1052,6 +1043,23 @@ update_shdr(struct elfcopy *ecp)
 	if (elferr != 0)
 		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
+}
+
+void
+init_shstrtab(struct elfcopy *ecp)
+{
+	struct section *s;
+
+	if ((ecp->shstrtab = calloc(1, sizeof(*ecp->shstrtab))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	s = ecp->shstrtab;
+	s->name = ".shstrtab";
+	s->is = NULL;
+	s->sz = 0;
+	s->align = 1;
+	s->loadable = 0;
+	s->type = SHT_STRTAB;
+	s->vma = 0;
 }
 
 void
