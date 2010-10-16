@@ -76,17 +76,9 @@ elf_errmsg(int error)
 	if (error < ELF_E_NONE || error >= ELF_E_NUM)
 		return _libelf_errors[ELF_E_NUM];
 	if (oserr) {
-#if	LIBELF_CONFIG_STRL_FUNCTIONS
-               strlcpy(LIBELF_PRIVATE(msg), _libelf_errors[error],
-                   sizeof(LIBELF_PRIVATE(msg)));
-               strlcat(LIBELF_PRIVATE(msg), ": ", sizeof(LIBELF_PRIVATE(msg)));
-               strlcat(LIBELF_PRIVATE(msg), strerror(oserr),
-                   sizeof(LIBELF_PRIVATE(msg)));
-#else
 		(void) snprintf(LIBELF_PRIVATE(msg),
 		    sizeof(LIBELF_PRIVATE(msg)), "%s: %s",
 		    _libelf_errors[error], strerror(oserr));
-#endif
 		return (const char *)&LIBELF_PRIVATE(msg);
 	}
 	return _libelf_errors[error];

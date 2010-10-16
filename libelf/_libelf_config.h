@@ -28,10 +28,6 @@
 
 #include <osreldate.h>	/* Bring in __FreeBSD_version. */
 
-#if __FreeBSD_version >= 330000
-#define	LIBELF_CONFIG_STRL_FUNCTIONS	1
-#endif
-
 #define	LIBELF_VCSID(ID)	__FBSDID(ID)
 
 /*
@@ -99,8 +95,6 @@
 
 #include <sys/exec_elf.h>
 #include <machine/elf_machdep.h>
-
-#define	LIBELF_CONFIG_STRL_FUNCTIONS	1
 
 #define	LIBELF_VCSID(ID)	__RCSID(ID)
 
