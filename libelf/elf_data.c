@@ -189,11 +189,12 @@ elf_rawdata(Elf_Scn *s, Elf_Data *d)
 	uint32_t sh_type;
 	uint64_t sh_align, sh_offset, sh_size;
 
-	if (s == NULL || (e = s->s_elf) == NULL ||
-	    e->e_kind != ELF_K_ELF || e->e_rawfile == NULL) {
+	if (s == NULL || (e = s->s_elf) == NULL || e->e_rawfile == NULL) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
+
+	assert(e->e_kind == ELF_K_ELF);
 
 	if (d == NULL && (d = STAILQ_FIRST(&s->s_rawdata)) != NULL)
 		return (d);
