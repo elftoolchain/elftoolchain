@@ -140,57 +140,23 @@ static struct {
 	const char *name;
 	int abi;
 } osabis[] = {
-#ifdef ELFOSABI_SYSV
 	{"sysv", ELFOSABI_SYSV},
-#endif
-#ifdef ELFOSABI_HPUX
 	{"hpus", ELFOSABI_HPUX},
-#endif
-#ifdef ELFOSABI_NETBSD
 	{"netbsd", ELFOSABI_NETBSD},
-#endif
-#ifdef ELFOSABI_LINUX
 	{"linux", ELFOSABI_LINUX},
-#endif
-#ifdef ELFOSABI_HURD
 	{"hurd", ELFOSABI_HURD},
-#endif
-#ifdef ELFOSABI_86OPEN
 	{"86open", ELFOSABI_86OPEN},
-#endif
-#ifdef ELFOSABI_SOLARIS
 	{"solaris", ELFOSABI_SOLARIS},
-#endif
-#ifdef ELFOSABI_AIX
 	{"aix", ELFOSABI_AIX},
-#endif
-#ifdef ELFOSABI_IRIX
 	{"irix", ELFOSABI_IRIX},
-#endif
-#ifdef ELFOSABI_FREEBSD
 	{"freebsd", ELFOSABI_FREEBSD},
-#endif
-#ifdef ELFOSABI_TRU64
 	{"tru64", ELFOSABI_TRU64},
-#endif
-#ifdef ELFOSABI_MODESTO
 	{"modesto", ELFOSABI_MODESTO},
-#endif
-#ifdef ELFOSABI_OPENBSD
 	{"openbsd", ELFOSABI_OPENBSD},
-#endif
-#ifdef ELFOSABI_OPENVMS
 	{"openvms", ELFOSABI_OPENVMS},
-#endif
-#ifdef ELFOSABI_NSK
 	{"nsk", ELFOSABI_NSK},
-#endif
-#ifdef ELFOSABI_ARM
 	{"arm", ELFOSABI_ARM},
-#endif
-#ifdef ELFOSABI_STANDALONE
 	{"standalone", ELFOSABI_STANDALONE},
-#endif
 	{NULL, 0}
 };
 
