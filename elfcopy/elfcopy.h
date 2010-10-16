@@ -161,6 +161,7 @@ struct elfcopy {
 	Bfd_Target_Flavor otf;	/* flavour of output object */
 	int		 oec;	/* elfclass of output object */
 	unsigned char	 oed;	/* endianess of output object */
+	int		 oem;	/* EM_XXX of output object */
 	int		 abi;	/* OSABI of output object */
 	Elf		*ein;	/* ELF descriptor of input object */
 	Elf		*eout;	/* ELF descriptor of output object */
@@ -245,6 +246,7 @@ void	create_elf(struct elfcopy *_ecp);
 void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
+void	init_shstrtab(struct elfcopy *_ecp);
 struct section *insert_shtab(struct elfcopy *_ecp);
 int	is_remove_reloc_sec(struct elfcopy *_ecp, uint32_t _sh_info);
 int	is_remove_section(struct elfcopy *_ecp, const char *_name);
