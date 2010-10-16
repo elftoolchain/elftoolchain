@@ -86,6 +86,7 @@ static struct option elfcopy_longopts[] =
 {
 	{"add-gnu-debuglink", required_argument, NULL, ECP_ADD_GNU_DEBUGLINK},
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
+	{"binary-architecture", required_argument, NULL, 'B'},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
 	{"globalize-symbol", required_argument, NULL, ECP_GLOBALIZE_SYMBOL},
@@ -599,9 +600,12 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 	char			*fn, *s;
 	int			 opt;
 
-	while ((opt = getopt_long(argc, argv, "dgG:I:j:K:L:N:O:pR:sSW:xX",
+	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSW:xX",
 	    elfcopy_longopts, NULL)) != -1) {
 		switch(opt) {
+		case 'B':
+			/* ignored */
+			break;
 		case 'R':
 			sac = lookup_sec_act(ecp, optarg, 1);
 			if (sac->copy != 0)
