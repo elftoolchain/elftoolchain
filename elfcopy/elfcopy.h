@@ -247,6 +247,8 @@ void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
 void	init_shstrtab(struct elfcopy *_ecp);
+void	insert_to_sec_list(struct elfcopy *_ecp, struct section *_sec,
+    int _tail);
 struct section *insert_shtab(struct elfcopy *_ecp, uint64_t hint);
 int	is_remove_reloc_sec(struct elfcopy *_ecp, uint32_t _sh_info);
 int	is_remove_section(struct elfcopy *_ecp, const char *_name);

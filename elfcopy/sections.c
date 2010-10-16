@@ -45,7 +45,6 @@ static void	check_section_rename(struct elfcopy *ecp, struct section *s);
 static void	filter_reloc(struct elfcopy *ecp, struct section *s);
 static int	get_section_flags(struct elfcopy *ecp, const char *name);
 static void	insert_sections(struct elfcopy *ecp);
-static void	insert_to_sec_list(struct elfcopy *ecp, struct section *sec);
 static void	insert_to_strtab(struct section *t, const char *s);
 static int	is_append_section(struct elfcopy *ecp, const char *name);
 static int	is_compress_section(struct elfcopy *ecp, const char *name);
@@ -259,15 +258,17 @@ lookup_sec_act(struct elfcopy *ecp, const char *name, int add)
 	return (sac);
 }
 
-static void
-insert_to_sec_list(struct elfcopy *ecp, struct section *sec)
+void
+insert_to_sec_list(struct elfcopy *ecp, struct section *sec, int tail)
 {
 	struct section *s;
 
-	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
-		if (sec->off < s->off) {
-			TAILQ_INSERT_BEFORE(s, sec, sec_list);
-			goto inc_nos;
+	if (!tail) {
+		TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+			if (sec->off < s->off) {
+				TAILQ_INSERT_BEFORE(s, sec, sec_list);
+				goto inc_nos;
+			}
 		}
 	}
 
@@ -404,7 +405,7 @@ create_scn(struct elfcopy *ecp)
 		if (strcmp(name, ".strtab") == 0)
 			ecp->strtab = s;
 
-		insert_to_sec_list(ecp, s);
+		insert_to_sec_list(ecp, s, 0);
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -447,7 +448,7 @@ insert_shtab(struct elfcopy *ecp, uint64_t hint)
 	shtab->align = (ecp->oec == ELFCLASS32 ? 4 : 8);
 	shtab->loadable = 0;
 	shtab->pseudo = 1;
-	insert_to_sec_list(ecp, shtab);
+	insert_to_sec_list(ecp, shtab, 0);
 
 	return (shtab);
 }
