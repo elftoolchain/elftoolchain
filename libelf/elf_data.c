@@ -58,7 +58,7 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 		return (STAILQ_NEXT(d, d_next));
 
 	if (e->e_rawfile == NULL) {
-		LIBELF_SET_ERROR(SEQUENCE, 0);
+		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
 
