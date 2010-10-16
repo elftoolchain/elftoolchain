@@ -30,7 +30,8 @@
 .Nm elftc_bfd_find_target ,
 .Nm elftc_bfd_target_byteorder ,
 .Nm elftc_bfd_target_class ,
-.Nm elftc_bfd_target_flavor
+.Nm elftc_bfd_target_flavor ,
+.Nm elftc_bfd_target_machine
 .Nd binary object descriptor handling
 .Sh LIBRARY
 .Lb libelftc
@@ -45,6 +46,8 @@
 .Fn elftc_bfd_target_byteorder "Bfd_Target *target"
 .Ft Bfd_Target_Flavor
 .Fn elftc_bfd_target_flavor "Bfd_Target *target"
+.Ft "unsigned int"
+.Fn elftc_bfd_target_machine "Bfd_Target *target"
 .Sh DESCRIPTION
 Function
 .Fn elftc_bfd_find_target
@@ -149,6 +152,10 @@ returns the ELF class associated with the target descriptor; one of
 .Dv ELFCLASS32
 or
 .Dv ELFCLASS64 .
+.Pp
+Function
+.Fn elftc_bfd_target_machine
+returns the ELF architecture associated with the target descriptor.
 .Pp
 Function
 .Fn elftc_bfd_target_flavor

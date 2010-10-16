@@ -9,6 +9,7 @@ global:
 	elftc_bfd_target_byteorder;
 	elftc_bfd_target_class;
 	elftc_bfd_target_flavor;
+	elftc_bfd_target_machine;
 	elftc_bfd_target_type;
 local:
 	*;

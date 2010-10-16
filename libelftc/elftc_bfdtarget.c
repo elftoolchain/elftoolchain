@@ -67,4 +67,9 @@ elftc_bfd_target_class(Bfd_Target *tgt)
 	return (tgt->bt_elfclass);
 }
 
+unsigned int
+elftc_bfd_target_machine(Bfd_Target *tgt)
+{
 
+	return (tgt->bt_machine);
+}
