@@ -1033,6 +1033,9 @@ update_shdr(struct elfcopy *ecp)
 	int		 elferr;
 
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+		if (s->pseudo)
+			continue;
+
 		if (gelf_getshdr(s->os, &osh) == NULL)
 			errx(EX_SOFTWARE, "668 gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
