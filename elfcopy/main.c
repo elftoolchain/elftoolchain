@@ -513,7 +513,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		 * Create output ELF object.
 		 */
 		if (ecp->itf == ETF_BINARY)
-			create_elf_from_binary(ecp, ifd);
+			create_elf_from_binary(ecp, ifd, src);
 		else
 			create_elf(ecp);
 		elf_end(ecp->eout);

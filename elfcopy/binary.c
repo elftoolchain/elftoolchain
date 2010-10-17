@@ -31,6 +31,7 @@
 #include <err.h>
 #include <gelf.h>
 #include <stdio.h>
+#include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
 
@@ -130,13 +131,18 @@ create_binary(int ifd, int ofd)
  * it easier to access the binary data in other compilation units.
  */
 void
-create_elf_from_binary(struct elfcopy *ecp, int ifd)
+create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 {
 	struct section *sec, *sec_temp, *shtab;
+	struct symbuf sy_buf;
+	struct strbuf st_buf;
 	struct stat sb;
 	GElf_Ehdr oeh;
+	GElf_Shdr sh;
 	void *content;
-	uint64_t off;
+	uint64_t off, data_start, data_end, data_size;
+	size_t gst_cap, slen;
+	char dummy;
 
 	/* Reset internal section list. */
 	if (!TAILQ_EMPTY(&ecp->v_sec))
@@ -196,9 +202,99 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd)
 		    elf_errmsg(-1));
 	insert_to_sec_list(ecp, ecp->shstrtab, 1);
 
+	/* Insert section header table here. */
+	shtab = insert_shtab(ecp, 1);
+
+	/* Count in .symtab and .strtab section headers.  */
+	shtab->sz += gelf_fsize(ecp->eout, ELF_T_SHDR, 2, EV_CURRENT);
+
 	/*
-	 * TODO: Create symbol table.
+	 * Generate symbol table content.
 	 */
+
+	data_start = 0;
+	data_end = data_start + sb.st_size;
+	data_size = sb.st_size;
+
+	memset(&sy_buf, 0, sizeof(sy_buf));
+	memset(&st_buf, 0, sizeof(st_buf));
+	sy_buf.nls = 2;
+	sy_buf.ngs = 3;
+
+	dummy = '\0';
+	st_buf.l = &dummy;	/* '\0' at start. */
+	gst_cap = 64;
+	if ((st_buf.g = malloc(gst_cap)) == NULL)
+		err(EX_SOFTWARE, "malloc failed");
+	st_buf.lsz = 1;
+	st_buf.gsz = 0;
+
+	
+#define	ADDSTR(S) do {							\
+	slen = strlen("_binary_") + strlen(ifn) + strlen(S);		\
+	while (st_buf.gsz + slen >= gst_cap - 1) {			\
+		gst_cap *= 2;						\
+		st_buf.g = realloc(st_buf.g, gst_cap);			\
+		if (st_buf.g == NULL)					\
+			err(EX_SOFTWARE, "realloc failed");		\
+	}								\
+	snprintf(&st_buf.g[st_buf.gsz], gst_cap - st_buf.gsz, "%s%s%s",	\
+	    "_binary_", ifn, S);					\
+	st_buf.gsz += slen + 1;						\
+} while (0)
+
+#define	GENSYM(SZ) do {							\
+	sy_buf.l##SZ = calloc(sy_buf.nls, sizeof(Elf##SZ##_Sym));	\
+	sy_buf.g##SZ = calloc(sy_buf.ngs, sizeof(Elf##SZ##_Sym));	\
+	if (sy_buf.l##SZ == NULL || sy_buf.g##SZ == NULL)		\
+		err(EX_SOFTWARE, "calloc failed");			\
+	sy_buf.l##SZ[0].st_info = ELF##SZ##_ST_INFO(STB_LOCAL,		\
+	    STT_NOTYPE);						\
+	sy_buf.l##SZ[0].st_shndx = SHN_UNDEF;				\
+	sy_buf.l##SZ[1].st_info = ELF##SZ##_ST_INFO(STB_LOCAL,		\
+	    STT_SECTION);						\
+	sy_buf.l##SZ[1].st_shndx = 1;					\
+	sy_buf.g##SZ[0].st_name = st_buf.gsz + 1;			\
+	sy_buf.g##SZ[0].st_info = ELF##SZ##_ST_INFO(STB_GLOBAL,		\
+	    STT_NOTYPE);						\
+	sy_buf.g##SZ[0].st_value = data_start;				\
+	sy_buf.g##SZ[0].st_shndx = 1;					\
+	ADDSTR("_start");						\
+	sy_buf.g##SZ[1].st_name = st_buf.gsz + 1;			\
+	sy_buf.g##SZ[1].st_info = ELF##SZ##_ST_INFO(STB_GLOBAL,		\
+	    STT_NOTYPE);						\
+	sy_buf.g##SZ[1].st_value = data_end;				\
+	sy_buf.g##SZ[1].st_shndx = 1;					\
+	ADDSTR("_end");							\
+	sy_buf.g##SZ[2].st_name = st_buf.gsz + 1;			\
+	sy_buf.g##SZ[2].st_info = ELF##SZ##_ST_INFO(STB_GLOBAL,		\
+	    STT_NOTYPE);						\
+	sy_buf.g##SZ[2].st_value = data_size;				\
+	sy_buf.g##SZ[2].st_shndx = SHN_ABS;				\
+	ADDSTR("_size");						\
+} while (0)
+
+	if (ecp->oec == ELFCLASS32) {
+		GENSYM(32);
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
+		    0, SHT_SYMTAB, ELF_T_SYM, 0, 4, 0, 0);
+	} else {
+		GENSYM(64);
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
+		    0, SHT_SYMTAB, ELF_T_SYM, 0, 8, 0, 0);
+	}
+	ecp->strtab = create_external_section(ecp, ".strtab", NULL, 0, 0,
+	    SHT_STRTAB, ELF_T_BYTE, 0, 1, 0, 0);
+
+	ecp->symtab->sz = (sy_buf.nls + sy_buf.ngs) *
+	    (ecp->oec == ELFCLASS32 ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym));
+	ecp->symtab->buf = &sy_buf;
+	ecp->strtab->sz = st_buf.lsz + st_buf.gsz;
+	ecp->strtab->buf = &st_buf;
+	create_symtab_data(ecp);
+
+#undef	GENSYM
+#undef	ADDSTR
 
 	/*
 	 * Write the underlying ehdr. Note that it should be called
@@ -209,19 +305,26 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd)
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
+	ecp->flags |= SYMTAB_EXIST;
 	set_shstrtab(ecp);
 
 	/* Update sh_name pointer for each section header entry. */
 	update_shdr(ecp);
+
+	/* Properly set sh_link field of .symtab section. */
+	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)
+		errx(EX_SOFTWARE, "692 gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	sh.sh_link = elf_ndxscn(ecp->strtab->os);
+	if (!gelf_update_shdr(ecp->symtab->os, &sh))
+		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		    elf_errmsg(-1));
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
 		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
-	/* Insert section header table */
-	shtab = insert_shtab(ecp, 1);
-	
 	/* Resync section offsets. */
 	resync_sections(ecp);
 

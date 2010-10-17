@@ -35,22 +35,6 @@
 
 ELFTC_VCSID("$Id$");
 
-/* Symbol table buffer structure. */
-struct symbuf {
-	Elf32_Sym *l32;		/* 32bit local symbol */
-	Elf32_Sym *g32;		/* 32bit global symbol */
-	Elf64_Sym *l64;		/* 64bit local symbol */
-	Elf64_Sym *g64;		/* 64bit global symbol */
-	size_t ngs, nls;	/* number of each kind */
-};
-
-/* String table buffer structure. */
-struct strbuf {
-	char *l;		/* local symbol string table */
-	char *g;		/* global symbol string table */
-	size_t lsz, gsz;	/* size of each kind */
-};
-
 static int	is_debug_symbol(GElf_Sym *s);
 static int	is_global_symbol(GElf_Sym *s);
 static int	is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s);
@@ -599,10 +583,6 @@ void
 create_symtab(struct elfcopy *ecp)
 {
 	struct section	*s, *sy, *st;
-	struct symbuf	*sy_buf;
-	struct strbuf	*st_buf;
-	Elf_Data	*gsydata, *lsydata, *gstdata, *lstdata;
-	GElf_Shdr	 shy, sht;
 	size_t		 maxndx, ndx;
 
 	sy = ecp->symtab;
@@ -666,6 +646,21 @@ create_symtab(struct elfcopy *ecp)
 		copy_data(st);
 		return;
 	}
+
+	create_symtab_data(ecp);
+}
+
+void
+create_symtab_data(struct elfcopy *ecp)
+{
+	struct section	*sy, *st;
+	struct symbuf	*sy_buf;
+	struct strbuf	*st_buf;
+	Elf_Data	*gsydata, *lsydata, *gstdata, *lstdata;
+	GElf_Shdr	 shy, sht;
+
+	sy = ecp->symtab;
+	st = ecp->strtab;
 
 	if (gelf_getshdr(sy->os, &shy) == NULL)
 		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
