@@ -152,6 +152,22 @@ struct ar_obj {
 	STAILQ_ENTRY(ar_obj) objs;
 };
 
+/* Symbol table buffer structure. */
+struct symbuf {
+	Elf32_Sym *l32;		/* 32bit local symbol */
+	Elf32_Sym *g32;		/* 32bit global symbol */
+	Elf64_Sym *l64;		/* 64bit local symbol */
+	Elf64_Sym *g64;		/* 64bit global symbol */
+	size_t ngs, nls;	/* number of each kind */
+};
+
+/* String table buffer structure. */
+struct strbuf {
+	char *l;		/* local symbol string table */
+	char *g;		/* global symbol string table */
+	size_t lsz, gsz;	/* size of each kind */
+};
+
 /*
  * Structure encapsulates the "global" data for "elfcopy" program.
  */
@@ -245,12 +261,13 @@ void	copy_shdr(struct elfcopy *_ecp, struct section *_s, const char *_name,
     int _copy, int _sec_flags);
 void	create_binary(int _ifd, int _ofd);
 void	create_elf(struct elfcopy *_ecp);
-void	create_elf_from_binary(struct elfcopy *_ecp, int _ifd);
+void	create_elf_from_binary(struct elfcopy *_ecp, int _ifd, const char *ifn);
 struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
     void *_buf, uint64_t _size, uint64_t _off, uint64_t _stype, Elf_Type _dtype,
     uint64_t flags, uint64_t _align, uint64_t _vma, int _loadable);
 void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);
+void	create_symtab_data(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
 void	init_shstrtab(struct elfcopy *_ecp);
 void	insert_to_sec_list(struct elfcopy *_ecp, struct section *_sec,
