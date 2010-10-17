@@ -132,11 +132,11 @@ create_binary(int ifd, int ofd)
 void
 create_elf_from_binary(struct elfcopy *ecp, int ifd)
 {
-	struct section *s, *sec, *sec_temp, *shtab;
+	struct section *sec, *sec_temp, *shtab;
 	struct stat sb;
 	GElf_Ehdr oeh;
-	GElf_Shdr osh;
-	Elf_Data *od;
+	void *content;
+	uint64_t off;
 
 	/* Reset internal section list. */
 	if (!TAILQ_EMPTY(&ecp->v_sec))
@@ -147,6 +147,11 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd)
 
 	if (fstat(ifd, &sb) == -1)
 		err(EX_IOERR, "fstat failed");
+
+	if ((content = mmap(NULL, (size_t) sb.st_size, PROT_READ, MAP_PRIVATE,
+	    ifd, (off_t) 0)) == MAP_FAILED) {
+		err(EX_SOFTWARE, "mmap failed");
+	}
 
 	/*
 	 * TODO: copy the input binary to output binary verbatim if -O is not
@@ -176,56 +181,14 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd)
 	ecp->shstrtab->off = 0;
 
 	/*
-	 * Create .data section which contains the binary data.
+	 * Create `.data' section which contains the binary data. The
+	 * section is inserted immediately after EHDR.
 	 */
-
-	if ((s = calloc(1, sizeof(*s))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
-	s->name = ".data";
-	s->is = NULL;
-	s->off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
-	if (s->off == 0)
+	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
+	if (off == 0)
 		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
-	s->sz = sb.st_size;
-	s->align = 1;
-	s->type = SHT_PROGBITS;
-	s->vma = 0;
-	s->loadable = 1;
-	if ((s->buf = mmap(NULL, (size_t) s->sz, PROT_READ, MAP_PRIVATE, ifd,
-	    (off_t) 0)) == MAP_FAILED) {
-		err(EX_SOFTWARE, "mmap failed");
-	}
-	insert_to_sec_list(ecp, s, 1);
-
-	if ((s->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
-		    elf_errmsg(-1));
-	if (gelf_getshdr(s->os, &osh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
-		    elf_errmsg(-1));
-	osh.sh_type = s->type;
-	osh.sh_addr = s->vma;
-	osh.sh_offset = s->off;
-	osh.sh_size = s->sz;
-	osh.sh_link = 0;
-	osh.sh_info = 0;
-	osh.sh_addralign = s->align;
-	osh.sh_entsize = 0;
-	osh.sh_flags = SHF_ALLOC | SHF_WRITE;
-	add_to_shstrtab(ecp, s->name);
-	if (!gelf_update_shdr(s->os, &osh))
-		errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
-		    elf_errmsg(-1));
-
-	if ((od = elf_newdata(s->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
-		    elf_errmsg(-1));
-	od->d_align = 1;
-	od->d_off = 0;
-	od->d_buf = s->buf;
-	od->d_type = ELF_T_BYTE;
-	od->d_size = s->sz;
-	od->d_version = EV_CURRENT;
+	(void) create_external_section(ecp, ".data", content, sb.st_size, off,
+	    SHT_PROGBITS, ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, 0, 1);
 
 	/* Insert .shstrtab after .data section. */
 	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
