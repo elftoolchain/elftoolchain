@@ -660,19 +660,19 @@ create_symtab(struct elfcopy *ecp)
 	copy_shdr(ecp, sy, ".symtab", 1, 0);
 	copy_shdr(ecp, st, ".strtab", 1, 0);
 
-	if (gelf_getshdr(sy->os, &shy) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
-		    elf_errmsg(-1));
-	if (gelf_getshdr(st->os, &sht) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
-		    elf_errmsg(-1));
-
 	/* Copy verbatim if symbol table is intact. */
 	if (ecp->flags & SYMTAB_INTACT) {
 		copy_data(sy);
 		copy_data(st);
 		return;
 	}
+
+	if (gelf_getshdr(sy->os, &shy) == NULL)
+		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	if (gelf_getshdr(st->os, &sht) == NULL)
+		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
 
 	/*
 	 * Create two Elf_Data for .symtab section of output object, one
