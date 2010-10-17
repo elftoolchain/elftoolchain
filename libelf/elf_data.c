@@ -145,11 +145,12 @@ elf_newdata(Elf_Scn *s)
 	Elf *e;
 	Elf_Data *d;
 
-	if (s == NULL || (e = s->s_elf) == NULL ||
-	    e->e_kind != ELF_K_ELF) {
+	if (s == NULL || (e = s->s_elf) == NULL) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
+
+	assert(e->e_kind == ELF_K_ELF);
 
 	/*
 	 * elf_newdata() has to append a data descriptor, so
