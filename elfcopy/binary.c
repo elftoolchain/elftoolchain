@@ -175,6 +175,10 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	/* Initialise e_ident fields. */
 	oeh.e_ident[EI_CLASS] = ecp->oec;
 	oeh.e_ident[EI_DATA] = ecp->oed;
+	/*
+	 * TODO: Set OSABI according to the OS platform where elfcopy(1)
+	 * was build. (probably)
+	 */
 	oeh.e_ident[EI_OSABI] = ELFOSABI_NONE;
 	oeh.e_machine = ecp->oem;
 	oeh.e_type = ET_REL;
