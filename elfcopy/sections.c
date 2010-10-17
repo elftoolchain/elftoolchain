@@ -925,8 +925,8 @@ copy_data(struct section *s)
 
 struct section *
 create_external_section(struct elfcopy *ecp, const char *name, void *buf,
-    uint64_t size, uint64_t off, uint64_t stype, Elf_Type dtype, uint64_t align,
-    uint64_t vma, int loadable)
+    uint64_t size, uint64_t off, uint64_t stype, Elf_Type dtype, uint64_t flags,
+    uint64_t align, uint64_t vma, int loadable)
 {
 	struct section	*s;
 	Elf_Scn		*os;
@@ -950,6 +950,15 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 	s->nocopy = 1;
 	insert_to_sec_list(ecp, s, 1);
 
+	if (gelf_getshdr(os, &osh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	osh.sh_flags = flags;
+	osh.sh_type = s->type;
+	osh.sh_addralign = s->align;
+	if (!gelf_update_shdr(os, &osh))
+		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		    elf_errmsg(-1));
 	add_to_shstrtab(ecp, name);
 
 	if (buf != NULL && size != 0) {
@@ -962,16 +971,6 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 		od->d_size = size;
 		od->d_type = dtype;
 		od->d_version = EV_CURRENT;
-
-		if (gelf_getshdr(os, &osh) == NULL)
-			errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
-			    elf_errmsg(-1));
-		osh.sh_type = s->type;
-		osh.sh_addralign = s->align;
-
-		if (!gelf_update_shdr(os, &osh))
-			errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
-			    elf_errmsg(-1));
 	}
 
 	/*
@@ -1007,7 +1006,7 @@ insert_sections(struct elfcopy *ecp)
 		/* TODO: Add section header vma/lma, flag changes here */
 
 		(void) create_external_section(ecp, sa->name, sa->content,
-		    sa->size, off, SHT_PROGBITS, ELF_T_BYTE, 1, 0, 0);
+		    sa->size, off, SHT_PROGBITS, ELF_T_BYTE, 0, 1, 0, 0);
 	}
 }
 
