@@ -923,6 +923,66 @@ copy_data(struct section *s)
 		    elf_errmsg(elferr));
 }
 
+struct section *
+create_external_section(struct elfcopy *ecp, const char *name, void *buf,
+    uint64_t size, uint64_t off, uint64_t stype, Elf_Type dtype, uint64_t align,
+    uint64_t vma, int loadable)
+{
+	struct section	*s;
+	Elf_Scn		*os;
+	Elf_Data	*od;
+	GElf_Shdr	 osh;
+
+	if ((os = elf_newscn(ecp->eout)) == NULL)
+		errx(EX_SOFTWARE, "elf_newscn() failed: %s",
+		    elf_errmsg(-1));
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	s->name = name;
+	s->off = off;
+	s->sz = size;
+	s->vma = vma;
+	s->align = align;
+	s->loadable = loadable;
+	s->is = NULL;
+	s->os = os;
+	s->type = stype;
+	s->nocopy = 1;
+	insert_to_sec_list(ecp, s, 1);
+
+	add_to_shstrtab(ecp, name);
+
+	if (buf != NULL && size != 0) {
+		if ((od = elf_newdata(os)) == NULL)
+			errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+			    elf_errmsg(-1));
+		od->d_align = align;
+		od->d_off = 0;
+		od->d_buf = buf;
+		od->d_size = size;
+		od->d_type = dtype;
+		od->d_version = EV_CURRENT;
+
+		if (gelf_getshdr(os, &osh) == NULL)
+			errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+			    elf_errmsg(-1));
+		osh.sh_type = s->type;
+		osh.sh_addralign = s->align;
+
+		if (!gelf_update_shdr(os, &osh))
+			errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+			    elf_errmsg(-1));
+	}
+
+	/*
+	 * Clear SYMTAB_INTACT, as we probably need to update/add new
+	 * STT_SECTION symbols into the symbol table.
+	 */
+	ecp->flags &= ~SYMTAB_INTACT;
+
+	return (s);
+}
+
 /*
  * Insert sections specified by --add-section to the end of section list.
  */
@@ -931,9 +991,6 @@ insert_sections(struct elfcopy *ecp)
 {
 	struct sec_add	*sa;
 	struct section	*s;
-	Elf_Data	*od;
-	Elf_Scn		*os;
-	GElf_Shdr	 osh;
 	size_t		 off;
 
 	/* Put these sections in the end of current list. */
@@ -946,50 +1003,11 @@ insert_sections(struct elfcopy *ecp)
 	}
 
 	STAILQ_FOREACH(sa, &ecp->v_sadd, sadd_list) {
-		if ((os = elf_newscn(ecp->eout)) == NULL)
-			errx(EX_SOFTWARE, "elf_newscn() failed: %s",
-			    elf_errmsg(-1));
-		if ((s = calloc(1, sizeof(*s))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
-		s->name = sa->name;
-		s->off = off;
-		s->sz = sa->size;
-		s->align = 1;
-		s->loadable = 0;
-		s->is = NULL;
-		s->os = os;
-		s->type = SHT_PROGBITS;
-		s->nocopy = 1;
-		TAILQ_INSERT_TAIL(&ecp->v_sec, s, sec_list);
 
-		if ((od = elf_newdata(os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s",
-			    elf_errmsg(-1));
-		od->d_align = 1;
-		od->d_off = 0;
-		od->d_buf = sa->content;
-		od->d_size = sa->size;
-		od->d_type = ELF_T_BYTE;
-		od->d_version = EV_CURRENT;
+		/* TODO: Add section header vma/lma, flag changes here */
 
-		if (gelf_getshdr(os, &osh) == NULL)
-			errx(EX_SOFTWARE, "607 gelf_getshdr() failed: %s",
-			    elf_errmsg(-1));
-		osh.sh_type = SHT_PROGBITS;
-		osh.sh_addralign = s->align;
-		add_to_shstrtab(ecp, sa->name);
-
-		/* Add section header vma/lma, flag changes here */
-
-		if (!gelf_update_shdr(os, &osh))
-			errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
-			    elf_errmsg(-1));
-
-		/*
-		 * Clear SYMTAB_INTACT, as we probably need to add new
-		 * STT_SECTION symbols into the symbol table.
-		 */
-		ecp->flags &= ~SYMTAB_INTACT;
+		(void) create_external_section(ecp, sa->name, sa->content,
+		    sa->size, off, SHT_PROGBITS, ELF_T_BYTE, 1, 0, 0);
 	}
 }
 
