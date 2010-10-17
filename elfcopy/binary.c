@@ -271,8 +271,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd)
 		    elf_errmsg(-1));
 
 	/* Write out the output elf object. */
-        if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
-                errx(EX_SOFTWARE, "elf_update() failed: %s",
-                    elf_errmsg(-1));
-
+	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
+		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		    elf_errmsg(-1));
 }
