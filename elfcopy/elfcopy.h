@@ -248,7 +248,7 @@ void	create_elf(struct elfcopy *_ecp);
 void	create_elf_from_binary(struct elfcopy *_ecp, int _ifd);
 struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
     void *_buf, uint64_t _size, uint64_t _off, uint64_t _stype, Elf_Type _dtype,
-    uint64_t _align, uint64_t _vma, int _loadable);
+    uint64_t flags, uint64_t _align, uint64_t _vma, int _loadable);
 void	create_scn(struct elfcopy *_ecp);
 void	create_symtab(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
