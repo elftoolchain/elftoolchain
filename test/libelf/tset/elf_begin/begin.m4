@@ -128,6 +128,47 @@ tcCmd_tpNull(void)
 }
 
 
+/*
+ * Verify that opening non-regular files fail with ELF_E_ARGUMENT
+ */
+undefine(`FN')
+define(`FN',`
+void
+tcNonRegular_tp$1(void)
+{
+	Elf *e;
+	int error, fd, result;
+
+	e = NULL;
+	fd = -1;
+	result = TET_FAIL;
+
+	TP_ANNOUNCE("opening a $3 fails with ELF_E_ARGUMENT.");
+
+	TP_SET_VERSION();
+
+	if ((fd = open("$2", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open \"$2\" failed: %s", strerror(errno));
+		goto done;
+	}
+
+	e = elf_begin(fd, ELF_C_READ, NULL);
+
+	if (e == NULL && (error = elf_errno()) == ELF_E_ARGUMENT)
+		result = TET_PASS;	/* Verify the error. */
+
+ done:
+	if (e)
+		elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}')
+
+FN(`DeviceFile', `/dev/null', `device file')
+FN(`Directory', `.', `directory')
+
 #define	TEMPLATE	"TCXXXXXX"
 #define	FILENAME_SIZE	16
 char	filename[FILENAME_SIZE];
