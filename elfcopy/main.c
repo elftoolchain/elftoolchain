@@ -537,6 +537,9 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			case ETF_BINARY:
 				create_binary(ofd, ofd0);
 				break;
+			case ETF_SREC:
+				create_srec(ofd, ofd0, dst != NULL ? dst : src);
+				break;
 			default:
 				errx(EX_SOFTWARE, "Internal: unsupported output"
 				    " flavour %d", ecp->oec);
