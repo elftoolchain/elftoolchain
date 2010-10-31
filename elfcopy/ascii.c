@@ -37,16 +37,22 @@
 ELFTC_VCSID("$Id$");
 
 static char hex_digit(uint8_t n);
+static void ihex_write(int ofd, int type, uint64_t addr, uint64_t num,
+    const void *buf, size_t sz);
+static void ihex_write_00(int ofd, uint64_t addr, const void *buf, size_t sz);
+static void ihex_write_01(int ofd);
+static void ihex_write_04(int ofd, uint16_t addr);
+static void ihex_write_05(int ofd, uint64_t e_entry);
 static void srec_write(int ofd, char type, uint64_t addr, const void *buf,
     size_t sz);
-static void srec_write_num(char *line, int *len, uint64_t num, size_t sz,
-    int *checksum);
 static void srec_write_S0(int ofd, const char *ofn);
-static void srec_write_Sd(int ofd, char dr, uint64_t addr, void *buf,
+static void srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf,
     size_t sz);
 static void srec_write_Se(int ofd, uint64_t e_entry);
+static void write_num(char *line, int *len, uint64_t num, size_t sz,
+    int *checksum);
 
-#define	_SREC_LINE_BUFSZ	1024
+#define	_LINE_BUFSZ	1024
 
 /*
  * Convert ELF object to S-Record.
@@ -136,6 +142,65 @@ create_srec(int ifd, int ofd, const char *ofn)
 	srec_write_Se(ofd, eh.e_entry);
 }
 
+void
+create_ihex(int ifd, int ofd)
+{
+	Elf *e;
+	Elf_Scn *scn;
+	Elf_Data *d;
+	GElf_Ehdr eh;
+	GElf_Shdr sh;
+	int elferr;
+	uint16_t addr_hi, old_addr_hi;
+
+	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
+		errx(EX_DATAERR, "elf_begin() failed: %s",
+		    elf_errmsg(-1));
+
+	old_addr_hi = 0;
+	scn = NULL;
+	while ((scn = elf_nextscn(e, scn)) != NULL) {
+		if (gelf_getshdr(scn, &sh) == NULL) {
+			warnx("gelf_getshdr failed: %s", elf_errmsg(-1));
+			(void) elf_errno();
+			continue;
+		}
+		if ((sh.sh_flags & SHF_ALLOC) == 0 ||
+		    sh.sh_type == SHT_NOBITS ||
+		    sh.sh_size == 0)
+			continue;
+		if (sh.sh_addr > 0xFFFFFFFF) {
+			warnx("address space too big for Intel Hex file");
+			continue;
+		}
+		(void) elf_errno();
+		if ((d = elf_getdata(scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				warnx("elf_getdata failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if (d->d_buf == NULL || d->d_size == 0)
+			continue;
+		addr_hi = (sh.sh_addr >> 16) & 0xFFFF;
+		if (addr_hi > 0 && addr_hi != old_addr_hi) {
+			/* Write 04 record if addr_hi is new. */
+			old_addr_hi = addr_hi;
+			ihex_write_04(ofd, addr_hi);
+		}
+		ihex_write_00(ofd, sh.sh_addr, d->d_buf, d->d_size);
+	}
+	elferr = elf_errno();
+	if (elferr != 0)
+		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
+
+	if (gelf_getehdr(e, &eh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+	ihex_write_05(ofd, eh.e_entry);
+	ihex_write_01(ofd);
+}
+
 static void
 srec_write_S0(int ofd, const char *ofn)
 {
@@ -144,9 +209,9 @@ srec_write_S0(int ofd, const char *ofn)
 }
 
 static void
-srec_write_Sd(int ofd, char dr, uint64_t addr, void *buf, size_t sz)
+srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf, size_t sz)
 {
-	uint8_t *p, *pe;
+	const uint8_t *p, *pe;
 
 	p = buf;
 	pe = p + sz;
@@ -180,10 +245,9 @@ srec_write_Se(int ofd, uint64_t e_entry)
 static void
 srec_write(int ofd, char type, uint64_t addr, const void *buf, size_t sz)
 {
-	char line[_SREC_LINE_BUFSZ];
+	char line[_LINE_BUFSZ];
 	const uint8_t *p, *pe;
-	int len, addr_sz;
-	int checksum;
+	int len, addr_sz, checksum;
 
 	if (sz > 16)
 		errx(EX_SOFTWARE, "Internal: srec_write() sz too big");
@@ -198,11 +262,11 @@ srec_write(int ofd, char type, uint64_t addr, const void *buf, size_t sz)
 	line[0] = 'S';
 	line[1] = type;
 	len = 2;
-	srec_write_num(line, &len, addr_sz + sz + 1, 1, &checksum);
-	srec_write_num(line, &len, addr, addr_sz, &checksum);
+	write_num(line, &len, addr_sz + sz + 1, 1, &checksum);
+	write_num(line, &len, addr, addr_sz, &checksum);
 	for (p = buf, pe = p + sz; p < pe; p++)
-		srec_write_num(line, &len, *p, 1, &checksum);
-	srec_write_num(line, &len, ~checksum & 0xFF, 1, NULL);
+		write_num(line, &len, *p, 1, &checksum);
+	write_num(line, &len, ~checksum & 0xFF, 1, NULL);
 	line[len++] = '\r';
 	line[len++] = '\n';
 	if (write(ofd, line, len) != (ssize_t) len)
@@ -210,7 +274,84 @@ srec_write(int ofd, char type, uint64_t addr, const void *buf, size_t sz)
 }
 
 static void
-srec_write_num(char *line, int *len, uint64_t num, size_t sz, int *checksum)
+ihex_write_00(int ofd, uint64_t addr, const void *buf, size_t sz)
+{
+	uint16_t addr_hi, old_addr_hi;
+	const uint8_t *p, *pe;
+
+	old_addr_hi = (addr >> 16) & 0xFFFF;
+	p = buf;
+	pe = p + sz;
+	while (pe - p >= 16) {
+		ihex_write(ofd, 0, addr, 0, p, 16);
+		addr += 16;
+		p += 16;
+		addr_hi = (addr >> 16) & 0xFFFF;
+		if (addr_hi != old_addr_hi) {
+			old_addr_hi = addr_hi;
+			ihex_write_04(ofd, addr_hi);
+		}
+	}
+	if (pe - p > 0)
+		ihex_write(ofd, 0, addr, 0, p, pe - p);
+}
+
+static void
+ihex_write_01(int ofd)
+{
+
+	ihex_write(ofd, 1, 0, 0, NULL, 0);
+}
+
+static void
+ihex_write_04(int ofd, uint16_t addr)
+{
+
+	ihex_write(ofd, 4, 0, addr, NULL, 2);
+}
+
+static void
+ihex_write_05(int ofd, uint64_t e_entry)
+{
+
+	if (e_entry > 0xFFFFFFFF)
+		errx(EX_DATAERR, "address space too big for Intel Hex file");
+
+	ihex_write(ofd, 5, 0, e_entry, NULL, 4);
+}
+
+static void
+ihex_write(int ofd, int type, uint64_t addr, uint64_t num, const void *buf,
+    size_t sz)
+{
+	char line[_LINE_BUFSZ];
+	const uint8_t *p, *pe;
+	int len, checksum;
+
+	if (sz > 16)
+		errx(EX_SOFTWARE, "Internal: ihex_write() sz too big");
+	checksum = 0;
+	line[0] = ':';
+	len = 1;
+	write_num(line, &len, sz, 1, &checksum);
+	write_num(line, &len, addr, 2, &checksum);
+	write_num(line, &len, type, 1, &checksum);
+	if (sz > 0) {
+		if (buf != NULL) {
+			for (p = buf, pe = p + sz; p < pe; p++)
+				write_num(line, &len, *p, 1, &checksum);
+		} else
+			write_num(line, &len, num, sz, &checksum);
+	}
+	write_num(line, &len, (~checksum + 1) & 0xFF, 1, NULL);
+	line[len++] = '\r';
+	line[len++] = '\n';
+	if (write(ofd, line, len) != (ssize_t) len)
+		err(EX_DATAERR, "write failed");
+}
+
+static void
+write_num(char *line, int *len, uint64_t num, size_t sz, int *checksum)
 {
 	uint8_t b;
 
