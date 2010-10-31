@@ -362,6 +362,11 @@ struct _Bfd_Target _libelftc_targets[] = {
 	},
 
 	{
+		.bt_name = "ihex",
+		.bt_type = ETF_IHEX,
+	},
+
+	{
 		.bt_name = "srec",
 		.bt_type = ETF_SREC,
 	},
