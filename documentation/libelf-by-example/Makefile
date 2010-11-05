@@ -17,11 +17,13 @@ IMAGES_MP=		fig-arstr.mp fig-ariter.mp fig-data.mp \
 			fig-scn.mp fig-shdrlayout.mp fig-strtab.mp \
 			fig-versions.mp 
 
+.include "${TOP}/mk/elftoolchain.tex.mk"
+
 check-example-syntax: .PHONY
 .for f in ${SRCS:Mprog*}
-	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' ${.CURDIR}/${f} > ${.OBJDIR}/$${c}; \
-	echo -n $${c} ' '; cc ${.OBJDIR}/$${c} -lelf && rm ${.OBJDIR}/$${c}
+	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' \
+		${.CURDIR}/${f} > ${.OBJDIR}/$${c}; \
+	echo -n $${c} ' '; cc ${.OBJDIR}/$${c} -L${.CURDIR}/${TOP}/libelf \
+		-lelf && rm ${.OBJDIR}/$${c}
 .endfor
 	@echo
-
-.include "${TOP}/mk/elftoolchain.tex.mk"
