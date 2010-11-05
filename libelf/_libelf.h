@@ -69,7 +69,7 @@ extern struct _libelf_globals _libelf;
  * Flags for library internal use.  These use the upper 16 bits of a
  * flags field.
  */
-#define	LIBELF_F_MALLOCED	0x010000 /* whether data was malloc'ed */
+#define	LIBELF_F_DATA_MALLOCED	0x010000 /* whether data was malloc'ed */
 #define	LIBELF_F_MMAP		0x020000 /* whether e_rawfile was mmap'ed */
 #define	LIBELF_F_SHDRS_LOADED	0x040000 /* whether all shdrs were read in */
 

@@ -151,7 +151,7 @@ Elf_Data *
 _libelf_release_data(Elf_Data *d)
 {
 
-	if (d->d_flags & LIBELF_F_MALLOCED)
+	if (d->d_flags & LIBELF_F_DATA_MALLOCED)
 		free(d->d_buf);
 
 	free(d);
@@ -194,7 +194,7 @@ _libelf_release_scn(Elf_Scn *s)
 	}
 
 	STAILQ_FOREACH_SAFE(d, &s->s_rawdata, d_next, td) {
-		assert((d->d_flags & LIBELF_F_MALLOCED) == 0);
+		assert((d->d_flags & LIBELF_F_DATA_MALLOCED) == 0);
 		STAILQ_REMOVE(&s->s_rawdata, d, _Elf_Data, d_next);
 		d = _libelf_release_data(d);
 	}

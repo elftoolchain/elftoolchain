@@ -124,7 +124,7 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 		return (NULL);
 	}
 
-	d->d_flags  |= LIBELF_F_MALLOCED;
+	d->d_flags  |= LIBELF_F_DATA_MALLOCED;
 
 	xlate = _libelf_get_translator(elftype, ELF_TOMEMORY, elfclass);
 	if (!(*xlate)(d->d_buf, d->d_size, e->e_rawfile + sh_offset, count,
