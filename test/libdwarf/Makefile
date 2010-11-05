@@ -1,6 +1,10 @@
-.if !defined(TET_ROOT)
-.error TET_ROOT must be defined!
-.endif
+#
+# $Id$
+#
+
+TOP=	../..
+
+.include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 .if make(tccbuild)
 TET_OPTIONS+=	-b
