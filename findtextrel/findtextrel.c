@@ -309,7 +309,7 @@ find_textrel(const char *fn)
 	 */
 
 	if (eh.e_phnum == 0) {
-		printf("%s: ELF object does not contain progream headers\n",
+		printf("%s: ELF object does not contain program headers\n",
 		    fn);
 		goto exit;
 	}
@@ -365,7 +365,7 @@ find_textrel(const char *fn)
 		warnx("%s: elf_nextscn() failed: %s", fn, elf_errmsg(elferr));
 
 	if (!textrel)
-		printf("%s: ELF object does not contain any text relocation\n",
+		printf("%s: ELF object does not contain a text relocation\n",
 		    fn);
 
 exit:
