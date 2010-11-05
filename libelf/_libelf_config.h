@@ -26,8 +26,6 @@
 
 #ifdef __FreeBSD__
 
-#include <osreldate.h>	/* Bring in __FreeBSD_version. */
-
 #define	LIBELF_VCSID(ID)	__FBSDID(ID)
 
 /*
