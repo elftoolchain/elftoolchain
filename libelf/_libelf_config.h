@@ -93,12 +93,9 @@
 
 #ifdef __NetBSD__
 
-#include <sys/exec_elf.h>
 #include <machine/elf_machdep.h>
 
 #define	LIBELF_VCSID(ID)	__RCSID(ID)
-
-#define	roundup2	roundup
 
 #if	!defined(ARCH_ELFSIZE)
 #error	ARCH_ELFSIZE is not defined.
