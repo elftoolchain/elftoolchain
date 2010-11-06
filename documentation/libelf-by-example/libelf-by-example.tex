@@ -42,6 +42,8 @@
 
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
+\newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
+    {elftoolchain}\xspace}
 \newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\filename}[1]{\texttt{#1}}
 \newcommand{\firstterm}[1]{\textit{#1}}
@@ -173,10 +175,11 @@ by the ``\raisebox{-.5ex}{\texttrademark}'' or the ``\textregistered'' symbol.
 
 \subsection*{Acknowledgements}
 
-The following people (names in alphabetical order) offered constructive
-criticism of earlier drafts of this tutorial: Cherry George Mathew,
-Douglas Fraser, Hyogeol Lee, Kai Wang, Prashanth Chandra, Ricardo
-Nabinger Sanchez, Sam Arun Raj, Y.~Giridhar Appaji Nag.  Thank you, all.
+The following people (names in alphabetical order) offered
+constructive criticism of this tutorial: Cherry George Mathew, Douglas
+Fraser, Hyogeol Lee, Kai Wang, Prashanth Chandra, Ricardo Nabinger
+Sanchez, Sam Arun Raj, Wei-Jen Chen and Y.~Giridhar Appaji Nag.  Thank
+you, all.
 
 \chapter{Introduction}
 
@@ -201,6 +204,11 @@ for application writers to read and write ELF objects with.
 \index{libelf@\library{libelf}!purpose of} The library eases the task
 of writing cross-tools that can run on one machine architecture and
 manipulate ELF objects for another.
+
+There are multiple implementations of the ELF(3)/GELF(3) APIs in the
+open-source world.  This tutorial is based on the \library{libelf}
+library being developed as part of the \elftoolchain project on
+\href{http://sourceforge.net/}{SourceForge.Net}.
 
 \section*{Rationale for this tutorial}
 
@@ -2081,6 +2089,12 @@ The current specification of the ELF format, the ``%
 \href{http://www.x86.org/ftp/manuals/tools/elf.pdf}%
 {Tool Interface Standard (TIS) Executable and Linking Format
 (ELF) Specification, Version 1.2}'' is freely available to download.
+
+\section{Getting Further Help}
+
+If you have further questions about the use of \library{libelf},
+please feel free to use our discussion list:
+\texttt{elftoolchain-\-developers@lists.sourceforge.net}.
 
 \backmatter
 
