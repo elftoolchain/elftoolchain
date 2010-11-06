@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2009 Kai Wang
+ * Copyright (c) 2007-2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -218,6 +218,7 @@ struct elfcopy {
 #define DISCARD_LOCAL	0x0080U
 #define WEAKEN_ALL	0x0100U
 #define PRESERVE_DATE	0x1000U
+#define SREC_FORCES3	0x2000U
 
 	int flags;		/* elfcopy run control flags. */
 
@@ -267,7 +268,7 @@ struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
     uint64_t flags, uint64_t _align, uint64_t _vma, int _loadable);
 void	create_ihex(int _ifd, int _ofd);
 void	create_scn(struct elfcopy *_ecp);
-void	create_srec(int _ifd, int _ofd, const char *_ofn);
+void	create_srec(struct elfcopy *_ecp, int _ifd, int _ofd, const char *_ofn);
 void	create_symtab(struct elfcopy *_ecp);
 void	create_symtab_data(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
