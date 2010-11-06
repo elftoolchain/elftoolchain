@@ -48,7 +48,7 @@ static void srec_write(int ofd, char type, uint64_t addr, const void *buf,
 static void srec_write_S0(int ofd, const char *ofn);
 static void srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf,
     size_t sz);
-static void srec_write_Se(int ofd, uint64_t e_entry);
+static void srec_write_Se(int ofd, uint64_t e_entry, int forceS3);
 static void write_num(char *line, int *len, uint64_t num, size_t sz,
     int *checksum);
 
@@ -58,7 +58,7 @@ static void write_num(char *line, int *len, uint64_t num, size_t sz,
  * Convert ELF object to S-Record.
  */
 void
-create_srec(int ifd, int ofd, const char *ofn)
+create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -76,34 +76,36 @@ create_srec(int ifd, int ofd, const char *ofn)
 	/*
 	 * Find maximum address size in the first iteration.
 	 */
-	max_addr = 0;
-	scn = NULL;
-	while ((scn = elf_nextscn(e, scn)) != NULL) {
-		if (gelf_getshdr(scn, &sh) == NULL) {
-			warnx("gelf_getshdr failed: %s", elf_errmsg(-1));
-			(void) elf_errno();
-			continue;
-		}
-		if ((sh.sh_flags & SHF_ALLOC) == 0 ||
-		    sh.sh_type == SHT_NOBITS ||
-		    sh.sh_size == 0)
-			continue;
-		if ((uint64_t) sh.sh_addr > max_addr)
-			max_addr = sh.sh_addr;
-	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
-
-	if (max_addr > 0xFFFFFFFF)
-		errx(EX_DATAERR, "address space too big for S-Record file");
-
-	if (max_addr <= 0xFFFF)
-		dr = '1';
-	else if (max_addr <= 0xFFFFFF)
-		dr = '2';
-	else
+	if (ecp->flags & SREC_FORCES3)
 		dr = '3';
+	else {
+		max_addr = 0;
+		scn = NULL;
+		while ((scn = elf_nextscn(e, scn)) != NULL) {
+			if (gelf_getshdr(scn, &sh) == NULL) {
+				warnx("gelf_getshdr failed: %s",
+				    elf_errmsg(-1));
+				(void) elf_errno();
+				continue;
+			}
+			if ((sh.sh_flags & SHF_ALLOC) == 0 ||
+			    sh.sh_type == SHT_NOBITS ||
+			    sh.sh_size == 0)
+				continue;
+			if ((uint64_t) sh.sh_addr > max_addr)
+				max_addr = sh.sh_addr;
+		}
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
+
+		if (max_addr <= 0xFFFF)
+			dr = '1';
+		else if (max_addr <= 0xFFFFFF)
+			dr = '2';
+		else
+			dr = '3';
+	}
 
 	/* Generate S0 record which contains the output filename. */
 	srec_write_S0(ofd, ofn);
@@ -120,6 +122,10 @@ create_srec(int ifd, int ofd, const char *ofn)
 		    sh.sh_type == SHT_NOBITS ||
 		    sh.sh_size == 0)
 			continue;
+		if (sh.sh_addr > 0xFFFFFFFF) {
+			warnx("address space too big for S-Record file");
+			continue;
+		}
 		(void) elf_errno();
 		if ((d = elf_getdata(scn, NULL)) == NULL) {
 			elferr = elf_errno();
@@ -139,7 +145,7 @@ create_srec(int ifd, int ofd, const char *ofn)
 	if (gelf_getehdr(e, &eh) == NULL)
 		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
-	srec_write_Se(ofd, eh.e_entry);
+	srec_write_Se(ofd, eh.e_entry, ecp->flags & SREC_FORCES3);
 }
 
 void
@@ -225,19 +231,25 @@ srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf, size_t sz)
 }
 
 static void
-srec_write_Se(int ofd, uint64_t e_entry)
+srec_write_Se(int ofd, uint64_t e_entry, int forceS3)
 {
 	char er;
 
-	if (e_entry > 0xFFFFFFFF)
-		errx(EX_DATAERR, "address space too big for S-Record file");
+	if (e_entry > 0xFFFFFFFF) {
+		warnx("address space too big for S-Record file");
+		return;
+	}
 
-	if (e_entry <= 0xFFFF)
-		er = '9';
-	else if (e_entry <= 0xFFFFFF)
-		er = '8';
-	else
+	if (forceS3)
 		er = '7';
+	else {
+		if (e_entry <= 0xFFFF)
+			er = '9';
+		else if (e_entry <= 0xFFFFFF)
+			er = '8';
+		else
+			er = '7';
+	}
 
 	srec_write(ofd, er, e_entry, NULL, 0);
 }
@@ -314,8 +326,10 @@ static void
 ihex_write_05(int ofd, uint64_t e_entry)
 {
 
-	if (e_entry > 0xFFFFFFFF)
-		errx(EX_DATAERR, "address space too big for Intel Hex file");
+	if (e_entry > 0xFFFFFFFF) {
+		warnx("address space too big for Intel Hex file");
+		return;
+	}
 
 	ihex_write(ofd, 5, 0, e_entry, NULL, 4);
 }
