@@ -47,7 +47,7 @@ static void srec_write(int ofd, char type, uint64_t addr, const void *buf,
     size_t sz);
 static void srec_write_S0(int ofd, const char *ofn);
 static void srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf,
-    size_t sz);
+    size_t sz, size_t rlen);
 static void srec_write_Se(int ofd, uint64_t e_entry, int forceS3);
 static void write_num(char *line, int *len, uint64_t num, size_t sz,
     int *checksum);
@@ -66,19 +66,20 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 	GElf_Ehdr eh;
 	GElf_Shdr sh;
 	uint64_t max_addr;
-	int elferr;
+	size_t rlen;
+	int elferr, addr_sz;
 	char dr;
 
 	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
 		errx(EX_DATAERR, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 
-	/*
-	 * Find maximum address size in the first iteration.
-	 */
-	if (ecp->flags & SREC_FORCES3)
+	if (ecp->flags & SREC_FORCE_S3)
 		dr = '3';
 	else {
+		/*
+		 * Find maximum address size in the first iteration.
+		 */
 		max_addr = 0;
 		scn = NULL;
 		while ((scn = elf_nextscn(e, scn)) != NULL) {
@@ -106,6 +107,17 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 		else
 			dr = '3';
 	}
+
+	if (ecp->flags | SREC_FORCE_LEN) {
+		addr_sz = dr - '0' + 1;
+		if (ecp->srec_len < 1)
+			rlen = 1;
+		else if (ecp->srec_len + addr_sz + 1 > 255)
+			rlen = 255 - (addr_sz + 1);
+		else
+			rlen = ecp->srec_len;
+	} else
+		rlen = 16;
 
 	/* Generate S0 record which contains the output filename. */
 	srec_write_S0(ofd, ofn);
@@ -135,7 +147,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 		}
 		if (d->d_buf == NULL || d->d_size == 0)
 			continue;
-		srec_write_Sd(ofd, dr, sh.sh_addr, d->d_buf, d->d_size);
+		srec_write_Sd(ofd, dr, sh.sh_addr, d->d_buf, d->d_size, rlen);
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -145,7 +157,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 	if (gelf_getehdr(e, &eh) == NULL)
 		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
-	srec_write_Se(ofd, eh.e_entry, ecp->flags & SREC_FORCES3);
+	srec_write_Se(ofd, eh.e_entry, ecp->flags & SREC_FORCE_S3);
 }
 
 void
@@ -215,16 +227,17 @@ srec_write_S0(int ofd, const char *ofn)
 }
 
 static void
-srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf, size_t sz)
+srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf, size_t sz,
+    size_t rlen)
 {
 	const uint8_t *p, *pe;
 
 	p = buf;
 	pe = p + sz;
-	while (pe - p >= 16) {
-		srec_write(ofd, dr, addr, p, 16);
-		addr += 16;
-		p += 16;
+	while (pe - p >= (int) rlen) {
+		srec_write(ofd, dr, addr, p, rlen);
+		addr += rlen;
+		p += rlen;
 	}
 	if (pe - p > 0)
 		srec_write(ofd, dr, addr, p, pe - p);
@@ -261,8 +274,6 @@ srec_write(int ofd, char type, uint64_t addr, const void *buf, size_t sz)
 	const uint8_t *p, *pe;
 	int len, addr_sz, checksum;
 
-	if (sz > 16)
-		errx(EX_SOFTWARE, "Internal: srec_write() sz too big");
 	if (type == '0' || type == '1' || type == '5' || type == '9')
 		addr_sz = 2;
 	else if (type == '2' || type == '8')

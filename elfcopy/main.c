@@ -58,6 +58,7 @@ enum options
 	ECP_SET_OSABI,
 	ECP_SET_SEC_FLAGS,
 	ECP_SREC_FORCE_S3,
+	ECP_SREC_LEN,
 	ECP_STRIP_SYMBOLS,
 	ECP_STRIP_UNNEEDED,
 	ECP_WEAKEN_ALL,
@@ -111,6 +112,7 @@ static struct option elfcopy_longopts[] =
 	{"rename-section", required_argument, NULL, ECP_RENAME_SECTION},
 	{"set-section-flags", required_argument, NULL, ECP_SET_SEC_FLAGS},
 	{"srec-forceS3", no_argument, NULL, ECP_SREC_FORCE_S3},
+	{"srec-len", required_argument, NULL, ECP_SREC_LEN},
 	{"strip-all", no_argument, NULL, 'S'},
 	{"strip-debug", no_argument, 0, 'g'},
 	{"strip-symbol", required_argument, NULL, 'N'},
@@ -724,7 +726,11 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			parse_sec_flags(sac, s);
 			break;
 		case ECP_SREC_FORCE_S3:
-			ecp->flags |= SREC_FORCES3;
+			ecp->flags |= SREC_FORCE_S3;
+			break;
+		case ECP_SREC_LEN:
+			ecp->flags |= SREC_FORCE_LEN;
+			ecp->srec_len = strtoul(optarg, NULL, 10);
 			break;
 		case ECP_STRIP_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_STRIP);

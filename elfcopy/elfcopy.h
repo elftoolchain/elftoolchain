@@ -218,11 +218,12 @@ struct elfcopy {
 #define DISCARD_LOCAL	0x0080U
 #define WEAKEN_ALL	0x0100U
 #define PRESERVE_DATE	0x1000U
-#define SREC_FORCES3	0x2000U
+#define SREC_FORCE_S3	0x2000U
+#define SREC_FORCE_LEN	0x4000U
 
-	int flags;		/* elfcopy run control flags. */
-
-	char	*debuglink;	/* GNU debuglink file. */
+	int		 flags;		/* elfcopy run control flags. */
+	unsigned long	 srec_len;	/* S-Record length. */
+	char		*debuglink;	/* GNU debuglink file. */
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
 	unsigned char	*v_rel;		/* symbols needed by relocation. */
