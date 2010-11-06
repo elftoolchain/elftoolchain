@@ -116,6 +116,7 @@ report_textrel(const char *fn, Elf *e, Dwarf_Debug dbg, uintmax_t off,
 
 	printf("%s:   off: %#jx", fn, off);
 
+	found = 0;
 	scn = NULL;
 	while ((scn = elf_nextscn(e, scn)) != NULL) {
 		if (gelf_getshdr(scn, &sh) == NULL) {
