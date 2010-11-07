@@ -176,6 +176,7 @@ struct elfcopy {
 	int		 iec;	/* elfclass of input object */
 	Bfd_Target_Flavor itf;	/* flavour of input object */
 	Bfd_Target_Flavor otf;	/* flavour of output object */
+	const char	*otgt;	/* output target name */
 	int		 oec;	/* elfclass of output object */
 	unsigned char	 oed;	/* endianess of output object */
 	int		 oem;	/* EM_XXX of output object */
