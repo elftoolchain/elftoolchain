@@ -28,6 +28,7 @@
 #include <sys/param.h>
 #include <err.h>
 #include <gelf.h>
+#include <stdio.h>
 #include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
@@ -45,6 +46,8 @@ static void ihex_write_04(int ofd, uint16_t addr);
 static void ihex_write_05(int ofd, uint64_t e_entry);
 static void srec_write(int ofd, char type, uint64_t addr, const void *buf,
     size_t sz);
+static void srec_write_symtab(int ofd, const char *ofn, Elf *e, Elf_Scn *scn,
+    GElf_Shdr *sh);
 static void srec_write_S0(int ofd, const char *ofn);
 static void srec_write_Sd(int ofd, char dr, uint64_t addr, const void *buf,
     size_t sz, size_t rlen);
@@ -73,6 +76,23 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
 		errx(EX_DATAERR, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
+
+	/* Output a symbol table for `symbolsrec' target. */
+	if (!strncmp(ecp->otgt, "symbolsrec", strlen("symbolsrec"))) {
+		scn = NULL;
+		while ((scn = elf_nextscn(e, scn)) != NULL) {
+			if (gelf_getshdr(scn, &sh) == NULL) {
+				warnx("gelf_getshdr failed: %s",
+				    elf_errmsg(-1));
+				(void) elf_errno();
+				continue;
+			}
+			if (sh.sh_type != SHT_SYMTAB)
+				continue;
+			srec_write_symtab(ofd, ofn, e, scn, &sh);
+			break;
+		}
+	}
 
 	if (ecp->flags & SREC_FORCE_S3)
 		dr = '3';
@@ -108,7 +128,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 			dr = '3';
 	}
 
-	if (ecp->flags | SREC_FORCE_LEN) {
+	if (ecp->flags & SREC_FORCE_LEN) {
 		addr_sz = dr - '0' + 1;
 		if (ecp->srec_len < 1)
 			rlen = 1;
@@ -217,6 +237,58 @@ create_ihex(int ifd, int ofd)
 		    elf_errmsg(-1));
 	ihex_write_05(ofd, eh.e_entry);
 	ihex_write_01(ofd);
+}
+
+static void
+srec_write_symtab(int ofd, const char *ofn, Elf *e, Elf_Scn *scn, GElf_Shdr *sh)
+{
+	char line[_LINE_BUFSZ];
+	GElf_Sym sym;
+	Elf_Data *d;
+	const char *name;
+	size_t sc;
+	int elferr, i;
+
+#define _WRITE_LINE do {						\
+	if (write(ofd, line, strlen(line)) != (ssize_t) strlen(line)) 	\
+		errx(EX_IOERR, "write failed");				\
+	} while (0)
+
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			warnx("elf_getdata failed: %s",
+			    elf_errmsg(-1));
+		return;
+	}
+	if (d->d_buf == NULL || d->d_size == 0)
+		return;
+
+	snprintf(line, sizeof(line), "$$ %s\r\n", ofn);
+	_WRITE_LINE;
+	sc = d->d_size / sh->sh_entsize;
+	for (i = 1; (size_t) i < sc; i++) {
+		if (gelf_getsym(d, i, &sym) != &sym) {
+			warnx("gelf_getsym failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if (GELF_ST_TYPE(sym.st_info) == STT_SECTION ||
+		    GELF_ST_TYPE(sym.st_info) == STT_FILE)
+			continue;
+		if ((name = elf_strptr(e, sh->sh_link, sym.st_name)) == NULL) {
+			warnx("elf_strptr failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		snprintf(line, sizeof(line), "  %s $%jx\r\n", name,
+		    (uintmax_t) sym.st_value);
+		_WRITE_LINE;
+	}
+	snprintf(line, sizeof(line), "$$ \r\n");
+	_WRITE_LINE;
+
+#undef	_WRITE_LINE
 }
 
 static void
