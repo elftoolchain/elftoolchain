@@ -40,36 +40,24 @@ _libelf_xlate_shtype(uint32_t sht)
 		return (ELF_T_DYN);
 	case SHT_DYNSYM:
 		return (ELF_T_SYM);
-#if	defined(SHT_FINI_ARRAY)
 	case SHT_FINI_ARRAY:
 		return (ELF_T_ADDR);
-#endif
-#if	defined(SHT_GNU_HASH)
 	case SHT_GNU_HASH:
 		return (ELF_T_GNUHASH);
-#endif
-#if	defined(SHT_GNU_LIBLIST)
 	case SHT_GNU_LIBLIST:
 		return (ELF_T_WORD);
-#endif
-#if	defined(SHT_GROUP)
 	case SHT_GROUP:
 		return (ELF_T_WORD);
-#endif
 	case SHT_HASH:
 		return (ELF_T_WORD);
-#if	defined(SHT_INIT_ARRAY)
 	case SHT_INIT_ARRAY:
 		return (ELF_T_ADDR);
-#endif
 	case SHT_NOBITS:
 		return (ELF_T_BYTE);
 	case SHT_NOTE:
 		return (ELF_T_NOTE);
-#if	defined(SHT_PREINIT_ARRAY)
 	case SHT_PREINIT_ARRAY:
 		return (ELF_T_ADDR);
-#endif
 	case SHT_PROGBITS:
 		return (ELF_T_BYTE);
 	case SHT_REL:
@@ -80,34 +68,20 @@ _libelf_xlate_shtype(uint32_t sht)
 		return (ELF_T_BYTE);
 	case SHT_SYMTAB:
 		return (ELF_T_SYM);
-#if	defined(SHT_SYMTAB_SHNDX)
 	case SHT_SYMTAB_SHNDX:
 		return (ELF_T_WORD);
-#endif
-#if	defined(SHT_SUNW_dof)
 	case SHT_SUNW_dof:
 		return (ELF_T_BYTE);
-#endif
-#if	defined(SHT_SUNW_move)
 	case SHT_SUNW_move:
 		return (ELF_T_MOVE);
-#endif
-#if	defined(SHT_SUNW_syminfo)
 	case SHT_SUNW_syminfo:
 		return (ELF_T_SYMINFO);
-#endif
-#if	defined(SHT_SUNW_verdef)
 	case SHT_SUNW_verdef:	/* == SHT_GNU_verdef */
 		return (ELF_T_VDEF);
-#endif
-#if	defined(SHT_SUNW_verneed)
 	case SHT_SUNW_verneed:	/* == SHT_GNU_verneed */
 		return (ELF_T_VNEED);
-#endif
-#if	defined(SHT_SUNW_versym)
 	case SHT_SUNW_versym:	/* == SHT_GNU_versym */
 		return (ELF_T_HALF);
-#endif
 	default:
 		return (-1);
 	}
