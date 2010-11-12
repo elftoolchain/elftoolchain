@@ -1066,6 +1066,11 @@ _ELF_DEFINE_SHT(SHT_HIUSER,          0xFFFFFFFFUL,			\
 #define	_ELF_DEFINE_SHT(N, V, DESCR)	N = V ,
 enum { _ELF_DEFINE_SECTION_TYPES() };
 
+/* Aliases for section types. */
+#define	SHT_GNU_verdef		SHT_SUNW_verdef
+#define	SHT_GNU_verneed		SHT_SUNW_verneed
+#define	SHT_GNU_versym		SHT_SUNW_versym
+
 /*
  * Symbol binding information.
  */
