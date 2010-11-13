@@ -467,9 +467,8 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 {
 	struct stat	 sb;
 	struct timeval	 tv[2];
-	Elf_Kind	 kind;
-	char		*tempfile;
-	int		 ifd, ofd, ofd0;
+	char		*tempfile, *elftemp;
+	int		 ifd, ofd, ofd0, efd;
 
 	tempfile = NULL;
 
@@ -500,15 +499,37 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	if (lseek(ifd, 0, SEEK_SET) < 0)
 		err(EX_IOERR, "lseek failed");
 
-	if (ecp->itf == ETF_ELF) {
-		if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-			errx(EX_DATAERR, "elf_begin() failed: %s",
+	/*
+	 * If input object is not ELF file, convert it to an intermediate
+	 * ELF object before processing.
+	 */
+	if (ecp->itf != ETF_ELF) {
+		create_tempfile(&elftemp, &efd);
+		if ((ecp->eout = elf_begin(efd, ELF_C_WRITE, NULL)) == NULL)
+			errx(EX_SOFTWARE, "elf_begin() failed: %s",
 			    elf_errmsg(-1));
-		kind = elf_kind(ecp->ein);
-	} else
-		kind = ELF_K_ELF;
+		elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
+		if (ecp->itf == ETF_BINARY)
+			create_elf_from_binary(ecp, ifd, src);
+		else if (ecp->itf == ETF_SREC)
+			create_elf_from_srec(ecp, ifd);
+		else
+			errx(EX_SOFTWARE, "Internal: invalid target flavour");
+		elf_end(ecp->eout);
 
-	switch (kind) {
+		/* Open intermediate ELF object as new input object. */
+		close(ifd);
+		if ((ifd = open(elftemp, O_RDONLY)) == -1)
+			err(EX_IOERR, "open %s failed", src);
+		close(efd);
+		free(elftemp);
+	}
+
+	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
+		errx(EX_DATAERR, "elf_begin() failed: %s",
+		    elf_errmsg(-1));
+
+	switch (elf_kind(ecp->ein)) {
 	case ELF_K_NONE:
 		errx(EX_DATAERR, "file format not recognized");
 	case ELF_K_ELF:
@@ -522,12 +543,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		/*
 		 * Create output ELF object.
 		 */
-		if (ecp->itf == ETF_BINARY)
-			create_elf_from_binary(ecp, ifd, src);
-		else if (ecp->itf == ETF_SREC)
-			create_elf_from_srec(ecp, ifd);
-		else
-			create_elf(ecp);
+		create_elf(ecp);
 		elf_end(ecp->eout);
 
 		/*
