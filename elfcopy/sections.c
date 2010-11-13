@@ -955,6 +955,7 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 		    elf_errmsg(-1));
 	osh.sh_flags = flags;
 	osh.sh_type = s->type;
+	osh.sh_addr = s->vma;
 	osh.sh_addralign = s->align;
 	if (!gelf_update_shdr(os, &osh))
 		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
