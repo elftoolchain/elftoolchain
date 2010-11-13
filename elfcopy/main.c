@@ -467,6 +467,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 {
 	struct stat	 sb;
 	struct timeval	 tv[2];
+	Elf_Kind	 kind;
 	char		*tempfile;
 	int		 ifd, ofd, ofd0;
 
@@ -496,15 +497,20 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	}
 #endif
 
-	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_DATAERR, "elf_begin() failed: %s",
-		    elf_errmsg(-1));
+	if (lseek(ifd, 0, SEEK_SET) < 0)
+		err(EX_IOERR, "lseek failed");
 
-	switch (elf_kind(ecp->ein)) {
+	if (ecp->itf == ETF_ELF) {
+		if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
+			errx(EX_DATAERR, "elf_begin() failed: %s",
+			    elf_errmsg(-1));
+		kind = elf_kind(ecp->ein);
+	} else
+		kind = ELF_K_ELF;
+
+	switch (kind) {
 	case ELF_K_NONE:
-		if (ecp->itf == ETF_ELF)
-			errx(EX_DATAERR, "file format not recognized");
-		/* FALLTHROUGH */
+		errx(EX_DATAERR, "file format not recognized");
 	case ELF_K_ELF:
 		if ((ecp->eout = elf_begin(ofd, ELF_C_WRITE, NULL)) == NULL)
 			errx(EX_SOFTWARE, "elf_begin() failed: %s",
@@ -518,6 +524,8 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		 */
 		if (ecp->itf == ETF_BINARY)
 			create_elf_from_binary(ecp, ifd, src);
+		else if (ecp->itf == ETF_SREC)
+			create_elf_from_srec(ecp, ifd);
 		else
 			create_elf(ecp);
 		elf_end(ecp->eout);
