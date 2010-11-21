@@ -496,16 +496,6 @@ generate_symbols(struct elfcopy *ecp)
 		free(gsym);
 	}
 
-	/*
-	 * Store symtab and strtab buffers in the global ecp structure for
-	 * later use.
-	 */
-	ecp->symtab->sz = (sy_buf->nls + sy_buf->ngs) *
-	    (ec == ELFCLASS32 ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym));
-	ecp->symtab->buf = sy_buf;
-	ecp->strtab->sz = st_buf->lsz + st_buf->gsz;
-	ecp->strtab->buf = st_buf;
-
 	return (1);
 }
 
