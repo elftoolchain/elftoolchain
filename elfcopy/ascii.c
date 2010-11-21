@@ -197,14 +197,16 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 void
 create_elf_from_srec(struct elfcopy *ecp, int ifd)
 {
-	char line[_LINE_BUFSZ];
+	char line[_LINE_BUFSZ], name[_LINE_BUFSZ];
 	uint8_t data[_DATA_BUFSZ];
 	GElf_Ehdr oeh;
 	struct section *s, *sec, *sec_temp, *shtab;
 	FILE *ifp;
 	uint64_t addr, entry, off, sec_addr;
+	uintmax_t st_value;
 	size_t sz;
-	int _ifd, first, sec_index;
+	int _ifd, first, sec_index, in_symtab, symtab_created;
+	char *rlt;
 	char type;
 
 	/* Reset internal section list. */
@@ -258,6 +260,16 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	while (fgets(line, _LINE_BUFSZ, ifp) != NULL) {
 		if (line[0] == '\r' || line[0] == '\n')
 			continue;
+		if (line[0] == '$' && line[1] == '$') {
+			ecp->flags |= SYMTAB_EXIST;
+			while ((rlt = fgets(line, _LINE_BUFSZ, ifp)) != NULL) {
+				if (line[0] == '$' && line[1] == '$')
+					break;
+			}
+			if (rlt == NULL)
+				break;
+			continue;
+		}
 		if (line[0] != 'S' || line[1] < '0' || line[1] > '9') {
 			warnx("Invalid srec record");
 			continue;
@@ -302,6 +314,55 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 		finalize_data_section(s);
 	if (ferror(ifp))
 		warn("fgets failed");
+
+	/*
+	 * Rescan and create symbol table if we found '$$' section in
+	 * the first scan.
+	 */
+	symtab_created = 0;
+	in_symtab = 0;
+	if (ecp->flags & SYMTAB_EXIST) {
+		if (fseek(ifp, 0, SEEK_SET) < 0) {
+			warn("fseek failed");
+			ecp->flags &= ~SYMTAB_EXIST;
+			goto done;
+		}
+		while (fgets(line, _LINE_BUFSZ, ifp) != NULL) {
+			if (in_symtab) {
+				if (line[0] == '$' && line[1] == '$') {
+					in_symtab = 0;
+					continue;
+				}
+				if (sscanf(line, "%s $%jx", name,
+				    &st_value) != 2) {
+					warnx("Invalid symbolsrec record");
+					continue;
+				}
+				if (!symtab_created) {
+					create_external_symtab(ecp);
+					symtab_created = 1;
+					add_to_symtab(ecp, NULL, 0, 0,
+					    SHN_UNDEF, ELF32_ST_INFO(STB_LOCAL,
+						STT_NOTYPE), 0, 1);
+				}
+				printf("%s: %jx\n", name, st_value);
+				add_to_symtab(ecp, name, st_value, 0, SHN_ABS,
+				    ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE), 0, 1);
+			}
+			if (line[0] == '$' && line[1] == '$') {
+				in_symtab = 1;
+				continue;
+			}
+		}
+	}
+	if (ferror(ifp))
+		warn("fgets failed");
+	if (symtab_created)
+		create_symtab_data(ecp);
+	else
+		ecp->flags &= ~SYMTAB_EXIST;
+
+done:
 	fclose(ifp);
 
 	/* Insert .shstrtab after data sections. */
@@ -329,7 +390,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	set_shstrtab(ecp);
 
 	/* Update sh_name pointer for each section header entry. */
-	update_shdr(ecp);
+	update_shdr(ecp, 0);
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
@@ -560,7 +621,7 @@ done:
 	set_shstrtab(ecp);
 
 	/* Update sh_name pointer for each section header entry. */
-	update_shdr(ecp);
+	update_shdr(ecp, 0);
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)

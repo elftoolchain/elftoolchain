@@ -314,7 +314,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	set_shstrtab(ecp);
 
 	/* Update sh_name pointer for each section header entry. */
-	update_shdr(ecp);
+	update_shdr(ecp, 0);
 
 	/* Properly set sh_link field of .symtab section. */
 	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)

@@ -1027,7 +1027,7 @@ add_to_shstrtab(struct elfcopy *ecp, const char *name)
 }
 
 void
-update_shdr(struct elfcopy *ecp)
+update_shdr(struct elfcopy *ecp, int update_link)
 {
 	struct section	*s;
 	GElf_Shdr	 osh;
@@ -1048,7 +1048,7 @@ update_shdr(struct elfcopy *ecp)
 		 * sh_link needs to be updated, since the index of the
 		 * linked section might have changed.
 		 */
-		if (osh.sh_link != 0)
+		if (update_link && osh.sh_link != 0)
 			osh.sh_link = ecp->secndx[osh.sh_link];
 
 		/*

@@ -295,7 +295,7 @@ struct symop *lookup_symop_list(struct elfcopy *_ecp, const char *_name,
 void	resync_sections(struct elfcopy *_ecp);
 void	set_shstrtab(struct elfcopy *_ecp);
 void	setup_phdr(struct elfcopy *_ecp);
-void	update_shdr(struct elfcopy *_ecp);
+void	update_shdr(struct elfcopy *_ecp, int _update_link);
 
 #ifndef LIBELF_AR
 int	ac_detect_ar(int _ifd);
