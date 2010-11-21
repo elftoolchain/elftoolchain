@@ -575,6 +575,7 @@ create_external_symtab(struct elfcopy *ecp)
 {
 	struct symbuf *sy_buf;
 	struct strbuf *st_buf;
+	GElf_Shdr sh;
 
 	if (ecp->oec == ELFCLASS32)
 		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
@@ -585,6 +586,15 @@ create_external_symtab(struct elfcopy *ecp)
 
 	ecp->strtab = create_external_section(ecp, ".strtab", NULL, 0, 0,
 	    SHT_STRTAB, ELF_T_BYTE, 0, 1, 0, 0);
+
+	/* Let sh_link field of .symtab section point to .strtab section. */
+	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)
+		errx(EX_SOFTWARE, "692 gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	sh.sh_link = elf_ndxscn(ecp->strtab->os);
+	if (!gelf_update_shdr(ecp->symtab->os, &sh))
+		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		    elf_errmsg(-1));
 
 	/* Create buffers for .symtab and .strtab. */
 	if ((sy_buf = calloc(1, sizeof(*sy_buf))) == NULL)

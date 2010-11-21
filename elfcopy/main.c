@@ -338,7 +338,7 @@ create_elf(struct elfcopy *ecp)
 	 * At this stage we set name string index, update st_link and st_info
 	 * for output sections.
 	 */
-	update_shdr(ecp);
+	update_shdr(ecp, 1);
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
