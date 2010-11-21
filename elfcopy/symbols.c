@@ -478,7 +478,7 @@ generate_symbols(struct elfcopy *ecp)
 	 * global/weak symbols are put after local symbols.
 	 */
 	if (gsym != NULL) {
-		for(i = 0; (size_t)i < sc; i++) {
+		for(i = 0; (size_t) i < sc; i++) {
 			if (!BIT_ISSET(gsym, i))
 				continue;
 
@@ -668,7 +668,7 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 			sy_buf->B##SZ[sy_buf->n##B##s].st_name = pos;	\
 		else {							\
 			sy_buf->B##SZ[sy_buf->n##B##s].st_name =	\
-				st_buf->B##sz;				\
+			    st_buf->B##sz;				\
 			while (st_buf->B##sz + strlen(name) >=		\
 			    st_buf->B##cap - 1) {			\
 				st_buf->B##cap *= 2;			\
@@ -709,6 +709,27 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 	ecp->strtab->sz = st_buf->lsz + st_buf->gsz;
 
 #undef	_ADDSYM
+}
+
+void
+finalize_external_symtab(struct elfcopy *ecp)
+{
+	struct symbuf *sy_buf;
+	struct strbuf *st_buf;
+	int i;
+
+	/*
+	 * Update st_name for global/weak symbols. (global/weak symbols
+	 * are put after local symbols)
+	 */
+	sy_buf = ecp->symtab->buf;
+	st_buf = ecp->strtab->buf;
+	for (i = 0; (size_t) i < sy_buf->ngs; i++) {
+		if (ecp->oec == ELFCLASS32)
+			sy_buf->g32[i].st_name += st_buf->lsz;
+		else
+			sy_buf->g64[i].st_name += st_buf->lsz;
+	}
 }
 
 void
