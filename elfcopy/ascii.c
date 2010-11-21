@@ -43,6 +43,8 @@ static char hex_digit(uint8_t n);
 static int hex_value(char x);
 static void finalize_data_section(struct section *s);
 static int ishexdigit(char x);
+static int ihex_read(const char *line, char *type, uint64_t *addr,
+    uint64_t *num, uint8_t *data, size_t *sz);
 static void ihex_write(int ofd, int type, uint64_t addr, uint64_t num,
     const void *buf, size_t sz);
 static void ihex_write_00(int ofd, uint64_t addr, const void *buf, size_t sz);
@@ -274,7 +276,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 				if (s != NULL)
 					finalize_data_section(s);
 				s = new_data_section(ecp, sec_index, off,
-				    sec_addr);
+				    addr);
 				if (s == NULL) {
 					warnx("new_data_section failed");
 					break;
@@ -410,6 +412,178 @@ create_ihex(int ifd, int ofd)
 	ihex_write_01(ofd);
 }
 
+void
+create_elf_from_ihex(struct elfcopy *ecp, int ifd)
+{
+	char line[_LINE_BUFSZ];
+	uint8_t data[_DATA_BUFSZ];
+	GElf_Ehdr oeh;
+	struct section *s, *sec, *sec_temp, *shtab;
+	FILE *ifp;
+	uint64_t addr, addr_base, entry, num, off, rec_addr, sec_addr;
+	size_t sz;
+	int _ifd, first, sec_index;
+	char type;
+
+	/* Reset internal section list. */
+	if (!TAILQ_EMPTY(&ecp->v_sec))
+		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
+			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
+			free(sec);
+		}
+
+	if ((_ifd = dup(ifd)) < 0)
+		err(EX_IOERR, "dup failed");
+	if ((ifp = fdopen(_ifd, "r")) == NULL)
+		err(EX_IOERR, "fdopen failed");
+
+	/* Create EHDR for output .o file. */
+	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
+		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		    elf_errmsg(-1));
+	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Initialise e_ident fields. */
+	oeh.e_ident[EI_CLASS] = ecp->oec;
+	oeh.e_ident[EI_DATA] = ecp->oed;
+	/*
+	 * TODO: Set OSABI according to the OS platform where elfcopy(1)
+	 * was build. (probably)
+	 */
+	oeh.e_ident[EI_OSABI] = ELFOSABI_NONE;
+	oeh.e_machine = ecp->oem;
+	oeh.e_type = ET_REL;
+	oeh.e_entry = 0;
+
+	ecp->flags |= RELOCATABLE;
+
+	/* Create .shstrtab section */
+	init_shstrtab(ecp);
+	ecp->shstrtab->off = 0;
+
+	/* Data sections are inserted after EHDR. */
+	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
+	if (off == 0)
+		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+
+	/* Create data sections. */
+	s = NULL;
+	first = 1;
+	sec_index = 1;
+	addr_base = rec_addr = sec_addr = entry = 0;
+	while (fgets(line, _LINE_BUFSZ, ifp) != NULL) {
+		if (line[0] == '\r' || line[0] == '\n')
+			continue;
+		if (line[0] != ':') {
+			warnx("Invalid ihex record");
+			continue;
+		}
+		if (ihex_read(line, &type, &addr, &num, data, &sz) < 0) {
+			warnx("Invalid ihex record or mismatched checksum");
+			continue;
+		}
+		switch (type) {
+		case '0':
+			/* Data record. */
+			if (sz == 0)
+				break;
+			rec_addr = addr_base + addr;
+			if (first || sec_addr != rec_addr) {
+				if (s != NULL)
+					finalize_data_section(s);
+				s = new_data_section(ecp, sec_index, off,
+				    rec_addr);
+				if (s == NULL) {
+					warnx("new_data_section failed");
+					break;
+				}
+				sec_index++;
+				sec_addr = rec_addr;
+				first = 0;
+			}
+			append_data(s, data, sz);
+			off += sz;
+			sec_addr += sz;
+			break;
+		case '1':
+			/* End of file record. */
+			goto done;
+		case '2':
+			/* Extended segment address record. */
+			addr_base = addr << 4;
+			break;
+		case '3':
+			/* Start segment address record (CS:IP). Ignored. */
+			break;
+		case '4':
+			/* Extended linear address record. */
+			addr_base = num << 16;
+			break;
+		case '5':
+			/* Start linear address record. */
+			entry = num;
+			break;
+		default:
+			break;
+		}
+	}
+done:
+	if (s != NULL)
+		finalize_data_section(s);
+	if (ferror(ifp))
+		warn("fgets failed");
+	fclose(ifp);
+
+	/* Insert .shstrtab after data sections. */
+	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
+		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		    elf_errmsg(-1));
+	insert_to_sec_list(ecp, ecp->shstrtab, 1);
+
+	/* Insert section header table here. */
+	shtab = insert_shtab(ecp, 1);
+
+	/* Set entry point. */
+	oeh.e_entry = entry;
+
+	/*
+	 * Write the underlying ehdr. Note that it should be called
+	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
+	 */
+	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
+		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Generate section name string table (.shstrtab). */
+	set_shstrtab(ecp);
+
+	/* Update sh_name pointer for each section header entry. */
+	update_shdr(ecp);
+
+	/* Renew oeh to get the updated e_shstrndx. */
+	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Resync section offsets. */
+	resync_sections(ecp);
+
+	/* Store SHDR offset in EHDR. */
+	oeh.e_shoff = shtab->off;
+
+	/* Update ehdr since we modified e_shoff. */
+	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
+		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	/* Write out the output elf object. */
+	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
+		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		    elf_errmsg(-1));
+}
+
 #define	_SEC_NAMESZ	64
 #define	_SEC_INIT_CAP	1024
 
@@ -424,7 +598,7 @@ new_data_section(struct elfcopy *ecp, int sec_index, uint64_t off,
 	snprintf(name, _SEC_NAMESZ, ".sec%d", sec_index);
 
 	return (create_external_section(ecp, name, NULL, 0, off, SHT_PROGBITS,
-	    ELF_T_BYTE, 0, 1, addr, 0));
+	    ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, addr, 0));
 }
 
 static void
@@ -670,6 +844,65 @@ ihex_write_00(int ofd, uint64_t addr, const void *buf, size_t sz)
 	}
 	if (pe - p > 0)
 		ihex_write(ofd, 0, addr, 0, p, pe - p);
+}
+
+static int
+ihex_read(const char *line, char *type, uint64_t *addr, uint64_t *num,
+    uint8_t *data, size_t *sz)
+{
+	uint64_t count, _checksum;
+	int checksum, i, len;
+
+	*sz = 0;
+	checksum = 0;
+	len = 1;
+	if (read_num(line, &len, &count, 1, &checksum) < 0)
+		return (-1);
+	if (read_num(line, &len, addr, 2, &checksum) < 0)
+		return (-1);
+	if (line[len++] != '0')
+		return (-1);
+	*type = line[len++];
+	checksum += *type - '0';
+	switch (*type) {
+	case '0':
+		for (i = 0; (uint64_t) i < count; i++) {
+			if (read_num(line, &len, num, 1, &checksum) < 0)
+				return (-1);
+			data[i] = (uint8_t) *num;
+		}
+		*sz = count;
+		break;
+	case '1':
+		if (count != 0)
+			return (-1);
+		break;
+	case '2':
+	case '4':
+		if (count != 2)
+			return (-1);
+		if (read_num(line, &len, num, 2, &checksum) < 0)
+			return (-1);
+		break;
+	case '3':
+	case '5':
+		if (count != 4)
+			return (-1);
+		if (read_num(line, &len, num, 4, &checksum) < 0)
+			return (-1);
+		break;
+	default:
+		return (-1);
+	}
+
+	if (read_num(line, &len, &_checksum, 1, &checksum) < 0)
+		return (-1);
+
+	if ((checksum & 0xFF) != 0) {
+		return (-1);
+	}
+
+	return (0);
 }
 
 static void
