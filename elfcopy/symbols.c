@@ -35,12 +35,13 @@
 
 ELFTC_VCSID("$Id$");
 
-static int	is_debug_symbol(GElf_Sym *s);
-static int	is_global_symbol(GElf_Sym *s);
+static int	is_debug_symbol(unsigned char st_info);
+static int	is_global_symbol(unsigned char st_info);
+static int	is_local_symbol(unsigned char st_info);
 static int	is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s);
 static int	is_remove_symbol(struct elfcopy *ecp, size_t sc, int i,
 		    GElf_Sym *s, const char *name);
-static int	is_weak_symbol(GElf_Sym *s);
+static int	is_weak_symbol(unsigned char st_info);
 static int	lookup_exact_string(const char *buf, size_t sz, const char *s);
 static int	generate_symbols(struct elfcopy *ecp);
 static void	mark_symbols(struct elfcopy *ecp, size_t sc);
@@ -51,41 +52,41 @@ static void	mark_symbols(struct elfcopy *ecp, size_t sc);
 #define BIT_ISSET(v, n) (v[(n)>>3] & (1U << ((n) & 7)))
 
 static int
-is_debug_symbol(GElf_Sym *s)
+is_debug_symbol(unsigned char st_info)
 {
 
-	if (GELF_ST_TYPE(s->st_info) == STT_SECTION ||
-	    GELF_ST_TYPE(s->st_info) == STT_FILE)
+	if (GELF_ST_TYPE(st_info) == STT_SECTION ||
+	    GELF_ST_TYPE(st_info) == STT_FILE)
 		return (1);
 
 	return (0);
 }
 
 static int
-is_global_symbol(GElf_Sym *s)
+is_global_symbol(unsigned char st_info)
 {
 
-	if (GELF_ST_BIND(s->st_info) == STB_GLOBAL)
+	if (GELF_ST_BIND(st_info) == STB_GLOBAL)
 		return (1);
 
 	return (0);
 }
 
 static int
-is_weak_symbol(GElf_Sym *s)
+is_weak_symbol(unsigned char st_info)
 {
 
-	if (GELF_ST_BIND(s->st_info) == STB_WEAK)
+	if (GELF_ST_BIND(st_info) == STB_WEAK)
 		return (1);
 
 	return (0);
 }
 
 static int
-is_local_symbol(GElf_Sym *s)
+is_local_symbol(unsigned char st_info)
 {
 
-	if (GELF_ST_BIND(s->st_info) == STB_LOCAL)
+	if (GELF_ST_BIND(st_info) == STB_LOCAL)
 		return (1);
 
 	return (0);
@@ -107,7 +108,7 @@ is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s)
 	 * are needed.
 	 */
 	if (ecp->flags & RELOCATABLE) {
-		if (is_global_symbol(s) || is_weak_symbol(s))
+		if (is_global_symbol(s->st_info) || is_weak_symbol(s->st_info))
 			return (1);
 	}
 
@@ -157,10 +158,10 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 	if (ecp->strip == STRIP_UNNEEDED)
 		return (1);
 
-	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s))
+	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info))
 		return (1);
 
-	if (ecp->strip == STRIP_DEBUG && is_debug_symbol(s))
+	if (ecp->strip == STRIP_DEBUG && is_debug_symbol(s->st_info))
 		return (1);
 
 	return (0);
@@ -431,8 +432,7 @@ generate_symbols(struct elfcopy *ecp)
 		if (gelf_getsym(id, i, &sym) != &sym)
 			errx(EX_SOFTWARE, "gelf_getsym failed: %s",
 			    elf_errmsg(-1));
-		if ((name = elf_strptr(ecp->ein, symndx,
-			    sym.st_name)) == NULL)
+		if ((name = elf_strptr(ecp->ein, symndx, sym.st_name)) == NULL)
 			errx(EX_SOFTWARE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 
@@ -441,7 +441,8 @@ generate_symbols(struct elfcopy *ecp)
 			continue;
 
 		/* Check if we need to change the binding of this symbol. */
-		if (is_global_symbol(&sym) || is_weak_symbol(&sym)) {
+		if (is_global_symbol(sym.st_info) ||
+		    is_weak_symbol(sym.st_info)) {
 			/*
 			 * XXX Binutils objcopy does not weaken certain
 			 * symbols.
@@ -475,18 +476,19 @@ generate_symbols(struct elfcopy *ecp)
 			name = sp->newname;
 
 		/* Copy symbol, mark global/weak symbol and add to index map. */
-		if (is_global_symbol(&sym) || is_weak_symbol(&sym)) {
+		if (is_global_symbol(sym.st_info) ||
+		    is_weak_symbol(sym.st_info)) {
 			BIT_SET(gsym, i);
 			ecp->symndx[i] = sy_buf->ngs;
 		} else
 			ecp->symndx[i] = sy_buf->nls;
 		if (ec == ELFCLASS32) {
-			if (is_local_symbol(&sym))
+			if (is_local_symbol(sym.st_info))
 				COPYSYM(l, 32, 0);
 			else
 				COPYSYM(g, 32, 0);
 		} else {
-			if (is_local_symbol(&sym))
+			if (is_local_symbol(sym.st_info))
 				COPYSYM(l, 64, 0);
 			else
 				COPYSYM(g, 64, 0);
@@ -648,6 +650,133 @@ create_symtab(struct elfcopy *ecp)
 	}
 
 	create_symtab_data(ecp);
+}
+
+void
+create_external_symtab(struct elfcopy *ecp)
+{
+	struct symbuf *sy_buf;
+	struct strbuf *st_buf;
+
+	if (ecp->oec == ELFCLASS32)
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
+		    0, SHT_SYMTAB, ELF_T_SYM, 0, 4, 0, 0);
+	else
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
+		    0, SHT_SYMTAB, ELF_T_SYM, 0, 8, 0, 0);
+
+	ecp->strtab = create_external_section(ecp, ".strtab", NULL, 0, 0,
+	    SHT_STRTAB, ELF_T_BYTE, 0, 1, 0, 0);
+
+	/* Create buffers for .symtab and .strtab. */
+	if ((sy_buf = calloc(1, sizeof(*sy_buf))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	if ((st_buf = calloc(1, sizeof(*st_buf))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	sy_buf->gcap = sy_buf->lcap = 64;
+	st_buf->gcap = 256;
+	st_buf->lcap = 64;
+	st_buf->lsz = 1;	/* '\0' at start. */
+	st_buf->gsz = 0;
+
+	ecp->symtab->sz = 0;
+	ecp->strtab->sz = 0;
+	ecp->symtab->buf = sy_buf;
+	ecp->strtab->buf = st_buf;
+}
+
+void
+add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
+    uint64_t st_size, uint16_t st_shndx, unsigned char st_info,
+    unsigned char st_other, int ndx_known)
+{
+	struct symbuf *sy_buf;
+	struct strbuf *st_buf;
+	int pos;
+	
+	/*
+	 * Convenient macro for copying global/local 32/64 bit symbols
+	 * from input object to the buffer created for output object.
+	 * It handles buffer growing, st_name calculating and st_shndx
+	 * updating for symbols with non-special section index.
+	 */
+#define	_ADDSYM(B, SZ) do {						\
+	if (sy_buf->B##SZ == NULL) {					\
+		sy_buf->B##SZ = malloc(sy_buf->B##cap *			\
+		    sizeof(Elf##SZ##_Sym));				\
+		if (sy_buf->B##SZ == NULL)				\
+			err(EX_SOFTWARE, "malloc failed");		\
+	} else if (sy_buf->n##B##s >= sy_buf->B##cap) {			\
+		sy_buf->B##cap *= 2;					\
+		sy_buf->B##SZ = realloc(sy_buf->B##SZ, sy_buf->B##cap *	\
+		    sizeof(Elf##SZ##_Sym));				\
+		if (sy_buf->B##SZ == NULL)				\
+			err(EX_SOFTWARE, "realloc failed");		\
+	}								\
+	sy_buf->B##SZ[sy_buf->n##B##s].st_info	= st_info;		\
+	sy_buf->B##SZ[sy_buf->n##B##s].st_other	= st_other;		\
+	sy_buf->B##SZ[sy_buf->n##B##s].st_value	= st_value;		\
+	sy_buf->B##SZ[sy_buf->n##B##s].st_size	= st_size;		\
+	if (ndx_known)							\
+		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx = st_shndx;	\
+	else if (st_shndx == SHN_UNDEF || st_shndx >= SHN_LORESERVE)	\
+		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx = st_shndx;	\
+	else								\
+		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx	=		\
+			ecp->secndx[st_shndx];				\
+	if (st_buf->B == NULL) {					\
+		st_buf->B = calloc(st_buf->B##cap, sizeof(*st_buf->B));	\
+		if (st_buf->B == NULL)					\
+			err(EX_SOFTWARE, "malloc failed");		\
+	}								\
+	if (name != NULL && *name != '\0') {				\
+		pos = lookup_exact_string(st_buf->B,			\
+		    st_buf->B##sz, name);				\
+		if (pos != -1)						\
+			sy_buf->B##SZ[sy_buf->n##B##s].st_name = pos;	\
+		else {							\
+			sy_buf->B##SZ[sy_buf->n##B##s].st_name =	\
+				st_buf->B##sz;				\
+			while (st_buf->B##sz + strlen(name) >=		\
+			    st_buf->B##cap - 1) {			\
+				st_buf->B##cap *= 2;			\
+				st_buf->B = realloc(st_buf->B,		\
+				    st_buf->B##cap);			\
+				if (st_buf->B == NULL)			\
+					err(EX_SOFTWARE,		\
+					    "realloc failed");		\
+			}						\
+			strncpy(&st_buf->B[st_buf->B##sz], name,	\
+			    strlen(name));				\
+			st_buf->B[st_buf->B##sz + strlen(name)] = '\0';	\
+			st_buf->B##sz += strlen(name) + 1;		\
+		}							\
+	} else								\
+		sy_buf->B##SZ[sy_buf->n##B##s].st_name = 0;		\
+	sy_buf->n##B##s++;						\
+} while (0)
+
+	sy_buf = ecp->symtab->buf;
+	st_buf = ecp->strtab->buf;
+
+	if (ecp->oec == ELFCLASS32) {
+		if (is_local_symbol(st_info))
+			_ADDSYM(l, 32);
+		else
+			_ADDSYM(g, 32);
+	} else {
+		if (is_local_symbol(st_info))
+			_ADDSYM(l, 64);
+		else
+			_ADDSYM(g, 64);
+	}
+
+	/* Update section size. */
+	ecp->symtab->sz = (sy_buf->nls + sy_buf->ngs) *
+	    (ecp->oec == ELFCLASS32 ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym));
+	ecp->strtab->sz = st_buf->lsz + st_buf->gsz;
+
+#undef	_ADDSYM
 }
 
 void

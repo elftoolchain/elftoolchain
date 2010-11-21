@@ -159,6 +159,7 @@ struct symbuf {
 	Elf64_Sym *l64;		/* 64bit local symbol */
 	Elf64_Sym *g64;		/* 64bit global symbol */
 	size_t ngs, nls;	/* number of each kind */
+	size_t gcap, lcap; 	/* buffer capacities. */
 };
 
 /* String table buffer structure. */
@@ -166,6 +167,7 @@ struct strbuf {
 	char *l;		/* local symbol string table */
 	char *g;		/* global symbol string table */
 	size_t lsz, gsz;	/* size of each kind */
+	size_t gcap, lcap; 	/* buffer capacities. */
 };
 
 /*
@@ -256,6 +258,9 @@ void	add_section(struct elfcopy *_ecp, const char *_optarg);
 void	add_to_shstrtab(struct elfcopy *_ecp, const char *_name);
 void	add_to_symop_list(struct elfcopy *_ecp, const char *_name,
     const char *_newname, unsigned int _op);
+void	add_to_symtab(struct elfcopy *_ecp, const char *_name,
+    uint64_t _st_value, uint64_t _st_size, uint16_t _st_shndx,
+    unsigned char _st_info, unsigned char _st_other, int _ndx_known);
 int	add_to_inseg_list(struct elfcopy *_ecp, struct section *_sec);
 void	copy_content(struct elfcopy *_ecp);
 void	copy_data(struct section *_s);
@@ -270,6 +275,7 @@ void	create_elf_from_srec(struct elfcopy *_ecp, int _ifd);
 struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
     void *_buf, uint64_t _size, uint64_t _off, uint64_t _stype, Elf_Type _dtype,
     uint64_t flags, uint64_t _align, uint64_t _vma, int _loadable);
+void	create_external_symtab(struct elfcopy *_ecp);
 void	create_ihex(int _ifd, int _ofd);
 void	create_scn(struct elfcopy *_ecp);
 void	create_srec(struct elfcopy *_ecp, int _ifd, int _ofd, const char *_ofn);
