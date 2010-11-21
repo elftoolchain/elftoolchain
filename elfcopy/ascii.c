@@ -341,9 +341,6 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 				if (!symtab_created) {
 					create_external_symtab(ecp);
 					symtab_created = 1;
-					add_to_symtab(ecp, NULL, 0, 0,
-					    SHN_UNDEF, ELF32_ST_INFO(STB_LOCAL,
-						STT_NOTYPE), 0, 1);
 				}
 				printf("%s: %jx\n", name, st_value);
 				add_to_symtab(ecp, name, st_value, 0, SHN_ABS,

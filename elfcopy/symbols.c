@@ -611,6 +611,10 @@ create_external_symtab(struct elfcopy *ecp)
 	ecp->strtab->sz = 0;
 	ecp->symtab->buf = sy_buf;
 	ecp->strtab->buf = st_buf;
+
+	/* Always create the special symbol at the symtab beginning. */
+	add_to_symtab(ecp, NULL, 0, 0, SHN_UNDEF,
+	    ELF32_ST_INFO(STB_LOCAL, STT_NOTYPE), 0, 1);
 }
 
 void
