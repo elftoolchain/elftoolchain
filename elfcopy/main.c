@@ -511,6 +511,8 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
 		if (ecp->itf == ETF_BINARY)
 			create_elf_from_binary(ecp, ifd, src);
+		else if (ecp->itf == ETF_IHEX)
+			create_elf_from_ihex(ecp, ifd);
 		else if (ecp->itf == ETF_SREC)
 			create_elf_from_srec(ecp, ifd);
 		else
