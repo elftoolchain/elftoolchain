@@ -363,6 +363,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	if (ferror(ifp))
 		warn("fgets failed");
 	if (symtab_created) {
+		finalize_external_symtab(ecp);
 		create_symtab_data(ecp);
 		/* Count in .symtab and .strtab section headers.  */
 		shtab->sz += gelf_fsize(ecp->eout, ELF_T_SHDR, 2, EV_CURRENT);
@@ -384,7 +385,6 @@ done:
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
-	/* ecp->flags |= SYMTAB_EXIST; */
 	set_shstrtab(ecp);
 
 	/* Update sh_name pointer for each section header entry. */
