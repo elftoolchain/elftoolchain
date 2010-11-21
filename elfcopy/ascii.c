@@ -315,6 +315,15 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	if (ferror(ifp))
 		warn("fgets failed");
 
+	/* Insert .shstrtab after data sections. */
+	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
+		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		    elf_errmsg(-1));
+	insert_to_sec_list(ecp, ecp->shstrtab, 1);
+
+	/* Insert section header table here. */
+	shtab = insert_shtab(ecp, 1);
+
 	/*
 	 * Rescan and create symbol table if we found '$$' section in
 	 * the first scan.
@@ -342,7 +351,6 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 					create_external_symtab(ecp);
 					symtab_created = 1;
 				}
-				printf("%s: %jx\n", name, st_value);
 				add_to_symtab(ecp, name, st_value, 0, SHN_ABS,
 				    ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE), 0, 1);
 			}
@@ -354,22 +362,15 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	}
 	if (ferror(ifp))
 		warn("fgets failed");
-	if (symtab_created)
+	if (symtab_created) {
 		create_symtab_data(ecp);
-	else
+		/* Count in .symtab and .strtab section headers.  */
+		shtab->sz += gelf_fsize(ecp->eout, ELF_T_SHDR, 2, EV_CURRENT);
+	} else
 		ecp->flags &= ~SYMTAB_EXIST;
 
 done:
 	fclose(ifp);
-
-	/* Insert .shstrtab after data sections. */
-	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
-		    elf_errmsg(-1));
-	insert_to_sec_list(ecp, ecp->shstrtab, 1);
-
-	/* Insert section header table here. */
-	shtab = insert_shtab(ecp, 1);
 
 	/* Set entry point. */
 	oeh.e_entry = entry;
