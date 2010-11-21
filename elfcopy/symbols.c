@@ -591,9 +591,11 @@ create_symtab(struct elfcopy *ecp)
 void
 create_external_symtab(struct elfcopy *ecp)
 {
+	struct section *s;
 	struct symbuf *sy_buf;
 	struct strbuf *st_buf;
 	GElf_Shdr sh;
+	size_t ndx;
 
 	if (ecp->oec == ELFCLASS32)
 		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
@@ -633,6 +635,24 @@ create_external_symtab(struct elfcopy *ecp)
 	/* Always create the special symbol at the symtab beginning. */
 	add_to_symtab(ecp, NULL, 0, 0, SHN_UNDEF,
 	    ELF32_ST_INFO(STB_LOCAL, STT_NOTYPE), 0, 1);
+
+	/* Create STT_SECTION symbols. */
+	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+		if (s->pseudo)
+			continue;
+		if (strcmp(s->name, ".symtab") == 0 ||
+		    strcmp(s->name, ".strtab") == 0 ||
+		    strcmp(s->name, ".shstrtab") == 0)
+			continue;
+		(void) elf_errno();
+		if ((ndx = elf_ndxscn(s->os)) == SHN_UNDEF) {
+			warnx("elf_ndxscn failed: %s",
+			    elf_errmsg(-1));
+			continue;
+		}
+		add_to_symtab(ecp, NULL, 0, 0, ndx,
+		    GELF_ST_INFO(STB_LOCAL, STT_SECTION), 0, 1);
+	}
 }
 
 void
