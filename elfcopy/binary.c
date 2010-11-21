@@ -227,8 +227,6 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	data_start = 0;
 	data_end = data_start + sb.st_size;
 	data_size = sb.st_size;
-	add_to_symtab(ecp, NULL, 0, 0, 1,
-	    ELF32_ST_INFO(STB_LOCAL, STT_SECTION), 0, 1);
 	_GEN_SYMNAME("_start");
 	add_to_symtab(ecp, name, data_start, 0, 1,
 	    ELF32_ST_INFO(STB_GLOBAL, STT_NOTYPE), 0, 1);
