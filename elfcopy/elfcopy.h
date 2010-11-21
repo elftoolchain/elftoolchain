@@ -152,24 +152,6 @@ struct ar_obj {
 	STAILQ_ENTRY(ar_obj) objs;
 };
 
-/* Symbol table buffer structure. */
-struct symbuf {
-	Elf32_Sym *l32;		/* 32bit local symbol */
-	Elf32_Sym *g32;		/* 32bit global symbol */
-	Elf64_Sym *l64;		/* 64bit local symbol */
-	Elf64_Sym *g64;		/* 64bit global symbol */
-	size_t ngs, nls;	/* number of each kind */
-	size_t gcap, lcap; 	/* buffer capacities. */
-};
-
-/* String table buffer structure. */
-struct strbuf {
-	char *l;		/* local symbol string table */
-	char *g;		/* global symbol string table */
-	size_t lsz, gsz;	/* size of each kind */
-	size_t gcap, lcap; 	/* buffer capacities. */
-};
-
 /*
  * Structure encapsulates the "global" data for "elfcopy" program.
  */
