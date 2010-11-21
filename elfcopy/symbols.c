@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007,2008 Kai Wang
+ * Copyright (c) 2007-2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,9 +263,7 @@ generate_symbols(struct elfcopy *ecp)
 	Elf_Data*	 id;
 	Elf_Scn		*is;
 	size_t		 ishstrndx, ndx, nsyms, sc, symndx;
-	size_t		 gsy_cap, lsy_cap;
-	size_t		 gst_cap, lst_cap;
-	int		 ec, elferr, i, pos;
+	int		 ec, elferr, i;
 
 	if (elf_getshstrndx(ecp->ein, &ishstrndx) == 0)
 		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
@@ -279,12 +277,17 @@ generate_symbols(struct elfcopy *ecp)
 		err(EX_SOFTWARE, "calloc failed");
 	if ((st_buf = calloc(1, sizeof(*st_buf))) == NULL)
 		err(EX_SOFTWARE, "calloc failed");
-	nsyms = 0;
-	gsy_cap = lsy_cap = 64;
-	gst_cap = 256;
-	lst_cap = 64;
+	sy_buf->gcap = sy_buf->lcap = 64;
+	st_buf->gcap = 256;
+	st_buf->lcap = 64;
 	st_buf->lsz = 1;	/* '\0' at start. */
 	st_buf->gsz = 0;
+	nsyms = 0;
+
+	ecp->symtab->sz = 0;
+	ecp->strtab->sz = 0;
+	ecp->symtab->buf = sy_buf;
+	ecp->strtab->buf = st_buf;
 
 	/*
 	 * Create bit vector v_secsym, which is used to mark sections
@@ -338,69 +341,6 @@ generate_symbols(struct elfcopy *ecp)
 		    elf_errmsg(elferr));
 	if (is == NULL)
 		errx(EX_DATAERR, "can't find .strtab section");
-
-	/*
-	 * Convenient macro for copying global/local 32/64 bit symbols
-	 * from input object to the buffer created for output object.
-	 * It handles buffer growing, st_name calculating and st_shndx
-	 * updating for symbols with non-special section index.
-	 */
-#define	COPYSYM(B, SZ, NDX) do {					\
-	if (sy_buf->B##SZ == NULL) {					\
-		sy_buf->B##SZ = malloc(B##sy_cap *			\
-		    sizeof(Elf##SZ##_Sym));				\
-		if (sy_buf->B##SZ == NULL)				\
-			err(EX_SOFTWARE, "malloc failed");		\
-	} else if (sy_buf->n##B##s >= B##sy_cap) {			\
-		B##sy_cap *= 2;						\
-		sy_buf->B##SZ = realloc(sy_buf->B##SZ, B##sy_cap *	\
-		    sizeof(Elf##SZ##_Sym));				\
-		if (sy_buf->B##SZ == NULL)				\
-			err(EX_SOFTWARE, "realloc failed");		\
-	}								\
-	sy_buf->B##SZ[sy_buf->n##B##s].st_info	= sym.st_info;		\
-	sy_buf->B##SZ[sy_buf->n##B##s].st_other	= sym.st_other;		\
-	sy_buf->B##SZ[sy_buf->n##B##s].st_value	= sym.st_value;		\
-	sy_buf->B##SZ[sy_buf->n##B##s].st_size	= sym.st_size;		\
-	if ((NDX))							\
-		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx = (NDX);	\
-	else if (sym.st_shndx == SHN_UNDEF ||				\
-	    sym.st_shndx >= SHN_LORESERVE)				\
-		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx = sym.st_shndx;	\
-	else								\
-		sy_buf->B##SZ[sy_buf->n##B##s].st_shndx	=		\
-			ecp->secndx[sym.st_shndx];			\
-	if (st_buf->B == NULL) {					\
-		st_buf->B = calloc(B##st_cap, sizeof(*st_buf->B));	\
-		if (st_buf->B == NULL)					\
-			err(EX_SOFTWARE, "malloc failed");		\
-	}								\
-	if (sym.st_name != 0 && *name != '\0') {			\
-		pos = lookup_exact_string(st_buf->B,			\
-		    st_buf->B##sz, name);				\
-		if (pos != -1)						\
-			sy_buf->B##SZ[sy_buf->n##B##s].st_name = pos;	\
-		else {							\
-			sy_buf->B##SZ[sy_buf->n##B##s].st_name =	\
-				st_buf->B##sz;				\
-			while (st_buf->B##sz + strlen(name) >=		\
-			    B##st_cap - 1) {				\
-				B##st_cap *= 2;				\
-				st_buf->B = realloc(st_buf->B,		\
-				    B##st_cap);				\
-				if (st_buf->B == NULL)			\
-					err(EX_SOFTWARE,		\
-					    "realloc failed");		\
-			}						\
-			strncpy(&st_buf->B[st_buf->B##sz], name,	\
-			    strlen(name));				\
-			st_buf->B[st_buf->B##sz + strlen(name)] = '\0';	\
-			st_buf->B##sz += strlen(name) + 1;		\
-		}							\
-	} else								\
-		sy_buf->B##SZ[sy_buf->n##B##s].st_name = 0;		\
-	sy_buf->n##B##s++;						\
-} while (0)
 
 	/*
 	 * Create bit vector gsym to mark global symbols, and symndx
@@ -482,17 +422,8 @@ generate_symbols(struct elfcopy *ecp)
 			ecp->symndx[i] = sy_buf->ngs;
 		} else
 			ecp->symndx[i] = sy_buf->nls;
-		if (ec == ELFCLASS32) {
-			if (is_local_symbol(sym.st_info))
-				COPYSYM(l, 32, 0);
-			else
-				COPYSYM(g, 32, 0);
-		} else {
-			if (is_local_symbol(sym.st_info))
-				COPYSYM(l, 64, 0);
-			else
-				COPYSYM(g, 64, 0);
-		}
+		add_to_symtab(ecp, name, sym.st_value, sym.st_size,
+		    sym.st_shndx, sym.st_info, sym.st_other, 0);
 
 		/*
 		 * If the symbol is a STT_SECTION symbol, mark the section
@@ -501,7 +432,6 @@ generate_symbols(struct elfcopy *ecp)
 		if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
 			BIT_SET(ecp->v_secsym, ecp->secndx[sym.st_shndx]);
 	}
-
 
 	/*
 	 * Give up if there is no real symbols inside the table.
@@ -530,18 +460,16 @@ generate_symbols(struct elfcopy *ecp)
 			    elf_errmsg(-1));
 		
 		if (!BIT_ISSET(ecp->v_secsym, ndx)) {
-			sym.st_name	= 0;
-			sym.st_value	= s->vma;
-			sym.st_size	= 0;
-			sym.st_info	= GELF_ST_INFO(STB_LOCAL, STT_SECTION);
+			sym.st_name  = 0;
+			sym.st_value = s->vma;
+			sym.st_size  = 0;
+			sym.st_info  = GELF_ST_INFO(STB_LOCAL, STT_SECTION);
 			/*
-			 * Don't let COPYSYM touch sym.st_shndx. In this case,
-			 * we know the index already.
+			 * Don't let add_to_symtab() touch sym.st_shndx.
+			 * In this case, we know the index already.
 			 */
-			if (ec == ELFCLASS32)
-				COPYSYM(l, 32, ndx);
-			else
-				COPYSYM(l, 64, ndx);
+			add_to_symtab(ecp, NULL, sym.st_value, sym.st_size,
+			    ndx, sym.st_info, sym.st_other, 1);
 		}
 	}
 
