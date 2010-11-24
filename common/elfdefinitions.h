@@ -53,7 +53,10 @@ _ELF_DEFINE_CA(CA_SUNW_SW_1,	2,	"software capability")
 
 #undef	_ELF_DEFINE_CA
 #define	_ELF_DEFINE_CA(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_CAPABILITIES() };
+enum {
+	_ELF_DEFINE_CAPABILITIES()
+	CA__LAST__
+};
 
 /*
  * Flags used with dynamic linking entries.
@@ -72,7 +75,10 @@ _ELF_DEFINE_DF(DF_STATIC_TLS,       0x10,			\
 	"uses static thread-local storage")
 #undef	_ELF_DEFINE_DF
 #define	_ELF_DEFINE_DF(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_DYN_FLAGS() };
+enum {
+	_ELF_DEFINE_DYN_FLAGS()
+	DF__LAST__
+};
 
 
 /*
@@ -317,7 +323,10 @@ _ELF_DEFINE_DT(DT_HIPROC,           0x7FFFFFFFUL,			\
 
 #undef	_ELF_DEFINE_DT
 #define	_ELF_DEFINE_DT(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_DYN_TYPES() };
+enum {
+	_ELF_DEFINE_DYN_TYPES()
+	DT__LAST__ = DT_HIPROC
+};
 
 #define	DT_DEPRECATED_SPARC_REGISTER	DT_SPARC_REGISTER
 
@@ -417,7 +426,10 @@ _ELF_DEFINE_EI(EI_NIDENT,  16, "total size")
 
 #undef	_ELF_DEFINE_EI
 #define	_ELF_DEFINE_EI(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_EI_OFFSETS() };
+enum {
+	_ELF_DEFINE_EI_OFFSETS()
+	EI__LAST__
+};
 
 /*
  * The ELF class of an object.
@@ -429,7 +441,10 @@ _ELF_DEFINE_EC(ELFCLASS64,   2, "64 bit objects")
 
 #undef	_ELF_DEFINE_EC
 #define	_ELF_DEFINE_EC(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ELFCLASS() };
+enum {
+	_ELF_DEFINE_ELFCLASS()
+	EC__LAST__
+};
 
 /*
  * Endianness of data in an ELF object.
@@ -442,7 +457,10 @@ _ELF_DEFINE_ED(ELFDATA2MSB, 2, "big endian")
 
 #undef	_ELF_DEFINE_ED
 #define	_ELF_DEFINE_ED(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ELF_DATA_ENDIANNESS() };
+enum {
+	_ELF_DEFINE_ELF_DATA_ENDIANNESS()
+	ED__LAST__
+};
 
 /*
  * Values of the magic numbers used in identification array.
@@ -455,7 +473,10 @@ _ELF_DEFINE_EMAG(ELFMAG3, 'F')
 
 #undef	_ELF_DEFINE_EMAG
 #define	_ELF_DEFINE_EMAG(N, V)		N = V ,
-enum { _ELF_DEFINE_ELF_MAGIC() };
+enum {
+	_ELF_DEFINE_ELF_MAGIC()
+	ELFMAG__LAST__
+};
 
 /*
  * ELF OS ABI field.
@@ -490,7 +511,10 @@ _ELF_DEFINE_EABI(ELFOSABI_STANDALONE, 255,				\
 
 #undef	_ELF_DEFINE_EABI
 #define	_ELF_DEFINE_EABI(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ELF_OSABI() };
+enum {
+	_ELF_DEFINE_ELF_OSABI()
+	ELFOSABI__LAST__
+};
 
 /*
  * ELF Machine types: (EM_*).
@@ -719,7 +743,10 @@ _ELF_DEFINE_EM(EM_CUDA,             190, "NVIDIA CUDA architecture")
 
 #undef	_ELF_DEFINE_EM
 #define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ELF_MACHINES() };
+enum {
+	_ELF_DEFINE_ELF_MACHINES()
+	EM__LAST__
+};
 
 /* Older synonyms. */
 #define	EM_ARC_A5		EM_ARC_COMPACT
@@ -740,7 +767,10 @@ _ELF_DEFINE_ET(ET_HIPROC, 0xFFFFU,  "End processor-specific range")
 
 #undef	_ELF_DEFINE_ET
 #define	_ELF_DEFINE_ET(N, V, DESCR)	N = V ,
-enum {	_ELF_DEFINE_ELF_TYPES() };
+enum {
+	_ELF_DEFINE_ELF_TYPES()
+	ET__LAST__
+};
 
 /* ELF file format version numbers. */
 #define	EV_NONE		0
@@ -772,7 +802,10 @@ _ELF_DEFINE_PF(PF_ARM_ABS,          0x40000000,				\
 
 #undef	_ELF_DEFINE_PF
 #define	_ELF_DEFINE_PF(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_PHDR_FLAGS() };
+enum {
+	_ELF_DEFINE_PHDR_FLAGS()
+	PF__LAST__
+};
 
 /*
  * Types of program header table entries.
@@ -816,7 +849,10 @@ _ELF_DEFINE_PT(PT_HIPROC,           0x7FFFFFFFUL,		\
 
 #undef	_ELF_DEFINE_PT
 #define	_ELF_DEFINE_PT(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_PHDR_TYPES() };
+enum {
+	_ELF_DEFINE_PHDR_TYPES()
+	PT__LAST__ = PT_HIPROC
+};
 
 /* synonyms. */
 #define	PT_ARM_UNWIND	PT_ARM_EXIDX
@@ -878,7 +914,10 @@ _ELF_DEFINE_SHF(SHF_MASKPROC,        0xF0000000UL,			\
 
 #undef	_ELF_DEFINE_SHF
 #define	_ELF_DEFINE_SHF(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SECTION_FLAGS() };
+enum {
+	_ELF_DEFINE_SECTION_FLAGS()
+	SHF__LAST__
+};
 
 /*
  * Special section indices.
@@ -916,7 +955,10 @@ _ELF_DEFINE_SHN(SHN_HIRESERVE, 	0xFFFFU, "end of reserved area")
 
 #undef	_ELF_DEFINE_SHN
 #define	_ELF_DEFINE_SHN(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SECTION_INDICES() };
+enum {
+	_ELF_DEFINE_SECTION_INDICES()
+	SHN__LAST__
+};
 
 /*
  * Section types.
@@ -1064,7 +1106,10 @@ _ELF_DEFINE_SHT(SHT_HIUSER,          0xFFFFFFFFUL,			\
 
 #undef	_ELF_DEFINE_SHT
 #define	_ELF_DEFINE_SHT(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SECTION_TYPES() };
+enum {
+	_ELF_DEFINE_SECTION_TYPES()
+	SHT__LAST__ = SHT_HIUSER
+};
 
 /* Aliases for section types. */
 #define	SHT_GNU_verdef		SHT_SUNW_verdef
@@ -1091,7 +1136,10 @@ _ELF_DEFINE_STB(STB_HIPROC,          15,				\
 
 #undef	_ELF_DEFINE_STB
 #define	_ELF_DEFINE_STB(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_BINDING() };
+enum {
+	_ELF_DEFINE_SYMBOL_BINDING()
+	STB__LAST__
+};
 
 /*
  * Symbol types
@@ -1116,7 +1164,10 @@ _ELF_DEFINE_STT(STT_HIPROC,          15,				\
 
 #undef	_ELF_DEFINE_STT
 #define	_ELF_DEFINE_STT(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_TYPES() };
+enum {
+	_ELF_DEFINE_SYMBOL_TYPES()
+	STT__LAST__
+};
 
 /*
  * Symbol binding.
@@ -1132,7 +1183,10 @@ _ELF_DEFINE_SYB(SYMINFO_BT_NONE,	0xFFFDU,	\
 
 #undef	_ELF_DEFINE_SYB
 #define	_ELF_DEFINE_SYB(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_BINDING_KINDS() };
+enum {
+	_ELF_DEFINE_SYMBOL_BINDING_KINDS()
+	SYMINFO__LAST__
+};
 
 /*
  * Symbol visibility.
@@ -1150,7 +1204,10 @@ _ELF_DEFINE_STV(STV_PROTECTED,       3,		\
 
 #undef	_ELF_DEFINE_STV
 #define	_ELF_DEFINE_STV(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_VISIBILITY() };
+enum {
+	_ELF_DEFINE_SYMBOL_VISIBILITY()
+	STV__LAST__
+};
 
 /*
  * Symbol flags.
@@ -1169,7 +1226,10 @@ _ELF_DEFINE_SYF(SYMINFO_FLG_NOEXTDIRECT, 0x20,	\
 
 #undef	_ELF_DEFINE_SYF
 #define	_ELF_DEFINE_SYF(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_SYMBOL_FLAGS() };
+enum {
+	_ELF_DEFINE_SYMBOL_FLAGS()
+	SYMINFO_FLG__LAST__
+};
 
 /*
  * Version dependencies.
@@ -1179,7 +1239,10 @@ _ELF_DEFINE_VERD(VER_NDX_LOCAL,		0,	"local scope")	\
 _ELF_DEFINE_VERD(VER_NDX_GLOBAL,	1,	"global scope")
 #undef	_ELF_DEFINE_VERD
 #define	_ELF_DEFINE_VERD(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_VERSIONING_DEPENDENCIES() };
+enum {
+	_ELF_DEFINE_VERSIONING_DEPENDENCIES()
+	VER_NDX__LAST__
+};
 
 /*
  * Version flags.
@@ -1189,7 +1252,10 @@ _ELF_DEFINE_VERF(VER_FLG_BASE,		0x1,	"file version") \
 _ELF_DEFINE_VERF(VER_FLG_WEAK,		0x2,	"weak version")
 #undef	_ELF_DEFINE_VERF
 #define	_ELF_DEFINE_VERF(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_VERSIONING_FLAGS() };
+enum {
+	_ELF_DEFINE_VERSIONING_FLAGS()
+	VER_FLG__LAST__
+};
 
 /*
  * Version needs
@@ -1199,7 +1265,10 @@ _ELF_DEFINE_VRN(VER_NEED_NONE,		0,	"invalid version")	\
 _ELF_DEFINE_VRN(VER_NEED_CURRENT,	1,	"current version")
 #undef	_ELF_DEFINE_VRN
 #define	_ELF_DEFINE_VRN(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_VERSIONING_NEEDS() };
+enum {
+	_ELF_DEFINE_VERSIONING_NEEDS()
+	VER_NEED__LAST__
+};
 
 /*
  * Version numbers.
@@ -1209,7 +1278,10 @@ _ELF_DEFINE_VRNU(VER_DEF_NONE,		0,	"invalid version")	\
 _ELF_DEFINE_VRNU(VER_DEF_CURRENT,	1, 	"current version")
 #undef	_ELF_DEFINE_VRNU
 #define	_ELF_DEFINE_VRNU(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_VERSIONING_NUMBERS() };
+enum {
+	_ELF_DEFINE_VERSIONING_NUMBERS()
+	VER_DEF__LAST__
+};
 
 /**
  ** Relocation types.
@@ -1732,7 +1804,10 @@ _ELF_DEFINE_X86_64_RELOCATIONS()
 
 #undef	_ELF_DEFINE_RELOC
 #define	_ELF_DEFINE_RELOC(N, V)		N = V ,
-enum { _ELF_DEFINE_RELOCATIONS() };
+enum {
+	_ELF_DEFINE_RELOCATIONS()
+	R__LAST__
+};
 
 #define	PN_XNUM			0xFFFFU /* Use extended section numbering. */
 
@@ -1902,7 +1977,10 @@ _ELF_DEFINE_LL(LL_DELTA,		0x20,	\
 
 #undef	_ELF_DEFINE_LL
 #define	_ELF_DEFINE_LL(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_LL_FLAGS() };
+enum {
+	_ELF_DEFINE_LL_FLAGS()
+	LL__LAST__
+};
 
 /*
  * Note tags
@@ -1928,7 +2006,10 @@ _ELF_DEFINE_NT(NT_LWPSINFO,	17,	"Linux lwpinfo_t type")
 
 #undef	_ELF_DEFINE_NT
 #define	_ELF_DEFINE_NT(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_NOTE_ENTRY_TYPES() };
+enum {
+	_ELF_DEFINE_NOTE_ENTRY_TYPES()
+	NT__LAST__
+};
 
 /* Aliases for the ABI tag. */
 #define	NT_FREEBSD_ABI_TAG	NT_ABI_TAG
@@ -1981,7 +2062,10 @@ _ELF_DEFINE_ODK(ODK_PAGESIZE,   11,     "page size infomation")
 
 #undef	_ELF_DEFINE_ODK
 #define	_ELF_DEFINE_ODK(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_OPTION_KINDS() };
+enum {
+	_ELF_DEFINE_OPTION_KINDS()
+	ODK__LAST__
+};
 
 /*
  * ODK_EXCEPTIONS info field masks.
@@ -2003,7 +2087,10 @@ _ELF_DEFINE_OEX(OEX_DISMISS,    0x00080000UL,				\
 
 #undef	_ELF_DEFINE_OEX
 #define	_ELF_DEFINE_OEX(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ODK_EXCEPTIONS_MASK() };
+enum {
+	_ELF_DEFINE_ODK_EXCEPTIONS_MASK()
+	OEX__LAST__
+};
 
 /*
  * ODK_PAD info field masks.
@@ -2016,7 +2103,10 @@ _ELF_DEFINE_OPAD(OPAD_SYMBOL,   0x0004)
 
 #undef	_ELF_DEFINE_OPAD
 #define	_ELF_DEFINE_OPAD(N, V)		N = V ,
-enum { _ELF_DEFINE_ODK_PAD_MASK() };
+enum {
+	_ELF_DEFINE_ODK_PAD_MASK()
+	OPAD__LAST__
+};
 
 /*
  * ODK_HWPATCH info field masks.
@@ -2036,7 +2126,10 @@ _ELF_DEFINE_OHW(OHW_R10KLDL,    0x00000010UL,				\
 
 #undef	_ELF_DEFINE_OHW
 #define	_ELF_DEFINE_OHW(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ODK_HWPATCH_MASK() };
+enum {
+	_ELF_DEFINE_ODK_HWPATCH_MASK()
+	OHW__LAST__
+};
 
 /*
  * ODK_HWAND/ODK_HWOR info field and hwp_flags[12] masks.
@@ -2052,7 +2145,10 @@ _ELF_DEFINE_HWP(OHWO0_FIXADE,   0x00000001UL,				\
 
 #undef	_ELF_DEFINE_HWP
 #define	_ELF_DEFINE_HWP(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ODK_HWP_MASK() };
+enum {
+	_ELF_DEFINE_ODK_HWP_MASK()
+	OHWX0__LAST__
+};
 
 /*
  * ODK_IDENT/ODK_GP_GROUP info field masks.
@@ -2065,7 +2161,10 @@ _ELF_DEFINE_OGP(OGP_SELF,       0x00010000UL,				\
 
 #undef	_ELF_DEFINE_OGP
 #define	_ELF_DEFINE_OGP(N, V, DESCR)	N = V ,
-enum { _ELF_DEFINE_ODK_GP_MASK() };
+enum {
+	_ELF_DEFINE_ODK_GP_MASK()
+	OGP__LAST__
+};
 
 /*
  * MIPS ELF register info descriptor.
