@@ -445,6 +445,8 @@ copy_tempfile(int fd, const char *out)
 	if ((out_fd = open(out, O_CREAT | O_WRONLY, 0755)) == -1)
 		err(EX_IOERR, "create %s failed", out);
 
+	if (lseek(fd, 0, SEEK_SET) < 0)
+		err(EX_IOERR, "lseek tmpfile failed");
 	while ((bytes = read(fd, buf, sb.st_blksize)) > 0) {
 		if (write(out_fd, buf, (size_t) bytes) != bytes) {
 			(void) unlink(out);
