@@ -558,8 +558,12 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			 * Create (another) tempfile for binary/srec/ihex
 			 * output object.
 			 */
-			if (tempfile != NULL)
+			if (tempfile != NULL) {
+				if (unlink(tempfile) < 0)
+					err(EX_IOERR, "unlink %s failed",
+					    tempfile);
 				free(tempfile);
+			}
 			create_tempfile(&tempfile, &ofd0);
 
 			/*
@@ -604,9 +608,12 @@ copy_done:
 		if (dst == NULL)
 			dst = src;
 		if (rename(tempfile, dst) == -1) {
-			if (errno == EXDEV)
+			if (errno == EXDEV) {
 				ofd = copy_tempfile(ofd, dst);
-			else
+				if (unlink(tempfile) < 0)
+					err(EX_IOERR, "unlink %s failed",
+					    tempfile);
+			} else
 				err(EX_IOERR, "rename %s to %s failed",
 				    tempfile, dst);
 		}
