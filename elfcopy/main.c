@@ -421,7 +421,7 @@ create_tempfile(char **fn, int *fd)
 	}
 	if ((*fd = mkstemp(tmpf)) == -1)
 		err(EX_IOERR, "mkstemp %s failed", tmpf);
-	if (fchmod(*fd, 0755) == -1)
+	if (fchmod(*fd, 0644) == -1)
 		err(EX_IOERR, "fchmod %s failed", tmpf);
 	*fn = tmpf;
 
@@ -479,10 +479,8 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	if ((ifd = open(src, O_RDONLY)) == -1)
 		err(EX_IOERR, "open %s failed", src);
 
-	if (ecp->flags & PRESERVE_DATE) {
-		if (fstat(ifd, &sb) == -1)
-			err(EX_IOERR, "fstat %s failed", src);
-	}
+	if (fstat(ifd, &sb) == -1)
+		err(EX_IOERR, "fstat %s failed", src);
 
 	if (dst == NULL)
 		create_tempfile(&tempfile, &ofd);
@@ -619,6 +617,9 @@ copy_done:
 		}
 		free(tempfile);
 	}
+
+	if (fchmod(ofd, sb.st_mode) == -1)
+		err(EX_IOERR, "fchmod %s failed", dst);
 
 	if (ecp->flags & PRESERVE_DATE) {
 		tv[0].tv_sec = sb.st_atime;
