@@ -46,6 +46,7 @@ enum options
 {
 	ECP_ADD_GNU_DEBUGLINK,
 	ECP_ADD_SECTION,
+	ECP_CHANGE_START,
 	ECP_GLOBALIZE_SYMBOL,
 	ECP_GLOBALIZE_SYMBOLS,
 	ECP_KEEP_SYMBOLS,
@@ -88,7 +89,9 @@ static struct option elfcopy_longopts[] =
 {
 	{"add-gnu-debuglink", required_argument, NULL, ECP_ADD_GNU_DEBUGLINK},
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
+	{"adjust-start", required_argument, NULL, ECP_CHANGE_START},
 	{"binary-architecture", required_argument, NULL, 'B'},
+	{"change-start", required_argument, NULL, ECP_CHANGE_START},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
 	{"globalize-symbol", required_argument, NULL, ECP_GLOBALIZE_SYMBOL},
@@ -369,6 +372,10 @@ create_elf(struct elfcopy *ecp)
 			errx(EX_SOFTWARE, "gelf_fsize() failed: %s",
 			    elf_errmsg(-1));
 	}
+
+	/* Update ELF object entry point if requested. */
+	if (ecp->change_start != 0)
+		oeh.e_entry += ecp->change_start;
 
 	/*
 	 * Update ehdr again before we call elf_update(), since we
@@ -705,6 +712,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_ADD_SECTION:
 			add_section(ecp, optarg);
+			break;
+		case ECP_CHANGE_START:
+			ecp->change_start = strtol(optarg, NULL, 10);
 			break;
 		case ECP_GLOBALIZE_SYMBOL:
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_GLOBALIZE);
