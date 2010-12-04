@@ -205,6 +205,7 @@ struct elfcopy {
 #define SREC_FORCE_LEN	0x4000U
 
 	int		 flags;		/* elfcopy run control flags. */
+	long		 change_start;	/* Entry point adjustment. */
 	unsigned long	 srec_len;	/* S-Record length. */
 	char		*debuglink;	/* GNU debuglink file. */
 	uint64_t	*secndx;	/* section index map. */
