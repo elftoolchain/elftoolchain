@@ -718,7 +718,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			add_section(ecp, optarg);
 			break;
 		case ECP_CHANGE_START:
-			ecp->change_start = strtol(optarg, NULL, 10);
+			ecp->change_start = (int64_t) strtoll(optarg, NULL, 0);
 			break;
 		case ECP_GLOBALIZE_SYMBOL:
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_GLOBALIZE);
@@ -777,14 +777,14 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_SET_START:
 			ecp->flags |= SET_START;
-			ecp->set_start = strtol(optarg, NULL, 10);
+			ecp->set_start = (uint64_t) strtoull(optarg, NULL, 0);
 			break;
 		case ECP_SREC_FORCE_S3:
 			ecp->flags |= SREC_FORCE_S3;
 			break;
 		case ECP_SREC_LEN:
 			ecp->flags |= SREC_FORCE_LEN;
-			ecp->srec_len = strtoul(optarg, NULL, 10);
+			ecp->srec_len = strtoul(optarg, NULL, 0);
 			break;
 		case ECP_STRIP_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_STRIP);
