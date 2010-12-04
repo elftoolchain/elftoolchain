@@ -41,6 +41,7 @@ ELFTC_VCSID("$Id$");
 static void	add_gnu_debuglink(struct elfcopy *ecp);
 static uint32_t calc_crc32(const char *p, size_t len, uint32_t crc);
 static void	check_section_rename(struct elfcopy *ecp, struct section *s);
+static void	check_section_vma(struct elfcopy *ecp, struct section *s);
 static void	filter_reloc(struct elfcopy *ecp, struct section *s);
 static int	get_section_flags(struct elfcopy *ecp, const char *name);
 static void	insert_sections(struct elfcopy *ecp);
@@ -173,6 +174,20 @@ check_section_rename(struct elfcopy *ecp, struct section *s)
 	sac = lookup_sec_act(ecp, s->name, 0);
 	if (sac != NULL && sac->rename)
 		s->name = sac->newname;
+}
+
+static void
+check_section_vma(struct elfcopy *ecp, struct section *s)
+{
+	struct sec_action *sac;
+
+	sac = lookup_sec_act(ecp, s->name, 0);
+	if (sac == NULL)
+		return;
+	if (sac->setvma)
+		s->vma = sac->vma;
+	if (sac->vma_adjust != 0)
+		s->vma += sac->vma_adjust;
 }
 
 static int
@@ -336,6 +351,9 @@ create_scn(struct elfcopy *ecp)
 			s->align	= ish.sh_addralign;
 			s->type		= ish.sh_type;
 			s->vma		= ish.sh_addr;
+
+			/* Apply section vma changes, if any. */
+			check_section_vma(ecp, s);
 
 			/*
 			 * Search program headers to determine whether section
