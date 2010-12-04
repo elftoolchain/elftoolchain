@@ -68,6 +68,8 @@ struct sec_action {
 	const char	*addopt;
 	const char	*newname;
 	const char	*string;
+	uint64_t	 vma;
+	int64_t		 vma_adjust;
 
 #define	SF_ALLOC	0x0001U
 #define	SF_LOAD		0x0002U
@@ -81,7 +83,6 @@ struct sec_action {
 #define	SF_CONTENTS	0x0200U
 
 	int	flags;
-
 	int	add;
 	int	append;
 	int	compress;
@@ -90,6 +91,7 @@ struct sec_action {
 	int	remove;
 	int	rename;
 	int	setflags;
+	int	setvma;
 
 	STAILQ_ENTRY(sec_action) sac_list;
 };

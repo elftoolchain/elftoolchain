@@ -46,6 +46,7 @@ enum options
 {
 	ECP_ADD_GNU_DEBUGLINK,
 	ECP_ADD_SECTION,
+	ECP_CHANGE_SEC_VMA,
 	ECP_CHANGE_START,
 	ECP_GLOBALIZE_SYMBOL,
 	ECP_GLOBALIZE_SYMBOLS,
@@ -92,6 +93,7 @@ static struct option elfcopy_longopts[] =
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
 	{"adjust-start", required_argument, NULL, ECP_CHANGE_START},
 	{"binary-architecture", required_argument, NULL, 'B'},
+	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
@@ -173,6 +175,8 @@ static struct {
 static int	copy_tempfile(int fd, const char *out);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
+static void	parse_sec_address_op(struct elfcopy *ecp, const char *optname,
+    char *s);
 static void	parse_sec_flags(struct sec_action *sac, char *s);
 static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
     unsigned int op);
@@ -717,6 +721,10 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_ADD_SECTION:
 			add_section(ecp, optarg);
 			break;
+		case ECP_CHANGE_SEC_VMA:
+			parse_sec_address_op(ecp, "--change-section-vma",
+			    optarg);
+			break;
 		case ECP_CHANGE_START:
 			ecp->change_start = (int64_t) strtoll(optarg, NULL, 0);
 			break;
@@ -977,6 +985,39 @@ parse_sec_flags(struct sec_action *sac, char *s)
 			}
 		if (!found)
 			errx(EX_USAGE, "unrecognized section flag %s", flag);
+	}
+}
+
+static void
+parse_sec_address_op(struct elfcopy *ecp, const char *optname, char *s)
+{
+	struct sec_action	*sac;
+	const char		*name;
+	char			*v;
+	char			 op;
+
+	name = v = s;
+	do {
+		v++;
+	} while (*v != '\0' && *v != '=' && *v != '+' && *v != '-');
+	if (*v == '\0' || *(v + 1) == '\0')
+		errx(EX_USAGE, "invalid format for %s", optname);
+	op = *v;
+	*v++ = '\0';
+	sac = lookup_sec_act(ecp, name, 1);
+	switch (op) {
+	case '=':
+		sac->setvma = 1;
+		sac->vma = (uint64_t) strtoull(v, NULL, 0);
+		break;
+	case '+':
+		sac->vma_adjust = (int64_t) strtoll(v, NULL, 0);
+		break;
+	case '-':
+		sac->vma_adjust = (int64_t) -strtoll(v, NULL, 0);
+		break;
+	default:
+		break;
 	}
 }
 
