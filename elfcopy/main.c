@@ -58,6 +58,7 @@ enum options
 	ECP_RENAME_SECTION,
 	ECP_SET_OSABI,
 	ECP_SET_SEC_FLAGS,
+	ECP_SET_START,
 	ECP_SREC_FORCE_S3,
 	ECP_SREC_LEN,
 	ECP_STRIP_SYMBOLS,
@@ -114,6 +115,7 @@ static struct option elfcopy_longopts[] =
 	{"remove-section", required_argument, NULL, 'R'},
 	{"rename-section", required_argument, NULL, ECP_RENAME_SECTION},
 	{"set-section-flags", required_argument, NULL, ECP_SET_SEC_FLAGS},
+	{"set-start", required_argument, NULL, ECP_SET_START},
 	{"srec-forceS3", no_argument, NULL, ECP_SREC_FORCE_S3},
 	{"srec-len", required_argument, NULL, ECP_SREC_LEN},
 	{"strip-all", no_argument, NULL, 'S'},
@@ -374,6 +376,8 @@ create_elf(struct elfcopy *ecp)
 	}
 
 	/* Update ELF object entry point if requested. */
+	if (ecp->flags & SET_START)
+		oeh.e_entry = ecp->set_start;
 	if (ecp->change_start != 0)
 		oeh.e_entry += ecp->change_start;
 
@@ -770,6 +774,10 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			*s++ = '\0';
 			sac = lookup_sec_act(ecp, optarg, 1);
 			parse_sec_flags(sac, s);
+			break;
+		case ECP_SET_START:
+			ecp->flags |= SET_START;
+			ecp->set_start = strtol(optarg, NULL, 10);
 			break;
 		case ECP_SREC_FORCE_S3:
 			ecp->flags |= SREC_FORCE_S3;
