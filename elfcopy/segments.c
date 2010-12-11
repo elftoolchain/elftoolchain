@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007,2008 Kai Wang
+ * Copyright (c) 2007-2010 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,10 +82,159 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 			continue;
 
 		insert_to_inseg_list(seg, s);
+		if (seg->type == PT_LOAD)
+			s->seg = seg;
+		s->lma = seg->addr + (s->off - seg->off);
 		loadable = 1;
 	}
 
 	return (loadable);
+}
+
+void
+adjust_lma(struct elfcopy *ecp)
+{
+	struct section *s, *s0;
+	struct segment *seg;
+	struct sec_action *sac;
+	uint64_t dl, lma, start, end;
+
+	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+
+		/* Only adjust loadable section's LMA */
+		if (!s->loadable || s->seg == NULL)
+			continue;
+
+		/*
+		 * Check if there is a LMA change request for this
+		 * section.
+		 */
+		sac = lookup_sec_act(ecp, s->name, 0);
+		if (sac == NULL)
+			continue;
+		if (!sac->setlma && sac->lma_adjust == 0)
+			continue;
+		lma = s->lma;
+		if (sac->setlma)
+			lma = sac->lma;
+		if (sac->lma_adjust != 0)
+			lma += sac->lma_adjust;
+		if (lma == s->lma)
+			continue;
+
+		/*
+		 * Check if the LMA change is viable.
+		 *
+		 * 1. Check if the new LMA is properly aligned accroding to
+		 *    section alignment.
+		 *
+		 * 2. Compute the new extent of segment that contains this
+		 *    section, make sure it doesn't overlap with other
+		 *    segments.
+		 */
+#ifdef	DEBUG
+		printf("LMA for section %s: %#jx\n", s->name, lma);
+#endif
+
+		if (lma % s->align != 0)
+			errx(EX_DATAERR, "The load address %#jx for section "
+			    "%s is not aligned to %ju", (uintmax_t) lma,
+			    s->name, s->align);
+
+		if (lma < s->lma) {
+			/* Move section to lower address. */
+			if (lma < s->lma - s->seg->addr)
+				errx(EX_DATAERR, "Not enough space to move "
+				    "section %s load address to %#jx", s->name,
+				    (uintmax_t) lma);
+			start = lma - (s->lma - s->seg->addr);
+			if (s == TAILQ_LAST(&s->seg->v_sec, sec_head))
+				end = start + s->seg->msz;
+			else
+				end = s->seg->addr + s->seg->msz;
+
+		} else {
+			/* Move section to upper address. */
+			if (s == TAILQ_FIRST(&s->seg->v_sec))
+				start = lma;
+			else
+				start = s->seg->addr;
+			end = lma + (s->seg->addr + s->seg->msz - s->lma);
+			if (end < start)
+				errx(EX_DATAERR, "Not enough space to move "
+				    "section %s load address to %#jx", s->name,
+				    (uintmax_t) lma);
+		}
+
+#ifdef	DEBUG
+		printf("new extent for segment containing %s: (%#jx,%#jx)\n",
+		    s->name, start, end);
+#endif
+
+		STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
+			if (seg == s->seg || seg->type != PT_LOAD)
+				continue;
+			if (start > seg->addr + seg->msz)
+				continue;
+			if (end < seg->addr)
+				continue;
+			errx(EX_DATAERR, "The extent of segment containing "
+			    "section %s overlaps with segment(%#jx,%#jx)",
+			    s->name, seg->addr, seg->addr + seg->msz);
+		}
+
+		/*
+		 * Update section LMA and file offset.
+		 */
+
+		if (lma < s->lma) {
+			/*
+			 * To move a section to lower load address, we decrease
+			 * the load addresses of the section and all the
+			 * sections that are before it, and we increase the
+			 * file offsets of all the sections that are after it.
+			 */
+			dl = s->lma - lma;
+			TAILQ_FOREACH(s0, &s->seg->v_sec, in_seg) {
+				s0->lma -= dl;
+#ifdef	DEBUG
+				printf("section %s LMA set to %#jx\n",
+				    s0->name, (uintmax_t) s0->lma);
+#endif
+				if (s0 == s)
+					break;
+			}
+			for (s0 = TAILQ_NEXT(s, in_seg); s0 != NULL;
+			     s0 = TAILQ_NEXT(s0, in_seg)) {
+				s0->off += dl;
+#ifdef	DEBUG
+				printf("section %s offset set to %#jx\n",
+				    s0->name, (uintmax_t) s0->off);
+#endif
+			}
+		} else {
+			/*
+			 * To move a section to upper load address, we increase
+			 * the load addresses of the section and all the
+			 * sections that are after it, and we increase the
+			 * their file offsets too unless the section in question
+			 * is the first in its containing segment.
+			 */
+			dl = lma - s->lma;
+			for (s0 = s; s0 != NULL; s0 = TAILQ_NEXT(s0, in_seg)) {
+				s0->lma += dl;
+#ifdef	DEBUG
+				printf("section %s LMA set to %#jx\n",
+				    s0->name, (uintmax_t) s0->lma);
+#endif
+				if (s != TAILQ_FIRST(&s->seg->v_sec)) {
+					s0->off += dl;
+					printf("section %s offset set to %#jx\n",
+					    s0->name, (uintmax_t) s0->off);
+				}
+			}
+		}
+	}
 }
 
 static void
@@ -124,13 +273,14 @@ setup_phdr(struct elfcopy *ecp)
 		ecp->ophnum = 0;
 		return;
 	}
-		
+
 	for (i = 0; (size_t)i < iphnum; i++) {
 		if (gelf_getphdr(ecp->ein, i, &iphdr) != &iphdr)
 			errx(EX_SOFTWARE, "gelf_getphdr failed: %s",
 			    elf_errmsg(-1));
 		if ((seg = calloc(1, sizeof(*seg))) == NULL)
 			err(EX_SOFTWARE, "calloc failed");
+		seg->addr	= iphdr.p_vaddr;
 		seg->off	= iphdr.p_offset;
 		seg->fsz	= iphdr.p_filesz;
 		seg->msz	= iphdr.p_memsz;
@@ -146,7 +296,6 @@ copy_phdr(struct elfcopy *ecp)
 	struct segment	*seg;
 	struct section	*s;
 	GElf_Phdr	 iphdr, ophdr;
-	size_t		 t;
 	int		 i;
 
 	STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
@@ -155,16 +304,15 @@ copy_phdr(struct elfcopy *ecp)
 			continue;
 
 		if (!TAILQ_EMPTY(&seg->v_sec)) {
+			s = TAILQ_FIRST(&seg->v_sec);
+			seg->off = s->off;
+			seg->addr = s->lma;
 			s = TAILQ_LAST(&seg->v_sec, sec_head);
-			t = s->off + s->sz - seg->off;
-			/*
-			 * We simply assume fsz and msz become the same if
-			 * sections are removed at the end of a segment.
-			 * This is usually true, since .bss section is usually
-			 * positioned at the end.
-			 */
-			if (seg->msz != t)
-				seg->fsz = seg->msz = t;
+			seg->fsz = seg->msz = s->off + s->sz - seg->off;
+			if (s->name != NULL && !strcmp(s->name, ".bss")) {
+				s = TAILQ_PREV(s, sec_head, in_seg);
+				seg->fsz = s->off + s->sz - seg->off;
+			}
 		} else
 			seg->fsz = seg->msz = 0;
 	}
@@ -201,11 +349,11 @@ copy_phdr(struct elfcopy *ecp)
 			    elf_errmsg(-1));
 
 		ophdr.p_type = iphdr.p_type;
-		ophdr.p_vaddr = iphdr.p_vaddr;
-		ophdr.p_paddr = iphdr.p_paddr;
+		ophdr.p_vaddr = seg->addr;
+		ophdr.p_paddr = seg->addr;
 		ophdr.p_flags = iphdr.p_flags;
 		ophdr.p_align = iphdr.p_align;
-		ophdr.p_offset = iphdr.p_offset;
+		ophdr.p_offset = seg->off;
 		ophdr.p_filesz = seg->fsz;
 		ophdr.p_memsz = seg->msz;
 		if (!gelf_update_phdr(ecp->eout, i, &ophdr))
