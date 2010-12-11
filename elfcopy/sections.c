@@ -255,6 +255,9 @@ lookup_sec_act(struct elfcopy *ecp, const char *name, int add)
 {
 	struct sec_action *sac;
 
+	if (name == NULL)
+		return NULL;
+
 	STAILQ_FOREACH(sac, &ecp->v_sac, sac_list) {
 		if (strcmp(name, sac->name) == 0)
 			return sac;
@@ -307,6 +310,21 @@ create_scn(struct elfcopy *ecp)
 	size_t		 indx;
 	uint64_t	 oldndx, newndx;
 	int		 elferr, sec_flags;
+
+	/*
+	 * Insert a pseudo section that contains the ELF header
+	 * and program header. Used as reference for section offset
+	 * or load address adjustment.
+	 */
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		err(EX_SOFTWARE, "calloc failed");
+	s->off = 0;
+	s->sz = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT) +
+	    gelf_fsize(ecp->eout, ELF_T_PHDR, ecp->ophnum, EV_CURRENT);
+	s->align = 1;
+	s->pseudo = 1;
+	s->loadable = add_to_inseg_list(ecp, s);
+	insert_to_sec_list(ecp, s, 0);
 
 	/* Create internal .shstrtab section. */
 	init_shstrtab(ecp);
@@ -679,11 +697,15 @@ resync_sections(struct elfcopy *ecp)
 	struct section	*s;
 	GElf_Shdr	 osh;
 	uint64_t	 off;
+	int		 first;
 
+	first = 1;
 	off = 0;
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
-		if (off == 0)
+		if (first) {
 			off = s->off;
+			first = 0;
+		}
 
 		if (off <= s->off) {
 			if (!s->loadable)

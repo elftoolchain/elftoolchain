@@ -68,7 +68,9 @@ struct sec_action {
 	const char	*addopt;
 	const char	*newname;
 	const char	*string;
+	uint64_t	 lma;
 	uint64_t	 vma;
+	int64_t		 lma_adjust;
 	int64_t		 vma_adjust;
 
 #define	SF_ALLOC	0x0001U
@@ -91,6 +93,7 @@ struct sec_action {
 	int	remove;
 	int	rename;
 	int	setflags;
+	int	setlma;
 	int	setvma;
 
 	STAILQ_ENTRY(sec_action) sac_list;
@@ -105,9 +108,12 @@ struct sec_add {
 	STAILQ_ENTRY(sec_add) sadd_list;
 };
 
+struct segment;
+
 /* Internal data structure for sections. */
 struct section {
-	const char	*name;
+	struct segment	*seg;	/* containing segment */
+	const char	*name;	/* section name */
 	Elf_Scn		*is;	/* input scn */
 	Elf_Scn		*os;	/* output scn */
 	void		*buf;	/* section content */
@@ -117,6 +123,7 @@ struct section {
 	uint64_t	 align;	/* section alignment */
 	uint64_t	 type;	/* section type */
 	uint64_t	 vma;	/* section virtual addr */
+	uint64_t	 lma;	/* section load addr */
 	int		 loadable;	/* whether loadable */
 	int		 pseudo;
 	int		 nocopy;
@@ -127,11 +134,12 @@ struct section {
 
 /* Internal data structure for segments. */
 struct segment {
-	uint64_t	off;
+	uint64_t	addr;	/* load addr */
+	uint64_t	off;	/* file offset */
 	uint64_t	fsz;	/* file size */
 	uint64_t	msz;	/* memory size */
-	uint64_t	type;
-	int		remove;
+	uint64_t	type;	/* segment type */
+	int		remove;	/* whether remove */
 
 	TAILQ_HEAD(sec_head, section) v_sec;
 	STAILQ_ENTRY(segment) seg_list;
@@ -247,6 +255,7 @@ void	add_to_symtab(struct elfcopy *_ecp, const char *_name,
     uint64_t _st_value, uint64_t _st_size, uint16_t _st_shndx,
     unsigned char _st_info, unsigned char _st_other, int _ndx_known);
 int	add_to_inseg_list(struct elfcopy *_ecp, struct section *_sec);
+void	adjust_lma(struct elfcopy *_ecp);
 void	copy_content(struct elfcopy *_ecp);
 void	copy_data(struct section *_s);
 void	copy_phdr(struct elfcopy *_ecp);

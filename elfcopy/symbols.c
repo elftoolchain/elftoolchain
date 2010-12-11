@@ -465,6 +465,8 @@ generate_symbols(struct elfcopy *ecp)
 	 * .symtab, .strtab, .shstrtab and reloc sec of relocatables.
 	 */
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+		if (s->pseudo)
+			continue;
 		if (strcmp(s->name, ".symtab") == 0 ||
 		    strcmp(s->name, ".strtab") == 0 ||
 		    strcmp(s->name, ".shstrtab") == 0)

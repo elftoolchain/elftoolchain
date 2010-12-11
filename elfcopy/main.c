@@ -46,6 +46,7 @@ enum options
 {
 	ECP_ADD_GNU_DEBUGLINK,
 	ECP_ADD_SECTION,
+	ECP_CHANGE_SEC_LMA,
 	ECP_CHANGE_SEC_VMA,
 	ECP_CHANGE_START,
 	ECP_GLOBALIZE_SYMBOL,
@@ -93,6 +94,7 @@ static struct option elfcopy_longopts[] =
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
 	{"adjust-start", required_argument, NULL, ECP_CHANGE_START},
 	{"binary-architecture", required_argument, NULL, 'B'},
+	{"change-section-lma", required_argument, NULL, ECP_CHANGE_SEC_LMA},
 	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
 	{"discard-all", no_argument, NULL, 'x'},
@@ -175,8 +177,8 @@ static struct {
 static int	copy_tempfile(int fd, const char *out);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
-static void	parse_sec_address_op(struct elfcopy *ecp, const char *optname,
-    char *s);
+static void	parse_sec_address_op(struct elfcopy *ecp, int optnum,
+    const char *optname, char *s);
 static void	parse_sec_flags(struct sec_action *sac, char *s);
 static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
     unsigned int op);
@@ -296,6 +298,7 @@ create_elf(struct elfcopy *ecp)
 	    sizeof(*ecp->secndx))) == NULL)
 		err(EX_SOFTWARE, "calloc failed");
 
+	/* Read input object program header. */
 	setup_phdr(ecp);
 
 	/*
@@ -305,6 +308,9 @@ create_elf(struct elfcopy *ecp)
 	 * (i.e., determine output sections)
 	 */
 	create_scn(ecp);
+
+	/* Apply section load address changes, if any. */
+	adjust_lma(ecp);
 
 	/* FIXME */
 	if (ecp->strip == STRIP_DEBUG ||
@@ -721,8 +727,12 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_ADD_SECTION:
 			add_section(ecp, optarg);
 			break;
+		case ECP_CHANGE_SEC_LMA:
+			parse_sec_address_op(ecp, opt, "--change-section-lma",
+			    optarg);
+			break;
 		case ECP_CHANGE_SEC_VMA:
-			parse_sec_address_op(ecp, "--change-section-vma",
+			parse_sec_address_op(ecp, opt, "--change-section-vma",
 			    optarg);
 			break;
 		case ECP_CHANGE_START:
@@ -989,7 +999,8 @@ parse_sec_flags(struct sec_action *sac, char *s)
 }
 
 static void
-parse_sec_address_op(struct elfcopy *ecp, const char *optname, char *s)
+parse_sec_address_op(struct elfcopy *ecp, int optnum, const char *optname,
+    char *s)
 {
 	struct sec_action	*sac;
 	const char		*name;
@@ -1007,14 +1018,26 @@ parse_sec_address_op(struct elfcopy *ecp, const char *optname, char *s)
 	sac = lookup_sec_act(ecp, name, 1);
 	switch (op) {
 	case '=':
-		sac->setvma = 1;
-		sac->vma = (uint64_t) strtoull(v, NULL, 0);
+		if (optnum == ECP_CHANGE_SEC_LMA) {
+			sac->setlma = 1;
+			sac->lma = (uint64_t) strtoull(v, NULL, 0);
+		}
+		if (optnum == ECP_CHANGE_SEC_VMA) {
+			sac->setvma = 1;
+			sac->vma = (uint64_t) strtoull(v, NULL, 0);
+		}
 		break;
 	case '+':
-		sac->vma_adjust = (int64_t) strtoll(v, NULL, 0);
+		if (optnum == ECP_CHANGE_SEC_LMA)
+			sac->lma_adjust = (int64_t) strtoll(v, NULL, 0);
+		if (optnum == ECP_CHANGE_SEC_VMA)
+			sac->vma_adjust = (int64_t) strtoll(v, NULL, 0);
 		break;
 	case '-':
-		sac->vma_adjust = (int64_t) -strtoll(v, NULL, 0);
+		if (optnum == ECP_CHANGE_SEC_LMA)
+			sac->lma_adjust = (int64_t) -strtoll(v, NULL, 0);
+		if (optnum == ECP_CHANGE_SEC_VMA)
+			sac->vma_adjust = (int64_t) -strtoll(v, NULL, 0);
 		break;
 	default:
 		break;
