@@ -229,8 +229,10 @@ adjust_lma(struct elfcopy *ecp)
 #endif
 				if (s != TAILQ_FIRST(&s->seg->v_sec)) {
 					s0->off += dl;
+#ifdef	DEBUG
 					printf("section %s offset set to %#jx\n",
 					    s0->name, (uintmax_t) s0->off);
+#endif
 				}
 			}
 		}
@@ -299,9 +301,16 @@ copy_phdr(struct elfcopy *ecp)
 	int		 i;
 
 	STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
-		/* Do not touch phdr itself. */
-		if (seg->type == PT_PHDR)
+		if (seg->type == PT_PHDR) {
+			if (!TAILQ_EMPTY(&ecp->v_sec)) {
+				s = TAILQ_FIRST(&ecp->v_sec);
+				if (s->pseudo)
+					seg->addr = s->lma +
+					    gelf_fsize(ecp->eout, ELF_T_EHDR,
+						1, EV_CURRENT);
+			}
 			continue;
+		}
 
 		if (!TAILQ_EMPTY(&seg->v_sec)) {
 			s = TAILQ_FIRST(&seg->v_sec);
