@@ -46,6 +46,7 @@ enum options
 {
 	ECP_ADD_GNU_DEBUGLINK,
 	ECP_ADD_SECTION,
+	ECP_CHANGE_SEC_ADDR,
 	ECP_CHANGE_SEC_LMA,
 	ECP_CHANGE_SEC_VMA,
 	ECP_CHANGE_START,
@@ -92,8 +93,10 @@ static struct option elfcopy_longopts[] =
 {
 	{"add-gnu-debuglink", required_argument, NULL, ECP_ADD_GNU_DEBUGLINK},
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
+	{"adjust-section-vma", required_argument, NULL, ECP_CHANGE_SEC_ADDR},
 	{"adjust-start", required_argument, NULL, ECP_CHANGE_START},
 	{"binary-architecture", required_argument, NULL, 'B'},
+	{"change-section-address", required_argument, NULL, ECP_CHANGE_SEC_ADDR},
 	{"change-section-lma", required_argument, NULL, ECP_CHANGE_SEC_LMA},
 	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
@@ -727,6 +730,10 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_ADD_SECTION:
 			add_section(ecp, optarg);
 			break;
+		case ECP_CHANGE_SEC_ADDR:
+			parse_sec_address_op(ecp, opt, "--change-section-addr",
+			    optarg);
+			break;
 		case ECP_CHANGE_SEC_LMA:
 			parse_sec_address_op(ecp, opt, "--change-section-lma",
 			    optarg);
@@ -1018,25 +1025,31 @@ parse_sec_address_op(struct elfcopy *ecp, int optnum, const char *optname,
 	sac = lookup_sec_act(ecp, name, 1);
 	switch (op) {
 	case '=':
-		if (optnum == ECP_CHANGE_SEC_LMA) {
+		if (optnum == ECP_CHANGE_SEC_LMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR) {
 			sac->setlma = 1;
 			sac->lma = (uint64_t) strtoull(v, NULL, 0);
 		}
-		if (optnum == ECP_CHANGE_SEC_VMA) {
+		if (optnum == ECP_CHANGE_SEC_VMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR) {
 			sac->setvma = 1;
 			sac->vma = (uint64_t) strtoull(v, NULL, 0);
 		}
 		break;
 	case '+':
-		if (optnum == ECP_CHANGE_SEC_LMA)
+		if (optnum == ECP_CHANGE_SEC_LMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR)
 			sac->lma_adjust = (int64_t) strtoll(v, NULL, 0);
-		if (optnum == ECP_CHANGE_SEC_VMA)
+		if (optnum == ECP_CHANGE_SEC_VMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR)
 			sac->vma_adjust = (int64_t) strtoll(v, NULL, 0);
 		break;
 	case '-':
-		if (optnum == ECP_CHANGE_SEC_LMA)
+		if (optnum == ECP_CHANGE_SEC_LMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR)
 			sac->lma_adjust = (int64_t) -strtoll(v, NULL, 0);
-		if (optnum == ECP_CHANGE_SEC_VMA)
+		if (optnum == ECP_CHANGE_SEC_VMA ||
+		    optnum == ECP_CHANGE_SEC_ADDR)
 			sac->vma_adjust = (int64_t) -strtoll(v, NULL, 0);
 		break;
 	default:
