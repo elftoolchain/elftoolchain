@@ -216,6 +216,7 @@ struct elfcopy {
 #define	SET_START	0x8000U
 
 	int		 flags;		/* elfcopy run control flags. */
+	int64_t		 change_addr;	/* Section address adjustment. */
 	int64_t		 change_start;	/* Entry point adjustment. */
 	uint64_t	 set_start;	/* Entry point value. */
 	unsigned long	 srec_len;	/* S-Record length. */
@@ -255,7 +256,7 @@ void	add_to_symtab(struct elfcopy *_ecp, const char *_name,
     uint64_t _st_value, uint64_t _st_size, uint16_t _st_shndx,
     unsigned char _st_info, unsigned char _st_other, int _ndx_known);
 int	add_to_inseg_list(struct elfcopy *_ecp, struct section *_sec);
-void	adjust_lma(struct elfcopy *_ecp);
+void	adjust_addr(struct elfcopy *_ecp);
 void	copy_content(struct elfcopy *_ecp);
 void	copy_data(struct section *_s);
 void	copy_phdr(struct elfcopy *_ecp);
