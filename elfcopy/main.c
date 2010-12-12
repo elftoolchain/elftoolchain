@@ -46,6 +46,7 @@ enum options
 {
 	ECP_ADD_GNU_DEBUGLINK,
 	ECP_ADD_SECTION,
+	ECP_CHANGE_ADDR,
 	ECP_CHANGE_SEC_ADDR,
 	ECP_CHANGE_SEC_LMA,
 	ECP_CHANGE_SEC_VMA,
@@ -94,8 +95,10 @@ static struct option elfcopy_longopts[] =
 	{"add-gnu-debuglink", required_argument, NULL, ECP_ADD_GNU_DEBUGLINK},
 	{"add-section", required_argument, NULL, ECP_ADD_SECTION},
 	{"adjust-section-vma", required_argument, NULL, ECP_CHANGE_SEC_ADDR},
+	{"adjust-vma", required_argument, NULL, ECP_CHANGE_ADDR},
 	{"adjust-start", required_argument, NULL, ECP_CHANGE_START},
 	{"binary-architecture", required_argument, NULL, 'B'},
+	{"change-addresses", required_argument, NULL, ECP_CHANGE_ADDR},
 	{"change-section-address", required_argument, NULL, ECP_CHANGE_SEC_ADDR},
 	{"change-section-lma", required_argument, NULL, ECP_CHANGE_SEC_LMA},
 	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
@@ -312,8 +315,8 @@ create_elf(struct elfcopy *ecp)
 	 */
 	create_scn(ecp);
 
-	/* Apply section load address changes, if any. */
-	adjust_lma(ecp);
+	/* Apply section address changes, if any. */
+	adjust_addr(ecp);
 
 	/* FIXME */
 	if (ecp->strip == STRIP_DEBUG ||
@@ -388,7 +391,11 @@ create_elf(struct elfcopy *ecp)
 			    elf_errmsg(-1));
 	}
 
-	/* Update ELF object entry point if requested. */
+	/*
+	 * Update ELF object entry point if requested.
+	 */
+	if (ecp->change_addr != 0)
+		oeh.e_entry += ecp->change_addr;
 	if (ecp->flags & SET_START)
 		oeh.e_entry = ecp->set_start;
 	if (ecp->change_start != 0)
@@ -729,6 +736,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_ADD_SECTION:
 			add_section(ecp, optarg);
+			break;
+		case ECP_CHANGE_ADDR:
+			ecp->change_addr = (int64_t) strtoll(optarg, NULL, 0);
 			break;
 		case ECP_CHANGE_SEC_ADDR:
 			parse_sec_address_op(ecp, opt, "--change-section-addr",

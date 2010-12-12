@@ -92,16 +92,50 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 }
 
 void
-adjust_lma(struct elfcopy *ecp)
+adjust_addr(struct elfcopy *ecp)
 {
 	struct section *s, *s0;
 	struct segment *seg;
 	struct sec_action *sac;
-	uint64_t dl, lma, start, end;
+	uint64_t dl, lma, old_vma, start, end;
 
+	/*
+	 * Apply VMA and global LMA changes in the first iteration.
+	 */
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
 
-		/* Only adjust loadable section's LMA */
+		/* Only adjust loadable section's address. */
+		if (!s->loadable || s->seg == NULL)
+			continue;
+
+		/* Apply global LMA adjustment. */
+		if (ecp->change_addr != 0)
+			s->lma += ecp->change_addr;
+
+		if (!s->pseudo) {
+			old_vma = s->vma;
+
+			/* Apply global VMA adjustment. */
+			if (ecp->change_addr != 0)
+				s->vma += ecp->change_addr;
+
+			/* Apply section VMA adjustment. */
+			sac = lookup_sec_act(ecp, s->name, 0);
+			if (sac == NULL)
+				continue;
+			if (sac->setvma)
+				s->vma = sac->vma;
+			if (sac->vma_adjust != 0)
+				s->vma += sac->vma_adjust;
+		}
+	}
+
+	/*
+	 * Apply sections LMA change in the second iteration.
+	 */
+	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+
+		/* Only adjust loadable section's LMA. */
 		if (!s->loadable || s->seg == NULL)
 			continue;
 
