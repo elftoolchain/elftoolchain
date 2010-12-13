@@ -48,8 +48,7 @@
 .Op Fl f
 .Op Fl i Ar position-before
 .Op Fl j
-.Op Fl s
-.Op Fl S
+.Op Fl s | Fl S
 .Op Fl z
 .Ar archive
 .Ar
@@ -66,8 +65,7 @@
 .Op Fl c
 .Op Fl D
 .Op Fl f
-.Op Fl s
-.Op Fl S
+.Op Fl s | Fl S
 .Op Fl v
 .Op Fl z
 .Nm
@@ -80,8 +78,7 @@
 .Op Fl f
 .Op Fl i Ar position-before
 .Op Fl j
-.Op Fl s
-.Op Fl S
+.Op Fl s | Fl S
 .Op Fl u
 .Op Fl v
 .Op Fl z
@@ -226,8 +223,6 @@ utility, but is ignored.
 This option is accepted for compatibility with GNU
 .Xr ar 1 ,
 but is ignored.
-.It Fl M
-Read and execute commands from standard input.
 .It Fl m
 Move archive members specified by arguments
 .Ar
@@ -243,6 +238,8 @@ If no position has been specified, the specified members are moved
 to the end of the archive.
 If the archive has a symbol table, it is updated to reflect the
 new contents of the archive.
+.It Fl M
+Read and execute commands from standard input.
 .It Fl o
 Preserve the original modification times of members when extracting
 them.
@@ -289,8 +286,6 @@ or
 is specified.
 The archive symbol table, if it exists, is updated to reflect the
 new state of the archive.
-.It Fl S
-Do not generate an archive symbol table.
 .It Fl s
 Add an archive symbol table (see
 .Xr ar 5 )
@@ -302,6 +297,8 @@ with the
 .Fl s
 option alone is equivalent to invoking
 .Nm ranlib .
+.It Fl S
+Do not generate an archive symbol table.
 .It Fl t
 List the files specified by arguments
 .Ar
@@ -324,8 +321,6 @@ option, the members specified by arguments
 .Ar
 will be extracted only if they are newer than the corresponding
 files in the file system.
-.It Fl V
-Print a version string and exit.
 .It Fl v
 Provide verbose output.
 When used with the
@@ -373,6 +368,8 @@ the file size in bytes, the file modification time in
 format
 .Dq "%b %e %H:%M %Y" ,
 and the name of the file.
+.It Fl V
+Print a version string and exit.
 .It Fl x
 Extract archive members specified by arguments
 .Ar
