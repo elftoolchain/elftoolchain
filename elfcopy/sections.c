@@ -52,6 +52,7 @@ static int	is_modify_section(struct elfcopy *ecp, const char *name);
 static int	is_print_section(struct elfcopy *ecp, const char *name);
 static int	lookup_string(struct section *t, const char *s);
 static void	modify_section(struct elfcopy *ecp, struct section *s);
+static void	pad_section(struct elfcopy *ecp, struct section *s);
 static void	print_data(const char *d, size_t sz);
 static void	print_section(struct section *s);
 static void	*read_section(struct section *s, size_t *size);
@@ -673,14 +674,49 @@ update_reloc(struct elfcopy *ecp, struct section *s)
 	}
 }
 
+static void
+pad_section(struct elfcopy *ecp, struct section *s)
+{
+	GElf_Shdr	 osh;
+	Elf_Data	*od;
+
+	if (s == NULL || s->pad_sz == 0)
+		return;
+
+	if ((s->pad = malloc(s->pad_sz)) == NULL)
+		err(EX_SOFTWARE, "malloc failed");
+	memset(s->pad, ecp->fill, s->pad_sz);
+
+	/* Create a new Elf_Data to contain the padding bytes. */
+	if ((od = elf_newdata(s->os)) == NULL)
+		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		    elf_errmsg(-1));
+	od->d_align = 1;
+	od->d_off = s->sz;
+	od->d_buf = s->pad;
+	od->d_type = ELF_T_BYTE;
+	od->d_size = s->pad_sz;
+	od->d_version = EV_CURRENT;
+
+	/* Update section header. */
+	if (gelf_getshdr(s->os, &osh) == NULL)
+		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		    elf_errmsg(-1));
+	osh.sh_size = s->sz + s->pad_sz;
+	if (!gelf_update_shdr(s->os, &osh))
+		errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
+		    elf_errmsg(-1));
+}
+
 void
 resync_sections(struct elfcopy *ecp)
 {
-	struct section	*s;
+	struct section	*s, *ps;
 	GElf_Shdr	 osh;
 	uint64_t	 off;
 	int		 first;
 
+	ps = NULL;
 	first = 1;
 	off = 0;
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
@@ -689,6 +725,7 @@ resync_sections(struct elfcopy *ecp)
 			first = 0;
 		}
 
+		/* Align section offset. */
 		if (off <= s->off) {
 			if (!s->loadable)
 				s->off = roundup(off, s->align);
@@ -699,12 +736,19 @@ resync_sections(struct elfcopy *ecp)
 			s->off = roundup(off, s->align);
 		}
 
+		/* Calculate next section offset. */
 		off = s->off;
 		if (s->pseudo || (s->type != SHT_NOBITS && s->type != SHT_NULL))
 			off += s->sz;
 
-		if (s->pseudo)
+		if (s->pseudo) {
+			ps = NULL;
 			continue;
+		}
+
+		/* Count padding bytes added through --pad-to. */
+		if (s->pad_sz > 0)
+			off += s->pad_sz;
 
 		/* Update section header accordingly. */
 		if (gelf_getshdr(s->os, &osh) == NULL)
@@ -716,7 +760,29 @@ resync_sections(struct elfcopy *ecp)
 		if (!gelf_update_shdr(s->os, &osh))
 			errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
 			    elf_errmsg(-1));
+
+		/* Add padding for previous section, if need. */
+		if (ps != NULL) {
+			if (ps->pad_sz > 0) {
+				/* Apply padding added by --pad-to. */
+				pad_section(ecp, ps);
+			} else if ((ecp->flags & GAP_FILL) &&
+			    (ps->off + ps->sz < s->off)) {
+				/*
+				 * Fill the gap between sections by padding
+				 * the section with lower address.
+				 */
+				ps->pad_sz = s->off - (ps->off + ps->sz);
+				pad_section(ecp, ps);
+			}
+		}
+
+		ps = s;
 	}
+
+	/* Pad the last section, if need. */
+	if (ps != NULL && ps->pad_sz > 0)
+		pad_section(ecp, ps);
 }
 
 static void

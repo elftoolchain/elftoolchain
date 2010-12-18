@@ -271,6 +271,48 @@ adjust_addr(struct elfcopy *ecp)
 			}
 		}
 	}
+
+	/*
+	 * Apply load address padding.
+	 */
+
+	if (ecp->pad_to != 0) {
+
+		/*
+		 * Find the section with highest load address.
+		 */
+
+		s = NULL;
+		STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
+			if (seg->type != PT_LOAD)
+				continue;
+			if (s == NULL)
+				s = TAILQ_LAST(&seg->v_sec, sec_head);
+			else {
+				s0 = TAILQ_LAST(&seg->v_sec, sec_head);
+				if (s0->lma > s->lma)
+					s = s0;
+			}
+		}
+
+		if (s == NULL)
+			return;
+		else if (s->name != NULL && !strcmp(s->name, ".bss")) {
+			s = TAILQ_PREV(s, sec_head, in_seg);
+			if (s == NULL)
+				return;
+		}
+
+		/* No need to pad if the pad_to address is lower. */
+		if (ecp->pad_to <= s->lma + s->sz)
+			return;
+
+		s->pad_sz = ecp->pad_to - (s->lma + s->sz);
+#ifdef	DEBUG
+		printf("pad section %s load to address %#jx by %#jx\n", s->name,
+		    (uintmax_t) ecp->pad_to, (uintmax_t) s->pad_sz);
+#endif
+	}
 }
 
 static void

@@ -117,6 +117,7 @@ struct section {
 	Elf_Scn		*is;	/* input scn */
 	Elf_Scn		*os;	/* output scn */
 	void		*buf;	/* section content */
+	uint8_t		*pad;	/* section padding */
 	uint64_t	 off;	/* section offset */
 	uint64_t	 sz;	/* section size */
 	uint64_t	 cap;	/* section capacity */
@@ -124,6 +125,7 @@ struct section {
 	uint64_t	 type;	/* section type */
 	uint64_t	 vma;	/* section virtual addr */
 	uint64_t	 lma;	/* section load addr */
+	uint64_t	 pad_sz;/* section padding size */
 	int		 loadable;	/* whether loadable */
 	int		 pseudo;
 	int		 nocopy;
@@ -202,24 +204,27 @@ struct elfcopy {
 		STRIP_UNNEEDED
 	} strip;
 
-#define	EXECUTABLE	0x0001U
-#define	DYNAMIC		0x0002U
-#define	RELOCATABLE	0x0004U
-#define	SYMTAB_EXIST	0x0010U
-#define	SYMTAB_INTACT	0x0020U
-#define KEEP_GLOBAL	0x0040U
-#define DISCARD_LOCAL	0x0080U
-#define WEAKEN_ALL	0x0100U
-#define PRESERVE_DATE	0x1000U
-#define SREC_FORCE_S3	0x2000U
-#define SREC_FORCE_LEN	0x4000U
-#define	SET_START	0x8000U
+#define	EXECUTABLE	0x00000001U
+#define	DYNAMIC		0x00000002U
+#define	RELOCATABLE	0x00000004U
+#define	SYMTAB_EXIST	0x00000010U
+#define	SYMTAB_INTACT	0x00000020U
+#define	KEEP_GLOBAL	0x00000040U
+#define	DISCARD_LOCAL	0x00000080U
+#define	WEAKEN_ALL	0x00000100U
+#define	PRESERVE_DATE	0x00001000U
+#define	SREC_FORCE_S3	0x00002000U
+#define	SREC_FORCE_LEN	0x00004000U
+#define	SET_START	0x00008000U
+#define	GAP_FILL	0x00010000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */
 	int64_t		 change_start;	/* Entry point adjustment. */
 	uint64_t	 set_start;	/* Entry point value. */
 	unsigned long	 srec_len;	/* S-Record length. */
+	uint64_t	 pad_to;	/* load address padding. */
+	uint8_t		 fill;		/* gap fill value. */
 	char		*debuglink;	/* GNU debuglink file. */
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
