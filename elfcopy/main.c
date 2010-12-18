@@ -51,12 +51,14 @@ enum options
 	ECP_CHANGE_SEC_LMA,
 	ECP_CHANGE_SEC_VMA,
 	ECP_CHANGE_START,
+	ECP_GAP_FILL,
 	ECP_GLOBALIZE_SYMBOL,
 	ECP_GLOBALIZE_SYMBOLS,
 	ECP_KEEP_SYMBOLS,
 	ECP_KEEP_GLOBAL_SYMBOLS,
 	ECP_LOCALIZE_SYMBOLS,
 	ECP_ONLY_DEBUG,
+	ECP_PAD_TO,
 	ECP_REDEF_SYMBOL,
 	ECP_REDEF_SYMBOLS,
 	ECP_RENAME_SECTION,
@@ -105,6 +107,7 @@ static struct option elfcopy_longopts[] =
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
+	{"gap-fill", required_argument, NULL, ECP_GAP_FILL},
 	{"globalize-symbol", required_argument, NULL, ECP_GLOBALIZE_SYMBOL},
 	{"globalize-symbols", required_argument, NULL, ECP_GLOBALIZE_SYMBOLS},
 	{"help", no_argument, NULL, 'h'},
@@ -119,6 +122,7 @@ static struct option elfcopy_longopts[] =
 	{"only-section", required_argument, NULL, 'j'},
 	{"osabi", required_argument, NULL, ECP_SET_OSABI},
 	{"output-target", required_argument, NULL, 'O'},
+	{"pad-to", required_argument, NULL, ECP_PAD_TO},
 	{"preserve-dates", no_argument, NULL, 'p'},
 	{"redefine-sym", required_argument, NULL, ECP_REDEF_SYMBOL},
 	{"redefine-syms", required_argument, NULL, ECP_REDEF_SYMBOLS},
@@ -755,6 +759,10 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_CHANGE_START:
 			ecp->change_start = (int64_t) strtoll(optarg, NULL, 0);
 			break;
+		case ECP_GAP_FILL:
+			ecp->fill = (uint8_t) strtoul(optarg, NULL, 0);
+			ecp->flags |= GAP_FILL;
+			break;
 		case ECP_GLOBALIZE_SYMBOL:
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_GLOBALIZE);
 			break;
@@ -772,6 +780,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_ONLY_DEBUG:
 			ecp->strip = STRIP_NONDEBUG;
+			break;
+		case ECP_PAD_TO:
+			ecp->pad_to = (uint64_t) strtoull(optarg, NULL, 0);
 			break;
 		case ECP_REDEF_SYMBOL:
 			if ((s = strchr(optarg, '=')) == NULL)
@@ -1241,6 +1252,7 @@ main(int argc, char **argv)
 	ecp->abi = -1;
 	/* There is always an empty section. */
 	ecp->nos = 1;
+	ecp->fill = 0;
 
 	STAILQ_INIT(&ecp->v_seg);
 	STAILQ_INIT(&ecp->v_sac);
