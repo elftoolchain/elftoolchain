@@ -59,6 +59,8 @@ enum options
 	ECP_LOCALIZE_SYMBOLS,
 	ECP_ONLY_DEBUG,
 	ECP_PAD_TO,
+	ECP_PREFIX_ALLOC,
+	ECP_PREFIX_SEC,
 	ECP_REDEF_SYMBOL,
 	ECP_REDEF_SYMBOLS,
 	ECP_RENAME_SECTION,
@@ -124,6 +126,8 @@ static struct option elfcopy_longopts[] =
 	{"output-target", required_argument, NULL, 'O'},
 	{"pad-to", required_argument, NULL, ECP_PAD_TO},
 	{"preserve-dates", no_argument, NULL, 'p'},
+	{"prefix-alloc-sections", required_argument, NULL, ECP_PREFIX_ALLOC},
+	{"prefix-sections", required_argument, NULL, ECP_PREFIX_SEC},
 	{"redefine-sym", required_argument, NULL, ECP_REDEF_SYMBOL},
 	{"redefine-syms", required_argument, NULL, ECP_REDEF_SYMBOLS},
 	{"remove-section", required_argument, NULL, 'R'},
@@ -783,6 +787,12 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_PAD_TO:
 			ecp->pad_to = (uint64_t) strtoull(optarg, NULL, 0);
+			break;
+		case ECP_PREFIX_ALLOC:
+			ecp->prefix_alloc = optarg;
+			break;
+		case ECP_PREFIX_SEC:
+			ecp->prefix_sec = optarg;
 			break;
 		case ECP_REDEF_SYMBOL:
 			if ((s = strchr(optarg, '=')) == NULL)

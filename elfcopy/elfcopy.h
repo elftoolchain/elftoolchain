@@ -225,6 +225,8 @@ struct elfcopy {
 	unsigned long	 srec_len;	/* S-Record length. */
 	uint64_t	 pad_to;	/* load address padding. */
 	uint8_t		 fill;		/* gap fill value. */
+	char		*prefix_sec;	/* section prefix. */
+	char		*prefix_alloc;	/* alloc section prefix. */
 	char		*debuglink;	/* GNU debuglink file. */
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
