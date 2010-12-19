@@ -170,10 +170,35 @@ static void
 check_section_rename(struct elfcopy *ecp, struct section *s)
 {
 	struct sec_action *sac;
+	char *new_name;
+	char *prefix;
+	size_t namelen;
+
+	if (s->pseudo)
+		return;
 
 	sac = lookup_sec_act(ecp, s->name, 0);
 	if (sac != NULL && sac->rename)
 		s->name = sac->newname;
+
+	if (!strcmp(s->name, ".symtab") ||
+	    !strcmp(s->name, ".strtab") ||
+	    !strcmp(s->name, ".shstrtab"))
+		return;
+
+	prefix = NULL;
+	if (s->loadable && ecp->prefix_alloc != NULL)
+		prefix = ecp->prefix_alloc;
+	else if (ecp->prefix_sec != NULL)
+		prefix = ecp->prefix_sec;
+
+	if (prefix != NULL) {
+		namelen = strlen(s->name) + strlen(prefix) + 1;
+		if ((new_name = malloc(namelen)) == NULL)
+			err(EX_SOFTWARE, "malloc failed");
+		snprintf(new_name, namelen, "%s%s", prefix, s->name);
+		s->name = new_name;
+	}
 }
 
 static int
