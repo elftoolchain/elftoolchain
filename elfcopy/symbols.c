@@ -27,6 +27,7 @@
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <err.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
@@ -275,12 +276,13 @@ generate_symbols(struct elfcopy *ecp)
 	struct symbuf	*sy_buf;
 	struct strbuf	*st_buf;
 	const char	*name;
+	char		*newname;
 	unsigned char	*gsym;
 	GElf_Shdr	 ish;
 	GElf_Sym	 sym;
 	Elf_Data*	 id;
 	Elf_Scn		*is;
-	size_t		 ishstrndx, ndx, nsyms, sc, symndx;
+	size_t		 ishstrndx, namelen, ndx, nsyms, sc, symndx;
 	int		 ec, elferr, i;
 
 	if (elf_getshstrndx(ecp->ein, &ishstrndx) == 0)
@@ -433,6 +435,17 @@ generate_symbols(struct elfcopy *ecp)
 		if ((sp = lookup_symop_list(ecp, name, SYMOP_REDEF)) != NULL)
 			name = sp->newname;
 
+		/* Check if we need to prefix the symbols. */
+		newname = NULL;
+		if (ecp->prefix_sym != NULL && name != NULL && *name != '\0') {
+			namelen = strlen(name) + strlen(ecp->prefix_sym) + 1;
+			if ((newname = malloc(namelen)) == NULL)
+				err(EX_SOFTWARE, "malloc failed");
+			snprintf(newname, namelen, "%s%s", ecp->prefix_sym,
+			    name);
+			name = newname;
+		}
+
 		/* Copy symbol, mark global/weak symbol and add to index map. */
 		if (is_global_symbol(sym.st_info) ||
 		    is_weak_symbol(sym.st_info)) {
@@ -442,6 +455,9 @@ generate_symbols(struct elfcopy *ecp)
 			ecp->symndx[i] = sy_buf->nls;
 		add_to_symtab(ecp, name, sym.st_value, sym.st_size,
 		    sym.st_shndx, sym.st_info, sym.st_other, 0);
+
+		if (newname != NULL)
+			free(newname);
 
 		/*
 		 * If the symbol is a STT_SECTION symbol, mark the section

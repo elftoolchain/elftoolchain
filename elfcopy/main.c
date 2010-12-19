@@ -61,6 +61,7 @@ enum options
 	ECP_PAD_TO,
 	ECP_PREFIX_ALLOC,
 	ECP_PREFIX_SEC,
+	ECP_PREFIX_SYM,
 	ECP_REDEF_SYMBOL,
 	ECP_REDEF_SYMBOLS,
 	ECP_RENAME_SECTION,
@@ -128,6 +129,7 @@ static struct option elfcopy_longopts[] =
 	{"preserve-dates", no_argument, NULL, 'p'},
 	{"prefix-alloc-sections", required_argument, NULL, ECP_PREFIX_ALLOC},
 	{"prefix-sections", required_argument, NULL, ECP_PREFIX_SEC},
+	{"prefix-symbols", required_argument, NULL, ECP_PREFIX_SYM},
 	{"redefine-sym", required_argument, NULL, ECP_REDEF_SYMBOL},
 	{"redefine-syms", required_argument, NULL, ECP_REDEF_SYMBOLS},
 	{"remove-section", required_argument, NULL, 'R'},
@@ -331,6 +333,7 @@ create_elf(struct elfcopy *ecp)
 	    ecp->strip == STRIP_UNNEEDED ||
 	    ecp->flags & WEAKEN_ALL ||
 	    ecp->flags & DISCARD_LOCAL ||
+	    ecp->prefix_sym != NULL ||
 	    !STAILQ_EMPTY(&ecp->v_symop))
 		ecp->flags &= ~SYMTAB_INTACT;
 
@@ -793,6 +796,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_PREFIX_SEC:
 			ecp->prefix_sec = optarg;
+			break;
+		case ECP_PREFIX_SYM:
+			ecp->prefix_sym = optarg;
 			break;
 		case ECP_REDEF_SYMBOL:
 			if ((s = strchr(optarg, '=')) == NULL)
