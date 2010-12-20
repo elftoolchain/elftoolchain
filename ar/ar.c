@@ -83,6 +83,7 @@ enum options
 
 static struct option longopts[] =
 {
+	{"flavor", required_argument, NULL, 'F'},
 	{"help", no_argument, NULL, OPTION_HELP},
 	{"version", no_argument, NULL, 'V'},
 	{NULL, 0, NULL, 0}
@@ -160,7 +161,7 @@ main(int argc, char **argv)
 		}
 	}
 
-	while ((opt = getopt_long(argc, argv, "abCcdDfijlMmopqrSsTtuVvxz",
+	while ((opt = getopt_long(argc, argv, "abCcdDfF:ijlMmopqrSsTtuVvxz",
 	    longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'a':
@@ -181,6 +182,15 @@ main(int argc, char **argv)
 			break;
 		case 'D':
 			bsdar->options |= AR_D;
+			break;
+		case 'F':
+			if (!strcasecmp(optarg, "svr4") ||
+			    !strcasecmp(optarg, "gnu"))
+				bsdar->options &= ~AR_BSD;
+			else if (!strcasecmp(optarg, "bsd"))
+				bsdar->options |= AR_BSD;
+			else
+				bsdar_usage();
 			break;
 		case 'f':
 		case 'T':
@@ -367,9 +377,9 @@ bsdar_usage()
 	(void)fprintf(stderr, "\tar -m [-Tjsvz] archive file ...\n");
 	(void)fprintf(stderr, "\tar -m [-Tabijsvz] position archive file ...\n");
 	(void)fprintf(stderr, "\tar -p [-Tv] archive [file ...]\n");
-	(void)fprintf(stderr, "\tar -q [-TcDjsvz] archive file ...\n");
-	(void)fprintf(stderr, "\tar -r [-TcDjsuvz] archive file ...\n");
-	(void)fprintf(stderr, "\tar -r [-TabcDijsuvz] position archive file ...\n");
+	(void)fprintf(stderr, "\tar -q [-TcDjsvz] [-F flavor] archive file ...\n");
+	(void)fprintf(stderr, "\tar -r [-TcDjsuvz] [-F flavor] archive file ...\n");
+	(void)fprintf(stderr, "\tar -r [-TabcDijsuvz] [-F flavor] position archive file ...\n");
 	(void)fprintf(stderr, "\tar -s [-jz] archive\n");
 	(void)fprintf(stderr, "\tar -t [-Tv] archive [file ...]\n");
 	(void)fprintf(stderr, "\tar -x [-CTouv] archive [file ...]\n");

@@ -105,10 +105,15 @@ read_archive(struct bsdar *bsdar, char mode)
 			continue;
 		}
 
+		if (archive_format(a) == ARCHIVE_FORMAT_AR_BSD)
+			bsdar->options |= AR_BSD;
+		else
+			bsdar->options &= ~AR_BSD;
+
 		name = archive_entry_pathname(entry);
 
 		/* Skip pseudo members. */
-		if (strcmp(name, "/") == 0 || strcmp(name, "//") == 0)
+		if (bsdar_is_pseudomember(bsdar, name))
 			continue;
 
 		if (bsdar->argc > 0) {

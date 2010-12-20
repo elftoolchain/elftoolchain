@@ -46,8 +46,15 @@
 #define AR_V	0x0400		/* verbose mode */
 #define AR_Z	0x0800		/* gzip compression */
 #define AR_D	0x1000		/* insert dummy mode, mtime, uid and gid */
+#define AR_BSD	0x2000		/* use the BSD archive format */
 
 #define DEF_BLKSZ 10240		/* default block size */
+
+/* Special names. */
+
+#define	AR_STRINGTAB_NAME_SVR4	"//"
+#define	AR_SYMTAB_NAME_BSD	"__.SYMDEF"
+#define	AR_SYMTAB_NAME_SVR4	"/"
 
 /*
  * Convenient wrapper for general libarchive error handling.
@@ -127,6 +134,7 @@ struct bsdar {
 
 void	bsdar_errc(struct bsdar *, int _eval, int _code,
 	    const char *fmt, ...);
+int	bsdar_is_pseudomember(struct bsdar *_ar, const char *_name);
 void	bsdar_warnc(struct bsdar *, int _code, const char *fmt, ...);
 const char *bsdar_strmode(mode_t m);
 void	ar_mode_d(struct bsdar *bsdar);
