@@ -65,6 +65,7 @@
 .Op Fl c
 .Op Fl D
 .Op Fl f
+.Op Fl F Ar flavor | Fl -flavor Ar flavor
 .Op Fl s | Fl S
 .Op Fl v
 .Op Fl z
@@ -78,6 +79,7 @@
 .Op Fl c
 .Op Fl D
 .Op Fl f
+.Op Fl F Ar flavor | Fl -flavor Ar flavor
 .Op Fl i Ar position-before
 .Op Fl j
 .Op Fl s | Fl S
@@ -209,6 +211,23 @@ when member contents are identical.
 .It Fl f
 Synonymous with option
 .Fl T .
+.It Fl F Ar flavor | Fl -flavor Ar flavor
+Create archives with the specified archive format.
+Legal values for argument
+.Ar flavor
+are:
+.Bl -tag -width indent -compact
+.It Ar bsd
+Create BSD format archives.
+.It Ar gnu
+An alias for
+.Ar svr4 .
+.It Ar svr4
+Create SVR4 format archives.
+.El
+If this option is not specified,
+.Nm
+will create archives using the SVR4 format.
 .It Fl i Ar member-before
 Synonymous with option
 .Fl b .

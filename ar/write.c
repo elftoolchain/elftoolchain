@@ -49,6 +49,7 @@ ELFTC_VCSID("$Id$");
 #define _INIT_SYMOFF_CAP (256*(sizeof(uint32_t))) /* initial so table size */
 #define _INIT_SYMNAME_CAP 1024			  /* initial sn table size */
 #define _MAXNAMELEN_SVR4 15	/* max member name length in svr4 variant */
+#define _MAXNAMELEN_BSD  16	/* max member name length in bsd variant */
 #define _TRUNCATE_LEN 15	/* number of bytes to keep for member name */
 
 static void	add_to_ar_str_table(struct bsdar *bsdar, const char *name);
@@ -284,7 +285,7 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 		/*
 		 * skip pseudo members.
 		 */
-		if (strcmp(name, "/") == 0 || strcmp(name, "//") == 0)
+		if (bsdar_is_pseudomember(bsdar, name))
 			continue;
 
 		/*
@@ -558,6 +559,97 @@ write_data(struct bsdar *bsdar, struct archive *a, const void *buf, size_t s)
 }
 
 /*
+ * Compute the size of the symbol table for an archive.
+ */
+static size_t
+bsdar_symtab_size(struct bsdar *bsdar)
+{
+	size_t sz;
+
+	if (bsdar->options & AR_BSD) {
+		/*
+		 * A BSD style symbol table has two parts.
+		 * Each part is preceded by its size in bytes,
+		 * encoded as a C 'long'.  In the first part,
+		 * there are 's_cnt' entries, each entry being
+		 * 2 'long's in size.  The second part
+		 * contains a string table.
+		 */
+		sz = 2 * sizeof(long) + (bsdar->s_cnt * 2 * sizeof(long)) +
+		    bsdar->s_sn_sz;
+	} else {
+		/*
+		 * An SVR4 style symbol table comprises of a 32 bit
+		 * number holding the number of entries, followed by
+		 * that many 32-bit offsets, followed by a string
+		 * table.
+		 */
+		sz = sizeof(uint32_t) + bsdar->s_cnt * sizeof(uint32_t) +
+		    bsdar->s_sn_sz;
+	}
+
+	return (sz);
+}
+
+static void
+write_svr4_symtab_entry(struct bsdar *bsdar, struct archive *a)
+{
+	int		nr;
+	uint32_t	i;
+
+	/* Translate offsets to big-endian form. */
+	for (i = 0; i < bsdar->s_cnt; i++)
+		bsdar->s_so[i] = htobe32(bsdar->s_so[i]);
+
+	nr = htobe32(bsdar->s_cnt);
+	write_data(bsdar, a, &nr, sizeof(uint32_t));
+	write_data(bsdar, a, bsdar->s_so, sizeof(uint32_t) *
+	    bsdar->s_cnt);
+	write_data(bsdar, a, bsdar->s_sn, bsdar->s_sn_sz);
+}
+
+static void
+write_bsd_symtab_entry(struct bsdar *bsdar, struct archive *a)
+{
+	long br_sz, br_off, br_strx;
+	char *s;
+	uint32_t i;
+
+	/*
+	 * Write out the size in the byte of the array of 'ranlib'
+	 * descriptors to follow.
+	 */
+
+	br_sz = (long) (bsdar->s_cnt * 2 * sizeof(long));
+	write_data(bsdar, a, &br_sz, sizeof(long));
+
+	/*
+	 * Write out the array of 'ranlib' descriptors.  Each
+	 * descriptor comprises of (a) an offset into the following
+	 * string table and (b) a file offset to the relevant member.
+	 */
+	for (i = 0, s = bsdar->s_sn; i < bsdar->s_cnt; i++) {
+		br_strx = (long) (s - bsdar->s_sn);
+		br_off = (long) bsdar->s_so[i];
+		write_data(bsdar, a, &br_strx, sizeof(long));
+		write_data(bsdar, a, &br_off, sizeof(long));
+
+		/* Find the start of the next symbol in the string table. */
+		while (*s++ != '\0')
+			;
+	}
+
+	/*
+	 * Write out the size of the string table as a 'long',
+	 * followed by the string table itself.
+	 */
+	br_sz = (long) bsdar->s_sn_sz;
+	write_data(bsdar, a, &br_sz, sizeof(long));
+	write_data(bsdar, a, bsdar->s_sn, bsdar->s_sn_sz);
+}
+
+
+/*
  * Write the resulting archive members.
  */
 static void
@@ -568,7 +660,10 @@ write_objs(struct bsdar *bsdar)
 	struct archive_entry	*entry;
 	size_t s_sz;		/* size of archive symbol table. */
 	size_t pm_sz;		/* size of pseudo members */
-	int			 i, nr;
+	size_t namelen;		/* size of member name. */
+	size_t obj_sz;		/* size of object + extended header. */
+	int			 i;
+	const char		*entry_name;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		bsdar_errc(bsdar, EX_SOFTWARE, 0,
@@ -580,9 +675,21 @@ write_objs(struct bsdar *bsdar)
 	TAILQ_FOREACH(obj, &bsdar->v_obj, objs) {
 		if (!(bsdar->options & AR_SS) && obj->maddr != NULL)
 			create_symtab_entry(bsdar, obj->maddr, obj->size);
-		if (strlen(obj->name) > _MAXNAMELEN_SVR4)
+
+		obj_sz = 0;
+		namelen = strlen(obj->name);
+		if (bsdar->options & AR_BSD) {
+			/* Account for the space used by the file name. */
+			if (namelen > _MAXNAMELEN_BSD ||
+			    strchr(obj->name, ' '))
+				obj_sz += namelen;
+		} else if (namelen > _MAXNAMELEN_SVR4)
 			add_to_ar_str_table(bsdar, obj->name);
-		bsdar->rela_off += _ARHDR_LEN + obj->size + obj->size % 2;
+
+		obj_sz += obj->size; /* add the actual object size  */
+
+		/* Roundup the final size and add the header length. */
+		bsdar->rela_off += _ARHDR_LEN + obj_sz + (obj_sz & 1);
 	}
 
 	/*
@@ -603,26 +710,27 @@ write_objs(struct bsdar *bsdar)
 
 	/*
 	 * If there is a symbol table, calculate the size of pseudo members,
-	 * convert previously stored relative offsets to absolute ones, and
-	 * then make them Big Endian.
+	 * convert previously stored relative offsets to absolute ones.
 	 *
-	 * absolute_offset = htobe32(relative_offset + size_of_pseudo_members)
+	 * absolute_offset = relative_offset + size_of_pseudo_members)
 	 */
 
+	s_sz = bsdar_symtab_size(bsdar);
 	if (bsdar->s_cnt != 0) {
-		s_sz = (bsdar->s_cnt + 1) * sizeof(uint32_t) + bsdar->s_sn_sz;
 		pm_sz = _ARMAG_LEN + (_ARHDR_LEN + s_sz);
-		if (bsdar->as != NULL)
+		if (bsdar->as != NULL) /* SVR4 archives only */
 			pm_sz += _ARHDR_LEN + bsdar->as_sz;
-		for (i = 0; (size_t)i < bsdar->s_cnt; i++)
-			*(bsdar->s_so + i) = htobe32(*(bsdar->s_so + i) +
-			    pm_sz);
+		for (i = 0; (size_t) i < bsdar->s_cnt; i++)
+			bsdar->s_so[i] = bsdar->s_so[i] + pm_sz;
 	}
 
 	if ((a = archive_write_new()) == NULL)
 		bsdar_errc(bsdar, EX_SOFTWARE, 0, "archive_write_new failed");
 
-	archive_write_set_format_ar_svr4(a);
+	if (bsdar->options & AR_BSD)
+		archive_write_set_format_ar_bsd(a);
+	else
+		archive_write_set_format_ar_svr4(a);
 	archive_write_set_compression_none(a);
 
 	AC(archive_write_open_filename(a, bsdar->filename));
@@ -634,25 +742,28 @@ write_objs(struct bsdar *bsdar)
 	 */
 	if ((bsdar->s_cnt != 0 && !(bsdar->options & AR_SS)) ||
 	    bsdar->options & AR_S) {
+		if (bsdar->options & AR_BSD)
+			entry_name = AR_SYMTAB_NAME_BSD;
+		else
+			entry_name = AR_SYMTAB_NAME_SVR4;
+
 		entry = archive_entry_new();
-		archive_entry_copy_pathname(entry, "/");
+		archive_entry_copy_pathname(entry, entry_name);
 		if ((bsdar->options & AR_D) == 0)
 			archive_entry_set_mtime(entry, time(NULL), 0);
-		archive_entry_set_size(entry, (bsdar->s_cnt + 1) *
-		    sizeof(uint32_t) + bsdar->s_sn_sz);
+		archive_entry_set_size(entry, s_sz);
 		AC(archive_write_header(a, entry));
-		nr = htobe32(bsdar->s_cnt);
-		write_data(bsdar, a, &nr, sizeof(uint32_t));
-		write_data(bsdar, a, bsdar->s_so, sizeof(uint32_t) *
-		    bsdar->s_cnt);
-		write_data(bsdar, a, bsdar->s_sn, bsdar->s_sn_sz);
+		if (bsdar->options & AR_BSD)
+			write_bsd_symtab_entry(bsdar, a);
+		else
+			write_svr4_symtab_entry(bsdar, a);
 		archive_entry_free(entry);
 	}
 
 	/* write the archive string table, if any. */
 	if (bsdar->as != NULL) {
 		entry = archive_entry_new();
-		archive_entry_copy_pathname(entry, "//");
+		archive_entry_copy_pathname(entry, AR_STRINGTAB_NAME_SVR4);
 		archive_entry_set_size(entry, bsdar->as_sz);
 		AC(archive_write_header(a, entry));
 		write_data(bsdar, a, bsdar->as, bsdar->as_sz);

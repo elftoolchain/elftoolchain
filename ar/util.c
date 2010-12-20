@@ -165,3 +165,21 @@ bsdar_strmode(mode_t m)
 	return buf;
 #endif	/* !ELTC_HAVE_STRMODE */
 }
+
+int
+bsdar_is_pseudomember(struct bsdar *bsdar, const char *name)
+{
+	/*
+	 * The "__.SYMDEF" member is special in the BSD format
+	 * variant.
+	 */
+	if (bsdar->options & AR_BSD)
+		return (strcmp(name, AR_SYMTAB_NAME_BSD) == 0);
+	else
+		/*
+		 * The names "/ " and "// " are special in the SVR4
+		 * variant.
+		 */
+		return (strcmp(name, AR_STRINGTAB_NAME_SVR4) == 0 ||
+		    strcmp(name, AR_SYMTAB_NAME_SVR4) == 0);
+}
