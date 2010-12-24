@@ -88,11 +88,12 @@ _libelf_ar_gethdr(Elf *e)
 		return (NULL);
 	}
 
-	arh = (struct ar_hdr *) ((uintptr_t) e->e_rawfile - sizeof(struct ar_hdr));
+	arh = (struct ar_hdr *) ((uintptr_t) e->e_rawfile -
+	    sizeof(struct ar_hdr));
 
 	assert((uintptr_t) arh >= (uintptr_t) parent->e_rawfile + SARMAG);
-	assert((uintptr_t) arh <= (uintptr_t) parent->e_rawfile + parent->e_rawsize -
-	    sizeof(struct ar_hdr));
+	assert((uintptr_t) arh <= (uintptr_t) parent->e_rawfile +
+	    parent->e_rawsize - sizeof(struct ar_hdr));
 
 	if ((eh = malloc(sizeof(Elf_Arhdr))) == NULL) {
 		LIBELF_SET_ERROR(RESOURCE, 0);
@@ -102,23 +103,27 @@ _libelf_ar_gethdr(Elf *e)
 	e->e_arhdr = eh;
 	eh->ar_name = eh->ar_rawname = NULL;
 
-	if ((eh->ar_name = _libelf_ar_get_name(arh->ar_name, sizeof(arh->ar_name),
-		 parent)) == NULL)
+	if ((eh->ar_name = _libelf_ar_get_name(arh->ar_name,
+	    sizeof(arh->ar_name), parent)) == NULL)
 		goto error;
 
-	if (_libelf_ar_get_number(arh->ar_uid, sizeof(arh->ar_uid), 10, &n) == 0)
+	if (_libelf_ar_get_number(arh->ar_uid, sizeof(arh->ar_uid), 10,
+	    &n) == 0)
 		goto error;
 	eh->ar_uid = (uid_t) n;
 
-	if (_libelf_ar_get_number(arh->ar_gid, sizeof(arh->ar_gid), 10, &n) == 0)
+	if (_libelf_ar_get_number(arh->ar_gid, sizeof(arh->ar_gid), 10,
+	    &n) == 0)
 		goto error;
 	eh->ar_gid = (gid_t) n;
 
-	if (_libelf_ar_get_number(arh->ar_mode, sizeof(arh->ar_mode), 8, &n) == 0)
+	if (_libelf_ar_get_number(arh->ar_mode, sizeof(arh->ar_mode), 8,
+	    &n) == 0)
 		goto error;
 	eh->ar_mode = (mode_t) n;
 
-	if (_libelf_ar_get_number(arh->ar_size, sizeof(arh->ar_size), 10, &n) == 0)
+	if (_libelf_ar_get_number(arh->ar_size, sizeof(arh->ar_size), 10,
+	    &n) == 0)
 		goto error;
 	eh->ar_size = n;
 
@@ -166,7 +171,8 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 
 	arh = (struct ar_hdr *) (elf->e_rawfile + next);
 
-	if (_libelf_ar_get_number(arh->ar_size, sizeof(arh->ar_size), 10, &sz) == 0) {
+	if (_libelf_ar_get_number(arh->ar_size, sizeof(arh->ar_size), 10,
+	    &sz) == 0) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
