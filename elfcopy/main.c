@@ -51,12 +51,14 @@ enum options
 	ECP_CHANGE_SEC_LMA,
 	ECP_CHANGE_SEC_VMA,
 	ECP_CHANGE_START,
+	ECP_CHANGE_WARN,
 	ECP_GAP_FILL,
 	ECP_GLOBALIZE_SYMBOL,
 	ECP_GLOBALIZE_SYMBOLS,
 	ECP_KEEP_SYMBOLS,
 	ECP_KEEP_GLOBAL_SYMBOLS,
 	ECP_LOCALIZE_SYMBOLS,
+	ECP_NO_CHANGE_WARN,
 	ECP_ONLY_DEBUG,
 	ECP_PAD_TO,
 	ECP_PREFIX_ALLOC,
@@ -109,6 +111,7 @@ static struct option elfcopy_longopts[] =
 	{"change-section-lma", required_argument, NULL, ECP_CHANGE_SEC_LMA},
 	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
+	{"change-warnings", no_argument, NULL, ECP_CHANGE_WARN},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
 	{"gap-fill", required_argument, NULL, ECP_GAP_FILL},
@@ -122,6 +125,7 @@ static struct option elfcopy_longopts[] =
 	{"keep-global-symbols", required_argument, NULL, ECP_KEEP_GLOBAL_SYMBOLS},
 	{"localize-symbol", required_argument, NULL, 'L'},
 	{"localize-symbols", required_argument, NULL, ECP_LOCALIZE_SYMBOLS},
+	{"no-change-warnings", required_argument, NULL, ECP_NO_CHANGE_WARN},
 	{"only-keep-debug", no_argument, NULL, ECP_ONLY_DEBUG},
 	{"only-section", required_argument, NULL, 'j'},
 	{"osabi", required_argument, NULL, ECP_SET_OSABI},
@@ -771,6 +775,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_CHANGE_START:
 			ecp->change_start = (int64_t) strtoll(optarg, NULL, 0);
 			break;
+		case ECP_CHANGE_WARN:
+			/* default */
+			break;
 		case ECP_GAP_FILL:
 			ecp->fill = (uint8_t) strtoul(optarg, NULL, 0);
 			ecp->flags |= GAP_FILL;
@@ -789,6 +796,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_LOCALIZE_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_LOCALIZE);
+			break;
+		case ECP_NO_CHANGE_WARN:
+			ecp->flags |= NO_CHANGE_WARN;
 			break;
 		case ECP_ONLY_DEBUG:
 			ecp->strip = STRIP_NONDEBUG;
