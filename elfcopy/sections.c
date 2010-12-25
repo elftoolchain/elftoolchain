@@ -1008,22 +1008,27 @@ copy_data(struct section *s)
 	if (s->nocopy && s->buf == NULL)
 		return;
 
-	/* FIXME This is not so readable. */
-	id = NULL;
-	while ((id = elf_getdata(s->is, id)) != NULL) {
-		if ((od = elf_newdata(s->os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s",
-			    elf_errmsg(-1));
+	if ((id = elf_getdata(s->is, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
+
+	if ((od = elf_newdata(s->os)) == NULL)
+		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		    elf_errmsg(-1));
+
+	if (s->nocopy) {
 		/* Use s->buf as content if s->nocopy is set. */
-		if (s->nocopy) {
-			od->d_align	= id->d_align;
-			od->d_off	= 0;
-			od->d_buf	= s->buf;
-			od->d_type	= id->d_type;
-			od->d_size	= s->sz;
-			od->d_version	= id->d_version;
-			return;
-		}
+		od->d_align	= id->d_align;
+		od->d_off	= 0;
+		od->d_buf	= s->buf;
+		od->d_type	= id->d_type;
+		od->d_size	= s->sz;
+		od->d_version	= id->d_version;
+	} else {
 		od->d_align	= id->d_align;
 		od->d_off	= id->d_off;
 		od->d_buf	= id->d_buf;
@@ -1031,10 +1036,6 @@ copy_data(struct section *s)
 		od->d_size	= id->d_size;
 		od->d_version	= id->d_version;
 	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_getdata() failed: %s",
-		    elf_errmsg(elferr));
 }
 
 struct section *
