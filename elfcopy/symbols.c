@@ -27,6 +27,7 @@
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <err.h>
+#include <fnmatch.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,6 +65,7 @@ static int	is_weak_symbol(unsigned char st_info);
 static int	lookup_exact_string(const char *buf, size_t sz, const char *s);
 static int	generate_symbols(struct elfcopy *ecp);
 static void	mark_symbols(struct elfcopy *ecp, size_t sc);
+static int	match_wildcard(const char *name, const char *pattern);
 
 /* Convenient bit vector operation macros. */
 #define BIT_SET(v, n) (v[(n)>>3] |= 1U << ((n) & 7))
@@ -937,13 +939,34 @@ add_to_symop_list(struct elfcopy *ecp, const char *name, const char *newname,
 	STAILQ_INSERT_TAIL(&ecp->v_symop, s, symop_list);
 }
 
+static int
+match_wildcard(const char *name, const char *pattern)
+{
+	int reverse, match;
+
+	reverse = 0;
+	if (*pattern == '!') {
+		reverse = 1;
+		pattern++;
+	}
+
+	match = 0;
+	if (!fnmatch(pattern, name, 0)) {
+		match = 1;
+		printf("string '%s' match to pattern '%s'\n", name, pattern);
+	}
+
+	return (reverse ? !match : match);
+}
+
 struct symop *
 lookup_symop_list(struct elfcopy *ecp, const char *name, unsigned int op)
 {
 	struct symop *s;
 
 	STAILQ_FOREACH(s, &ecp->v_symop, symop_list) {
-		if (name == NULL || strcmp(name, s->name) == 0)
+		if (name == NULL || !strcmp(name, s->name) ||
+		    ((ecp->flags & WILDCARD) && match_wildcard(name, s->name)))
 			if ((s->op & op) != 0)
 				return (s);
 	}

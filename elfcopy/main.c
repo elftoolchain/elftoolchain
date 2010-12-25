@@ -92,6 +92,7 @@ static struct option strip_longopts[] =
 	{"strip-debug", no_argument, NULL, 'S'},
 	{"strip-symbol", required_argument, NULL, 'N'},
 	{"strip-unneeded", no_argument, NULL, ECP_STRIP_UNNEEDED},
+	{"wildcard", no_argument, NULL, 'w'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -146,6 +147,7 @@ static struct option elfcopy_longopts[] =
 	{"weaken", no_argument, NULL, ECP_WEAKEN_ALL},
 	{"weaken-symbol", required_argument, NULL, 'W'},
 	{"weaken-symbols", required_argument, NULL, ECP_WEAKEN_SYMBOLS},
+	{"wildcard", no_argument, NULL, 'w'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -684,7 +686,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 	char			*fn, *s;
 	int			 opt;
 
-	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSW:xX",
+	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSwW:xX",
 	    elfcopy_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'B':
@@ -734,6 +736,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case 'p':
 			ecp->flags |= PRESERVE_DATE;
+			break;
+		case 'w':
+			ecp->flags |= WILDCARD;
 			break;
 		case 'W':
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_WEAKEN);
@@ -965,7 +970,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 	int			 i;
 
 	outfile = NULL;
-	while ((opt = getopt_long(argc, argv, "I:K:N:o:O:pR:sSdgxX",
+	while ((opt = getopt_long(argc, argv, "I:K:N:o:O:pR:sSdgxXw",
 	    strip_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'R':
@@ -998,6 +1003,9 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case 'p':
 			ecp->flags |= PRESERVE_DATE;
+			break;
+		case 'w':
+			ecp->flags |= WILDCARD;
 			break;
 		case 'x':
 		case 'X':
