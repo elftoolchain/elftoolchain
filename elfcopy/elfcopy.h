@@ -217,6 +217,7 @@ struct elfcopy {
 #define	SREC_FORCE_LEN	0x00004000U
 #define	SET_START	0x00008000U
 #define	GAP_FILL	0x00010000U
+#define	WILDCARD	0x00020000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */
