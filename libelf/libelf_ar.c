@@ -196,12 +196,10 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 /*
  * An ar(1) symbol table has the following layout:
  *
- * The first 4 bytes are a binary count of the number of entries in the
- * symbol table, stored MSB-first.
- *
- * Then there are 'n' 4-byte binary offsets, also stored MSB first.
- *
- * Following this, there are 'n' null-terminated strings.
+ * - The first 4 bytes are a binary count of the number of entries in the
+ *   symbol table, stored MSB-first.
+ * - Then there are 'n' 4-byte binary offsets, also stored MSB first.
+ * - Following this, there are 'n' null-terminated strings.
  */
 
 #define	GET_WORD(P, V) do {			\
