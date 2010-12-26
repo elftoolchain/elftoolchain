@@ -5,7 +5,7 @@ TOP=	../../../..
 TS_SRCS=		getarsym.m4
 
 # These names must match those in the test case code.
-TS_DATA=		a.ar a2.ar a1.o a2.o
+TS_DATA=		a.ar a-bsd.ar a2.ar a2-bsd.ar a1.o a2.o
 TS_LONGNAME=		"s------------------------2"
 CLEANFILES+=		a1.c a2.c s1 ${TS_LONGNAME} "s 3"
 
@@ -27,5 +27,14 @@ a.ar:	a1.o a2.o ${TS_LONGNAME} s1 .SILENT
 a2.ar:	s1 ${TS_LONGNAME} .SILENT
 	rm -f ${.TARGET}
 	${AR} crv ${.TARGET} ${.ALLSRC} > /dev/null
-	
+
+a-bsd.ar:	a.ar .SILENT
+	rm -f ${.TARGET}
+	${ELFTOOLCHAIN_AR} -F bsd -crv ${.TARGET} s1 a1.o ${TS_LONGNAME} \
+		a2.o "s 3" > /dev/null
+
+a2-bsd.ar:	a2.ar .SILENT
+	rm -f ${.TARGET}
+	${ELFTOOLCHAIN_AR} -F bsd -crv ${.TARGET} ${.ALLSRC} > /dev/null
+
 .include "${TOP}/mk/elftoolchain.tet.mk"
