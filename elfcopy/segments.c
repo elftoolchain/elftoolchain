@@ -98,6 +98,7 @@ adjust_addr(struct elfcopy *ecp)
 	struct segment *seg;
 	struct sec_action *sac;
 	uint64_t dl, lma, old_vma, start, end;
+	int found;
 
 	/*
 	 * Apply VMA and global LMA changes in the first iteration.
@@ -296,22 +297,47 @@ adjust_addr(struct elfcopy *ecp)
 		}
 
 		if (s == NULL)
-			return;
+			goto issue_warn;
 		else if (s->name != NULL && !strcmp(s->name, ".bss")) {
 			s = TAILQ_PREV(s, sec_head, in_seg);
 			if (s == NULL)
-				return;
+				goto issue_warn;
 		}
 
 		/* No need to pad if the pad_to address is lower. */
 		if (ecp->pad_to <= s->lma + s->sz)
-			return;
+			goto issue_warn;
 
 		s->pad_sz = ecp->pad_to - (s->lma + s->sz);
 #ifdef	DEBUG
 		printf("pad section %s load to address %#jx by %#jx\n", s->name,
 		    (uintmax_t) ecp->pad_to, (uintmax_t) s->pad_sz);
 #endif
+	}
+
+issue_warn:
+
+	/*
+	 * Issue a warning if there are VMA/LMA adjust requests for
+	 * some nonexistent sections.
+	 */
+	if ((ecp->flags & NO_CHANGE_WARN) == 0) {
+		STAILQ_FOREACH(sac, &ecp->v_sac, sac_list) {
+			if (!sac->setvma && !sac->setlma &&
+			    !sac->vma_adjust && !sac->lma_adjust)
+				continue;
+			found = 0;
+			TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
+				if (s->pseudo || s->name == NULL)
+					continue;
+				if (!strcmp(s->name, sac->name)) {
+					found = 1;
+					break;
+				}
+			}
+			if (!found)
+				warnx("cannot find section `%s'", sac->name);
+		}
 	}
 }
 
