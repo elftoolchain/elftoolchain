@@ -84,16 +84,13 @@ is_remove_section(struct elfcopy *ecp, const char *name)
 			return (0);
 	}
 
-	if (ecp->sections_to_remove != 0 ||
-	    ecp->sections_to_copy != 0) {
+	if ((ecp->flags & SEC_REMOVE) || (ecp->flags & SEC_COPY)) {
 		struct sec_action *sac;
 
 		sac = lookup_sec_act(ecp, name, 0);
-		if (ecp->sections_to_remove != 0 &&
-		    sac != NULL && sac->remove != 0)
+		if ((ecp->flags & SEC_REMOVE) && sac != NULL && sac->remove)
 			return (1);
-		if (ecp->sections_to_copy != 0 &&
-		    (sac == NULL || sac->copy == 0))
+		if ((ecp->flags & SEC_COPY) && (sac == NULL || !sac->copy))
 			return (1);
 	}
 
@@ -409,7 +406,7 @@ create_scn(struct elfcopy *ecp)
 				 */
 				if (ecp->debuglink != NULL)
 					add_gnu_debuglink(ecp);
-				if (ecp->sections_to_add != 0)
+				if (ecp->flags & SEC_ADD)
 					insert_sections(ecp);
 			}
  			if ((s->os = elf_newscn(ecp->eout)) == NULL)
@@ -1288,7 +1285,7 @@ add_section(struct elfcopy *ecp, const char *arg)
 	fclose(fp);
 
 	STAILQ_INSERT_TAIL(&ecp->v_sadd, sa, sadd_list);
-	ecp->sections_to_add = 1;
+	ecp->flags |= SEC_ADD;
 }
 
 static void
@@ -1347,7 +1344,7 @@ add_gnu_debuglink(struct elfcopy *ecp)
 	}
 
 	STAILQ_INSERT_TAIL(&ecp->v_sadd, sa, sadd_list);
-	ecp->sections_to_add = 1;
+	ecp->flags |= SEC_ADD;
 }
 
 static void
