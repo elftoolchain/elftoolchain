@@ -59,4 +59,6 @@ M4FLAGS+=	-I${TS_ROOT}/common
 LDADD+=		${TET_OBJS} -L${TET_LIBS} -lapi
 CLEANFILES+=	tet_xres tet_captured
 
+ELFTOOLCHAIN_AR=	${TOP}/ar/ar
+
 .include "${TOP}/mk/elftoolchain.prog.mk"

@@ -46,8 +46,10 @@ include(`elfts.m4')
  * The following defines should match that in `./Makefile'.
  */
 define(`TP_ELFFILE',`"a1.o"')
-define(`TP_ARFILE', `"a.ar"')
-define(`TP_ARFILE_NOSYMTAB',`"a2.ar"')
+define(`TP_ARFILE_BSD', `"a-bsd.ar"')
+define(`TP_ARFILE_NOSYMTAB_BSD',`"a2-bsd.ar"')
+define(`TP_ARFILE_SVR4', `"a.ar"')
+define(`TP_ARFILE_NOSYMTAB_SVR4',`"a2.ar"')
 define(`TP_NSYMBOLS',`3')
 
 /*
@@ -137,13 +139,28 @@ tcArgs_tpElf(void)
 	tet_result(result);
 }
 
+/* This list of symbols must match the order of the files in test archive. */
+struct refsym {
+	char *as_name;
+	unsigned long as_hash;
+	char *as_object;
+	int as_found;
+};
 
+struct refsym refsym[] = {
+	{ .as_name = "a1", .as_hash = 0x641, .as_object = "a1.o" },
+	{ .as_name = "a2", .as_hash = 0x642, .as_object = "a2.o" },
+	{ .as_name = NULL }
+};
+
+
+define(`ARCHIVE_TESTS',`
 /*
  * elf_getarsym() on an ar archive succeeds.
  */
 
 void
-tcAr_tpAr(void)
+tcAr_tpAr$1(void)
 {
 	Elf *e;
 	Elf_Arsym *arsym;
@@ -152,9 +169,9 @@ tcAr_tpAr(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("elf_getarsym(ar-descriptor) succeeds.");
+	TP_ANNOUNCE("elf_getarsym(ar-descriptor)/$1 succeeds.");
 
-	TS_OPEN_FILE(e, TP_ARFILE, ELF_C_READ, fd);
+	TS_OPEN_FILE(e, TP_ARFILE_$1, ELF_C_READ, fd);
 
 	result = TET_PASS;
 	n = ~ (size_t) 0;
@@ -172,7 +189,7 @@ tcAr_tpAr(void)
  */
 
 void
-tcAr_tpDup(void)
+tcAr_tpDup$1(void)
 {
 	Elf *e;
 	Elf_Arsym *arsym, *t;
@@ -181,9 +198,10 @@ tcAr_tpDup(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("duplicate elf_getarsym() calls return the same value.");
+	TP_ANNOUNCE("duplicate elf_getarsym()/$1 calls return the "
+		"same value.");
 
-	TS_OPEN_FILE(e, TP_ARFILE, ELF_C_READ, fd);
+	TS_OPEN_FILE(e, TP_ARFILE_$1, ELF_C_READ, fd);
 
 	result = TET_PASS;
 	n = ~ (size_t) 0;
@@ -208,7 +226,7 @@ tcAr_tpDup(void)
  */
 
 void
-tcAr_tpNoSymtab(void)
+tcAr_tpNoSymtab$1(void)
 {
 	Elf *e;
 	size_t n;
@@ -217,9 +235,9 @@ tcAr_tpNoSymtab(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("elf_getarsym(ar-with-no-symtab) fails.");
+	TP_ANNOUNCE("elf_getarsym(ar-with-no-symtab)/$1 fails.");
 
-	TS_OPEN_FILE(e, TP_ARFILE_NOSYMTAB, ELF_C_READ, fd);
+	TS_OPEN_FILE(e, TP_ARFILE_NOSYMTAB_$1, ELF_C_READ, fd);
 
 	result = TET_PASS;
 	n = ~ (size_t) 0;
@@ -236,22 +254,8 @@ tcAr_tpNoSymtab(void)
  * elf_getarsym() on ar archive members succeed.
  */
 
-/* This list of symbols must match the order of the files in test archive. */
-struct refsym {
-	char *as_name;
-	unsigned long as_hash;
-	char *as_object;
-	int as_found;
-};
-
-struct refsym refsym[] = {
-	{ .as_name = "a1", .as_hash = 0x641, .as_object = "a1.o" },
-	{ .as_name = "a2", .as_hash = 0x642, .as_object = "a2.o" },
-	{ .as_name = NULL }
-};
-
 void
-tcAr_tpArSym(void)
+tcAr_tpArSym$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
@@ -263,18 +267,18 @@ tcAr_tpArSym(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("elf_getarsym() returns a correct list of symbols.");
+	TP_ANNOUNCE("elf_getarsym()/$1 returns a correct list of symbols.");
 
 	ar_e = e = NULL;
 	c = ELF_C_READ;
 
-	TS_OPEN_FILE(ar_e, TP_ARFILE, c, fd);
+	TS_OPEN_FILE(ar_e, TP_ARFILE_$1, c, fd);
 
 	result = TET_PASS;
 
 	if ((arsym = elf_getarsym(ar_e, &n)) == NULL ||
 	    (n != TP_NSYMBOLS)) {
-		TP_FAIL("elf_getarsym() failed: n=% error=\"%s\".", n,
+		TP_FAIL("elf_getarsym() failed: n=%d error=\"%s\".", n,
 		    elf_errmsg(-1));
 		goto done;
 	}
@@ -347,3 +351,7 @@ tcAr_tpArSym(void)
 	tet_result(result);
 
 }
+')
+
+ARCHIVE_TESTS(`SVR4')
+ARCHIVE_TESTS(`BSD')
