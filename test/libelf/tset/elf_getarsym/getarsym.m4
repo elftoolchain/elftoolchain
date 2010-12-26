@@ -68,10 +68,8 @@ tcArgs_tpNull(void)
 	result = TET_PASS;
 	n = ~(size_t) 0;
 	if (elf_getarsym(NULL, &n) != NULL ||
-	    (n != (size_t) 0) || (error = elf_errno()) != ELF_E_ARGUMENT) {
+	    (n != (size_t) 0) || (error = elf_errno()) != ELF_E_ARGUMENT)
 		TP_FAIL("n=%d error=%d \"%s\".", n, error, elf_errmsg(error));
-		result = TET_FAIL;
-	}
 
 	tet_result(result);
 }
@@ -98,10 +96,8 @@ tcArgs_tpNonAr(void)
 
 	n = ~ (size_t) 0;
 	if (elf_getarsym(e, &n) != NULL || (n != (size_t) 0) ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT) {
+	    (error = elf_errno()) != ELF_E_ARGUMENT)
 		TP_FAIL("error=%d \"%s\".", error, elf_errmsg(error));
-		result = TET_FAIL;
-	}
 
 	(void) elf_end(e);
 
@@ -129,10 +125,8 @@ tcArgs_tpElf(void)
 
 	n = ~ (size_t) 0;
 	if (elf_getarsym(e, &n) != NULL || (n != (size_t) 0) ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT) {
+	    (error = elf_errno()) != ELF_E_ARGUMENT)
 		TP_FAIL("error=%d \"%s\".", error, elf_errmsg(error));
-		result = TET_FAIL;
-	}
 
 	(void) elf_end(e);
 
@@ -206,16 +200,21 @@ tcAr_tpDup$1(void)
 	result = TET_PASS;
 	n = ~ (size_t) 0;
 	if ((arsym = elf_getarsym(e, &n)) == NULL ||
-	    n != TP_NSYMBOLS)
+	    n != TP_NSYMBOLS) {
 		TP_FAIL("error=\"%s\".", elf_errmsg(-1));
+		goto done;
+	}
 
 	if ((t = elf_getarsym(e, &n)) == NULL ||
-	    n != TP_NSYMBOLS)
+	    n != TP_NSYMBOLS) {
 		TP_FAIL("error=\"%s\".", elf_errmsg(-1));
+		goto done;
+	}
 
 	if (t != arsym)
 		TP_FAIL("return values differ.");
 
+done:
 	(void) elf_end(e);
 
 	tet_result(result);
