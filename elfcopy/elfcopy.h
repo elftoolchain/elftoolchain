@@ -166,7 +166,7 @@ struct ar_obj {
  * Structure encapsulates the "global" data for "elfcopy" program.
  */
 struct elfcopy {
-	const char	*progname;	/* program name */
+	const char	*progname; /* program name */
 	int		 iec;	/* elfclass of input object */
 	Bfd_Target_Flavor itf;	/* flavour of input object */
 	Bfd_Target_Flavor otf;	/* flavour of output object */
@@ -177,24 +177,9 @@ struct elfcopy {
 	int		 abi;	/* OSABI of output object */
 	Elf		*ein;	/* ELF descriptor of input object */
 	Elf		*eout;	/* ELF descriptor of output object */
-	int		 iphnum;	/* #phdr of input object */
-	int		 ophnum;	/* #phdr of output object */
-	int		 nos;	/* #sections of output object */
-
-	/*
-	 * flags indicating whether there exist sections
-	 * to add/remove/(only)copy. FIXME use bit instead.
-	 */
-	int	sections_to_add;
-	int	sections_to_append;
-	int	sections_to_compress;
-	int	sections_to_print;
-	int	sections_to_remove;
-	int	sections_to_copy;
-
-	struct section	*symtab;	/* .symtab section. */
-	struct section	*strtab;	/* .strtab section. */
-	struct section	*shstrtab;	/* .shstrtab section. */
+	int		 iphnum; /* num. of input object phdr entries */
+	int		 ophnum; /* num. of output object phdr entries */
+	int		 nos;	/* num. of output object sections */
 
 	enum {
 		STRIP_NONE = 0,
@@ -219,6 +204,12 @@ struct elfcopy {
 #define	GAP_FILL	0x00010000U
 #define	WILDCARD	0x00020000U
 #define	NO_CHANGE_WARN	0x00040000U
+#define	SEC_ADD		0x00080000U
+#define	SEC_APPEND	0x00100000U
+#define	SEC_COMPRESS	0x00200000U
+#define	SEC_PRINT	0x00400000U
+#define	SEC_REMOVE	0x00800000U
+#define	SEC_COPY	0x01000000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */
@@ -231,6 +222,9 @@ struct elfcopy {
 	char		*prefix_alloc;	/* alloc section prefix. */
 	char		*prefix_sym;	/* symbol prefix. */
 	char		*debuglink;	/* GNU debuglink file. */
+	struct section	*symtab;	/* .symtab section. */
+	struct section	*strtab;	/* .strtab section. */
+	struct section	*shstrtab;	/* .shstrtab section. */
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
 	unsigned char	*v_rel;		/* symbols needed by relocation. */
@@ -239,7 +233,7 @@ struct elfcopy {
 	STAILQ_HEAD(, sec_action) v_sac;/* list of section operations. */
 	STAILQ_HEAD(, sec_add) v_sadd;	/* list of sections to add. */
 	STAILQ_HEAD(, symop) v_symop;	/* list of symbols operations. */
-	STAILQ_HEAD(, symfile) v_symfile;	/* list of symlist files. */
+	STAILQ_HEAD(, symfile) v_symfile; /* list of symlist files. */
 	TAILQ_HEAD(, section) v_sec;	/* list of sections. */
 
 	/*

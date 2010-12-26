@@ -704,7 +704,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 				errx(EX_DATAERR,
 				    "both copy and remove specified");
 			sac->remove = 1;
-			ecp->sections_to_remove = 1;
+			ecp->flags |= SEC_REMOVE;
 			break;
 		case 'S':
 			ecp->strip = STRIP_ALL;
@@ -726,7 +726,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 				errx(EX_DATAERR,
 				    "both copy and remove specified");
 			sac->copy = 1;
-			ecp->sections_to_copy = 1;
+			ecp->flags |= SEC_COPY;
 			break;
 		case 'K':
 			add_to_symop_list(ecp, optarg, NULL, SYMOP_KEEP);
@@ -946,11 +946,14 @@ mcs_main(struct elfcopy *ecp, int argc, char **argv)
 	 */
 	if (delete) {
 		append = compress = print = 0;
-		ecp->sections_to_remove = 1;
+		ecp->flags |= SEC_REMOVE;
 	}
-	ecp->sections_to_append = append;
-	ecp->sections_to_compress = compress;
-	ecp->sections_to_print = print;
+	if (append)
+		ecp->flags |= SEC_APPEND;
+	if (compress)
+		ecp->flags |= SEC_COMPRESS;
+	if (print)
+		ecp->flags |= SEC_PRINT;
 
 	/* .comment is the default section to operate on. */
 	if (!name)
@@ -988,7 +991,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 		case 'R':
 			sac = lookup_sec_act(ecp, optarg, 1);
 			sac->remove = 1;
-			ecp->sections_to_remove = 1;
+			ecp->flags |= SEC_REMOVE;
 			break;
 		case 's':
 			ecp->strip = STRIP_ALL;
