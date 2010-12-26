@@ -45,7 +45,8 @@ include(`elfts.m4')
  * The following defines should match that in `./Makefile'.
  */
 define(`TP_ELFFILE',`"a1.o"')
-define(`TP_ARFILE', `"a.ar"')
+define(`TP_ARFILE_SVR4', `"a.ar"')
+define(`TP_ARFILE_BSD', `"a-bsd.ar"')
 
 /*
  * A NULL `Elf' argument fails.
@@ -129,34 +130,6 @@ tcArgs_tpElf(void)
 }
 
 
-/*
- * elf_getarhdr() on an ar archive (not a member) fails.
- */
-
-void
-tcAr_tpAr(void)
-{
-	Elf *e;
-	int error, fd, result;
-
-	TP_CHECK_INITIALIZATION();
-
-	TP_ANNOUNCE("elf_getarhdr(ar-descriptor) fails.");
-
-	TS_OPEN_FILE(e, TP_ARFILE, ELF_C_READ, fd);
-
-	result = TET_PASS;
-
-	if (elf_getarhdr(e) != NULL ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT) {
-		TP_FAIL("error=%d \"%s\".", error, elf_errmsg(error));
-		result = TET_FAIL;
-	}
-
-	(void) elf_end(e);
-
-	tet_result(result);
-}
 
 /*
  * elf_getarhdr() on ar archive members succeed.
@@ -171,8 +144,118 @@ static char *rfn[] = {
 	"s 3"	/* file name with blanks */
 };
 
+#define	RAWNAME_SIZE	16	/* See <ar.h> */
+
+struct arnames {
+	char *name;
+	char rawname[RAWNAME_SIZE];
+};
+
+/* These lists of names and raw names must match those in the test archives. */
+static struct arnames rn_BSD[] = {
+        {
+		.name = "__.SYMDEF", /* Symbol table. */
+		.rawname = { '_', '_', '.', 'S', 'Y', 'M', 'D', 'E',
+			     'F', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+        },
+	{
+		.name = "s1",	/* Ordinary, non object member (short name). */
+		.rawname = { 's', '1', ' ', ' ', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "a1.o",	/* Ordinary, object file (short name). */
+		.rawname = { 'a', '1', '.', 'o', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "s------------------------2", /* Long file name. */
+		.rawname = { '#', '1', '/', '2', '6', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name =	"a2.o", /* Ordinary, object file (short name). */
+		.rawname = { 'a', '2', '.', 'o', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+
+	},
+	{
+		.name = "s 3",	/* file name with blanks */
+		.rawname = { '#', '1', '/', '3', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	}
+};
+
+static struct arnames rn_SVR4[] = {
+	{
+		.name = "/",
+		.rawname = { '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "//",
+		.rawname = { '/', '/', ' ', ' ', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "s1",
+		.rawname = { 's', '1', '/', ' ', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "a1.o",
+		.rawname = { 'a', '1', '.', 'o', '/', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name = "s------------------------2", /* long file name */
+		.rawname = { '/', '0', ' ', ' ', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	},
+	{
+		.name =	"a2.o",
+		.rawname = { 'a', '2', '.', 'o', '/', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+
+	},
+	{
+		.name = "s 3",	/* file name with blanks */
+		.rawname = { 's', ' ', '3', '/', ' ', ' ', ' ', ' ',
+			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
+	}
+};
+
+define(`ARCHIVE_TESTS',`
+/*
+ * elf_getarhdr() on an ar archive (not a member) fails.
+ */
+
 void
-tcAr_tpArMember(void)
+tcAr_tpAr$1(void)
+{
+	Elf *e;
+	int error, fd, result;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("elf_getarhdr(ar-descriptor)/$1 fails.");
+
+	TS_OPEN_FILE(e, TP_ARFILE_$1, ELF_C_READ, fd);
+
+	result = TET_PASS;
+
+	if (elf_getarhdr(e) != NULL ||
+	    (error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("error=%d \"%s\".", error, elf_errmsg(error));
+	}
+
+	(void) elf_end(e);
+
+	tet_result(result);
+}
+
+void
+tcAr_tpArMember$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
@@ -183,12 +266,12 @@ tcAr_tpArMember(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("elf_getarhdr() succeeds for all members of an archive.");
+	TP_ANNOUNCE("elf_getarhdr()/$1 succeeds for all members of an archive.");
 
 	ar_e = e = NULL;
 	c = ELF_C_READ;
 
-	TS_OPEN_FILE(ar_e, TP_ARFILE, c, fd);
+	TS_OPEN_FILE(ar_e, TP_ARFILE_$1, c, fd);
 
 	result = TET_FAIL;
 
@@ -204,7 +287,6 @@ tcAr_tpArMember(void)
 		if (stat(*fn, &sb) < 0) {
 			TP_UNRESOLVED("stat \"%s\" failed: %s.", *fn,
 			    strerror(errno));
-			result = TET_UNRESOLVED;
 			goto done;
 		}
 
@@ -259,53 +341,8 @@ tcAr_tpArMember(void)
 
 }
 
-#define	RAWNAME_SIZE	16	/* See <ar.h> */
-
-struct arnames {
-	char *name;
-	char rawname[RAWNAME_SIZE];
-};
-
-/* This list of names and raw names must match that in the test archive. */
-static struct arnames rn[] = {
-	{
-		.name = "/",
-		.rawname = { '/', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	},
-	{
-		.name = "//",
-		.rawname = { '/', '/', ' ', ' ', ' ', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	},
-	{
-		.name = "s1",
-		.rawname = { 's', '1', '/', ' ', ' ', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	},
-	{
-		.name = "a1.o",
-		.rawname = { 'a', '1', '.', 'o', '/', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	},
-	{
-		.name = "s------------------------2", /* long file name */
-		.rawname = { '/', '0', ' ', ' ', ' ', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	},
-	{
-		.name =	"a2.o",
-		.rawname = { 'a', '2', '.', 'o', '/', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-
-	},
-	{
-		.name = "s 3",	/* file name with blanks */
-		.rawname = { 's', ' ', '3', '/', ' ', ' ', ' ', ' ',
-			     ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' }
-	}
-};
-
+undefine(`CHECK_SPECIAL')dnl
+undefine(`CHECK_NAMES')dnl
 define(`CHECK_SPECIAL',`
 	if ((e = elf_begin(fd, c, ar_e)) == NULL) {
 		TP_FAIL("elf_begin($1) failed: \"%s\".", elf_errmsg(-1));
@@ -337,7 +374,7 @@ define(`CHECK_NAMES',`
 ')
 
 void
-tcAr_tpArSpecial(void)
+tcAr_tpArSpecial$1(void)
 {
 
 	Elf_Arhdr *arh;
@@ -352,9 +389,9 @@ tcAr_tpArSpecial(void)
 
 	ar_e = e = NULL;
 	c = ELF_C_READ;
-	fn = rn;
+	fn = rn_$1;
 
-	TS_OPEN_FILE(ar_e, TP_ARFILE, c, fd);
+	TS_OPEN_FILE(ar_e, TP_ARFILE_$1, c, fd);
 
 	result = TET_PASS;
 
@@ -364,8 +401,10 @@ tcAr_tpArSpecial(void)
 
 	}
 
+	ifelse($1,`SVR4',`dnl # SVR4
 	CHECK_SPECIAL(`/');
-	CHECK_SPECIAL(`//');
+	CHECK_SPECIAL(`//');',`dnl # BSD
+	CHECK_SPECIAL(`__.SYMDEF');')
 
  done:
 	if (e)
@@ -377,7 +416,7 @@ tcAr_tpArSpecial(void)
 }
 
 void
-tcAr_tpArRawnames(void)
+tcAr_tpArRawnames$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
@@ -391,9 +430,9 @@ tcAr_tpArRawnames(void)
 
 	ar_e = e = NULL;
 	c = ELF_C_READ;
-	fn = rn;
+	fn = rn_$1;
 
-	TS_OPEN_FILE(ar_e, TP_ARFILE, c, fd);
+	TS_OPEN_FILE(ar_e, TP_ARFILE_$1, c, fd);
 
 	result = TET_PASS;
 
@@ -403,14 +442,14 @@ tcAr_tpArRawnames(void)
 
 	}
 
+	ifelse($1,`SVR4',`dnl # SVR4
 	CHECK_SPECIAL(`/');
-	CHECK_SPECIAL(`//');
+	CHECK_SPECIAL(`//');',`dnl # BSD
+	CHECK_SPECIAL(`__.SYMDEF');')
 
 	/* Check the rest of the archive members. */
 
 	while ((e = elf_begin(fd, c, ar_e)) != NULL) {
-
-
 		CHECK_NAMES();
 
 		c = elf_next(e);
@@ -426,3 +465,7 @@ tcAr_tpArRawnames(void)
 
 	tet_result(result);
 }
+')
+
+ARCHIVE_TESTS(`SVR4')
+ARCHIVE_TESTS(`BSD')
