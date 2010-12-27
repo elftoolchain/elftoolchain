@@ -174,6 +174,7 @@ tcAr_tpAr$1(void)
 		TP_FAIL("error=\"%s\".", elf_errmsg(-1));
 
 	(void) elf_end(e);
+	(void) close(fd);
 
 	tet_result(result);
 }
@@ -216,6 +217,7 @@ tcAr_tpDup$1(void)
 
 done:
 	(void) elf_end(e);
+	(void) close(fd);
 
 	tet_result(result);
 }
@@ -245,6 +247,7 @@ tcAr_tpNoSymtab$1(void)
 		TP_FAIL("arsym=%p n=%d.", (void *) arsym, n);
 
 	(void) elf_end(e);
+	(void) close(fd);
 
 	tet_result(result);
 }
@@ -270,6 +273,7 @@ tcAr_tpArSym$1(void)
 
 	ar_e = e = NULL;
 	c = ELF_C_READ;
+	fd = -1;
 
 	TS_OPEN_FILE(ar_e, TP_ARFILE_$1, c, fd);
 
@@ -324,6 +328,7 @@ tcAr_tpArSym$1(void)
 		}
 
 		(void) elf_end (e);
+		e = NULL;
 	}
 
 	/* Check the last entry */
@@ -346,6 +351,8 @@ tcAr_tpArSym$1(void)
 		(void) elf_end(e);
 	if (ar_e)
 		(void) elf_end(ar_e);
+	if (fd != -1)
+	        (void) close(fd);
 
 	tet_result(result);
 
