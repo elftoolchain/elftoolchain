@@ -28,10 +28,12 @@
 
 usage()
 {
-	echo `basename $0`: "[options] objects..."
+	echo Usage: `basename $0`: "[options] objects..."
 	echo
-	echo -e "    Generate TET scaffolding from objects.   Options include:"
-	echo -e "\t-o out\t\tcreate output file \"out\" [default \"tc.c\"]."
+	/bin/echo -e "    Generate TET scaffolding from objects.   " \
+	    "Options include:"
+	/bin/echo -e "\t-o out\t\tcreate output file \"out\" " \
+	    "[default \"tc.c\"]."
 }
 
 output="tc.c"
