@@ -69,8 +69,8 @@ echo "\
  */
 #include <tet_api.h>"
 
-if ! nm ${*} | sort -n -k +1 | awk '
-	BEGIN {	do_scaffolding = 1; }
+if ! nm ${*} | sort -n -k +2 | awk '
+	BEGIN {	do_scaffolding = 1; tcseq[ntc++] = "Default"; }
 	$2 == "T" && $3 ~ "^tc" {
 		fnname = substr($3,3);
 
@@ -78,6 +78,11 @@ if ! nm ${*} | sort -n -k +1 | awk '
 			next;
 
 		tcname = substr(fnname,RSTART,RLENGTH-3);
+
+		if (ptc != tcname) {
+			tcseq[ntc++] = tcname;
+			ptc = tcname;
+		}
 
 		c = tc[tcname]++;
 		tp[tcname,c] = $3
@@ -124,14 +129,13 @@ if ! nm ${*} | sort -n -k +1 | awk '
 
 		printf("struct tet_testlist tet_testlist[] = {\n");
 
-		testcase = 0;
-		for (tcname in tc) {
+		n = 0;
+		for (n = 0; n < ntc; n++) {
+			tcname = tcseq[n];
 			nc = tc[tcname];
 			for (c = 0; c < nc; c++)
-				printf("\t{%s,%d},\n", tp[tcname,c], testcase);			
-			testcase++;
+				printf("\t{%s,%d},\n", tp[tcname,c], n);
 		}
-
 		printf("\t{NULL,0} };\n");
 	}'; then
 	rm ${output}
