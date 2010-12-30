@@ -34,11 +34,15 @@ usage()
 	    "Options include:"
 	/bin/echo -e "\t-o out\t\tcreate output file \"out\" " \
 	    "[default \"tc.c\"]."
+	/bin/echo -e "\t-s scen\t\tcreate scenario file \"scen\" " \
+	    "[default \"tet_scen\"]."
+	/bin/echo -e "\t-p prefix\t\tprefix for naming test cases"
 }
 
 output="tc.c"
+scen="tet_scen"
 
-args=`getopt o: $*`
+args=`getopt o:p:s: $*`
 if [ ${?} -ne 0 ]; then
 	usage
 	exit 2
@@ -51,6 +55,12 @@ do
 	case "${i}" in
 	-o )
 		output="${2}";
+		shift; shift;;
+	-p )
+		prefix="${2}";
+		shift; shift;;
+	-s )
+		scen="${2}";
 		shift; shift;;
 	-- )
 		shift; break;;
@@ -71,7 +81,7 @@ echo "\
  */
 #include <tet_api.h>"
 
-if ! nm ${*} | sort -n -k +2 | awk '
+if ! nm ${*} | sort -n -k +2 | awk -v scen=${scen} -v prefix=${prefix} '
 	BEGIN {	do_scaffolding = 1; tcseq[ntc++] = "Default"; }
 	$2 == "T" && $3 ~ "^tc" {
 		fnname = substr($3,3);
@@ -135,11 +145,14 @@ if ! nm ${*} | sort -n -k +2 | awk '
 		for (n = 0; n < ntc; n++) {
 			tcname = tcseq[n];
 			nc = tc[tcname];
-			for (c = 0; c < nc; c++)
+			for (c = 0; c < nc; c++) {
 				printf("\t{%s,%d},\n", tp[tcname,c], n);
+			}
+			if (nc > 0)
+				printf("/%s{%d}\n", prefix, n) > scen;
 		}
 		printf("\t{NULL,0} };\n");
 	}'; then
-	rm ${output}
+	rm ${output} ${scen}
 	exit 1
 fi
