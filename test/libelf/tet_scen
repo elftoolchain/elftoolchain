@@ -5,6 +5,18 @@
 # $Id$
 
 all
+	^elf32_getehdr
+	^elf32_getphdr
+	^elf32_getshdr
+	^elf32_newehdr
+	^elf32_xlatetof
+	^elf32_xlatetom
+	^elf64_getehdr
+	^elf64_getphdr
+	^elf64_getshdr
+	^elf64_newehdr
+	^elf64_xlatetof
+	^elf64_xlatetom
 	^elf_begin
 	^elf_cntl
 	^elf_end
@@ -18,6 +30,7 @@ all
 	^elf_flagphdr
 	^elf_flagscn
 	^elf_flagshdr
+	^elf_fsize
 	^elf_getarhdr
 	^elf_getarsym
 	^elf_getbase
@@ -28,193 +41,72 @@ all
 	^elf_hash
 	^elf_kind
 	^elf_memory
-	^elf_next
 	^elf_ndxscn
 	^elf_newscn
+	^elf_next
 	^elf_nextscn
 	^elf_rawfile
 	^elf_strptr
 	^elf_update
 	^elf_version
-	^elf32_getehdr
-	^elf32_getphdr
-	^elf32_getshdr
-	^elf32_newehdr
-	^elf32_xlatetof
-	^elf32_xlatetom
-	^elf64_getehdr
-	^elf64_getphdr
-	^elf64_getshdr
-	^elf64_newehdr
-	^elf64_xlatetof
-	^elf64_xlatetom
-	^fsize
 	^gelf_getclass
 	^gelf_getehdr
 	^gelf_newehdr
 	^gelf_xlate
 
-# elf_begin has a IC that needs to be invoked separately
-elf_begin
-	/tset/elf_begin/tc_elf_begin{4}
-	/tset/elf_begin/tc_elf_begin{0-3}
+elf32_getehdr	:include:/tset/elf32_getehdr/tet_scen
+elf32_getphdr	:include:/tset/elf32_getphdr/tet_scen
+elf32_getshdr	:include:/tset/elf32_getshdr/tet_scen
+elf32_newehdr	:include:/tset/elf32_newehdr/tet_scen
+elf32_xlatetof	:include:/tset/elf32_xlatetof/tet_scen
+elf32_xlatetom	:include:/tset/elf32_xlatetom/tet_scen
+elf64_getehdr	:include:/tset/elf64_getehdr/tet_scen
+elf64_getphdr	:include:/tset/elf64_getphdr/tet_scen
+elf64_getshdr	:include:/tset/elf64_getshdr/tet_scen
+elf64_newehdr	:include:/tset/elf64_newehdr/tet_scen
+elf64_xlatetof	:include:/tset/elf64_xlatetof/tet_scen
+elf64_xlatetom	:include:/tset/elf64_xlatetom/tet_scen
+elf_begin	:include:/tset/elf_begin/tet_scen
+elf_cntl	:include:/tset/elf_cntl/tet_scen
+elf_end		:include:/tset/elf_end/tet_scen
+elf_errmsg	:include:/tset/elf_errmsg/tet_scen
+elf_errno	:include:/tset/elf_errno/tet_scen
+elf_fill	:include:/tset/elf_fill/tet_scen
+elf_flagarhdr	:include:/tset/elf_flagarhdr/tet_scen
+elf_flagdata	:include:/tset/elf_flagdata/tet_scen
+elf_flagehdr	:include:/tset/elf_flagehdr/tet_scen
+elf_flagelf	:include:/tset/elf_flagelf/tet_scen
+elf_flagphdr	:include:/tset/elf_flagphdr/tet_scen
+elf_flagscn	:include:/tset/elf_flagscn/tet_scen
+elf_flagshdr	:include:/tset/elf_flagshdr/tet_scen
+elf_fsize	:include:/tset/elf_fsize/tet_scen
+elf_getarhdr	:include:/tset/elf_getarhdr/tet_scen
+elf_getarsym	:include:/tset/elf_getarsym/tet_scen
+elf_getbase	:include:/tset/elf_getbase/tet_scen
+elf_getident	:include:/tset/elf_getident/tet_scen
+elf_getscn	:include:/tset/elf_getscn/tet_scen
+elf_getshnum	:include:/tset/elf_getshnum/tet_scen
+elf_getshstrndx	:include:/tset/elf_getshstrndx/tet_scen
+elf_hash	:include:/tset/elf_hash/tet_scen
+elf_kind	:include:/tset/elf_kind/tet_scen
+elf_memory	:include:/tset/elf_memory/tet_scen
+elf_ndxscn	:include:/tset/elf_ndxscn/tet_scen
+elf_newscn	:include:/tset/elf_newscn/tet_scen
+elf_next	:include:/tset/elf_next/tet_scen
+elf_nextscn	:include:/tset/elf_nextscn/tet_scen
+elf_rawfile	:include:/tset/elf_rawfile/tet_scen
+elf_strptr	:include:/tset/elf_strptr/tet_scen
+elf_update	:include:/tset/elf_update/tet_scen
+elf_version	:include:/tset/elf_version/tet_scen
+gelf_getclass	:include:/tset/gelf_getclass/tet_scen
+gelf_getehdr	:include:/tset/gelf_getehdr/tet_scen
+gelf_newehdr	:include:/tset/gelf_newehdr/tet_scen
+gelf_xlate	:include:/tset/gelf_xlate/tet_scen
 
-elf_cntl
-	/tset/elf_cntl/tc_elf_cntl
 
-elf_end
-	/tset/elf_end/tc_elf_end
-
-elf_errmsg
-	/tset/elf_errmsg/tc_elf_errmsg
-
-elf_errno
-	/tset/elf_errno/tc_elf_errno
-
-elf_fill
-	/tset/elf_fill/tc_elf_fill
-
-elf_flagarhdr
-	/tset/elf_flagarhdr/tc_elf_flagarhdr
-
-elf_flagdata
-	/tset/elf_flagdata/tc_elf_flagdata
-
-elf_flagehdr
-	/tset/elf_flagehdr/tc_elf_flagehdr
-
-elf_flagelf
-	/tset/elf_flagelf/tc_elf_flagelf
-
-elf_flagphdr
-	/tset/elf_flagphdr/tc_elf_flagphdr
-
-elf_flagscn
-	/tset/elf_flagscn/tc_elf_flagscn
-
-elf_flagshdr
-	/tset/elf_flagshdr/tc_elf_flagshdr
-
-elf_getarhdr
-	/tset/elf_getarhdr/tc_elf_getarhdr
-
-elf_getarsym
-	/tset/elf_getarsym/tc_elf_getarsym
-
-elf_getbase
-	/tset/elf_getbase/tc_elf_getbase
-
-elf_getident
-	/tset/elf_getident/tc_elf_getident{0}
-	/tset/elf_getident/tc_elf_getident{1}
-
-elf_getscn
-	/tset/elf_getscn/tc_elf_getscn
-
-elf_getshnum
-	/tset/elf_getshnum/tc_elf_getshnum
-
-elf_getshstrndx
-	/tset/elf_getshstrndx/tc_elf_getshstrndx
-
-elf_hash
-	/tset/elf_hash/tc_elf_hash
-
-elf_kind
-	/tset/elf_kind/tc_elf_kind
-
-elf_memory
-	/tset/elf_memory/tc_elf_memory{0}
-	/tset/elf_memory/tc_elf_memory{1}
-	/tset/elf_memory/tc_elf_memory{2}
-	/tset/elf_memory/tc_elf_memory{3}
-	/tset/elf_memory/tc_elf_memory{4}
-	/tset/elf_memory/tc_elf_memory{5}
-
-elf_ndxscn
-	/tset/elf_ndxscn/tc_elf_ndxscn
-
-elf_next
-	/tset/elf_next/tc_elf_next
-
-elf_newscn
-	/tset/elf_newscn/tc_elf_newscn
-
-elf_nextscn
-	/tset/elf_nextscn/tc_elf_nextscn
-
-elf_rawfile
-	/tset/elf_rawfile/tc_elf_rawfile{0}
-	/tset/elf_rawfile/tc_elf_rawfile{1}
-	/tset/elf_rawfile/tc_elf_rawfile{2}
-	/tset/elf_rawfile/tc_elf_rawfile{3}
-
-elf_strptr
-	/tset/elf_strptr/tc_elf_strptr
-
-elf_update
-	/tset/elf_update/tc_elf_update
-
-elf_version
-	/tset/elf_version/tc_elf_version{0}
-	/tset/elf_version/tc_elf_version{1}
-	/tset/elf_version/tc_elf_version{2}
-	/tset/elf_version/tc_elf_version{3}
-	/tset/elf_version/tc_elf_version{4}
-
-elf32_getehdr
-	/tset/elf32_getehdr/tc_elf32_getehdr
-
-elf32_getphdr
-	/tset/elf32_getphdr/tc_elf32_getphdr
-
-elf32_getshdr
-	/tset/elf32_getshdr/tc_elf32_getshdr
-
-elf32_newehdr
-	/tset/elf32_newehdr/tc_elf32_newehdr
-
-elf32_xlatetof
-	/tset/elf32_xlatetof/tc_elf32_xlatetof
-
-elf32_xlatetom
-	/tset/elf32_xlatetom/tc_elf32_xlatetom
-
-elf64_getehdr
-	/tset/elf64_getehdr/tc_elf64_getehdr
-
-elf64_getphdr
-	/tset/elf64_getphdr/tc_elf64_getphdr
-
-elf64_getshdr
-	/tset/elf64_getshdr/tc_elf64_getshdr
-
-elf64_newehdr
-	/tset/elf64_newehdr/tc_elf64_newehdr
-
-elf64_xlatetof
-	/tset/elf64_xlatetof/tc_elf64_xlatetof
-
-elf64_xlatetom
-	/tset/elf64_xlatetom/tc_elf64_xlatetom
-
-fsize
-	/tset/elf_fsize/tc_elf_fsize{0}
-	/tset/elf_fsize/tc_elf_fsize{1}
-
+# Other aliases
 getehdr
 	^elf32_getehdr
 	^elf64_getehdr
 	^gelf_getehdr
 
-gelf_getclass
-	/tset/gelf_getclass/tc_gelf_getclass
-
-gelf_getehdr
-	/tset/gelf_getehdr/tc_gelf_getehdr
-
-gelf_newehdr
-	/tset/gelf_newehdr/tc_gelf_newehdr
-
-gelf_xlate
-	/tset/gelf_xlate/tc_gelf_xlate
