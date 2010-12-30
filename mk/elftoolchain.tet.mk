@@ -47,7 +47,8 @@ CLEANFILES+=	${_TC_SRC}
 _TS_OBJS=	${_C_SRCS:S/.c$/.o/g} ${_M4_SRCS:S/.m4$/.o/g}
 _MUNGE_TS=	${TS_ROOT}/bin/munge-ts
 ${_TC_SRC}:	${_TS_OBJS}
-	${_MUNGE_TS} -o ${.TARGET} ${.ALLSRC}
+	${_MUNGE_TS} -o ${.TARGET} -p ${.CURDIR:H:T}/${.CURDIR:T:R}/${PROG} \
+	-s tet_scen ${.ALLSRC}
 .endif
 .endif
 
