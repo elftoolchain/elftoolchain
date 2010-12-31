@@ -103,10 +103,10 @@ gelf_getehdr	:include:/tset/gelf_getehdr/tet_scen
 gelf_newehdr	:include:/tset/gelf_newehdr/tet_scen
 gelf_xlate	:include:/tset/gelf_xlate/tet_scen
 
-
+#
 # Other aliases
+#
 getehdr
 	^elf32_getehdr
 	^elf64_getehdr
 	^gelf_getehdr
-
