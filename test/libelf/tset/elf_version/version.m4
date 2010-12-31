@@ -26,6 +26,8 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 #include <libelf.h>
 
 #include "tet_api.h"
@@ -44,9 +46,9 @@
  */
 
 void
-tcNone_tpNone(void)
+tcParamNoneReturnsCurrentVersion(void)
 {
-	tet_infoline("assertion: current library version == EV_CURRENT");
+	TP_ANNOUNCE("Param EV_NONE returns version == EV_CURRENT");
 	if (elf_version(EV_NONE) != EV_CURRENT)
 		tet_result(TET_FAIL);
 	else
@@ -59,10 +61,10 @@ tcNone_tpNone(void)
  */
 
 void
-tcUnknown1_tpTooLarge(void)
+tcValueTooLarge(void)
 {
-	tet_infoline("assertion: calling elf_version() with an unsupported "
-	    "value fails and sets the error to ELF_E_VERSION.");
+	TP_ANNOUNCE("calling elf_version() with an unsupported "
+	    "(too-large) value fails and sets the error to ELF_E_VERSION.");
 
 	if (elf_version(EV_CURRENT+1) != EV_NONE) {
 		tet_result(TET_FAIL);
@@ -83,9 +85,9 @@ tcUnknown1_tpTooLarge(void)
  */
 
 void
-tcUnknown2_tpNoChange(void)
+tcValueErrorNoChange(void)
 {
-	tet_infoline("assertion: the library's current version should not be "
+	TP_ANNOUNCE("the library's current version should not be "
 	    "changed by a failing call to elf_version().");
 
 	if (elf_version(EV_CURRENT+1) != EV_NONE) {
@@ -113,38 +115,40 @@ tcUnknown2_tpNoChange(void)
  */
 
 void
-tcCurrent_tpValid(void)
+tcValidValuesAreOk(void)
 {
+	int result;
 	unsigned int old_version, new_version;
 
-	tet_infoline("assertion: setting the ELF version to a legal value"
+	TP_ANNOUNCE("setting the ELF version to a legal value"
 	    "passes");
 
+	result = TET_UNRESOLVED;
 	old_version = elf_version(EV_NONE);
 
 	if (old_version == EV_NONE) {
-		tet_infoline("unresolved: unknown current elf version");
-		tet_result(TET_UNRESOLVED);
-		return;
+		TP_UNRESOLVED("unknown current elf version");
+		goto done;
 	}
 
 	new_version = EV_CURRENT;
 	if (elf_version(new_version) != old_version) {
-		tet_infoline("fail: unexpected return value from "
-		    "elf_version(new_version).");
-		tet_result(TET_FAIL);
-		return;
+		TP_FAIL("unexpected return value from "
+		    "elf_version(new_version)");
+		goto done;
 	}
 
 	/* retrieve the version that was set and check */
 	if (elf_version(EV_NONE) != new_version) {
-		tet_infoline("fail: the new ELF version wasn't succesfully "
+		TP_FAIL("the new ELF version was not succesfully "
 		    "set. ");
-		tet_result(TET_FAIL);
-		return;
+		goto done;
 	}
 
-	tet_result(TET_PASS);
+	result = TET_PASS;
+
+done:
+	tet_result(result);
 }
 
 /*
@@ -152,11 +156,11 @@ tcCurrent_tpValid(void)
  */
 
 void
-tcSequence_tpElfMemory(void)
+tcSequenceErrorElfMemory(void)
 {
 	Elf *e;
 
-	tet_infoline("assertion: calling elf_memory() before elf_version() "
+	TP_ANNOUNCE("elf_memory() before elf_version() "
 	    "fails with ELF_E_SEQUENCE.");
 
 	if ((e = elf_memory(NULL, 0)) != NULL ||
@@ -167,9 +171,9 @@ tcSequence_tpElfMemory(void)
 }
 
 void
-tcSequence_tpElfKind(void)
+tcSequenceErrorElfKind(void)
 {
-	tet_infoline("assertion: calling elf_kind() before elf_version() "
+	TP_ANNOUNCE("assertion: calling elf_kind() before elf_version() "
 	    "fails with ELF_E_SEQUENCE.");
 
 	/* Note: no elf_version() call */
