@@ -7,24 +7,31 @@
 #   no scaffolding is generated.  In such cases, the test case
 #   is assumed to be self-sufficient.
 #
-# - If the 'tet_testlist[]' is defined, then no scaffolding is
+# - If the symbol "tet_testlist[]' is defined, then no scaffolding is
 #   generated.
 #
-# - Otherwise, a 'struct tet_testlist []' is generated from the names
-#   of public functions in the objects.
+# - Otherwise, a "struct tet_testlist []" array is generated from the
+#   names of public functions in the objects.
 #
 #   Functions with names matching "^tp\(.*\)" are treated as test
 #   purposes belonging to a test case named "Default".
-#   
-#   Functions with names matching '^tc\([a-zA-Z0-9_]*\)_tp\(.*\)'
-#   are treated as test purposes belonging to the test case named
-#   by the first regular expression.
 #
-#   Test purposes are invoked in order of ascending text addresses.
+#   Functions with names matching '^tc\([a-zA-Z0-9_]+\)' are treated
+#   as test case names.
+#
+#   Functions with names matching '^tc\([a-zA-Z0-9_]*\)_tp.*'
+#   are treated as test purposes belonging to the test case named
+#   by the first regular expression.  Test purposes in a given test
+#   case are invoked in lexicographic sort order.
 #
 # - If variables "tet_startup" or "tet_cleanup" are not defined in the
 #   objects given to the script, a suitable NULL pointer definition
 #   is generated.
+#
+# - A scenario file that invokes each test case independently of the
+#   others is generated.  This scenario file is intended to be
+#   included, using TET's ":include:" syntax, from a higher-level
+#   scenario file.
 
 usage()
 {
@@ -81,15 +88,16 @@ echo "\
  */
 #include <tet_api.h>"
 
-if ! nm ${*} | sort -n -k +2 | awk -v scen=${scen} -v prefix=${prefix} '
+if ! nm ${*} | sort -k +3 | \
+	awk -v scen=${scen} -v prefix=${prefix} '
 	BEGIN {	do_scaffolding = 1; tcseq[ntc++] = "Default"; }
 	$2 == "T" && $3 ~ "^tc" {
 		fnname = substr($3,3);
 
-		if (match(fnname, ".*_tp") == 0)
-			next;
-
-		tcname = substr(fnname,RSTART,RLENGTH-3);
+		if (match(fnname, "^.*_tp"))
+			tcname = substr(fnname,RSTART,RLENGTH-3);
+		else
+			tcname = fnname;
 
 		if (ptc != tcname) {
 			tcseq[ntc++] = tcname;
