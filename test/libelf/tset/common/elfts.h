@@ -81,30 +81,30 @@
 		(void) close(_fd);					\
 	} while (0)
 
-#define	_TS_READ_FILE(FN,DATA,DSZ,ACTION)	do	{			\
-		int _fd;							\
-		size_t _rsz, _sz;						\
-		struct stat _sb;						\
-		if ((_fd = open((FN), O_RDONLY, 0)) < 0) {			\
-			tet_printf("unresolved: open("FN") failed: %s.",	\
-			    strerror(errno));					\
-			ACTION							\
-		}								\
-		if (fstat(_fd, &_sb) < 0) {					\
-			tet_printf("unresolved: fstat("FN") failed: %s.",	\
-			    strerror(errno));					\
-			ACTION							\
-		}								\
-		if ((DSZ) < _sb.st_size)					\
-			_sz = (DSZ);						\
-		else								\
-			_sz = _sb.st_size;					\
-		if ((_rsz = read(_fd, (DATA), _sz)) != _sz) {			\
-			tet_printf("unresolved: read("FN") failed: %s.",	\
-			    strerror(errno));					\
-			ACTION							\
-		}								\
-		(void) close(_fd);						\
+#define	_TS_READ_FILE(FN,DATA,DSZ,ACTION)	do	{		\
+		int _fd;						\
+		size_t _rsz, _sz;					\
+		struct stat _sb;					\
+		if ((_fd = open((FN), O_RDONLY, 0)) < 0) {		\
+			tet_printf("unresolved: open("FN") failed: %s.", \
+			    strerror(errno));				\
+			ACTION						\
+		}							\
+		if (fstat(_fd, &_sb) < 0) {				\
+			tet_printf("unresolved: fstat("FN") failed: %s.", \
+			    strerror(errno));				\
+			ACTION						\
+		}							\
+		if ((DSZ) < _sb.st_size)				\
+			_sz = (DSZ);					\
+		else							\
+			_sz = _sb.st_size;				\
+		if ((_rsz = read(_fd, (DATA), _sz)) != _sz) {		\
+			tet_printf("unresolved: read("FN") failed: %s.", \
+			    strerror(errno));				\
+			ACTION						\
+		}							\
+		(void) close(_fd);					\
 	} while (0)
 
 #define	TS_NEWFILE	"new.file"
