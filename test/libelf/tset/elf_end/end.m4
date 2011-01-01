@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 #include <libelf.h>
 
 #include "elfts.h"
@@ -38,9 +40,9 @@ IC_REQUIRES_VERSION_INIT();
  */
 
 void
-tp_null(void)
+tcEndNullOk(void)
 {
-	tet_infoline("assertion: NULL argument is allowed.");
+	TP_ANNOUNCE("a NULL argument is allowed.");
 
 	tet_result(elf_end(NULL) == 0 ? TET_PASS : TET_FAIL);
 }
@@ -48,11 +50,11 @@ tp_null(void)
 char data[] = "0xDEADC0DE";
 
 void
-tp_begin_end(void)
+tcBeginEndPair(void)
 {
 	Elf *e;
 
-	tet_infoline("assertion: a single begin/end pair works");
+	TP_ANNOUNCE("a single begin/end pair works");
 
 	TP_CHECK_INITIALIZATION();
 
@@ -62,12 +64,12 @@ tp_begin_end(void)
 }
 
 void
-tp_nested_count(void)
+tcNestedCount(void)
 {
 	int r1, r2;
 	Elf *e, *e1;
 
-	tet_infoline("assertion: begin/end pairs next correctly");
+	TP_ANNOUNCE("begin/end pairs nest correctly");
 
 	TP_CHECK_INITIALIZATION();
 
