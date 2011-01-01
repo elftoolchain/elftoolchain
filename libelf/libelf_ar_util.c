@@ -86,8 +86,8 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 
 	assert(arh != NULL);
 	assert(ar->e_kind == ELF_K_AR);
-	assert((char *) arh >= ar->e_rawfile &&
-	    (char *) arh < ar->e_rawfile + ar->e_rawsize);
+	assert((const char *) arh >= ar->e_rawfile &&
+	    (const char *) arh < ar->e_rawfile + ar->e_rawsize);
 
 	buf = arh->ar_name;
 
@@ -153,7 +153,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		/*
 		 * The file name follows the archive header.
 		 */
-		q = (char *) (arh + 1);
+		q = (const char *) (arh + 1);
 
 		(void) strncpy(s, q, len);
 		s[len] = '\0';
