@@ -41,9 +41,9 @@ ELFTC_VCSID("$Id$");
 
 static void append_data(struct section *s, const void *buf, size_t sz);
 static char hex_digit(uint8_t n);
-static int hex_value(char x);
+static int hex_value(int x);
 static void finalize_data_section(struct section *s);
-static int ishexdigit(char x);
+static int ishexdigit(int x);
 static int ihex_read(const char *line, char *type, uint64_t *addr,
     uint64_t *num, uint8_t *data, size_t *sz);
 static void ihex_write(int ofd, int type, uint64_t addr, uint64_t num,
@@ -1063,7 +1063,7 @@ hex_digit(uint8_t n)
 }
 
 static int
-hex_value(char x)
+hex_value(int x)
 {
 
 	if (isdigit(x))
@@ -1075,7 +1075,7 @@ hex_value(char x)
 }
 
 static int
-ishexdigit(char x)
+ishexdigit(int x)
 {
 
 	if (isdigit(x))
