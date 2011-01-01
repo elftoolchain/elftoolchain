@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 #include <libelf.h>
 
 #include "tet_api.h"
@@ -44,11 +46,11 @@
  */
 
 void
-tp_init(void)
+tcInitialValue(void)
 {
 	int err;
 
-	tet_infoline("assertion: initial error must be zero");
+	TP_ANNOUNCE("Initial error value must be zero");
 	err = elf_errno();
 	tet_result(err == 0 ? TET_PASS : TET_FAIL);
 }
@@ -58,11 +60,11 @@ tp_init(void)
  */
 
 void
-tp_reset(void)
+tcReset(void)
 {
 	int err;
 
-	tet_infoline("assertion: error must be reset by elf_errno()");
+	TP_ANNOUNCE("error number must be reset by elf_errno()");
 
 	(void) elf_errno();	/* discard stored error */
 	err = elf_errno();
