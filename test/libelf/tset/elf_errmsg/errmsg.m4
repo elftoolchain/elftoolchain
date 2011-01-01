@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 #include <libelf.h>
 
 #include "tet_api.h"
@@ -39,11 +41,10 @@
  * there is no pending error in the library.
  */
 void
-tp_zero_noerror(void)
+tcZeroNoerror(void)
 {
 
-	tet_infoline("assertion: returns NULL with zero & no "
-	    "current error");
+	TP_ANNOUNCE("returns NULL with zero & no current error");
 
 	(void) elf_errno();	/* discard current error number */
 
@@ -58,12 +59,11 @@ tp_zero_noerror(void)
  */
 
 void
-tp_minusone_noerror(void)
+tcMinusoneNoerror(void)
 {
 	const char *msg;
 
-	tet_infoline("assertion: Returns non-null for arg -1 & no "
-	    "current error");
+	TP_ANNOUNCE("returns non-null for arg -1 & no current error");
 
 	(void) elf_errno();	/* discard stored error */
 
