@@ -253,15 +253,6 @@ Elf_Data	*elf64_xlatetof(Elf_Data *_dst, const Elf_Data *_src,
 			unsigned int _enc);
 Elf_Data	*elf64_xlatetom(Elf_Data *_dst, const Elf_Data *_src,
 			unsigned int _enc);
-
-#if	defined(LIBELF_TEST_HOOKS)
-int		_libelf_get_elf_class(Elf *_elf);
-int		_libelf_get_max_error(void);
-const char	*_libelf_get_no_error_message(void);
-const char	*_libelf_get_unknown_error_message(void);
-void		_libelf_set_elf_class(Elf *_elf, int _class);
-void		_libelf_set_error(int _error);
-#endif	/* LIBELF_TEST_HOOKS */
 __END_DECLS
 
 #endif	/* _LIBELF_H_ */

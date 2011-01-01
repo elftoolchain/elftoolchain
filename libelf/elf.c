@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,18 +38,3 @@ struct _libelf_globals _libelf = {
 	.libelf_fillchar	= 0,
 	.libelf_version		= EV_NONE
 };
-
-
-#if defined(LIBELF_TEST_HOOKS)
-int
-_libelf_get_elf_class(Elf *elf)
-{
-	return elf->e_class;
-}
-
-void
-_libelf_set_elf_class(Elf *elf, int c)
-{
-	elf->e_class = c;
-}
-#endif	/* LIBELF_TEST_HOOKS */

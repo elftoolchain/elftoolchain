@@ -484,35 +484,3 @@ tcFd_tpMismatch(void)
 		(void) close(fd);
 	tet_result(result);
 }
-
-#if	defined(LIBELF_TEST_HOOKS)
-
-#define	ERRORNUM		0xFF	/* any non-zero value will do */
-
-void
-tcCmd_tpNullError(void)
-{
-	Elf *e;
-	int result;
-
-	TP_ANNOUNCE("cmd == NULL does not reset elf_errno.");
-
-	TP_SET_VERSION();
-
-	_libelf_set_error(ERRORNUM);
-
-	result = TET_PASS;
-	if ((e = elf_begin(-1, ELF_C_NULL, NULL)) != NULL) {
-		TP_UNRESOLVED("cmd == ELF_C_NULL failed to "
-		    "return NULL.");
-		goto done;
-	}
-
-	if (elf_errno() != ERRORNUM)
-		result = TET_FAIL;
-
- done:
-	tet_result(result);
-
-}
-#endif	/* LIBELF_TEST_HOOKS */
