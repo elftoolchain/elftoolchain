@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 #include <sys/param.h>
 
 #include <fcntl.h>
@@ -43,12 +45,11 @@ IC_REQUIRES_VERSION_INIT();
  */
 
 void
-tcArgument_tpGelfNull(void)
+tcArgumentGelfNull(void)
 {
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_fsize(NULL,...) fails with error"
-	    " ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("gelf_fsize(NULL,...) fails with error  ELF_E_ARGUMENT.");
 
 	if (gelf_fsize(NULL, ELF_T_ADDR, 1, EV_CURRENT) != 0 ||
 	    elf_errno() != ELF_E_ARGUMENT)
@@ -58,15 +59,15 @@ tcArgument_tpGelfNull(void)
 }
 
 void
-tcArgument_tpBadVersion(void)
+tcArgumentBadVersion(void)
 {
 	Elf *e;
 	int bad_version, fd, result;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: using an unsupported version number fails"
-	    " with ELF_E_VERSION.");
+	TP_ANNOUNCE("using an unsupported version number fails with "
+	    "ELF_E_VERSION.");
 
 	TS_OPEN_FILE(e,"fsize.msb32",ELF_C_READ,fd);
 
@@ -91,15 +92,15 @@ tcArgument_tpBadVersion(void)
 }
 
 void
-tcArgument_tpBadType(void)
+tcArgumentBadTypeTooSmall(void)
 {
 	Elf *e;
 	int fd, result;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: a type parameter less than 0 fails with"
-	    " ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("a type parameter less than 0 fails with "
+	    "ELF_E_ARGUMENT.");
 
 	TS_OPEN_FILE(e,"fsize.msb32",ELF_C_READ,fd);
 
@@ -120,15 +121,15 @@ tcArgument_tpBadType(void)
 }
 
 void
-tcArgument_tpBadType2(void)
+tcArgumentBadTypeTooLarge(void)
 {
 	Elf *e;
 	int fd, result;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: a type parameter >= ELF_T_NUM is fails"
-	    " with ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("a type parameter >= ELF_T_NUM is fails with "
+	    "ELF_E_ARGUMENT.");
 
 	TS_OPEN_FILE(e,"fsize.msb32",ELF_C_READ,fd);
 
@@ -152,16 +153,12 @@ static size_t sizes32[ELF_T_NUM] = {
 #define	DEFINE_SIZE(N,SZ)	[ELF_T_##N] = (SZ)
 	DEFINE_SIZE(ADDR,	4),
 	DEFINE_SIZE(BYTE,	1),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(CAP,	8),
-#endif
 	DEFINE_SIZE(DYN,	4+4),
 	DEFINE_SIZE(EHDR,	16+2+2+4+4+4+4+4+2+2+2+2+2+2),
 	DEFINE_SIZE(HALF,	2),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(LWORD,	8),
 	DEFINE_SIZE(MOVE,	20),
-#endif
 	DEFINE_SIZE(MOVEP,	0),
 	DEFINE_SIZE(NOTE,	1),
 	DEFINE_SIZE(OFF,	4),
@@ -170,26 +167,19 @@ static size_t sizes32[ELF_T_NUM] = {
 	DEFINE_SIZE(RELA,	4+4+4),
 	DEFINE_SIZE(SHDR,	4+4+4+4+4+4+4+4+4+4),
 	DEFINE_SIZE(SWORD,	4),
-#if	__FreeBSD_version	>= 700009
 	DEFINE_SIZE(SXWORD,	0),
-#endif
 	DEFINE_SIZE(SYM,	4+4+4+1+1+2),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(SYMINFO,	4),
-#endif
-#if	__FreeBSD_version	>= 700009
 	DEFINE_SIZE(VDEF,	2+2+2+2+4+4+4),
 	DEFINE_SIZE(VNEED,	2+2+4+4+4),
-#endif
 	DEFINE_SIZE(WORD,	4),
-#if	__FreeBSD_version	>= 700009
-	DEFINE_SIZE(XWORD,	0)
-#endif
+	DEFINE_SIZE(XWORD,	0),
+	DEFINE_SIZE(GNUHASH,	1)
 #undef	DEFINE_SIZE
 };
 
 void
-tcSizes_tpSize32(void)
+tcSizesSize32(void)
 {
 	Elf *e;
 	int fd, i;
@@ -197,7 +187,7 @@ tcSizes_tpSize32(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: check 32 bit sizes.");
+	TP_ANNOUNCE("check 32 bit sizes of ELF types");
 
 	TS_OPEN_FILE(e,"fsize.msb32",ELF_C_READ,fd);
 
@@ -224,16 +214,12 @@ static size_t sizes64[ELF_T_NUM] = {
 #define	DEFINE_SIZE(N,SZ)	[ELF_T_##N] = (SZ)
 	DEFINE_SIZE(ADDR,	8),
 	DEFINE_SIZE(BYTE,	1),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(CAP,	16),
-#endif
 	DEFINE_SIZE(DYN,	8+8),
 	DEFINE_SIZE(EHDR,	16+2+2+4+8+8+8+4+2+2+2+2+2+2),
 	DEFINE_SIZE(HALF,	2),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(LWORD,	8),
 	DEFINE_SIZE(MOVE,	28),
-#endif
 	DEFINE_SIZE(MOVEP,	0),
 	DEFINE_SIZE(NOTE,	1),
 	DEFINE_SIZE(OFF,	8),
@@ -242,26 +228,19 @@ static size_t sizes64[ELF_T_NUM] = {
 	DEFINE_SIZE(RELA,	8+8+8),
 	DEFINE_SIZE(SHDR,	4+4+8+8+8+8+4+4+8+8),
 	DEFINE_SIZE(SWORD,	4),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(SXWORD,	8),
-#endif
 	DEFINE_SIZE(SYM,	4+1+1+2+8+8),
-#if	__FreeBSD_version	>= 700025
 	DEFINE_SIZE(SYMINFO,	4),
-#endif
-#if	__FreeBSD_version	>= 700009
 	DEFINE_SIZE(VDEF,	2+2+2+2+4+4+4),
 	DEFINE_SIZE(VNEED,	2+2+4+4+4),
-#endif
 	DEFINE_SIZE(WORD,	4),
-#if	__FreeBSD_version	>= 700009
-	DEFINE_SIZE(XWORD,	8)
-#endif
+	DEFINE_SIZE(XWORD,	8),
+	DEFINE_SIZE(GNUHASH,	1)
 #undef	DEFINE_SIZE
 };
 
 void
-tcSizes_tpSize64(void)
+tcSizesSize64(void)
 {
 	Elf *e;
 	int fd, i;
@@ -269,7 +248,7 @@ tcSizes_tpSize64(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: check 64 bit sizes.");
+	TP_ANNOUNCE("check 64 bit sizes of ELF types");
 
 	TS_OPEN_FILE(e,"fsize.msb64",ELF_C_READ,fd);
 
@@ -292,5 +271,3 @@ tcSizes_tpSize64(void)
 	(void) close(fd);
 
 }
-
-
