@@ -70,19 +70,3 @@ tcReset(void)
 	err = elf_errno();
 	tet_result(err == 0 ? TET_PASS : TET_FAIL);
 }
-
-#if	defined(LIBELF_TEST_HOOKS)
-
-/*
- * Verify that a non-zero error code is retrieved correctly.
- */
-
-void
-tp_set(void)
-{
-	tet_infoline("assertion: the error values must be retrieved "
-	    "correctly");
-	_libelf_set_error(1);	/* any value > 0 && < max */
-	tet_result(elf_errno() == 1 ? TET_PASS : TET_FAIL);
-}
-#endif	/* LIBELF_TEST_HOOKS */

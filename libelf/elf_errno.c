@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,19 +41,3 @@ elf_errno(void)
 	LIBELF_PRIVATE(error) = 0;
 	return (old & LIBELF_ELF_ERROR_MASK);
 }
-
-#if	defined(LIBELF_TEST_HOOKS)
-
-int
-_libelf_get_max_error(void)
-{
-	return ELF_E_NUM;
-}
-
-void
-_libelf_set_error(int error)
-{
-	LIBELF_PRIVATE(error) = error;
-}
-
-#endif	/* LIBELF_TEST_HOOKS */

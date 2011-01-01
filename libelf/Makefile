@@ -151,11 +151,6 @@ MLINKS+= \
 	gelf_xlatetof.3	elf${E}_xlatetom.3
 .endfor
 
-LIBELF_TEST_HOOKS?=	0
-.if defined(LIBELF_TEST_HOOKS) && (${LIBELF_TEST_HOOKS} > 0)
-CFLAGS+=	-DLIBELF_TEST_HOOKS=1
-.endif
-
 libelf_convert.c:	elf_types.m4 libelf_convert.m4
 libelf_fsize.c:		elf_types.m4 libelf_fsize.m4
 libelf_msize.c:		elf_types.m4 libelf_msize.m4
