@@ -40,7 +40,6 @@ ELFTC_VCSID("$Id$");
 #include "acpyacc.h"
 
 #define YY_NO_UNPUT
-#define YY_NO_INPUT
 int lineno = 1;
 
 int	yylex(void);
