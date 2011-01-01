@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008,2010 Joseph Koshy
+ * Copyright (c) 2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS `AS IS' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
@@ -24,24 +24,31 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
+#ifndef	__LIBELF_AR_H_
+#define	__LIBELF_AR_H_
 
-#include <libelf.h>
+/*
+ * Prototypes and declarations needed by libelf's ar(1) archive
+ * handling code.
+ */
 
-#include "_libelf.h"
+#include <ar.h>
 
-LIBELF_VCSID("$Id$");
+#define	LIBELF_AR_BSD_EXTENDED_NAME_PREFIX	"#1/"
+#define	LIBELF_AR_BSD_SYMTAB_NAME		"__.SYMDEF"
+#define	LIBELF_AR_BSD_EXTENDED_NAME_PREFIX_SIZE	\
+	(sizeof(LIBELF_AR_BSD_EXTENDED_NAME_PREFIX) - 1)
 
-Elf_Arhdr *
-elf_getarhdr(Elf *e)
-{
-	if (e == NULL) {
-		LIBELF_SET_ERROR(ARGUMENT, 0);
-		return (NULL);
-	}
+#define	IS_EXTENDED_BSD_NAME(NAME)				\
+	(strncmp((NAME), LIBELF_AR_BSD_EXTENDED_NAME_PREFIX,	\
+	 LIBELF_AR_BSD_EXTENDED_NAME_PREFIX_SIZE) == 0)
 
-	if (e->e_flags & LIBELF_F_AR_HEADER)
-		return (e->e_hdr.e_arhdr);
 
-	return (_libelf_ar_gethdr(e));
-}
+char	*_libelf_ar_get_string(const char *_buf, size_t _sz, int _rawname,
+    int _svr4names);
+char	*_libelf_ar_get_raw_name(const struct ar_hdr *_arh);
+char	*_libelf_ar_get_translated_name(const struct ar_hdr *_arh, Elf *_ar);
+int	_libelf_ar_get_number(const char *_buf, size_t _sz, int _base,
+    size_t *_ret);
+
+#endif	/* __LIBELF_AR_H_ */

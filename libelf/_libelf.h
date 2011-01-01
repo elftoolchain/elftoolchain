@@ -55,8 +55,8 @@ extern struct _libelf_globals _libelf;
 
 #define	LIBELF_PRIVATE(N)	(_libelf.libelf_##N)
 
-#define	LIBELF_ELF_ERROR_MASK	0xFF
-#define	LIBELF_OS_ERROR_SHIFT	8
+#define	LIBELF_ELF_ERROR_MASK			0xFF
+#define	LIBELF_OS_ERROR_SHIFT			8
 
 #define	LIBELF_SET_ERROR(E, O) do {					\
 	LIBELF_PRIVATE(error) = ((ELF_E_##E & LIBELF_ELF_ERROR_MASK)|	\
@@ -72,10 +72,11 @@ extern struct _libelf_globals _libelf;
 #define	LIBELF_F_DATA_MALLOCED	0x010000 /* whether data was malloc'ed */
 #define	LIBELF_F_MMAP		0x020000 /* whether e_rawfile was mmap'ed */
 #define	LIBELF_F_SHDRS_LOADED	0x040000 /* whether all shdrs were read in */
+#define	LIBELF_F_AR_VARIANT_SVR4 0x080000 /* BSD style ar(1) archive */
+#define	LIBELF_F_AR_HEADER	0x100000  /* translated header available */
 
 struct _Elf {
 	int		e_activations;	/* activation count */
-	Elf_Arhdr	*e_arhdr;	/* header for archive members */
 	unsigned int	e_byteorder;	/* ELFDATA* */
 	int		e_class;	/* ELFCLASS*  */
 	Elf_Cmd		e_cmd;		/* ELF_C_* used at creation time */
@@ -86,6 +87,15 @@ struct _Elf {
 	char		*e_rawfile;	/* uninterpreted bytes */
 	size_t		e_rawsize;	/* size of uninterpreted bytes */
 	unsigned int	e_version;	/* file version */
+
+	/*
+	 * Header information for archive members.  See the
+	 * LIBELF_F_AR_HEADER flag.
+	 */
+	union {
+		Elf_Arhdr	*e_arhdr;	/* translated header */
+		char		*e_rawhdr;	/* untranslated header */
+	} e_hdr;
 
 	union {
 		struct {		/* ar(1) archives */
@@ -166,10 +176,8 @@ Elf_Arhdr *_libelf_ar_gethdr(Elf *_e);
 Elf	*_libelf_ar_open(Elf *_e);
 Elf	*_libelf_ar_open_member(int _fd, Elf_Cmd _c, Elf *_ar);
 int	_libelf_ar_get_member(char *_s, size_t _sz, int _base, size_t *_ret);
-char	*_libelf_ar_get_string(const char *_buf, size_t _sz, int _rawname);
-char	*_libelf_ar_get_name(char *_buf, size_t _sz, Elf *_e);
-int	_libelf_ar_get_number(char *_buf, size_t _sz, int _base, size_t *_ret);
-Elf_Arsym *_libelf_ar_process_symtab(Elf *_ar, size_t *_dst);
+Elf_Arsym *_libelf_ar_process_bsd_symtab(Elf *_ar, size_t *_dst);
+Elf_Arsym *_libelf_ar_process_svr4_symtab(Elf *_ar, size_t *_dst);
 unsigned long _libelf_checksum(Elf *_e, int _elfclass);
 void	*_libelf_ehdr(Elf *_e, int _elfclass, int _allocate);
 int	_libelf_falign(Elf_Type _t, int _elfclass);

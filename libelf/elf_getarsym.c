@@ -46,7 +46,9 @@ elf_getarsym(Elf *ar, size_t *ptr)
 	else if ((symtab = ar->e_u.e_ar.e_symtab) != NULL)
 		n = ar->e_u.e_ar.e_symtabsz;
 	else if (ar->e_u.e_ar.e_rawsymtab)
-		symtab = _libelf_ar_process_symtab(ar, &n);
+		symtab = (ar->e_flags & LIBELF_F_AR_VARIANT_SVR4) ?
+		    _libelf_ar_process_svr4_symtab(ar, &n) :
+		    _libelf_ar_process_bsd_symtab(ar, &n);
 	else
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 

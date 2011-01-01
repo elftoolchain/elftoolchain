@@ -50,7 +50,6 @@ elf_next(Elf *e)
 
 	assert (parent->e_kind == ELF_K_AR);
 	assert (parent->e_cmd == ELF_C_READ);
-	assert((uintptr_t) e->e_rawfile % 2 == 0);
 	assert(e->e_rawfile > parent->e_rawfile);
 
 	next = e->e_rawfile - parent->e_rawfile + e->e_rawsize;

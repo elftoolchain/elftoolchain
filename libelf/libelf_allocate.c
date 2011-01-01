@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ _libelf_allocate_elf(void)
 	}
 
 	e->e_activations = 1;
-	e->e_arhdr	 = NULL;
+	e->e_hdr.e_rawhdr = NULL;
 	e->e_byteorder   = ELFDATANONE;
 	e->e_class       = ELFCLASSNONE;
 	e->e_cmd         = ELF_C_NULL;
@@ -96,6 +96,8 @@ _libelf_init_elf(Elf *e, Elf_Kind kind)
 Elf *
 _libelf_release_elf(Elf *e)
 {
+	Elf_Arhdr *arh;
+
 	switch (e->e_kind) {
 	case ELF_K_AR:
 		FREE(e->e_u.e_ar.e_symtab);
@@ -115,10 +117,11 @@ _libelf_release_elf(Elf *e)
 
 		assert(STAILQ_EMPTY(&e->e_u.e_elf.e_scn));
 
-		if (e->e_arhdr) {
-			FREE(e->e_arhdr->ar_name);
-			FREE(e->e_arhdr->ar_rawname);
-			free(e->e_arhdr);
+		if (e->e_flags & LIBELF_F_AR_HEADER) {
+			arh = e->e_hdr.e_arhdr;
+			FREE(arh->ar_name);
+			FREE(arh->ar_rawname);
+			free(arh);
 		}
 
 		break;
