@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+include(`elfts.m4')
+
 #include <sys/cdefs.h>
 
 #include <gelf.h>
@@ -40,15 +42,14 @@
 
 
 void
-tcNull_tpGelfGetNullElf(void)
+tcNullGelfGetNullElf(void)
 {
 	int result;
 	GElf_Ehdr dst;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_getehdr(NULL,*) fails with "
-	    "ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("gelf_getehdr(NULL,*) fails with ELF_E_ARGUMENT");
 
 	result = TET_PASS;
 	if (gelf_getehdr(NULL,&dst) != NULL || elf_errno() != ELF_E_ARGUMENT)
@@ -57,7 +58,7 @@ tcNull_tpGelfGetNullElf(void)
 }
 
 void
-tcNull_tp_GelfGetNullDst(void)
+tcNullGelfGetNullDst(void)
 {
 	Elf *e;
 	int fd;
@@ -65,8 +66,7 @@ tcNull_tp_GelfGetNullDst(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_getehdr(*,NULL) fails with "
-	    "ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("gelf_getehdr(*,NULL) fails with ELF_E_ARGUMENT");
 
 	TS_OPEN_FILE(e,fn,ELF_C_READ,fd);
 
@@ -81,15 +81,15 @@ tcNull_tp_GelfGetNullDst(void)
 }
 
 void
-tcData_tpGElf(void)
+tcNonElfFails(void)
 {
 	Elf *e;
 	GElf_Ehdr d;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_getehdr(E) for non-ELF (E) fails with "
-	    "ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("gelf_getehdr(E) for non-ELF (E) fails with "
+	    "ELF_E_ARGUMENT");
 
 	TS_OPEN_MEMORY(e,data);
 
@@ -103,7 +103,7 @@ tcData_tpGElf(void)
 }
 
 void
-tcBadElfVersion_tpGelf(void)
+tcBadElfVersion(void)
 {
 	int err;
 	Elf *e;
@@ -113,8 +113,8 @@ tcBadElfVersion_tpGelf(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_getehdr() with an unsupported version "
-	    "fails with ELF_E_VERSION.");
+	TP_ANNOUNCE("gelf_getehdr() on an ELF object with an unsupported "
+	    "version fails with ELF_E_VERSION");
 
 	(void) memcpy(badelf, badelftemplate, sizeof(badelf));
 
@@ -135,7 +135,7 @@ tcBadElfVersion_tpGelf(void)
 }
 
 void
-tcBadElf_tpGelf(void)
+tcMalformedElf(void)
 {
 	int err;
 	Elf *e;
@@ -145,8 +145,8 @@ tcBadElf_tpGelf(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: gelf_getehdr() on a malformed ELF file "
-	    "fails with ELF_E_HEADER.");
+	TP_ANNOUNCE("gelf_getehdr() on a malformed ELF object fails with "
+	    "ELF_E_HEADER");
 
 	(void) memcpy(badelf, badelftemplate, sizeof(badelf));
 	badelf[EI_VERSION] = EV_CURRENT;
@@ -174,7 +174,7 @@ static char *filenames[] = {
 };
 
 void
-tcElf_tpValid(void)
+tcGoodElfValid(void)
 {
 	int fd, result;
 	GElf_Ehdr d1, *eh;
@@ -184,9 +184,9 @@ tcElf_tpValid(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: a successful gelf_getehdr() call returns "
+	TP_ANNOUNCE("a successful gelf_getehdr() call returns "
 	    "a pointer to the passed in structure, filled with the correct "
-	    "contents.");
+	    "contents");
 
 	result = TET_PASS;
 	e = NULL;
@@ -231,7 +231,7 @@ tcElf_tpValid(void)
 }
 
 void
-tcElf_tpGelfDup(void)
+tcDupCalls(void)
 {
 	int fd, result;
 	Elf *e;
@@ -241,8 +241,8 @@ tcElf_tpGelfDup(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: successful calls to gelf_getehdr() return "
-	    "identical contents.");
+	TP_ANNOUNCE("successful calls to gelf_getehdr() for the same object "
+	    "return identical contents");
 
 	result = TET_PASS;
 	e = NULL;
@@ -277,5 +277,4 @@ tcElf_tpGelfDup(void)
 	tet_result(result);
 
 }
-
 
