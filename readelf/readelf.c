@@ -279,6 +279,7 @@ static const char *section_type(unsigned int mach, unsigned int stype);
 static const char *st_bind(unsigned int sbind);
 static const char *st_shndx(unsigned int shndx);
 static const char *st_type(unsigned int stype);
+static const char *st_vis(unsigned int svis);
 static const char *top_tag(unsigned int tag);
 static uint64_t _read_lsb(Elf_Data *d, uint64_t *offsetp,
     int bytes_to_read);
@@ -871,6 +872,22 @@ st_type(unsigned int stype)
 			snprintf(s_stype, sizeof(s_stype), "<unknown: %#x>",
 			    stype);
 		return (s_stype);
+	}
+}
+
+static const char *
+st_vis(unsigned int svis)
+{
+	static char s_svis[32];
+
+	switch(svis) {
+	case STV_DEFAULT: return "DEFAULT";
+	case STV_INTERNAL: return "INTERNAL";
+	case STV_HIDDEN: return "HIDDEN";
+	case STV_PROTECTED: return "PROTECTED";
+	default:
+		snprintf(s_svis, sizeof(s_svis), "<unknown: %#x>", svis);
+		return (s_svis);
 	}
 }
 
@@ -2757,7 +2774,7 @@ dump_symtab(struct readelf *re, int i)
 		printf(" %5ju", sym.st_size);
 		printf(" %-7s", st_type(GELF_ST_TYPE(sym.st_info)));
 		printf(" %-6s", st_bind(GELF_ST_BIND(sym.st_info)));
-		printf(" DEFAULT "); /* FIXME */
+		printf(" %-8s", st_vis(GELF_ST_VISIBILITY(sym.st_other)));
 		printf(" %3s", st_shndx(sym.st_shndx));
 		if ((name = elf_strptr(re->elf, stab, sym.st_name)) != NULL)
 			printf(" %s", name);
