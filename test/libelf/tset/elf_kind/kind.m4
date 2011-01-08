@@ -72,9 +72,11 @@ tcWithVersion_tpValidElf(void)
 	(void) elf_end(e);
 }
 
+changequote({,})
 static char ar_file[] = "!<arch>\n"
 	"t/              1151656346  1001  0     100644  5         `\n"
 	"Test\n";
+changequote()
 
 void
 tcWithVersion_tpValidAr(void)
