@@ -26,10 +26,13 @@ To support cross building:
 
 - Operating systems differ in the names and locations of the headers
   where their ELF types are defined.  They also differ in the set of
-  ELF types supported.  Inside of libelf's implementation these
-  differences are abstracted out by the auxiliary header
-  "_libelf_config.h".
+  ELF types supported.
 
+  Instead of relying on the host operating system to provide ELF related
+  types and symbols, we define these in header <common/elfdefinitions.h>.
+
+- The file "_libelf_config.h" defines the 'native' architecture, byte order
+  and word size for libelf.
 
 : OS Specific Configuration :
 
