@@ -155,4 +155,3 @@ _libelf_fsize(Elf_Type t, int ec, unsigned int v, size_t c)
 
 	return (sz*c);
 }
-
