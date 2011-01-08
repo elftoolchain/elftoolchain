@@ -86,4 +86,3 @@ elf_end(Elf *e)
 
 	return (0);
 }
-

@@ -56,4 +56,3 @@ elf_getarsym(Elf *ar, size_t *ptr)
 		*ptr = n;
 	return (symtab);
 }
-

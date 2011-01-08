@@ -147,4 +147,3 @@
 #define	roundup2	roundup
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
-

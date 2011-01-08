@@ -134,4 +134,3 @@ _libelf_setphnum(Elf *e, void *eh, int ec, size_t phnum)
 
 	return (1);
 }
-
