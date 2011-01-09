@@ -426,6 +426,13 @@ _ELF_DEFINE_EF(EF_SPARCV9_PSO,      0x00000001UL,			\
 _ELF_DEFINE_EF(EF_SPARCV9_RMO,      0x00000002UL,			\
 	"Relaxed Memory Ordering")
 
+#undef	_ELF_DEFINE_EF
+#define	_ELF_DEFINE_EF(N, V, DESCR)	N = V ,
+enum {
+	_ELF_DEFINE_EHDR_FLAGS()
+	EF__LAST__
+};
+
 /*
  * Offsets in the `ei_ident[]` field of an ELF executable header.
  */
