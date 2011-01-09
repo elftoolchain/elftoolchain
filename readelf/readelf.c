@@ -233,6 +233,7 @@ static void dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
 static void dump_attributes(struct readelf *re);
 static uint8_t *dump_compatibility_tag(uint8_t *p);
 static void dump_dwarf(struct readelf *re);
+static void dump_eflags(struct readelf *re, uint64_t e_flags);
 static void dump_elf(struct readelf *re);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void dump_dynamic(struct readelf *re);
@@ -289,6 +290,59 @@ static uint64_t _decode_lsb(uint8_t **data, int bytes_to_read);
 static uint64_t _decode_msb(uint8_t **data, int bytes_to_read);
 static int64_t _decode_sleb128(uint8_t **dp);
 static uint64_t _decode_uleb128(uint8_t **dp);
+
+struct eflags_desc {
+	uint64_t flag;
+	const char *desc;
+};
+
+struct eflags_desc arm_eflags_desc[] = {
+	{EF_ARM_RELEXEC, "relocatable executable"},
+	{EF_ARM_HASENTRY, "has entry point"},
+	{EF_ARM_SYMSARESORTED, "sorted symbol tables"},
+	{EF_ARM_DYNSYMSUSESEGIDX, "dynamic symbols use segment index"},
+	{EF_ARM_MAPSYMSFIRST, "mapping symbols precede others"},
+	{EF_ARM_BE8, "BE8"},
+	{EF_ARM_LE8, "LE8"},
+	{EF_ARM_INTERWORK, "interworking enabled"},
+	{EF_ARM_APCS_26, "uses APCS/26"},
+	{EF_ARM_APCS_FLOAT, "uses APCS/float"},
+	{EF_ARM_PIC, "position independent"},
+	{EF_ARM_ALIGN8, "8 bit structure alignment"},
+	{EF_ARM_NEW_ABI, "uses new ABI"},
+	{EF_ARM_OLD_ABI, "uses old ABI"},
+	{EF_ARM_SOFT_FLOAT, "software FP"},
+	{EF_ARM_VFP_FLOAT, "VFP"},
+	{EF_ARM_MAVERICK_FLOAT, "Maverick FP"},
+	{0, NULL}
+};
+
+struct eflags_desc mips_eflags_desc[] = {
+	{EF_MIPS_NOREORDER, "noreorder"},
+	{EF_MIPS_PIC, "pic"},
+	{EF_MIPS_CPIC, "cpic"},
+	{EF_MIPS_UCODE, "ugen_reserved"},
+	{EF_MIPS_ABI2, "abi2"},
+	{EF_MIPS_OPTIONS_FIRST, "odk first"},
+	{EF_MIPS_ARCH_ASE_MDMX, "mdmx"},
+	{EF_MIPS_ARCH_ASE_M16, "mips16"},
+	{0, NULL}
+};
+
+struct eflags_desc powerpc_eflags_desc[] = {
+	{EF_PPC_EMB, "emb"},
+	{EF_PPC_RELOCATABLE, "relocatable"},
+	{EF_PPC_RELOCATABLE_LIB, "relocatable-lib"},
+	{0, NULL}
+};
+
+struct eflags_desc sparc_eflags_desc[] = {
+	{EF_SPARC_32PLUS, "v8+"},
+	{EF_SPARC_SUN_US1, "ultrasparcI"},
+	{EF_SPARC_HAL_R1, "halr1"},
+	{EF_SPARC_SUN_US3, "ultrasparcIII"},
+	{0, NULL}
+};
 
 static const char *
 elf_osabi(unsigned int abi)
@@ -2129,8 +2183,10 @@ dump_ehdr(struct readelf *re)
 	printf("%-37s%ju (bytes into file)\n", "  Start of section headers:",
 	    (uintmax_t)re->ehdr.e_shoff);
 
-	/* e_flags. TODO: add machine flags parse. */
-	printf("%-37s%#x\n", "  Flags:", re->ehdr.e_flags);
+	/* e_flags. */
+	printf("%-37s%#x", "  Flags:", re->ehdr.e_flags);
+	dump_eflags(re, re->ehdr.e_flags);
+	putchar('\n');
 
 	/* e_ehsize. */
 	printf("%-37s%u (bytes)\n", "  Size of this header:",
@@ -2165,6 +2221,90 @@ dump_ehdr(struct readelf *re)
 			printf(" (%ju)", (uintmax_t)shstrndx);
 	}
 	putchar('\n');
+}
+
+static void
+dump_eflags(struct readelf *re, uint64_t e_flags)
+{
+	struct eflags_desc *edesc;
+	int arm_eabi;
+
+	edesc = NULL;
+	switch (re->ehdr.e_machine) {
+	case EM_ARM:
+		arm_eabi = (e_flags & EF_ARM_EABIMASK) >> 24;
+		if (arm_eabi == 0)
+			printf(", GNU EABI");
+		else if (arm_eabi <= 5)
+			printf(", Version%d EABI", arm_eabi);
+		edesc = arm_eflags_desc;
+		break;
+	case EM_MIPS:
+	case EM_MIPS_RS3_LE:
+		switch ((e_flags & EF_MIPS_ARCH) >> 28) {
+		case 0:	printf(", mips1"); break;
+		case 1: printf(", mips2"); break;
+		case 2: printf(", mips3"); break;
+		case 3: printf(", mips4"); break;
+		case 4: printf(", mips5"); break;
+		case 5: printf(", mips32"); break;
+		case 6: printf(", mips64"); break;
+		case 7: printf(", mips32r2"); break;
+		case 8: printf(", mips64r2"); break;
+		default: break;
+		}
+		switch ((e_flags & 0x00FF0000) >> 16) {
+		case 0x81: printf(", 3900"); break;
+		case 0x82: printf(", 4010"); break;
+		case 0x83: printf(", 4100"); break;
+		case 0x85: printf(", 4650"); break;
+		case 0x87: printf(", 4120"); break;
+		case 0x88: printf(", 4111"); break;
+		case 0x8a: printf(", sb1"); break;
+		case 0x8b: printf(", octeon"); break;
+		case 0x8c: printf(", xlr"); break;
+		case 0x91: printf(", 5400"); break;
+		case 0x98: printf(", 5500"); break;
+		case 0x99: printf(", 9000"); break;
+		case 0xa0: printf(", loongson-2e"); break;
+		case 0xa1: printf(", loongson-2f"); break;
+		default: break;
+		}
+		switch ((e_flags & 0x0000F000) >> 12) {
+		case 1: printf(", o32"); break;
+		case 2: printf(", o64"); break;
+		case 3: printf(", eabi32"); break;
+		case 4: printf(", eabi64"); break;
+		default: break;
+		}
+		edesc = mips_eflags_desc;
+		break;
+	case EM_PPC:
+	case EM_PPC64:
+		edesc = powerpc_eflags_desc;
+		break;
+	case EM_SPARC:
+	case EM_SPARC32PLUS:
+	case EM_SPARCV9:
+		switch ((e_flags & EF_SPARCV9_MM)) {
+		case EF_SPARCV9_TSO: printf(", tso"); break;
+		case EF_SPARCV9_PSO: printf(", pso"); break;
+		case EF_SPARCV9_MM: printf(", rmo"); break;
+		default: break;
+		}
+		edesc = sparc_eflags_desc;
+		break;
+	default:
+		break;
+	}
+
+	if (edesc != NULL) {
+		while (edesc->desc != NULL) {
+			if (e_flags & edesc->flag)
+				printf(", %s", edesc->desc);
+			edesc++;
+		}
+	}
 }
 
 static void
