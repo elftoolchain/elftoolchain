@@ -187,6 +187,16 @@ static struct option longopts[] = {
 	{NULL, 0, NULL, 0}
 };
 
+struct eflags_desc {
+	uint64_t flag;
+	const char *desc;
+};
+
+struct mips_option {
+	uint64_t flag;
+	const char *desc;
+};
+
 static void add_dumpop(struct readelf *re, size_t sn, int op);
 static const char *aeabi_adv_simd_arch(uint64_t simd);
 static const char *aeabi_align_needed(uint64_t an);
@@ -241,6 +251,8 @@ static void dump_liblist(struct readelf *re);
 static void dump_mips_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
 static void dump_mips_odk_reginfo(struct readelf *re, uint8_t *p, size_t sz);
 static void dump_mips_options(struct readelf *re, struct section *s);
+static void dump_mips_option_flags(const char *name, struct mips_option *opt,
+    uint64_t info);
 static void dump_mips_reginfo(struct readelf *re, struct section *s);
 static void dump_mips_specific_info(struct readelf *re);
 static void dump_notes(struct readelf *re);
@@ -291,12 +303,7 @@ static uint64_t _decode_msb(uint8_t **data, int bytes_to_read);
 static int64_t _decode_sleb128(uint8_t **dp);
 static uint64_t _decode_uleb128(uint8_t **dp);
 
-struct eflags_desc {
-	uint64_t flag;
-	const char *desc;
-};
-
-struct eflags_desc arm_eflags_desc[] = {
+static struct eflags_desc arm_eflags_desc[] = {
 	{EF_ARM_RELEXEC, "relocatable executable"},
 	{EF_ARM_HASENTRY, "has entry point"},
 	{EF_ARM_SYMSARESORTED, "sorted symbol tables"},
@@ -317,7 +324,7 @@ struct eflags_desc arm_eflags_desc[] = {
 	{0, NULL}
 };
 
-struct eflags_desc mips_eflags_desc[] = {
+static struct eflags_desc mips_eflags_desc[] = {
 	{EF_MIPS_NOREORDER, "noreorder"},
 	{EF_MIPS_PIC, "pic"},
 	{EF_MIPS_CPIC, "cpic"},
@@ -329,14 +336,14 @@ struct eflags_desc mips_eflags_desc[] = {
 	{0, NULL}
 };
 
-struct eflags_desc powerpc_eflags_desc[] = {
+static struct eflags_desc powerpc_eflags_desc[] = {
 	{EF_PPC_EMB, "emb"},
 	{EF_PPC_RELOCATABLE, "relocatable"},
 	{EF_PPC_RELOCATABLE_LIB, "relocatable-lib"},
 	{0, NULL}
 };
 
-struct eflags_desc sparc_eflags_desc[] = {
+static struct eflags_desc sparc_eflags_desc[] = {
 	{EF_SPARC_32PLUS, "v8+"},
 	{EF_SPARC_SUN_US1, "ultrasparcI"},
 	{EF_SPARC_HAL_R1, "halr1"},
@@ -1430,6 +1437,40 @@ static struct {
 	{"DELAY_LOAD", LL_DELAY_LOAD},
 	{"DELTA", LL_DELTA},
 	{NULL, 0}
+};
+
+static struct mips_option mips_exceptions_option[] = {
+	{OEX_PAGE0, "PAGE0"},
+	{OEX_SMM, "SMM"},
+	{OEX_PRECISEFP, "PRECISEFP"},
+	{OEX_DISMISS, "DISMISS"},
+	{0, NULL}
+};
+
+static struct mips_option mips_pad_option[] = {
+	{OPAD_PREFIX, "PREFIX"},
+	{OPAD_POSTFIX, "POSTFIX"},
+	{OPAD_SYMBOL, "SYMBOL"},
+	{0, NULL}
+};
+
+static struct mips_option mips_hwpatch_option[] = {
+	{OHW_R4KEOP, "R4KEOP"},
+	{OHW_R8KPFETCH, "R8KPFETCH"},
+	{OHW_R5KEOP, "R5KEOP"},
+	{OHW_R5KCVTL, "R5KCVTL"},
+	{0, NULL}
+};
+
+static struct mips_option mips_hwa_option[] = {
+	{OHWA0_R4KEOP_CHECKED, "R4KEOP_CHECKED"},
+	{OHWA0_R4KEOP_CLEAN, "R4KEOP_CLEAN"},
+	{0, NULL}
+};
+
+static struct mips_option mips_hwo_option[] = {
+	{OHWO0_FIXADE, "FIXADE"},
+	{0, NULL}
 };
 
 static const char *
@@ -3932,10 +3973,71 @@ dump_mips_options(struct readelf *re, struct section *s)
 		case ODK_REGINFO:
 			dump_mips_odk_reginfo(re, p, size - 8);
 			break;
+		case ODK_EXCEPTIONS:
+			printf(" EXCEPTIONS FPU_MIN: %#x\n",
+			    info & OEX_FPU_MIN);
+			printf("%11.11s FPU_MAX: %#x\n", "",
+			    info & OEX_FPU_MAX);
+			dump_mips_option_flags("", mips_exceptions_option,
+			    info);
+			break;
+		case ODK_PAD:
+			printf(" %-10.10s section: %ju\n", "OPAD",
+			    (uintmax_t) sndx);
+			dump_mips_option_flags("", mips_pad_option, info);
+			break;
+		case ODK_HWPATCH:
+			dump_mips_option_flags("HWPATCH", mips_hwpatch_option,
+			    info);
+			break;
+		case ODK_HWAND:
+			dump_mips_option_flags("HWAND", mips_hwa_option, info);
+			break;
+		case ODK_HWOR:
+			dump_mips_option_flags("HWOR", mips_hwo_option, info);
+			break;
+		case ODK_FILL:
+			printf(" %-10.10s %#jx\n", "FILL", (uintmax_t) info);
+			break;
+		case ODK_TAGS:
+			printf(" %-10.10s\n", "TAGS");
+			break;
+		case ODK_GP_GROUP:
+			printf(" %-10.10s GP group number: %#x\n", "GP_GROUP",
+			    info & 0xFFFF);
+			if (info & 0x10000)
+				printf(" %-10.10s GP group is "
+				    "self-contained\n", "");
+			break;
+		case ODK_IDENT:
+			printf(" %-10.10s default GP group number: %#x\n",
+			    "IDENT", info & 0xFFFF);
+			if (info & 0x10000)
+				printf(" %-10.10s default GP group is "
+				    "self-contained\n", "");
+			break;
+		case ODK_PAGESIZE:
+			printf(" %-10.10s\n", "PAGESIZE");
+			break;
 		default:
 			break;
 		}
 		p += size - 8;
+	}
+}
+
+static void
+dump_mips_option_flags(const char *name, struct mips_option *opt, uint64_t info)
+{
+	int first;
+
+	first = 1;
+	for (; opt->desc != NULL; opt++) {
+		if (info & opt->flag) {
+			printf(" %-10.10s %s\n", first ? name : "",
+			    opt->desc);
+			first = 0;
+		}
 	}
 }
 
