@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,28 +26,28 @@
  * $Id$
  */
 
+include(`elfts.m4')
+
 /*
  * Boilerplate for testing the *_getehdr and *_newehdr APIs.
  *
  * This template is to be used as follows:
  *
- * #define	TS_EHDRFUNC		_getehdr	(or _newehdr)
- * #define	TS_EHDRSZ		32	(or 64)
- * #include "getehdr_template.c"
+ * `define(`TS_EHDRFUNC',`_getehdr')'	(or `_newehdr')
+ * `define(`TS_EHDRSZ',`32')'		(or `64')
+ * `include(`ehdr_template.m4')'
  */
+
+ifdef(`TS_EHDRFUNC',`',`errprint(`TS_EHDRFUNC was not defined')m4exit(1)')
+ifdef(`TS_EHDRSZ',`',`errprint(`TS_EHDRSZ was not defined')m4exit(1)')
+define(`TS_OTHERSIZE',`ifelse(TS_EHDRSZ,32,64,32)')
 
 #include <sys/cdefs.h>
 
-/* Variations of __CONCAT and __STRING which expand their arguments. */
-#define __XCONCAT(x,y)	__CONCAT(x,y)
-#ifndef __XSTRING
-#define __XSTRING(x)	__STRING(x)
-#endif
-
-#define	TS_ICFUNC	__XCONCAT(elf,__XCONCAT(TS_EHDRSZ,TS_EHDRFUNC))
-#define	TS_EHDR		__XCONCAT(Elf,__XCONCAT(TS_EHDRSZ,_Ehdr))
-#define	TS_ICNAME	__XSTRING(TS_ICFUNC)
-#define	TS_ELFCLASS	__XCONCAT(ELFCLASS,TS_EHDRSZ)
+define(`TS_ICFUNC',`elf'TS_EHDRSZ`'TS_EHDRFUNC)
+define(`TS_EHDR',`Elf'TS_EHDRSZ`_Ehdr')
+define(`TS_ICNAME',TS_ICFUNC)
+define(`TS_ELFCLASS',`ELFCLASS'TS_EHDRSZ)
 
 IC_REQUIRES_VERSION_INIT();
 
@@ -56,91 +56,91 @@ IC_REQUIRES_VERSION_INIT();
  * match that in the "ehdr.yaml" file in the test case directory.
  */
 
-#define	CHECK_SIGFIELD(E,I,V,R)	do {					\
-		if ((E)->e_ident[EI_##I] != (V)) {			\
-			tet_printf("fail: " #I " value 0x%x != "	\
+#define	CHECK_SIGFIELD(E,I,V)	do {					\
+		if ((E)->e_ident[EI_##I] != (V)) 			\
+			TP_FAIL(#I " value 0x%x != "			\
 			    "expected 0x%x.", (E)->e_ident[EI_##I],	\
 			    (V));					\
-			(R) = TET_FAIL;					\
-		}							\
 	} while (0)
 
-#define	CHECK_SIG(E,ED,EC,EV,EABI,EABIVER,R)		do {		\
+#define	CHECK_SIG(E,ED,EC,EV,EABI,EABIVER)		do {		\
 		if ((E)->e_ident[EI_MAG0] != ELFMAG0 ||			\
 		    (E)->e_ident[EI_MAG1] != ELFMAG1 ||			\
 		    (E)->e_ident[EI_MAG2] != ELFMAG2 ||			\
-		    (E)->e_ident[EI_MAG3] != ELFMAG3) {			\
-			tet_printf("fail: incorrect ELF signature "	\
+		    (E)->e_ident[EI_MAG3] != ELFMAG3) 			\
+			TP_FAIL("incorrect ELF signature "		\
 			    "(%x %x %x %x).", (E)->e_ident[EI_MAG0],	\
 			    (E)->e_ident[EI_MAG1], (E)->e_ident[EI_MAG2],\
 			    (E)->e_ident[EI_MAG3]);			\
-			(R) = TET_FAIL;					\
-		}							\
-		CHECK_SIGFIELD(E,CLASS,	EC, R);				\
-		CHECK_SIGFIELD(E,DATA,	ED, R);				\
-		CHECK_SIGFIELD(E,VERSION, EV, R);			\
-		CHECK_SIGFIELD(E,OSABI,	EABI, R);			\
-		CHECK_SIGFIELD(E,ABIVERSION, EABIVER, R);		\
+		CHECK_SIGFIELD(E,CLASS,	EC);				\
+		CHECK_SIGFIELD(E,DATA,	ED);				\
+		CHECK_SIGFIELD(E,VERSION, EV);				\
+		CHECK_SIGFIELD(E,OSABI,	EABI);				\
+		CHECK_SIGFIELD(E,ABIVERSION, EABIVER);			\
 	} while (0)
 
 
-#define	CHECK_FIELD(E,FIELD,VALUE,R)	do {				\
-		if ((E)->e_##FIELD != (VALUE)) {			\
-			tet_printf("fail: field \"%s\" actual 0x%jx "	\
+#define	CHECK_FIELD(E,FIELD,VALUE)	do {				\
+		if ((E)->e_##FIELD != (VALUE)) 				\
+			TP_FAIL("field \"%s\" actual 0x%jx "		\
 			    "!= expected 0x%jx.", #FIELD, 		\
 			    (uintmax_t) (E)->e_##FIELD,			\
 			    (uintmax_t) (VALUE));			\
-			(R) = TET_FAIL;					\
-		}							\
 	} while (0)
 
-#define	CHECK_EHDR(E,ED,EC,R)	do {		\
-		CHECK_SIG(E,ED,EC,EV_CURRENT,ELFOSABI_FREEBSD,1,R);	\
-		CHECK_FIELD(E,type,	ET_REL, R);	\
-		CHECK_FIELD(E,machine,	0x42, R);	\
-		CHECK_FIELD(E,version,	EV_CURRENT, R);	\
-		CHECK_FIELD(E,entry,	0xF0F0F0F0, R);	\
-		CHECK_FIELD(E,phoff,	0x0E0E0E0E, R);	\
-		CHECK_FIELD(E,shoff,	0xD0D0D0D0, R);	\
-		CHECK_FIELD(E,flags,	64+8+2+1, R);	\
-		CHECK_FIELD(E,ehsize,	0x0A0A, R);	\
-		CHECK_FIELD(E,phentsize,0xB0B0, R);	\
-		CHECK_FIELD(E,phnum,	0x0C0C, R);	\
-		CHECK_FIELD(E,shentsize,0xD0D0, R);	\
-		CHECK_FIELD(E,shnum,	0x0E0E, R);	\
-		CHECK_FIELD(E,shstrndx,	0xF0F0, R);	\
+#define	CHECK_EHDR(E,ED,EC)	do {		\
+		CHECK_SIG(E,ED,EC,EV_CURRENT,ELFOSABI_FREEBSD,1);	\
+		CHECK_FIELD(E,type,	ET_REL);	\
+		CHECK_FIELD(E,machine,	0x42);		\
+		CHECK_FIELD(E,version,	EV_CURRENT);	\
+		CHECK_FIELD(E,entry,	0xF0F0F0F0);	\
+		CHECK_FIELD(E,phoff,	0x0E0E0E0E);	\
+		CHECK_FIELD(E,shoff,	0xD0D0D0D0);	\
+		CHECK_FIELD(E,flags,	64+8+2+1);	\
+		CHECK_FIELD(E,ehsize,	0x0A0A);	\
+		CHECK_FIELD(E,phentsize,0xB0B0);	\
+		CHECK_FIELD(E,phnum,	0x0C0C);	\
+		CHECK_FIELD(E,shentsize,0xD0D0);	\
+		CHECK_FIELD(E,shnum,	0x0E0E);	\
+		CHECK_FIELD(E,shstrndx,	0xF0F0);	\
 	} while (0)
+
+/*
+ * Check behaviour when passed a NULL argument.
+ */
 
 void
-tcNull_tpGet(void)
+tcNullArgument(void)
 {
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "(NULL) fails with "
-	    "ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("TS_ICNAME`'(NULL) fails with ELF_E_ARGUMENT.");
 
-	if (TS_ICFUNC(NULL) != NULL ||
+	if (TS_ICFUNC`'(NULL) != NULL ||
 	    elf_errno() != ELF_E_ARGUMENT)
 		tet_result(TET_FAIL);
 	else
 		tet_result(TET_PASS);
 }
 
+/*
+ * Check behaviour when passed a pointer to a non-ELF object.
+ */
+
 static char data[] = "This isn't an ELF file.";
 
 void
-tcData_tpElf(void)
+tcNonElfData(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "(E) for non-ELF (E) fails with "
-	    "ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("TS_ICNAME`'(non-ELF) fails with ELF_E_ARGUMENT.");
 
 	TS_OPEN_MEMORY(e, data);
 
-	if (TS_ICFUNC(e) != NULL ||
+	if (TS_ICFUNC`'(e) != NULL ||
 	    elf_errno() != ELF_E_ARGUMENT)
 		tet_result(TET_FAIL);
 	else
@@ -151,7 +151,7 @@ tcData_tpElf(void)
 
 
 /*
- * A malformed (too short) ELF header.
+ * Check behaviour when an object with a malformed ELF header.
  */
 
 static char badelftemplate[EI_NIDENT+1] = {
@@ -164,17 +164,22 @@ static char badelftemplate[EI_NIDENT+1] = {
 	[EI_NIDENT] = '@'
 };
 
+/*
+ * Verify that the version number is checked before other kinds
+ * of errors.
+ */
+
 void
-tcBadElfVersion_tpElf(void)
+tcBadElfVersion(void)
 {
-	int err;
+	int err, result;
 	Elf *e;
 	TS_EHDR *eh;
 	char badelf[sizeof(badelftemplate)];
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "() with an unsupported version "
+	TP_ANNOUNCE("TS_ICNAME`'() with an unsupported version "
 	    "fails with ELF_E_VERSION.");
 
 	(void) memcpy(badelf, badelftemplate, sizeof(badelf));
@@ -184,27 +189,28 @@ tcBadElfVersion_tpElf(void)
 
 	TS_OPEN_MEMORY(e, badelf);
 
-	if ((eh = TS_ICFUNC(e)) != NULL ||
-	    (err = elf_errno()) != ELF_E_VERSION) {
-		tet_printf("fail: error=%d eh=%p.", err, (void *) eh);
-		tet_result(TET_FAIL);
-	} else
-		tet_result(TET_PASS);
+	result = TET_PASS;
+
+	if ((eh = TS_ICFUNC`'(e)) != NULL ||
+	    (err = elf_errno()) != ELF_E_VERSION)
+		TP_FAIL("error=%d eh=%p.", err, (void *) eh);
 
 	(void) elf_end(e);
+
+	tet_result(result);
 }
 
 void
-tcBadElf_tpElf(void)
+tcBadElf(void)
 {
-	int err;
+	int err, result;
 	Elf *e;
 	TS_EHDR *eh;
 	char badelf[sizeof(badelftemplate)];
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "() on a malformed ELF file "
+	TP_ANNOUNCE("TS_ICNAME`'() on a malformed ELF file "
 	    "fails with ELF_E_HEADER.");
 
 	(void) memcpy(badelf, badelftemplate, sizeof(badelf));
@@ -213,18 +219,24 @@ tcBadElf_tpElf(void)
 
 	TS_OPEN_MEMORY(e, badelf);
 
-	if ((eh = TS_ICFUNC(e)) != NULL ||
-	    (err = elf_errno()) != ELF_E_HEADER) {
-		tet_printf("fail: error=%d eh=%p.", err, (void *) eh);
-		tet_result(TET_FAIL);
-	} else
-		tet_result(TET_PASS);
+	result = TET_PASS;
+	if ((eh = TS_ICFUNC`'(e)) != NULL ||
+	    (err = elf_errno()) != ELF_E_HEADER)
+		TP_FAIL("error=%d eh=%p.", err, (void *) eh);
 
 	(void) elf_end(e);
+
+	tet_result(result);
 }
 
+/*
+ * Verify non-NULL return for a legal ELF object.
+ */
+
+undefine(`FN')
+define(`FN',`
 void
-tcElf_tpElfValid(void)
+tcValidElfNonNull$1(void)
 {
 	int fd;
 	Elf *e;
@@ -232,22 +244,29 @@ tcElf_tpElfValid(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "(E) on valid EHDR returns"
-	    " non-NULL.");
+	TP_ANNOUNCE("TS_ICNAME`'($1) on valid EHDR returns non-NULL.");
 
-	TS_OPEN_FILE(e,"ehdr.msb" __XSTRING(TS_EHDRSZ),ELF_C_READ,fd);
+	TS_OPEN_FILE(e,"ehdr.TOLOWER($1)`'TS_EHDRSZ",ELF_C_READ,fd);
 
-	if ((eh = TS_ICFUNC(e)) == NULL)
+	if ((eh = TS_ICFUNC`'(e)) == NULL)
 		tet_result(TET_FAIL);
 	else
 		tet_result(TET_PASS);
 
 	(void) elf_end(e);
 	(void) close(fd);
-}
+}')
 
+FN(`LSB')
+FN(`MSB')
+
+/*
+ * Verify accuracy of the return header.
+ */
+
+define(`FN',`
 void
-tcElf_tpElfLSB(void)
+tcValidElf$1(void)
 {
 	int fd, result;
 	Elf *e;
@@ -255,73 +274,54 @@ tcElf_tpElfLSB(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: " TS_ICNAME "(E) returns the correct LSB ehdr.");
+	TP_ANNOUNCE("TS_ICNAME`'($1) returns the correct $1 ehdr.");
 
-	TS_OPEN_FILE(e,"ehdr.lsb" __XSTRING(TS_EHDRSZ),ELF_C_READ,fd);
+	TS_OPEN_FILE(e,"ehdr.TOLOWER($1)`'TS_EHDRSZ",ELF_C_READ,fd);
 
-	if ((eh = TS_ICFUNC(e)) == NULL) {
-		tet_infoline("unresolved: " TS_ICNAME "() failed.");
-		tet_result(TET_UNRESOLVED);
-		return;
+	if ((eh = TS_ICFUNC`'(e)) == NULL) {
+		TP_UNRESOLVED("TS_ICNAME`'() failed.");
+		goto done;
 	}
 
 	result = TET_PASS;
 
-	CHECK_EHDR(eh, ELFDATA2LSB, TS_ELFCLASS, result);
+	CHECK_EHDR(eh, ELFDATA2$1, TS_ELFCLASS);
+
+done:
+	(void) elf_end(e);
+	(void) close(fd);
 
 	tet_result(result);
 
-	(void) elf_end(e);
-	(void) close(fd);
-}
+}')
 
+FN(`LSB')
+FN(`MSB')
+
+/*
+ * Verify duplicate handling.
+ */
+
+undefine(`FN')
+define(`FN',`
 void
-tcElf_tpElfMSB(void)
+tcElf_tpElfDup$1(void)
 {
 	int fd, result;
-	Elf *e;
-	TS_EHDR *eh;
-
-	TP_CHECK_INITIALIZATION();
-
-	tet_infoline("assertion:" TS_ICNAME "(E) returns the correct MSB ehdr.");
-
-	TS_OPEN_FILE(e,"ehdr.msb" __XSTRING(TS_EHDRSZ),ELF_C_READ,fd);
-
-	if ((eh = TS_ICFUNC(e)) == NULL) {
-		tet_infoline("unresolved: " TS_ICNAME "() failed.");
-		tet_result(TET_UNRESOLVED);
-		return;
-	}
-
-	result = TET_PASS;
-
-	CHECK_EHDR(eh, ELFDATA2MSB, TS_ELFCLASS, result);
-
-	tet_result(result);
-
-	(void) elf_end(e);
-	(void) close(fd);
-}
-
-void
-tcElf_tpElfDup(void)
-{
-	int fd;
 	Elf *e;
 	TS_EHDR *eh1, *eh2;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: successful calls to " TS_ICNAME "() return "
+	TP_ANNOUNCE("Successful calls to TS_ICNAME`'($1) return "
 	    "identical pointers.");
 
-	TS_OPEN_FILE(e,"ehdr.msb" __XSTRING(TS_EHDRSZ),ELF_C_READ,fd);
+	TS_OPEN_FILE(e,"ehdr.TOLOWER($1)`'TS_EHDRSZ",ELF_C_READ,fd);
 
-	if ((eh1 = TS_ICFUNC(e)) == NULL ||
-	    (eh2 = TS_ICFUNC(e)) == NULL) {
-		tet_infoline("unresolved: " TS_ICNAME "() failed.");
-		tet_result(TET_UNRESOLVED);
+	if ((eh1 = TS_ICFUNC`'(e)) == NULL ||
+	    (eh2 = TS_ICFUNC`'(e)) == NULL) {
+		TP_UNRESOLVED("TS_ICNAME`'() failed.");
+		tet_result(result);
 		return;
 	}
 
@@ -329,16 +329,19 @@ tcElf_tpElfDup(void)
 
 	(void) elf_end(e);
 	(void) close(fd);
-}
+}')
 
-#if	TS_EHDRSZ == 32
-#define	TS_OTHERSIZE	64
-#else
-#define	TS_OTHERSIZE	32
-#endif
+FN(`LSB')
+FN(`MSB')
 
+/*
+ * Verify the error reported for incorrectly sized ELF objects.
+ */
+
+undefine(`FN')
+define(`FN',`
 void
-tcElf_tpElfWrongSize(void)
+tcElf_tpElfWrongSize$1(void)
 {
 	int error, fd, result;
 	Elf *e;
@@ -347,35 +350,22 @@ tcElf_tpElfWrongSize(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: a call to " TS_ICNAME "() and a mismatched "
-	    "ELF class fails with ELF_E_CLASS.");
+	TP_ANNOUNCE("TS_ICNAME`'($1.TS_OTHERSIZE) fails with ELF_E_CLASS.");
 
 	result = TET_PASS;
 
-	fn = "ehdr.msb" __XSTRING(TS_OTHERSIZE);
+	fn = "ehdr.TOLOWER($1)`'TS_OTHERSIZE";
 	TS_OPEN_FILE(e,fn,ELF_C_READ,fd);
-	if ((eh = TS_ICFUNC(e)) != NULL ||
-	    (error = elf_errno()) != ELF_E_CLASS) {
-		tet_printf("fail: \"%s\" opened (error %d).", fn, error);
-		result = TET_FAIL;
-	}
-	(void) elf_end(e);
-	(void) close(fd);
+	if ((eh = TS_ICFUNC`'(e)) != NULL ||
+	    (error = elf_errno()) != ELF_E_CLASS)
+		TP_FAIL("\"%s\" opened (error %d).", fn, error);
 
-	if (result != TET_PASS) {
-		tet_result(result);
-		return;
-	}
-
-	fn = "ehdr.lsb" __XSTRING(TS_OTHERSIZE);
-	TS_OPEN_FILE(e,fn,ELF_C_READ,fd);
-	if ((eh = TS_ICFUNC(e)) != NULL ||
-	    (error = elf_errno()) != ELF_E_CLASS) {
-		tet_printf("fail: \"%s\" opened (error %d).", fn, error);
-		result = TET_FAIL;
-	}
 	(void) elf_end(e);
 	(void) close(fd);
 
 	tet_result(result);
-}
+	
+}')
+
+FN(`LSB')
+FN(`MSB')
