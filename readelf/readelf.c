@@ -44,11 +44,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#if 0
-#include <archive.h>
-#include <archive_entry.h>
-#endif
-
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
@@ -6166,98 +6161,6 @@ dump_dwarf(struct readelf *re)
 	dwarf_finish(re->dbg, &de);
 }
 
-#if 0
-/*
- * Convenient wrapper for general libarchive error handling.
- */
-#define	AC(CALL) do {							\
-	if ((CALL))							\
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));	\
-} while (0)
-
-static int
-ac_detect_ar(int fd)
-{
-	struct archive		*a;
-	struct archive_entry	*entry;
-	int			 r;
-
-	r = -1;
-	if ((a = archive_read_new()) == NULL)
-		return (0);
-	archive_read_support_compression_none(a);
-	archive_read_support_format_ar(a);
-	if (archive_read_open_fd(a, fd, 10240) == ARCHIVE_OK)
-		r = archive_read_next_header(a, &entry);
-	archive_read_close(a);
-	archive_read_finish(a);
-
-	return (r == ARCHIVE_OK);
-}
-
-static void
-ac_dump_ar(struct readelf *re, int fd)
-{	struct archive		*a;
-	struct archive_entry	*entry;
-	const char		*name;
-	void			*buff;
-	size_t			 size;
-	int			 r;
-
-	if (lseek(fd, 0, SEEK_SET) == -1)
-		err(EX_IOERR, "lseek failed");
-	if ((a = archive_read_new()) == NULL)
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));
-	archive_read_support_compression_none(a);
-	archive_read_support_format_ar(a);
-	AC(archive_read_open_fd(a, fd, 10240));
-	for(;;) {
-		r = archive_read_next_header(a, &entry);
-		if (r == ARCHIVE_FATAL)
-			errx(EX_DATAERR, "%s", archive_error_string(a));
-		if (r == ARCHIVE_EOF)
-			break;
-		if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY)
-			warnx("%s", archive_error_string(a));
-		if (r == ARCHIVE_RETRY)
-			continue;
-
-		name = archive_entry_pathname(entry);
-
-		/* TODO: handle option '-c' here. */
-
-		/* skip pseudo members. */
-		if (strcmp(name, "/") == 0 || strcmp(name, "//") == 0)
-			continue;
-
-		size = archive_entry_size(entry);
-		if (size > 0) {
-			if ((buff = malloc(size)) == NULL)
-				err(EX_SOFTWARE, "malloc failed");
-			if (archive_read_data(a, buff, size) != (ssize_t)size) {
-				warnx("%s", archive_error_string(a));
-				free(buff);
-				continue;
-			}
-			if ((re->elf = elf_memory(buff, size)) == NULL) {
-				warnx("elf_memroy() failed: %s",
-				    elf_errmsg(-1));
-				free(buff);
-				continue;
-			}
-			dump_elf(re);
-			free(buff);
-		}
-	}
-	AC(archive_read_close(a));
-#if ARCHIVE_VERSION_NUMBER >= 2000000
-	AC(archive_read_finish(a));
-#else
-	archive_read_finish(a);
-#endif
-}
-#endif
-
 static void
 dump_ar(struct readelf *re, int fd)
 {
@@ -6345,16 +6248,6 @@ dump_object(struct readelf *re)
 		warn("open %s failed", re->filename);
 		return;
 	}
-
-#if 0
-	/*
-	 * Detect and process ar(1) archive using libarchive.
-	 */
-	if (ac_detect_ar(fd)) {
-		ac_dump_ar(re, fd);
-		return;
-	}
-#endif
 
 	if ((re->flags & DISPLAY_FILENAME) != 0)
 		printf("\nFile: %s\n", re->filename);
