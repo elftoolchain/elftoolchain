@@ -305,7 +305,7 @@ FN(`MSB')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpElfDup$1(void)
+tcElfDup$1(void)
 {
 	int fd, result;
 	Elf *e;
@@ -341,7 +341,7 @@ FN(`MSB')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpElfWrongSize$1(void)
+tcElfWrongSize$1(void)
 {
 	int error, fd, result;
 	Elf *e;
