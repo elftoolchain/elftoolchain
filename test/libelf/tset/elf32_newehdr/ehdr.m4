@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,8 @@
 #include "tet_api.h"
 #include "elfts.h"
 
-#define	TS_EHDRFUNC	_newehdr
-#define	TS_EHDRSZ	32
-#include "ehdr_template.c"
+define(`TS_EHDRFUNC',`_newehdr')
+define(`TS_EHDRSZ',`32')
+include(`ehdr_template.m4')
 
-#include "newehdr_template.c"
+include(`newehdr_template.m4')
