@@ -138,7 +138,7 @@ define(`TS_REFELF',`newehdr')
  */
 
 define(`FN',`
-static void
+void
 tcUpdate$1`'TS_EHDRSZ`'(void)
 {
 	TS_EHDR *eh;
@@ -174,7 +174,7 @@ tcUpdate$1`'TS_EHDRSZ`'(void)
 	}
 
 	/* check that the correct number of bytes were written out. */
-	fsz =_elf`'TS_EHDRSZ`'_fsize(ELF_T_EHDR, 1, EV_CURRENT);
+	fsz = elf`'TS_EHDRSZ`'_fsize(ELF_T_EHDR, 1, EV_CURRENT);
 
 	if (offset != fsz) {
 		TP_FAIL("elf_update() -> %d, expected %d.", offset, fsz);
