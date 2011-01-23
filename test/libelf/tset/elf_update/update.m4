@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ static char rawdata[] = "This is not an ELF file.";
  */
 
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	off_t offset;
@@ -79,7 +79,7 @@ tcArgs_tpNull(void)
  */
 
 void
-tcArgs_tpBadCmd(void)
+tcArgsBadCmd(void)
 {
 	Elf *e;
 	Elf_Cmd c;
@@ -112,7 +112,7 @@ tcArgs_tpBadCmd(void)
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpNonElf$1(void)
+tcArgsNonElf$1(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -157,7 +157,7 @@ FN(`WRITE')
 undefine(`FN')
 define(`FN',`
 void
-tcMemElfWrite_tp$1$2(void)
+tcMemElfWrite$1$2(void)
 {
 	Elf *e;
 	off_t offset;
@@ -199,7 +199,7 @@ FN(`64', `msb')
 undefine(`FN')
 define(`FN',`
 void
-tcMemElfNull_tp$1$2(void)
+tcMemElfNull$1$2(void)
 {
 	Elf *e;
 	int result;
@@ -244,7 +244,7 @@ FN(`64', `msb')
 undefine(`FN')
 define(`FN',`
 void
-tcClassMismatch_tp$1$2(void)
+tcClassMismatch$1$2(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -295,7 +295,7 @@ FN(`64', `msb')
 undefine(`FN')
 define(`FN',`
 void
-tcByteOrderChange_tp$1$2(void)
+tcByteOrderChange$1$2(void)
 {
 	int error, fd, result;
 	Elf *e;
@@ -345,7 +345,7 @@ FN(`64', `msb')
 undefine(`FN')
 define(`FN',`
 void
-tcUnsupportedVersion_tp$1$2(void)
+tcUnsupportedVersion$1$2(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -395,7 +395,7 @@ FN(`64', `msb')
 undefine(`FN')
 define(`FN',`
 void
-tcSequence_tpFdDoneWrite$1(void)
+tcSequenceFdDoneWrite$1(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -448,7 +448,7 @@ FN(64)
 undefine(`FN')
 define(`FN',`
 void
-tcSequence_tpFdDoneNull$1(void)
+tcSequenceFdDoneNull$1(void)
 {
 	int fd, result;
 	off_t offset;
@@ -532,7 +532,7 @@ const char strtab[] = {
 undefine(`FN')
 define(`FN',`
 void
-tcUpdate_tp$1$2(void)
+tcUpdate$1$2(void)
 {
 	int fd, result;
 	off_t offset;
@@ -645,7 +645,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcSectionType_tp$2$1(void)
+tcSectionType$2$1(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -704,7 +704,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcSectionDataType_tp$2$1(void)
+tcSectionDataType$2$1(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -776,7 +776,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcAlignment_tpData$2$1(void)
+tcAlignmentData$2$1(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -843,8 +843,8 @@ FN(32,`msb')
 FN(64,`lsb')
 FN(64,`msb')
 
-/* XXX: check that overlapping sections are rejected */
-/* XXX: check that non-overlapping sections are permitted */
+/* TODO: check that overlapping sections are rejected */
+/* TODO: check that non-overlapping sections are permitted */
 
 /* 
  * Ensure that updating a section header on an ELF object opened
@@ -855,7 +855,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcRdwrIdempotent_tp$2$1(void)
+tcRdwrIdempotent$2$1(void)
 {
 	Elf *e;
 	size_t strtabidx;
@@ -937,7 +937,7 @@ tcRdwrIdempotent_tp$2$1(void)
 	if (tfd != -1)
 		(void) close(tfd);
 	if (tfn != NULL)
-/*	   	(void) unlink(tfn); */
+	   	(void) unlink(tfn);
 
 	tet_result(result);
 }')
