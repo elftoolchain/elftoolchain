@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ include(`elfts.m4')
 undefine(`FN')dnl
 define(`FN',`
 void
-tcNull_tpGelfGetNullElf$1(void)
+tcGelfGetNullElf$1(void)
 {
 	void *eh;
 	int error, result;
@@ -76,7 +76,7 @@ FN(`64')
 undefine(`FN')dnl
 define(`FN',`
 void
-tcData_tpGElf$1(void)
+tcDataNonElfDesc$1(void)
 {
 	int error, result;
 	void *eh;
@@ -110,7 +110,7 @@ FN(`64')
 undefine(`FN')dnl
 define(`FN',`
 void
-tcBadElfVersion_tpGelf$1$2(void)
+tcBadElfVersion$1$2(void)
 {
 	int err, result;
 	Elf *e;
@@ -150,7 +150,7 @@ FN(`MSB',`64')
 undefine(`FN')dnl
 define(`FN',`
 void
-tcBadElf_tpGelf$1$2(void)
+tcMalformedElf$1$2(void)
 {
 	int err, result;
 	Elf *e;
@@ -190,7 +190,7 @@ FN(`64',`MSB')
 undefine(`FN')dnl
 define(`FN',`
 void
-tcElf_tpInvalid$1$2(void)
+tcWrongElfClass$1$2(void)
 {
 	int error, fd, result;
 	Elf$2_Ehdr *eh;
@@ -230,7 +230,7 @@ FN(`msb',`64',`32')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpValid$1$2(void)
+tcElfValidClass$1$2(void)
 {
 	int fd, result;
 	Elf$2_Ehdr *eh;
@@ -265,7 +265,7 @@ FN(`lsb',`64')
 FN(`msb',`32')
 FN(`msb',`64')
 
-#define	TS_NEWELF	"new.elf"
+define(`TS_NEWELF',`"new.elf"')
 define(`CHECK_NEWEHDR',`	do {
 	if (($1)->e_ident[EI_MAG0] != ELFMAG0 ||
 	    ($1)->e_ident[EI_MAG1] != ELFMAG1 ||
@@ -290,7 +290,7 @@ define(`CHECK_NEWEHDR',`	do {
 undefine(`FN')
 define(`FN',`
 void
-tcNewElf_tpExpected$1(void)
+tcNewElfExpected$1(void)
 {
 	int fd, result;
 	Elf$1_Ehdr *eh;
@@ -329,7 +329,7 @@ FN(`64')
 undefine(`FN')
 define(`FN',`
 void
-tcNewElf_tpFlag$1(void)
+tcNewElfFlagDirty$1(void)
 {
 	Elf *e;
 	Elf$1_Ehdr *eh;
@@ -367,12 +367,12 @@ FN(`64')
  * Allocating and updating an Elf_Ehdr works correctly.
  */
 
-#define	TS_REFELF	"newehdr."
+define(`TS_REFELF',`"newehdr."')
 
 undefine(`FN')
 define(`FN',`
 void
-tcUpdate_tpElf$1$2(void)
+tcUpdateElf$1$2(void)
 {
 	Elf$2_Ehdr *eh;
 	Elf *e;
