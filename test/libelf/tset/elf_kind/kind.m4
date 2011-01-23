@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 #include "elfts.h"
 #include "tet_api.h"
 
+include(`elfts.m4')
+
 IC_REQUIRES_VERSION_INIT();
 
 /*
@@ -38,9 +40,9 @@ IC_REQUIRES_VERSION_INIT();
  */
 
 void
-tcWithVersion_tpNull(void)
+tcNullParameter(void)
 {
-	tet_infoline("assertion: NULL elf returns null.");
+	TP_ANNOUNCE("NULL elf returns null.");
 
 	TP_CHECK_INITIALIZATION();
 
@@ -53,13 +55,13 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
 	"\000\000(\000\000\000\000\000";
 
 void
-tcWithVersion_tpValidElf(void)
+tcValidElf(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: valid ELF file returns ELF_K_ELF.");
+	TP_ANNOUNCE("valid ELF file returns ELF_K_ELF.");
 
 	if ((e = elf_memory(elf_file, sizeof(elf_file))) == NULL) {
 		tet_printf("elf_memory: %s", elf_errmsg(-1));
@@ -79,13 +81,13 @@ static char ar_file[] = "!<arch>\n"
 changequote()
 
 void
-tcWithVersion_tpValidAr(void)
+tcValidAr(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: valid ar archive returns ELF_K_AR.");
+	TP_ANNOUNCE("valid ar archive returns ELF_K_AR.");
 
 	if ((e = elf_memory(ar_file, sizeof(ar_file))) == NULL) {
 		tet_printf("elf_memory: %s", elf_errmsg(-1));
@@ -101,13 +103,13 @@ tcWithVersion_tpValidAr(void)
 static char unknown_file[] = "0xdeadc0de";
 
 void
-tcWithVersion_tpUnknownKind(void)
+tcUnknownKind(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: unknown file type returns ELF_K_NONE.");
+	TP_ANNOUNCE("unknown file type returns ELF_K_NONE.");
 
 	if ((e = elf_memory(unknown_file, sizeof(unknown_file))) == NULL) {
 		tet_printf("elf_memory: %s", elf_errmsg(-1));
