@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ include(`elfts.m4')
  * Null arguments are handled correctly.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	Elf_Scn *scn;
@@ -67,7 +67,7 @@ tcArgs_tpNull(void)
 static char *nonelf = "This is not an ELF file.";
 
 void
-tcArgs_tpNonElf(void)
+tcArgsNonElf(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -97,7 +97,7 @@ tcArgs_tpNonElf(void)
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpSuccess$1$2(void)
+tcElfSuccess$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -145,7 +145,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpLastNewFile$1(void)
+tcElfLastNewFile$1(void)
 {
 	Elf *e;
 	Elf_Scn *scn, *nextscn;
@@ -203,7 +203,7 @@ FN(64)
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpLastOldFile$2$1(void)
+tcElfLastOldFile$2$1(void)
 {
 	Elf *e;
 	Elf_Scn *scn, *nextscn;
@@ -259,7 +259,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpAscending$2$1(void)
+tcElfAscending$2$1(void)
 {
 	Elf *e;
 	Elf_Scn *scn, *oldscn;
@@ -329,7 +329,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpMismatch$2$1(void)
+tcElfMismatch$2$1(void)
 {
 	Elf *e1, *e2;
 	Elf_Scn *scn, *nextscn;
