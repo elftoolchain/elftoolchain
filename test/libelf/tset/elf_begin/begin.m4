@@ -61,7 +61,7 @@ define(`TS_ARFILE',`"a.ar"')
 undefine(`FN')
 define(`FN',`
 void
-tcSequence_tpUninitialized$1(void)
+tcSequenceUninitialized$1(void)
 {
 	Elf *e;
 	int error, result;
@@ -84,7 +84,7 @@ FN(`WRITE')
 FN(`RDWR')
 
 void
-tcCmd_tpInvalid(void)
+tcCmdInvalid(void)
 {
 	Elf *e;
 	int c, error, result;
@@ -111,7 +111,7 @@ tcCmd_tpInvalid(void)
 }
 
 void
-tcCmd_tpNull(void)
+tcCmdNull(void)
 {
 	Elf *e;
 	int result;
@@ -134,7 +134,7 @@ tcCmd_tpNull(void)
 undefine(`FN')
 define(`FN',`
 void
-tcNonRegular_tp$1(void)
+tcNonRegular$1(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -199,7 +199,7 @@ cleanup_tempfile(void)
 
 
 void
-tcCmd_tpWriteFdRead(void)
+tcCmdWriteFdRead(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -227,7 +227,7 @@ tcCmd_tpWriteFdRead(void)
 }
 
 void
-tcCmd_tpWriteFdRdwr(void)
+tcCmdWriteFdRdwr(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -252,7 +252,7 @@ tcCmd_tpWriteFdRdwr(void)
 }
 
 void
-tcCmd_tpWriteFdWrite(void)
+tcCmdWriteFdWrite(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -284,7 +284,7 @@ tcCmd_tpWriteFdWrite(void)
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tp$1$2(void)
+tcElfOpen$1$2(void)
 {
 	Elf *e;
 	int fd, result;
@@ -339,7 +339,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcAr_tpCmdMismatch$1(void)
+tcArCmdMismatch$1(void)
 {
 	Elf *e, *e2;
 	int error, fd, result;
@@ -378,7 +378,7 @@ FN(RDWR)
 undefine(`FN')
 define(`FN',`
 void
-tcAr_tpCmdMatch$1(void)
+tcArCmdMatch$1(void)
 {
 	Elf *e, *e2;
 	int fd, result;
@@ -413,7 +413,7 @@ FN(READ)
  * Check that a member is correctly retrieved.
  */
 void
-tcAr_tpRetrieval(void)
+tcArRetrieval(void)
 {
 	Elf *e, *e1;
 	int fd, result;
@@ -451,7 +451,7 @@ tcAr_tpRetrieval(void)
  * Check an `fd' mismatch is detected.
  */
 void
-tcFd_tpMismatch(void)
+tcFdMismatch(void)
 {
 	Elf *e, *e2;
 	int error, fd, result;
