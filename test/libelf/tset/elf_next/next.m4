@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ include(`elfts.m4')
  * Assertion: with a NULL value passed in, elf_next returns ELF_C_NULL.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	TP_CHECK_INITIALIZATION();
 
@@ -67,7 +67,7 @@ static char *elf = "\177ELF\001\001\001	\001\000\000\000\000"
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpNonAr`'TOUPPER($1)(void)
+tcArgsNonAr`'TOUPPER($1)(void)
 {
 	Elf *e;
 	Elf_Cmd c;
@@ -104,7 +104,7 @@ FN(elf)
 undefine(`FN')
 define(`FN',`
 void
-tcAr_tpArchive$1(void)
+tcArArchive$1(void)
 {
 	int error, fd, i, result;
 	Elf_Cmd c;
@@ -148,4 +148,3 @@ tcAr_tpArchive$1(void)
 FN(1, 2) dnl text files with short names
 FN(2, 2) dnl text files with long names
 FN(3, 4) dnl text files + ELF objects.
-
