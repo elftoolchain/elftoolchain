@@ -715,14 +715,21 @@ class ElfEhdr(ElfType):
 
 		if self.e_ehsize is None:
 			self.e_ehsize = e_ehsize
-		if self.e_phentsize is None:
-			self.e_phentsize = e_phentsize
-		if self.e_shentsize is None:
-			self.e_shentsize = e_shentsize
 
-		# compute e_phnum if needed
+		# Compute e_phnum if needed.
 		if self.e_phnum is None:
 			self.e_phnum = len(elf.elf_phdrtab)
+
+		# Compute a value for the e_phentsize field.
+		if self.e_phentsize is None:
+			if self.e_phnum:
+				self.e_phentsize = e_phentsize
+			else:
+				self.e_phentsize = 0
+
+		# Set the e_shentsize field.
+		if self.e_shentsize is None:
+			self.e_shentsize = e_shentsize
 
 		# The program header defaults to just after the ELF header.
 		if self.e_phoff is None:
