@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ include(`elfts.m4')
  */
 
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	char *r;
@@ -67,7 +67,7 @@ tcArgs_tpNull(void)
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpIllegalSection$1`'TOUPPER($2)(void)
+tcArgsIllegalSection$1`'TOUPPER($2)(void)
 {
 	int error, fd, result;
 	Elf *e;
@@ -102,7 +102,7 @@ FN(64,`msb',`newscn')
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpIllegalOffset$1`'TOUPPER($2)(void)
+tcArgsIllegalOffset$1`'TOUPPER($2)(void)
 {
 	Elf *e;
 	char *r;
@@ -168,7 +168,7 @@ static char teststring[] = {
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpOffsetInHole$1`'TOUPPER($2)(void)
+tcArgsOffsetInHole$1`'TOUPPER($2)(void)
 {
 	int error, fd, result;
 	Elf *e;
@@ -274,7 +274,7 @@ struct refstr {
 undefine(`FN')
 define(`FN',`
 void
-tcArgs_tpValidOffset$1`'TOUPPER($2)(void)
+tcArgsValidOffset$1`'TOUPPER($2)(void)
 {
 	int error, fd, result;
 	Elf *e;
@@ -354,10 +354,10 @@ FN(64,`lsb',`newscn')
 FN(64,`msb',`newscn')
 
 /*
- * With the layout bit set, an out of bounds offset is detected.
+ * TODO: With the layout bit set, an out of bounds offset is detected.
  */
 
 /*
- * With the layout bit set, strings are correctly retrieved.
+ * TODO: With the layout bit set, strings are correctly retrieved.
  */
 
