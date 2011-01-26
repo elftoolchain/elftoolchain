@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ define(`TP_ARFILE_BSD', `"a-bsd.ar"')
  * A NULL `Elf' argument fails.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 
@@ -76,7 +76,7 @@ tcArgs_tpNull(void)
 static char *nonar = "This is not an AR file.";
 
 void
-tcArgs_tpNonAr(void)
+tcArgsNonAr(void)
 {
 	Elf *e;
 	int error, result;
@@ -105,7 +105,7 @@ tcArgs_tpNonAr(void)
  */
 
 void
-tcArgs_tpElf(void)
+tcArgsElf(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -231,7 +231,7 @@ define(`ARCHIVE_TESTS',`
  */
 
 void
-tcAr_tpAr$1(void)
+tcArArchive$1(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -255,7 +255,7 @@ tcAr_tpAr$1(void)
 }
 
 void
-tcAr_tpArMember$1(void)
+tcArMember$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
@@ -374,7 +374,7 @@ define(`CHECK_NAMES',`
 ')
 
 void
-tcAr_tpArSpecial$1(void)
+tcArSpecial$1(void)
 {
 
 	Elf_Arhdr *arh;
@@ -416,7 +416,7 @@ tcAr_tpArSpecial$1(void)
 }
 
 void
-tcAr_tpArRawnames$1(void)
+tcArRawnames$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
