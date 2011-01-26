@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ include(`elfts.m4')
  * A null argument is handled.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	Elf_Scn *scn;
@@ -66,7 +66,7 @@ tcArgs_tpNull(void)
 static char *nonelf = "This is not an ELF file.";
 
 void
-tcArgs_tpNonElf(void)
+tcArgsNonElf(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -96,7 +96,7 @@ tcArgs_tpNonElf(void)
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpSuccess$1$2(void)
+tcElfSuccess$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -156,7 +156,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcAllocate_tpDirty$1$2(void)
+tcAllocateDirty$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -202,7 +202,7 @@ FN(64,`msb')
  */
 
 void
-tcAllocate_tpNoEhdr(void)
+tcAllocateNoEhdr(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -240,7 +240,7 @@ tcAllocate_tpNoEhdr(void)
 undefine(`FN')
 define(`FN',`
 void
-tcAllocate_tpNew$1$2(void)
+tcAllocateNew$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
