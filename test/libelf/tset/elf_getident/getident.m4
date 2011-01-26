@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,17 +33,18 @@
 #include "elfts.h"
 #include "tet_api.h"
 
+include(`elfts.m4')
+
 IC_REQUIRES_VERSION_INIT();
 
 void
-tcNull_tpNull1(void)
+tcNullNull(void)
 {
 	int result;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_getident(NULL,...) fails with"
-	    " error ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("elf_getident(NULL,...) fails with error ELF_E_ARGUMENT.");
 
 	result = TET_PASS;
 	if (elf_getident(NULL, NULL) != NULL ||
@@ -53,14 +54,14 @@ tcNull_tpNull1(void)
 }
 
 void
-tcNull_tpSize(void)
+tcNullSize(void)
 {
 	size_t dummy;
 	int result;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_getident(NULL,&foo) fails, and sets"
+	TP_ANNOUNCE("elf_getident(NULL,&foo) fails, and sets"
 	    " `foo' to zero.");
 
 	dummy = (size_t) 0xdeadc0de;
@@ -74,12 +75,14 @@ tcNull_tpSize(void)
 
 }
 
+changequote({,})
 static char ar_file[] = "!<arch>\n"
 	"t/              1151656346  1001  0     100644  5         `\n"
 	"Test\n";
+changequote()
 
 void
-tcMain_tpArIdent(void)
+tcMainArIdent(void)
 {
 	Elf *e;
 	char *p;
@@ -88,8 +91,7 @@ tcMain_tpArIdent(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: an `ar' archive's ident is correctly"
-	    " returned.");
+	TP_ANNOUNCE("an ar(1) archive's ident is correctly returned.");
 
 	TS_OPEN_MEMORY(e, ar_file);
 
@@ -107,7 +109,7 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
 	"\000\000(\000\000\000\000\000";
 
 void
-tcMain_tpElfIdent(void)
+tcMainElfIdent(void)
 {
 	Elf *e;
 	char *p;
@@ -134,7 +136,7 @@ tcMain_tpElfIdent(void)
 static char unknown_data[] = "Revenge!  Revenge!";
 
 void
-tcMain_tpUnknownData(void)
+tcMainUnknownData(void)
 {
 	Elf *e;
 	char *p;
@@ -143,7 +145,7 @@ tcMain_tpUnknownData(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_getident() returns the initial bytes of"
+	TP_ANNOUNCE("elf_getident() returns the initial bytes of"
 	    " an unknown data object.");
 
 	TS_OPEN_MEMORY(e, unknown_data);
