@@ -1,0 +1,180 @@
+.\" Copyright (c) 2011 Kai Wang
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" $Id$
+.\"
+.Dd January 29, 2011
+.Os
+.Dt DWARF_ATTRVAL_SIGNED 3
+.Sh Name
+.Nm dwarf_attrval_signed ,
+.Nm dwarf_attrval_unsigned ,
+.Nm dwarf_attrval_flag ,
+.Nm dwarf_attrval_string
+.Nd retrieve the value of an attribute within a DWARF debugging information entry
+.Sh LIBRARY
+.Lb libdwarf
+.Sh SYNOPSIS
+.In libdwarf.h
+.Ft int
+.Fo dwarf_attrval_signed
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "Dwarf_Signed *valp"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_attrval_unsigned
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "Dwarf_Unsigned *valp"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_attrval_flag
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "Dwarf_Bool *valp"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_attrval_string
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "const char **strp"
+.Fa "Dwarf_Error *err"
+.Fc
+.Sh DESCRIPTION
+These functions search the debugging information entry referenced
+in argument
+.Ar die
+for the attribute named by argument
+.Ar attr .
+If the attribute is found, the functions sets the location pointed
+to by the thrid argument to the value of the attribute.
+If argument
+.Ar err
+is not NULL, it will be used to return an error descriptor in case
+of an error.
+.Pp
+Function
+.Fn dwarf_attrval_signed
+stores a appropriately sign extended value in the location pointed to
+by argument
+.Ar valp .
+It requires that the found attribute must belong to the CONSTANT class
+and have one of the following forms:
+.Dv DW_FORM_data1 ,
+.Dv DW_FORM_data2 ,
+.Dv DW_FORM_data4 ,
+.Dv DW_FORM_data8
+and
+.Dv DW_FORM_sdata .
+.Pp
+Function
+.Fn dwarf_attrval_unsigned
+stores a unsigned value in the location pointed to by argument
+.Ar valp .
+It requires that the found attribute must belong to the CONSTANT,
+ADDRESS or REFERENCE class and must have one of the following forms:
+.Dv DW_FORM_addr ,
+.Dv DW_FORM_data1 ,
+.Dv DW_FORM_data2 ,
+.Dv DW_FORM_data4 ,
+.Dv DW_FORM_data8 ,
+.Dv DW_FORM_udata ,
+.Dv DW_FORM_ref1 ,
+.Dv DW_FORM_ref2 ,
+.Dv DW_FORM_ref4 ,
+.Dv DW_FORM_ref8 ,
+and
+.Dv DW_FORM_ref_udata .
+.Pp
+If the function
+.Fn dwarf_attrval_unsigned
+could not find the attribute named by argument
+.Ar attr
+in the debugging information entry referenced by argument
+.Ar die ,
+It will instead look for a
+.Dv DW_AT_abstract_origin
+attribute in that debugging information entry.  If such attribute
+exist, the function will continue the search in the debugging
+information entry referenced by the
+.Dv DW_AT_abstract_origin
+attribute.
+.Pp
+Function
+.Fn dwarf_attrval_flag
+sets the location pointed to by argument
+.Ar valp
+to 1 if the found attribute has a non-zero value, or 0 otherwise.
+The found attribute must have the form
+.Dv DW_FORM_flag .
+.Pp
+Function
+.Fn dwarf_attrval_string
+sets the location pointed to by argument
+.Ar *strp
+to a NUL-terminated string containing the value of the found
+attribute.  It requires that the form of the attribute must be one of
+.Dv DW_FORM_string
+or
+.Dv  DW_FORM_strp .
+.Sh RETURN VALUES
+On success, these functions returns
+.Dv DW_DLV_OK .
+If the debugging information entry descriptor denoted by argument
+.Ar die
+does not contain the named attribute, these functions return
+.Dv DW_DLV_NO_ENTRY
+and sets argument
+.Ar err .
+For other errors, they returns
+.Dv DW_DLV_ERROR
+and sets argument
+.Ar err .
+.Sh ERRORS
+These functions may fail with the following errors:
+.Bl -tag -width ".Bq Er DW_DLE_ATTR_FORM_BAD"
+.It Bq Er DW_DLE_ARGUMENT
+One of the arguments
+.Va die ,
+.Va valp ,
+or
+.Va strp
+was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+Argument
+.Ar die
+had no attribute corresponding to the value
+in argument
+.Ar attr .
+.It Bq Er DW_DLE_ATTR_FORM_BAD
+The found attribute was not of a permitted kind.
+.El
+.Sh SEE ALSO
+.Xr dwarf 3 ,
+.Xr dwarf_attr 3 ,
+.Xr dwarf_hasattr 3
