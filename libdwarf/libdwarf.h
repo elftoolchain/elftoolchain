@@ -479,13 +479,13 @@ int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
 int		dwarf_attrlist(Dwarf_Die, Dwarf_Attribute **,
 		    Dwarf_Signed *, Dwarf_Error *);
-int		dwarf_attrval_flag(Dwarf_Die, uint64_t, Dwarf_Bool *,
+int		dwarf_attrval_flag(Dwarf_Die, Dwarf_Half, Dwarf_Bool *,
 		    Dwarf_Error *);
-int		dwarf_attrval_signed(Dwarf_Die, uint64_t, Dwarf_Signed *,
+int		dwarf_attrval_signed(Dwarf_Die, Dwarf_Half, Dwarf_Signed *,
 		    Dwarf_Error *);
-int		dwarf_attrval_string(Dwarf_Die, uint64_t, const char **,
+int		dwarf_attrval_string(Dwarf_Die, Dwarf_Half, const char **,
 		    Dwarf_Error *);
-int		dwarf_attrval_unsigned(Dwarf_Die, uint64_t, Dwarf_Unsigned *,
+int		dwarf_attrval_unsigned(Dwarf_Die, Dwarf_Half, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 int		dwarf_bitoffset(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_bitsize(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
