@@ -159,11 +159,6 @@ dwarf_attrval_unsigned(Dwarf_Die die, Dwarf_Half attr, Dwarf_Unsigned *valp, Dwa
 	if (at == NULL &&
 	    (at = _dwarf_attr_find(die, DW_AT_abstract_origin)) != NULL) {
 		switch (at->at_form) {
-		case DW_FORM_addr:
-		case DW_FORM_data1:
-		case DW_FORM_data2:
-		case DW_FORM_data4:
-		case DW_FORM_data8:
 		case DW_FORM_ref1:
 		case DW_FORM_ref2:
 		case DW_FORM_ref4:
