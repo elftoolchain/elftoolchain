@@ -27,7 +27,7 @@
 #include "_libdwarf.h"
 
 int
-dwarf_attrval_flag(Dwarf_Die die, uint64_t attr, Dwarf_Bool *valp, Dwarf_Error *err)
+dwarf_attrval_flag(Dwarf_Die die, Dwarf_Half attr, Dwarf_Bool *valp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
 	Dwarf_Debug dbg;
@@ -59,7 +59,7 @@ dwarf_attrval_flag(Dwarf_Die die, uint64_t attr, Dwarf_Bool *valp, Dwarf_Error *
 }
 
 int
-dwarf_attrval_string(Dwarf_Die die, uint64_t attr, const char **strp, Dwarf_Error *err)
+dwarf_attrval_string(Dwarf_Die die, Dwarf_Half attr, const char **strp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
 	Dwarf_Debug dbg;
@@ -94,7 +94,7 @@ dwarf_attrval_string(Dwarf_Die die, uint64_t attr, const char **strp, Dwarf_Erro
 }
 
 int
-dwarf_attrval_signed(Dwarf_Die die, uint64_t attr, Dwarf_Signed *valp, Dwarf_Error *err)
+dwarf_attrval_signed(Dwarf_Die die, Dwarf_Half attr, Dwarf_Signed *valp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
 	Dwarf_Debug dbg;
@@ -127,7 +127,7 @@ dwarf_attrval_signed(Dwarf_Die die, uint64_t attr, Dwarf_Signed *valp, Dwarf_Err
 }
 
 int
-dwarf_attrval_unsigned(Dwarf_Die die, uint64_t attr, Dwarf_Unsigned *valp, Dwarf_Error *err)
+dwarf_attrval_unsigned(Dwarf_Die die, Dwarf_Half attr, Dwarf_Unsigned *valp, Dwarf_Error *err)
 {
 	Dwarf_Attribute at;
 	Dwarf_Die die1;
