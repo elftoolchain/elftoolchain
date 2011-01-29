@@ -86,6 +86,7 @@ LDADD+=		-lelf
 
 MAN=	dwarf_attr.3					\
 	dwarf_attrlist.3				\
+	dwarf_attrval_signed.3				\
 	dwarf_child.3					\
 	dwarf_dealloc.3					\
 	dwarf_die_abbrev_code.3				\
@@ -116,6 +117,9 @@ MAN=	dwarf_attr.3					\
 	dwarf_whatattr.3
 
 MLINKS+= \
+	dwarf_attrval_signed.3	dwarf_attrval_flag.3	\
+	dwarf_attrval_signed.3	dwarf_attrval_string.3	\
+	dwarf_attrval_signed.3	dwarf_attrval_unsigned.3 \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_siblingof.3		\
 	dwarf_dealloc.3	dwarf_ranges_dealloc.3		\
