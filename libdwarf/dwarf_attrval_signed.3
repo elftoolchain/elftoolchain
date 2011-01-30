@@ -27,77 +27,117 @@
 .Dd January 29, 2011
 .Os
 .Dt DWARF_ATTRVAL_SIGNED 3
-.Sh Name
-.Nm dwarf_attrval_signed ,
-.Nm dwarf_attrval_unsigned ,
+.Sh NAME
 .Nm dwarf_attrval_flag ,
-.Nm dwarf_attrval_string
+.Nm dwarf_attrval_signed ,
+.Nm dwarf_attrval_string ,
+.Nm dwarf_attrval_unsigned
 .Nd retrieve the value of an attribute within a DWARF debugging information entry
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
 .In libdwarf.h
 .Ft int
-.Fo dwarf_attrval_signed
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Half attr"
-.Fa "Dwarf_Signed *valp"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
-.Fo dwarf_attrval_unsigned
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Half attr"
-.Fa "Dwarf_Unsigned *valp"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
 .Fo dwarf_attrval_flag
 .Fa "Dwarf_Die die"
 .Fa "Dwarf_Half attr"
-.Fa "Dwarf_Bool *valp"
+.Fa "Dwarf_Bool *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_attrval_signed
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "Dwarf_Signed *ret"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
 .Fo dwarf_attrval_string
 .Fa "Dwarf_Die die"
 .Fa "Dwarf_Half attr"
-.Fa "const char **strp"
+.Fa "const char **ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_attrval_unsigned
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Half attr"
+.Fa "Dwarf_Unsigned *ret"
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
 These functions search the debugging information entry referenced
-in argument
+by argument
 .Ar die
 for the attribute named by argument
 .Ar attr .
-If the attribute is found, the functions sets the location pointed
-to by the thrid argument to the value of the attribute.
-If argument
-.Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+If the named attribute is found, the functions set the location
+pointed to by argument
+.Ar ret
+to the value of the attribute.
+The argument
+.Ar err ,
+if non NULL,
+will be used to return an error descriptor in case of an error.
+.Pp
+Function
+.Fn dwarf_attrval_flag
+sets the location pointed to by argument
+.Ar ret
+to 1 if the attribute named by argument
+.Ar attr
+has a non-zero value, or to 0 otherwise.
+The form of the attribute named by argument
+.Ar attr
+must be
+.Dv DW_FORM_flag .
 .Pp
 Function
 .Fn dwarf_attrval_signed
-stores a appropriately sign extended value in the location pointed to
-by argument
-.Ar valp .
-It requires that the found attribute must belong to the CONSTANT class
-and have one of the following forms:
+stores the value for the attribute named by argument
+.Ar attr ,
+into the location pointed to by argument
+.Ar ret .
+The attribute's value is treated as a signed integral quantity and is
+sign-extended as needed.
+The attribute named by the argument
+.Ar attr
+must belong to the
+.Dv CONSTANT
+class and must have one of the following forms:
 .Dv DW_FORM_data1 ,
 .Dv DW_FORM_data2 ,
 .Dv DW_FORM_data4 ,
 .Dv DW_FORM_data8
-and
+or
 .Dv DW_FORM_sdata .
 .Pp
 Function
+.Fn dwarf_attrval_string
+sets the location pointed to by argument
+.Ar ret
+to a pointer to a NUL-terminated string that is the value of the
+attribute named by argument
+.Ar attr .
+The form of the attribute must be one of
+.Dv DW_FORM_string
+or
+.Dv  DW_FORM_strp .
+.Pp
+Function
 .Fn dwarf_attrval_unsigned
-stores a unsigned value in the location pointed to by argument
-.Ar valp .
-It requires that the found attribute must belong to the CONSTANT,
-ADDRESS or REFERENCE class and must have one of the following forms:
+stores the value for the attribute named by argument
+.Ar attr
+into the location pointed to by argument
+.Ar ret .
+The attribute's value is treated as an unsigned integral quantity, and
+is zero-extended as needed.
+The named attribute must belong to one of the
+.Dv CONSTANT ,
+.Dv ADDRESS
+or
+.Dv REFERENCE
+classes and must have one of the following forms:
 .Dv DW_FORM_addr ,
 .Dv DW_FORM_data1 ,
 .Dv DW_FORM_data2 ,
@@ -108,74 +148,56 @@ ADDRESS or REFERENCE class and must have one of the following forms:
 .Dv DW_FORM_ref2 ,
 .Dv DW_FORM_ref4 ,
 .Dv DW_FORM_ref8 ,
-and
+or
 .Dv DW_FORM_ref_udata .
 .Pp
-If the function
-.Fn dwarf_attrval_unsigned
-could not find the attribute named by argument
+If the attribute named by argument
 .Ar attr
-in the debugging information entry referenced by argument
+is not present in the debugging information entry referenced by
+argument
 .Ar die ,
-It will instead look for a
+and if a
 .Dv DW_AT_abstract_origin
-attribute in that debugging information entry.  If such attribute
-exist, the function will continue the search in the debugging
-information entry referenced by the
+attribute is present in the debugging information entry,
+function
+.Fn dwarf_attrval_unsigned
+will search for the named attribute in the debugging information entry
+referenced by the
 .Dv DW_AT_abstract_origin
 attribute.
-.Pp
-Function
-.Fn dwarf_attrval_flag
-sets the location pointed to by argument
-.Ar valp
-to 1 if the found attribute has a non-zero value, or 0 otherwise.
-The found attribute must have the form
-.Dv DW_FORM_flag .
-.Pp
-Function
-.Fn dwarf_attrval_string
-sets the location pointed to by argument
-.Ar *strp
-to a NUL-terminated string containing the value of the found
-attribute.  It requires that the form of the attribute must be one of
-.Dv DW_FORM_string
-or
-.Dv  DW_FORM_strp .
 .Sh RETURN VALUES
 On success, these functions returns
 .Dv DW_DLV_OK .
-If the debugging information entry descriptor denoted by argument
-.Ar die
-does not contain the named attribute, these functions return
+If the named attribute was not found in the specified debugging
+information entry descriptor these functions return
 .Dv DW_DLV_NO_ENTRY
-and sets argument
+and set argument
 .Ar err .
-For other errors, they returns
+For other errors, these functions return
 .Dv DW_DLV_ERROR
-and sets argument
+and set argument
 .Ar err .
 .Sh COMPATIBILITY
-These functions are extensions added by this specific
-libdwarf implementation.
+These functions are extensions added by this implementation of the
+DWARF(3) API.
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ATTR_FORM_BAD"
 .It Bq Er DW_DLE_ARGUMENT
-One of the arguments
-.Va die ,
-.Va valp ,
+Either of the arguments
+.Va die
 or
-.Va strp
+.Va ret
 was NULL.
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar die
-had no attribute corresponding to the value
-in argument
+did not contain an attribute corresponding to the value in argument
 .Ar attr .
 .It Bq Er DW_DLE_ATTR_FORM_BAD
-The found attribute was not of a permitted kind.
+The attribute named by argument
+.Ar attr
+was not of a permitted form.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
