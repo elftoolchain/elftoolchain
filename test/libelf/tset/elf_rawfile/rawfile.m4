@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
 #include "elfts.h"
 #include "tet_api.h"
 
+include(`elfts.m4')
+
 /*
  * Test the `elf_rawfile' entry point.
  */
@@ -43,14 +45,14 @@ IC_REQUIRES_VERSION_INIT();
  * and set the `sz' pointer to zero.
  */
 void
-tcNull_tpNonNull(void)
+tcNullNonNull(void)
 {
 	size_t sz;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_rawfile(NULL,...) returns an error, "
-	    "and sets the size pointer to zero.");
+	TP_ANNOUNCE("elf_rawfile(NULL,...) returns an error,"
+	    " and sets the size pointer to zero.");
 
 	sz = -1;
 	if (elf_rawfile(NULL, &sz) != NULL ||
@@ -68,7 +70,7 @@ static char ar_file[] = "!<arch>\n"
 changequote()
 
 void
-tcValidAr_tp1(void)
+tcValidAr(void)
 {
 	char *p;
 	Elf *e;
@@ -76,9 +78,9 @@ tcValidAr_tp1(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_rawfile(E,...) descriptor with a valid"
-	    " descriptor `E' to an ar(1) archive succeeds and returns the correct"
-	    " values.");
+	TP_ANNOUNCE("elf_rawfile(E,...) descriptor with a valid"
+	    " descriptor `E' to an ar(1) archive succeeds and returns"
+	    " correct values.");
 
 	TS_OPEN_MEMORY(e, ar_file);
 
@@ -98,7 +100,7 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
 	"\000\000(\000\000\000\000\000";
 
 void
-tcValidElf_tp1(void)
+tcValidElf(void)
 {
 	char *p;
 	Elf *e;
@@ -106,9 +108,9 @@ tcValidElf_tp1(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_rawfile(E,...) descriptor with a valid"
-	    " descriptor `E' to an ELF object succeeds and returns the correct"
-	    " values.");
+	TP_ANNOUNCE("elf_rawfile(E,...) descriptor with a valid"
+	    " descriptor `E' to an ELF object succeeds and returns"
+	    " correct values.");
 
 	TS_OPEN_MEMORY(e, elf_file);
 
@@ -123,14 +125,14 @@ tcValidElf_tp1(void)
 }
 
 void
-tcValid_tpNull(void)
+tcValidNull(void)
 {
 	char *p;
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_rawfile(E,NULL) on a valid descriptor "
+	TP_ANNOUNCE("assertion: elf_rawfile(E,NULL) on a valid descriptor "
 	    "`E' and NULL sz pointer succeeds and returns the correct "
 	    "value.");
 
