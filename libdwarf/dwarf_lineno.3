@@ -1,0 +1,202 @@
+.\" Copyright (c) 2011 Kai Wang
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.\" $Id$
+.\"
+.Dd February 5, 2011
+.Os
+.Dt DWARF_LINENO 3
+.Sh NAME
+.Nm dwarf_line_srcfileno ,
+.Nm dwarf_lineaddr ,
+.Nm dwarf_linebeginstatement ,
+.Nm dwarf_lineblock ,
+.Nm dwarf_lineendsequence ,
+.Nm dwarf_lineno ,
+.Nm dwarf_lineoff ,
+.Nm dwarf_linesrc
+.Nd retrieve line information assoicated with a line descriptor
+.Sh LIBRARY
+.Lb libdwarf
+.Sh SYNOPSIS
+.In libdwarf.h
+.Ft int
+.Fo dwarf_line_srcfileno
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Unsigned *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_lineaddr
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Addr *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_linebeginstatement
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Bool *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_lineblock
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Bool *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_lineendsequence
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Bool *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_lineno
+.Fa "Dwarf_Line ln"
+.Fa "Dwarf_Unsigned *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_lineoff
+.Fa "Dwarf_Signed *ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_linesrc
+.Fa "Dwarf_Line ln"
+.Fa "char **ret"
+.Fa "Dwarf_Error *err"
+.Fc
+.Sh DESCRIPTION
+These functions retrieve specific line information associated with
+the line descriptor referenced by argument
+.Ar ln ,
+and store it in the location pointed to by argument
+.Ar ret .
+If argument
+.Ar err
+is not NULL, it will be used to store error information in case of an
+error.
+.Pp
+Function
+.Fn dwarf_line_srcfileno
+stores the index of the source file that contains the source line denoted
+by the line descriptor
+.Ar ln
+in the location pointed to by argument
+.Ar ret .
+The source file index starts from 1.
+.Pp
+Function
+.Fn dwarf_lineaddr
+stores the program address corresponded to the source line denoted
+by the line descriptor
+.Ar ln
+in the location pointed to by argument
+.Ar ret .
+.Pp
+Function
+.Fn dwarf_linebeginstatement
+sets the location pointed to by argument
+.Ar ret
+to 1 if the source line denoted by the line descriptor
+.Ar ln
+is the beginning of a statement, i.e., a recommanded breakpoint
+location, or 0 otherwise.
+.Pp
+Function
+.Fn dwarf_lineblock
+sets the location pointed to by argument
+.Ar ret
+to 1 if the source line denoted by the line descriptor
+.Ar ln
+is the beginning of a basic block, or 0 otherwise.
+.Pp
+Function
+.Fn dwarf_lineendsequence
+sets the location pointed to by argument
+.Ar ret
+to 1 if the program address corresponded to the source line denoted by
+the line descriptor
+.Ar ln
+is the first byte after the end of a sequence of target machine
+instructions, or 0 otherwise.
+.Pp
+Function
+.Fn dwarf_lineno
+stores the line number of the source line denoted by
+the line descriptor
+.Ar ln .
+.Pp
+Function
+.Fn dwarf_lineoff
+stores the column number within a line at which the source line
+denoted by the line descriptor
+.Ar ln
+begins. Column number begins from 1. The special column number
+-1 indicates that the column number information is not available.
+.Pp
+Function
+.Fn dwarf_linesrc
+stores a pointer to a NUL-terminated string representing the name of
+the source file that contains the source line denoted by the line
+descriptor
+.Ar ln
+in the location pointed to by argument
+.Ar ret .
+The fullpath of the source file is retrieved if possible.
+.Ss Memory Management
+The memory used for the source file name string is managed by the DWARF(3)
+library. The application should not attempt to directly free the name
+string. Portable code should indicate that the name string is to be freed
+by using
+.Xr dwarf_dealloc 3 .
+.Sh RETURN VALUES
+On success, these functions returns
+.Dv DW_DLV_OK .
+In case of an error, they return
+.Dv DW_DLV_ERROR
+and set the argument
+.Ar err .
+.Sh ERRORS
+These functions may fail with the following errors:
+.Bl -tag -width ".Bq Er DW_DLE_LINE_FILE_NUM_BAD"
+.It Bq Er DW_DLE_ARGUMENT
+Either of the arguments
+.Va ln
+or
+.Va ret
+was NULL.
+.It Bq Er DW_DLE_LINE_FILE_NUM_BAD
+Function
+.Fn dwarf_linesrc
+could not find the source file name due to the source file number
+assoicated with line descriptor
+.Ar ln
+is invalid.
+.El
+.Sh SEE ALSO
+.Xr dwarf 3 ,
+.Xr dwarf_srcfiles 3 ,
+.Xr dwarf_srclines 3
