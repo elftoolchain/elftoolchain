@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ include(`elfts.m4')
  * A NULL argument is handled correctly.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	Elf_Scn *scn;
@@ -67,7 +67,7 @@ tcArgs_tpNull(void)
 static char *nonelf = "This is not an ELF file.";
 
 void
-tcArgs_tpNonElf(void)
+tcArgsNonElf(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -98,7 +98,7 @@ tcArgs_tpNonElf(void)
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpAll$1$2(void)
+tcElfAll$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -157,7 +157,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcElf_tpRange$1$2(void)
+tcElfRange$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -205,7 +205,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcExSecNum_tpError$1$2(void)
+tcExSecNumError$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
@@ -247,7 +247,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcExSecNum_tpLast$1$2(void)
+tcExSecNumLast$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
