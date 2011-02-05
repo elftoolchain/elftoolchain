@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ define(`TP_NSYMBOLS',`3')
  * A NULL `Elf' argument fails.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	size_t n;
@@ -80,7 +80,7 @@ tcArgs_tpNull(void)
 static char *nonar = "This is not an AR file.";
 
 void
-tcArgs_tpNonAr(void)
+tcArgsNonAr(void)
 {
 	Elf *e;
 	int error, result;
@@ -109,7 +109,7 @@ tcArgs_tpNonAr(void)
  */
 
 void
-tcArgs_tpElf(void)
+tcArgsElf(void)
 {
 	Elf *e;
 	int error, fd, result;
@@ -154,7 +154,7 @@ define(`ARCHIVE_TESTS',`
  */
 
 void
-tcAr_tpAr$1(void)
+tcArAr$1(void)
 {
 	Elf *e;
 	Elf_Arsym *arsym;
@@ -184,7 +184,7 @@ tcAr_tpAr$1(void)
  */
 
 void
-tcAr_tpDup$1(void)
+tcArDup$1(void)
 {
 	Elf *e;
 	Elf_Arsym *arsym, *t;
@@ -227,7 +227,7 @@ done:
  */
 
 void
-tcAr_tpNoSymtab$1(void)
+tcArNoSymtab$1(void)
 {
 	Elf *e;
 	size_t n;
@@ -257,7 +257,7 @@ tcAr_tpNoSymtab$1(void)
  */
 
 void
-tcAr_tpArSym$1(void)
+tcArArSym$1(void)
 {
 	Elf_Arhdr *arh;
 	Elf *ar_e, *e;
