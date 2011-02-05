@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ $4
 	tet_result(result);
 }')
 
-define(`TP_FLAG_NULL',`_TP_FLAG_FN(`tcArgs_tpNull',`
+define(`TP_FLAG_NULL',`_TP_FLAG_FN(`tcArgsNull',`
 	int error, ret;
 
 	TP_CHECK_INITIALIZATION();
@@ -60,7 +60,7 @@ define(`TP_FLAG_NULL',`_TP_FLAG_FN(`tcArgs_tpNull',`
  *
  * Check that illegal `cmd' values are rejected.
  */
-define(`TP_FLAG_ILLEGAL_CMD',`_TP_FLAG_FN(`tcArgs_tpIllegalCmd',`
+define(`TP_FLAG_ILLEGAL_CMD',`_TP_FLAG_FN(`tcArgsIllegalCmd',`
 	int error, ret;
 	Elf_Cmd cmd;
 	_TP_DECLARATIONS
@@ -87,7 +87,7 @@ define(`TP_FLAG_ILLEGAL_CMD',`_TP_FLAG_FN(`tcArgs_tpIllegalCmd',`
  *
  * Check that an ELF_C_SET works.
  */
-define(`TP_FLAG_SET',`_TP_FLAG_FN(`tcArgs_tpSet',`
+define(`TP_FLAG_SET',`_TP_FLAG_FN(`tcArgsSet',`
 	int error, flag;
 	_TP_DECLARATIONS
 
@@ -110,7 +110,7 @@ define(`TP_FLAG_SET',`_TP_FLAG_FN(`tcArgs_tpSet',`
  *
  * Check that an ELF_C_CLR works.
  */
-define(`TP_FLAG_CLR',`_TP_FLAG_FN(`tcArgs_tpClr',`
+define(`TP_FLAG_CLR',`_TP_FLAG_FN(`tcArgsClr',`
 	int error, flag;
 	_TP_DECLARATIONS
 
@@ -135,7 +135,7 @@ define(`TP_FLAG_CLR',`_TP_FLAG_FN(`tcArgs_tpClr',`
  * Check that all flag values other than those in LEGALFLAGS are
  * rejected with ELF_E_ARGUMENT.
  */
-define(`TP_FLAG_ILLEGAL_FLAG',`_TP_FLAG_FN(`tcArgs_tpIllegalFlags',`
+define(`TP_FLAG_ILLEGAL_FLAG',`_TP_FLAG_FN(`tcArgsIllegalFlags',`
 	int error, ret;
 	unsigned int flags;
 
@@ -165,7 +165,7 @@ define(`TP_FLAG_ILLEGAL_FLAG',`_TP_FLAG_FN(`tcArgs_tpIllegalFlags',`
  */
 define(`TP_FLAG_NON_ELF',`
 char *rawdata = "This is not an ELF file.";
-_TP_FLAG_FN(`tcArgs_tpNonElf',`
+_TP_FLAG_FN(`tcArgsNonElf',`
 	int error, ret;
 	Elf *e;
 
