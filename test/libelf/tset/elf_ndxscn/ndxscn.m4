@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,15 @@
 #include "elfts.h"
 #include "tet_api.h"
 
-IC_REQUIRES_VERSION_INIT();
-
 include(`elfts.m4')
+
+IC_REQUIRES_VERSION_INIT();
 
 /*
  * A NULL argument is handled.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	size_t shn;
@@ -66,7 +66,7 @@ tcArgs_tpNull(void)
 undefine(`FN')
 define(`FN',`
 void
-tcScn_tpSuccess$1$2(void)
+tcScnSuccess$1$2(void)
 {
 	Elf *e;
 	Elf_Scn *scn;
