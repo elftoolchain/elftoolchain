@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ static char testdata[] = {
 undefine(`FN')
 define(`FN',`
 void
-tcDefaultLayout_tp$2$1(void)
+tcDefaultLayout$2$1(void)
 {
 	Elf *e;
 	Elf$1_Ehdr *eh;
@@ -235,7 +235,7 @@ FN(64,MSB)
  */
 define(`FN',`
 void
-tcAppLayout_tp$2$1(void)
+tcAppLayout$2$1(void)
 {
 	Elf *e;
 	Elf$1_Ehdr *eh;
