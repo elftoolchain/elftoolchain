@@ -42,7 +42,7 @@ include(`elfts.m4')
  * A NULL `Elf' argument fails.
  */
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	int error, result;
 	size_t n;
@@ -66,7 +66,7 @@ tcArgs_tpNull(void)
 static char *nonelf = "This is not an ELF file.";
 
 void
-tcArgs_tpNonElf(void)
+tcArgsNonElf(void)
 {
 	Elf *e;
 	size_t n;
@@ -96,7 +96,7 @@ tcArgs_tpNonElf(void)
 undefine(`FN')
 define(`FN',`
 void
-tcNormal_tp$1$3`'TOUPPER($4)(void)
+tcNormal_$1$3`'TOUPPER($4)(void)
 {
 	Elf *e;
 	int fd, result;
@@ -143,7 +143,7 @@ FN(X,`xscn-2',64,msb,65537)
 undefine(`FN')
 define(`FN',`
 void
-tcMalformed_tpXscn$1$2(void)
+tcMalformed_Xscn$1$2(void)
 {
 	Elf *e;
 	int error, fd, result;
