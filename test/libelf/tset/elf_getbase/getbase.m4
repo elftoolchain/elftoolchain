@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 #include "elfts.h"
 #include "tet_api.h"
 
+include(`elfts.m4')
+
 IC_REQUIRES_VERSION_INIT();
 
 /*
@@ -43,7 +45,7 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
 	"\000\000(\000\000\000\000\000";
 
 void
-tcNonMember_tpElf(void)
+tcNonMemberElf(void)
 {
 	int result;
 	off_t off;
@@ -51,15 +53,12 @@ tcNonMember_tpElf(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_getbase() on an ELF file returns -1"
-	    " with error ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("elf_getbase() on an ELF file returns 0");
 
 	TS_OPEN_MEMORY(e, elf_file);
 
 	result = TET_PASS;
-	if ((off = elf_getbase(e)) != (off_t) -1)
-		result = TET_FAIL;
-	else if (elf_errno() != ELF_E_ARGUMENT)
+	if ((off = elf_getbase(e)) != (off_t) 0)
 		result = TET_FAIL;
 
 	tet_result(result);
@@ -73,7 +72,7 @@ static char ar_file[] = "!<arch>\n"
 changequote()
 
 void
-tcNonMember_tpAr(void)
+tcNonMemberAr(void)
 {
 	int result;
 	off_t off;
@@ -81,16 +80,13 @@ tcNonMember_tpAr(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: elf_getbase on an AR file returns -1"
-	    " with error ELF_E_ARGUMENT.");
+	TP_ANNOUNCE("elf_getbase on an AR file returns 0");
 
 	TS_OPEN_MEMORY(e, ar_file);
 
 	result = TET_PASS;
 
-	if ((off = elf_getbase(e)) != (off_t) -1)
-		result = TET_FAIL;
-	else if (elf_errno() != ELF_E_ARGUMENT)
+	if ((off = elf_getbase(e)) != (off_t) 0)
 		result = TET_FAIL;
 
 	tet_result(result);
@@ -102,4 +98,3 @@ tcNonMember_tpAr(void)
  * - test an ar archive with an embedded ELF file.
  * - test an ar archive with an embedded non-elf file.
  */
-
