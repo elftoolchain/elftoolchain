@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ TP_FLAG_ILLEGAL_FLAG(`elf_flagphdr',`e',`ELF_F_DIRTY')
 /*
  * An out-of-sequence call is detected.
  */
-_TP_FLAG_FN(`tcArgs_tpSequence',`
+_TP_FLAG_FN(`tcArgsSequence',`
 	int error, fd;
 	unsigned int f;
 	Elf *e;',`
