@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
  * A NULL elf parameter causes elf_cntl() to fail.
  */
 void
-tcInvalid_tpNull(void)
+tcInvalidNull(void)
 {
 	int error, result, ret;
 
@@ -72,7 +72,7 @@ tcInvalid_tpNull(void)
  * Invalid `cmd' values are rejected.
  */
 void
-tcInvalid_tpInvalid(void)
+tcInvalidInvalid(void)
 {
 	Elf *e;
 	int c, error, result, ret;
@@ -104,7 +104,7 @@ tcInvalid_tpInvalid(void)
  * Calling elf_cntl(FDREAD) for files opened in read mode.
  */
 void
-tcRead_tpFDREAD(void)
+tcReadFDREAD(void)
 {
 	Elf *e;
 	int result;
@@ -130,7 +130,7 @@ static char pathname[PATH_MAX];
  * for writing.
  */
 void
-tcWrite_tpFDREAD(void)
+tcWriteFDREAD(void)
 {
 	Elf *e;
 	int err, fd, result, ret;
@@ -165,7 +165,7 @@ tcWrite_tpFDREAD(void)
  */
 
 void
-tcWrite_tpFDDONE(void)
+tcWriteFDDONE(void)
 {
 	Elf *e;
 	Elf32_Ehdr *eh;
