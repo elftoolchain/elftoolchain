@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 #include "elfts.h"
 #include "tet_api.h"
 
+include(`elfts.m4')
+
 IC_REQUIRES_VERSION_INIT();
 
 /*
@@ -47,11 +49,11 @@ IC_REQUIRES_VERSION_INIT();
  */
 
 void
-tcInvalidArg_tpNullPtrs(void)
+tcInvalidArgNullPtrs(void)
 {
 	Elf *e;
 
-	tet_infoline("assertion: elf_memory(NULL,0) results in a NULL return"
+	TP_ANNOUNCE("elf_memory(NULL,0) results in a NULL return"
 	    " and an error return of ELF_E_ARGUMENT.");
 
 	TP_CHECK_INITIALIZATION();
@@ -82,13 +84,13 @@ static char elf_file[] = "\177ELF\001\001\001	\001\000\000\000\000"
  */
 
 void
-tcValidElf_tpValidSize(void)
+tcValidElfValidSize(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: valid ELF contents and size are correctly"
+	TP_ANNOUNCE("valid ELF contents and size are correctly"
 	    " recognized as an ELF file.");
 
 	if ((e = elf_memory(elf_file, sizeof(elf_file))) == NULL ||
@@ -102,11 +104,11 @@ tcValidElf_tpValidSize(void)
 }
 
 void
-tcValidElf_tpInvalidSize(void)
+tcValidElfInvalidSize(void)
 {
 	Elf *e;
 
-	tet_infoline("assertion: a valid ELF prelude with a too-small size is"
+	TP_ANNOUNCE("a valid ELF prelude with a too-small size is"
 	    " to be recognized as 'DATA'.");
 
 	TP_CHECK_INITIALIZATION();
@@ -122,14 +124,14 @@ tcValidElf_tpInvalidSize(void)
 
 
 void
-tcInvalidElf_tpSignature(void)
+tcInvalidElfSignature(void)
 {
 	Elf *e;
 	char newelf[sizeof(elf_file)];
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: an ELF-like object with an invalid signature"
+	TP_ANNOUNCE("an ELF-like object with an invalid signature"
 	    " should be recognized as 'DATA'.");
 
 	memcpy(newelf, elf_file, sizeof(elf_file));
@@ -144,14 +146,14 @@ tcInvalidElf_tpSignature(void)
 }
 
 void
-tcInvalidElf_tpVersionMismatch(void)
+tcInvalidElfVersionMismatch(void)
 {
 	Elf *e;
 	char newelf[sizeof(elf_file)];
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: an ELF blob with an invalid version number is"
+	TP_ANNOUNCE("an ELF blob with an invalid version number is"
 	    " to be rejected, with error ELF_E_VERSION.");
 
 	memcpy(newelf, elf_file, sizeof(elf_file));
@@ -169,15 +171,17 @@ tcInvalidElf_tpVersionMismatch(void)
  * `ar' archives.
  */
 
+changequote({,})
 static char ar_file[] = "!<arch>\n"
 	"t/              1151656346  1001  0     100644  5         `\n"
 	"Test\n";
+changequote(,)
 
 void
-tcValidAr_tpValid(void)
+tcValidArValid(void)
 {
 	Elf *e;
-	tet_infoline("assertion: an valid AR archive is accepted as type"
+	TP_ANNOUNCE("an valid AR archive is accepted as type"
 	    " ELF_K_AR.");
 
 	TP_CHECK_INITIALIZATION();
@@ -192,13 +196,13 @@ tcValidAr_tpValid(void)
 }
 
 void
-tcInvalidAr_tpInvalidSize(void)
+tcInvalidArInvalidSize(void)
 {
 	Elf *e;
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: a too-small AR archive size is classified"
+	TP_ANNOUNCE("a too-small AR archive size is classified"
 	    " as 'DATA'.");
 
 	if ((e = elf_memory(ar_file, SARMAG-1)) == NULL ||
@@ -210,14 +214,14 @@ tcInvalidAr_tpInvalidSize(void)
 }
 
 void
-tcInvalidAr_tpSignature(void)
+tcInvalidArSignature(void)
 {
 	Elf *e;
 	char not_an_archive[sizeof(ar_file)];
 
 	TP_CHECK_INITIALIZATION();
 
-	tet_infoline("assertion: invalid signature for an archive -> unrecognized");
+	TP_ANNOUNCE("invalid signature for an archive -> unrecognized");
 
 	(void) memcpy(not_an_archive, ar_file, sizeof(not_an_archive));
 	not_an_archive[0] = '~';
