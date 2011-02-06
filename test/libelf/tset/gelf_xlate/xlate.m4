@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 #include "tet_api.h"
 #include "elfts.h"
 
+include(`elfts.m4')
+
 IC_REQUIRES_VERSION_INIT();
 
 #define	NO_TESTCASE_FUNCTIONS	/* only want the tables */
@@ -51,23 +53,25 @@ check_gelf_xlate(Elf_Data *xlator(Elf *e,Elf_Data *d, const Elf_Data *s, unsigne
     Elf *e, int ed, Elf_Data *dst, Elf_Data *src, struct testdata *td, int ncopies)
 {
 	Elf_Data *dstret;
+	int result;
 	size_t msz;
 
 	msz = td->tsd_msz;
+	result = TET_UNRESOLVED;
 
 	/* Invoke translator */
 	if ((dstret = xlator(e, dst, src, ed)) != dst) {
-		tet_printf("fail: \"%s\" " __XSTRING(TC_XLATETOM)
+		TP_FAIL("\"%s\" " __XSTRING(TC_XLATETOM)
 		    ": %s", td->tsd_name, elf_errmsg(-1));
-		return (TET_FAIL);
+		return (result);
 	}
 
 	/* Check return parameters. */
 	if (dst->d_type != td->tsd_type || dst->d_size != msz*ncopies) {
-		tet_printf("fail: \"%s\" type(ret=%d,expected=%d) "
+		TP_FAIL("\"%s\" type(ret=%d,expected=%d) "
 		    "size (ret=%d,expected=%d).", td->tsd_name,
 		    dst->d_type,  td->tsd_type, dst->d_size, msz*ncopies);
-		return (TET_FAIL);
+		return (result);
 	}
 
 	return (TET_PASS);
@@ -123,8 +127,8 @@ _tcByte(const char *fn, Elf *e)
 
 	if ((membuf = malloc(sz*NCOPIES)) == NULL ||
 	    (filebuf = malloc(sz*NCOPIES+NOFFSET)) == NULL) {
-		tet_infoline("unresolved: malloc() failed.");
-		return (TET_UNRESOLVED);
+		TP_UNRESOLVED("malloc() failed.");
+		goto done;
 	}
 
 	/*
@@ -139,7 +143,7 @@ _tcByte(const char *fn, Elf *e)
 	src.d_type    = ELF_T_BYTE;
 	src.d_version = EV_CURRENT;
 
-	tet_printf("assertion: \"%s\" Byte TOF() succeeds.", fn);
+	TP_ANNOUNCE("\"%s\" Byte TOF() succeeds.", fn);
 
 	for (offset = 0; offset < NOFFSET; offset++) {
 		/*
@@ -151,14 +155,12 @@ _tcByte(const char *fn, Elf *e)
 
 		if (gelf_xlatetof(e,&dst,&src,ELFDATA2LSB) != &dst ||
 		    dst.d_size != sz*NCOPIES) {
-			tet_infoline("fail: LSB TOF() conversion.");
-			result = TET_FAIL;
+			TP_FAIL("LSB TOF() conversion.");
 			goto done;
 		}
 
 		if (memcmp(membuf, filebuf+offset, sz*NCOPIES)) {
-			tet_infoline("fail: LSB TOF() memcmp().");
-			result = TET_FAIL;
+			TP_FAIL("LSB TOF() memcmp().");
 			goto done;
 		}
 
@@ -171,14 +173,12 @@ _tcByte(const char *fn, Elf *e)
 
 		if (gelf_xlatetof(e,&dst,&src,ELFDATA2MSB) != &dst ||
 		    dst.d_size != sz*NCOPIES) {
-			tet_infoline("fail: MSB TOF() conversion.");
-			result = TET_FAIL;
+			TP_FAIL("MSB TOF() conversion.");
 			goto done;
 		}
 
 		if (memcmp(membuf, filebuf+offset, sz*NCOPIES)) {
-			tet_infoline("fail: MSB TOF() memcmp().");
-			result = TET_FAIL;
+			TP_FAIL("MSB TOF() memcmp().");
 			goto done;
 		}
 	}
@@ -187,7 +187,7 @@ _tcByte(const char *fn, Elf *e)
 	 * Check file to memory conversions.
 	 */
 
-	tet_printf("assertion: \"%s\" Byte TOM() succeeds.", fn);
+	TP_ANNOUNCE("\"%s\" Byte TOM() succeeds.", fn);
 
 	ref = td_M32_QUAD;
 	sz = sizeof(td_M32_QUAD);
@@ -211,14 +211,12 @@ _tcByte(const char *fn, Elf *e)
 
 		if (gelf_xlatetom(e,&dst,&src,ELFDATA2LSB) != &dst ||
 		    dst.d_size != sz * NCOPIES) {
-			tet_infoline("fail: LSB TOM() conversion.");
-			result = TET_FAIL;
+			TP_FAIL("LSB TOM() conversion.");
 			goto done;
 		}
 
 		if (memcmp(membuf, filebuf+offset, sz*NCOPIES)) {
-			tet_infoline("fail: LSB TOM() memcmp().");
-			result = TET_FAIL;
+			TP_FAIL("LSB TOM() memcmp().");
 			goto done;
 		}
 
@@ -231,14 +229,12 @@ _tcByte(const char *fn, Elf *e)
 
 		if (gelf_xlatetom(e,&dst,&src,ELFDATA2MSB) != &dst ||
 		    dst.d_size != sz * NCOPIES) {
-			tet_infoline("fail: MSB TOM() conversion.");
-			result = TET_FAIL;
+			TP_FAIL("MSB TOM() conversion.");
 			goto done;
 		}
 
 		if (memcmp(membuf, filebuf+offset, sz*NCOPIES)) {
-			tet_infoline("fail: MSB TOM() memcmp().");
-			result = TET_FAIL;
+			TP_FAIL("MSB TOM() memcmp().");
 			goto done;
 		}
 	}
@@ -255,7 +251,7 @@ _tcByte(const char *fn, Elf *e)
 }
 
 void
-tcXlate_tpByte(void)
+tcXlateByte(void)
 {
 	tet_result(tcDriver(_tcByte));
 }
@@ -284,8 +280,9 @@ _tpToM(const char *fn, Elf *e)
 
 		if (msz == 0 ||
 		    fsz != td->tsd_fsz) {
-			tet_printf("? \"%s\" %s: msz=%d fsz=%d td->fsz=%d.",
+			TP_UNRESOLVED("\"%s\" %s: msz=%d fsz=%d td->fsz=%d.",
 			    fn, td->tsd_name, msz, fsz, td->tsd_fsz);
+			goto done;
 		}
 
 		assert(fsz == td->tsd_fsz);
@@ -296,14 +293,12 @@ _tpToM(const char *fn, Elf *e)
 		 */
 		if ((srcbuf = malloc(NCOPIES*fsz+NOFFSET)) == NULL ||
 		    ((membuf = malloc(NCOPIES*msz))) == NULL) {
-			if (srcbuf)
-				free(srcbuf);
-			tet_infoline("unresolved: malloc() failed.");
-			return (TET_UNRESOLVED);
+			TP_UNRESOLVED("malloc() failed.");
+			goto done;
 		}
 
 
-		tet_printf("assertion: \"%s\" gelf_xlatetom(%s) succeeds.", fn,
+		TP_ANNOUNCE("\"%s\" gelf_xlatetom(%s) succeeds.", fn,
 		    td->tsd_name);
 
 		for (offset = 0; offset < NOFFSET; offset++) {
@@ -334,14 +329,16 @@ _tpToM(const char *fn, Elf *e)
 			    TET_PASS)
 				goto done;
 
-			/* compare the retrieved data with the canonical value */
+			/*
+			 * Compare the retrieved data with the canonical
+			 * value
+			 */
 			t = dst.d_buf;
 			for (i = 0; i < NCOPIES; i++) {
 				if (memcmp(t, td->tsd_mem, msz)) {
-					tet_printf("fail: \"%s\" \"%s\" LSB "
+					TP_FAIL("\"%s\" \"%s\" LSB "
 					    "memory compare failed.", fn,
 					    td->tsd_name);
-					result = TET_FAIL;
 					goto done;
 				}
 				t += msz;
@@ -366,10 +363,9 @@ _tpToM(const char *fn, Elf *e)
 			t = dst.d_buf;
 			for (i = 0; i < NCOPIES; i++) {
 				if (memcmp(t, td->tsd_mem, msz)) {
-					tet_printf("fail: \"%s\" \"%s\" MSB "
+					TP_FAIL("\"%s\" \"%s\" MSB "
 					    "memory compare failed.", fn,
 					    td->tsd_name);
-					result = TET_FAIL;
 					goto done;
 				}
 				t += msz;
@@ -390,7 +386,7 @@ _tpToM(const char *fn, Elf *e)
 }
 
 void
-tcXlate_tpToM(void)
+tcXlateToM(void)
 {
 	tet_result(tcDriver(_tpToM));
 }
@@ -422,8 +418,9 @@ _tpToF(const char *fn, Elf *e)
 
 		if (msz == 0 ||
 		    fsz != td->tsd_fsz) {
-			tet_printf("? \"%s\" %s: msz=%d fsz=%d td->fsz=%d.",
+			TP_UNRESOLVED("? \"%s\" %s: msz=%d fsz=%d td->fsz=%d.",
 			    fn, td->tsd_name, msz, fsz, td->tsd_fsz);
+			goto done;
 		}
 
 		assert(msz > 0);
@@ -435,14 +432,12 @@ _tpToF(const char *fn, Elf *e)
 		 */
 		if ((filebuf = malloc(NCOPIES*fsz+NOFFSET)) == NULL ||
 		    ((membuf = malloc(NCOPIES*msz))) == NULL) {
-			if (filebuf)
-				free(filebuf);
-			tet_infoline("unresolved: malloc() failed.");
-			return (TET_UNRESOLVED);
+			TP_UNRESOLVED("malloc() failed.");
+			goto done;
 		}
 
 
-		tet_printf("assertion: \"%s\" gelf_xlatetof(%s) succeeds.", fn,
+		TP_ANNOUNCE("\"%s\" gelf_xlatetof(%s) succeeds.", fn,
 		    td->tsd_name);
 
 		for (offset = 0; offset < NOFFSET; offset++) {
@@ -456,7 +451,10 @@ _tpToF(const char *fn, Elf *e)
 			 * Check LSB conversion.
 			 */
 
-			/* copy `NCOPIES' of canonical memory data to the src buffer */
+			/*
+			 * Copy `NCOPIES' of canonical memory data to the
+			 * src buffer.
+			 */
 			t = membuf;
 			for (i = 0; i < NCOPIES; i++) {
 				(void) memcpy(t, td->tsd_mem, msz);
@@ -477,9 +475,8 @@ _tpToF(const char *fn, Elf *e)
 			t = filebuf + offset;
 			for (i = 0; i < NCOPIES; i++) {
 				if (memcmp(t, td->tsd_lsb, fsz)) {
-					tet_printf("fail: \"%s\" \"%s\" LSB memory "
+					TP_FAIL("\"%s\" \"%s\" LSB memory "
 					    "compare.", fn, td->tsd_name);
-					result = TET_FAIL;
 					goto done;
 				}
 				t += fsz;
@@ -508,9 +505,9 @@ _tpToF(const char *fn, Elf *e)
 			t = filebuf + offset;
 			for (i = 0; i < NCOPIES; i++) {
 				if (memcmp(t, td->tsd_msb, fsz)) {
-					tet_printf("fail: \"%s\" \"%s\" MSB "
-					    "memory compare.", fn, td->tsd_name);
-					result = TET_FAIL;
+					TP_FAIL("\"%s\" \"%s\" MSB "
+					    "memory compare.", fn,
+					    td->tsd_name);
 					goto done;
 				}
 				t += fsz;
@@ -531,7 +528,7 @@ _tpToF(const char *fn, Elf *e)
 }
 
 void
-tcXlate_tpToF(void)
+tcXlateToF(void)
 {
 	tet_result(tcDriver(_tpToF));
 }
@@ -547,7 +544,7 @@ _tpNullArgs(const char *fn, Elf *e)
 	Elf_Data ed;
 	int result;
 
-	tet_printf("assertion: gelf_xlatetof(%s)/gelf_xlatetom(%s)"
+	TP_ANNOUNCE("gelf_xlatetof(%s)/gelf_xlatetom(%s)"
 	    " with NULL arguments fails with ELF_E_ARGUMENT.",
 	    fn, fn);
 
@@ -581,7 +578,7 @@ _tpNullArgs(const char *fn, Elf *e)
 }
 
 void
-tcArgs_tpNull(void)
+tcArgsNull(void)
 {
 	tet_result(tcDriver(_tpNullArgs));
 }
@@ -594,7 +591,7 @@ _tpBadType(const char *fn, Elf *e)
 	int result;
 	char buf[1024];
 
-	tet_printf("assertion: gelf_xlatetof(%s)/"
+	TP_ANNOUNCE("gelf_xlatetof(%s)/"
 	    "gelf_xlatetom(%s) with an out of range type "
 	    "fails with ELF_E_DATA.", fn, fn);
 
@@ -628,7 +625,7 @@ _tpBadType(const char *fn, Elf *e)
 }
 
 void
-tcArgs_tpBadType(void)
+tcArgsBadType(void)
 {
 	tet_result(tcDriver(_tpBadType));
 }
@@ -639,7 +636,7 @@ _tpBadEncoding(const char *fn, Elf *e)
 	Elf_Data ed, es;
 	int result;
 
-	tet_infoline("assertion: %s gelf_xlatetof/"
+	TP_ANNOUNCE("gelf_xlatetof/"
 	    "gelf_xlatetom()(*,*,BADENCODING) "
 	    "fails with ELF_E_ARGUMENT.");
 
@@ -663,7 +660,7 @@ _tpBadEncoding(const char *fn, Elf *e)
 }
 
 void
-tcArgs_tpBadEncoding(void)
+tcArgsBadEncoding(void)
 {
 	tet_result(tcDriver(_tpBadEncoding));
 }
@@ -675,8 +672,8 @@ _tpDstSrcVersion(const char *fn, Elf *e)
 	int result;
 	char buf[sizeof(int)];
 
-	tet_infoline("assertion: gelf_xlateto[fm]() "
-	    "with unequal src,dst versions fails with ELF_E_UNIMPL.");
+	TP_ANNOUNCE("gelf_xlateto[fm]() with unequal src,dst versions "
+	    "fails with ELF_E_UNIMPL.");
 
 	es.d_buf     = ed.d_buf = buf;
 	es.d_type    = ELF_T_BYTE;
@@ -698,7 +695,7 @@ _tpDstSrcVersion(const char *fn, Elf *e)
 }
 
 void
-tcArgs_tpDstSrcVersion(void)
+tcArgsDstSrcVersion(void)
 {
 	tet_result(tcDriver(_tpDstSrcVersion));
 }
@@ -713,16 +710,19 @@ _tpUnimplemented(const char *fn, Elf *e)
 	int i, result;
 	char *buf;
 
-	tet_infoline("assertion: gelf_xlateto[fm]() on "
-	    "unimplemented types will with ELF_E_UNIMPL.");
+	buf = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("gelf_xlateto[fm]() on unimplemented types will "
+	    "fail with ELF_E_UNIMPL.");
 
 	/*
 	 * allocate a buffer that is large enough for any potential
 	 * ELF data structure.
 	 */
 	if ((buf = malloc(1024)) == NULL) {
-		tet_infoline("unresolved: malloc() failed.");
-		return (TET_UNRESOLVED);
+		TP_UNRESOLVED("malloc() failed.");
+		goto done;
 	}
 
 	ed.d_buf = es.d_buf = buf;
@@ -753,35 +753,37 @@ _tpUnimplemented(const char *fn, Elf *e)
 
 		if (gelf_xlatetof(e, &ed, &es, ELFDATA2LSB) != NULL ||
 		    elf_errno() != ELF_E_UNIMPL) {
-			tet_printf("fail: TOF/LSB/type=%d.", i);
-			result = TET_FAIL;
+			TP_FAIL("TOF/LSB/type=%d.", i);
+			goto done;
 		}
 
 		if (gelf_xlatetof(e, &ed, &es, ELFDATA2MSB) != NULL ||
 		    elf_errno() != ELF_E_UNIMPL) {
-			tet_printf("fail: TOF/MSB/type=%d.", i);
-			result = TET_FAIL;
+			TP_FAIL("TOF/MSB/type=%d.", i);
+			goto done;
 		}
 
 		if (gelf_xlatetom(e, &ed, &es, ELFDATA2LSB) != NULL ||
 		    elf_errno() != ELF_E_UNIMPL) {
-			tet_printf("fail: TOM/LSB/type=%d.", i);
-			result = TET_FAIL;
+			TP_FAIL("TOM/LSB/type=%d.", i);
+			goto done;
 		}
 
 		if (gelf_xlatetom(e, &ed, &es, ELFDATA2MSB) != NULL ||
 		    elf_errno() != ELF_E_UNIMPL) {
-			tet_printf("fail: TOM/MSB/type=%d.", i);
-			result = TET_FAIL;
+			TP_FAIL("fail: TOM/MSB/type=%d.", i);
+			goto done;
 		}
 	}
 
-	free(buf);
+done:
+	if (buf)
+		free(buf);
 	return (result);
 }
 
 void
-tcArgs_tpUnimplemented(void)
+tcArgsUnimplemented(void)
 {
 	tet_result(tcDriver(_tpUnimplemented));
 }
@@ -796,7 +798,7 @@ _tpNullDataPtr(const char *fn, Elf *e)
 	int result;
 	char buf[sizeof(int)];
 
-	tet_printf("assertion: gelf_xlateto[fm](%s) with a null "
+	TP_ANNOUNCE("gelf_xlateto[fm](%s) with a null "
 	    "src,dst buffer pointer fails with ELF_E_DATA.", fn);
 
 	result = TET_PASS;
@@ -830,7 +832,7 @@ _tpNullDataPtr(const char *fn, Elf *e)
 }
 
 void
-tcBuffer_tpNullDataPtr(void)
+tcBufferNullDataPtr(void)
 {
 	tet_result(tcDriver(_tpNullDataPtr));
 }
@@ -848,16 +850,16 @@ _tpMisaligned(const char *fn, Elf *e)
 	char *sb, *db;
 	struct testdata *td;
 
-	tet_printf("assertion: \"%s\" misaligned buffers are rejected with "
+	sb = db = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("\"%s\" misaligned buffers are rejected with "
 	    "ELF_E_DATA.", fn);
 
-	sb = db = NULL;
 	if ((sb = malloc(1024)) == NULL ||
 	    (db = malloc(1024)) == NULL) {
-		tet_infoline("unresolved: malloc() failed.");
-		if (sb)
-			free(sb);
-		return (TET_UNRESOLVED);
+		TP_UNRESOLVED("malloc() failed.");
+		goto done;
 	}
 
 	result = TET_PASS;
@@ -881,9 +883,8 @@ _tpMisaligned(const char *fn, Elf *e)
 
 		if (gelf_xlatetom(e, &ed, &es, ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOM alignment.",
-			    td->tsd_name);
-			result = TET_FAIL;
+			TP_FAIL("\"%s\" TOM alignment.", td->tsd_name);
+			goto done;
 		}
 
 		/* Misalign the source for to-file xfers */
@@ -893,19 +894,22 @@ _tpMisaligned(const char *fn, Elf *e)
 
 		if (gelf_xlatetof(e, &ed, &es, ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOF alignment.",
+			TP_FAIL("\"%s\" TOF alignment.",
 			    td->tsd_name);
-			result = TET_FAIL;
+			goto done;
 		}
 	}
 
-	free(sb);
-	free(db);
+done:
+	if (sb)
+		free(sb);
+	if (db)
+		free(db);
 	return (result);
 }
 
 void
-tcBuffer_tpMisaligned(void)
+tcBufferMisaligned(void)
 {
 	tet_result(tcDriver(_tpMisaligned));
 }
@@ -920,7 +924,7 @@ _tpOverlap(const char *fn, Elf *e)
 	int result;
 	char buf[sizeof(int)];
 
-	tet_printf("assertion: \"%s\" overlapping buffers are rejected with "
+	TP_ANNOUNCE("\"%s\" overlapping buffers are rejected with "
 	    "ELF_E_DATA.", fn);
 
 	es.d_buf = buf; 	ed.d_buf = buf+1;
@@ -932,21 +936,22 @@ _tpOverlap(const char *fn, Elf *e)
 
 	if (gelf_xlatetof(e, &ed, &es, ELFDATANONE) != NULL ||
 	    elf_errno() != ELF_E_DATA) {
-		tet_infoline("fail: gelf_xlatetof().");
-		result = TET_FAIL;
+		TP_FAIL("gelf_xlatetof().");
+		goto done;
 	}
 
 	if (gelf_xlatetom(e, &ed, &es, ELFDATANONE) != NULL ||
 	    elf_errno() != ELF_E_DATA) {
-		tet_infoline("fail: gelf_xlatetom().");
-		result = TET_FAIL;
+		TP_FAIL("gelf_xlatetom().");
+		goto done;
 	}
 
+done:
 	return (result);
 }
 
 void
-tcBuffer_tpOverlap(void)
+tcBufferOverlap(void)
 {
 	tet_result(tcDriver(_tpOverlap));
 }
@@ -963,16 +968,14 @@ _tpSrcExtra(const char *fn, Elf *e)
 	char *sb, *db;
 	struct testdata *td;
 
-	tet_printf("assertion: \"%s\" mis-sized buffers are rejected with "
+	TP_ANNOUNCE("\"%s\" mis-sized buffers are rejected with "
 	    "ELF_E_DATA.", fn);
 
 	sb = db = NULL;
 	if ((sb = malloc(1024)) == NULL ||
 	    (db = malloc(1024)) == NULL) {
-		tet_infoline("unresolved: malloc() failed.");
-		if (sb)
-			free(sb);
-		return (TET_UNRESOLVED);
+		TP_UNRESOLVED("malloc() failed.");
+		goto done;
 	}
 
 	result = TET_PASS;
@@ -995,28 +998,29 @@ _tpSrcExtra(const char *fn, Elf *e)
 
 		if (gelf_xlatetom(e, &ed, &es, ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOM buffer size.",
-			    td->tsd_name);
-			result = TET_FAIL;
+			TP_FAIL("\"%s\" TOM buffer size.", td->tsd_name);
+			goto done;
 		}
 
 		es.d_size = msz+1;
 		if (gelf_xlatetof(e, &ed, &es, ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOF buffer size.",
-			    td->tsd_name);
-			result = TET_FAIL;
+			TP_FAIL("\"%s\" TOF buffer size.", td->tsd_name);
+			goto done;
 		}
 	}
 
-	free(sb);
-	free(db);
+done:
+	if (sb)
+		free(sb);
+	if (db)
+		free(db);
 
 	return (result);
 }
 
 void
-tcBuffer_tpSrcExtra(void)
+tcBufferSrcExtra(void)
 {
 	tet_result(tcDriver(_tpSrcExtra));
 }
@@ -1032,7 +1036,7 @@ _tpDstTooSmall(const char *fn, Elf *e)
 
 	result = TET_PASS;
 
-	tet_printf("assertion: \"%s\" too small destination buffers are "
+	TP_ANNOUNCE("\"%s\" too small destination buffers are "
 	    "rejected with ELF_E_DATA.", fn);
 
 	td = gelf_getclass(e) == ELFCLASS32 ? tests32 : tests64;
@@ -1050,25 +1054,24 @@ _tpDstTooSmall(const char *fn, Elf *e)
 
 		if (gelf_xlatetof(e, &ed, &es, ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOF dst size.",
-			    td->tsd_name);
-			result = TET_FAIL;
+			TP_FAIL("\"%s\" TOF dst size.", td->tsd_name);
+			goto done;
 		}
 
 		es.d_size = (sizeof(buf) / fsz) * fsz;
 		if (gelf_xlatetom(e, &ed,&es,ELFDATANONE) != NULL ||
 		    elf_errno() != ELF_E_DATA) {
-			tet_printf("fail: \"%s\" TOF dst size.",
-			    td->tsd_name);
-			result = TET_FAIL;
+			TP_FAIL("\"%s\" TOF dst size.", td->tsd_name);
+			goto done;
 		}
 	}
 
+done:
 	return (result);
 }
 
 void
-tcBuffer_tpDstTooSmall(void)
+tcBufferDstTooSmall(void)
 {
 	tet_result(tcDriver(_tpDstTooSmall));
 }
@@ -1092,9 +1095,7 @@ _tpSharedBufferByte(const char *fn, Elf *e)
 		t = dst.d_buf;						\
 		for (i = 0; i < NCOPIES; i++, t += (SZ))		\
 			if (memcmp((R), t, (SZ))) {			\
-				tet_infoline("fail: LSB TOF() "		\
-				    "memcmp().");			\
-				tet_result(TET_FAIL);			\
+				TP_FAIL("LSB TOF() memcmp().");		\
 				goto done;				\
 			}						\
 	} while (0)
@@ -1104,7 +1105,7 @@ _tpSharedBufferByte(const char *fn, Elf *e)
 	sz     = sizeof(TYPEDEFNAME(L,QUAD));
 
 	if ((membuf = malloc(sz * NCOPIES)) == NULL) {
-		tet_printf("unresolved: \"%s\" malloc() failed.", fn);
+		TP_UNRESOLVED("\"%s\" malloc() failed.", fn);
 		return (TET_UNRESOLVED);
 	}
 
@@ -1114,16 +1115,15 @@ _tpSharedBufferByte(const char *fn, Elf *e)
 	for (i = 0; i < NCOPIES; i++)
 		t = memcpy(t, ref, sz) + sz;
 
-	tet_printf("assertion: \"%s\" byte TOF() on a shared dst/src arena "
+	TP_ANNOUNCE("\"%s\" byte TOF() on a shared dst/src arena "
 	    "succeeds.", fn);
 
 	PREPARE_SHARED(ELF_T_BYTE, sz);
 	if (gelf_xlatetof(e, &dst, &src, ELFDATA2LSB) != &dst ||
 	    dst.d_size != sz * NCOPIES ||
 	    dst.d_buf != src.d_buf) {
-		tet_printf("fail: \"%s\" LSB TOF() conversion: %s.", fn,
+		TP_FAIL("\"%s\" LSB TOF() conversion: %s.", fn,
 		    elf_errmsg(-1));
-		result = TET_FAIL;
 		goto done;
 	}
 	VERIFY(ref,sz);
@@ -1132,23 +1132,21 @@ _tpSharedBufferByte(const char *fn, Elf *e)
 	if (gelf_xlatetof(e, &dst, &src, ELFDATA2MSB) != &dst ||
 	    dst.d_size != sz * NCOPIES ||
 	    dst.d_buf != src.d_buf) {
-		tet_printf("fail: \"%s\" MSB TOF() conversion: %s.", fn,
+		TP_FAIL("\"%s\" MSB TOF() conversion: %s.", fn,
 		    elf_errmsg(-1));
-		result = TET_FAIL;
 		goto done;
 	}
 	VERIFY(ref,sz);
 
-	tet_printf("assertion: \"%s\" byte TOM() on a shared dst/src arena "
+	TP_ANNOUNCE("assertion: \"%s\" byte TOM() on a shared dst/src arena "
 	    "succeeds.", fn);
 
 	PREPARE_SHARED(ELF_T_BYTE, sz);
 	if (gelf_xlatetom(e, &dst, &src, ELFDATA2LSB) != &dst ||
 	    dst.d_size != sz * NCOPIES ||
 	    dst.d_buf != src.d_buf) {
-		tet_printf("fail: \"%s\" LSB TOM() conversion: %s.", fn,
+		TP_FAIL("\"%s\" LSB TOM() conversion: %s.", fn,
 		    elf_errmsg(-1));
-		result = TET_FAIL;
 		goto done;
 	}
 	VERIFY(ref,sz);
@@ -1157,22 +1155,22 @@ _tpSharedBufferByte(const char *fn, Elf *e)
 	if (gelf_xlatetom(e, &dst, &src, ELFDATA2MSB) != &dst ||
 	    dst.d_size != sz * NCOPIES ||
 	    dst.d_buf != src.d_buf) {
-		tet_printf("fail: \"%s\" MSB TOM() conversion: %s.", fn,
+		TP_FAIL("\"%s\" MSB TOM() conversion: %s.", fn,
 		    elf_errmsg(-1));
-		result = TET_FAIL;
 		goto done;
 	}
 	VERIFY(ref,sz);
 
  done:
-	free(membuf);
+	if (membuf)
+		free(membuf);
 
 	return (result);
 }
 
 
 void
-tcBuffer_tpSharedBufferByte(void)
+tcBufferSharedBufferByte(void)
 {
 	tet_result(tcDriver(_tpSharedBufferByte));
 }
@@ -1190,11 +1188,11 @@ _tpToMShared(const char *fn, Elf *e)
 
 	td = gelf_getclass(e) == ELFCLASS32 ? tests32 : tests64;
 
-	r = TET_PASS;
+	result = TET_PASS;
 
 	for (; td->tsd_name; td++) {
 
-		tet_printf("assertion: \"%s\" in-place gelf_xlatetom"
+		TP_ANNOUNCE("\"%s\" in-place gelf_xlatetom"
 		    "(\"%s\").", fn, td->tsd_name);
 
 		fsz = gelf_fsize(e, td->tsd_type, 1, EV_CURRENT);
@@ -1203,9 +1201,8 @@ _tpToMShared(const char *fn, Elf *e)
 		assert(msz >= fsz);
 
 		if ((membuf = malloc(fsz * NCOPIES)) == NULL) {
-			tet_printf("unresolved: \"%s\" \"%s\" malloc() failed.",
+			TP_UNRESOLVED("\"%s\" \"%s\" malloc() failed.",
 			    fn, td->tsd_name);
-			r = TET_UNRESOLVED;
 			goto done;
 		}
 
@@ -1218,14 +1215,13 @@ _tpToMShared(const char *fn, Elf *e)
 			t = memcpy(t, td->tsd_lsb, fsz) + fsz;
 
 		PREPARE_SHARED(td->tsd_type, fsz);
-		result = gelf_xlatetom(e, &dst, &src, ELFDATA2LSB) == &dst;
+		r = gelf_xlatetom(e, &dst, &src, ELFDATA2LSB) == &dst;
 
 		if (fsz < msz) {
 			/* conversion should fail with ELF_E_DATA */
-			if (result || elf_errno() != ELF_E_DATA) {
-				tet_printf("fail: \"%s\" \"%s\" LSB TOM() succeeded "
+			if (r || elf_errno() != ELF_E_DATA) {
+				TP_FAIL("\"%s\" \"%s\" LSB TOM() succeeded "
 				    "with fsz < msz", fn, td->tsd_name);
-				r = TET_FAIL;
 				goto done;
 			}
 			free(membuf); membuf = NULL;
@@ -1233,10 +1229,9 @@ _tpToMShared(const char *fn, Elf *e)
 		}
 
 		/* conversion should have succeeded. */
-		if (!result) {
-			tet_printf("fail: \"%s\" \"%s\" LSB TOM() failed.",
+		if (!r) {
+			TP_FAIL("\"%s\" \"%s\" LSB TOM() failed.",
 			    fn, td->tsd_name);
-			r = TET_FAIL;
 			goto done;
 		}
 
@@ -1251,14 +1246,13 @@ _tpToMShared(const char *fn, Elf *e)
 			t = memcpy(t, td->tsd_msb, fsz) + fsz;
 
 		PREPARE_SHARED(td->tsd_type, fsz);
-		result = gelf_xlatetom(e, &dst, &src, ELFDATA2MSB) == &dst;
+		r = gelf_xlatetom(e, &dst, &src, ELFDATA2MSB) == &dst;
 
 		if (fsz < msz) {
 			/* conversion should fail with ELF_E_DATA */
-			if (result || elf_errno() != ELF_E_DATA) {
-				tet_printf("fail: \"%s\" \"%s\" MSB TOM() succeeded "
+			if (r || elf_errno() != ELF_E_DATA) {
+				TP_FAIL("\"%s\" \"%s\" MSB TOM() succeeded "
 				    "with fsz < msz", fn, td->tsd_name);
-				r = TET_FAIL;
 				goto done;
 			}
 			free(membuf); membuf = NULL;
@@ -1266,10 +1260,9 @@ _tpToMShared(const char *fn, Elf *e)
 		}
 
 		/* conversion should have succeeded. */
-		if (!result) {
-			tet_printf("fail: \"%s\" \"%s\" MSB TOM() failed.",
+		if (!r) {
+			TP_FAIL("\"%s\" \"%s\" MSB TOM() failed.",
 			    fn, td->tsd_name);
-			r = TET_FAIL;
 			goto done;
 		}
 
@@ -1280,11 +1273,11 @@ _tpToMShared(const char *fn, Elf *e)
  done:
 	if (membuf)
 		free(membuf);
-	return (r);
+	return (result);
 }
 
 void
-tcXlate_tpToMShared(void)
+tcXlateToMShared(void)
 {
 	tet_result(tcDriver(_tpToMShared));
 }
@@ -1305,7 +1298,7 @@ _tpToFShared(const char *fn, Elf *e)
 
 	for (; td->tsd_name; td++) {
 
-		tet_printf("assertion: \"%s\" in-place gelf_xlatetof(\"%s\").",
+		TP_ANNOUNCE("\"%s\" in-place gelf_xlatetof(\"%s\").",
 		    fn, td->tsd_name);
 
 		fsz = gelf_fsize(e, td->tsd_type, 1, EV_CURRENT);
@@ -1314,9 +1307,8 @@ _tpToFShared(const char *fn, Elf *e)
 		assert(msz >= fsz);
 
 		if ((membuf = malloc(msz * NCOPIES)) == NULL) {
-			tet_printf("unresolved: \"%s\" \"%s\" malloc() failed.",
+			TP_UNRESOLVED("\"%s\" \"%s\" malloc() failed.",
 			    fn, td->tsd_name);
-			result = TET_UNRESOLVED;
 			goto done;
 		}
 
@@ -1330,9 +1322,8 @@ _tpToFShared(const char *fn, Elf *e)
 
 		PREPARE_SHARED(td->tsd_type, msz);
 		if (gelf_xlatetof(e, &dst, &src, ELFDATA2LSB) != &dst) {
-			tet_printf("fail: \"%s\" \"%s\" LSB TOF() failed: %s.",
+			TP_FAIL("\"%s\" \"%s\" LSB TOF() failed: %s.",
 			    fn, td->tsd_name, elf_errmsg(-1));
-			result = TET_FAIL;
 			goto done;
 		}
 		VERIFY(td->tsd_lsb,fsz);
@@ -1347,9 +1338,8 @@ _tpToFShared(const char *fn, Elf *e)
 
 		PREPARE_SHARED(td->tsd_type, msz);
 		if (gelf_xlatetof(e, &dst, &src, ELFDATA2MSB) != &dst) {
-			tet_printf("fail: \"%s\" \"%s\" MSB TOF() failed: %s.",
+			TP_FAIL("\"%s\" \"%s\" MSB TOF() failed: %s.",
 			    fn, td->tsd_name, elf_errmsg(-1));
-			result = TET_FAIL;
 			goto done;
 		}
 		VERIFY(td->tsd_msb,fsz);
@@ -1362,7 +1352,7 @@ _tpToFShared(const char *fn, Elf *e)
 }
 
 void
-tcXlate_tpToFShared(void)
+tcXlateToFShared(void)
 {
 	tet_result(tcDriver(_tpToFShared));
 }
