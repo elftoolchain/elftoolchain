@@ -109,6 +109,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_hasform.3					\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
+	dwarf_lineno.3					\
 	dwarf_next_cu_header.3				\
 	dwarf_seterrarg.3				\
 	dwarf_srcfiles.3				\
@@ -138,6 +139,13 @@ MLINKS+= \
 	dwarf_highpc.3	dwarf_bytesize.3		\
 	dwarf_highpc.3	dwarf_lowpc.3			\
 	dwarf_highpc.3	dwarf_srclang.3			\
+	dwarf_lineno.3	dwarf_lineaddr.3		\
+	dwarf_lineno.3	dwarf_linebeginstatement.3	\
+	dwarf_lineno.3	dwarf_lineblock.3		\
+	dwarf_lineno.3	dwarf_lineendsequence.3		\
+	dwarf_lineno.3	dwarf_lineoff.3			\
+	dwarf_lineno.3	dwarf_linesrc.3			\
+	dwarf_lineno.3	dwarf_line_srcfileno.3		\
 	dwarf_seterrarg.3	dwarf_seterrhand.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
