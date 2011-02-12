@@ -522,6 +522,7 @@ int		dwarf_func_die_offset(Dwarf_Func, Dwarf_Off *,
 int		dwarf_func_name_offsets(Dwarf_Func, char **,
 		    Dwarf_Off *, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_funcname(Dwarf_Func, char **, Dwarf_Error *);
+void		dwarf_funcs_dealloc(Dwarf_Debug, Dwarf_Func *, Dwarf_Signed);
 int		dwarf_global_formref(Dwarf_Attribute, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_formaddr(Dwarf_Attribute, Dwarf_Addr *, Dwarf_Error *);
@@ -642,6 +643,7 @@ int		dwarf_get_vars(Dwarf_Debug, Dwarf_Var **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_get_weaks(Dwarf_Debug, Dwarf_Weak **, Dwarf_Signed *,
 		    Dwarf_Error *);
+void		dwarf_globals_dealloc(Dwarf_Debug, Dwarf_Global *, Dwarf_Signed);
 int		dwarf_global_cu_offset(Dwarf_Global, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_global_die_offset(Dwarf_Global, Dwarf_Off *,
 		    Dwarf_Error *);
@@ -704,6 +706,7 @@ Dwarf_P_Debug	dwarf_producer_init_b(Dwarf_Unsigned, Dwarf_Callback_Func_b,
 		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
 int		dwarf_producer_set_isa(Dwarf_P_Debug, Dwarf_Unsigned,
 		    Dwarf_Error *);
+void		dwarf_pubtypes_dealloc(Dwarf_Debug, Dwarf_Type *, Dwarf_Signed);
 int		dwarf_pubtype_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_pubtype_die_offset(Dwarf_Type, Dwarf_Off *,
 		    Dwarf_Error *);
@@ -720,17 +723,20 @@ Dwarf_Half	dwarf_set_frame_undefined_value(Dwarf_Debug, Dwarf_Half);
 int		dwarf_set_reloc_application(int);
 Dwarf_Ptr	dwarf_seterrarg(Dwarf_Debug, Dwarf_Ptr);
 Dwarf_Handler	dwarf_seterrhand(Dwarf_Debug, Dwarf_Handler);
+void		dwarf_types_dealloc(Dwarf_Debug, Dwarf_Type *, Dwarf_Signed);
 int		dwarf_type_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_type_die_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_type_name_offsets(Dwarf_Type, char **,
 		    Dwarf_Off *, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_typename(Dwarf_Type, char **, Dwarf_Error *);
+void		dwarf_vars_dealloc(Dwarf_Debug, Dwarf_Var *, Dwarf_Signed);
 int		dwarf_var_cu_offset(Dwarf_Var, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_var_die_offset(Dwarf_Var, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_var_name_offsets(Dwarf_Var, char **,
 		    Dwarf_Off *, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_varname(Dwarf_Var, char **, Dwarf_Error *);
+void		dwarf_weaks_dealloc(Dwarf_Debug, Dwarf_Weak *, Dwarf_Signed);
 int		dwarf_weak_cu_offset(Dwarf_Weak, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_weak_die_offset(Dwarf_Weak, Dwarf_Off *,
 		    Dwarf_Error *);
