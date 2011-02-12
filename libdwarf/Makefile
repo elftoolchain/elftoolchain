@@ -105,6 +105,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_formudata.3				\
 	dwarf_get_address_size.3			\
 	dwarf_get_elf.3					\
+	dwarf_get_globals.3				\
 	dwarf_hasattr.3					\
 	dwarf_hasform.3					\
 	dwarf_highpc.3					\
@@ -131,6 +132,10 @@ MLINKS+= \
 	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
 	dwarf_formref.3	dwarf_global_formref.3		\
 	dwarf_formudata.3	dwarf_formsdata.3	\
+	dwarf_get_globals.3	dwarf_global_die_offset.3 \
+	dwarf_get_globals.3	dwarf_global_cu_offset.3 \
+	dwarf_get_globals.3	dwarf_global_name_offsets.3 \
+	dwarf_get_globals.3	dwarf_globname.3	\
 	dwarf_hasform.3	dwarf_whatform.3		\
 	dwarf_hasform.3	dwarf_whatform_direct.3		\
 	dwarf_highpc.3	dwarf_arrayorder.3		\
