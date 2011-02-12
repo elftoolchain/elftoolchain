@@ -139,4 +139,13 @@ dwarf_$1_name_offsets(Dwarf_$2 $1, char **ret_name, Dwarf_Off *die_offset,
 
 	return (DW_DLV_OK);
 }
+
+void
+dwarf_$1s_dealloc(Dwarf_Debug dbg, Dwarf_$2 *$1s, Dwarf_Signed count)
+{
+
+	(void) dbg;
+	(void) $1s;
+	(void) count;
+}
 ')
