@@ -124,6 +124,12 @@ MLINKS+= \
 	dwarf_attrval_signed.3	dwarf_attrval_unsigned.3 \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_siblingof.3		\
+	dwarf_dealloc.3	dwarf_funcs_dealloc.3		\
+	dwarf_dealloc.3	dwarf_globals_dealloc.3		\
+	dwarf_dealloc.3	dwarf_pubtypes_dealloc.3	\
+	dwarf_dealloc.3	dwarf_types_dealloc.3		\
+	dwarf_dealloc.3	dwarf_vars_dealloc.3		\
+	dwarf_dealloc.3	dwarf_weaks_dealloc.3		\
 	dwarf_dealloc.3	dwarf_ranges_dealloc.3		\
 	dwarf_dealloc.3	dwarf_srclines_dealloc.3	\
 	dwarf_init.3	dwarf_elf_init.3		\
