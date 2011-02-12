@@ -28,8 +28,14 @@
 .Dt DWARF_DEALLOC 3
 .Sh NAME
 .Nm dwarf_dealloc ,
+.Nm dwarf_funcs_dealloc ,
+.Nm dwarf_globals_dealloc ,
+.Nm dwarf_pubtypes_dealloc ,
 .Nm dwarf_ranges_dealloc ,
-.Nm dwarf_srclines_dealloc
+.Nm dwarf_srclines_dealloc ,
+.Nm dwarf_types_dealloc ,
+.Nm dwarf_vars_dealloc ,
+.Nm dwarf_weaks_dealloc
 .Nd release resources
 .Sh LIBRARY
 .Lb libdwarf
@@ -40,6 +46,24 @@
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Ptr ptr"
 .Fa "Dwarf_Unsigned type"
+.Fc
+.Ft void
+.Fo dwarf_funcs_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Func *funcs"
+.Fa "Dwarf_Signed funccount"
+.Fc
+.Ft void
+.Fo dwarf_globals_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Global *globals"
+.Fa "Dwarf_Signed globalcount"
+.Fc
+.Ft void
+.Fo dwarf_pubtypes_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Type *pubtypes"
+.Fa "Dwarf_Signed pubtypecount"
 .Fc
 .Ft void
 .Fo dwarf_ranges_dealloc
@@ -53,12 +77,36 @@
 .Fa "Dwarf_Line *lines"
 .Fa "Dwarf_Signed linecount"
 .Fc
+.Ft void
+.Fo dwarf_types_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Type *types"
+.Fa "Dwarf_Signed typecount"
+.Fc
+.Ft void
+.Fo dwarf_vars_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Var *vars"
+.Fa "Dwarf_Signed varcount"
+.Fc
+.Ft void
+.Fo dwarf_weaks_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Weak *weaks"
+.Fa "Dwarf_Signed weakcount"
+.Fc
 .Sh DESCRIPTION
 The functions
 .Fn dwarf_dealloc ,
-.Fn dwarf_ranges_dealloc
+.Fn dwarf_funcs_dealloc ,
+.Fn dwarf_globals_dealloc ,
+.Fn dwarf_pubtypes_dealloc ,
+.Fn dwarf_ranges_dealloc ,
+.Fn dwarf_srclines_dealloc ,
+.Fn dwarf_types_dealloc ,
+.Fn dwarf_vars_dealloc
 and
-.Fn dwarf_srclines_dealloc
+.Fn dwarf_weaks_dealloc
 are provided for compatibility with other implementations of the
 DWARF(3) API.
 Due to the way memory is managed in the current implementation, these
@@ -71,9 +119,15 @@ implementation of the DWARF(3) API.
 .Sh RETURN VALUES
 Functions
 .Fn dwarf_dealloc ,
-.Fn dwarf_ranges_dealloc
+.Fn dwarf_funcs_dealloc ,
+.Fn dwarf_globals_dealloc ,
+.Fn dwarf_pubtypes_dealloc ,
+.Fn dwarf_ranges_dealloc ,
+.Fn dwarf_srclines_dealloc ,
+.Fn dwarf_types_dealloc ,
+.Fn dwarf_vars_dealloc
 and
-.Fn dwarf_srclines_dealloc
+.Fn dwarf_weaks_dealloc
 have no return value.
 .Sh SEE ALSO
 .Xr dwarf 3
