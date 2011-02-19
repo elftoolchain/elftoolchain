@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 12, 2011
+.Dd February 19, 2011
 .Os
 .Dt DWARF_GET_GLOBALS 3
 .Sh NAME
@@ -72,64 +72,53 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
-These fucntions retrieve information from global objects and functions
-lookup tables found in .debug_pubnames DWARF section.
+These functions retrieve information about global symbols from the
+lookup tables in the
+.Dq ".debug_pubnames"
+DWARF section.
+Information about global symbols are returned using opaque descriptors
+of type
+.Vt Dwarf_Global .
+An application needs to use the functions described below to retrieve
+the name and offset information contained in these descriptors.
 .Pp
 Function
 .Fn dwarf_get_globals
-returns entries in the global objects lookup tables associated with DWARF
-debug context referenced by argument
+retrieves descriptors for all the global symbols associated with the
+DWARF debug context specified by argument
 .Ar dbg .
-Lookup table entries are returned as an array of
-.Vt Dwarf_Global
-descriptors.
-Argument
+The argument
 .Ar globals
-should point to a location that will hold a pointer to the returned array
+should point to a location that will be set to a pointer to an array
 of
-.Vr Dwarf_Global
+.Vt Dwarf_Global
 descriptors.
-Argument
+The argument
 .Ar nglobals
-should point to a location that will hold the number of descriptors returned.
-.Pp
-A
-.Vt Dwarf_Global
-descriptor holds information about the name and offset of a debugging
-information entry that represents a global object or function.
-The returned
-.Vt Dwarf_Global
-descriptors are opaque to the application. Each descriptor may be
-passed to the other pubnames functions in the API set described below
-to retrieve the name and offset information contained.
+should point to a location that will be set to the number of
+descriptors returned.
 .Pp
 The memory area used for the array of
 .Vt Dwarf_Global
-descriptors returned in argument
-.Ar globals
-is owned by the
+descriptors returned is owned by the
 .Lb libdwarf .
-The application should not attempt to free this pointer.
+An application should not attempt to directly free this pointer.
 Portable code should instead use
 .Fn dwarf_globals_dealloc
-to indicate that the memory may be freed.
+to indicate that the memory area may be freed.
 .Pp
 Function
 .Fn dwarf_global_die_offset
-retrieves section-relative offset of the debugging information entry refered
-to by the
-.Vt Dwarf_Global
-descriptor denoted by the argument
+retrieves the section-relative offset of the debugging information
+entry associated with the argument
 .Ar global ,
-and stores it in the location pointed to by the argument
+and stores it into the location pointed to by the argument
 .Ar die_offset .
 .Pp
 Function
 .Fn dwarf_global_cu_offset
-returns the section-relative offset of the compilation unit that contains
-the debugging infomration entry refered to by the
-.Vt Dwarf_Global
-descriptor denoted by the argument
+returns the section-relative offset of the compilation unit that
+contains the debugging information entry associated with the argument
 .Ar global .
 Argument
 .Ar cu_offset
@@ -137,38 +126,33 @@ should point to a location that will hold the returned offset.
 .Pp
 Function
 .Fn dwarf_global_name_offsets
-retrieves both the name and offset of the debugging information entry
-refered to by the
-.Vt Dwarf_Global
-descritpor denoted by the argument
+retrieves both the name and the offset of the debugging information
+entry for argument
 .Ar global .
 Argument
 .Ar name
-should point to a location which will hold the returned NUL-terminated
-string representing the name of the refered debugging information entry.
+should point to a location which will be set to a pointer to a
+NUL-terminated string containing the name of the associated debugging
+information entry.
 Argument
 .Ar die_offset
-should point to a location which will hold the returned section-relative
-offset of the refered debugging information entry.
+should point to a location which will be set to a section-relative
+offset of the associated debugging information entry.
 Argument
 .Ar cu_die_offset
-should point to a location which will hold the returned
+should point to a location which will be set to a
 section-relative offset of the first debugging information entry in
-the same compilation unit that contains the debugging information
-entry refered to by the
-.Vt Dwarf_Global
-descritpor.
+the compilation unit associated with argument
+.Ar global .
 .Pp
 Function
 .Fn dwarf_globname
-retrieves the NUL-terminated string representing the name of the
-debugging information entry refered by by the
-.Vt Dwarf_Global
-descritpor denoted by the argument
-.Ar global ,
-and stores it in the location pointed to by the argument
-.Ar name .
-.Pp
+sets the location pointed to by argument
+.Ar name
+to a pointer to a NUL-terminated string holding the name of the
+debugging information entry associated with the argument
+.Ar global .
+.Ss Error Returns
 If argument
 .Ar err
 is not NULL, these functions will use it to store error information,
