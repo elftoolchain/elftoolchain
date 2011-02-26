@@ -108,6 +108,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_globals.3				\
 	dwarf_get_pubtypes.3				\
 	dwarf_get_types.3				\
+	dwarf_get_vars.3				\
 	dwarf_hasattr.3					\
 	dwarf_hasform.3					\
 	dwarf_highpc.3					\
@@ -152,6 +153,10 @@ MLINKS+= \
 	dwarf_get_types.3	dwarf_type_cu_offset.3	\
 	dwarf_get_types.3	dwarf_type_name_offsets.3 \
 	dwarf_get_types.3	dwarf_typename.3	\
+	dwarf_get_vars.3	dwarf_var_die_offset.3	\
+	dwarf_get_vars.3	dwarf_var_cu_offset	\
+	dwarf_get_vars.3	dwarf_var_name_offsets.3 \
+	dwarf_get_vars.3	dwarf_varname.3		\
 	dwarf_hasform.3	dwarf_whatform.3		\
 	dwarf_hasform.3	dwarf_whatform_direct.3		\
 	dwarf_highpc.3	dwarf_arrayorder.3		\
