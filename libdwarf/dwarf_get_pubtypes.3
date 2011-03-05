@@ -24,16 +24,16 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 26, 2011
+.Dd March 05, 2011
 .Os
 .Dt DWARF_GET_PUBTYPES 3
 .Sh NAME
 .Nm dwarf_get_pubtypes ,
-.Nm dwarf_pubtype_die_offset ,
 .Nm dwarf_pubtype_cu_offset ,
+.Nm dwarf_pubtype_die_offset ,
 .Nm dwarf_pubtype_name_offsets ,
 .Nm dwarf_pubtypename
-.Nd retrieve information from types lookup table
+.Nd retrieve information about user-defined types
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,15 +46,15 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
-.Fo dwarf_pubtype_die_offset
-.Fa "Dwarf_Type type"
-.Fa "Dwarf_Off *die_offset"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
 .Fo dwarf_pubtype_cu_offset
 .Fa "Dwarf_Type type"
 .Fa "Dwarf_Off *cu_offset"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_pubtype_die_offset
+.Fa "Dwarf_Type type"
+.Fa "Dwarf_Off *die_offset"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
@@ -72,11 +72,11 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
-These functions retrieve information about user-defined types from the
-lookup tables in the
+These functions retrieve information about file-scope, user-defined
+types recorded in lookup tables in the
 .Dq ".debug_pubtypes"
 DWARF section.
-Information about user-defined types are returned using opaque descriptors
+Information about these types are returned using opaque descriptors
 of type
 .Vt Dwarf_Type .
 An application needs to use the functions described below to retrieve
@@ -108,14 +108,6 @@ Portable code should instead use
 to indicate that the memory area may be freed.
 .Pp
 Function
-.Fn dwarf_pubtype_die_offset
-retrieves the section-relative offset of the debugging information
-entry associated with the argument
-.Ar type ,
-and stores it into the location pointed to by the argument
-.Ar die_offset .
-.Pp
-Function
 .Fn dwarf_pubtype_cu_offset
 returns the section-relative offset of the compilation unit that
 contains the debugging information entry associated with the argument
@@ -123,6 +115,14 @@ contains the debugging information entry associated with the argument
 Argument
 .Ar cu_offset
 should point to a location that will hold the returned offset.
+.Pp
+Function
+.Fn dwarf_pubtype_die_offset
+retrieves the section-relative offset of the debugging information
+entry associated with the argument
+.Ar type ,
+and stores it into the location pointed to by the argument
+.Ar die_offset .
 .Pp
 Function
 .Fn dwarf_pubtype_name_offsets
@@ -164,6 +164,33 @@ In case of an error, they return
 .Dv DW_DLV_ERROR
 and set the argument
 .Ar err .
+.Sh EXAMPLES
+To retrieve the list of file scope user-defined types and print
+their names, use:
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Signed ntypes;
+Dwarf_Type *types;
+Dwarf_Error err;
+int n, result;
+char *typename;
+
+/* Initialize dbg etc. */;
+result = dwarf_get_pubtypes(dbg, &types, &ntypes, &err);
+if (result != DW_DLV_OK) /* Handle the error. */
+	;
+
+/* Iterate over the returned array of descriptors. */
+for (n = 0; n < ntypes; n++) {
+	result = dwarf_pubtypename(types[n], &typename, &err);
+	if (result != DW_DLV_OK) /* Handle the error. */
+		;
+	printf("%s\en", typename);
+}
+
+/* Deallocate the returned array. */
+dwarf_types_dealloc(dbg, types, ntypes);
+.Ed
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
