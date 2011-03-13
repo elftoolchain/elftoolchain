@@ -104,6 +104,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_formsig8.3				\
 	dwarf_formstring.3				\
 	dwarf_formudata.3				\
+	dwarf_get_abbrev.3				\
 	dwarf_get_address_size.3			\
 	dwarf_get_elf.3					\
 	dwarf_get_funcs.3				\
