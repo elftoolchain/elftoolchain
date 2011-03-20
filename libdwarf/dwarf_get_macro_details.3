@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 5, 2011
+.Dd March 20, 2011
 .Os
 .Dt DWARF_GET_MACRO_DETAILS 3
 .Sh NAME
@@ -46,30 +46,33 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_macro_details
-retrieves macro information entries from the
-.Dq ".debug_macinfo"
-DWARF section, begins at section-relative offset
-.Ar offset .
-Macro information entries are returned as an array of
+retrieves information about macros associated with a DWARF debug
+context.
+Information about macro entries are returned as an array of
 descriptors of type
-.Vt Dwarf_Macro_Details .
-Each
+.Vt Dwarf_Macro_Details ,
+with each
 .Vt Dwarf_Macro_Details
-descriptor represents one macro information entry.
+descriptor describing one macro information entry.
 .Pp
 Argument
 .Ar dbg
 should reference a DWARF debug context allocated using
 .Xr dwarf_init 3 .
 Argument
+.Ar offset
+is an offset, relative to the
+.Dq ".debug_macinfo"
+section, to the start of the desired macro information.
+Argument
 .Ar max_count
 specifies the maximum number of macro information entries
-this function is allowed to return, or 0 if the number is unlimited.
-The argument
+to be returned, or 0 if all entries are to be returned.
+Argument
 .Ar entry_cnt
 should point to a location that will be set to the number
 of entries actually returned.
-The argument
+Argument
 .Ar details
 should point to a location that will be set to a pointer to
 an array of
@@ -80,33 +83,45 @@ If argument
 is not NULL, it will be used to store error information in case
 of an error.
 .Pp
-The
 .Vt Dwarf_Macro_Details
-descriptor is defined by
-.In libdwarf.h
-and consists of following fields:
-.Bl -tag -width ".Va dmd_fileindex"
+descriptors are defined in the header file
+.In libdwarf.h ,
+and consist of the following fields:
+.Bl -tag -width ".Va dmd_fileindex" -compact
 .It Va dmd_offset
-The section-relative offset within
+The section-relative offset within the
 .Dq ".debug_macinfo"
-section of this macro information entry.
+section of the macro information entry being described.
 .It Va dmd_type
-The type code of this macro information entry. Type code returned is
-one of those
+The type code of this macro information entry; one of the
 .Dv DW_MACINFO_*
 constants defined by the DWARF specification.
 .It Va dmd_lineno
-The corresponding line number for this macro information
+The line number associated with the macro information
 entry, or 0 if there is no applicable line number.
 .It Va dmd_fileindex
-The corresponding source file index for this macro information entry.
+The source file index for the macro information entry.
 This field is only meaningful when
 .Va dmd_type
 field is set to
 .Dv DW_MACINFO_start_file .
 .It Va dmd_macro
-NUL-terminated string representing the macro name and value of this
-macro information entry.
+The contents of this field is a pointer to a NUL-terminated string
+whose meaning depends on the value of the
+.Va dmd_type
+field:
+.Bl -tag -width ".Dv DW_MACINFO_vendor_ext" -compact
+.It Dv DW_MACINFO_define
+The returned string contains the macro name and value.
+.It Dv DW_MACINFO_undef
+The string holds the macro name.
+.It Dv DW_MACINFO_vendor_ext
+The
+.Va dmd_macro
+field points to a vendor defined string.
+.El
+The field is NULL for other values of
+.Va dmd_type .
 .El
 .Ss Memory Management
 The memory area used for the array of
@@ -115,7 +130,7 @@ descriptors returned in argument
 .Ar details
 is owned by the
 .Lb libdwarf .
-The application should not attempt to free this pointer.
+The application should not attempt to directly free this pointer.
 Portable code should instead use
 .Fn dwarf_dealloc
 with the allocation type
@@ -129,7 +144,7 @@ returns
 when it succeeds.
 It returns
 .Dv DW_DLV_NO_ENTRY
-if there is no more macro information at offset
+if there is no more macro information at the specified offset
 .Ar offset .
 In case of an error, it returns
 .Dv DW_DLV_ERROR
@@ -148,27 +163,27 @@ or
 .Ar details
 was NULL.
 .It Bq Er DW_DLE_NO_ENTRY
-There is no more macro information at offset
+There is no more macro information at the specified offset
 .Ar offset .
 .El
 .Sh EXAMPLE
 To loop through all the macro information entries associated with
 a DWARF debug context:
-.Bd -literal
-	Dwarf_Debug dbg;
-	Dwarf_Unsigned offset;
-	Dwarf_Signed cnt;
-	Dwarf_Macro_Details *md;
-	Dwarf_Error de;
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Unsigned offset;
+Dwarf_Signed cnt;
+Dwarf_Macro_Details *md;
+Dwarf_Error de;
 
-	offset = 0;
-	while (dwarf_get_macro_details(dbg, offset, 0,
-	    &cnt, &md, &de) == DW_DLV_OK) {
-		for (i = 0; i < cnt; i++) {
-			/* Access fields of md[i] ... */
-		}
-		offset = md[cnt - 1].dmd_offset + 1;
+offset = 0;
+while (dwarf_get_macro_details(dbg, offset, 0,
+    &cnt, &md, &de) == DW_DLV_OK) {
+	for (i = 0; i < cnt; i++) {
+		/* Access fields of md[i] ... */
 	}
+	offset = md[cnt - 1].dmd_offset + 1;
+}
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
