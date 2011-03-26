@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 6, 2011
+.Dd March 26, 2011
 .Os
 .Dt DWARF_FIND_MACRO_VALUE_START 3
 .Sh NAME
 .Nm dwarf_find_macro_value_start
-.Nd return the first byte of the macro value
+.Nd return the address of the first byte of a macro value
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -39,19 +39,28 @@
 .Fa "char *macro_string"
 .Fc
 .Sh DESCRIPTION
+Given a DWARF macro string, function
+.Fn dwarf_find_macro_value_start
+returns a pointer to the first byte of the macro value part of the
+macro string.
+.Pp
+Argument
+.Ar macro_string
+should be a NUL-terminated string conforming to the macro format
+defined in the DWARF standard; see
+.Xr dwarf 4 .
+.Sh RETURN VALUES
+On success, function
+.Fn dwarf_find_macro_value_start
+returns a pointer to the first byte of the macro value.
+If the macro value part was not found, function
+.Fn dwarf_find_macro_value_start
+returns a pointer to the NUL-byte terminating argument
+.Ar macro_string .
+.Pp
 Function
 .Fn dwarf_find_macro_value_start
-locates the first byte of the macro value part of the NUL-terminated
-macro name and value string referenced by argument
-.Ar macro_string .
-.Sh RETURN VALUES
-If succeed, function
-.Fn dwarf_find_macro_value_start
-returns a pointer to the first byte of the macro value. A pointer
-to the end of
-.Ar macro_string
-string is returned if the macro value part was not found.
-The function returns NULL if argument
+returns NULL if argument
 .Ar macro_string
 was NULL.
 .Sh SEE ALSO
