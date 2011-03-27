@@ -43,13 +43,15 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_abbrev_code
-retrieves abbreviation code of the abbreviation entry
+retrieves the abbreviation code for the abbreviation entry
 descriptor referenced by argument
 .Ar abbrev .
+.Pp
 Argument
 .Ar ret
 should point to a location which will hold the returned
 abbreviation code.
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
