@@ -29,7 +29,7 @@
 .Dt DWARF_GET_ABBREV_TAG 3
 .Sh NAME
 .Nm dwarf_get_abbrev_tag
-.Nd retrieve abbreviation tag
+.Nd retrieve the tag for an abbreviation
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -43,13 +43,15 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_abbrev_tag
-retrieves the tag of the abbreviation entry
-descriptor referenced by argument
+retrieves the tag for the abbreviation entry descriptor referenced by
+argument
 .Ar abbrev .
+.Pp
 Argument
 .Ar ret
 should point to a location which will hold the returned
 abbreviation tag.
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
