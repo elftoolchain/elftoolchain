@@ -29,7 +29,7 @@
 .Dt DWARF_GET_ABBREV_CHILDREN_FLAG 3
 .Sh NAME
 .Nm dwarf_get_abbrev_children_flag
-.Nd retrieve abbreviation children flag
+.Nd return a flag indicating the presence of children
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -43,23 +43,33 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_abbrev_children_flag
-retrieves the children flag of the abbreviation entry
-descriptor referenced by argument
-.Ar abbrev .
+retrieves a flag indicating whether the DWARF debug information entry
+associated with a DWARF abbreviation descriptor has child entries.
+.Pp
+Argument
+.Ar abbrev
+should be a valid DWARF abbreviation descriptor, as returned by
+.Xr dwarf_get_abbrev 3 .
+.Pp
 Argument
 .Ar ret
 should point to a location which will hold the returned
-abbreviation children flag.
+flag.
+The value returned will be one of the following:
+.Bl -tag -width ".Dv DW_CHILDREN_yes" -compact
+.It Dv DW_CHILDREN_yes
+The debugging information entry associated with the
+specified abbreviation descriptor has children.
+.It Dv DW_CHILDREN_no
+The debugging information entry associated with the
+specified abbreviation descriptor has no children.
+.El
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
 .Pp
-The value of the abbreviation children flag should be either
-.Dv DW_CHILDREN_yes
-or
-.Dv DW_CHILDREN_no
-as defined by the DWARF specification.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_abbrev_children_flag
