@@ -346,7 +346,8 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	 */
 	if (die->die_ab == NULL) {
 		ret = _dwarf_abbrev_add(cu, ++cu->cu_abbrev_cnt, die->die_tag,
-		    die->die_child != NULL ? 1 : 0, 0, &ab, error);
+		    die->die_child != NULL ? DW_CHILDREN_yes : DW_CHILDREN_no,
+		    0, &ab, error);
 		if (ret != DW_DLE_NONE)
 			return (ret);
 		STAILQ_FOREACH(at, &die->die_attr, at_next) {
