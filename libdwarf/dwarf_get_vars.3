@@ -24,16 +24,16 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 26, 2011
+.Dd April 02, 2011
 .Os
 .Dt DWARF_GET_VARS 3
 .Sh NAME
 .Nm dwarf_get_vars ,
-.Nm dwarf_var_die_offset ,
+.Nm dwarf_varname ,
 .Nm dwarf_var_cu_offset ,
-.Nm dwarf_var_name_offsets ,
-.Nm dwarf_varname
-.Nd retrieve information from static variable lookup table
+.Nm dwarf_var_die_offset ,
+.Nm dwarf_var_name_offsets
+.Nd retrieve information about static variables
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,15 +46,21 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
-.Fo dwarf_var_die_offset
+.Fo dwarf_varname
 .Fa "Dwarf_Var var"
-.Fa "Dwarf_Off *die_offset"
+.Fa "char **name"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
 .Fo dwarf_var_cu_offset
 .Fa "Dwarf_Var var"
 .Fa "Dwarf_Off *cu_offset"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_var_die_offset
+.Fa "Dwarf_Var var"
+.Fa "Dwarf_Off *die_offset"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
@@ -65,21 +71,13 @@
 .Fa "Dwarf_Off *cu_die_offset"
 .Fa "Dwarf_Error *err"
 .Fc
-.Ft int
-.Fo dwarf_varname
-.Fa "Dwarf_Var var"
-.Fa "char **name"
-.Fa "Dwarf_Error *err"
-.Fc
 .Sh DESCRIPTION
-These functions retrieve information about static variables from the
-lookup tables in the SGI specific
-.Dq ".debug_varnames"
-DWARF section.
-Information about static variables are returned using opaque descriptors
-of type
+These functions retrieve information about the file scope static
+variables associated with a DWARF debug context.
+Information about static variables are returned using opaque
+descriptors of type
 .Vt Dwarf_Var .
-An application needs to use the functions described below to retrieve
+Applications need to use the functions described below to retrieve
 the name and offset information contained in these descriptors.
 .Pp
 Function
@@ -98,26 +96,19 @@ The argument
 should point to a location that will be set to the number of
 descriptors returned.
 .Pp
-The memory area used for the array of
-.Vt Dwarf_Var
-descriptors returned is owned by the
-.Lb libdwarf .
-An application should not attempt to directly free this pointer.
-Portable code should instead use
-.Fn dwarf_vars_dealloc
-to indicate that the memory area may be freed.
-.Pp
 Function
-.Fn dwarf_var_die_offset
-retrieves the section-relative offset of the debugging information
-entry associated with the argument
-.Ar var ,
-and stores it into the location pointed to by the argument
-.Ar die_offset .
+.Fn dwarf_varname
+sets the location pointed to by argument
+.Ar name
+to a pointer to a NUL-terminated string holding the name of the
+debugging information entry associated with the argument
+.Ar var .
 .Pp
 Function
 .Fn dwarf_var_cu_offset
-returns the section-relative offset of the compilation unit that
+returns the section-relative offset, relative to the
+.Dq ".debug_info"
+section, of the compilation unit that
 contains the debugging information entry associated with the argument
 .Ar var .
 Argument
@@ -125,9 +116,19 @@ Argument
 should point to a location that will hold the returned offset.
 .Pp
 Function
+.Fn dwarf_var_die_offset
+retrieves the section-relative offset, relative to the
+.Dq ".debug_info"
+section, of the debugging information
+entry associated with the argument
+.Ar var ,
+and stores it into the location pointed to by the argument
+.Ar die_offset .
+.Pp
+Function
 .Fn dwarf_var_name_offsets
-retrieves both the name and the offset of the debugging information
-entry for argument
+retrieves both the name and the associated offsets for the debugging
+information entry for argument
 .Ar var .
 Argument
 .Ar name
@@ -137,21 +138,41 @@ information entry.
 Argument
 .Ar die_offset
 should point to a location which will be set to a section-relative
-offset of the associated debugging information entry.
+offset, relative to the
+.Dq ".debug_info"
+section, of the associated debugging information entry.
 Argument
 .Ar cu_die_offset
 should point to a location which will be set to a
-section-relative offset of the first debugging information entry in
+section-relative offset, relative to the
+.Dq ".debug_info"
+section, of the first debugging information entry in
 the compilation unit associated with argument
 .Ar var .
+.Ss Memory Management
+The memory area used for the array of
+.Vt Dwarf_Var
+descriptors returned in argument
+.Ar vars
+by function
+.Fn dwarf_get_vars
+is owned by the
+.Lb libdwarf .
+Application code should not attempt to directly free this pointer.
+Portable code should instead use the function
+.Xr dwarf_vars_dealloc 3
+to indicate that the memory area may be freed.
 .Pp
-Function
-.Fn dwarf_varname
-sets the location pointed to by argument
+The memory area used for the string returned in the
 .Ar name
-to a pointer to a NUL-terminated string holding the name of the
-debugging information entry associated with the argument
-.Ar var .
+argument by function
+.Fn dwarf_varname
+is owned by the
+.Lb libdwarf .
+Portable code should indicate that the memory area can
+be freed using the
+.Xr dwarf_dealloc 3
+function.
 .Ss Error Returns
 If argument
 .Ar err
@@ -182,5 +203,6 @@ was NULL.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
+.Xr dwarf_dealloc 3 ,
 .Xr dwarf_get_cu_die_offset_given_cu_header_offset 3 ,
 .Xr dwarf_vars_dealloc 3
