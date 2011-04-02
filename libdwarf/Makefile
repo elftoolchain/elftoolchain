@@ -115,6 +115,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_globals.3				\
 	dwarf_get_macro_details.3			\
 	dwarf_get_pubtypes.3				\
+	dwarf_get_str.3					\
 	dwarf_get_types.3				\
 	dwarf_get_vars.3				\
 	dwarf_get_weaks.3				\
