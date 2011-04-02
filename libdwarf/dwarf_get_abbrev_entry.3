@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 27, 2011
+.Dd April 02, 2011
 .Os
 .Dt DWARF_GET_ABBREV_ENTRY 3
 .Sh NAME
 .Nm dwarf_get_abbrev_entry
-.Nd retrieve attribute information from an abbreviation entry
+.Nd retrieve attribute information from an abbreviation descriptor
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,20 +46,23 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_abbrev_entry
-retrieves attribute information from an abbreviation entry
-descriptor referenced by argument
-.Ar abbrev .
+retrieves attribute information from a DWARF abbreviation descriptor.
+.Pp
+Argument argument
+.Ar abbrev
+should be a valid abbreviation descriptor, as returned by function
+.Xr dwarf_get_abbrev 3 .
 .Pp
 Argument
 .Ar ndx
 specifies the 0-based index of the attribute.
 The total count of the attributes contained in the abbreviation
-entry can be retrieved with function
-.Fn dwarf_get_abbrev .
+entry can be retrieved using the function
+.Xr dwarf_get_abbrev 3 .
 .Pp
 Argument
 .Ar code
-should point to a location which will hold the returned
+should point to a location which will hold a returned
 attribute code.
 .Pp
 Argument
@@ -69,10 +72,10 @@ form of the attribute.
 .Pp
 Argument
 .Ar offset
-should point to a location which will hold the section-relative
-offset of the attribute in the
+should point to a location which will hold a returned offset, relative
+to the
 .Dq ".debug_abbrev"
-section.
+section, for the specified attribute.
 .Pp
 If argument
 .Ar err
@@ -108,7 +111,7 @@ was NULL.
 .It Bq Er DW_DLE_NO_ENTRY
 The attribute index specified by argument
 .Ar ndx
-is out of range.
+was out of range.
 .El
 .Sh EXAMPLE
 To loop through all the attribute entries contained in the
@@ -123,9 +126,11 @@ Dwarf_Unsigned length, attr_count;
 Dwarf_Error de;
 int i, ret;
 
+/* ...allocate 'dbg' using dwarf_init(3) ... */
+
 while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, &aboff,
     NULL, NULL, &de)) ==  DW_DLV_OK) {
-	while ((ret = dwarf_get_abbrev(re->dbg, aboff, &ab, &length,
+	while ((ret = dwarf_get_abbrev(dbg, aboff, &ab, &length,
 	    &attr_count, &de)) == DW_DLV_OK) {
 		if (length == 1)	/* Last entry. */
 			break;
@@ -135,12 +140,16 @@ while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, &aboff,
 			    &attr, &form, &atoff, &de) != DW_DLV_OK) {
 				warnx("dwarf_get_abbrev_entry failed:"
 				    " %s", dwarf_errmsg(de));
+				continue;
 			}
+			/* .. use the retrieved information ... */
 		}
 	}
+
 	if (ret != DW_DLV_OK)
 		warnx("dwarf_get_abbrev: %s", dwarf_errmsg(de));
 }
+
 if (ret == DW_DLV_ERROR)
 	warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
 .Ed
