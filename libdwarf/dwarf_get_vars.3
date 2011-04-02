@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 02, 2011
+.Dd April 2, 2011
 .Os
 .Dt DWARF_GET_VARS 3
 .Sh NAME
@@ -74,7 +74,7 @@
 .Sh DESCRIPTION
 These functions retrieve information about the file scope static
 variables associated with a DWARF debug context.
-Information about static variables are returned using opaque
+Information about these static variables is returned using opaque
 descriptors of type
 .Vt Dwarf_Var .
 Applications need to use the functions described below to retrieve
@@ -165,8 +165,10 @@ to indicate that the memory area may be freed.
 .Pp
 The memory area used for the string returned in the
 .Ar name
-argument by function
+argument to functions
 .Fn dwarf_varname
+and
+.Fn dwarf_var_name_offsets
 is owned by the
 .Lb libdwarf .
 Portable code should indicate that the memory area can
