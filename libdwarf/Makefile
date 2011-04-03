@@ -113,6 +113,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_arange.3				\
 	dwarf_get_aranges.3				\
 	dwarf_get_arange_info.3				\
+	dwarf_get_cu_die_offset.3			\
 	dwarf_get_elf.3					\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
@@ -154,6 +155,7 @@ MLINKS+= \
 	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
 	dwarf_formref.3	dwarf_global_formref.3		\
 	dwarf_formudata.3	dwarf_formsdata.3	\
+	dwarf_get_cu_die_offset.3 dwarf_get_arange_cu_header_offset.3 \
 	dwarf_get_funcs.3	dwarf_func_die_offset.3	\
 	dwarf_get_funcs.3	dwarf_func_cu_offset.3	\
 	dwarf_get_funcs.3	dwarf_func_name_offsets.3 \
