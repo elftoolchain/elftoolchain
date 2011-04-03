@@ -112,6 +112,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_address_size.3			\
 	dwarf_get_arange.3				\
 	dwarf_get_aranges.3				\
+	dwarf_get_arange_info.3				\
 	dwarf_get_elf.3					\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
