@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 2, 2011
+.Dd April 3, 2011
 .Os
 .Dt DWARF_GET_STR 3
 .Sh NAME
 .Nm dwarf_get_str
-.Nd retrieve string from DWARF section .debug_str
+.Nd retrieve a string from the DWARF string section
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,7 +45,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_str
-retrieves NUL-terminated string from DWARF string section
+retrieves a NUL-terminated string from the DWARF string section
 .Dq ".debug_str" .
 .Pp
 Argument
@@ -55,19 +55,21 @@ should reference a DWARF debug context allocated using
 .Pp
 Argument
 .Ar offset
-should be an offset relative to the
+should be an offset, relative to the
 .Dq ".debug_str"
-section, specifying the start of a string.
+section, specifying the start of the desired string.
 .Pp
 Argument
 .Ar string
-should point to a location which will hold the returned
-NUL-terminated string.
+should point to a location which will hold a returned
+pointer to a NUL-terminated string.
 .Pp
 Argument
 .Ar len
 should point to a location which will hold the length
 of the returned string.
+The returned length does not include the space needed for
+the NUL-terminator.
 .Pp
 If argument
 .Ar err
@@ -83,10 +85,10 @@ It returns
 .Dv DW_DLV_NO_ENTRY
 if there is no
 .Dq ".debug_str"
-section associated with the debugging context,
+section associated with the specified debugging context,
 or if the provided offset
 .Ar offset
-is at the end of
+is at the very end of
 .Dq ".debug_str"
 section.
 In case of an error, it returns
@@ -108,16 +110,17 @@ was NULL.
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar offset
-is out of range.
+was out of range.
 .It Bq Er DW_DLE_NO_ENTRY
-there is no
+The debugging context
+.Ar dbg
+did not contain a
 .Dq ".debug_str"
-section associated with debugging context
-.Ar dbg .
+string section.
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar offset
-is at the end of the
+was at the very end of the
 .Dq ".debug_str"
 section.
 .El
@@ -132,10 +135,12 @@ char *str;
 int ret
 
 offset = 0;
-while ((ret = dwarf_get_str(dbg, offset, &str, &len, &de)) == DW_DLV_OK) {
-	/* .. use the retrieve string .. */
-	offset += len + 1;
+while ((ret = dwarf_get_str(dbg, offset, &str, &len, &de)) ==
+	DW_DLV_OK) {
+	/* .. Use the retrieved string. .. */
+	offset += len + 1; /* Account for the terminating NUL. */
 }
+
 if (ret == DW_DLV_ERROR)
 	warnx("dwarf_get_str: %s", dwarf_errmsg(de));
 .Ed
