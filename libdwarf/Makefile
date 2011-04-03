@@ -110,6 +110,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_abbrev_entry.3			\
 	dwarf_get_abbrev_tag.3				\
 	dwarf_get_address_size.3			\
+	dwarf_get_aranges.3				\
 	dwarf_get_elf.3					\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
