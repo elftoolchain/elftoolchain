@@ -29,10 +29,10 @@
 .Dt DWARF_GET_VARS 3
 .Sh NAME
 .Nm dwarf_get_vars ,
-.Nm dwarf_varname ,
 .Nm dwarf_var_cu_offset ,
 .Nm dwarf_var_die_offset ,
-.Nm dwarf_var_name_offsets
+.Nm dwarf_var_name_offsets ,
+.Nm dwarf_varname
 .Nd retrieve information about static variables
 .Sh LIBRARY
 .Lb libdwarf
@@ -43,12 +43,6 @@
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Var **vars"
 .Fa "Dwarf_Signed *nvars"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
-.Fo dwarf_varname
-.Fa "Dwarf_Var var"
-.Fa "char **name"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
@@ -69,6 +63,12 @@
 .Fa "char **name"
 .Fa "Dwarf_Off *die_offset"
 .Fa "Dwarf_Off *cu_die_offset"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_varname
+.Fa "Dwarf_Var var"
+.Fa "char **name"
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
@@ -95,14 +95,6 @@ The argument
 .Ar nvars
 should point to a location that will be set to the number of
 descriptors returned.
-.Pp
-Function
-.Fn dwarf_varname
-sets the location pointed to by argument
-.Ar name
-to a pointer to a NUL-terminated string holding the name of the
-debugging information entry associated with the argument
-.Ar var .
 .Pp
 Function
 .Fn dwarf_var_cu_offset
@@ -149,6 +141,14 @@ section-relative offset, relative to the
 section, of the first debugging information entry in
 the compilation unit associated with argument
 .Ar var .
+.Pp
+Function
+.Fn dwarf_varname
+sets the location pointed to by argument
+.Ar name
+to a pointer to a NUL-terminated string holding the name of the
+debugging information entry associated with the argument
+.Ar var .
 .Ss Memory Management
 The memory area used for the array of
 .Vt Dwarf_Var
@@ -166,9 +166,9 @@ to indicate that the memory area may be freed.
 The memory area used for the string returned in the
 .Ar name
 argument to functions
-.Fn dwarf_varname
-and
 .Fn dwarf_var_name_offsets
+and
+.Fn dwarf_varname
 is owned by the
 .Lb libdwarf .
 Portable code should indicate that the memory area can
