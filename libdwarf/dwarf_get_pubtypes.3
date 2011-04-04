@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 05, 2011
+.Dd April 4, 2011
 .Os
 .Dt DWARF_GET_PUBTYPES 3
 .Sh NAME
@@ -76,10 +76,10 @@ These functions retrieve information about file-scope, user-defined
 types recorded in lookup tables in the
 .Dq ".debug_pubtypes"
 DWARF section.
-Information about these types are returned using opaque descriptors
+Information about these types is returned using opaque descriptors
 of type
 .Vt Dwarf_Type .
-An application needs to use the functions described below to retrieve
+Applications need to use the functions described below to retrieve
 the name and offset information contained in these descriptors.
 .Pp
 Function
@@ -98,19 +98,12 @@ The argument
 should point to a location that will be set to the number of
 descriptors returned.
 .Pp
-The memory area used for the array of
-.Vt Dwarf_Type
-descriptors returned is owned by the
-.Lb libdwarf .
-An application should not attempt to directly free this pointer.
-Portable code should instead use
-.Fn dwarf_pubtypes_dealloc
-to indicate that the memory area may be freed.
-.Pp
 Function
 .Fn dwarf_pubtype_cu_offset
-returns the section-relative offset of the compilation unit that
-contains the debugging information entry associated with the argument
+returns the offset, relative to the
+.Dq ".debug_info"
+section, of the compilation unit that contains the debugging
+information entry associated with the argument
 .Ar type .
 Argument
 .Ar cu_offset
@@ -118,16 +111,18 @@ should point to a location that will hold the returned offset.
 .Pp
 Function
 .Fn dwarf_pubtype_die_offset
-retrieves the section-relative offset of the debugging information
-entry associated with the argument
+retrieves the offset, relative to the
+.Dq ".debug_info"
+section, of the debugging information entry associated with the
+argument
 .Ar type ,
 and stores it into the location pointed to by the argument
 .Ar die_offset .
 .Pp
 Function
 .Fn dwarf_pubtype_name_offsets
-retrieves both the name and the offset of the debugging information
-entry for argument
+retrieves the name and offsets for the debugging information entry for
+argument
 .Ar type .
 Argument
 .Ar name
@@ -136,13 +131,17 @@ NUL-terminated string containing the name of the associated debugging
 information entry.
 Argument
 .Ar die_offset
-should point to a location which will be set to a section-relative
-offset of the associated debugging information entry.
+should point to a location which will be set to the
+offset, relative to the
+.Dq ".debug_info"
+section, of the associated debugging information entry.
 Argument
 .Ar cu_die_offset
-should point to a location which will be set to a
-section-relative offset of the first debugging information entry in
-the compilation unit associated with argument
+should point to a location which will be set to the
+offset, relative to the
+.Dq ".debug_info"
+section, of the first debugging information entry in the compilation
+unit associated with argument
 .Ar type .
 .Pp
 Function
@@ -152,6 +151,32 @@ sets the location pointed to by argument
 to a pointer to a NUL-terminated string holding the name of the
 debugging information entry associated with the argument
 .Ar type .
+.Ss Memory Management
+The memory area used for the array of
+.Vt Dwarf_Type
+descriptors returned in argument
+.Ar types
+by function
+.Fn dwarf_get_pubtypes
+is owned by the
+.Lb libdwarf .
+Application code should not attempt to directly free this pointer.
+Portable code should instead use the function
+.Xr dwarf_types_dealloc 3
+to indicate that the memory area may be freed.
+.Pp
+The memory area used for the string returned in the
+.Ar name
+argument to functions
+.Fn dwarf_pubtype_name_offsets
+and
+.Fn dwarf_pubtypename
+is owned by the
+.Lb libdwarf .
+Portable code should indicate that the memory area can
+be freed using the
+.Xr dwarf_dealloc 3
+function.
 .Ss Error Returns
 If argument
 .Ar err
@@ -206,8 +231,13 @@ One of the arguments
 or
 .Va ntypes
 was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+The DWARF debugging context referenced by argument
+.Ar dbg
+did not contain information about user-defined types.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
+.Xr dwarf_dealloc 3 ,
 .Xr dwarf_get_cu_die_offset_given_cu_header_offset 3 ,
 .Xr dwarf_pubtypes_dealloc 3
