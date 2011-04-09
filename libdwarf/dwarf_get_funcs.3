@@ -99,16 +99,6 @@ should point to a location that will be set to the number of
 descriptors returned.
 .Pp
 Function
-.Fn dwarf_func_die_offset
-retrieves the offset, relative to the
-.Dq ".debug_info"
-section, of the debugging information entry associated with the
-argument
-.Ar func ,
-and stores it into the location pointed to by the argument
-.Ar die_offset .
-.Pp
-Function
 .Fn dwarf_func_cu_offset
 returns the offset, relative to the
 .Dq ".debug_info"
@@ -118,6 +108,16 @@ information entry associated with the argument
 Argument
 .Ar cu_offset
 should point to a location that will hold the returned offset.
+.Pp
+Function
+.Fn dwarf_func_die_offset
+retrieves the offset, relative to the
+.Dq ".debug_info"
+section, of the debugging information entry associated with the
+argument
+.Ar func ,
+and stores it into the location pointed to by the argument
+.Ar die_offset .
 .Pp
 Function
 .Fn dwarf_func_name_offsets
