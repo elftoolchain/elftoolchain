@@ -24,16 +24,16 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 26, 2011
+.Dd April 10, 2011
 .Os
 .Dt DWARF_GET_FUNCS 3
 .Sh NAME
 .Nm dwarf_get_funcs ,
-.Nm dwarf_func_die_offset ,
 .Nm dwarf_func_cu_offset ,
+.Nm dwarf_func_die_offset ,
 .Nm dwarf_func_name_offsets ,
 .Nm dwarf_funcname
-.Nd retrieve information from static function lookup table
+.Nd retrieve information about static functions
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,15 +46,15 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
-.Fo dwarf_func_die_offset
-.Fa "Dwarf_Func func"
-.Fa "Dwarf_Off *die_offset"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
 .Fo dwarf_func_cu_offset
 .Fa "Dwarf_Func func"
 .Fa "Dwarf_Off *cu_offset"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_func_die_offset
+.Fa "Dwarf_Func func"
+.Fa "Dwarf_Off *die_offset"
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
@@ -73,13 +73,13 @@
 .Fc
 .Sh DESCRIPTION
 These functions retrieve information about static functions from the
-lookup tables in the SGI specific
+lookup tables in the (SGI-specific)
 .Dq ".debug_funcnames"
-DWARF section.
-Information about static functions are returned using opaque descriptors
+section.
+Information about these functions is returned using opaque descriptors
 of type
 .Vt Dwarf_Func .
-An application needs to use the functions described below to retrieve
+Applications need to use the functions described below to retrieve
 the name and offset information contained in these descriptors.
 .Pp
 Function
@@ -98,27 +98,22 @@ The argument
 should point to a location that will be set to the number of
 descriptors returned.
 .Pp
-The memory area used for the array of
-.Vt Dwarf_Func
-descriptors returned is owned by the
-.Lb libdwarf .
-An application should not attempt to directly free this pointer.
-Portable code should instead use
-.Fn dwarf_funcs_dealloc
-to indicate that the memory area may be freed.
-.Pp
 Function
 .Fn dwarf_func_die_offset
-retrieves the section-relative offset of the debugging information
-entry associated with the argument
+retrieves the offset, relative to the
+.Dq ".debug_info"
+section, of the debugging information entry associated with the
+argument
 .Ar func ,
 and stores it into the location pointed to by the argument
 .Ar die_offset .
 .Pp
 Function
 .Fn dwarf_func_cu_offset
-returns the section-relative offset of the compilation unit that
-contains the debugging information entry associated with the argument
+returns the offset, relative to the
+.Dq ".debug_info"
+section, of the compilation unit that contains the debugging
+information entry associated with the argument
 .Ar func .
 Argument
 .Ar cu_offset
@@ -126,8 +121,8 @@ should point to a location that will hold the returned offset.
 .Pp
 Function
 .Fn dwarf_func_name_offsets
-retrieves both the name and the offset of the debugging information
-entry for argument
+retrieves the name and offsets for the debugging information entry for
+argument
 .Ar func .
 Argument
 .Ar name
@@ -136,13 +131,17 @@ NUL-terminated string containing the name of the associated debugging
 information entry.
 Argument
 .Ar die_offset
-should point to a location which will be set to a section-relative
-offset of the associated debugging information entry.
+should point to a location which will be set to the offset, relative
+to the
+.Dq ".debug_info"
+section, of the associated debugging information entry.
 Argument
 .Ar cu_die_offset
-should point to a location which will be set to a
-section-relative offset of the first debugging information entry in
-the compilation unit associated with argument
+should point to a location which will be set to the offset, relative
+to the
+.Dq ".debug_info"
+section, of the first debugging information entry in the compilation
+unit associated with argument
 .Ar func .
 .Pp
 Function
@@ -152,6 +151,32 @@ sets the location pointed to by argument
 to a pointer to a NUL-terminated string holding the name of the
 debugging information entry associated with the argument
 .Ar func .
+.Ss Memory Management
+The memory area used for the array of
+.Vt Dwarf_Func
+descriptors returned in argument
+.Ar funcs
+by function
+.Fn dwarf_get_funcs
+is owned by the
+.Lb libdwarf .
+Application code should not attempt to directly free this pointer.
+Portable code should instead use the function
+.Xr dwarf_funcs_dealloc 3
+to indicate that the memory area may be freed.
+.Pp
+The memory area used for the string returned in the
+.Ar name
+argument to functions
+.Fn dwarf_func_name_offsets
+and
+.Fn dwarf_funcname
+is owned by the
+.Lb libdwarf .
+Portable code should indicate that the memory area can
+be freed using the
+.Xr dwarf_dealloc 3
+function.
 .Ss Error Returns
 If argument
 .Ar err
@@ -179,6 +204,10 @@ One of the arguments
 or
 .Va nfuncs
 was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+The DWARF debugging context referenced by argument
+.Ar dbg
+did not contain information about static functions.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
