@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 3, 2011
+.Dd April 16, 2011
 .Os
 .Dt DWARF_GET_ARANGE 3
 .Sh NAME
 .Nm dwarf_get_arange
-.Nd search for address lookup table entry
+.Nd retrieve the address range descriptor for an address
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,10 +45,9 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_arange
-searches in an application provided array of
+searches an array of
 .Vt Dwarf_Arange
-descriptors for the one that covers the address
-.Ar addr .
+descriptors for one that covers a given address.
 .Pp
 Argument
 .Ar ar_list
@@ -58,9 +57,14 @@ descriptors.
 .Pp
 Argument
 .Ar ar_cnt
-should be the total count of the provided
+specifies the number of
 .Vt Dwarf_Arange
-descriptors.
+descriptors in the array pointed to by argument
+.Ar ar_list .
+.Pp
+Argument
+.Ar addr
+specifies the address being looked up.
 .Pp
 Argument
 .Ar ret_ar
