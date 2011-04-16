@@ -29,7 +29,7 @@
 .Dt DWARF_GET_ARANGES 3
 .Sh NAME
 .Nm dwarf_get_aranges
-.Nd retrieve information about program address space
+.Nd retrieve program address space mappings
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -42,20 +42,14 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
-Function
+The function
 .Fn dwarf_get_aranges
-retrieves address information from the address lookup table
-in the
+retrieves address range information from the
 .Dq ".debug_aranges"
 DWARF section.
-.Pp
-Information about these address lookup table entries is returned
-using opaque descriptors of type
-.Vt Dwarf_Arange .
-Application need to use the other functions in the API set to
-retrieve detailed information about each
-.Vt Dwarf_Arange
-descriptor.
+Information about address ranges is returned using opaque descriptors
+of type
+.Vt Dwarf_Arange ,
 .Pp
 Argument
 .Ar dbg
@@ -78,6 +72,15 @@ If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
+.Ss Memory Management
+The memory area used for the array returned in argument
+.Ar ar_list
+is owned by
+.Lb libdwarf .
+Application code should not attempt to directly free this area.
+Portable applications should instead use
+.Xr dwarf_dealloc 3
+to indicate that the memory area may be freed.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_aranges
@@ -123,16 +126,16 @@ Dwarf_Signed i, cnt;
 Dwarf_Unsigned length;
 Dwarf_Error de;
 
-if (dwarf_get_aranges(dbg, &aranges, &cnt, &de) != DW_DLV_OK) {
-	warnx("dwarf_get_aranges: %s", dwarf_errmsg(de));
-} else {
-	for (i = 0; i < cnt; i++) {
-		if (dwarf_get_arange_info(aranges[i], &start, &length,
-		    &die_off, &de) != DW_DLV_OK) {
-			warnx("dwarf_get_arange_info: %s", dwarf_errmsg(de));
-			continue;
-		}
+if (dwarf_get_aranges(dbg, &aranges, &cnt, &de) != DW_DLV_OK)
+	errx("dwarf_get_aranges: %s", dwarf_errmsg(de));
+for (i = 0; i < cnt; i++) {
+	if (dwarf_get_arange_info(aranges[i], &start, &length,
+	    &die_off, &de) != DW_DLV_OK) {
+		warnx("dwarf_get_arange_info: %s",
+		    dwarf_errmsg(de));
+		continue;
 	}
+	/* Do something with the returned information. */
 }
 .Ed
 .Sh SEE ALSO
