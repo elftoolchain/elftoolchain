@@ -522,6 +522,50 @@ dwarf_get_DSC_name(unsigned dsc, const char **s)
 }
 
 int
+dwarf_get_EH_name(unsigned eh, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (eh) {
+	case DW_EH_PE_absptr:
+		*s = "DW_EH_PE_absptr"; break;
+	case DW_EH_PE_uleb128:
+		*s = "DW_EH_PE_uleb128"; break;
+	case DW_EH_PE_udata2:
+		*s = "DW_EH_PE_udata2"; break;
+	case DW_EH_PE_udata4:
+		*s = "DW_EH_PE_udata4"; break;
+	case DW_EH_PE_udata8:
+		*s = "DW_EH_PE_udata8"; break;
+	case DW_EH_PE_sleb128:
+		*s = "DW_EH_PE_sleb128"; break;
+	case DW_EH_PE_sdata2:
+		*s = "DW_EH_PE_sdata2"; break;
+	case DW_EH_PE_sdata4:
+		*s = "DW_EH_PE_sdata4"; break;
+	case DW_EH_PE_sdata8:
+		*s = "DW_EH_PE_sdata8"; break;
+	case DW_EH_PE_pcrel:
+		*s = "DW_EH_PE_pcrel"; break;
+	case DW_EH_PE_textrel:
+		*s = "DW_EH_PE_textrel"; break;
+	case DW_EH_PE_datarel:
+		*s = "DW_EH_PE_datarel"; break;
+	case DW_EH_PE_funcrel:
+		*s = "DW_EH_PE_funcrel"; break;
+	case DW_EH_PE_aligned:
+		*s = "DW_EH_PE_aligned"; break;
+	case DW_EH_PE_omit:
+		*s = "DW_EH_PE_omit"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_END_name(unsigned end, const char **s)
 {
 
