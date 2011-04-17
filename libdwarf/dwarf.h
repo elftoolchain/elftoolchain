@@ -88,9 +88,7 @@
 #define DW_TAG_type_unit		0x41
 #define DW_TAG_rvalue_reference_type	0x42
 #define DW_TAG_template_alias		0x43
-
 #define DW_TAG_lo_user			0x4080
-
 #define DW_TAG_hi_user			0xffff
 
 #define DW_CHILDREN_no			0x00
@@ -192,9 +190,7 @@
 #define DW_AT_const_expr		0x6c
 #define DW_AT_enum_class		0x6d
 #define DW_AT_linkage_name		0x6e
-
 #define DW_AT_lo_user			0x2000
-
 #define DW_AT_hi_user			0x3fff
 
 #define DW_FORM_addr			0x01
@@ -377,9 +373,7 @@
 #define DW_OP_bit_piece			0x9d
 #define DW_OP_implicit_value		0x9e
 #define DW_OP_stack_value		0x9f
-
 #define DW_OP_lo_user		 	0xe0
-
 #define DW_OP_hi_user		 	0xff
 
 #define DW_ATE_address		 	0x1
@@ -397,9 +391,7 @@
 #define DW_ATE_signed_fixed	 	0xd
 #define DW_ATE_unsigned_fixed	 	0xe
 #define DW_ATE_decimal_float	 	0xf
-
 #define DW_ATE_lo_user		 	0x80
-
 #define DW_ATE_hi_user		 	0xff
 
 #define DW_ACCESS_public		0x01
@@ -439,9 +431,7 @@
 #define DW_LANG_ObjC_plus_plus	 	0x0011
 #define DW_LANG_UPC		 	0x0012
 #define DW_LANG_D		 	0x0013
-
 #define DW_LANG_lo_user		 	0x8000
-
 #define DW_LANG_hi_user		 	0xffff
 
 #define DW_ID_case_sensitive	 	0x00
@@ -452,9 +442,7 @@
 #define DW_CC_normal		 	0x01
 #define DW_CC_program		 	0x02
 #define DW_CC_nocall		 	0x03
-
 #define DW_CC_lo_user		 	0x40
-
 #define DW_CC_hi_user		 	0xff
 
 #define DW_INL_not_inlined	 	0x00
@@ -490,9 +478,7 @@
 #define DW_LNE_end_sequence	 	0x01
 #define DW_LNE_set_address	 	0x02
 #define DW_LNE_define_file	 	0x03
-
 #define DW_LNE_lo_user		 	0x80
-
 #define DW_LNE_hi_user		 	0xff
 
 #define DW_MACINFO_define	 	0x01
@@ -529,9 +515,7 @@
 #define DW_CFA_val_offset		0x14
 #define DW_CFA_val_offset_sf 		0x15
 #define DW_CFA_val_expression 		0x16
-
 #define DW_CFA_lo_user	 		0x1c
-
 #define DW_CFA_high_user	 	0x3f
 
 /*
