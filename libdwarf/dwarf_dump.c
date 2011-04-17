@@ -480,12 +480,36 @@ dwarf_get_FORM_name(unsigned form, const char **s)
 }
 
 int
-dwarf_get_DSC_name(unsigned ds, const char **s)
+dwarf_get_DS_name(unsigned ds, const char **s)
 {
 
 	assert(s != NULL);
 
 	switch (ds) {
+	case DW_DS_unsigned:
+		*s = "DW_DS_unsigned"; break;
+	case DW_DS_leading_overpunch:
+		*s = "DW_DS_leading_overpunch"; break;
+	case DW_DS_trailing_overpunch:
+		*s = "DW_DS_trailing_overpunch"; break;
+	case DW_DS_leading_separate:
+		*s = "DW_DS_leading_separate"; break;
+	case DW_DS_trailing_separate:
+		*s = "DW_DS_trailing_separate";
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
+dwarf_get_DSC_name(unsigned dsc, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (dsc) {
 	case DW_DSC_label:
 		*s = "DW_DSC_label"; break;
 	case DW_DSC_range:
