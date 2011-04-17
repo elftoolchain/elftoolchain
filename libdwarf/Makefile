@@ -104,6 +104,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_formsig8.3				\
 	dwarf_formstring.3				\
 	dwarf_formudata.3				\
+	dwarf_get_AT_name.3				\
 	dwarf_get_abbrev.3				\
 	dwarf_get_abbrev_children_flag.3		\
 	dwarf_get_abbrev_code.3				\
@@ -156,6 +157,28 @@ MLINKS+= \
 	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
 	dwarf_formref.3	dwarf_global_formref.3		\
 	dwarf_formudata.3	dwarf_formsdata.3	\
+	dwarf_get_AT_name.3	dwarf_get_ACCESS_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_ATE_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_ADDR_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_CC_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_CFA_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_CHILDREN_name.3 \
+	dwarf_get_AT_name.3	dwarf_get_DS_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_DSC_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_EH_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_END_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_FORM_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_ID_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_INL_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_LANG_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_LNE_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_LNS_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_MACINFO_name.3 \
+	dwarf_get_AT_name.3	dwarf_get_OP_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_ORD_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_TAG_name.3	\
+	dwarf_get_AT_name.3	dwarf_get_VIRTUALITY_name.3 \
+	dwarf_get_AT_name.3	dwarf_get_VIS_name.3	\
 	dwarf_get_cu_die_offset.3 dwarf_get_arange_cu_header_offset.3 \
 	dwarf_get_funcs.3	dwarf_func_die_offset.3	\
 	dwarf_get_funcs.3	dwarf_func_cu_offset.3	\
