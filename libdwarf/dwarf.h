@@ -459,6 +459,12 @@
 #define DW_ORD_row_major		0x00
 #define DW_ORD_col_major		0x01
 
+#define	DW_DS_unsigned			0x01
+#define	DW_DS_leading_overpunch		0x02
+#define	DW_DS_trailing_overpunch	0x03
+#define	DW_DS_leading_separate		0x04
+#define	DW_DS_trailing_separate		0x05
+
 #define DW_DSC_label		 	0x00
 #define DW_DSC_range		 	0x01
 
