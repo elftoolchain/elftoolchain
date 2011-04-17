@@ -542,6 +542,7 @@ int		dwarf_get_CFA_name(unsigned, const char **);
 int		dwarf_get_CHILDREN_name(unsigned, const char **);
 int		dwarf_get_DS_name(unsigned, const char **);
 int		dwarf_get_DSC_name(unsigned, const char **);
+int		dwarf_get_END_name(unsigned, const char **);
 int		dwarf_get_FORM_name(unsigned, const char **);
 int		dwarf_get_ID_name(unsigned, const char **);
 int		dwarf_get_INL_name(unsigned, const char **);

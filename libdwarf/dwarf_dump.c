@@ -522,6 +522,30 @@ dwarf_get_DSC_name(unsigned dsc, const char **s)
 }
 
 int
+dwarf_get_END_name(unsigned end, const char **s)
+{
+
+	assert(s != NULL);
+
+	switch (end) {
+	case DW_END_default:
+		*s = "DW_END_default"; break;
+	case DW_END_big:
+		*s = "DW_END_big"; break;
+	case DW_END_little:
+		*s = "DW_END_little"; break;
+	case DW_END_lo_user:
+		*s = "DW_END_lo_user"; break;
+	case DW_END_high_user:
+		*s = "DW_END_high_user"; break;
+	default:
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_get_ID_name(unsigned id, const char **s)
 {
 

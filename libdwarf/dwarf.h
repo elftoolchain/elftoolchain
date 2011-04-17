@@ -406,6 +406,12 @@
 #define DW_ACCESS_protected	 	0x02
 #define DW_ACCESS_private	 	0x03
 
+#define	DW_END_default			0x00
+#define	DW_END_big			0x01
+#define	DW_END_little			0x02
+#define	DW_END_lo_user			0x40
+#define	DW_END_high_user		0xff
+
 #define DW_VIS_local		 	0x01
 #define DW_VIS_exported		 	0x02
 #define DW_VIS_qualified		0x03
