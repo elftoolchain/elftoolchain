@@ -119,6 +119,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_globals.3				\
 	dwarf_get_macro_details.3			\
 	dwarf_get_pubtypes.3				\
+	dwarf_get_ranges.3				\
 	dwarf_get_str.3					\
 	dwarf_get_types.3				\
 	dwarf_get_vars.3				\
@@ -168,6 +169,7 @@ MLINKS+= \
 	dwarf_get_pubtypes.3	dwarf_pubtype_cu_offset.3 \
 	dwarf_get_pubtypes.3	dwarf_pubtype_name_offsets.3 \
 	dwarf_get_pubtypes.3	dwarf_pubtypename.3	\
+	dwarf_get_ranges.3	dwarf_get_ranges_a.3	\
 	dwarf_get_types.3	dwarf_type_die_offset.3	\
 	dwarf_get_types.3	dwarf_type_cu_offset.3	\
 	dwarf_get_types.3	dwarf_type_name_offsets.3 \
