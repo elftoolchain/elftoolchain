@@ -159,7 +159,6 @@ MLINKS+= \
 	dwarf_formudata.3	dwarf_formsdata.3	\
 	dwarf_get_AT_name.3	dwarf_get_ACCESS_name.3	\
 	dwarf_get_AT_name.3	dwarf_get_ATE_name.3	\
-	dwarf_get_AT_name.3	dwarf_get_ADDR_name.3	\
 	dwarf_get_AT_name.3	dwarf_get_CC_name.3	\
 	dwarf_get_AT_name.3	dwarf_get_CFA_name.3	\
 	dwarf_get_AT_name.3	dwarf_get_CHILDREN_name.3 \
