@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 3, 2011
+.Dd April 17, 2011
 .Os
 .Dt DWARF_GET_RANGES 3
 .Sh NAME
@@ -56,9 +56,10 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_ranges
-retrieves information about non-contiguous address ranges assoicated
-with a DWARF debugging information entry. Information about address
-ranges are returned as an array of descriptors of type
+retrieves information about the non-contiguous address ranges associated
+with a DWARF debugging information entry.
+Information about address ranges is returned as an array of
+descriptors of type
 .Vt Dwarf_Ranges ,
 with each
 .Vt Dwarf_Ranges
@@ -68,6 +69,7 @@ Argument
 .Ar dbg
 should reference a DWARF debug context allocated using
 .Xr dwarf_init 3 .
+.Pp
 Argument
 .Ar offset
 is an offset, relative to the
@@ -76,12 +78,22 @@ section, to the start of the desired list of address ranges.
 The offset of an address ranges list is indicated by the
 .Dv DW_AT_ranges
 attribute of a debugging information entry.
+.Pp
+Argument
+.Ar die
+(function
+.Fn dwarf_get_ranges_a
+only) is ignored in this implementation; see the section
+.Sx "Compatibility Notes"
+below.
+.Pp
 Argument
 .Ar ranges
 should point to a location that will be set to a pointer to an array
 of
 .Vt Dwarf_Ranges
 descriptors.
+.Pp
 Argument
 .Ar cnt
 should point to a location that will be set to the number of entries
@@ -92,6 +104,7 @@ is not NULL, it will be set to the number of bytes occupied by the
 returned entries in the
 .Dq ".debug_ranges"
 section.
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case
@@ -100,51 +113,41 @@ of an error.
 .Vt Dwarf_Ranges
 descriptors are defined in the header file
 .In libdwarf.h ,
-and consist of the following fields:
-.Bl -tag -width ".Va dwr_addr1" -compact
+and consists of the following fields:
+.Bl -tag -width ".Va dwr_addr1"
 .It Va dwr_addr1
-First address offset, whose meaning depends on the type of the entry.
+The first address offset, whose meaning depends on the type of the
+entry.
 .It Va dwr_addr2
-Second address offset, whose meaning depends on the type of the entry.
+The second address offset, whose meaning depends on the type of the
+entry.
 .It Va dwr_type
 The type of this address range entry:
 .Bl -tag -width ".Dv DW_RANGES_ENTRY" -compact
 .It Dv DW_RANGES_ENTRY
-Range list entry.
+A range list entry.
+For this type of entry, the fields
 .Va dwr_addr1
 and
 .Va dwr_addr2
 hold the beginning and ending offsets of the address range, respectively.
 .It Dv DW_RANGES_ADDRESS_SELECTION
-Base address selection entry.
+A base address selection entry.
+For this type of entry, the field
 .Va dwr_addr1
-is the value of the largest representable address offset.
+is the value of the largest representable address offset, and
 .Va dwr_addr2
 is a base address for the begining and ending address offsets of
 subsequent address range entries in the list.
 .It Dv DW_RANGES_END
-End of list mark. Both
+An end of list mark.
+Both
 .Va dwr_addr1
 and
 .Va dwr_addr2
 are set to 0.
 .El
 .El
-.Pp
-Function
-.Fn dwarf_get_ranges_a
-is identical to
-.Fn dwarf_get_ranges ,
-except that it requires one additional argument
-.Ar die
-denoting the debugging information entry which assoicates with
-the address range list. In this implementation of the
-.Lb libdwarf ,
-argument
-.Ar die
-is ignored, and function
-.Fn dwarf_get_ranges_a
-is only provided for compatibility purpose.
 .Ss Memory Management
 The memory area used for the array of
 .Vt Dwarf_Ranges
@@ -156,6 +159,23 @@ The application should not attempt to directly free this pointer.
 Portable code should instead use
 .Fn dwarf_ranges_dealloc
 to indicate that the memory may be freed.
+.Sh COMPATIBILITY
+Function
+.Fn dwarf_get_ranges_a
+is identical to
+.Fn dwarf_get_ranges ,
+except that it requires one additional argument
+.Ar die
+denoting the debugging information entry associated with
+the address range list.
+In this implementation of the
+.Lb libdwarf ,
+the argument
+.Ar die
+is ignored, and function
+.Fn dwarf_get_ranges_a
+is only provided for compatibility with other implementations of the
+DWARF(3) API.
 .Sh RETURN VALUES
 These functions
 return
@@ -198,20 +218,20 @@ Dwarf_Unsigned off, attr_count, bytecnt;
 int i, j;
 
 if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
-    DW_DLV_OK) {
-	warnx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
-	return;
-}
+    DW_DLV_OK)
+	errx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
 
 for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
 	if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
-		warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
+		warnx("dwarf_whatattr failed: %s",
+		    dwarf_errmsg(de));
 		continue;
 	}
 	if (attr != DW_AT_ranges)
 		continue;
 	if (dwarf_formudata(attr_list[i], &off, &de) != DW_DLV_OK) {
-		warnx("dwarf_formudata failed: %s", dwarf_errmsg(de));
+		warnx("dwarf_formudata failed: %s",
+		    dwarf_errmsg(de));
 		continue;
 	}
 	if (dwarf_get_ranges(dbg, (Dwarf_Off) off, &ranges, &cnt,
@@ -220,7 +240,8 @@ for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
 	for (j = 0; j < cnt; j++) {
 		if (ranges[j].dwr_type == DW_RANGES_END)
 			break;
-		else if (ranges[j].dwr_type == DW_RANGES_ADDRESS_SELECTION)
+		else if (ranges[j].dwr_type ==
+		    DW_RANGES_ADDRESS_SELECTION)
 			base = ranges[j].dwr_addr2;
 		else {
 			/*
