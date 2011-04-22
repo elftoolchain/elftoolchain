@@ -86,11 +86,6 @@
 .Fa "char **str"
 .Fc
 .Ft int
-.Fo dwarf_get_FORM_name
-.Fa "unsigned val"
-.Fa "char **str"
-.Fc
-.Ft int
 .Fo dwarf_get_DS_name
 .Fa "unsigned val"
 .Fa "char **str"
@@ -107,6 +102,11 @@
 .Fc
 .Ft int
 .Fo dwarf_get_END_name
+.Fa "unsigned val"
+.Fa "char **str"
+.Fc
+.Ft int
+.Fo dwarf_get_FORM_name
 .Fa "unsigned val"
 .Fa "char **str"
 .Fc
@@ -199,9 +199,6 @@ constants.
 .It Fn dwarf_get_CHILDREN_name
 .Dv DW_CHILDREN_*
 constants.
-.It Fn dwarf_get_FORM_name
-.Dv DW_FORM_*
-constants.
 .It Fn dwarf_get_DS_name
 .Dv DW_DS_*
 constants.
@@ -213,6 +210,9 @@ constants.
 constants.
 .It Fn dwarf_get_END_name
 .Dv DW_END_*
+constants.
+.It Fn dwarf_get_FORM_name
+.Dv DW_FORM_*
 constants.
 .It Fn dwarf_get_ID_name
 .Dv DW_ID_*
