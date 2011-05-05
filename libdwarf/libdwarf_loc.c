@@ -321,7 +321,7 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 		p = out;
 		pe = end;
 	} else {
-		p = buf;
+		p = out = buf;
 		pe = &buf[sizeof(buf)];
 	}
 
