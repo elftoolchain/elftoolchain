@@ -233,6 +233,8 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 	STAILQ_INIT(&dbg->dbgp_pelist);
 	STAILQ_INIT(&dbg->dbgp_seclist);
 	STAILQ_INIT(&dbg->dbgp_drslist);
+	STAILQ_INIT(&dbg->dbgp_cielist);
+	STAILQ_INIT(&dbg->dbgp_fdelist);
 
 	if ((dbg->dbgp_lineinfo = calloc(1, sizeof(struct _Dwarf_LineInfo))) ==
 	    NULL) {
