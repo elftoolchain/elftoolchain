@@ -161,8 +161,8 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 		STAILQ_INIT(&cu->cu_die_hash[i]);
 	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
-	/* Create .debug_init section. */
-	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_init", 0,
+	/* Create .debug_info section. */
+	if ((ret = _dwarf_section_init(dbg, &dbg->dbgp_info, ".debug_info", 0,
 	    error)) != DW_DLE_NONE)
 		goto gen_fail1;
 	ds = dbg->dbgp_info;
