@@ -315,8 +315,6 @@ dwarf_add_AT_reference(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 {
 	Dwarf_Attribute at;
 
-	(void) ref_die;
-
 	if (dbg == NULL || die == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_BADADDR);
