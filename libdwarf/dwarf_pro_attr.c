@@ -57,6 +57,8 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	else
 		at->at_form = DW_FORM_block;
 
+	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
+
 	return (at);
 }
 
