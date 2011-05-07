@@ -209,7 +209,8 @@ _dwarf_die_link(Dwarf_P_Die die, Dwarf_P_Die parent, Dwarf_P_Die child,
 		/* Disconnect from old parent. */
 		if (die->die_parent) {
 			if (die->die_parent != parent) {
-				die->die_parent->die_child = NULL;
+				if (die->die_parent->die_child == die)
+					die->die_parent->die_child = NULL;
 				die->die_parent = NULL;
                      }
 		}
