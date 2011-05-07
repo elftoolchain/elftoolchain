@@ -308,6 +308,17 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 		goto null_die;
 
 	/*
+	 * Add DW_AT_sibling attribute for DIEs with children, so consumers
+	 * can quickly scan chains of siblings, while ignoring the children
+	 * of individual siblings.
+	 */
+	if (die->die_child && die->die_right) {
+		if (_dwarf_attr_find(die, DW_AT_sibling) == NULL)
+			(void) dwarf_add_AT_reference(dbg, die, DW_AT_sibling,
+			    die->die_right, error);
+	}
+
+	/*
 	 * Search abbrev list to find a matching entry.
 	 */
 	die->die_ab = NULL;
