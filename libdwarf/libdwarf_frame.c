@@ -1455,12 +1455,13 @@ static int
 _dwarf_frame_gen_fde(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
     Dwarf_Rel_Section drs, Dwarf_P_Fde fde, Dwarf_Error *error)
 {
+	uint64_t offset;
 	int ret;
 
 	assert(dbg != NULL && ds != NULL && drs != NULL);
 	assert(fde != NULL && fde->fde_cie != NULL);
 
-	fde->fde_offset = ds->ds_size;
+	fde->fde_offset = offset = ds->ds_size;
 	fde->fde_length = 0;
 	fde->fde_cieoff = fde->fde_cie->cie_offset;
 
@@ -1490,6 +1491,10 @@ _dwarf_frame_gen_fde(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 
 	/* Write FDE frame instructions. */
 	RCHECK(WRITE_BLOCK(fde->fde_inst, fde->fde_instlen));
+
+	/* Fill in the length field. */
+	fde->fde_length = ds->ds_size - fde->fde_offset - 4;
+	dbg->write(ds->ds_data, &offset, fde->fde_length, 4);
 
 	return (DW_DLE_NONE);
 
