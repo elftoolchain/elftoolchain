@@ -1442,7 +1442,7 @@ _dwarf_frame_gen_cie(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_P_Cie cie,
 	/* TODO padding? */
 
 	/* Fill in the length field. */
-	cie->cie_length = ds->ds_size - 4;
+	cie->cie_length = ds->ds_size - cie->cie_offset - 4;
 	dbg->write(ds->ds_data, &offset, cie->cie_length, 4);
 	
 	return (DW_DLE_NONE);
