@@ -50,9 +50,9 @@ dwarf_add_AT_location_expr(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	at->u[1].u8p = loc_expr->pe_block;
 	if (loc_expr->pe_length <= UCHAR_MAX)
 		at->at_form = DW_FORM_block1;
-	if (loc_expr->pe_length <= USHRT_MAX)
+	else if (loc_expr->pe_length <= USHRT_MAX)
 		at->at_form = DW_FORM_block2;
-	if (loc_expr->pe_length <= UINT_MAX)
+	else if (loc_expr->pe_length <= UINT_MAX)
 		at->at_form = DW_FORM_block4;
 	else
 		at->at_form = DW_FORM_block;
