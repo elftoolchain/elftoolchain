@@ -1441,13 +1441,12 @@ _dwarf_frame_gen_cie(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_P_Cie cie,
 		RCHECK(WRITE_BLOCK(cie->cie_initinst, cie->cie_instlen));
 
 	/* Add padding. */
-	len = ds->ds_size - cie->cie_offset;
+	len = ds->ds_size - cie->cie_offset - 4;
 	cie->cie_length = roundup(len, dbg->dbg_pointer_size);
 	while (len++ < cie->cie_length)
 		RCHECK(WRITE_VALUE(DW_CFA_nop, 1));
 
 	/* Fill in the length field. */
-	cie->cie_length -= 4;
 	dbg->write(ds->ds_data, &offset, cie->cie_length, 4);
 	
 	return (DW_DLE_NONE);
@@ -1499,13 +1498,12 @@ _dwarf_frame_gen_fde(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 	RCHECK(WRITE_BLOCK(fde->fde_inst, fde->fde_instlen));
 
 	/* Add padding. */
-	len = ds->ds_size - fde->fde_offset;
+	len = ds->ds_size - fde->fde_offset - 4;
 	fde->fde_length = roundup(len, dbg->dbg_pointer_size);
 	while (len++ < fde->fde_length)
 		RCHECK(WRITE_VALUE(DW_CFA_nop, 1));
 
 	/* Fill in the length field. */
-	fde->fde_length -= 4;
 	dbg->write(ds->ds_data, &offset, fde->fde_length, 4);
 
 	return (DW_DLE_NONE);
