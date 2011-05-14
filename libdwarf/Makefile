@@ -116,6 +116,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_arange_info.3				\
 	dwarf_get_cu_die_offset.3			\
 	dwarf_get_elf.3					\
+	dwarf_get_fde_list.3				\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
 	dwarf_get_macro_details.3			\
@@ -179,6 +180,7 @@ MLINKS+= \
 	dwarf_get_AT_name.3	dwarf_get_VIRTUALITY_name.3 \
 	dwarf_get_AT_name.3	dwarf_get_VIS_name.3	\
 	dwarf_get_cu_die_offset.3 dwarf_get_arange_cu_header_offset.3 \
+	dwarf_get_fde_list.3	dwarf_get_fde_list_eh.3	\
 	dwarf_get_funcs.3	dwarf_func_die_offset.3	\
 	dwarf_get_funcs.3	dwarf_func_cu_offset.3	\
 	dwarf_get_funcs.3	dwarf_func_name_offsets.3 \
