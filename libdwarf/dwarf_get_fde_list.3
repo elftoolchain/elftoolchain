@@ -53,17 +53,27 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
+These functions retrieve frame related information for the specified
+DWARF debug context.
+.Pp
 Function
 .Fn dwarf_get_fde_list
-retrieves frame information from DWARF frame section
+retrieves frame information from the DWARF section named
 .Dq ".debug_frame" .
+For objects containing GNU style C++ exception handling
+information, the function
+.Fn dwarf_get_fde_list_eh
+retrieves frame information from the section named
+.Dq ".eh_frame" .
+.Pp
 Frame information is returned using opaque descriptors
 of type
 .Vt Dwarf_Cie
 and
 .Vt Dwarf_Fde .
-Application need to use other frame functions in the API set retrieve
-detailed frame information contained in these descriptors.
+Applications need to use the other frame related functions in the
+DWARF(3) API set to retrieve the information contained in these
+descriptors.
 .Pp
 Argument
 .Ar dbg
@@ -76,6 +86,7 @@ should point to a location that will be set to a pointer to an array
 of
 .Vt Dwarf_Cie
 descriptors.
+.Pp
 Argument
 .Ar cie_count
 should point to a location that will be set to the number of
@@ -88,6 +99,7 @@ should point to a location that will be set to a pointer to an array
 of
 .Vt Dwarf_Fde
 descriptors.
+.Pp
 Argument
 .Ar fde_count
 should point to a location that will be set to the number of
@@ -98,20 +110,12 @@ If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
-.Pp
-Function
-.Fn dwarf_get_fde_list_eh
-is identical to the function
-.Fn dwarf_get_fde_list
-except that it retrieves frame information from the
-Exception Frames section
-.Dq ".eh_frame" .
 .Sh RETURN VALUES
 On success, these functions returns
 .Dv DW_DLV_OK .
 They return
 .Dv DW_DLV_NO_ENTRY
-if there is no frame information associated with the giving DWARF
+if there is no frame information associated with the given DWARF
 debug context.
 In case of an error, they return
 .Dv DW_DLV_ERROR
@@ -134,9 +138,9 @@ There is no frame information associated with the giving DWARF debug
 context.
 .El
 .Sh EXAMPLE
-To obtain frame information from
+To obtain frame information from the
 .Dq ".debug_frame"
-section:
+section, use:
 .Bd -literal -offset indent
 Dwarf_Debug dbg;
 Dwarf_Cie *cie_list, cie;
@@ -177,7 +181,7 @@ for (i = 0; i < fde_count; i++) {
 		continue;
 	}
 
-	/* ... Use retrieved frame information ... */
+	/* ... Use the retrieved frame information ... */
 }
 .Ed
 .Sh SEE ALSO
