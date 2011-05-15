@@ -114,6 +114,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_arange.3				\
 	dwarf_get_aranges.3				\
 	dwarf_get_arange_info.3				\
+	dwarf_get_cie_of_fde.3				\
 	dwarf_get_cu_die_offset.3			\
 	dwarf_get_elf.3					\
 	dwarf_get_fde_at_pc.3				\
