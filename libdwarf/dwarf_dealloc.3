@@ -47,6 +47,13 @@
 .Fa "Dwarf_Ptr ptr"
 .Fa "Dwarf_Unsigned type"
 .Fc
+.Fo dwarf_fde_cie_list_dealloc
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Cie *cie_list"
+.Fa "Dwarf_Signed cie_count"
+.Fa "Dwarf_Fde *fde_list"
+.Fa "Dwarf_Signed fde_count"
+.Fc
 .Ft void
 .Fo dwarf_funcs_dealloc
 .Fa "Dwarf_Debug dbg"
@@ -98,6 +105,7 @@
 .Sh DESCRIPTION
 The functions
 .Fn dwarf_dealloc ,
+.Fn dwarf_fde_cie_list_dealloc ,
 .Fn dwarf_funcs_dealloc ,
 .Fn dwarf_globals_dealloc ,
 .Fn dwarf_pubtypes_dealloc ,
@@ -119,6 +127,7 @@ implementation of the DWARF(3) API.
 .Sh RETURN VALUES
 Functions
 .Fn dwarf_dealloc ,
+.Fn dwarf_fde_cie_list_dealloc ,
 .Fn dwarf_funcs_dealloc ,
 .Fn dwarf_globals_dealloc ,
 .Fn dwarf_pubtypes_dealloc ,
