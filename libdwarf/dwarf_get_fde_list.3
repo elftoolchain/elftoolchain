@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 14, 2011
+.Dd May 15, 2011
 .Os
 .Dt DWARF_GET_FDE_LIST 3
 .Sh NAME
@@ -110,6 +110,17 @@ If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
+.Ss Memory Management
+The memory areas used for the arrays returned in arguments
+.Ar cie_list
+and
+.Ar fde_list
+are owned by the
+.Lb libdwarf .
+Application code should not attempt to directly free these areas.
+Portable applications should instead use the
+.Xr dwarf_fde_cie_list_dealloc 3
+function to indicate that these memory areas may be freed.
 .Sh RETURN VALUES
 On success, these functions returns
 .Dv DW_DLV_OK .
@@ -158,6 +169,7 @@ if (dwarf_get_fde_list(dbg, &cie_list, &cie_count,
 	errx(1, "dwarf_get_fde_list failed: %s",
 	    dwarf_errmsg(de));
 }
+
 for (i = 0; i < fde_count; i++) {
 	if (dwarf_get_fde_n(fde_list, i, &fde, &de) != DW_DLV_OK) {
 		warnx("dwarf_get_fde_n failed: %s", dwarf_errmsg(de));
@@ -183,6 +195,10 @@ for (i = 0; i < fde_count; i++) {
 
 	/* ... Use the retrieved frame information ... */
 }
+
+/* Indicate that the returned arrays may be freed. */
+dwarf_fde_cie_list_dealloc(dbg, cie_list, cie_count, fde_list,
+    fde_count);
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
@@ -191,6 +207,7 @@ for (i = 0; i < fde_count; i++) {
 .Xr dwarf_get_fde_instr_bytes 3 ,
 .Xr dwarf_get_fde_n 3 ,
 .Xr dwarf_get_fde_range 3 ,
+.Xr dwarf_fde_cie_list_dealloc 3 ,
 .Xr dwarf_set_frame_cfa_value 3 ,
 .Xr dwarf_set_frame_rule_table_size 3 ,
 .Xr dwarf_set_frame_rule_initial_value 3 ,
