@@ -510,6 +510,8 @@ Dwarf_Addr	dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Unsigned *,
 		    Dwarf_Error *);
 Dwarf_P_Fde	dwarf_fde_cfa_offset(Dwarf_P_Fde, Dwarf_Unsigned, Dwarf_Signed,
 		    Dwarf_Error *);
+void		dwarf_fde_cie_list_dealloc(Dwarf_Debug, Dwarf_Cie *,
+		    Dwarf_Signed, Dwarf_Fde *, Dwarf_Signed);
 char		*dwarf_find_macro_value_start(char *);
 int		dwarf_finish(Dwarf_Debug, Dwarf_Error *);
 int		dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *, Dwarf_Signed,
