@@ -66,3 +66,19 @@ dwarf_ranges_dealloc(Dwarf_Debug dbg, Dwarf_Ranges *ranges,
 
 	(void) dbg; (void) ranges; (void) range_count;
 }
+
+void
+dwarf_fde_cie_list_dealloc(Dwarf_Debug dbg, Dwarf_Cie *cie_list,
+    Dwarf_Signed cie_count, Dwarf_Fde *fde_list, Dwarf_Signed fde_count)
+{
+	/*
+	 * In this implementation, FDE and CIE information is managed
+	 * as part of the Dwarf_Debug object.  The client does not need
+	 * to explicitly free these memory arenas.
+	 */
+	(void) dbg;
+	(void) cie_list;
+	(void) cie_count;
+	(void) fde_list;
+	(void) fde_count;
+}
