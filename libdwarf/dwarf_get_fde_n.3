@@ -44,11 +44,11 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_fde_n
-retrieves a FDE descriptor from an array of FDE descriptors.
+retrieves an FDE descriptor from an array of FDE descriptors.
 .Pp
 Argument
 .Ar fdelist
-should point to an array of FDE descriptors, as returned by function
+should point to an array of FDE descriptors, as returned by the functions
 .Xr dwarf_get_fde_list 3
 or
 .Xr dwarf_get_fde_list_eh 3 .
@@ -86,7 +86,7 @@ Function
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
 .It Bq Er DW_DLE_ARGUMENT
-Either of arugments
+Either of the arguments
 .Ar fdelist
 or
 .Ar ret_fde
