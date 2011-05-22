@@ -29,7 +29,7 @@
 .Dt DWARF_GET_FDE_RANGE 3
 .Sh NAME
 .Nm dwarf_get_fde_range
-.Nd retrieve range information from FDE descriptor
+.Nd retrieve range information from an FDE descriptor
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -49,7 +49,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_fde_range
-retrieves range information from a given FDE descriptor.
+retrieves range and offset information from a given FDE descriptor.
 .Pp
 Argument
 .Ar fde
@@ -63,7 +63,7 @@ program counter address covered by the FDE descriptor.
 Argument
 .Ar func_len
 should point to a location that will hold the length in bytes of
-the address range associated with the FDE descriptor.
+the address range covered by the FDE descriptor.
 .Pp
 Argument
 .Ar fde_bytes
@@ -77,18 +77,28 @@ the FDE descriptor itself.
 .Pp
 Argument
 .Ar cie_offset
-should point to a location that will be set to the section-relative
-offset of the CIE descriptor associated with the given FDE descriptor.
+should point to a location that will be set to the offset, relative to
+the DWARF
+.Dq ".debug_frame"
+section, of the CIE descriptor associated with the given FDE
+descriptor.
 .Pp
 Argument
 .Ar cie_index
 should point to a location that will hold the index of the CIE
 descriptor associated with the FDE descriptor.
+The returned value is a zero-based index into the array of CIE
+descriptors returned by a prior call to functions
+.Xr dwarf_get_fde_list 3
+or
+.Xr dwarf_get_fde_list_eh 3 .
 .Pp
 Argument
 .Ar fde_offset
-should point to a location that will be set to the section-relative
-offset of the FDE descriptor.
+should point to a location that will be set to the offset, relative to
+the DWARF
+.Dq ".debug_frame"
+section, of the FDE descriptor.
 .Pp
 If argument
 .Ar err
@@ -134,4 +144,6 @@ was NULL.
 .Xr dwarf_get_fde_info_for_reg 3 ,
 .Xr dwarf_get_fde_info_for_reg3 3 ,
 .Xr dwarf_get_fde_instr_bytes 3 ,
+.Xr dwarf_get_fde_list 3 ,
+.Xr dwarf_get_fde_list_eh 3 ,
 .Xr dwarf_get_fde_n 3
