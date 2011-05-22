@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 15, 2011
+.Dd May 22, 2011
 .Os
 .Dt DWARF_GET_CIE_OF_FDE 3
 .Sh NAME
@@ -43,13 +43,17 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_cie_of_fde
-retrieves the CIE descriptor assoicated with the FDE descriptor
-denoted by argument
-.Ar fde .
+retrieves the CIE descriptor associated with a given FDE descriptor.
+.Pp
+Argument
+.Ar fde
+should reference a valid FDE descriptor.
+.Pp
 Argument
 .Ar ret_cie
 should point to a location that will hold the returned CIE
 descriptor.
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
