@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 15, 2011
+.Dd May 22, 2011
 .Os
 .Dt DWARF_GET_CIE_INDEX 3
 .Sh NAME
@@ -43,16 +43,19 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_cie_index
-retrieve the 0-based index of the CIE descriptor referenced by
-argument
-.Ar cie ,
-and stores it into the location pointed to by argument
-.Ar cie_index .
-The retrieved index refers to the CIE descriptor array as returned
-by fucntion
+retrieves the zero-based index of a given CIE descriptor in the array
+of CIE descriptors returned by the functions
 .Xr dwarf_get_fde_list 3
-or
+and
 .Xr dwarf_get_fde_list_eh 3 .
+.Pp
+Argument
+.Ar cie
+should reference a valid DWARF CIE descriptor.
+.Pp
+Argument
+.Ar cie_index
+should point to a location that will hold the returned index.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_cie_index
