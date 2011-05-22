@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 15, 2011
+.Dd May 22, 2011
 .Os
 .Dt DWARF_GET_FDE_AT_PC 3
 .Sh NAME
 .Nm dwarf_get_fde_at_pc
-.Nd retrieve FDE descriptor
+.Nd retrieve the FDE descriptor for an address
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,16 +46,19 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_fde_at_pc
-searches the provided array of FDE descriptors for an FDE
-descriptor that covers the PC address denoted by argument
-.Ar pc .
+searches the provided array of DWARF FDE descriptors for a descriptor
+covering a given program counter address.
 .Pp
 Argument
 .Ar fdelist
-should point to an array of FDE descriptors, as returned by function
+should point to an array of FDE descriptors, as returned by the functions
 .Xr dwarf_get_fde_list 3
 or
 .Xr dwarf_get_fde_list_eh 3 .
+.Pp
+Argument
+.Ar pc
+should contain the program counter address being looked up.
 .Pp
 Argument
 .Ar ret_fde
@@ -63,13 +66,13 @@ should point to a location that will hold the returned FDE descriptor.
 .Pp
 Argument
 .Ar lopc
-should point to a location that will hold the low address covered by
-the return FDE descriptor.
+should point to a location that will be set to the lowest address
+covered by the returned FDE descriptor.
 .Pp
 Argument
 .Ar hipc
-should point to a location that will hold the high address covered by
-the return FDE descriptor.
+should point to a location that will be set to the highest address
+covered by the returned FDE descriptor.
 .Pp
 If argument
 .Ar err
@@ -104,8 +107,7 @@ or
 .Va hipc
 was NULL.
 .It Bq Er DW_DLE_NO_ENTRY
-These is no FDE descriptor that covers the address specified by
-argument
+These was no FDE descriptor covering the address specified by argument
 .Ar pc .
 .Ed
 .Sh SEE ALSO
