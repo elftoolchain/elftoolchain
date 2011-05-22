@@ -121,6 +121,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_fde_at_pc.3				\
 	dwarf_get_fde_list.3				\
 	dwarf_get_fde_n.3				\
+	dwarf_get_fde_range.3				\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
 	dwarf_get_macro_details.3			\
