@@ -320,9 +320,6 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	if (pass2)
 		goto attr_gen;
 
-	if (STAILQ_EMPTY(&die->die_attr))
-		goto null_die;
-
 	/*
 	 * Add DW_AT_sibling attribute for DIEs with children, so consumers
 	 * can quickly scan chains of siblings, while ignoring the children
@@ -348,9 +345,8 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 			continue;
 		at = STAILQ_FIRST(&die->die_attr);
 		ad = STAILQ_FIRST(&ab->ab_attrdef);
-		assert(at != NULL && ad != NULL);
 		match = 1;
-		do {
+		while (at != NULL && ad != NULL) {
 			if (at->at_attrib != ad->ad_attrib ||
 			    at->at_form != ad->ad_form) {
 				match = 0;
@@ -358,10 +354,9 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 			}
 			at = STAILQ_NEXT(at, at_next);
 			ad = STAILQ_NEXT(ad, ad_next);
-			if ((at == NULL && ad != NULL) ||
-			    (at != NULL && ad == NULL))
-				match = 0;
-		} while (at != NULL && ad != NULL);
+		}
+		if ((at == NULL && ad != NULL) || (at != NULL && ad == NULL))
+			match = 0;
 		if (match) {
 			die->die_ab = ab;
 			break;
@@ -419,9 +414,8 @@ attr_gen:
 			return (ret);
 	}
 
-null_die:
 	/* Write a null DIE indicating the end of current level. */
-	if (STAILQ_EMPTY(&die->die_attr) || die->die_right == NULL) {
+	if (die->die_right == NULL) {
 		ret = _dwarf_write_uleb128_alloc(&ds->ds_data, &ds->ds_cap,
 		    &ds->ds_size, 0, error);
 		if (ret != DW_DLE_NONE)
