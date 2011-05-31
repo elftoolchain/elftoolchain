@@ -55,17 +55,13 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		case DW_FORM_data4:
 		case DW_FORM_data8:
 			ret = _dwarf_loclist_find(at->at_die->die_dbg,
-			    at->u[0].u64, &ll);
+			    at->at_die->die_cu, at->u[0].u64, &ll, error);
 			if (ret == DW_DLE_NO_ENTRY) {
-				/* Malformed Attr? */
 				DWARF_SET_ERROR(dbg, error, ret);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DW_DLE_NONE) {
-				/* Internal error! */
-				assert(0);
-				return (DW_DLV_NO_ENTRY);
-			}
+			if (ret != DW_DLE_NONE)
+				return (DW_DLV_ERROR);
 			*llbuf = ll->ll_ldlist;
 			*listlen = ll->ll_ldlen;
 			return (DW_DLV_OK);
@@ -73,15 +69,14 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		case DW_FORM_block1:
 		case DW_FORM_block2:
 		case DW_FORM_block4:
-			if (at->at_ld != NULL) {
-				*llbuf = &at->at_ld;
-				*listlen = 1;
-				return (DW_DLV_OK);
-			} else {
-				/* Internal error! */
-				assert(0);
-				return (DW_DLV_NO_ENTRY);
+			if (at->at_ld == NULL) {
+				ret = _dwarf_loc_add(at->at_die, at, error);
+				if (ret != DW_DLE_NONE)
+					return (DW_DLV_ERROR);
 			}
+			*llbuf = &at->at_ld;
+			*listlen = 1;
+			return (DW_DLV_OK);
 		default:
 			/* Malformed Attr? */
 			DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
@@ -123,16 +118,13 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 		case DW_FORM_data4:
 		case DW_FORM_data8:
 			ret = _dwarf_loclist_find(at->at_die->die_dbg,
-			    at->u[0].u64, &ll);
+			    at->at_die->die_cu, at->u[0].u64, &ll, error);
 			if (ret == DW_DLE_NO_ENTRY) {
 				DWARF_SET_ERROR(dbg, error, DW_DLV_NO_ENTRY);
 				return (DW_DLV_NO_ENTRY);
 			}
-			if (ret != DW_DLE_NONE) {
-				/* Internal error! */
-				assert(0);
-				return (DW_DLV_NO_ENTRY);
-			}
+			if (ret != DW_DLE_NONE)
+				return (DW_DLV_ERROR);
 			*llbuf = ll->ll_ldlist[0];
 			*listlen = 1;
 			return (DW_DLV_OK);
@@ -140,15 +132,14 @@ dwarf_loclist(Dwarf_Attribute at, Dwarf_Locdesc **llbuf,
 		case DW_FORM_block1:
 		case DW_FORM_block2:
 		case DW_FORM_block4:
-			if (at->at_ld != NULL) {
-				*llbuf = at->at_ld;
-				*listlen = 1;
-				return (DW_DLV_OK);
-			} else {
-				/* Internal error! */
-				assert(0);
-				return (DW_DLV_ERROR);
+			if (at->at_ld == NULL) {
+				ret = _dwarf_loc_add(at->at_die, at, error);
+				if (ret != DW_DLE_NONE)
+					return (DW_DLV_ERROR);
 			}
+			*llbuf = at->at_ld;
+			*listlen = 1;
+			return (DW_DLV_OK);
 		default:
 			DWARF_SET_ERROR(dbg, error, DW_DLE_ATTR_FORM_BAD);
 			return (DW_DLV_ERROR);
@@ -177,11 +168,13 @@ dwarf_get_loclist_entry(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = _dwarf_loclist_find(dbg, offset, &ll);
+	ret = _dwarf_loclist_find(dbg, STAILQ_FIRST(&dbg->dbg_cu), offset, &ll,
+	    error);
 	if (ret == DW_DLE_NO_ENTRY) {
 		DWARF_SET_ERROR(dbg, error, DW_DLV_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
-	}
+	} else if (ret != DW_DLE_NONE)
+		return (DW_DLV_ERROR);
 
 	*hipc = *lopc = 0;
 	for (i = 0; i < ll->ll_ldlen; i++) {

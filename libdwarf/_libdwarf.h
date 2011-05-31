@@ -560,11 +560,12 @@ int		_dwarf_loc_add(Dwarf_Die, Dwarf_Attribute, Dwarf_Error *);
 int		_dwarf_loc_expr_add_atom(Dwarf_Debug, uint8_t *, uint8_t *,
 		    Dwarf_Small, Dwarf_Unsigned, Dwarf_Unsigned, int *,
 		    Dwarf_Error *);
-int		_dwarf_loclist_find(Dwarf_Debug, uint64_t, Dwarf_Loclist *);
+int		_dwarf_loclist_find(Dwarf_Debug, Dwarf_CU, uint64_t,
+		    Dwarf_Loclist *, Dwarf_Error *);
 void		_dwarf_loclist_cleanup(Dwarf_Debug);
 void		_dwarf_loclist_free(Dwarf_Loclist);
 int		_dwarf_loclist_add(Dwarf_Debug, Dwarf_CU, uint64_t,
-		    Dwarf_Error *);
+		    Dwarf_Loclist *, Dwarf_Error *);
 void		_dwarf_macinfo_cleanup(Dwarf_Debug);
 int		_dwarf_macinfo_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Section *,

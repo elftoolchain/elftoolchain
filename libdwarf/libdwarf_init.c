@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
