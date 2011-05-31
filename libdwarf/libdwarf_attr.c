@@ -85,43 +85,6 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 			return (ret);
 	}
 
-	/*
-	 * If the attribute points to a loclist or the attribute
-	 * contains a locdesc, find and save it.
-	 */
-	switch (at->at_attrib) {
-	case DW_AT_location:
-	case DW_AT_string_length:
-	case DW_AT_return_addr:
-	case DW_AT_data_member_location:
-	case DW_AT_frame_base:
-	case DW_AT_segment:
-	case DW_AT_static_link:
-	case DW_AT_use_location:
-	case DW_AT_vtable_elem_location:
-		switch (at->at_form) {
-		case DW_FORM_data4:
-		case DW_FORM_data8:
-			ret = _dwarf_loclist_add(die->die_cu->cu_dbg,
-			    die->die_cu, at->u[0].u64, error);
-			if (ret != DW_DLE_NONE)
-				return (ret);
-			break;
-		case DW_FORM_block:
-		case DW_FORM_block1:
-		case DW_FORM_block2:
-		case DW_FORM_block4:
-			ret = _dwarf_loc_add(die, at, error);
-			if (ret != DW_DLE_NONE)
-				return (ret);
-			break;
-		default:
-			break;
-		}
-	default:
-		break;
-	}
-
 	/* If the attribute points to a range list, find and save it. */
 	if (at->at_attrib == DW_AT_ranges) {
 		ret = _dwarf_ranges_add(die->die_cu->cu_dbg, die->die_cu,

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,25 +88,30 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 }
 
 int
-_dwarf_loclist_find(Dwarf_Debug dbg, uint64_t lloff, Dwarf_Loclist *ret_ll)
+_dwarf_loclist_find(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff,
+    Dwarf_Loclist *ret_ll, Dwarf_Error *error)
 {
 	Dwarf_Loclist ll;
+	int ret;
+
+	assert(ret_ll != NULL);
+	ret = DW_DLE_NONE;
 
 	TAILQ_FOREACH(ll, &dbg->dbg_loclist, ll_next)
 		if (ll->ll_offset == lloff)
 			break;
 
 	if (ll == NULL)
-		return (DW_DLE_NO_ENTRY);
-
-	if (ret_ll != NULL)
+		ret = _dwarf_loclist_add(dbg, cu, lloff, ret_ll, error);
+	else
 		*ret_ll = ll;
 
-	return (DW_DLE_NONE);
+	return (ret);
 }
 
 int
-_dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *error)
+_dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff,
+    Dwarf_Loclist *ret_ll, Dwarf_Error *error)
 {
 	Dwarf_Section *ds;
 	Dwarf_Loclist ll, tll;
@@ -119,10 +124,6 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLE_NO_ENTRY);
 	}
-
-	/* First we search if we have already added this loclist. */
-	if (_dwarf_loclist_find(dbg, lloff, NULL) != DW_DLE_NO_ENTRY)
-		return (ret);
 
 	if ((ll = malloc(sizeof(struct _Dwarf_Loclist))) == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
@@ -173,6 +174,7 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff, Dwarf_Error *er
 	if (tll == NULL)
 		TAILQ_INSERT_TAIL(&dbg->dbg_loclist, ll, ll_next);
 
+	*ret_ll = ll;
 	return (DW_DLE_NONE);
 
 fail_cleanup:
