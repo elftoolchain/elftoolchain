@@ -120,31 +120,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if (ret != DW_DLE_NONE)
 		return (ret);
 
-#define	INIT_NAMETBL(NDX, TBL)						\
-	do {								\
-		if ((s = _dwarf_find_section(dbg, ".debug_" NDX)) !=	\
-		    NULL) {						\
-			ret = _dwarf_nametbl_init(dbg, &dbg->dbg_##TBL,	\
-			    s, error);					\
-			if (ret != DW_DLE_NONE)			\
-				return (ret);				\
-		}							\
-	} while (0)
-
-
-	/*
-	 * Initialise name lookup sections, if exist.
-	 */
-
-	INIT_NAMETBL("pubnames", globals);
-	INIT_NAMETBL("pubtypes", pubtypes);
-	INIT_NAMETBL("weaknames", weaks);
-	INIT_NAMETBL("static_func", funcs);
-	INIT_NAMETBL("static_vars", vars);
-	INIT_NAMETBL("types", types);
-
-#undef	INIT_NAMETBL
-
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);
 
