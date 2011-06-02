@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,18 @@ dwarf_get_fde_list(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 		return (DW_DLV_ERROR);
 	}
 
+	if (dbg->dbg_internal_reg_table == NULL) {
+		if (_dwarf_frame_interal_table_init(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
+
 	if (dbg->dbg_frame == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+		if (_dwarf_frame_section_load(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+		if (dbg->dbg_frame == NULL) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
 	}
 
 	if (dbg->dbg_frame->fs_ciearray == NULL ||
@@ -69,9 +78,18 @@ dwarf_get_fde_list_eh(Dwarf_Debug dbg, Dwarf_Cie **cie_list,
 		return (DW_DLV_ERROR);
 	}
 
+	if (dbg->dbg_internal_reg_table == NULL) {
+		if (_dwarf_frame_interal_table_init(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
+
 	if (dbg->dbg_eh_frame == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+		if (_dwarf_frame_section_load_eh(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+		if (dbg->dbg_eh_frame == NULL) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
 	}
 
 	if (dbg->dbg_eh_frame->fs_ciearray == NULL ||
