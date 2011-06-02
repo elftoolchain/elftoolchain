@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,12 +117,16 @@ _dwarf_macinfo_cleanup(Dwarf_Debug dbg)
 }
 
 int
-_dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
+_dwarf_macinfo_init(Dwarf_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_MacroSet ms;
 	Dwarf_Unsigned cnt;
+	Dwarf_Section *ds;
 	uint64_t offset, entry_off;
 	int ret;
+
+	if ((ds = _dwarf_find_section(dbg, ".debug_macinfo")) == NULL)
+		return (DW_DLE_NONE);
 
 	offset = 0;
 	while (offset < ds->ds_size) {
