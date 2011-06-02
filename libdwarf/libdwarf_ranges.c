@@ -98,7 +98,8 @@ _dwarf_ranges_cleanup(Dwarf_Debug dbg)
 }
 
 int
-_dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error)
+_dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off,
+    Dwarf_Rangelist *ret_rl, Dwarf_Error *error)
 {
 	Dwarf_Section *ds;
 	Dwarf_Rangelist rl;
@@ -110,15 +111,11 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 		return (DW_DLE_NO_ENTRY);
 	}
 
-	if (_dwarf_ranges_find(dbg, off, NULL) != DW_DLE_NO_ENTRY)
-		return (DW_DLE_NONE);
-
 	if ((rl = malloc(sizeof(struct _Dwarf_Rangelist))) == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
 
-	rl->rl_cu = cu;
 	rl->rl_offset = off;
 
 	ret = _dwarf_ranges_parse(dbg, cu, ds, off, NULL, &cnt);
@@ -143,6 +140,7 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off, Dwarf_Error *error
 	}
 
 	STAILQ_INSERT_TAIL(&dbg->dbg_rllist, rl, rl_next);
+	*ret_rl = rl;
 
 	return (DW_DLE_NONE);
 }

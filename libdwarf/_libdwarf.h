@@ -582,7 +582,7 @@ int		_dwarf_pro_callback(Dwarf_P_Debug, char *, int, Dwarf_Unsigned,
 		    Dwarf_Unsigned *, int *);
 Dwarf_P_Section	_dwarf_pro_find_section(Dwarf_P_Debug, const char *);
 int		_dwarf_ranges_add(Dwarf_Debug, Dwarf_CU, uint64_t,
-		    Dwarf_Error *);
+		    Dwarf_Rangelist *, Dwarf_Error *);
 void		_dwarf_ranges_cleanup(Dwarf_Debug);
 int		_dwarf_ranges_find(Dwarf_Debug, uint64_t, Dwarf_Rangelist *);
 uint64_t	_dwarf_read_lsb(uint8_t *, uint64_t *, int);
