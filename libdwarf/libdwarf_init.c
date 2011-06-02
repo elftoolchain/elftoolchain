@@ -145,12 +145,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 #undef	INIT_NAMETBL
 
-	/*
-	 * Initialise call frame data.
-	 */
-	ret = _dwarf_frame_init(dbg, error);
-	if (ret != DW_DLE_NONE)
-		return (ret);
+	/* Initialise call frame API related parameters. */
+	_dwarf_frame_params_init(dbg);
 
 	/*
 	 * Initialise address range data.

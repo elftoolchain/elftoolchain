@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -535,10 +535,13 @@ int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
 		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);
 int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
 		    Dwarf_Regtable3 **, Dwarf_Addr *, Dwarf_Error *);
-int		_dwarf_frame_init(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_frame_interal_table_init(Dwarf_Debug, Dwarf_Error *);
+void		_dwarf_frame_params_init(Dwarf_Debug);
 void		_dwarf_frame_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_frame_regtable_copy(Dwarf_Debug, Dwarf_Regtable3 **,
 		    Dwarf_Regtable3 *, Dwarf_Error *);
+int		_dwarf_frame_section_load(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_frame_section_load_eh(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
 int		_dwarf_get_reloc_size(Dwarf_Debug, Dwarf_Unsigned);
