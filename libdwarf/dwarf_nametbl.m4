@@ -29,6 +29,8 @@ int
 dwarf_get_$1s(Dwarf_Debug dbg, Dwarf_$2 **$1s,
     Dwarf_Signed *ret_count, Dwarf_Error *error)
 {
+	Dwarf_Section *ds;
+	int ret;
 
 	if (dbg == NULL || $1s == NULL || ret_count == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
@@ -36,8 +38,16 @@ dwarf_get_$1s(Dwarf_Debug dbg, Dwarf_$2 **$1s,
 	}
 
 	if (dbg->dbg_$1s == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+		if ((ds = _dwarf_find_section(dbg, ".debug_$4")) != NULL) {
+			ret = _dwarf_nametbl_init(dbg, &dbg->dbg_$1s, ds,
+			    error);
+			if (ret != DW_DLE_NONE)
+				return (DW_DLV_ERROR);
+		}
+		if (dbg->dbg_$1s == NULL) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
 	}
 
 	*$1s = dbg->dbg_$1s->ns_array;

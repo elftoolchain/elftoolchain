@@ -31,4 +31,4 @@
 divert(-1)
 include(SRCDIR`/dwarf_nametbl.m4')
 divert(0)
-MAKE_NAMETBL_API(func,Func,func)
+MAKE_NAMETBL_API(func,Func,func,static_func)
