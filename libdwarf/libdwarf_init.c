@@ -148,15 +148,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);
 
-	/*
-	 * Initialise macinfo data.
-	 */
-	if ((s = _dwarf_find_section(dbg, ".debug_macinfo")) != NULL) {
-		ret = _dwarf_macinfo_init(dbg, s, error);
-		if (ret != DW_DLE_NONE)
-			return (ret);
-	}
-
 	return (ret);
 }
 

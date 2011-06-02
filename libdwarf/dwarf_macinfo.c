@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,8 +58,12 @@ dwarf_get_macro_details(Dwarf_Debug dbg, Dwarf_Off offset,
 	}
 
 	if (STAILQ_EMPTY(&dbg->dbg_mslist)) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+		if (_dwarf_macinfo_init(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+		if (STAILQ_EMPTY(&dbg->dbg_mslist)) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
 	}
 
 	STAILQ_FOREACH(ms, &dbg->dbg_mslist, ms_next) {
