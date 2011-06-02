@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,18 +71,6 @@ _dwarf_attr_add(Dwarf_Die die, Dwarf_Attribute atref, Dwarf_Attribute *atp,
 		default:
 			break;
 		}
-	}
-
-	/*
-	 * If current die is DW_TAG_compile_unit and current attr
-	 * is DW_AT_stmt_list, then this CU has line number infomation
-	 * needs to be initialized.
-	 */
-	if (die->die_ab->ab_tag == DW_TAG_compile_unit &&
-	    at->at_attrib == DW_AT_stmt_list) {
-		ret = _dwarf_lineno_init(die, at->u[0].u64, error);
-		if (ret != DW_DLE_NONE)
-			return (ret);
 	}
 
 	if (atp != NULL)

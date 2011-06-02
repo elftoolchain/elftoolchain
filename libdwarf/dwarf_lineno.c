@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 	Dwarf_Debug dbg;
 	Dwarf_Line ln;
 	Dwarf_CU cu;
+	Dwarf_Attribute at; 
 	int i;
 
 	dbg = die != NULL ? die->die_dbg : NULL;
@@ -43,12 +44,17 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_attr_find(die, DW_AT_stmt_list) == NULL) {
+	if ((at = _dwarf_attr_find(die, DW_AT_stmt_list)) == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	cu = die->die_cu;
+	if (cu->cu_lineinfo == NULL) {
+		if (_dwarf_lineno_init(die, at->u[0].u64, error) !=
+		    DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
 	if (cu->cu_lineinfo == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
@@ -90,6 +96,7 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 	Dwarf_LineFile lf;
 	Dwarf_Debug dbg;
 	Dwarf_CU cu;
+	Dwarf_Attribute at; 
 	int i;
 
 	dbg = die != NULL ? die->die_dbg : NULL;
@@ -99,12 +106,17 @@ dwarf_srcfiles(Dwarf_Die die, char ***srcfiles, Dwarf_Signed *srccount,
 		return (DW_DLV_ERROR);
 	}
 
-	if (_dwarf_attr_find(die, DW_AT_stmt_list) == NULL) {
+	if ((at = _dwarf_attr_find(die, DW_AT_stmt_list)) == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
 	}
 
 	cu = die->die_cu;
+	if (cu->cu_lineinfo == NULL) {
+		if (_dwarf_lineno_init(die, at->u[0].u64, error) !=
+		    DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
 	if (cu->cu_lineinfo == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
