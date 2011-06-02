@@ -149,15 +149,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	_dwarf_frame_params_init(dbg);
 
 	/*
-	 * Initialise address range data.
-	 */
-	if ((s = _dwarf_find_section(dbg, ".debug_aranges")) != NULL) {
-		ret = _dwarf_arange_init(dbg, s, error);
-		if (ret != DW_DLE_NONE)
-			return (ret);
-	}
-
-	/*
 	 * Initialise macinfo data.
 	 */
 	if ((s = _dwarf_find_section(dbg, ".debug_macinfo")) != NULL) {

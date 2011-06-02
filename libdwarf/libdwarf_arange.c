@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,15 +50,19 @@ _dwarf_arange_cleanup(Dwarf_Debug dbg)
 }
 
 int
-_dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
+_dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
 	Dwarf_ArangeSet as;
 	Dwarf_Arange ar;
+	Dwarf_Section *ds;
 	uint64_t offset, dwarf_size, length, addr, range;
 	int i, ret;
 
 	ret = DW_DLE_NONE;
+
+	if ((ds = _dwarf_find_section(dbg, ".debug_aranges")) == NULL)
+		return (DW_DLE_NONE);
 
 	offset = 0;
 	while (offset < ds->ds_size) {

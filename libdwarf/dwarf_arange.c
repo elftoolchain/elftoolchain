@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,12 @@ dwarf_get_aranges(Dwarf_Debug dbg, Dwarf_Arange **arlist,
 	}
 
 	if (dbg->dbg_arange_cnt == 0) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+		if (_dwarf_arange_init(dbg, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+		if (dbg->dbg_arange_cnt == 0) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
 	}
 
 	assert(dbg->dbg_arange_array != NULL);
