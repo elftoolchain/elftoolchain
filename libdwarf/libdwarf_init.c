@@ -116,10 +116,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
-	/* ret = _dwarf_info_init(dbg, s, error); */
-	/* if (ret != DW_DLE_NONE) */
-	/* 	return (ret); */
-
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);
 
