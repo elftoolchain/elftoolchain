@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,7 +99,8 @@ _dwarf_die_find(Dwarf_Die die, Dwarf_Unsigned off)
 
 int
 _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
-    int dwarf_size, uint64_t offset, uint64_t next_offset, Dwarf_Error *error)
+    int dwarf_size, uint64_t offset, uint64_t next_offset, Dwarf_Die *ret_die,
+    int search_sibling, Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
 	Dwarf_AttrDef ad;
@@ -108,10 +109,11 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 	Dwarf_Die left;
 	uint64_t abnum;
 	uint64_t die_offset;
-	int ret;
+	int ret, level;
 
 	assert(cu != NULL);
 
+	level = 1;
 	die = NULL;
 	parent = NULL;
 	left = NULL;
@@ -123,14 +125,16 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		abnum = _dwarf_read_uleb128(ds->ds_data, &offset);
 
 		if (abnum == 0) {
+			if (level == 0 || !search_sibling)
+				return (DW_DLE_NO_ENTRY);
+
 			/*
 			 * Return to previous DIE level.
 			 */
 			left = parent;
-			if (parent == NULL)
-				break;
-
-			parent = parent->die_parent;
+			if (parent != NULL)
+				parent = parent->die_parent;
+			level--;
 			continue;
 		}
 
@@ -158,18 +162,22 @@ _dwarf_die_parse(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_CU cu,
 		else if (parent)
 			parent->die_child = die; /* First child. */
 
-		left = die;
-
-		if (ab->ab_children == DW_CHILDREN_yes) {
-			/*
-			 * Advance to next DIE level.
-			 */
-			parent = die;
-			left = NULL;
+		die->die_next_off = offset;
+		if (search_sibling && level > 0) {
+			left = die;
+			if (ab->ab_children == DW_CHILDREN_yes) {
+				/* Advance to next DIE level. */
+				parent = die;
+				left = NULL;
+				level++;
+			}
+		} else {
+			*ret_die = die;
+			return (DW_DLE_NONE);
 		}
 	}
 
-	return (DW_DLE_NONE);
+	return (DW_DLE_NO_ENTRY);
 }
 
 void

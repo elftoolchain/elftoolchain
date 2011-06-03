@@ -92,7 +92,6 @@ dwarf_get_cu_die_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
     Dwarf_Error *error)
 {
 	Dwarf_CU cu;
-	Dwarf_Die die;
 	Dwarf_ArangeSet as;
 
 	if (ar == NULL) {
@@ -104,15 +103,13 @@ dwarf_get_cu_die_offset(Dwarf_Arange ar, Dwarf_Off *ret_offset,
 	assert(as != NULL);
 	cu = as->as_cu;
 	assert(cu != NULL);
-	die = STAILQ_FIRST(&cu->cu_die);
-	assert(die != NULL);
 
 	if (ret_offset == NULL) {
 		DWARF_SET_ERROR(cu->cu_dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}
 
-	*ret_offset = die->die_offset;
+	*ret_offset = cu->cu_1st_offset;
 
 	return (DW_DLV_OK);
 }
@@ -146,7 +143,6 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
     Dwarf_Unsigned *length, Dwarf_Off *cu_die_offset, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
-	Dwarf_Die die;
 	Dwarf_ArangeSet as;
 
 	if (ar == NULL) {
@@ -158,8 +154,6 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
 	assert(as != NULL);
 	cu = as->as_cu;
 	assert(cu != NULL);
-	die = STAILQ_FIRST(&cu->cu_die);
-	assert(die != NULL);
 
 	if (start == NULL || length == NULL ||
 	    cu_die_offset == NULL) {
@@ -169,7 +163,7 @@ dwarf_get_arange_info(Dwarf_Arange ar, Dwarf_Addr *start,
 
 	*start = ar->ar_address;
 	*length = ar->ar_range;
-	*cu_die_offset = die->die_offset;
+	*cu_die_offset = cu->cu_1st_offset;
 
 	return (DW_DLV_OK);
 }

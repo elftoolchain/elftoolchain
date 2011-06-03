@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 	uint64_t offset;
 
 	ret = DW_DLE_NONE;
-
 	offset = 0;
+	dbg->dbg_info_sec = ds;
 	while (offset < ds->ds_size) {
 		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
@@ -54,6 +54,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			dwarf_size = 8;
 		} else
 			dwarf_size = 4;
+		cu->cu_dwarf_size = dwarf_size;
 
 		/*
 		 * Check if there is enough ELF data for this CU. This assumes
@@ -95,23 +96,28 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			break;
 		}
 
+		cu->cu_1st_offset = offset;
+
 		/*
 		 * Parse the .debug_abbrev info for this CU.
 		 */
 		if ((ret = _dwarf_abbrev_init(dbg, cu, error)) != DW_DLE_NONE)
 			break;
 
-		/*
-		 * Parse the list of DIE for this CU.
-		 */
-		if ((ret = _dwarf_die_parse(dbg, ds, cu, dwarf_size, offset,
-		    next_offset, error)) != DW_DLE_NONE)
-			break;
-
 		offset = next_offset;
 	}
 
 	return (ret);
+}
+
+int
+_dwarf_info_load_all(Dwarf_Debug dbg, Dwarf_Error *error)
+{
+
+	(void) dbg;
+	(void) error;
+
+	return (DW_DLE_NONE);
 }
 
 void
