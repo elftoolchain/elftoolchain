@@ -64,6 +64,12 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if ((ds = _dwarf_find_section(dbg, ".debug_aranges")) == NULL)
 		return (DW_DLE_NONE);
 
+	if (!dbg->dbg_info_loaded) {
+		ret = _dwarf_info_load(dbg, 1, error);
+		if (ret != DW_DLE_NONE)
+			return (ret);
+	}
+
 	offset = 0;
 	while (offset < ds->ds_size) {
 

@@ -396,12 +396,14 @@ typedef struct {
 
 struct _Dwarf_Debug {
 	Dwarf_Obj_Access_Interface *dbg_iface;
-	Dwarf_Section	*dbg_section;
-	Dwarf_Section	*dbg_info_sec;
-	Dwarf_Unsigned	dbg_seccnt;
+	Dwarf_Section	*dbg_section;	/* Dwarf section list. */
+	Dwarf_Section	*dbg_info_sec;	/* Pointer to info section. */
+	Dwarf_Off	dbg_info_off;	/* Current info section offset. */
+	Dwarf_Unsigned	dbg_seccnt;	/* Total number of dwarf sections. */
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
 	int		dbg_offset_size;  /* DWARF offset size. */
+	int		dbg_info_loaded; /* Flag indicating all CU loaded. */
 	Dwarf_Half	dbg_machine;	/* ELF machine architecture. */
 	Dwarf_Handler	dbg_errhand;	/* Error handler. */
 	Dwarf_Ptr	dbg_errarg;	/* Argument to the error handler. */
@@ -419,9 +421,9 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_ArangeSet) dbg_aslist; /* List of arange set. */
 	Dwarf_Arange	*dbg_arange_array; /* Array of arange. */
 	Dwarf_Unsigned	dbg_arange_cnt;	/* Length of the arange array. */
-	char		*dbg_strtab;
-	Dwarf_Unsigned	dbg_strtab_cap;
-	Dwarf_Unsigned	dbg_strtab_size;
+	char		*dbg_strtab;	/* Dwarf string table. */
+	Dwarf_Unsigned	dbg_strtab_cap; /* Dwarf string table capacity. */
+	Dwarf_Unsigned	dbg_strtab_size; /* Dwarf string table size. */
 	STAILQ_HEAD(, _Dwarf_MacroSet) dbg_mslist; /* List of macro set. */
 	STAILQ_HEAD(, _Dwarf_Rangelist) dbg_rllist; /* List of rangelist. */
 	uint64_t	(*read)(uint8_t *, uint64_t *, int);
@@ -550,9 +552,10 @@ int		_dwarf_generate_sections(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_Unsigned	_dwarf_get_reloc_type(Dwarf_P_Debug, int);
 int		_dwarf_get_reloc_size(Dwarf_Debug, Dwarf_Unsigned);
 void		_dwarf_info_cleanup(Dwarf_Debug);
+int		_dwarf_info_first_cu(Dwarf_Debug, Dwarf_Error *);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
-int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
-int		_dwarf_info_load_all(Dwarf_Debug, Dwarf_Error *);
+int		_dwarf_info_load(Dwarf_Debug, int, Dwarf_Error *);
+int		_dwarf_info_next_cu(Dwarf_Debug, Dwarf_Error *);
 void		_dwarf_info_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Error *);

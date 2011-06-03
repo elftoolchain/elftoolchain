@@ -28,17 +28,75 @@
 #include "_libdwarf.h"
 
 int
-_dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
+_dwarf_info_first_cu(Dwarf_Debug dbg, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
+	int ret;
+
+	assert(dbg->dbg_cu_current == NULL);
+	cu = STAILQ_FIRST(&dbg->dbg_cu);
+	if (cu != NULL) {
+		dbg->dbg_cu_current = cu;
+		return (DW_DLE_NONE);
+	}
+
+	if (dbg->dbg_info_loaded)
+		return (DW_DLE_NO_ENTRY);
+
+	dbg->dbg_info_off = 0;
+	ret = _dwarf_info_load(dbg, 0, error);
+	if (ret != DW_DLE_NONE)
+		return (ret);
+
+	dbg->dbg_cu_current = STAILQ_FIRST(&dbg->dbg_cu);
+
+	return (DW_DLE_NONE);
+}
+
+int
+_dwarf_info_next_cu(Dwarf_Debug dbg, Dwarf_Error *error)
+{
+	Dwarf_CU cu;
+	int ret;
+
+	assert(dbg->dbg_cu_current != NULL);
+	cu = STAILQ_NEXT(dbg->dbg_cu_current, cu_next);
+	if (cu != NULL) {
+		dbg->dbg_cu_current = cu;
+		return (DW_DLE_NONE);
+	}
+
+	if (dbg->dbg_info_loaded) {
+		dbg->dbg_cu_current = NULL;
+		return (DW_DLE_NO_ENTRY);
+	}
+
+	ret = _dwarf_info_load(dbg, 0, error);
+	if (ret != DW_DLE_NONE)
+		return (ret);
+
+	dbg->dbg_cu_current = STAILQ_NEXT(dbg->dbg_cu_current, cu_next);
+
+	return (DW_DLE_NONE);
+}
+
+int
+_dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
+{
+	Dwarf_CU cu;
+	Dwarf_Section *ds;
 	int dwarf_size, i, ret;
 	uint64_t length;
 	uint64_t next_offset;
 	uint64_t offset;
 
 	ret = DW_DLE_NONE;
-	offset = 0;
-	dbg->dbg_info_sec = ds;
+	if (dbg->dbg_info_loaded)
+		return (DW_DLE_NONE);
+
+	offset = dbg->dbg_info_off;
+	ds = dbg->dbg_info_sec;
+	assert(ds != NULL);
 	while (offset < ds->ds_size) {
 		if ((cu = calloc(1, sizeof(struct _Dwarf_CU))) == NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
@@ -69,6 +127,7 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 
 		/* Compute the offset to the next compilation unit: */
 		next_offset = offset + length;
+		dbg->dbg_info_off = next_offset;
 
 		/* Initialise the compilation unit. */
 		cu->cu_length 		= length;
@@ -105,19 +164,15 @@ _dwarf_info_init(Dwarf_Debug dbg, Dwarf_Section *ds, Dwarf_Error *error)
 			break;
 
 		offset = next_offset;
+
+		if (!load_all)
+			break;
 	}
 
+	if ((Dwarf_Unsigned) dbg->dbg_info_off >= ds->ds_size)
+		dbg->dbg_info_loaded = 1;		
+
 	return (ret);
-}
-
-int
-_dwarf_info_load_all(Dwarf_Debug dbg, Dwarf_Error *error)
-{
-
-	(void) dbg;
-	(void) error;
-
-	return (DW_DLE_NONE);
 }
 
 void
@@ -238,4 +293,3 @@ _dwarf_info_pro_cleanup(Dwarf_P_Debug dbg)
 	_dwarf_abbrev_cleanup(cu);
 	free(cu);
 }
-
