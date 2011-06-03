@@ -40,6 +40,11 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		return (DW_DLV_ERROR);
 	}
 
+	if (!dbg->dbg_info_loaded) {
+		if (_dwarf_info_load(dbg, 1, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
+
 	ab = NULL;
 	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
 		STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {

@@ -49,7 +49,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	const Dwarf_Obj_Access_Methods *m;
 	Dwarf_Obj_Access_Section sec;
 	void *obj;
-	Dwarf_Section *s;
 	Dwarf_Unsigned cnt;
 	Dwarf_Half i;
 	int ret;
@@ -110,20 +109,21 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	}
 
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
-	    ((s = _dwarf_find_section(dbg, ".debug_info")) == NULL)) {
+	    ((dbg->dbg_info_sec = _dwarf_find_section(dbg, ".debug_info")) ==
+	     NULL)) {
 		free(dbg->dbg_section);
 		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_INFO_NULL);
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
 
-	ret = _dwarf_info_init(dbg, s, error);
-	if (ret != DW_DLE_NONE)
-		return (ret);
+	/* ret = _dwarf_info_init(dbg, s, error); */
+	/* if (ret != DW_DLE_NONE) */
+	/* 	return (ret); */
 
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);
 
-	return (ret);
+	return (DW_DLV_OK);
 }
 
 static int

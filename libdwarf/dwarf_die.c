@@ -179,7 +179,7 @@ dwarf_offdie(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Die *ret_die,
 	}
 
 	/* Search other CUs. */
-	ret = _dwarf_info_load_all(dbg, error);
+	ret = _dwarf_info_load(dbg, 1, error);
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
