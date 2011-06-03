@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,7 +122,6 @@ dwarf_$1_name_offsets(Dwarf_$2 $1, char **ret_name, Dwarf_Off *die_offset,
     Dwarf_Off *cu_offset, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
-	Dwarf_Die die;
 	Dwarf_Debug dbg;
 	Dwarf_NameTbl nt;
 
@@ -140,12 +139,9 @@ dwarf_$1_name_offsets(Dwarf_$2 $1, char **ret_name, Dwarf_Off *die_offset,
 	cu = nt->nt_cu;
 	assert(cu != NULL);
 
-	die = STAILQ_FIRST(&cu->cu_die);
-	assert(die != NULL);
-
 	*ret_name = $1->np_name;
 	*die_offset = nt->nt_cu_offset + $1->np_offset;
-	*cu_offset = die->die_offset;
+	*cu_offset = cu->cu_1st_offset;
 
 	return (DW_DLV_OK);
 }
