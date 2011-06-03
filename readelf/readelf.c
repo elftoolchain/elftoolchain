@@ -4433,7 +4433,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Abbrev ab;
 	Dwarf_Die ret_die;
-	Dwarf_Off dieoff;
+	Dwarf_Off dieoff, cuoff, culen;
 	Dwarf_Unsigned ate, length, attr_count, offset, code, v_udata;
 	Dwarf_Signed v_sdata;
 	Dwarf_Off v_off;
@@ -4453,6 +4453,12 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 	}
 
 	printf("<%d><%jx>: ", level, (uintmax_t) dieoff);
+
+	if (dwarf_die_CU_offset_range(die, &cuoff, &culen, &de) != DW_DLV_OK) {
+		warnx("dwarf_die_CU_offset_range failed: %s",
+		      dwarf_errmsg(de));
+		cuoff = 0;
+	}
 
 	/*
 	 * Find the abbrev entry for this DIE.
@@ -4533,6 +4539,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
+			v_off += cuoff;
 			printf("<%jx>", (uintmax_t) v_off);
 			break;
 
