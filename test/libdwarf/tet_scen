@@ -15,6 +15,10 @@ all
 	^dwarf_lineno
 	^dwarf_frame
 	^dwarf_arange
+	^dwarf_abbrev
+	^dwarf_pubnames
+	^dwarf_macinfo
+	^dwarf_ranges
 	"Complete Test Suite"
 
 dwarf_init
