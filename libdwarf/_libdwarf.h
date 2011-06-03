@@ -132,6 +132,7 @@ struct _Dwarf_Die {
 	Dwarf_Die	die_left;	/* Left sibling DIE. */
 	Dwarf_Die	die_right;	/* Right sibling DIE. */
 	uint64_t	die_offset;	/* DIE offset in section. */
+	uint64_t	die_next_off;	/* Next DIE offset in section. */
 	uint64_t	die_abnum;	/* Abbrev number. */
 	Dwarf_Abbrev	die_ab;		/* Abbrev pointer. */
 	Dwarf_Tag	die_tag;	/* DW_TAG_ */
@@ -222,7 +223,7 @@ struct _Dwarf_NameTbl {
 	Dwarf_Unsigned	nt_length;	/* Name lookup table length. */
 	Dwarf_Half	nt_version;	/* Name lookup table version. */
 	Dwarf_CU	nt_cu;		/* Ptr to Ref. CU. */
-	Dwarf_Unsigned	nt_cu_offset;	/* Ref. CU offset in .debug_info */
+	Dwarf_Off	nt_cu_offset;	/* Ref. CU offset in .debug_info */
 	Dwarf_Unsigned	nt_cu_length;	/* Ref. CU length. */
 	STAILQ_HEAD(, _Dwarf_NamePair) nt_nplist; /* List of offset+name pairs. */
 	STAILQ_ENTRY(_Dwarf_NameTbl) nt_next; /* Next name table in the list. */
@@ -296,7 +297,7 @@ struct _Dwarf_Arange {
 struct _Dwarf_ArangeSet {
 	Dwarf_Unsigned	as_length;	/* Length of the arange set. */
 	Dwarf_Half	as_version;	/* Version of the arange set. */
-	Dwarf_Unsigned	as_cu_offset;	/* Offset of associated CU. */
+	Dwarf_Off	as_cu_offset;	/* Offset of associated CU. */
 	Dwarf_CU	as_cu;		/* Ptr to associated CU. */
 	Dwarf_Small	as_addrsz;	/* Target address size. */
 	Dwarf_Small	as_segsz;	/* Target segment size. */
@@ -320,7 +321,7 @@ struct _Dwarf_Rangelist {
 
 struct _Dwarf_CU {
 	Dwarf_Debug	cu_dbg;		/* Ptr to containing dbg. */
-	uint64_t	cu_offset;	/* Offset to the this CU. */
+	Dwarf_Off	cu_offset;	/* Offset to the this CU. */
 	uint32_t	cu_length;	/* Length of CU data. */
 	uint16_t	cu_length_size; /* Size in bytes of the length field. */
 	uint16_t	cu_version;	/* DWARF version. */
@@ -328,7 +329,9 @@ struct _Dwarf_CU {
 	uint64_t	cu_abbrev_cnt;	/* Abbrev entry count. */
 	uint64_t	cu_lineno_offset; /* Offset into .debug_lineno. */
 	uint8_t		cu_pointer_size;/* Number of bytes in pointer. */
-	uint64_t	cu_next_offset; /* Offset to the next CU. */
+	uint8_t		cu_dwarf_size;	/* CU section dwarf size. */
+	Dwarf_Off	cu_next_offset; /* Offset to the next CU. */
+	uint64_t	cu_1st_offset;	/* First DIE offset. */
 	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev;	/* List of abbrevs. */
@@ -394,6 +397,7 @@ typedef struct {
 struct _Dwarf_Debug {
 	Dwarf_Obj_Access_Interface *dbg_iface;
 	Dwarf_Section	*dbg_section;
+	Dwarf_Section	*dbg_info_sec;
 	Dwarf_Unsigned	dbg_seccnt;
 	int		dbg_mode;	/* Access mode. */
 	int		dbg_pointer_size; /* Object address size. */
@@ -511,7 +515,7 @@ int		_dwarf_die_gen(Dwarf_P_Debug, Dwarf_CU, Dwarf_Rel_Section,
 void		_dwarf_die_link(Dwarf_P_Die, Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 int		_dwarf_die_parse(Dwarf_Debug, Dwarf_Section *, Dwarf_CU, int,
-		    uint64_t, uint64_t, Dwarf_Error *);
+		    uint64_t, uint64_t, Dwarf_Die *, int, Dwarf_Error *);
 void		_dwarf_die_pro_cleanup(Dwarf_P_Debug);
 void		_dwarf_elf_deinit(Dwarf_Debug);
 int		_dwarf_elf_init(Dwarf_Debug, Elf *, Dwarf_Error *);
@@ -548,6 +552,7 @@ int		_dwarf_get_reloc_size(Dwarf_Debug, Dwarf_Unsigned);
 void		_dwarf_info_cleanup(Dwarf_Debug);
 int		_dwarf_info_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_info_init(Dwarf_Debug, Dwarf_Section *, Dwarf_Error *);
+int		_dwarf_info_load_all(Dwarf_Debug, Dwarf_Error *);
 void		_dwarf_info_pro_cleanup(Dwarf_P_Debug);
 int		_dwarf_init(Dwarf_Debug, Dwarf_Unsigned, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Error *);
