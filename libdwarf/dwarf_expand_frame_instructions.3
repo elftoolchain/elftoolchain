@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 24, 2011
+.Dd June 4, 2011
 .Os
 .Dt DWARF_EXPAND_FRAME_INSTRUCTIONS 3
 .Sh NAME
@@ -37,44 +37,43 @@
 .Ft int
 .Fo dwarf_expand_frame_instructions
 .Fa "Dwarf_Cie cie"
-.Fa "Dwarf_Ptr instruction"
+.Fa "Dwarf_Ptr instructions"
 .Fa "Dwarf_Unsigned len"
-.Fa "Dwarf_Frame_Op **ret_oplist"
+.Fa "Dwarf_Frame_Op **ret_ops"
 .Fa "Dwarf_Signed *ret_opcnt"
 .Fa "Dwarf_Error *error"
 .Fc
 .Sh DESCRIPTION
 Function
 .Fn dwarf_expand_frame_instructions
-expand frame instructions into an array of
+translates DWARF frame instruction bytes into an array of
 .Vt Dwarf_Frame_Op
 descriptors.
 .Pp
 Argument
 .Ar cie
-should reference the CIE descriptor associated with
-the given frame instructions.
+should reference the CIE descriptor associated with the instructions
+to be translated.
 .Pp
 Arugment
-.Ar instruction
+.Ar instructions
 should point to an array of frame instruction bytes, as
-returned by function
+returned by the functions
 .Xr dwarf_get_cie_info 3
 or
 .Xr dwarf_get_fde_instr_bytes 3 .
 .Pp
 Argument
 .Ar len
-should speicify the length in bytes of the frame instructions
-provided in arguemnt
-.Ar instruction .
+should specify the number of the frame instruction bytes to be
+translated.
 .Pp
 Argument
-.Ar ret_oplist
+.Ar ret_ops
 should point to a location that will be set to a pointer to
-an array of
+an array of translated
 .Vt Dwarf_Frame_Op
-descriptors, as expanded from the provided frame instructions.
+descriptors.
 .Pp
 Argument
 .Ar ret_opcnt
@@ -87,15 +86,15 @@ is not NULL, it will be used to store error information in case of an
 error.
 .Ss Memory Management
 The memory area used for the descriptor array returned in argument
-.Ar ret_oplist
+.Ar ret_ops
 is allocated by
 .Lb libdwarf .
 Application code should use function
 .Xr dwarf_frame_instructions_dealloc 3
-to free the memory area when the descriptors are no longer needed.
+to free the memory area when the descriptor array is no longer needed.
 .Sh RETURN VALUES
 Function
-.Fn dwarf_get_fde_instr_bytes
+.Fn dwarf_expand_frame_instructions
 returns
 .Dv DW_DLV_OK
 when it succeeds.
@@ -105,13 +104,14 @@ and sets the argument
 .Ar err .
 .Sh ERRORS
 Function
+.Fn dwarf_expand_frame_instructions
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
 One of the arguments
 .Ar cie ,
-.Ar instruction ,
-.Ar ret_oplist
+.Ar instructions ,
+.Ar ret_ops
 or
 .Ar ret_opcnt
 was NULL.
@@ -125,41 +125,39 @@ this function.
 .It Bq Er DW_DLE_FRAME_INSTR_EXEC_ERROR
 An unknown instrunction was found in the instruction bytes provided
 in argument
-.Ar instruction .
+.Ar instructions .
 .El
 .Sh EXAMPLE
-To retrieve and expand the frame instructions of certain FDE descriptor,
-use:
+To retrieve and expand the frame instructions for a given FDE
+descriptor, use:
 .Bd -literal -offset indent
 Dwarf_Cie cie;
 Dwarf_Fde fde;
 Dwarf_Ptr fde_inst;
 Dwarf_Unsigned fde_instlen;
-Dwarf_Frame_Op *oplist;
+Dwarf_Frame_Op *ops;
 Dwarf_Signed opcnt;
 Dwarf_Error de;
 
 /* ... assuming `fde` refers to a valid FDE descriptor and `cie`
-  hold the CIE descriptor associated with the FDE descriptor ... */
+  holds the CIE descriptor associated with the FDE descriptor ... */
 
 if (dwarf_get_fde_instr_bytes(fde, &fde_inst, &fde_instlen,
-    &de) != DW_DLV_OK) {
+    &de) != DW_DLV_OK)
 	errx(1, "dwarf_get_fde_instr_bytes failed: %s",
 	    dwarf_errmsg(de));
-}
 
 if (dwarf_expand_frame_instructions(cie, fde_inst, fde_instlen,
-    &oplist, &opcnt, &de) != DW_DLV_OK) {
+    &ops, &opcnt, &de) != DW_DLV_OK)
 	errx(1, "dwarf_expand_frame_instructions failed: %s",
 	    dwarf_errmsg(de));
-}
 
 for (i = 0; i < opcnt; i++) {
-	/* ... use oplist[i] ... */
+	/* ... use ops[i] ... */
 }
 
 /* Free the memory area when no longer needed. */
-if (dwarf_frame_instructions_dealloc(oplist, opcnt, &de) !=
+if (dwarf_frame_instructions_dealloc(ops, opcnt, &de) !=
     DW_DLV_OK)
 	warnx("dwarf_frame_instructions_dealloc failed: %s",
 	    dwarf_errmsg(de));
