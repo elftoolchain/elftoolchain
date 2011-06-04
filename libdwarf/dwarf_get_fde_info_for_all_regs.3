@@ -126,7 +126,7 @@ and sets the argument
 Function
 .Fn dwarf_get_fde_info_for_all_regs
 can fail with:
-.Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
+.Bl -tag -width ".Bq Er DW_DLE_PC_NOT_IN_FDE_RANGE"
 .It Bq Er DW_DLE_ARGUMENT
 One of the arguments
 .Ar fde ,
@@ -134,6 +134,11 @@ One of the arguments
 or
 .Ar row_pc
 was NULL.
+.It Bq DW_DLE_PC_NOT_IN_FDE_RANGE
+The program counter value provided in argument
+.Ar pc
+did not fall in the range covered by argument
+.Ar fde .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

@@ -121,7 +121,7 @@ and sets the argument
 Function
 .Fn dwarf_get_fde_info_for_reg
 can fail with:
-.Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
+.Bl -tag -width ".Bq Er DW_DLE_FRAME_TABLE_COL_BAD"
 .It Bq Er DW_DLE_ARGUMENT
 One of the arguments
 .Ar fde ,
@@ -135,6 +135,11 @@ was NULL.
 The column number provided in argument
 .Ar table_column
 was too large.
+.It Bq DW_DLE_PC_NOT_IN_FDE_RANGE
+The program counter value provided in argument
+.Ar pc
+did not fall in the range covered by argument
+.Ar fde .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
