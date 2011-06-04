@@ -293,6 +293,7 @@ enum {
 	DW_DLE_FRAME_VERSION_BAD,	/* Invalid frame section version. */
 	DW_DLE_FRAME_TABLE_COL_BAD,	/* Invalid table column. */
 	DW_DLE_DF_REG_NUM_TOO_HIGH,	/* Insufficient regtable space. */
+	DW_DLE_PC_NOT_IN_FDE_RANGE,	/* PC requested not in the FDE range. */
 	DW_DLE_ARANGE_OFFSET_BAD,	/* Invalid arange offset. */
 	DW_DLE_DEBUG_MACRO_INCONSISTENT,/* Invalid macinfo data. */
 	DW_DLE_ELF_SECT_ERR,		/* Application callback failed. */
