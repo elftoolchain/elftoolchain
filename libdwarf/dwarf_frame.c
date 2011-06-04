@@ -293,6 +293,12 @@ dwarf_get_fde_info_for_reg(Dwarf_Fde fde, Dwarf_Half table_column,
 		return (DW_DLV_ERROR);
 	}
 
+	if (pc_requested < fde->fde_initloc ||
+	    pc_requested >= fde->fde_initloc + fde->fde_adrange) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_PC_NOT_IN_FDE_RANGE);
+		return (DW_DLV_ERROR);
+	}
+
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
 	if (ret != DW_DLE_NONE)
@@ -339,6 +345,12 @@ dwarf_get_fde_info_for_all_regs(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	}
 
 	assert(dbg != NULL);
+
+	if (pc_requested < fde->fde_initloc ||
+	    pc_requested >= fde->fde_initloc + fde->fde_adrange) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_PC_NOT_IN_FDE_RANGE);
+		return (DW_DLV_ERROR);
+	}
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
@@ -400,6 +412,12 @@ dwarf_get_fde_info_for_reg3(Dwarf_Fde fde, Dwarf_Half table_column,
 		return (DW_DLV_ERROR);
 	}
 
+	if (pc_requested < fde->fde_initloc ||
+	    pc_requested >= fde->fde_initloc + fde->fde_adrange) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_PC_NOT_IN_FDE_RANGE);
+		return (DW_DLV_ERROR);
+	}
+
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
 	if (ret != DW_DLE_NONE)
@@ -440,6 +458,12 @@ dwarf_get_fde_info_for_cfa_reg3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 		return (DW_DLV_ERROR);
 	}
 
+	if (pc_requested < fde->fde_initloc ||
+	    pc_requested >= fde->fde_initloc + fde->fde_adrange) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_PC_NOT_IN_FDE_RANGE);
+		return (DW_DLV_ERROR);
+	}
+
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
 	if (ret != DW_DLE_NONE)
@@ -476,6 +500,12 @@ dwarf_get_fde_info_for_all_regs3(Dwarf_Fde fde, Dwarf_Addr pc_requested,
 	}
 
 	assert(dbg != NULL);
+
+	if (pc_requested < fde->fde_initloc ||
+	    pc_requested >= fde->fde_initloc + fde->fde_adrange) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_PC_NOT_IN_FDE_RANGE);
+		return (DW_DLV_ERROR);
+	}
 
 	ret = _dwarf_frame_get_internal_table(fde, pc_requested, &rt, &pc,
 	    error);
