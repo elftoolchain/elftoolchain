@@ -31,12 +31,16 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {
 	/*
 	 * This libdwarf implementation does not use the SGI/libdwarf
-	 * style of memory allocation. It does not copy things to return
-	 * to the client, so the client does not need to remember to
-	 * free them.
+	 * style of memory allocation. In most cases it does not copy
+	 * things to return to the client, so the client does not need
+	 * to remember to free them.  The remaining cases are handled
+	 * below.
 	 */
 
-	(void) dbg; (void) p; (void) alloc_type;
+	(void) dbg;
+
+	if (alloc_type == DW_DLA_FRAME_BLOCK)
+		free(p);
 }
 
 void
