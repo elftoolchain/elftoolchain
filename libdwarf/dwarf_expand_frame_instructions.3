@@ -90,7 +90,9 @@ The memory area used for the descriptor array returned in argument
 is allocated by
 .Lb libdwarf .
 Application code should use function
-.Xr dwarf_frame_instructions_dealloc 3
+.Xr dwarf_dealloc 3
+with type
+.Dv DW_DLA_FRAME_BLOCK
 to free the memory area when the descriptor array is no longer needed.
 .Sh RETURN VALUES
 Function
@@ -131,6 +133,7 @@ in argument
 To retrieve and expand the frame instructions for a given FDE
 descriptor, use:
 .Bd -literal -offset indent
+Dwarf_Dbg dbg;
 Dwarf_Cie cie;
 Dwarf_Fde fde;
 Dwarf_Ptr fde_inst;
@@ -139,8 +142,9 @@ Dwarf_Frame_Op *ops;
 Dwarf_Signed opcnt;
 Dwarf_Error de;
 
-/* ... assuming `fde` refers to a valid FDE descriptor and `cie`
-  holds the CIE descriptor associated with the FDE descriptor ... */
+/* ... assuming `dbg` references a valid DWARF debugging context,
+  `fde` references a valid FDE descriptor and `cie` holds the CIE
+  descriptor associated with the FDE descriptor ... */
 
 if (dwarf_get_fde_instr_bytes(fde, &fde_inst, &fde_instlen,
     &de) != DW_DLV_OK)
@@ -157,10 +161,7 @@ for (i = 0; i < opcnt; i++) {
 }
 
 /* Free the memory area when no longer needed. */
-if (dwarf_frame_instructions_dealloc(ops, opcnt, &de) !=
-    DW_DLV_OK)
-	warnx("dwarf_frame_instructions_dealloc failed: %s",
-	    dwarf_errmsg(de));
+dwarf_dealloc(dbg, ops, DW_DLA_FRAME_BLOCK);
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
