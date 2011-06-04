@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 27, 2011
+.Dd June 4, 2011
 .Os
 .Dt DWARF_GET_FDE_INFO_FOR_REG 3
 .Sh NAME
@@ -38,7 +38,7 @@
 .Fo dwarf_get_fde_info_for_reg
 .Fa "Dwarf_Fde fde"
 .Fa "Dwarf_Half table_column"
-.Fa "Dwarf_Addr pc_requested"
+.Fa "Dwarf_Addr pc"
 .Fa "Dwarf_Signed *offset_relevant"
 .Fa "Dwarf_Signed *register_num"
 .Fa "Dwarf_Signed *offset"
@@ -48,10 +48,9 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_fde_info_for_reg
-retrieves a register rule from the regsiter rule table associated
-with the given FDE descriptor. The function locates the desired
-register rule using the provided column number and program counter
-address.
+retrieves a register rule from the register rule table associated with
+a given FDE descriptor, given a program counter address and rule
+column number.
 .Pp
 Argument
 .Ar fde
@@ -59,24 +58,24 @@ should reference a valid DWARF FDE descriptor.
 .Pp
 Arugment
 .Ar table_column
-should hold the column number of the desired register rule.
+should hold the column number of the register rule desired.
 .Pp
 Argument
-.Ar pc_requested
-should hold a program counter address which will be used to locate the
-row number of the desired register rule.
+.Ar pc
+should hold the program counter address to be used to locate the
+desired register rule row.
 .Pp
-If a register rule was found, function
+On successful execution,
 .Fn dwarf_get_fde_info_for_reg
-stores the register rule information in the
-locations pointed to by arguments
+stores information about the register rule found into the locations
+pointed to by the arguments
 .Ar offset_relevant ,
 .Ar register_num ,
 .Ar offset
 and
 .Ar row_pc .
 .Pp
-If there is an offset value assoicated with the found register rule,
+If there is an offset value associated with the register rule,
 the location pointed to by argument
 .Ar offset_relevant
 will be set to 1.
@@ -84,18 +83,18 @@ will be set to 1.
 Argument
 .Ar register_num
 should point to a location which will hold the register number associated
-with the found register rule.
+with the register rule.
 .Pp
 Argument
 .Ar offset
 should point to a location which will be set to the offset value
-assoicated with the found register rule, or 0 if the register rule
-doesn't have an offset value.
+associated with the register rule, or to 0 if the register rule
+does not have an offset value.
 .Pp
 Argument
 .Ar row_pc
 should point to a location which will be set to the lowest program
-counter address associated with the found register rule.
+counter address associated with the register rule found.
 .Pp
 If argument
 .Ar err
@@ -104,8 +103,8 @@ of an error.
 .Ss COMPATIBILITY
 Function
 .Fn dwarf_get_fde_info_for_reg
-is deprecated since it only supports DWARF2 frame section. Application
-should instead use function
+is deprecated since it only supports DWARF2 frame sections.
+Applications should instead use function
 .Xr dwarf_get_fde_info_for_reg3 3
 which supports both DWARF2 and DWARF3 frame sections.
 .Sh RETURN VALUES
