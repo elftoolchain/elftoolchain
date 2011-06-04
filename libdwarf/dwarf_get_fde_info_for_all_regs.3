@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 30, 2011
+.Dd June 4, 2011
 .Os
 .Dt DWARF_GET_FDE_INFO_FOR_ALL_REGS 3
 .Sh NAME
@@ -37,7 +37,7 @@
 .Ft int
 .Fo dwarf_get_fde_info_for_all_regs
 .Fa "Dwarf_Fde fde"
-.Fa "Dwarf_Addr pc_requested"
+.Fa "Dwarf_Addr pc"
 .Fa "Dwarf_Regtable *reg_table"
 .Fa "Dwarf_Addr *row_pc"
 .Fa "Dwarf_Error *err"
@@ -53,8 +53,8 @@ Argument
 should reference a valid DWARF FDE descriptor.
 .Pp
 Argument
-.Ar pc_requested
-should hold a program counter address which will be used to locate the
+.Ar pc
+should hold the program counter address to be used to locate the
 desired table row.
 .Pp
 Argument
@@ -87,15 +87,6 @@ typedef struct {
 } Dwarf_Regtable;
 .Ed
 .Pp
-The number of register columns returned is either the constant
-value
-.Dv DW_REG_TABLE_SIZE as defined
-in the header file
-.In libdwarf.h ,
-or a value set by function
-.Xr dwarf_set_frame_rule_table_size 3 ,
-whichever is smaller.
-.Pp
 For each of the register rules returned,
 the
 .Va dw_offset_relevant
@@ -105,12 +96,21 @@ field is set to the register number assoicated with the regsiter rule.
 The
 .Va dw_offset
 field is set to the offset value associated with the register rule.
+.Pp
+The number of register columns returned is either the constant
+value
+.Dv DW_REG_TABLE_SIZE as defined
+in the header file
+.In libdwarf.h ,
+or the value set by function
+.Xr dwarf_set_frame_rule_table_size 3 ,
+whichever is smaller.
 .Ss COMPATIBILITY
 Function
 .Fn dwarf_get_fde_info_for_all_regs
-is deprecated since it only supports DWARF2 frame section. Application
-should instead use function
-.Xr dwarf_get_fde_info_for_all_reg3 3
+is deprecated since it only supports DWARF2 frame sections.
+Applications should instead use function
+.Xr dwarf_get_fde_info_for_all_regs3 3
 which supports both DWARF2 and DWARF3 frame sections.
 .Sh RETURN VALUES
 Function
