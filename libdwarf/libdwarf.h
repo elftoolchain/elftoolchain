@@ -244,6 +244,42 @@ typedef struct {
 } Dwarf_Macro_Details;
 
 /*
+ * Symbols denoting allocation types, for use with dwarf_dealloc(3).
+ */
+
+enum Dwarf_Allocation_Type {
+	DW_DLA_ABBREV,
+	DW_DLA_ADDR,
+	DW_DLA_ARANGE,
+	DW_DLA_ATTR,
+	DW_DLA_BLOCK,
+	DW_DLA_BOUNDS,
+	DW_DLA_CIE,
+	DW_DLA_DEBUG,
+	DW_DLA_DIE,
+	DW_DLA_ELLIST,
+	DW_DLA_ERROR,
+	DW_DLA_FDE,
+	DW_DLA_FRAME_BLOCK,
+	DW_DLA_FRAME_OP,
+	DW_DLA_FUNC,
+	DW_DLA_GLOBAL,
+	DW_DLA_LINE,
+	DW_DLA_LINEBUF,
+	DW_DLA_LIST,
+	DW_DLA_LOC,
+	DW_DLA_LOCDESC,
+	DW_DLA_LOC_BLOCK,
+	DW_DLA_RANGES,
+	DW_DLA_STRING,
+	DW_DLA_SUBSCR,
+	DW_DLA_TYPE,
+	DW_DLA_TYPENAME,
+	DW_DLA_VAR,
+	DW_DLA_WEAK
+};
+
+/*
  * Relocation Type.
  */
 enum Dwarf_Rel_Type {
