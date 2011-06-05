@@ -105,7 +105,6 @@ MAN=	dwarf_attr.3					\
 	dwarf_formsig8.3				\
 	dwarf_formstring.3				\
 	dwarf_formudata.3				\
-	dwarf_frame_instructions_dealloc.3		\
 	dwarf_get_AT_name.3				\
 	dwarf_get_abbrev.3				\
 	dwarf_get_abbrev_children_flag.3		\
