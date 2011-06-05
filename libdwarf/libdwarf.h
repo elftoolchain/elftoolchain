@@ -551,8 +551,6 @@ void		dwarf_fde_cie_list_dealloc(Dwarf_Debug, Dwarf_Cie *,
 		    Dwarf_Signed, Dwarf_Fde *, Dwarf_Signed);
 char		*dwarf_find_macro_value_start(char *);
 int		dwarf_finish(Dwarf_Debug, Dwarf_Error *);
-int		dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *, Dwarf_Signed,
-		    Dwarf_Error *);
 int		dwarf_func_cu_offset(Dwarf_Func, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_func_die_offset(Dwarf_Func, Dwarf_Off *,
 		    Dwarf_Error *);

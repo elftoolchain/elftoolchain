@@ -545,21 +545,6 @@ dwarf_expand_frame_instructions(Dwarf_Cie cie, Dwarf_Ptr instruction,
 	return (DW_DLV_OK);
 }
 
-int
-dwarf_frame_instructions_dealloc(Dwarf_Frame_Op *oplist, Dwarf_Signed opcnt,
-    Dwarf_Error *error)
-{
-
-	if (oplist == NULL || opcnt == 0) {
-		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
-	}
-
-	_dwarf_frame_free_fop(oplist, opcnt);
-
-	return (DW_DLV_OK);
-}
-
 Dwarf_Half
 dwarf_set_frame_rule_table_size(Dwarf_Debug dbg, Dwarf_Half value)
 {

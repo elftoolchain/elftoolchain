@@ -1118,7 +1118,7 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 	ret = _dwarf_frame_convert_inst(dbg, insts, len, &count, oplist, NULL,
 	    error);
 	if (ret != DW_DLE_NONE) {
-		_dwarf_frame_free_fop(oplist, count);
+		free(oplist);
 		return (ret);
 	}
 
@@ -1126,14 +1126,6 @@ _dwarf_frame_get_fop(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 	*ret_opcnt = count;
 
 	return (DW_DLE_NONE);
-}
-
-void
-_dwarf_frame_free_fop(Dwarf_Frame_Op *oplist, Dwarf_Unsigned count)
-{
-
-	(void) count;
-	free(oplist);
 }
 
 int
