@@ -535,7 +535,6 @@ Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
-void		_dwarf_frame_free_fop(Dwarf_Frame_Op *, Dwarf_Unsigned);
 int		_dwarf_frame_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
 		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);
