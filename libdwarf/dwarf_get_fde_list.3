@@ -156,10 +156,10 @@ section, use:
 Dwarf_Debug dbg;
 Dwarf_Cie *cie_list, cie;
 Dwarf_Fde *fde_list, fde;
-Dwarf_Off fde_offset;
+Dwarf_Off fde_offset, cie_offset;
 Dwarf_Unsigned func_len, fde_length, fde_instlen;
 Dwarf_Signed cie_count, fde_count, cie_index;
-warf_Addr low_pc;
+Dwarf_Addr low_pc;
 Dwarf_Ptr fde_addr, fde_inst, cie_inst;
 Dwarf_Error de;
 int i;
