@@ -191,7 +191,8 @@ _dwarf_arange_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	/* Write section header. */
 	RCHECK(WRITE_VALUE(as->as_length, 4));
 	RCHECK(WRITE_VALUE(as->as_version, 2));
-	RCHECK(WRITE_VALUE(as->as_cu_offset, 4));
+	RCHECK(_dwarf_reloc_entry_add(dbg, drs, ds, dwarf_drt_data_reloc, 4,
+	    ds->ds_size, 0, as->as_cu_offset, ".debug_info", error));
 	RCHECK(WRITE_VALUE(as->as_addrsz, 1));
 	RCHECK(WRITE_VALUE(as->as_segsz, 1));
 
