@@ -297,7 +297,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 		ret = WRITE_VALUE(at->u[0].u64, 2);
 		break;
 	case DW_FORM_data4:
-		if (at->at_relsym)
+		if (at->at_relsym || at->at_relsec != NULL)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
 			    dwarf_drt_data_reloc, 4, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, at->at_relsec, error);
@@ -305,7 +305,7 @@ _dwarf_attr_write(Dwarf_P_Debug dbg, Dwarf_P_Section ds, Dwarf_Rel_Section drs,
 			ret = WRITE_VALUE(at->u[0].u64, 4);
 		break;
 	case DW_FORM_data8:
-		if (at->at_relsym)
+		if (at->at_relsym || at->at_relsec != NULL)
 			ret = _dwarf_reloc_entry_add(dbg, drs, ds,
 			    dwarf_drt_data_reloc, 8, ds->ds_size, at->at_relsym,
 			    at->u[0].u64, at->at_relsec, error);
