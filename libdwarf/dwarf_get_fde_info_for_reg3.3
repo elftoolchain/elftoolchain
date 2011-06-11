@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 6, 2011
+.Dd June 11, 2011
 .Os
 .Dt DWARF_GET_FDE_INFO_FOR_REG3 3
 .Sh NAME
@@ -66,6 +66,7 @@ Argument
 .Ar pc
 should hold the program counter address to be used to locate the
 desired register rule row.
+.Pp
 On successful execution,
 .Fn dwarf_get_fde_info_for_reg3
 stores information about the register rule found into the locations
@@ -81,9 +82,10 @@ and
 Argument
 .Ar type
 should point to a location which will hold the type code of the
-register rule found. The returned type code is one of the
+register rule found.
+The returned value is one of the
 .Dv DW_EXPR_*
-contants as defined in the header file
+contants defined in the header file
 .In libdwarf.h .
 .Pp
 If there is an offset value associated with the register rule,
@@ -110,13 +112,13 @@ or
 .Dv DW_EXPR_VAL_EXPRESSION ,
 the location pointed to by argument
 .Ar offset_or_block_len
-will be set to the length in bytes of the DWARF expressions block
-assoicated with the register rule.
+will be set to the length in bytes of the DWARF expression block
+associated with the register rule.
 .Pp
 Argument
 .Ar block_ptr
 should point to a location which will be set to a pointer to the
-content of the DWARF expressions block assoicated with the register
+content of the DWARF expression block associated with the register
 rule.
 .Pp
 Argument
@@ -145,14 +147,14 @@ can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_FRAME_TABLE_COL_BAD"
 .It Bq Er DW_DLE_ARGUMENT
 One of the arguments
+.Ar block_ptr ,
 .Ar fde ,
-.Ar type ,
+.Ar offset_or_block_len ,
 .Ar offset_relevant ,
 .Ar register_num ,
-.Ar offset_or_block_len
-.Ar block_ptr
+.Ar row_pc ,
 or
-.Ar row_pc
+.Ar type
 was NULL.
 .It Bq Er DW_DLE_FRAME_TABLE_COL_BAD
 The column number provided in argument
@@ -165,13 +167,13 @@ did not fall in the range covered by argument
 .Ar fde .
 .El
 .Sh EXAMPLE
-To retrieve register rules at column 3 from a rule table
+To retrieve the register rules at column 3 from a rule table
 associated with a FDE descriptor:
 .Bd -literal -offset indent
 Dwarf_Fde fde;
 Dwarf_Off fde_offset, cie_offset;
 Dwarf_Unsigned func_len, fde_length;
-Dwarf_Signed cie_index, pffset_relevant, register_num;
+Dwarf_Signed cie_index, offset_relevant, register_num;
 Dwarf_Signed offset_or_block_len;
 Dwarf_Addr low_pc, row_pc;
 Dwarf_Ptr fde_addr, block_ptr;
@@ -181,10 +183,9 @@ Dwarf_Error de;
 /* ... assuming `fde` references a valid FDE descriptor... */
 if (dwarf_get_fde_range(fde, &low_pc, &func_len, &fde_addr,
     &fde_length, &cie_offset, &cie_index, &fde_offset,
-    &de) != DW_DLV_OK) {
+    &de) != DW_DLV_OK)
 	errx(1, "dwarf_get_fde_range failed: %s",
 	    dwarf_errmsg(de));
-}
 
 /* Iterate all the table rows. */
 for (pc = low_pc; pc < low_pc + func_len; pc++) {
