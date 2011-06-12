@@ -123,6 +123,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_fde_at_pc.3				\
 	dwarf_get_fde_info_for_all_regs.3		\
 	dwarf_get_fde_info_for_all_regs3.3		\
+	dwarf_get_fde_info_for_cfa_reg3.3		\
 	dwarf_get_fde_info_for_reg.3			\
 	dwarf_get_fde_info_for_reg3.3			\
 	dwarf_get_fde_instr_bytes.3			\
