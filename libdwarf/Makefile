@@ -146,6 +146,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_lineno.3					\
 	dwarf_next_cu_header.3				\
 	dwarf_seterrarg.3				\
+	dwarf_set_frame_cfa_value.3			\
 	dwarf_srcfiles.3				\
 	dwarf_srclines.3				\
 	dwarf_tag.3					\
@@ -235,7 +236,11 @@ MLINKS+= \
 	dwarf_lineno.3	dwarf_lineoff.3			\
 	dwarf_lineno.3	dwarf_linesrc.3			\
 	dwarf_lineno.3	dwarf_line_srcfileno.3		\
-	dwarf_seterrarg.3	dwarf_seterrhand.3
+	dwarf_seterrarg.3	dwarf_seterrhand.3	\
+	dwarf_set_frame_cfa_value.3 dwarf_set_frame_rule_initial_value.3 \
+	dwarf_set_frame_cfa_value.3 dwarf_set_frame_rule_table_size.3 \
+	dwarf_set_frame_cfa_value.3 dwarf_set_frame_same_value.3 \
+	dwarf_set_frame_cfa_value.3 dwarf_set_frame_undefined_value.3
 
 dwarf_pubnames.c:	dwarf_nametbl.m4 dwarf_pubnames.m4
 dwarf_pubtypes.c:	dwarf_nametbl.m4 dwarf_pubtypes.m4
