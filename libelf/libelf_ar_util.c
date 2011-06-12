@@ -127,7 +127,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 			return (NULL);
 		}
 
-		(void) strncpy(s, q, len);
+		(void) strncpy(s, q, len - 1);
 		s[len - 1] = '\0';
 
 		return (s);
@@ -195,7 +195,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		return (NULL);
 	}
 
-	(void) strncpy(s, buf, len);
+	(void) strncpy(s, buf, len - 1);
 	s[len - 1] = '\0';
 
 	return (s);
