@@ -5113,7 +5113,7 @@ dump_dwarf_macinfo(struct readelf *re)
 
 static void
 dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
-    Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc)
+    Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc, Dwarf_Debug dbg)
 {
 	Dwarf_Frame_Op *oplist;
 	Dwarf_Signed opcnt, delta;
@@ -5191,9 +5191,7 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 		putchar('\n');
 	}
 
-	if (dwarf_frame_instructions_dealloc(oplist, opcnt, &de) != DW_DLV_OK)
-		warnx("dwarf_frame_instructions_dealloc failed: %s",
-		    dwarf_errmsg(de));
+	dwarf_dealloc(dbg, oplist, DW_DLA_FRAME_BLOCK);
 }
 
 static char *
@@ -5387,7 +5385,8 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				    (uintmax_t) cie_ra);
 				putchar('\n');
 				dump_dwarf_frame_inst(cie, cie_inst,
-				    cie_instlen, cie_caf, cie_daf, 0);
+				    cie_instlen, cie_caf, cie_daf, 0,
+				    re->dbg);
 				putchar('\n');
 			} else {
 				printf(" \"");
@@ -5410,7 +5409,7 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
 		if (!alt)
 			dump_dwarf_frame_inst(cie, fde_inst, fde_instlen,
-			    cie_caf, cie_daf, low_pc);
+			    cie_caf, cie_daf, low_pc, re->dbg);
 		else
 			dump_dwarf_frame_regtable(fde, low_pc, func_len,
 			    cie_ra);
