@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 12, 2012
+.Dd June 18, 2011
 .Os
 .Dt DWARF_SET_FRAME_CFA_VALUE 3
 .Sh NAME
@@ -54,6 +54,11 @@
 .Fa "Dwarf_Half value"
 .Fc
 .Ft Dwarf_Half
+.Fo dwarf_set_frame_same_value
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Half value"
+.Fc
+.Ft Dwarf_Half
 .Fo dwarf_set_frame_undefined_value
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Half value"
@@ -72,39 +77,42 @@ Argument
 should hold the parameter value to set.
 .Pp
 Function
-.Fn dwarf_set_frame_rule_table_size
-sets the maxmium number of columns of the internal register rule table.
+.Fn dwarf_set_frame_cfa_value
+sets the column number for the CFA register rule in the internal
+register rule table.
+The constant
+.Dv DW_FRAME_CFA_COL
+is the default CFA register column number for DWARF2-only
+interfaces, and the constant
+.Dv DW_FRAME_CFA_COL3
+is the default CFA column number for DWARF3-compatible interfaces.
 .Pp
 Function
 .Fn dwarf_set_frame_rule_initial_value
 sets the initial value of the register rules in the internal register
 rule table.
 The default initial value is the constant
-.Dv DW_FRAME_REG_INITIAL_VALUE
-as defined in the header file
+.Dv DW_FRAME_REG_INITIAL_VALUE ,
+defined in the header file
 .In libdwarf.h .
 .Pp
 Function
-.Fn dwarf_set_frame_cfa_value
-sets the column number for the CFA register rule in the internal
-register rule table.
-By default, constant
-.Dv DW_FRAME_CFA_COL
-is the CFA register column number for the DWARF2-only interfaces,
-and constant
-.Dv DW_FRAME_CFA_COL3
-is the CFA column number for the DWARF3 interfaces.
+.Fn dwarf_set_frame_rule_table_size
+sets the maxmium number of columns of the internal register rule table.
+Argument
+.Ar value
+should be at least as large as the number of real registers in the ABI.
 .Pp
 Function
 .Fn dwarf_set_frame_same_value
 sets the register number representing the
-.Dq same value
+.Dq "same value"
 register rule.
 The default register number for the
-.Dq same value
+.Dq "same value"
 rule is the constant
-.Dv DW_FRAME_SAME_VAL
-as defined in the header file
+.Dv DW_FRAME_SAME_VAL ,
+defined in the header file
 .In libdwarf.h .
 .Pp
 Function
@@ -115,11 +123,12 @@ register rule.
 The default register number for the
 .Dq undefined
 rule is the constant
-.Dv DW_FRAME_UNDEFINED_VAL
-as defined in the header file
+.Dv DW_FRAME_UNDEFINED_VAL ,
+defined in the header file
 .In libdwarf.h .
 .Sh RETURN VALUES
-These function return the previous parameter value.
+These functions return the previous value of the parameter being
+set.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_get_fde_at_pc 3 ,
