@@ -29,7 +29,7 @@
 .Dt DWARF_GET_FDE_INFO_FOR_CFA_REGS3 3
 .Sh NAME
 .Nm dwarf_get_fde_info_for_cfa_regs3
-.Nd retrieve CFA register rule
+.Nd retrieve a CFA register rule
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -49,8 +49,8 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_fde_info_for_cfa_reg3
-retrieves the CFA register rule from the register rule table associated with
-a given FDE descriptor, given a program counter address.
+retrieves the CFA register rule for a given program counter address
+from the register rule table associated with an FDE descriptor.
 .Pp
 Argument
 .Ar fde
