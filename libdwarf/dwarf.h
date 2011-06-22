@@ -374,6 +374,7 @@
 #define DW_OP_implicit_value		0x9e
 #define DW_OP_stack_value		0x9f
 #define DW_OP_lo_user		 	0xe0
+#define DW_OP_GNU_push_tls_address	0xe0
 #define DW_OP_hi_user		 	0xff
 
 #define DW_ATE_address		 	0x1
