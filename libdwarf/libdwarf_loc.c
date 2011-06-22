@@ -166,6 +166,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_form_tls_address:
 		case DW_OP_call_frame_cfa:
 		case DW_OP_stack_value:
+		case DW_OP_GNU_push_tls_address:
 			break;
 
 		/* Operations with 1-byte operands. */
@@ -427,6 +428,7 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 	case DW_OP_ne:
 
 	case DW_OP_nop:
+	case DW_OP_GNU_push_tls_address:
 		*p++ = atom;
 		break;
 

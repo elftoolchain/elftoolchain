@@ -1090,6 +1090,8 @@ dwarf_get_OP_name(unsigned op, const char **s)
 		*s = "DW_OP_implicit_value"; break;
 	case DW_OP_stack_value:
 		*s = "DW_OP_stack_value"; break;
+	case DW_OP_GNU_push_tls_address:
+		*s = "DW_OP_GNU_push_tls_address"; break;
 	default:
 		return (DW_DLV_NO_ENTRY);
 	}
