@@ -39,7 +39,8 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 
 	(void) dbg;
 
-	if (alloc_type == DW_DLA_FRAME_BLOCK)
+	if (alloc_type == DW_DLA_LIST || alloc_type == DW_DLA_FRAME_BLOCK ||
+	    alloc_type == DW_DLA_LOC_BLOCK || alloc_type == DW_DLA_LOCDESC)
 		free(p);
 }
 

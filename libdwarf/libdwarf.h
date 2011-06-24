@@ -718,7 +718,6 @@ int		dwarf_loclist_from_expr(Dwarf_Debug, Dwarf_Ptr, Dwarf_Unsigned,
 int		dwarf_loclist_from_expr_a(Dwarf_Debug, Dwarf_Ptr,
 		    Dwarf_Unsigned, Dwarf_Half, Dwarf_Locdesc **,
 		    Dwarf_Signed *, Dwarf_Error *);
-int		dwarf_loclist_from_expr_dealloc(Dwarf_Locdesc *, Dwarf_Error *);
 int		dwarf_lowpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);
 int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
