@@ -148,6 +148,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_next_cu_header.3				\
 	dwarf_seterrarg.3				\
 	dwarf_set_frame_cfa_value.3			\
+	dwarf_set_reloc_application.3			\
 	dwarf_srcfiles.3				\
 	dwarf_srclines.3				\
 	dwarf_tag.3					\
