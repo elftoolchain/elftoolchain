@@ -259,23 +259,6 @@ dwarf_loclist_from_expr_a(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 	return (DW_DLV_OK);
 }
 
-int
-dwarf_loclist_from_expr_dealloc(Dwarf_Locdesc *llbuf, Dwarf_Error *error)
-{
-
-	if (llbuf == NULL) {
-		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
-	}
-
-	if (llbuf->ld_s != NULL)
-		free(llbuf->ld_s);
-
-	free(llbuf);
-
-	return (DW_DLV_OK);
-}
-
 /*
  * DEPRECATED old libdwarf APIs.
  */
