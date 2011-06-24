@@ -146,6 +146,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_init.3					\
 	dwarf_lineno.3					\
 	dwarf_loclist.3					\
+	dwarf_loclist_from_expr.3			\
 	dwarf_next_cu_header.3				\
 	dwarf_seterrarg.3				\
 	dwarf_set_frame_cfa_value.3			\
@@ -240,6 +241,7 @@ MLINKS+= \
 	dwarf_lineno.3	dwarf_linesrc.3			\
 	dwarf_lineno.3	dwarf_line_srcfileno.3		\
 	dwarf_loclist.3	dwarf_loclist_n.3		\
+	dwarf_loclist_from_expr.3 dwarf_loclist_from_expr_a.3 \
 	dwarf_seterrarg.3	dwarf_seterrhand.3	\
 	dwarf_set_frame_cfa_value.3 dwarf_set_frame_rule_initial_value.3 \
 	dwarf_set_frame_cfa_value.3 dwarf_set_frame_rule_table_size.3 \
