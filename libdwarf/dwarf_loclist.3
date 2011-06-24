@@ -166,6 +166,13 @@ At last, the
 .Va llbuf
 pointer should be deallocated with the allocation type
 .Dv DW_DLA_LIST .
+.Sh RETURN VALUES
+On success, these functions returns
+.Dv DW_DLV_OK .
+In case of an error, they return
+.Dv DW_DLV_ERROR
+and set the argument
+.Ar err .
 .Sh ERRORS
 These function can fail with:
 .Bl -tag -width ".Bq DW_DLE_ARGUMENT"
@@ -211,4 +218,5 @@ dwarf_dealloc(dbg, llbuf, DW_DLA_LIST);
 .Xr dwarf 3 ,
 .Xr dwarf_dealloc 3 ,
 .Xr dwarf_loclist_from_expr 3 ,
-.Xr dwarf_loclist_from_expr_a 3
+.Xr dwarf_loclist_from_expr_a 3 ,
+.Xr dwarf_get_loclist_entry 3
