@@ -219,7 +219,7 @@ int i, j;
 
 if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
     DW_DLV_OK)
-	errx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
+	errx(1, "dwarf_attrlist failed: %s", dwarf_errmsg(de));
 
 for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
 	if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
