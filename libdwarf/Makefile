@@ -133,6 +133,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_form_class.3				\
 	dwarf_get_funcs.3				\
 	dwarf_get_globals.3				\
+	dwarf_get_loclist_entry.3			\
 	dwarf_get_macro_details.3			\
 	dwarf_get_pubtypes.3				\
 	dwarf_get_ranges.3				\
