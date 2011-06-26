@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 12, 2011
+.Dd June 26, 2011
 .Os
 .Dt DWARF_GET_FDE_INFO_FOR_ALL_REGS3 3
 .Sh NAME
@@ -62,17 +62,6 @@ Argument
 should point to a
 .Vt Dwarf_Regtable3
 descriptor which will hold the returned table row of register rules.
-.Pp
-Argument
-.Ar row_pc
-should point to a location which will be set to the lowest program
-counter address associated with the table row.
-.Pp
-If argument
-.Ar err
-is not NULL, it will be used to store error information in case of an
-error.
-.Pp
 The
 .Vt Dwarf_Regtable3
 descriptor is defined in the header file
@@ -93,56 +82,64 @@ typedef struct {
 } Dwarf_Regtable3;
 .Ed
 .Pp
-The returned table row is stored in a
-.Vt Dwarf_Regtable3
-descriptor.
-The
-.Va rt3_cfa_rule
-field is set to the CFA register rule associated with the table row.
 The
 .Va rt3_reg_table_size
-field should store the maximum number of register rule columns to be
-returned.
-The table size should be set by the application before calling the
+field specifies the maximum number of register rule columns to be
+returned, and should be set by the application before calling the
 function.
 The
 .Va rt3_rules
-should point to an array of
-.Vt Dwarf_Regtable_Entry3
-descriptors allocated by the application, to hold the returned
-regsiter rules contained in the table row.
+field should point to a memory arena allocated by the application with
+space for at least
+.Vt rt3_reg_table_size
+descriptors of type
+.Vt Dwarf_Regtable_Entry3 .
 .Pp
-For each of the register rules stored in the
-.Vt Dwarf_Regtable_Entry3
-descriptor,
+On a successful execution of this function, the
+.Va rt3_cfa_rule
+field will be set to the CFA register rule associated with the table
+row, and the
+.Va rt3_rules
+array will hold the returned register rules contained in the table row.
+.Pp
+For each register rule descriptor returned,
 the
 .Va dw_offset_relevant
-field is set to 1 if the register rule has a offset value.
-The
+field will be set to 1 if the register rule has a offset value,
+the
 .Va dw_value_type
-field is set to the type code of the register rule.
-The
+field will be set to the type code of the register rule and the
 .Va dw_regnum
-field is set to the register number assoicated with the regsiter rule.
+field will be set to the register number associated with the register rule.
 If the register rule is of type
 .Dv DW_EXPR_OFFSET
 or
 .Dv DW_EXPR_VAL_OFFSET ,
 the
 .Va dw_offset_or_block_len
-field is set to the offset value associated with the register rule.
-If the type code is
+field will be set to the offset value associated with the register rule.
+If the type is
 .Dv DW_EXPR_EXPRESSION
 or
 .Dv DW_EXPR_VAL_EXPRESSION ,
 the
 .Va dw_offset_or_block_len
-field is set to the length in bytes of the DWARF expression block
+field will be set to the length in bytes of the DWARF expression block
 associated with the register rule.
 The
 .Va dw_block_ptr
-field is set to a pointer to the content of the DWARF expression block
+field will be set to a pointer to the content of the DWARF expression block
 associated with the register rule.
+.Pp
+Argument
+.Ar row_pc
+should point to a location which will be set to the lowest program
+counter address associated with the table row.
+.Pp
+If argument
+.Ar err
+is not NULL, it will be used to store error information in case of an
+error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_fde_info_for_all_regs3
@@ -165,7 +162,7 @@ One of the arguments
 or
 .Ar row_pc
 was NULL.
-.It Bq DW_DLE_PC_NOT_IN_FDE_RANGE
+.It Bq Er DW_DLE_PC_NOT_IN_FDE_RANGE
 The program counter value provided in argument
 .Ar pc
 did not fall in the range covered by argument
