@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 24, 2011
+.Dd June 26, 2011
 .Os
 .Dt DWARF_SET_RELOC_APPLICATION 3
 .Sh NAME
 .Nm dwarf_set_reloc_application
-.Nd set global relocation application flag
+.Nd set a library-wide relocation flag
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -41,32 +41,39 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_set_reloc_application
-sets the global relocation application flag to the value stored
-in argument
-.Ar apply .
+allows applications to specify how relocation information is to be
+handled by the DWARF(3) library.
 .Pp
-If the flag is set to a non-zero value, the library will process
-all the relevant .rela relocation sections and apply the relocation
-records found to their corresponding DWARF sections.
+If the argument
+.Ar apply
+holds a non-zero value, the library will process all the relevant
+.Dq ".rela"
+relocation sections and will apply the relocation records found to
+their corresponding DWARF sections.
 .Pp
-If the flag is set to 0, the library will not attempt to apply
-any relocations.
+If the argument
+.Ar apply
+is zero, the library will not attempt to apply any relocations.
+.Pp
+The default behaviour of the library is to process relocation records.
 .Sh NOTES
 Function
 .Fn dwarf_set_reloc_application
 should be called before initialising a dwarf debugging context, i.e,
-it should be called by the application before calling the function
+it should be called by the application before calling either of the
+functions
 .Xr dwarf_init 3
 or
 .Xr dwarf_elf_init 3 .
 .Sh RETURN VALUES
 Function
 .Fn dwarf_set_reloc_application
-returns the previous value of the global relocation application flag.
+returns the previous value of the library-wide relocation application
+flag.
 .Sh ERRORS
 Function
 .Fn dwarf_set_reloc_application
-does not set an error code.
+does not return an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_init 3 ,
