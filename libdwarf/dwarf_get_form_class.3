@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 22, 2011
+.Dd June 26, 2011
 .Os
 .Dt DWARF_GET_FORM_CLASS 3
 .Sh NAME
@@ -44,7 +44,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_form_class
-returns the form class of an attribute.
+returns the class of the form of a DWARF attribute.
 .Pp
 Argument
 .Ar dwversion
@@ -53,12 +53,15 @@ to use: 2 for DWARF2, 3 for DWARF3 and 4 for DWARF4.
 .Pp
 Argument
 .Ar attr
-should hold the attribute code of the attribute.
+should hold the attribute code of the attribute, i.e., one of the
+.Li DW_AT_*
+values defined in
+.In libdwarf.h .
 .Pp
 Argument
 .Ar offset_size
-should hold the DWARF offset size of the relevant
-compilation unit.
+should hold the size of a DWARF offset for the relevant compilation
+unit.
 .Pp
 Argument
 .Ar form
@@ -68,7 +71,7 @@ On success, function
 .Fn dwarf_get_form_class
 returns the form class code, which is one of the
 .Dv DW_FORM_CLASS_*
-contants as defined in header file
+contants defined in header file
 .In libdwarf.h .
 If the function was not able to determine the form class of the
 attribute, it returns the special form class code
@@ -76,7 +79,7 @@ attribute, it returns the special form class code
 .Sh ERRORS
 Function
 .Fn dwarf_get_form_class
-does not set an error code.
+does not return an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_attr 3 ,
