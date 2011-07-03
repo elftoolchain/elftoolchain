@@ -59,6 +59,20 @@ _libelf_open_object(int fd, Elf_Cmd c)
 		return (NULL);
 	}
 
+	/*
+	 * Restrict elf_begin(3) to regular files.
+	 *
+	 * In some operating systems, some special files can appear to
+	 * contain ELF objects (for example, /dev/ksyms in NetBSD).
+	 * If such files need to be processed using libelf,
+	 * applications can use elf_memory(3) on an appropriately
+	 * populated memory arena.
+	 */
+	if (!S_ISREG(sb.st_mode)) {
+		LIBELF_SET_ERROR(ARGUMENT, 0);
+		return (NULL);
+	}
+
 	m = NULL;
 	if ((m = mmap(NULL, (size_t) sb.st_size, PROT_READ, MAP_PRIVATE, fd,
 	    (off_t) 0)) == MAP_FAILED) {
