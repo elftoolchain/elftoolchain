@@ -78,7 +78,8 @@ TP_FLAG_ILLEGAL_CMD(`elf_flagelf',`e')
 TP_FLAG_CLR(`elf_flagelf',`e')
 TP_FLAG_SET(`elf_flagelf',`e')
 
-TP_FLAG_ILLEGAL_FLAG(`elf_flagelf',`e',`ELF_F_DIRTY|ELF_F_LAYOUT')
+TP_FLAG_ILLEGAL_FLAG(`elf_flagelf',`e',
+	`ELF_F_DIRTY|ELF_F_LAYOUT|ELF_F_ARCHIVE|ELF_F_ARCHIVE_SYSV')
 
 
 
