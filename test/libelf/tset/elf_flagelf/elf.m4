@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,19 +82,52 @@ TP_FLAG_ILLEGAL_FLAG(`elf_flagelf',`e',
 	`ELF_F_DIRTY|ELF_F_LAYOUT|ELF_F_ARCHIVE|ELF_F_ARCHIVE_SYSV')
 
 
+define(`TS_ARFILE',`"a.ar"')
 
+dnl Helper function.
 
+define(`_FN',`
+void
+$1(void)
+{
+	int error, fd, result, ret;
+	Elf *e;
 
+	TP_ANNOUNCE($2);
 
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = NULL;
 
+	TS_OPEN_FILE(e, $3, $4, fd);
 
+	result = TET_PASS;
+	if ((ret = elf_flagelf(e, ELF_C_SET, $5)) != 0 ||
+	    (error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("ret=%d,error=%d \"%s\".", ret, error,
+		    elf_errmsg(error));
+		    goto done;
+	}
 
+	_TP_EPILOGUE()
 
+	tet_result(result);
+}')
 
+/*
+ * Attempting to set ELF_F_ARCHIVE on an object opened with ELF_C_READ
+ * should fail.
+ */
+_FN(`tcArgsArchiveFlagOnReadFD',
+	`"Setting ELF_F_ARCHIVE on an object opened with "
+	 "ELF_C_READ should fail."',
+	 TS_ARFILE, ELF_C_READ,
+	 ELF_F_ARCHIVE)
 
-
-
-
-
-
-
+/*
+ * Attempting to set ELF_F_ARCHIVE_SYSV without ELF_F_ARCHIVE should fail.
+ */
+_FN(`tcArgsArchiveFlagSysV',
+	`"Setting ELF_F_ARCHIVE_SYSV without ELF_F_ARCHIVE should fail."',
+	TS_NEWFILE, ELF_C_WRITE,
+	ELF_F_ARCHIVE_SYSV)
