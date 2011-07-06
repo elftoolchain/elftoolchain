@@ -1,4 +1,4 @@
-.\" Copyright (c) 2006,2008 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2006,2008,2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$ 
 .\"
-.Dd April 11, 2010
+.Dd July 6, 2010
 .Os
 .Dt ELF_BEGIN 3
 .Sh NAME
@@ -81,26 +81,34 @@ and
 are ignored, and no additional error is signalled.
 .It ELF_C_READ
 This value is to be when the application wishes to examine (but not
-modify) the contents of the file specified by argument
-.Ar fd .
+modify) the contents of the file specified by the arguments
+.Ar fd
+and
+.Ar elf .
 It can be used for both
 .Xr ar 1
 archives and for regular ELF files.
 .Pp
-Argument
-.Ar fd
-should have been opened for reading.
 If argument
 .Ar elf
-is NULL, the library will allocate a new ELF descriptor for
-the file being processed.
+is NULL, the library will allocate a new ELF descriptor for the file
+being processed.
+The argument
+.Ar fd
+should have been opened for reading.
+.Pp
 If argument
 .Ar elf
 is not NULL, and references a regular ELF file previously opened with
 .Fn elf_begin ,
-then the activation count for
+then the activation count for the descriptor referenced by argument
 .Ar elf
 is incremented.
+The value in argument
+.Ar fd
+should match that used to open the descriptor argument
+.Ar elf .
+.Pp
 If argument
 .Ar elf
 is not NULL, and references a descriptor for an
@@ -111,6 +119,19 @@ a descriptor for an element in the archive is returned as
 described in the section
 .Sx "Processing ar(1) archives"
 below.
+The value for argument
+.Ar fd
+should match that used to open the archive earlier.
+.Pp
+If argument
+.Ar elf
+is not NULL, and references an
+.Xr ar 1
+archive opened earlier with
+.Fn elf_memory ,
+then the value of the argument
+.Ar fd
+is ignored.
 .It Dv ELF_C_RDWR
 The command is used to prepare an ELF file for reading and writing.
 It is not supported for archives.
