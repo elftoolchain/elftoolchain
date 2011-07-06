@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -234,6 +234,8 @@ tcCmdWriteFdRdwr(void)
 
 	TP_ANNOUNCE("cmd == ELF_C_WRITE on an 'rdwr' FD passes.");
 
+	TP_SET_VERSION();
+
 	if (setup_tempfile() == 0 ||
 	    (fd = open(filename, O_RDWR, 0)) < 0) {
 		TP_UNRESOLVED("setup failed: %s", strerror(errno));
@@ -242,9 +244,11 @@ tcCmdWriteFdRdwr(void)
 
 	result = TET_PASS;
 	error = -1;
-	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL)
-		TP_FAIL("fn=%s e = %p, error = %d", filename,
-		    (void *) e, error);
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
+	        error = elf_errno();
+		TP_FAIL("fn=%s, error=%d \"%s\"", filename, error,
+		    elf_errmsg(error));
+	}
 
  done:
 	cleanup_tempfile();
@@ -259,6 +263,8 @@ tcCmdWriteFdWrite(void)
 
 	TP_ANNOUNCE("cmd == ELF_C_WRITE on write-only FD passes.");
 
+	TP_SET_VERSION();
+
 	if (setup_tempfile() == 0 ||
 	    (fd = open(filename, O_WRONLY, 0)) < 0) {
 		TP_UNRESOLVED("setup failed: %s", strerror(errno));
@@ -267,9 +273,11 @@ tcCmdWriteFdWrite(void)
 
 	result = TET_PASS;
 	error = -1;
-	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL)
-		TP_FAIL("fn=%s e = %p, error = %d", filename,
-		    (void *) e, error);
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
+		error = elf_errno();
+		TP_FAIL("fn=%s, error=%d \"%s\"", filename,
+		    error, elf_errmsg(error));
+	}
 
  done:
 	cleanup_tempfile();
