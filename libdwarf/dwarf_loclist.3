@@ -24,13 +24,13 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 24, 2011
+.Dd July 6, 2011
 .Os
 .Dt DWARF_LOCLIST 3
 .Sh NAME
 .Nm dwarf_loclist ,
 .Nm dwarf_loclist_n
-.Nd retrieve DWARF location expression list
+.Nd retrieve DWARF location expression information
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -50,27 +50,32 @@
 .Fa "Dwarf_Error *error"
 .Fc
 .Sh DESCRIPTION
+These functions retrieve the location expressions
+associated with a DWARF attribute.
+.Pp
+Note: function
+.Fn dwarf_loclist
+is deprecated.
+New application code should instead use function
+.Fn dwarf_loclist_n
+.Pp
 Function
 .Fn dwarf_loclist_n
-retrieves a location expression list assoicated with a DWARF
+retrieves the list of location expressions associated with a DWARF
 attribute.
-.Pp
 Argument
 .Ar at
 should reference a valid DWARF attribute.
-.Pp
 Argument
 .Ar llbuf
-should point to a location which will hold the returned array of
-pointers to the
+should point to a location which will hold a returned array of
+pointers to
 .Vt Dwarf_Locdesc
 descriptors.
-.Pp
 Argument
 .Ar listlen
 should point to a location which will be set to the number of
 elements contained in the returned array.
-.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case
@@ -78,40 +83,38 @@ of an error.
 .Pp
 Function
 .Fn dwarf_loclist
-is identical to
-function
-.Fn dwarf_loclist_n ,
-except that it can only retrieve one location expression.
-.Pp
+retrieves the first location expression associated with an attribute.
+Argument
+.Ar at
+should reference a valid DWARF attribute.
 Argument
 .Ar llbuf
 should point to a location which will hold the returned pointer
-to the
+to a
 .Vt Dwarf_Locdesc
 descriptor.
-.Pp
 Argument
 .Ar listlen
 should point to a location which will be always set to 1.
-.Pp
-Function
-.Fn dwarf_loclist
-is deprecated for use by new application code.
+If argument
+.Ar err
+is not NULL, it will be used to store error information in case
+of an error.
 .Pp
 .Vt Dwarf_Locdesc
 descriptors are defined in the header file
 .In libdwarf.h ,
-and consists of following fields:
+and consist of following fields:
 .Pp
 .Bl -tag -width ".Va ld_cents" -compact
 .It Va ld_lopc
 The lowest program counter address covered by the descriptor.
-It is set to 0 if the descriptor is not associcated with an address
-range.
+This field will be set to 0 if the descriptor is not associated with
+an address range.
 .It Va ld_hipc
 The highest program counter address covered by the descriptor.
-It is set to 0 if the descriptor is not associcated with an address
-range.
+This field will be set to 0 if the descriptor is not associated with
+an address range.
 .It Va ld_cents
 The number of entries returned in
 .Va ld_s
@@ -125,15 +128,15 @@ descriptors.
 Each
 .Vt Dwarf_Loc
 descriptor represents one operation of a location expression.
-It is defined in the header file
+These descriptors are defined in the header file
 .In libdwarf.h ,
-and consists of following fields:
+and consist of following fields:
 .Pp
 .Bl -tag -width ".Va lr_number2" -compact
 .It Va lr_atom
 The operator name, one of the
 .Dv DW_OP_*
-constants as defined in the headerf file
+constants defined in the header file
 .In dwarf.h .
 .It Va lr_number
 The first operand of this operation.
@@ -146,26 +149,31 @@ expression.
 .Ss Memory Management
 The memory area used for the descriptor array returned in argument
 .Ar llbuf
-is allocated by
+is allocated by the
 .Lb libdwarf .
 When the descriptor array is no longer needed, application code should
 use function
 .Xr dwarf_dealloc 3
-to free the memory area in several steps.
+to free the memory area in the following manner:
+.Bl -enum
+.It
 First, the
 .Ar ld_s
 field of each
 .Vt Dwarf_Locdesc
-descriptor should be deallocated with the allocation type
+descriptor should be deallocated using the allocation type
 .Dv DW_DLA_LOC_BLOCK .
-Then, application should free each
+.It
+Then, the application should free each
 .Vt Dwarf_Locdesc
-descriptor with the allocation type
+descriptor using the allocation type
 .Dv DW_DLA_LOCDESC .
-At last, the
+.It
+Finally, the
 .Va llbuf
-pointer should be deallocated with the allocation type
+pointer should be deallocated using the allocation type
 .Dv DW_DLA_LIST .
+.El
 .Sh RETURN VALUES
 On success, these functions returns
 .Dv DW_DLV_OK .
@@ -186,8 +194,8 @@ was NULL.
 .It Bq Er DW_DLE_ARGUMENT
 The attribute provided by argument
 .Ar at
-does not contain a location expression or associate with
-a location list.
+does not contain a location expression or is not associated with a
+location expression list.
 .El
 .Sh EXAMPLE
 To retrieve the location list associated with an attribute, use:
