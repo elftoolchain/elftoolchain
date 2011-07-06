@@ -27,9 +27,11 @@
  */
 
 #include <sys/errno.h>
+#include <sys/stat.h>
 
 #include <fcntl.h>
 #include <libelf.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -489,6 +491,86 @@ tcFdMismatch(void)
 	if (e2)
 		(void) elf_end(e2);
 	if (fd >= 0)
+		(void) close(fd);
+	tet_result(result);
+}
+
+/*
+ * Check opening of ar(1) archives opened with elf_memory().
+ */
+
+void
+tcArMemoryFdIgnored(void)
+{
+	Elf *e, *e1;
+	int fd, result;
+	Elf_Kind k;
+	struct stat sb;
+	char *b;
+
+	TP_ANNOUNCE("The fd value is ignored for archives opened with "
+	    "elf_memory().");
+
+	TP_SET_VERSION();
+
+	e = e1 = NULL;
+	b = NULL;
+	fd = -1;
+	result = TET_UNRESOLVED;
+
+	/*
+	 * First, populate a memory area with the contents of
+	 * an ar(1) archive.
+	 */
+
+	if ((fd = open(TS_ARFILE, O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open of " TS_ARFILE " failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	if (fstat(fd, &sb) < 0) {
+		TP_UNRESOLVED("fstat failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if ((b = malloc(sb.st_size)) == NULL) {
+		TP_UNRESOLVED("malloc failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if (read(fd, b, sb.st_size) != sb.st_size) {
+		/* Deal with ERESTART? */
+		TP_UNRESOLVED("read failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if ((e = elf_memory(b, sb.st_size)) == NULL) {
+		TP_FAIL("elf_memory failed: %s", elf_errmsg(-1));
+		goto done;
+	}
+
+	/*
+	 * Verify that the fd value is ignored for this case.
+	 */
+	if ((e1 = elf_begin(-2, ELF_C_READ, e)) == NULL) {
+		TP_FAIL("elf_begin() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((k = elf_kind(e1)) != ELF_K_ELF)
+		TP_FAIL("kind %d, expected %d.", k, ELF_K_ELF);
+
+	result = TET_PASS;
+
+ done:
+	if (b)
+		free(b);
+	if (e1)
+		(void) elf_end(e1);
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
 		(void) close(fd);
 	tet_result(result);
 }
