@@ -245,7 +245,7 @@ tcCmdWriteFdRdwr(void)
 	result = TET_PASS;
 	error = -1;
 	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
-	        error = elf_errno();
+		error = elf_errno();
 		TP_FAIL("fn=%s, error=%d \"%s\"", filename, error,
 		    elf_errmsg(error));
 	}
