@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 25, 2011
+.Dd July 6, 2011
 .Os
 .Dt DWARF_GET_LOCLIST_ENTRY 3
 .Sh NAME
@@ -68,7 +68,7 @@ should point to a location which will hold the highest program counter
 address covered by the location list entry found.
 .Pp
 Argument
-.Ar hipc
+.Ar lowpc
 should point to a location which will hold the lowest program counter
 address covered by the location list entry found.
 .Pp
@@ -87,6 +87,7 @@ Argument
 .Ar next_entry
 should point to a location which will hold the offset of the next location
 list.
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case
