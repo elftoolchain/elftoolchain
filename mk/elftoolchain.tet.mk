@@ -6,6 +6,7 @@
 .error Make variable \"TOP\" has not been defined.
 .endif
 
+.include "${TOP}/mk/elftoolchain.os.mk"
 .include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 # Inform make(1) about the suffixes we use.
