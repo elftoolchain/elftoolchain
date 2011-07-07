@@ -131,3 +131,51 @@ tcNonResetWithNull(void)
 
 	tet_result(result);
 }
+
+/*
+ * Assertion: elf_errno() retrieves the expected error, when one is pending.
+ */
+
+void
+tcExpectedErrorIsReturned(void)
+{
+	int error, fd, result;
+	Elf *e;
+
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = NULL;
+
+	TP_ANNOUNCE("a pending error number is correctly returned");
+
+	TP_SET_VERSION();
+
+	/* Force an error. */
+	if ((fd = open("/dev/null", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open(/dev/null) failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) != NULL) {
+		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) unexpectedly succeeded");
+		goto done;
+	}
+
+	/* Check the current error. */
+	if ((error = elf_errno()) != ELF_E_IO) {
+		TP_FAIL("unexpected error %d \"%s\"", error,
+			elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
+
+	if (e)
+		elf_end(e);
+	if (fd != -1)
+	       (void) close(fd);
+
+	tet_result(result);
+}
