@@ -28,6 +28,8 @@
 
 include(`elfts.m4')
 
+#include <errno.h>
+#include <fcntl.h>
 #include <libelf.h>
 
 #include "tet_api.h"
@@ -69,4 +71,63 @@ tcReset(void)
 	(void) elf_errno();	/* discard stored error */
 	err = elf_errno();
 	tet_result(err == 0 ? TET_PASS : TET_FAIL);
+}
+
+/*
+ * Assertion: elf_begin with cmd == ELF_C_NULL does not reset the
+ * error value.
+ */
+
+void
+tcNonResetWithNull(void)
+{
+	int error, fd, result;
+	Elf *e, *e1;
+
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = e1 = NULL;
+
+	TP_ANNOUNCE("a pending error number is not reset by "
+	    "elf_begin(ELF_C_NULL)");
+
+	TP_SET_VERSION();
+
+	/* Force an error. */
+	if ((fd = open("/dev/null", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open(/dev/null) failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) != NULL) {
+		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) unexpectedly succeeded");
+		goto done;
+	}
+
+	/* Invoke an operation with ELF_C_NULL */
+	if ((e1 = elf_begin(fd, ELF_C_NULL, NULL)) != NULL) {
+		TP_FAIL("elf_begin(ELF_C_NULL) returned non-null (%p)",
+		    (void *) e1);
+		goto done;
+	}
+
+	/* Recheck the old error. */
+	if ((error = elf_errno()) != ELF_E_IO) {
+		TP_FAIL("unexpected error %d \"%s\"", error,
+			elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
+
+	if (e)
+		elf_end(e);
+	if (e1)
+		elf_end(e1);
+	if (fd != -1)
+	       (void) close(fd);
+
+	tet_result(result);
 }
