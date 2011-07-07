@@ -143,13 +143,17 @@ extern const char *program_invocation_short_name;
 
 #if defined(__FreeBSD__)
 
+#include <osreldate.h>
 #include <sys/endian.h>
 
 #define	ELFTC_BYTE_ORDER			_BYTE_ORDER
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
-#define	ELFTC_HAVE_STRMODE	1
+#define	ELFTC_HAVE_STRMODE			1
+#if __FreeBSD_version <= 900000
+#define	ELFTC_BROKEN_YY_NO_INPUT		1
+#endif
 #endif	/* __FreeBSD__ */
 
 
@@ -161,7 +165,8 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
-#define	ELFTC_HAVE_STRMODE	1
+#define	ELFTC_HAVE_STRMODE			1
+#define	ELFTC_BROKEN_YY_NO_INPUT		1
 #endif	/* __NetBSD __ */
 
 #endif	/* _ELFTC_H */
