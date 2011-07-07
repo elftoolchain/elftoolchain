@@ -29,6 +29,7 @@
 #include <sys/errno.h>
 #include <sys/stat.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <libelf.h>
 #include <stdlib.h>
