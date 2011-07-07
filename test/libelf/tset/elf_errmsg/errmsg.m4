@@ -88,3 +88,33 @@ tcMinusoneNoerror(void)
 done:
 	tet_result(result);
 }
+
+/*
+ * Assertion: All error numbers from 1..NUM return a non-null string.
+ */
+
+void
+tcCheckAllValidErrorMessages(void)
+{
+	int n, result;
+	const char *msg;
+
+	TP_ANNOUNCE("returns non-null for all valid error numbers");
+
+	(void) elf_errno();	/* discard stored error */
+
+	result = TET_UNRESOLVED;
+
+	for (n = ELF_E_NONE+1; n < ELF_E_NUM; n++) {
+		if ((msg = elf_errmsg(n)) == NULL) {
+			TP_FAIL("null return from elf_errmsg()");
+			goto done;
+		}
+	}
+
+	result = TET_PASS;
+
+done:
+	tet_result(result);
+
+}
