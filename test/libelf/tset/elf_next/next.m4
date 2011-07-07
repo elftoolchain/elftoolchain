@@ -148,3 +148,4 @@ tcArArchive$1(void)
 FN(1, 2) dnl text files with short names
 FN(2, 2) dnl text files with long names
 FN(3, 4) dnl text files + ELF objects.
+
