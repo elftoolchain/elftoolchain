@@ -88,7 +88,7 @@ echo "\
  */
 #include <tet_api.h>"
 
-if ! nm ${*} | sort -k +3 | \
+if ! nm ${*} | sort -k 3 | \
 	awk -v scen=${scen} -v prefix=${prefix} '
 	BEGIN {	do_scaffolding = 1; tcseq[ntc++] = "Default"; }
 	$2 == "T" && $3 ~ "^tc" {
