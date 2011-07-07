@@ -118,3 +118,35 @@ done:
 	tet_result(result);
 
 }
+
+/*
+ * Assertion: with an error pending, elf_errmsg(0) returns a non-NULL
+ * pointer.
+ */
+
+void
+tcNonNullWithErrorPending(void)
+{
+	int result, version;
+	const char *msg;
+
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("non null error message is returned for a pending error");
+
+	/* Generate an error, e.g., ELF_E_VERSION. */
+	if ((version = elf_version(EV_CURRENT+1)) != EV_NONE) {
+		TP_UNRESOLVED("elf_version() returned %d", version);
+		goto done;
+	}
+
+	if ((msg = elf_errmsg(0)) == NULL) {
+		TP_FAIL("elf_errmsg() returned NULL");
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	tet_result(result);
+}
