@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2010 Joseph Koshy
+ * Copyright (c) 2006,2010,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,18 +58,33 @@ tcZeroNoerror(void)
  * An error value of -1 should return non-NULL
  */
 
+define(`NO_ERROR_MESSAGE',`"No Error"')dnl Needs to match the string in "libelf/elf_errmsg.c".
+
 void
 tcMinusoneNoerror(void)
 {
+	int result;
 	const char *msg;
 
 	TP_ANNOUNCE("returns non-null for arg -1 & no current error");
 
 	(void) elf_errno();	/* discard stored error */
 
-	msg = elf_errmsg(-1);
-	if (msg == NULL)
-		tet_result(TET_FAIL);
+	result = TET_UNRESOLVED;
 
-	tet_result(TET_PASS);
+	msg = elf_errmsg(-1);
+	if (msg == NULL) {
+		TP_FAIL("null return from elf_errmsg()");
+		goto done;
+	}
+
+	if (strcmp(msg, NO_ERROR_MESSAGE)) {
+		TP_FAIL("unexpected message \"%s\"", msg);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	tet_result(result);
 }
