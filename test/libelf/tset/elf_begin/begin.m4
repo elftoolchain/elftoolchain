@@ -41,14 +41,6 @@
 
 include(`elfts.m4')
 
-define(`TP_SET_VERSION',`do {
-		if (elf_version(EV_CURRENT) != EV_CURRENT) {
-			TP_UNRESOLVED("elf_version() failed: \"%s\".",
-			    elf_errmsg(-1));
-			goto done;
-		}
-	} while (0)')
-
 define(`TS_ARFILE',`"a.ar"')
 
 /*

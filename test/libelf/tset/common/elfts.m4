@@ -66,4 +66,15 @@ define(`TP_UNRESOLVED',
 define(`TP_FAIL',
 	`do { tet_printf("F: " $*); result = TET_FAIL; } while (0)')
 
+/*
+ * TP_SET_VERSION: set elf_version() or fail.
+ */
+define(`TP_SET_VERSION',`do {
+		if (elf_version(EV_CURRENT) != EV_CURRENT) {
+			TP_UNRESOLVED("elf_version() failed: \"%s\".",
+			    elf_errmsg(-1));
+			goto done;
+		}
+	} while (0)')
+
 divert(_DIVNUM)popdef(`_DIVNUM')
