@@ -31,3 +31,7 @@ _YO=	/nonexistent
 ${f}:	${_YO}
 	@cp ${.ALLSRC} ${.TARGET}
 .endfor
+
+.if ${OS_HOST} == "NetBSD"
+MKMAN=	no
+.endif
