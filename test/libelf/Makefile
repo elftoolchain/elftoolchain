@@ -1,6 +1,8 @@
 # $Id$
 
-TET_ROOT?=	/home/tmp/tet
+TOP = ../..
+
+.include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 .if !defined(TET_EXECUTE)
 TET_EXECUTE=	${.OBJDIR}
