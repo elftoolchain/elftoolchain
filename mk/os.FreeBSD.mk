@@ -2,6 +2,8 @@
 # Build definitions for FreeBSD
 #
 
+# Link programs statically by default.
+NO_SHARED?=	yes
 
 # TeX and friends are packaged in the teTeX package.
 MKTEX?=yes
