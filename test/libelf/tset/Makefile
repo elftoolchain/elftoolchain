@@ -21,6 +21,7 @@ SUBDIR+=	elf_fsize
 SUBDIR+=	elf_getarhdr
 SUBDIR+=	elf_getarsym
 SUBDIR+=	elf_getbase
+SUBDIR+=	elf_getdata
 SUBDIR+=	elf_getident
 SUBDIR+=	elf_getscn
 SUBDIR+=	elf_getshnum

@@ -34,6 +34,7 @@ all
 	^elf_getarhdr
 	^elf_getarsym
 	^elf_getbase
+	^elf_getdata
 	^elf_getident
 	^elf_getscn
 	^elf_getshnum
@@ -83,6 +84,7 @@ elf_fsize	:include:/tset/elf_fsize/tet_scen
 elf_getarhdr	:include:/tset/elf_getarhdr/tet_scen
 elf_getarsym	:include:/tset/elf_getarsym/tet_scen
 elf_getbase	:include:/tset/elf_getbase/tet_scen
+elf_getdata	:include:/tset/elf_getdata/tet_scen
 elf_getident	:include:/tset/elf_getident/tet_scen
 elf_getscn	:include:/tset/elf_getscn/tet_scen
 elf_getshnum	:include:/tset/elf_getshnum/tet_scen
