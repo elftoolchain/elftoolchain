@@ -14,8 +14,6 @@ LDADD=	-larchive -lelf
 
 CFLAGS+=-I. -I${.CURDIR}
 
-NO_SHARED?=	yes
-
 LINKS=	${BINDIR}/ar ${BINDIR}/ranlib
 
 CLEANFILES+= ranlib
