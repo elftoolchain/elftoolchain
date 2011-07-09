@@ -119,3 +119,83 @@ FN(lsb,32)
 FN(lsb,64)
 FN(msb,32)
 FN(msb,64)
+
+/*
+ * Verify that a non-zero section is correctly read.
+ */
+
+static const char stringsection[] = {
+changequote({,})
+       '\0',
+       '.', 's', 'h', 's', 't', 'r', 't', 'a', 'b', '\0',
+       '.', 'z', 'e', 'r', 'o', 's', 'e', 'c', 't', 'i', 'o', 'n', '\0'
+changequote(`,')
+       };
+
+undefine(`_FN')
+define(`_FN',`
+void
+tcNonZeroSection$1$2(void)
+{
+	Elf *e;
+	int error, fd, result, shstrndx;
+	const size_t strsectionsize = sizeof stringsection;
+	size_t n;
+	const char *buf;
+	Elf_Scn *scn;
+	Elf_Data *ed;
+
+	e = NULL;
+	fd = -1;
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("a data descriptor for a non-zero sized section "
+	    "is correctly retrieved");
+
+	_TS_OPEN_FILE(e, "zerosection.$1$2", ELF_C_READ, fd, goto done;);
+
+	if (elf_getshdrstrndx(e, &shstrndx) != 0 ||
+	    (scn = elf_getscn(e, shstrndx)) == NULL) {
+		TP_UNRESOLVED("Cannot find string table section");
+		goto done;
+	}
+
+	ed = NULL;
+	if ((ed = elf_getdata(scn, ed)) == NULL) {
+		error = elf_errno();
+		TP_FAIL("elf_getdata failed %d \"%s\"", error,
+		    elf_errmsg(error));
+		goto done;
+	}
+
+	if (ed->d_size != strsectionsize) {
+		TP_FAIL("Illegal values returned: d_size %d != expected %d",
+		    (int) ed->d_size, strsectionsize);
+		goto done;
+	}
+
+	if (memcmp(stringsection, ed->d_buf, strsectionsize) != 0) {
+		buf = (const char *) ed->d_buf;
+		for (n = 0; n < strsectionsize; n++)
+			if (buf[n] != stringsection[n])
+				break;
+		TP_FAIL("String mismatch: buf[%d] \"%c\" != \"%c\"",
+		    n, buf[n], stringsection[n]);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (e)
+		elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	tet_result(result);
+}
+')
+
+_FN(lsb,32)
+_FN(lsb,64)
+_FN(msb,32)
+_FN(msb,64)
