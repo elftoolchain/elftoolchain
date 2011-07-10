@@ -4,6 +4,7 @@
 
 SUBDIR+=	common		# must be first
 
+SUBDIR+=	abi
 SUBDIR+=	elf_begin
 SUBDIR+=	elf_cntl
 SUBDIR+=	elf_end
