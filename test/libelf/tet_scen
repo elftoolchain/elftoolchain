@@ -5,6 +5,7 @@
 # $Id$
 
 all
+	^abi
 	^elf32_getehdr
 	^elf32_getphdr
 	^elf32_getshdr
@@ -55,6 +56,7 @@ all
 	^gelf_newehdr
 	^gelf_xlate
 
+abi		:include:/tset/abi/tet_scen
 elf32_getehdr	:include:/tset/elf32_getehdr/tet_scen
 elf32_getphdr	:include:/tset/elf32_getphdr/tet_scen
 elf32_getshdr	:include:/tset/elf32_getshdr/tet_scen
