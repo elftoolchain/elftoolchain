@@ -355,7 +355,7 @@ elf_osabi(unsigned int abi)
 	case ELFOSABI_SYSV: return "SYSV";
 	case ELFOSABI_HPUX: return "HPUS";
 	case ELFOSABI_NETBSD: return "NetBSD";
-	case ELFOSABI_LINUX: return "Linux";
+	case ELFOSABI_GNU: return "GNU";
 	case ELFOSABI_HURD: return "HURD";
 	case ELFOSABI_86OPEN: return "86OPEN";
 	case ELFOSABI_SOLARIS: return "Solaris";
