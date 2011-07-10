@@ -98,12 +98,13 @@ main(int argc, char **argv)
 		switch (ch) {
 		case 'f':
 			if (change)
-				errx(1, "f option incompatible with t option");
+				errx(1, "ERROR: the -f option is incompatible "
+				    "with the -t option.");
 			force = 1;
 			type = atoi(optarg);
 			if (errno == ERANGE || type < 0 || type > 255) {
-				warnx("invalid argument to option f: %s",
-				    optarg);
+				warnx("ERROR: invalid argument to option "
+				    "-f: %s", optarg);
 				usage();
 			}
 			break;
@@ -116,7 +117,8 @@ main(int argc, char **argv)
 			break;
 		case 't':
 			if (force)
-				errx(1, "t option incompatible with f option");
+				errx(1, "the -t option is incompatible with "
+				    "the -f option.");
 			change = 1;
 			strtype = optarg;
 			break;
@@ -135,7 +137,7 @@ main(int argc, char **argv)
 	}
 
 	if (!force && (type = elftype(strtype)) == -1) {
-		warnx("invalid ELF type '%s'", strtype);
+		warnx("ERROR: invalid ELF type '%s'", strtype);
 		printelftypes();
 		usage();
 	}
@@ -216,7 +218,7 @@ static void
 usage(void)
 {
 	(void)fprintf(stderr,
-	    "usage: brandelf [-lv] [-f ELF_ABI_number] [-t string] file ...\n");
+	    "usage: brandelf [-lv] [-f ELF_ABI_number] [-t brand] file ...\n");
 	exit(1);
 }
 
