@@ -701,6 +701,8 @@ _ELF_DEFINE_EM(EM_M32C,             120,				\
 _ELF_DEFINE_EM(EM_TSK3000,          131, "Altium TSK3000 core")		\
 _ELF_DEFINE_EM(EM_RS08,             132,				\
 	"Freescale RS08 embedded processor")				\
+_ELF_DEFINE_EM(EM_SHARC,            133,				\
+	"Analog Devices SHARC family of 32-bit DSP processors")		\
 _ELF_DEFINE_EM(EM_ECOG2,            134,				\
 	"Cyan Technology eCOG2 microprocessor")				\
 _ELF_DEFINE_EM(EM_SCORE7,           135,				\
@@ -766,7 +768,21 @@ _ELF_DEFINE_EM(EM_TILEPRO,          188,				\
 	"Tilera TILEPro multicore architecture family")			\
 _ELF_DEFINE_EM(EM_MICROBLAZE,       189,				\
 	"Xilinx MicroBlaze 32-bit RISC soft processor core")		\
-_ELF_DEFINE_EM(EM_CUDA,             190, "NVIDIA CUDA architecture")
+_ELF_DEFINE_EM(EM_CUDA,             190, "NVIDIA CUDA architecture")	\
+_ELF_DEFINE_EM(EM_TILEGX,           191,				\
+	"Tilera TILE-Gx multicore architecture family")			\
+_ELF_DEFINE_EM(EM_CLOUDSHIELD,      192,				\
+	"CloudShield architecture family")				\
+_ELF_DEFINE_EM(EM_COREA_1ST,        193,				\
+	"KIPO-KAIST Core-A 1st generation processor family")		\
+_ELF_DEFINE_EM(EM_COREA_2ND,        194,				\
+	"KIPO-KAIST Core-A 2nd generation processor family")		\
+_ELF_DEFINE_EM(EM_ARC_COMPACT2,     195, "Synopsys ARCompact V2")	\
+_ELF_DEFINE_EM(EM_OPEN8,            196,				\
+	"Open8 8-bit RISC soft processor core")				\
+_ELF_DEFINE_EM(EM_RL78,             197, "Renesas RL78 family")		\
+_ELF_DEFINE_EM(EM_VIDEOCORE5,       198, "Broadcom VideoCore V processor") \
+_ELF_DEFINE_EM(EM_78KOR,            199, "Renesas 78KOR family")
 
 #undef	_ELF_DEFINE_EM
 #define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
