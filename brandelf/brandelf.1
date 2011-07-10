@@ -27,7 +27,7 @@
 .\"
 .\" $FreeBSD: src/usr.bin/brandelf/brandelf.1,v 1.17 2007/03/09 14:36:18 ru Exp $
 .\"
-.Dd February 6, 1997
+.Dd July 10, 2011
 .Dt BRANDELF 1
 .Os
 .Sh NAME
@@ -37,13 +37,12 @@
 .Nm
 .Op Fl lv
 .Op Fl f Ar ELF_ABI_number
-.Op Fl t Ar string
+.Op Fl t Ar brand
 .Ar
 .Sh DESCRIPTION
 The
 .Nm
-utility marks an ELF binary to be run under a certain ABI for
-.Fx .
+utility marks an ELF binary to be run under a certain ABI.
 .Pp
 The options are as follows:
 .Bl -tag -width indent
@@ -54,25 +53,45 @@ Incompatible with the
 option.
 These values are assigned by SCO/USL.
 .It Fl l
-Writes the list of all known ELF types to the standard error.
+Writes the list of all known ELF types to standard error.
 .It Fl v
 Turns on verbose output.
-.It Fl t Ar string
-Brands the given ELF binaries to be of the
-.Ar string
-ABI type.
-Currently supported ABIs are
+.It Fl t Ar brand
+Brands the given ELF binaries to be of the ABI specified by argument
+.Ar brand .
+Supported ABIs include
+.Dq Li 86Open ,
+.Dq Li AIX ,
+.Dq Li ARM ,
+.Dq Li AROS ,
 .Dq Li FreeBSD ,
-.Dq Li Linux ,
+.Dq Li GNU ,
+.Dq Li HP/UX ,
+.Dq Li Hurd ,
+.Dq Li IRIX ,
+.Dq Li Linux
+(an alias for
+.Dq Li GNU ) ,
+.Dq Li Modesto ,
+.Dq Li NSK ,
+.Dq Li NetBSD ,
+.Dq Li None ,
+.Dq Li OpenBSD ,
+.Dq Li OpenVMS ,
+.Dq Li Standalone ,
+.Dq Li SVR4
+(an alias for
+.Dq Li None ) ,
+.Dq Li Solaris
 and
-.Dq Li SVR4 .
+.Dq Li Tru64 .
 .It Ar file
 If
-.Fl t Ar string
+.Fl t Ar brand
 is given it will brand
 .Ar file
 to be of type
-.Ar string ,
+.Ar brand ,
 otherwise it will simply display the branding of
 .Ar file .
 .El
@@ -89,7 +108,7 @@ of the
 command:
 .Bd -literal -offset indent
 brandelf file
-brandelf -t Linux file
+brandelf -t GNU file
 .Ed
 .Sh SEE ALSO
 .Rs
