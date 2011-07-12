@@ -38,11 +38,6 @@
 
 include(`elfts.m4')
 
-struct _sym {
-	size_t	symbol;
-	size_t	value;
-};
-
 undefine(`FN')
 define(`FN',`
 void
@@ -67,6 +62,14 @@ done:
 }
 ')
 
+struct _sym {
+	size_t	symbol;
+	size_t	value;
+};
+
+/*
+ * Check ELFOSABI_* values.
+ */
 struct _sym elf_osabi[] = {
        { ELFOSABI_NONE,		0},
        { ELFOSABI_SYSV,		0},
@@ -90,6 +93,9 @@ struct _sym elf_osabi[] = {
 
 FN(OsAbi, elf_osabi, "ELF_OSABI")
 
+/*
+ * Check EM_* values.
+ */
 struct _sym elf_em[] = {
 	{ EM_NONE, 0 },
 	{ EM_M32, 1 },
@@ -245,3 +251,46 @@ struct _sym elf_em[] = {
 };
 
 FN(ElfMachine, elf_em, "EM_*")
+
+/*
+ * Check ET_* values.
+ */
+struct _sym elf_type[] = {
+       { ET_NONE, 0 },
+       { ET_REL, 1 },
+       { ET_EXEC, 2 },
+       { ET_DYN, 3 },
+       { ET_CORE, 4 }
+};
+
+FN(ElfType, elf_type, "ET_*")
+
+/*
+ * Check values for miscellaneous ABI symbols.
+ */
+struct _sym elf_misc[] = {
+       { EV_NONE, 0 },
+       { EV_CURRENT, 1 },
+       { EI_MAG0, 0 },
+       { EI_MAG1, 1 },
+       { EI_MAG2, 2 },
+       { EI_MAG3, 3 },
+       { EI_CLASS, 4 },
+       { EI_DATA, 5 },
+       { EI_VERSION, 6 },
+       { EI_OSABI, 7 },
+       { EI_ABIVERSION, 8 },
+       { EI_NIDENT, 16 },
+       { ELFMAG0, 0x7F },
+       { ELFMAG1, 'E' },
+       { ELFMAG2, 'L' },
+       { ELFMAG3, 'F' },
+       { ELFCLASSNONE, 0 },
+       { ELFCLASS32, 1 },
+       { ELFCLASS64, 2 },
+       { ELFDATANONE, 0 },
+       { ELFDATA2LSB, 1 },
+       { ELFDATA2MSB, 2 },
+};
+
+FN(ElfMisc, elf_misc, "miscellaneous symbol");
