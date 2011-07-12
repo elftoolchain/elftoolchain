@@ -903,18 +903,6 @@ elf_update(Elf *e, Elf_Cmd c)
 	if (c == ELF_C_NULL)
 		return (rc);
 
-	if (e->e_cmd == ELF_C_READ) {
-		/*
-		 * This descriptor was opened in read-only mode or by
-		 * elf_memory().
-		 */
-		if (e->e_fd)
-			LIBELF_SET_ERROR(MODE, 0);
-		else
-			LIBELF_SET_ERROR(ARGUMENT, 0);
-		return ((off_t) -1);
-	}
-
 	if (e->e_fd < 0) {
 		LIBELF_SET_ERROR(SEQUENCE, 0);
 		return ((off_t) -1);
