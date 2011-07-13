@@ -1,4 +1,4 @@
-.\" Copyright (c) 2006-2008 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2006-2008,2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd October 21, 2007
+.Dd July 13, 2011
 .Os
 .Dt ELF 3
 .Sh NAME
@@ -309,6 +309,8 @@ Records used in a section of type
 .Dv SHT_DYNAMIC .
 .It Dv ELF_T_EHDR
 ELF executable header.
+.It Dv ELF_T_GNUHASH
+GNU-style hash tables.
 .It Dv ELF_T_HALF
 16-bit unsigned words.
 .It Dv ELF_T_LWORD
