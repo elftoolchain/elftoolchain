@@ -776,7 +776,7 @@ FN(64,`msb')
 undefine(`FN')
 define(`FN',`
 void
-tcAlignmentData$2$1(void)
+tc$3_$2$1(void)
 {
 	int error, fd, result;
 	off_t offset;
@@ -787,7 +787,7 @@ tcAlignmentData$2$1(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("TOUPPER($2)$1: data descriptors with incompatible alignments"
+	TP_ANNOUNCE("TOUPPER($2)$1: data descriptors with " $6
 	    " are rejected.");
 
 	result = TET_UNRESOLVED;
@@ -817,15 +817,18 @@ tcAlignmentData$2$1(void)
 		goto done;
 	}
 
-	d->d_buf  = (char *) strtab;
-	d->d_size = sizeof(strtab);
-	d->d_off  = (off_t) 0;
+	/* Setup defaults for the test. */
+	d->d_buf  = (char *) NULL;
+	d->d_size = sizeof(Elf$1_Sym);
 	d->d_type = ELF_T_SYM;
-	d->d_align = 1;		/* misaligned for SHT_SYMTAB sections */
+	d->d_align = 1;
+
+	/* Override, on a per test case basis. */
+	$4
 
 	result = TET_PASS;
 	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1 ||
-	    (error = elf_errno()) != ELF_E_LAYOUT) {
+	    (error = elf_errno()) != ELF_E_$5) {
 		TP_FAIL("elf_update()->%jd, error=%d \"%s\".",
 		    (intmax_t) offset, error, elf_errmsg(error));
 	}
@@ -838,10 +841,19 @@ tcAlignmentData$2$1(void)
 	tet_result(result);
 }')
 
-FN(32,`lsb')
-FN(32,`msb')
-FN(64,`lsb')
-FN(64,`msb')
+define(`MKFN',`
+FN(32,`lsb',$1,$2,$3,$4)
+FN(32,`msb',$1,$2,$3,$4)
+FN(64,`lsb',$1,$2,$3,$4)
+FN(64,`msb',$1,$2,$3,$4)
+')
+
+MKFN(IllegalAlignment, `d->d_align = 3;', DATA, "incorrect alignments")
+MKFN(UnsupportedVersion, `d->d_version = EV_CURRENT+1;', VERSION,
+    "an unknown version")
+MKFN(UnknownElfType, `d->d_type = ELF_T_NUM;', DATA, "an unknown type")
+MKFN(IllegalSize, `d->d_size = 1;', DATA, "an illegal size")
+
 
 /* TODO: check that overlapping sections are rejected */
 /* TODO: check that non-overlapping sections are permitted */
