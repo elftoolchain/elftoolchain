@@ -75,12 +75,13 @@ static int
 _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t *rc)
 {
 	int ec;
+	size_t msz;
 	Elf_Data *d, *td;
-	unsigned int elftype;
 	uint32_t sh_type;
 	uint64_t d_align;
-	uint64_t sh_align, sh_entsize, sh_offset, sh_size;
+	unsigned int elftype;
 	uint64_t scn_size, scn_alignment;
+	uint64_t sh_align, sh_entsize, sh_offset, sh_size;
 
 	/*
 	 * We need to recompute library private data structures if one
@@ -144,44 +145,87 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t *rc)
 	if (sh_align == 0)
 		sh_align = _libelf_falign(elftype, ec);
 
-	/* Compute the section alignment. */
+	/*
+	 * Check the section's data buffers for sanity and compute the
+	 * section's alignment.
+	 */
 	STAILQ_FOREACH(d, &s->s_data, d_next)  {
-		if (d->d_type != elftype) {
+
+		/*
+		 * The data buffer's type is known.
+		 */
+		if (d->d_type >= ELF_T_NUM) {
 			LIBELF_SET_ERROR(DATA, 0);
 			return (0);
 		}
+
+		/*
+		 * The data buffer's version is supported.
+		 */
 		if (d->d_version != e->e_version) {
 			LIBELF_SET_ERROR(VERSION, 0);
 			return (0);
 		}
-		if ((d_align = d->d_align) % sh_align) {
-			LIBELF_SET_ERROR(LAYOUT, 0);
-			return (0);
-		}
-		if (d_align == 0 || (d_align & (d_align - 1))) {
+
+		/*
+		 * The buffer's alignment is non-zero and a power of
+		 * two.
+		 */
+		if ((d_align = d->d_align) == 0 ||
+		    (d_align & (d_align - 1))) {
 			LIBELF_SET_ERROR(DATA, 0);
 			return (0);
 		}
+
+		/*
+		 * The buffer's size should be a multiple of the
+		 * memory size of the underlying type.
+		 */
+		msz = _libelf_msize(d->d_type, ec, e->e_version);
+		if (d->d_size % msz) {
+			LIBELF_SET_ERROR(DATA, 0);
+			return (0);
+		}
+
+		/*
+		 * If the application is controlling layout, then the
+		 * d_offset field should be compatible with the
+		 * buffer's specified alignment.
+		 */
+		if ((e->e_flags & ELF_F_LAYOUT) &&
+		    (d->d_off & (d_align - 1))) {
+			LIBELF_SET_ERROR(LAYOUT, 0);
+			return (0);
+		}
+
+		/*
+		 * The section's alignment is the maximum alignment
+		 * needed for its data buffers.
+		 */
 		if (d_align > scn_alignment)
 			scn_alignment = d_align;
 	}
 
-	scn_size = 0L;
 
+	/*
+	 * Compute the section's size.
+	 */
+	scn_size = 0L;
 	STAILQ_FOREACH_SAFE(d, &s->s_data, d_next, td) {
 		if (e->e_flags & ELF_F_LAYOUT) {
 			if ((uint64_t) d->d_off + d->d_size > scn_size)
 				scn_size = d->d_off + d->d_size;
 		} else {
-			scn_size = roundup2(scn_size, scn_alignment);
+			scn_size = roundup2(scn_size, d->d_align);
 			d->d_off = scn_size;
 			scn_size += d->d_size;
 		}
 	}
 
 	/*
-	 * If the application is requesting full control over the layout
-	 * of the section, check its values for sanity.
+	 * If the application is requesting full control over the
+	 * layout of the section, check the section's specified size,
+	 * offsets and alignment for sanity.
 	 */
 	if (e->e_flags & ELF_F_LAYOUT) {
 		if (scn_alignment > sh_align || sh_offset % sh_align ||
@@ -565,8 +609,6 @@ _libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
 	elftype = _libelf_xlate_shtype(sh_type);
 	assert(elftype >= ELF_T_FIRST && elftype <= ELF_T_LAST);
 
-	msz = _libelf_msize(elftype, ec, e->e_version);
-
 	sh_off = s->s_offset;
 	assert(sh_off % _libelf_falign(elftype, ec) == 0);
 
@@ -613,6 +655,8 @@ _libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
 
 	STAILQ_FOREACH(d, &s->s_data, d_next) {
 
+		msz = _libelf_msize(d->d_type, ec, e->e_version);
+
 		if ((uint64_t) rc < sh_off + d->d_off)
 			(void) memset(nf + rc,
 			    LIBELF_PRIVATE(fillchar), sh_off + d->d_off - rc);
@@ -620,13 +664,12 @@ _libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
 		rc = sh_off + d->d_off;
 
 		assert(d->d_buf != NULL);
-		assert(d->d_type == (Elf_Type) elftype);
 		assert(d->d_version == e->e_version);
 		assert(d->d_size % msz == 0);
 
 		nobjects = d->d_size / msz;
 
-		fsz = _libelf_fsize(elftype, ec, e->e_version, nobjects);
+		fsz = _libelf_fsize(d->d_type, ec, e->e_version, nobjects);
 
 		dst.d_buf    = nf + rc;
 		dst.d_size   = fsz;
