@@ -441,8 +441,8 @@ FN(32)
 FN(64)
 
 /*
- * Invoking an elf_cntl(ELF_C_FDDONE) causes a subsequent elf_update(ELF_C_NULL)
- * to succeed.
+ * Invoking an elf_cntl(ELF_C_FDDONE) causes a subsequent
+ * elf_update(ELF_C_NULL) to succeed.
  */
 
 undefine(`FN')
@@ -458,7 +458,8 @@ tcSequenceFdDoneNull$1(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("elf_update(ELF_C_NULL) after an elf_cntl(FDDONE) succeeds.");
+	TP_ANNOUNCE("elf_update(ELF_C_NULL) after an elf_cntl(FDDONE) "
+	    "succeeds.");
 
 	result = TET_UNRESOLVED;
 	e = NULL;
@@ -949,7 +950,7 @@ tcRdwrIdempotent$2$1(void)
 	if (tfd != -1)
 		(void) close(tfd);
 	if (tfn != NULL)
-	   	(void) unlink(tfn);
+		(void) unlink(tfn);
 
 	tet_result(result);
 }')
