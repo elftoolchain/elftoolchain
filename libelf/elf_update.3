@@ -128,7 +128,10 @@ Set to the physical memory address where the section should reside.
 .It Va sh_addralign
 If the application is managing the file layout, it must set this
 field to the desired alignment for the section's contents.
-This value must be a power of two.
+This value must be a power of two and must be at least as large as the
+largest alignment needed by any
+.Vt Elf_Data
+descriptor associated with the section.
 .It Va sh_entsize
 Set to the size of each entry, for sections containing fixed size
 elements, or set to zero for sections without fixed size elements.
