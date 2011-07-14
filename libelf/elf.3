@@ -247,7 +247,7 @@ It has the following application visible members:
 .Bl -tag -width ".Vt unsigned int d_version" -compact
 .It Vt "uint64_t d_align"
 The in-file alignment of the data buffer within its containing ELF section.
-This value must be a power of two.
+This value must be non-zero and a power of two.
 .It Vt "uint64_t d_off"
 The offset with the containing section where this descriptors data
 would be placed.
