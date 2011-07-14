@@ -958,3 +958,193 @@ FN(32,`lsb')
 FN(32,`msb')
 FN(64,`lsb')
 FN(64,`msb')
+
+/*
+ * Test handling of sections with buffers of differing Elf_Data types.
+ */
+
+/*
+ * The contents of the first Elf_Data buffer for section ".foo"
+ * (ELF_T_WORD, align 4).
+ */
+uint32_t hash_words[] = {
+	0x01234567,
+	0x89abcdef,
+	0xdeadc0de
+};
+
+/*
+ * The contents of the second Elf_Data buffer for section ".foo"
+ * (ELF_T_BYTE, align 1)
+ */
+char data_string[] = "helloworld";
+
+/*
+ * The contents of the third Elf_Data buffer for section ".foo"
+ * (ELF_T_WORD, align 4)
+ */
+uint32_t checksum[] = {
+	0xffffeeee
+};
+
+/*
+ * The contents of the ".shstrtab" section.
+ */
+char string_table[] = {
+	/* Offset 0 */   '\0',
+	/* Offset 1 */   '.', 'f' ,'o', 'o', '\0',
+	/* Offset 6 */   '.', 's' , 'h' , 's' , 't',
+	'r', 't', 'a', 'b', '\0'
+};
+
+undefine(`FN')
+define(`FN',`
+void
+tcMixedBuffer_$2$1(void)
+{
+	Elf *e;
+	Elf_Scn *scn, *strscn;
+	int error, fd, result;
+	Elf$1_Ehdr *ehdr;
+	Elf$1_Shdr *shdr, *strshdr;
+	Elf_Data *data1, *data2, *data3, *data4;
+	char *reffile = "mixedscn.$2$1", *tfn;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: sections with mixed data work "
+	    "as expected");
+
+	result = TET_UNRESOLVED;
+	e = NULL;
+	tfn = NULL;
+	fd = -1;
+
+	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_WRITE, fd, goto done;);
+
+	if ((ehdr = elf$1_newehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_newehdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	ehdr->e_ident[EI_DATA] = `ELFDATA2'TOUPPER($2);
+	ehdr->e_machine = MAKE_EM($1,$2);
+	ehdr->e_type = ET_REL;
+
+	if ((scn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("elf_newscn() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((data1 = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata(data1) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	data1->d_align = 4;
+	data1->d_off = 0;
+	data1->d_buf = hash_words;
+	data1->d_type = ELF_T_WORD;
+	data1->d_size = sizeof(hash_words);
+	data1->d_version = EV_CURRENT;
+
+	if ((data2 = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata(data2) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	data2->d_align = 1;
+	data2->d_off = 0;
+	data2->d_buf = data_string;
+	data2->d_type = ELF_T_BYTE;
+	data2->d_size = sizeof(data_string);
+	data2->d_version = EV_CURRENT;
+
+
+	if ((data3 = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata(data3) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	data3->d_align = 4;
+	data3->d_off = 0;
+	data3->d_buf = checksum;
+	data3->d_type = ELF_T_WORD;
+	data3->d_size = sizeof(checksum);
+	data3->d_version = EV_CURRENT;
+
+	if ((shdr = elf$1_getshdr(scn)) == NULL) {
+		TP_UNRESOLVED("elf$1_getshdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	shdr->sh_name = 1; /* offset of ".foo" */
+	shdr->sh_type = SHT_PROGBITS;
+	shdr->sh_flags = SHF_ALLOC;
+	shdr->sh_entsize = 0;
+	shdr->sh_addralign = 4;
+
+	/*
+	 * Create the .shstrtab section.
+	 */
+	if ((strscn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("elf_newscn() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((data4 = elf_newdata(strscn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	data4->d_align = 1;
+	data4->d_off = 0;
+	data4->d_buf = string_table;
+	data4->d_type = ELF_T_BYTE;
+	data4->d_size = sizeof(string_table);
+	data4->d_version = EV_CURRENT;
+
+	if ((strshdr = elf$1_getshdr(strscn)) == NULL) {
+		TP_UNRESOLVED("elf$1_getshdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	strshdr->sh_name = 6; /* \0 + strlen(".foo") + \0 */
+	strshdr->sh_type = SHT_STRTAB;
+	strshdr->sh_flags = SHF_STRINGS | SHF_ALLOC;
+	strshdr->sh_entsize = 0;
+
+	ehdr->e_shstrndx = elf_ndxscn(strscn);
+
+	if (elf_update(e, ELF_C_WRITE) < 0) {
+		TP_FAIL("elf_update() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Compare files here. */
+	TP_UNRESOLVED("Verification is yet to be implemented.");
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	(void) unlink(TS_NEWFILE);
+
+	tet_result(result);
+}')
+
+FN(32,`lsb')
+FN(32,`msb')
+FN(64,`lsb')
+FN(64,`msb')
