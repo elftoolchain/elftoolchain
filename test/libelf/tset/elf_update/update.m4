@@ -700,80 +700,10 @@ FN(64,`lsb')
 FN(64,`msb')
 
 /*
- * A section with data type != section type should be rejected.
+ * An Elf_Data descriptor that is malformed in various ways
+ * should be rejected.
  */
-undefine(`FN')
-define(`FN',`
-void
-tcSectionDataType$2$1(void)
-{
-	int error, fd, result;
-	off_t offset;
-	Elf *e;
-	Elf_Data *d;
-	Elf_Scn *scn;
-	Elf$1_Shdr *sh;
 
-	TP_CHECK_INITIALIZATION();
-
-	TP_ANNOUNCE("TOUPPER($2)$1: data descriptors with incompatible types "
-	    "are rejected.");
-
-	result = TET_UNRESOLVED;
-	e = NULL;
-	fd = -1;
-
-	_TS_OPEN_FILE(e, "newehdr.$2$1", ELF_C_READ, fd, goto done;);
-
-	if ((scn = elf_newscn(e)) == NULL) {
-		TP_UNRESOLVED("elf$1_newscn() failed: \"%s\".",
-		    elf_errmsg(-1));
-		goto done;
-	}
-
-	if ((sh = elf$1_getshdr(scn)) == NULL) {
-		TP_UNRESOLVED("elf$1_getshdr() failed: \"%s\".",
-		    elf_errmsg(-1));
-		goto done;
-	}
-
-	sh->sh_type = SHT_STRTAB;
-	(void) elf_flagshdr(scn, ELF_C_SET, ELF_F_DIRTY);
-
-	if ((d = elf_newdata(scn)) == NULL) {
-		TP_UNRESOLVED("elf_newdata() failed: \"%s\".",
-		    elf_errmsg(-1));
-		goto done;
-	}
-
-	d->d_buf  = (char *) strtab;
-	d->d_size = sizeof(strtab);
-	d->d_off  = (off_t) 0;
-	d->d_type = ELF_T_ADDR; /* Other than ELF_T_BYTE */
-
-	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1 ||
-	    (error = elf_errno()) != ELF_E_DATA) {
-		TP_FAIL("elf_update()->%jd, error=%d \"%s\".",
-		    (intmax_t) offset, error, elf_errmsg(error));
-	}
-
- done:
-	if (e)
-		(void) elf_end(e);
-	if (fd)
-		(void) close(fd);
-	tet_result(result);
-}')
-
-FN(32,`lsb')
-FN(32,`msb')
-FN(64,`lsb')
-FN(64,`msb')
-
-/*
- * An Elf_Data descriptor with incompatible alignment should be rejected.
- */
 undefine(`FN')
 define(`FN',`
 void
