@@ -1168,3 +1168,98 @@ FN(32,lsb)
 FN(32,msb)
 FN(64,lsb)
 FN(64,msb)
+
+/*
+ * Test that a call to elf_update() without a change to underlying
+ * data for the object is a no-op.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcRdWrModeNoDataChange_$1$2(void)
+{
+	int error, fd, result;
+	Elf *e;
+	Elf_Scn *scn;
+	const char *srcfile = "rdwr.$2$1";
+	off_t fsz1, fsz2;
+	char *tfn;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: elf_update() with no data changes "
+	    "is a no-op");
+
+	result = TET_UNRESOLVED;
+	e = NULL;
+	fd = -1;
+	tfn = NULL;
+
+	/* Make a copy of the reference object. */
+	if ((tfn = elfts_copy_file(srcfile, &error)) < 0) {
+		TP_UNRESOLVED("elfts_copyfile(%s) failed: \"%s\".",
+		    srcfile, strerror(error));
+		goto done;
+	}
+
+	/* Open the copied object in RDWR mode. */
+	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
+
+	if ((scn = elf_getscn(e, 1)) == NULL) {
+		TP_UNRESOLVED("elf_getscn() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (elf_flagscn(scn, ELF_C_SET, ELF_F_DIRTY) != ELF_F_DIRTY) {
+		TP_UNRESOLVED("elf_flagscn() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
+		TP_FAIL("elf_update(NULL) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((fsz2 = elf_update(e, ELF_C_WRITE)) < 0) {
+		TP_FAIL("elf_update(WRITE) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != fsz2) {
+		TP_FAIL("fsz1 (%d) != fsz2 (%d)", fsz1, fsz2);
+		goto done;
+	}
+
+	/* Close the temporary file. */
+	if ((error = elf_end(e)) != 0) {
+		TP_UNRESOLVED("elf_end() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	e = NULL;
+	(void) close(fd);
+
+	/* compare against the original */
+	result = elfts_compare_files(srcfile, tfn);
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	if (tfn != NULL)
+		(void) unlink(tfn);
+
+	tet_result(result);
+}')
+
+FN(32,lsb)
+FN(32,msb)
+FN(64,lsb)
+FN(64,msb)
