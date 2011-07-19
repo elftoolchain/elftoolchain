@@ -8,7 +8,7 @@ YAML_FILES=	check_elf \
 		fsize \
 		newehdr newscn \
 		phdr \
-		rdwr \
+		rdwr rdwr1 \
 		shdr \
 		u1 \
 		xlate xscn-1 xscn-2 xscn-3 \
