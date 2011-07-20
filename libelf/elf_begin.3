@@ -1,4 +1,4 @@
-.\" Copyright (c) 2006,2008,2011 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2006,2008-2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$ 
 .\"
-.Dd July 6, 2010
+.Dd July 20, 2011
 .Os
 .Dt ELF_BEGIN 3
 .Sh NAME
@@ -133,8 +133,10 @@ then the value of the argument
 .Ar fd
 is ignored.
 .It Dv ELF_C_RDWR
-The command is used to prepare an ELF file for reading and writing.
-It is not supported for archives.
+This command is used to prepare an ELF file for reading and writing.
+This command is not valid for
+.Xr ar 1
+archives.
 .Pp
 Argument
 .Ar fd
@@ -155,14 +157,11 @@ and
 in this case the library will increment the activation count for descriptor
 .Ar elf
 and return the same descriptor.
-Changes to the in-memory image of the ELF file are written back to
+.Pp
+Changes to the in-memory image of the ELF file may be written back to
 disk using the
 .Xr elf_update 3
 function.
-.Pp
-This command is not valid for
-.Xr ar 1
-archives.
 .It Dv ELF_C_WRITE
 This command is used when the application wishes to create a new ELF
 file.
