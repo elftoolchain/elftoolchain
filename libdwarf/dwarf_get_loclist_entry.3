@@ -64,13 +64,15 @@ section, to the start of the desired location list entry.
 .Pp
 Argument
 .Ar hipc
-should point to a location which will hold the highest program counter
-address covered by the location list entry found.
+should point to a location which will hold the offset, relative to the
+base address of the location list entry, of the highest program
+counter value for the entry.
 .Pp
 Argument
 .Ar lowpc
-should point to a location which will hold the lowest program counter
-address covered by the location list entry found.
+should point to a location which will hold the offset, relative to the
+base address of the location list entry, of the lowest program counter
+value for the entry.
 .Pp
 Argument
 .Ar data
