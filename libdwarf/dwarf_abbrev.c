@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,8 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
     Dwarf_Abbrev *return_abbrev, Dwarf_Unsigned *length,
     Dwarf_Unsigned *attr_count, Dwarf_Error *error)
 {
-	Dwarf_CU cu;
 	Dwarf_Abbrev ab;
+	int ret;
 
 	if (dbg == NULL || return_abbrev == NULL || length == NULL ||
 	    attr_count == NULL) {
@@ -40,23 +40,13 @@ dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
 		return (DW_DLV_ERROR);
 	}
 
-	if (!dbg->dbg_info_loaded) {
-		if (_dwarf_info_load(dbg, 1, error) != DW_DLE_NONE)
+	ret = _dwarf_abbrev_parse(dbg, NULL, &offset, &ab, error);
+	if (ret != DW_DLE_NONE) {
+		if (ret == DW_DLE_NO_ENTRY) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		} else
 			return (DW_DLV_ERROR);
-	}
-
-	ab = NULL;
-	STAILQ_FOREACH(cu, &dbg->dbg_cu, cu_next) {
-		STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
-			if (ab->ab_offset == offset)
-				goto found_ab;
-		}
-	}
-
-found_ab:
-	if (ab == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
 	}
 
 	*return_abbrev = ab;

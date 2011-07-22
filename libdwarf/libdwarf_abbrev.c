@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,10 @@ _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
 	/* Initialise the list of attribute definitions. */
 	STAILQ_INIT(&ab->ab_attrdef);
 
-	/* Add the abbrev to the list in the compilation unit. */
-	STAILQ_INSERT_TAIL(&cu->cu_abbrev, ab, ab_next);
+	/* Add the abbrev to the hash table of the compilation unit. */
+	if (cu != NULL)
+		HASH_ADD(ab_hh, cu->cu_abbrev_hash, ab_entry,
+		    sizeof(ab->ab_entry), ab);
 
 	if (abp != NULL)
 		*abp = ab;
@@ -95,74 +97,106 @@ _dwarf_attrdef_add(Dwarf_Debug dbg, Dwarf_Abbrev ab, uint64_t attr,
 }
 
 int
-_dwarf_abbrev_init(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Error *error)
+_dwarf_abbrev_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Unsigned *offset,
+    Dwarf_Abbrev *abp, Dwarf_Error *error)
 {
-	Dwarf_Abbrev ab;
 	Dwarf_Section *ds;
-	int ret;
 	uint64_t attr;
 	uint64_t entry;
 	uint64_t form;
-	uint64_t offset;
 	uint64_t aboff;
 	uint64_t adoff;
 	uint64_t tag;
 	u_int8_t children;
+	int ret;
 
-	ret = DW_DLE_NONE;
+	assert(abp != NULL);
 
 	ds = _dwarf_find_section(dbg, ".debug_abbrev");
 	assert(ds != NULL);
 
-	offset = cu->cu_abbrev_offset;
-	while (offset < ds->ds_size) {
-		aboff = offset;
+	if (*offset >= ds->ds_size)
+		return (DW_DLE_NO_ENTRY);
 
-		entry = _dwarf_read_uleb128(ds->ds_data, &offset);
-		if (entry == 0) {
-			/* Last entry. */
-			ret = _dwarf_abbrev_add(cu, entry, 0, 0, aboff, &ab,
-			    error);
-			ab->ab_length = 1;
-			break;
-		}
+	aboff = *offset;
 
-		tag = _dwarf_read_uleb128(ds->ds_data, &offset);
-
-		children = dbg->read(ds->ds_data, &offset, 1);
-
-		if ((ret = _dwarf_abbrev_add(cu, entry, tag, children, aboff,
-		    &ab, error)) != DW_DLE_NONE)
-			break;
-
-		do {
-			adoff = offset;
-			attr = _dwarf_read_uleb128(ds->ds_data, &offset);
-			form = _dwarf_read_uleb128(ds->ds_data, &offset);
-			if (attr != 0)
-				if ((ret = _dwarf_attrdef_add(dbg, ab, attr,
-				    form, adoff, NULL, error)) != DW_DLE_NONE)
-					return (ret);
-		} while (attr != 0);
-
-		ab->ab_length = offset - aboff;
+	entry = _dwarf_read_uleb128(ds->ds_data, offset);
+	if (entry == 0) {
+		/* Last entry. */
+		ret = _dwarf_abbrev_add(cu, entry, 0, 0, aboff, abp,
+		    error);
+		if (ret == DW_DLE_NONE) {
+			(*abp)->ab_length = 1;
+			return (ret);
+		} else
+			return (ret);
 	}
+	tag = _dwarf_read_uleb128(ds->ds_data, offset);
+	children = dbg->read(ds->ds_data, offset, 1);
+	if ((ret = _dwarf_abbrev_add(cu, entry, tag, children, aboff,
+	    abp, error)) != DW_DLE_NONE)
+		return (ret);
+
+	/* Parse attribute definitions. */
+	do {
+		adoff = *offset;
+		attr = _dwarf_read_uleb128(ds->ds_data, offset);
+		form = _dwarf_read_uleb128(ds->ds_data, offset);
+		if (attr != 0)
+			if ((ret = _dwarf_attrdef_add(dbg, *abp, attr,
+			    form, adoff, NULL, error)) != DW_DLE_NONE)
+				return (ret);
+	} while (attr != 0);
+
+	(*abp)->ab_length = *offset - aboff;
 
 	return (ret);
 }
 
-Dwarf_Abbrev
-_dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry)
+int
+_dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry, Dwarf_Abbrev *abp,
+    Dwarf_Error *error)
 {
 	Dwarf_Abbrev ab;
+	Dwarf_Section *ds;
+	Dwarf_Unsigned offset;
+	int ret;
 
-	ab = NULL;
-	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
-		if (ab->ab_entry == entry)
-			break;
+	if (entry == 0)
+		return (DW_DLE_NO_ENTRY);
+
+	/* Check if the desired abbrev entry is already in the hash table. */
+	HASH_FIND(ab_hh, cu->cu_abbrev_hash, &entry, sizeof(entry), ab);
+	if (ab != NULL) {
+		*abp = ab;
+		return (DW_DLE_NONE);
 	}
 
-	return (ab);
+	if (cu->cu_abbrev_loaded) {
+		return (DW_DLE_NO_ENTRY);
+	}
+
+	/* Load and search the abbrev table. */
+	ds = _dwarf_find_section(cu->cu_dbg, ".debug_abbrev");
+	assert(ds != NULL);
+	offset = cu->cu_abbrev_offset_cur;
+	while (offset < ds->ds_size) {
+		ret = _dwarf_abbrev_parse(cu->cu_dbg, cu, &offset, &ab, error);
+		if (ret != DW_DLE_NONE)
+			return (ret);
+		if (ab->ab_entry == entry) {
+			cu->cu_abbrev_offset_cur = offset;
+			*abp = ab;
+			return (DW_DLE_NONE);
+		}
+		if (ab->ab_entry == 0) {
+			cu->cu_abbrev_offset_cur = offset;
+			cu->cu_abbrev_loaded = 1;
+			break;
+		}
+	}
+
+	return (DW_DLE_NO_ENTRY);
 }
 
 void
@@ -173,8 +207,8 @@ _dwarf_abbrev_cleanup(Dwarf_CU cu)
 
 	assert(cu != NULL);
 
-	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
-		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev, ab_next);
+	HASH_ITER(ab_hh, cu->cu_abbrev_hash, ab, tab) {
+		HASH_DELETE(ab_hh, cu->cu_abbrev_hash, ab);
 		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
 			STAILQ_REMOVE(&ab->ab_attrdef, ad, _Dwarf_AttrDef,
 			    ad_next);

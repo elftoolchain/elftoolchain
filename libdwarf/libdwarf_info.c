@@ -130,13 +130,14 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 		dbg->dbg_info_off = next_offset;
 
 		/* Initialise the compilation unit. */
-		cu->cu_length 		= length;
-		cu->cu_length_size	= (dwarf_size == 4 ? 4 : 12);
-		cu->cu_version		= dbg->read(ds->ds_data, &offset, 2);
-		cu->cu_abbrev_offset	= dbg->read(ds->ds_data, &offset,
+		cu->cu_length		 = length;
+		cu->cu_length_size	 = (dwarf_size == 4 ? 4 : 12);
+		cu->cu_version		 = dbg->read(ds->ds_data, &offset, 2);
+		cu->cu_abbrev_offset	 = dbg->read(ds->ds_data, &offset,
 		    dwarf_size);
-		cu->cu_pointer_size	= dbg->read(ds->ds_data, &offset, 1);
-		cu->cu_next_offset	= next_offset;
+		cu->cu_abbrev_offset_cur = cu->cu_abbrev_offset;
+		cu->cu_pointer_size	 = dbg->read(ds->ds_data, &offset, 1);
+		cu->cu_next_offset	 = next_offset;
 
 		STAILQ_INIT(&cu->cu_abbrev);
 		STAILQ_INIT(&cu->cu_die);
@@ -156,12 +157,6 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 		}
 
 		cu->cu_1st_offset = offset;
-
-		/*
-		 * Parse the .debug_abbrev info for this CU.
-		 */
-		if ((ret = _dwarf_abbrev_init(dbg, cu, error)) != DW_DLE_NONE)
-			break;
 
 		offset = next_offset;
 
