@@ -38,6 +38,7 @@
 #include <gelf.h>
 #include "dwarf.h"
 #include "libdwarf.h"
+#include "uthash.h"
 
 #include "_elftc.h"
 
@@ -122,8 +123,9 @@ struct _Dwarf_Abbrev {
 	uint64_t	ab_offset;	/* Offset in abbrev section. */
 	uint64_t	ab_length;	/* Length of this abbrev entry. */
 	uint64_t	ab_atnum;	/* Number of attribute defines. */
+	UT_hash_handle	ab_hh;		/* Uthash handle. */
 	STAILQ_HEAD(, _Dwarf_AttrDef) ab_attrdef; /* List of attribute defs. */
-	STAILQ_ENTRY(_Dwarf_Abbrev) ab_next; /* Next abbrev. */
+	STAILQ_ENTRY(_Dwarf_Abbrev) ab_next; /* Next abbrev in the list. */
 };
 
 struct _Dwarf_Die {
@@ -326,6 +328,8 @@ struct _Dwarf_CU {
 	uint16_t	cu_length_size; /* Size in bytes of the length field. */
 	uint16_t	cu_version;	/* DWARF version. */
 	uint64_t	cu_abbrev_offset; /* Offset into .debug_abbrev. */
+	uint64_t	cu_abbrev_offset_cur; /* Current abbrev offset. */
+	int		cu_abbrev_loaded; /* Abbrev table parsed. */
 	uint64_t	cu_abbrev_cnt;	/* Abbrev entry count. */
 	uint64_t	cu_lineno_offset; /* Offset into .debug_lineno. */
 	uint8_t		cu_pointer_size;/* Number of bytes in pointer. */
@@ -334,7 +338,8 @@ struct _Dwarf_CU {
 	uint64_t	cu_1st_offset;	/* First DIE offset. */
 	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
-	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev;	/* List of abbrevs. */
+	Dwarf_Abbrev	cu_abbrev_hash; /* Abbrev hash table. */
+	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev; /* List of abbrevs. */
 	STAILQ_HEAD(, _Dwarf_Die) cu_die; /* List of dies. */
 	STAILQ_HEAD(, _Dwarf_Die) cu_die_hash[DWARF_DIE_HASH_SIZE];
 					/* Hash of dies. */
@@ -480,9 +485,11 @@ struct _Dwarf_Debug {
 int		_dwarf_abbrev_add(Dwarf_CU, uint64_t, uint64_t, uint8_t,
 		    uint64_t, Dwarf_Abbrev *, Dwarf_Error *);
 void		_dwarf_abbrev_cleanup(Dwarf_CU);
-int		_dwarf_abbrev_init(Dwarf_Debug, Dwarf_CU, Dwarf_Error *);
-Dwarf_Abbrev	_dwarf_abbrev_find(Dwarf_CU, uint64_t);
+int		_dwarf_abbrev_find(Dwarf_CU, uint64_t, Dwarf_Abbrev *,
+		    Dwarf_Error *);
 int		_dwarf_abbrev_gen(Dwarf_P_Debug, Dwarf_Error *);
+int		_dwarf_abbrev_parse(Dwarf_Debug, Dwarf_CU, Dwarf_Unsigned *,
+		    Dwarf_Abbrev *, Dwarf_Error *);
 int		_dwarf_add_AT_dataref(Dwarf_P_Debug, Dwarf_P_Die, Dwarf_Half,
 		    Dwarf_Unsigned, Dwarf_Unsigned, const char *,
 		    Dwarf_P_Attribute *, Dwarf_Error *);
