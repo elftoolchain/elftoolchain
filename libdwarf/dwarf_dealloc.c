@@ -29,6 +29,9 @@
 void
 dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {
+	Dwarf_Abbrev ab;
+	Dwarf_AttrDef ad, tad;
+
 	/*
 	 * This libdwarf implementation does not use the SGI/libdwarf
 	 * style of memory allocation. In most cases it does not copy
@@ -42,6 +45,15 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 	if (alloc_type == DW_DLA_LIST || alloc_type == DW_DLA_FRAME_BLOCK ||
 	    alloc_type == DW_DLA_LOC_BLOCK || alloc_type == DW_DLA_LOCDESC)
 		free(p);
+	else if (alloc_type == DW_DLA_ABBREV) {
+		ab = p;
+		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
+			STAILQ_REMOVE(&ab->ab_attrdef, ad, _Dwarf_AttrDef,
+			    ad_next);
+			free(ad);
+		}
+		free(ab);
+	}
 }
 
 void
