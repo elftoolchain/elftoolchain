@@ -134,6 +134,11 @@ Valid values for the
 .Ar type
 argument are:
 .Bl -tag -width ".Dv DW_DLA_FRAME_BLOCK"
+.It Dv DW_DLA_ABBREV
+Object of type
+.Vt Dwarf_Abbrev
+returned by calls to
+.Xr dwarf_get_abbrev 3 .
 .It Dv DW_DLA_FRAME_BLOCK
 An array of objects of type
 .Vt Dwarf_Frame_op ,
@@ -183,4 +188,5 @@ and
 have no return value.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
-.Xr dwarf_expand_frame_instructions 3
+.Xr dwarf_expand_frame_instructions 3 ,
+.Xr dwarf_get_abbrev 3
