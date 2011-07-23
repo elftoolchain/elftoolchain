@@ -4714,24 +4714,26 @@ dump_dwarf_abbrev(struct readelf *re)
 		i = 0;
 		while ((ret = dwarf_get_abbrev(re->dbg, aboff, &ab, &length,
 		    &attr_count, &de)) == DW_DLV_OK) {
-			if (length == 1)
+			if (length == 1) {
+				dwarf_dealloc(re->dbg, ab, DW_DLA_ABBREV);
 				break;
+			}
 			aboff += length;
 			printf("%4d", ++i);
 			if (dwarf_get_abbrev_tag(ab, &tag, &de) != DW_DLV_OK) {
 				warnx("dwarf_get_abbrev_tag failed: %s",
 				    dwarf_errmsg(de));
-				continue;
+				goto next_abbrev;
 			}
 			if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
 				warnx("dwarf_get_TAG_name failed");
-				continue;
+				goto next_abbrev;
 			}
 			if (dwarf_get_abbrev_children_flag(ab, &flag, &de) !=
 			    DW_DLV_OK) {
 				warnx("dwarf_get_abbrev_children_flag failed:"
 				    " %s", dwarf_errmsg(de));
-				continue;
+				goto next_abbrev;
 			}
 			printf("      %s    %s\n", tag_str,
 			    flag ? "[has children]" : "[no children]");
@@ -4754,6 +4756,8 @@ dump_dwarf_abbrev(struct readelf *re)
 				}
 				printf("    %-18s %s\n", attr_str, form_str);
 			}
+		next_abbrev:
+			dwarf_dealloc(re->dbg, ab, DW_DLA_ABBREV);
 		}
 		if (ret != DW_DLV_OK)
 			warnx("dwarf_get_abbrev: %s", dwarf_errmsg(de));
