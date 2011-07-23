@@ -4428,13 +4428,12 @@ dump_dwarf_line_decoded(struct readelf *re)
 }
 
 static void
-dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
+dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 {
 	Dwarf_Attribute *attr_list;
-	Dwarf_Abbrev ab;
 	Dwarf_Die ret_die;
 	Dwarf_Off dieoff, cuoff, culen;
-	Dwarf_Unsigned ate, length, attr_count, offset, code, v_udata;
+	Dwarf_Unsigned ate, attr_count, v_udata;
 	Dwarf_Signed v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
@@ -4460,33 +4459,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int aboff, int level)
 		cuoff = 0;
 	}
 
-	/*
-	 * Find the abbrev entry for this DIE.
-	 */
 	abc = dwarf_die_abbrev_code(die);
-	offset = aboff;
-	while ((ret = dwarf_get_abbrev(re->dbg, offset, &ab, &length,
-	    &attr_count, &de)) == DW_DLV_OK) {
-		if (length == 1)
-			break;
-		offset += length;
-		if (dwarf_get_abbrev_code(ab, &code, &de) != DW_DLV_OK) {
-			warnx("dwarf_get_abbrev_code failed: %s",
-			    dwarf_errmsg(de));
-			continue;
-		}
-		if ((int) code == abc)
-			break;
-	}
-	if (ret != DW_DLV_OK)
-		warnx("dwarf_get_abbrev: %s", dwarf_errmsg(de));
-	if (length == 1) {
-		printf("no abbrev entry for this DIE\n");
-		goto cont_search;
-	}
-	if (dwarf_get_abbrev_tag(ab, &tag, &de) != DW_DLV_OK) {
-		warnx("dwarf_get_abbrev_tag failed: %s",
-		    dwarf_errmsg(de));
+	if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+		warnx("dwarf_tag failed: %s", dwarf_errmsg(de));
 		goto cont_search;
 	}
 	if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
@@ -4639,14 +4614,14 @@ cont_search:
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_child: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
-		dump_dwarf_die(re, ret_die, aboff, level + 1);
+		dump_dwarf_die(re, ret_die, level + 1);
 
 	/* Search sibling. */
 	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
-		dump_dwarf_die(re, ret_die, aboff, level);
+		dump_dwarf_die(re, ret_die, level);
 }
 
 static void
@@ -4713,7 +4688,7 @@ dump_dwarf_info(struct readelf *re)
 		printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
 		printf("    Pointer Size:\t%u\n", pointer_size);
 
-		dump_dwarf_die(re, die, aboff, 0);
+		dump_dwarf_die(re, die, 0);
 	}
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
