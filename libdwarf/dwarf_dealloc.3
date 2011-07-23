@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd May 21, 2011
+.Dd July 23, 2011
 .Os
 .Dt DWARF_DEALLOC 3
 .Sh NAME
@@ -135,14 +135,14 @@ Valid values for the
 argument are:
 .Bl -tag -width ".Dv DW_DLA_FRAME_BLOCK"
 .It Dv DW_DLA_ABBREV
-Object of type
-.Vt Dwarf_Abbrev
-returned by calls to
+An object of type
+.Vt Dwarf_Abbrev ,
+as returned by a call to the function
 .Xr dwarf_get_abbrev 3 .
 .It Dv DW_DLA_FRAME_BLOCK
 An array of objects of type
 .Vt Dwarf_Frame_op ,
-returned by calls to
+as returned by a call to the function
 .Xr dwarf_expand_frame_instructions 3 .
 .El
 .Pp
