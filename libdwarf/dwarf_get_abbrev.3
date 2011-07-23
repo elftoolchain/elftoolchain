@@ -97,14 +97,15 @@ The memory area used for the
 .Vt Dwarf_Abbrev
 descriptor returned in argument
 .Ar ret_abbrev
-is owned by the
+is allocated by the
 .Lb libdwarf .
-The application should not attempt to free this pointer.
-Portable code should instead use
+Application code should use function
 .Fn dwarf_dealloc
 with the allocation type
 .Dv DW_DLA_ABBREV
-to indicate that the memory may be freed.
+to free the memory area when the
+.Vt Dwarf_Abbrev
+descriptor is no longer needed.
 .Ss Application Programming Notes
 The last abbreviation entry in a standard DWARF abbreviation section
 will have a special length value of 1.
