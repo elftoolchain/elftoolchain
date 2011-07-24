@@ -101,6 +101,20 @@ section of the object associated with argument
 .Ar dbg .
 The returned descriptor is written to the location pointed to by argument
 .Ar ret_die .
+.Ss Memory Management
+The memory area used for the
+.Vt Dwarf_Die
+descriptor returned in argument
+.Ar ret_die
+is allocated by the
+.Lb libdwarf .
+Application code should use function
+.Fn dwarf_dealloc
+with the allocation type
+.Dv DW_DLA_DIE
+to free the memory area when the
+.Vt Dwarf_Die
+descriptor is no longer needed.
 .Sh RETURN VALUES
 These functions return the following values:
 .Bl -tag -width ".Bq Er DW_DLV_NO_ENTRY"
