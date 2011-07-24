@@ -156,6 +156,7 @@ dwarf_attrval_unsigned(Dwarf_Die die, Dwarf_Half attr, Dwarf_Unsigned *valp, Dwa
 		return (DW_DLV_NO_ENTRY);
 	}
 
+	die1 = NULL;
 	if (at == NULL &&
 	    (at = _dwarf_attr_find(die, DW_AT_abstract_origin)) != NULL) {
 		switch (at->at_form) {
@@ -167,6 +168,8 @@ dwarf_attrval_unsigned(Dwarf_Die die, Dwarf_Half attr, Dwarf_Unsigned *valp, Dwa
 			val = at->u[0].u64;
 			if ((die1 = _dwarf_die_find(die, val)) == NULL ||
 			    (at = _dwarf_attr_find(die1, attr)) == NULL) {
+				if (die1 != NULL)
+					dwarf_dealloc(dbg, die, DW_DLA_DIE);
 				DWARF_SET_ERROR(dbg, err, DW_DLE_NO_ENTRY);
 				return (DW_DLV_NO_ENTRY);
 			}
@@ -192,9 +195,14 @@ dwarf_attrval_unsigned(Dwarf_Die die, Dwarf_Half attr, Dwarf_Unsigned *valp, Dwa
 		*valp = at->u[0].u64;
 		break;
 	default:
+		if (die1 != NULL)
+			dwarf_dealloc(dbg, die, DW_DLA_DIE);
 		DWARF_SET_ERROR(dbg, err, DW_DLE_ATTR_FORM_BAD);
 		return (DW_DLV_ERROR);
 	}
+
+	if (die1 != NULL)
+		dwarf_dealloc(dbg, die, DW_DLA_DIE);
 
 	return (DW_DLV_OK);
 }

@@ -143,8 +143,6 @@ struct _Dwarf_Die {
 	char		*die_name;	/* Ptr to the name string. */
 	Dwarf_Attribute	*die_attrarray;	/* Array of attributes. */
 	STAILQ_HEAD(, _Dwarf_Attribute)	die_attr; /* List of attributes. */
-	STAILQ_ENTRY(_Dwarf_Die) die_next; /* Next die in list. */
-	STAILQ_ENTRY(_Dwarf_Die) die_hash; /* Next die in hash table. */
 	STAILQ_ENTRY(_Dwarf_Die) die_pro_next; /* Next die in pro-die list. */
 };
 
@@ -340,9 +338,6 @@ struct _Dwarf_CU {
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	Dwarf_Abbrev	cu_abbrev_hash; /* Abbrev hash table. */
 	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev; /* List of abbrevs. */
-	STAILQ_HEAD(, _Dwarf_Die) cu_die; /* List of dies. */
-	STAILQ_HEAD(, _Dwarf_Die) cu_die_hash[DWARF_DIE_HASH_SIZE];
-					/* Hash of dies. */
 	STAILQ_ENTRY(_Dwarf_CU) cu_next; /* Next compilation unit. */
 };
 
@@ -515,7 +510,6 @@ int64_t		_dwarf_decode_sleb128(uint8_t **);
 uint64_t	_dwarf_decode_uleb128(uint8_t **);
 void		_dwarf_deinit(Dwarf_Debug);
 int		_dwarf_die_alloc(Dwarf_Debug, Dwarf_Die *, Dwarf_Error *);
-void		_dwarf_die_cleanup(Dwarf_Debug, Dwarf_CU);
 int		_dwarf_die_count_links(Dwarf_P_Die, Dwarf_P_Die,
 		    Dwarf_P_Die, Dwarf_P_Die);
 Dwarf_Die	_dwarf_die_find(Dwarf_Die, Dwarf_Unsigned);
