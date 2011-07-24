@@ -31,6 +31,8 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {
 	Dwarf_Abbrev ab;
 	Dwarf_AttrDef ad, tad;
+	Dwarf_Attribute at, tat;
+	Dwarf_Die die;
 
 	/*
 	 * This libdwarf implementation does not use the SGI/libdwarf
@@ -53,6 +55,18 @@ dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 			free(ad);
 		}
 		free(ab);
+	} else if (alloc_type == DW_DLA_DIE) {
+		die = p;
+		STAILQ_FOREACH_SAFE(at, &die->die_attr, at_next, tat) {
+			STAILQ_REMOVE(&die->die_attr, at,
+			    _Dwarf_Attribute, at_next);
+			if (at->at_ld != NULL)
+				free(at->at_ld);
+			free(at);
+		}
+		if (die->die_attrarray)
+			free(die->die_attrarray);
+		free(die);
 	}
 }
 

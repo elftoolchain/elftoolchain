@@ -41,11 +41,6 @@ dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 		return (DW_DLV_ERROR);
 	}
 
-	if (die->die_child != NULL) {
-		*ret_die = die->die_child;
-		return (DW_DLV_OK);
-	}
-
 	if (die->die_ab->ab_children == DW_CHILDREN_no)
 		return (DW_DLE_NO_ENTRY);
 
@@ -88,12 +83,6 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 		return (dwarf_offdie(dbg, cu->cu_1st_offset, ret_die,
 		    error));
 
-	/* Check if we already parsed its sibling. */
-	if (die->die_right != NULL) {
-		*ret_die = die->die_right;
-		return (DW_DLV_OK);
-	}
-
 	/*
 	 * If the DIE doesn't have any children, its sibling sits next
 	 * right to it.
@@ -127,8 +116,6 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 	} else if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	die->die_right = *ret_die;
-
 	return (DW_DLV_OK);
 }
 
@@ -136,16 +123,8 @@ static int
 _dwarf_search_die_within_cu(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Off offset,
     Dwarf_Die *ret_die, Dwarf_Error *error)
 {
-	Dwarf_Die die;
 
 	assert(dbg != NULL && cu != NULL && ret_die != NULL);
-
-	STAILQ_FOREACH(die, &cu->cu_die, die_next) {
-		if (die->die_offset == (uint64_t) offset) {
-			*ret_die = die;
-			return (DW_DLE_NONE);
-		}
-	}
 
 	return (_dwarf_die_parse(dbg, dbg->dbg_info_sec, cu, cu->cu_dwarf_size,
 	    offset, cu->cu_next_offset, ret_die, 0, error));

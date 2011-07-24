@@ -85,7 +85,7 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
 	Dwarf_Section *ds;
-	int dwarf_size, i, ret;
+	int dwarf_size, ret;
 	uint64_t length;
 	uint64_t next_offset;
 	uint64_t offset;
@@ -140,11 +140,6 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 		cu->cu_next_offset	 = next_offset;
 
 		STAILQ_INIT(&cu->cu_abbrev);
-		STAILQ_INIT(&cu->cu_die);
-
-		/* Initialise the hash table of dies. */
-		for (i = 0; i < DWARF_DIE_HASH_SIZE; i++)
-			STAILQ_INIT(&cu->cu_die_hash[i]);
 
 		/* Add the compilation unit to the list. */
 		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
@@ -179,7 +174,6 @@ _dwarf_info_cleanup(Dwarf_Debug dbg)
 
 	STAILQ_FOREACH_SAFE(cu, &dbg->dbg_cu, cu_next, tcu) {
 		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
-		_dwarf_die_cleanup(dbg, cu);
 		_dwarf_abbrev_cleanup(cu);
 		if (cu->cu_lineinfo != NULL) {
 			_dwarf_lineno_cleanup(cu->cu_lineinfo);
@@ -196,7 +190,7 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	Dwarf_Rel_Section drs;
 	Dwarf_Unsigned offset;
 	Dwarf_CU cu;
-	int i, ret;
+	int ret;
 
 	assert(dbg != NULL && dbg->write_alloc != NULL);
 
@@ -212,9 +206,6 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	cu->cu_version = 2;	/* DWARF2 */
 	cu->cu_pointer_size = dbg->dbg_pointer_size;
 	STAILQ_INIT(&cu->cu_abbrev);
-	STAILQ_INIT(&cu->cu_die);
-	for (i = 0; i < DWARF_DIE_HASH_SIZE; i++)
-		STAILQ_INIT(&cu->cu_die_hash[i]);
 	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
 	/* Create .debug_info section. */
