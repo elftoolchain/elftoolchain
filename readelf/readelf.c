@@ -4622,6 +4622,8 @@ cont_search:
 		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
 		dump_dwarf_die(re, ret_die, level);
+
+	dwarf_dealloc(re->dbg, die, DW_DLA_DIE);
 }
 
 static void
