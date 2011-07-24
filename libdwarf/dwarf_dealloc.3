@@ -139,6 +139,14 @@ An object of type
 .Vt Dwarf_Abbrev ,
 as returned by a call to the function
 .Xr dwarf_get_abbrev 3 .
+.It Dv DW_DLA_DIE
+An object of type
+.Vt Dwarf_Die
+as returned by a call to the function
+.Xr dwarf_child 3 ,
+.Xr dwarf_offdie 3
+or
+.Xr dwarf_siblingof 3 .
 .It Dv DW_DLA_FRAME_BLOCK
 An array of objects of type
 .Vt Dwarf_Frame_op ,
@@ -188,5 +196,8 @@ and
 have no return value.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
+.Xr dwarf_child 3 ,
 .Xr dwarf_expand_frame_instructions 3 ,
-.Xr dwarf_get_abbrev 3
+.Xr dwarf_get_abbrev 3 ,
+.Xr dwarf_offdie 3 ,
+.Xr dwarf_siblingof 3
