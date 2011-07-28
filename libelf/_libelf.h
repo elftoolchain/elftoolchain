@@ -166,9 +166,10 @@ enum {
 
 
 /*
- * Prototypes
+ * Function Prototypes.
  */
 
+__BEGIN_DECLS
 Elf_Data *_libelf_allocate_data(Elf_Scn *_s);
 Elf	*_libelf_allocate_elf(void);
 Elf_Scn	*_libelf_allocate_scn(Elf *_e, size_t _ndx);
@@ -202,5 +203,6 @@ int	_libelf_setshstrndx(Elf *_e, void *_eh, int _elfclass,
 Elf_Data *_libelf_xlate(Elf_Data *_d, const Elf_Data *_s,
     unsigned int _encoding, int _elfclass, int _direction);
 int	_libelf_xlate_shtype(uint32_t _sht);
+__END_DECLS
 
 #endif	/* __LIBELF_H_ */
