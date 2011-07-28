@@ -268,7 +268,7 @@ _libelf_ar_open(Elf *e)
 			goto error;					\
 	} while (0)
 
- 	READ_AR_HEADER(s, arh, sz, end);
+	READ_AR_HEADER(s, arh, sz, end);
 
 	/*
 	 * Handle special archive members for the SVR4 format.
@@ -313,9 +313,10 @@ _libelf_ar_open(Elf *e)
 		if (scanahead) {
 			READ_AR_HEADER(s, arh, sz, end);
 
+			/* "// " => string table for long file names. */
 			if (arh.ar_name[0] == '/' && arh.ar_name[1] == '/' &&
 			    arh.ar_name[2] == ' ') {
-				/* "// " => string table for long file names. */
+
 				s += sizeof(arh);
 
 				e->e_u.e_ar.e_rawstrtab = s;

@@ -55,7 +55,8 @@ elf_next(Elf *e)
 	next = e->e_rawfile - parent->e_rawfile + e->e_rawsize;
 	next = (next + 1) & ~1;	/* round up to an even boundary */
 
-	parent->e_u.e_ar.e_next = (next >= (off_t) parent->e_rawsize) ? (off_t) 0 : next;
+	parent->e_u.e_ar.e_next = (next >= (off_t) parent->e_rawsize) ?
+	    (off_t) 0 : next;
 
 	return (ELF_C_READ);
 }

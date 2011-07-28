@@ -64,7 +64,8 @@ gelf_getehdr(Elf *e, GElf_Ehdr *d)
 		if ((eh32 = _libelf_ehdr(e, ELFCLASS32, 0)) == NULL)
 			return (NULL);
 
-		(void) memcpy(d->e_ident, eh32->e_ident, sizeof(eh32->e_ident));
+		(void) memcpy(d->e_ident, eh32->e_ident,
+		    sizeof(eh32->e_ident));
 		d->e_type		= eh32->e_type;
 		d->e_machine		= eh32->e_machine;
 		d->e_version		= eh32->e_version;
