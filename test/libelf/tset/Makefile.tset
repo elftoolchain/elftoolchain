@@ -33,5 +33,5 @@ ${f}:	${_YO}
 .endfor
 
 .if ${OS_HOST} == "NetBSD"
-MKMAN=	no
+NOMAN=	noman
 .endif
