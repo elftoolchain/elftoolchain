@@ -59,7 +59,8 @@ elf64_xlatetom(Elf_Data *dst, const Elf_Data *src, unsigned int encoding)
 }
 
 Elf_Data *
-gelf_xlatetom(Elf *e, Elf_Data *dst, const Elf_Data *src, unsigned int encoding)
+gelf_xlatetom(Elf *e, Elf_Data *dst, const Elf_Data *src,
+    unsigned int encoding)
 {
 	if (e != NULL)
 		return (_libelf_xlate(dst, src, encoding, e->e_class,
@@ -69,7 +70,8 @@ gelf_xlatetom(Elf *e, Elf_Data *dst, const Elf_Data *src, unsigned int encoding)
 }
 
 Elf_Data *
-gelf_xlatetof(Elf *e, Elf_Data *dst, const Elf_Data *src, unsigned int encoding)
+gelf_xlatetof(Elf *e, Elf_Data *dst, const Elf_Data *src,
+    unsigned int encoding)
 {
 	if (e != NULL)
 		return (_libelf_xlate(dst, src, encoding, e->e_class,

@@ -66,7 +66,8 @@ elf_end(Elf *e)
 			/*
 			 * Reclaim all section descriptors.
 			 */
-			STAILQ_FOREACH_SAFE(scn, &e->e_u.e_elf.e_scn, s_next, tscn)
+			STAILQ_FOREACH_SAFE(scn, &e->e_u.e_elf.e_scn, s_next,
+			    tscn)
  				scn = _libelf_release_scn(scn);
 			break;
 		case ELF_K_NUM:
