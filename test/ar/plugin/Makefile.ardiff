@@ -8,7 +8,7 @@ NO_MAN=
 
 WARNS?=	6
 
-DPADD=	${LIBARCHIVE}
-LDADD=	-larchive
+DPADD=	${LIBARCHIVE} ${LIBBZ2} ${LIBZ}
+LDADD=	-larchive -lbz2 -lz
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
