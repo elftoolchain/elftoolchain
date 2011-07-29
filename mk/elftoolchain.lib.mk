@@ -27,3 +27,7 @@ LDFLAGS+=	-L${TOP}/libelf
 .SUFFIXES:	.m4 .c
 .m4.c:
 	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
+
+.if defined(DEBUG)
+CFLAGS:=	${CFLAGS:N-O2} -g
+.endif

@@ -69,3 +69,7 @@ ${_L:R}.o:	${_Y:R}.h
 .endif
 
 .include <bsd.prog.mk>
+
+.if defined(DEBUG)
+CFLAGS:=	${CFLAGS:N-O2} -g
+.endif
