@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 13, 2011
+.Dd July 29, 2011
 .Os
 .Dt ELF_UPDATE 3
 .Sh NAME
@@ -244,13 +244,13 @@ with the program header table.
 .It Bq Er ELF_E_LAYOUT
 The flag
 .Dv ELF_F_LAYOUT
-was set on the Elf descriptor and the program header table location
-was placed at a misaligned file offset.
+was set on the Elf descriptor and the program header table was placed
+at a misaligned file offset.
 .It Bq Er ELF_E_LAYOUT
 The flag
 .Dv ELF_F_LAYOUT
 was set on the Elf descriptor and the section header table overlapped
-an extent in the object mapped by a section descriptor.
+an extent mapped by a section descriptor.
 .It Bq Er ELF_E_LAYOUT
 The
 .Dv ELF_F_LAYOUT
