@@ -239,6 +239,16 @@ too small for their data.
 .It Bq Er ELF_E_LAYOUT
 The flag
 .Dv ELF_F_LAYOUT
+was set on the Elf descriptor and the executable header overlapped
+with the program header table.
+.It Bq Er ELF_E_LAYOUT
+The flag
+.Dv ELF_F_LAYOUT
+was set on the Elf descriptor and the program header table location
+was placed at a misaligned file offset.
+.It Bq Er ELF_E_LAYOUT
+The flag
+.Dv ELF_F_LAYOUT
 was set on the Elf descriptor and the section header table overlapped
 an extent in the object mapped by a section descriptor.
 .It Bq Er ELF_E_LAYOUT
