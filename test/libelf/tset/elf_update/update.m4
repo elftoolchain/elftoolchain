@@ -1585,3 +1585,89 @@ FN(32,lsb)
 FN(32,msb)
 FN(64,lsb)
 FN(64,msb)
+
+/*
+ * Test cases rejecting malformed ELF files created with the
+ * ELF_F_LAYOUT flag set.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcEhdrPhdrCollision$1$2(void)
+{
+	int error, fd, result, flags;
+	off_t offset;
+	size_t fsz, psz, roundup, ssz;
+	Elf$1_Ehdr *eh;
+	Elf$1_Phdr *ph;
+	Elf_Data *d;
+	Elf_Scn *scn;
+	Elf *e;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: an overlap of the ehdr and phdr is "
+	    "detected.");
+
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = NULL;
+
+	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_WRITE, fd, goto done;);
+
+	flags = elf_flagelf(e, ELF_C_SET, ELF_F_LAYOUT);
+	if ((flags & ELF_F_LAYOUT) == 0) {
+		TP_UNRESOLVED("elf_flagelf() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf$1_newehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_newehdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Fill in sane values for the Ehdr. */
+	eh->e_type = ET_REL;
+	eh->e_shoff = 0;
+
+	if ((ph = elf$1_newphdr(e, 1)) == NULL) {
+		TP_UNRESOLVED("elf$1_newphdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((fsz = elf$1_fsize(ELF_T_EHDR, 1, EV_CURRENT)) == 0) {
+		TP_UNRESOLVED("fsize() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Make the phdr table overlap with the ehdr. */
+	eh->e_phoff = fsz - 1;
+
+	if (elf_update(e, ELF_C_NULL) != -1 ||
+	    (error = elf_errno()) != ELF_E_LAYOUT) {
+		TP_FAIL("elf_update() did not return ELF_E_LAYOUT, "
+		    "error=%d.", error);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	(void) unlink(TS_NEWFILE);
+
+	tet_result(result);
+}
+')
+
+FN(32,`lsb')
+FN(32,`msb')
+FN(64,`lsb')
+FN(64,`msb')
