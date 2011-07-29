@@ -789,7 +789,7 @@ MKFN(IllegalSize, `d->d_size = 1;', DATA, "an illegal size")
 /* TODO: check that overlapping sections are rejected */
 /* TODO: check that non-overlapping sections are permitted */
 
-/* 
+/*
  * Ensure that updating a section header on an ELF object opened
  * in ELF_C_RDWR mode in an idempotent manner leaves the object
  * in a sane state.  See ticket #269.
