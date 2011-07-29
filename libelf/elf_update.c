@@ -500,7 +500,7 @@ _libelf_resync_elf(Elf *e)
 			 * Check offsets for sanity.
 			 */
 			if (rc > phoff) {
-				LIBELF_SET_ERROR(HEADER, 0);
+				LIBELF_SET_ERROR(LAYOUT, 0);
 				return ((off_t) -1);
 			}
 
