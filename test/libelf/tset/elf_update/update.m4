@@ -1708,6 +1708,8 @@ tcEhdrPhdrCollision$1$2(void)
 	/* Fill in sane values for the Ehdr. */
 	eh->e_type = ET_REL;
 	eh->e_shoff = 0;
+	eh->e_ident[EI_CLASS] = ELFCLASS`'$1;
+	eh->e_ident[EI_DATA] = ELFDATA2`'TOUPPER($2);
 
 	if ((ph = elf$1_newphdr(e, 1)) == NULL) {
 		TP_UNRESOLVED("elf$1_newphdr() failed: \"%s\".",
