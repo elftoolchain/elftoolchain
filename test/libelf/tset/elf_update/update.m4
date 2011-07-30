@@ -1726,9 +1726,9 @@ tcEhdrPhdrCollision$1$2(void)
 	eh->e_phoff = fsz - 1;
 
 	/* Check the return values from elf_update(). */
-	if ((fsz = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
-		TP_FAIL("elf_update() succeeded unexpectedly; fsz=%jd",
-		    (intmax_t) fsz);
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd",
+		    (intmax_t) offset);
 		goto done;
 	}
 
