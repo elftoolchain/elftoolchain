@@ -65,12 +65,21 @@ tcArgsNull(void)
 
 	TP_ANNOUNCE("elf_update(NULL,*) fails with ELF_E_ARGUMENT.");
 
-	result = TET_PASS;
-	if ((offset = elf_update(NULL, 0)) != -1 ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT)
-		TP_FAIL("offset=%jd, error=\"%s\".", (intmax_t) offset,
-		    elf_errmsg(error));
+	if ((offset = elf_update(NULL, 0)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
 
+	if ((error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("elf_update() did not fail with ELF_E_ARGUMENT; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
 	tet_result(result);
 }
 
@@ -96,10 +105,13 @@ tcArgsBadCmd(void)
 	for (c = ELF_C_NULL-1; result == TET_PASS && c < ELF_C_NUM; c++) {
 		if (c == ELF_C_WRITE || c == ELF_C_NULL) /* legal values */
 			continue;
-		if ((offset = elf_update(e, c)) != -1 ||
-		    (error = elf_errno()) != ELF_E_ARGUMENT)
-			TP_FAIL("cmd=%d, offset=%jd, error=\"%s\".", c,
-			    (intmax_t) offset, elf_errmsg(error));
+		if ((offset = elf_update(e, c)) != (off_t) -1)
+			TP_FAIL("elf_update() succeeded unexpectedly; "
+			    "offset=%jd.", (intmax_t) offset);
+		else if ((error = elf_errno()) != ELF_E_ARGUMENT)
+			TP_FAIL("elf_update() did not fail with "
+			    "ELF_E_ARGUMENT; error=%d \"%s\".", error,
+			    elf_errmsg(error));
 	}
 
 	(void) elf_end(e);
@@ -129,12 +141,19 @@ tcArgsNonElf$1(void)
 	_TS_WRITE_FILE(TS_NEWFILE,rawdata,sizeof(rawdata),goto done;);
 	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_READ, fd, goto done;);
 
-	result = TET_PASS;
+	if ((offset = elf_update(e, ELF_C_$1)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
 
-	if ((offset = elf_update(e, ELF_C_$1)) != -1 ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT)
-		TP_FAIL("ELF_C_$1 offset=%jd error=\"%s\".",
-		    (intmax_t) offset, elf_errmsg(error));
+	if ((error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("elf_update() did not fail with ELF_E_ARGUMENT; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
 
  done:
 	if (e)
@@ -176,11 +195,19 @@ tcMemElfWrite$1$2(void)
 
 	TS_OPEN_MEMORY(e, elf);
 
+	if ((offset = elf_update(e, ELF_C_WRITE)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	 if ((error = elf_errno()) != ELF_E_MODE) {
+		TP_FAIL("elf_update() did not fail with ELF_E_MODE; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_WRITE)) != -1 ||
-	    (error = elf_errno()) != ELF_E_MODE)
-		TP_FAIL("offset=%jd error=%d \"%s\".", (intmax_t) offset,
-		    error, elf_errmsg(error));
 
  done:
 	(void) elf_end(e);
@@ -269,11 +296,19 @@ tcClassMismatch$1$2(void)
 	/* change the class */
 	eh->e_ident[EI_CLASS] = ELFCLASS`'ifelse($1,32,64,32);
 
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_CLASS) {
+		TP_FAIL("elf_update() did not fail with ELF_E_CLASS; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != -1 ||
-	    (error = elf_errno()) != ELF_E_CLASS)
-		TP_FAIL("elf_update()->%jd, error=%d (expected %d)",
-		     (intmax_t) offset, error, ELF_E_MODE);
 
  done:
 	if (e)
@@ -319,11 +354,19 @@ tcByteOrderChange$1$2(void)
 
 	eh->e_ident[EI_DATA] = ELFDATA2`'ifelse($2,`lsb',`MSB',`LSB');
 
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_HEADER) {
+		TP_FAIL("elf_update() did not fail with ELF_E_HEADER; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != -1 ||
-	    (error = elf_errno()) != ELF_E_HEADER)
-		TP_FAIL("elf_update()->%jd, error=%d (expected %d)",
-		     (intmax_t) offset, error, ELF_E_HEADER);
 
  done:
 	if (e)
@@ -369,11 +412,19 @@ tcUnsupportedVersion$1$2(void)
 
 	eh->e_version = EV_CURRENT+1;
 
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_VERSION) {
+		TP_FAIL("elf_update() did not fail with ELF_E_VERSION; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != -1 ||
-	    (error = elf_errno()) != ELF_E_VERSION)
-		TP_FAIL("elf_update()->%jd, error=%d (expected %d)",
-		     (intmax_t) offset, error, ELF_E_VERSION);
 
  done:
 	if (e)
@@ -423,11 +474,19 @@ tcSequenceFdDoneWrite$1(void)
 		goto done;
 	}
 
+	if ((offset = elf_update(e, ELF_C_WRITE)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_SEQUENCE) {
+		TP_FAIL("elf_update() did not fail with ELF_E_SEQUENCE; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_WRITE)) != -1 ||
-	    (error = elf_errno()) != ELF_E_SEQUENCE)
-		TP_FAIL("elf_update()->%jd, error=%d (expected %d)",
-		     (intmax_t) offset, error, ELF_E_SEQUENCE);
 
  done:
 	if (e)
@@ -482,10 +541,13 @@ tcSequenceFdDoneNull$1(void)
 		goto done;
 	}
 
+	if ((offset = elf_update(e, ELF_C_NULL)) != fsz) {
+		TP_FAIL("elf_update()->%jd, (expected %d).",
+		    (intmax_t) offset, fsz);
+		goto done;
+	}
+
 	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != fsz)
-		TP_FAIL("elf_update()->%jd, (expected %d).", (intmax_t) offset,
-		    fsz);
 
  done:
 	if (e)
@@ -679,12 +741,19 @@ tcSectionType$2$1(void)
 	sh->sh_type = SHT_NULL - 1;
 	(void) elf_flagshdr(scn, ELF_C_SET, ELF_F_DIRTY);
 
-	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1 ||
-	    (error = elf_errno()) != ELF_E_SECTION) {
-		TP_FAIL("elf_update()->%jd, error=%d \"%s\".",
-		    (intmax_t) offset, error, elf_errmsg(error));
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
 	}
+
+	if ((error = elf_errno()) != ELF_E_SECTION) {
+		TP_FAIL("elf_update() did not fail with ELF_E_SECTION; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
 
  done:
 	if (e)
@@ -757,12 +826,19 @@ tc$3_$2$1(void)
 	/* Override, on a per test case basis. */
 	$4
 
-	result = TET_PASS;
-	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1 ||
-	    (error = elf_errno()) != ELF_E_$5) {
-		TP_FAIL("elf_update()->%jd, error=%d \"%s\".",
-		    (intmax_t) offset, error, elf_errmsg(error));
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
 	}
+
+	if ((error = elf_errno()) != ELF_E_$5) {
+		TP_FAIL("elf_update() did not fail with ELF_E_$5; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
 
  done:
 	if (e)
@@ -1647,10 +1723,16 @@ tcEhdrPhdrCollision$1$2(void)
 	/* Make the phdr table overlap with the ehdr. */
 	eh->e_phoff = fsz - 1;
 
-	if (elf_update(e, ELF_C_NULL) != -1 ||
-	    (error = elf_errno()) != ELF_E_LAYOUT) {
-		TP_FAIL("elf_update() did not return ELF_E_LAYOUT, "
-		    "error=%d.", error);
+	/* Check the return values from elf_update(). */
+	if ((fsz = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; fsz=%jd",
+		    (intmax_t) fsz);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_LAYOUT) {
+		TP_FAIL("elf_update() did not fail with ELF_E_LAYOUT, "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
 		goto done;
 	}
 
