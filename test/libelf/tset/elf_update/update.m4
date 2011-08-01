@@ -1848,3 +1848,107 @@ FN(32,`lsb')
 FN(32,`msb')
 FN(64,`lsb')
 FN(64,`msb')
+
+/*
+ * Verify that an overlap between a section's data and the SHDR
+ * table is detected.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcShdrSectionCollision$1$2(void)
+{
+	int error, fd, result, flags;
+	off_t offset;
+	size_t fsz, psz, roundup, ssz;
+	Elf$1_Ehdr *eh;
+	Elf$1_Shdr *sh;
+	Elf_Data *d;
+	Elf_Scn *scn;
+	Elf *e;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: an overlap of the shdr and a section is "
+	    "detected.");
+
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = NULL;
+
+	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_WRITE, fd, goto done;);
+
+	flags = elf_flagelf(e, ELF_C_SET, ELF_F_LAYOUT);
+	if ((flags & ELF_F_LAYOUT) == 0) {
+		TP_UNRESOLVED("elf_flagelf() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf$1_newehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_newehdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Fill in sane values for the Ehdr. */
+	eh->e_type = ET_REL;
+	eh->e_ident[EI_CLASS] = ELFCLASS`'$1;
+	eh->e_ident[EI_DATA] = ELFDATA2`'TOUPPER($2);
+
+	if ((fsz = elf$1_fsize(ELF_T_EHDR, 1, EV_CURRENT)) == 0) {
+		TP_UNRESOLVED("fsize() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((scn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("elf_newscn() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	eh->e_shoff = fsz;
+
+	if ((sh = elf$1_getshdr(scn)) == NULL) {
+		TP_UNRESOLVED("elf$1_getshdr() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Fill in application-specified fields. */
+	sh->sh_type = SHT_PROGBITS;
+	sh->sh_addralign = 1;
+	sh->sh_size = 1;
+	sh->sh_entsize;
+
+	/* Make this section overlap with the section header. */
+	sh->sh_offset = fsz;
+
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_LAYOUT) {
+		TP_FAIL("elf_update() did not fail with ELF_E_$5; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	(void) unlink(TS_NEWFILE);
+
+	tet_result(result);
+}
+')
+
+FN(32,`lsb')
+FN(32,`msb')
+FN(64,`lsb')
+FN(64,`msb')
