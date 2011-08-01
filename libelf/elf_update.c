@@ -39,6 +39,29 @@
 LIBELF_VCSID("$Id$");
 
 /*
+ * The types of extents in an ELF object.
+ */
+enum elf_extent {
+	ELF_EXTENT_EHDR,
+	ELF_EXTENT_PHDR,
+	ELF_EXTENT_SECTION,
+	ELF_EXTENT_SHDR
+};
+
+/*
+ * A extent descriptor, used when laying out an ELF object.
+ */
+struct _Elf_Extent {
+	SLIST_ENTRY(_Elf_Extent) ex_next;
+	uint64_t	ex_start; /* Start of the region. */
+	uint64_t	ex_size;  /* The size of the region. */
+	enum elf_extent	ex_type;  /* Type of region. */
+	void		*ex_desc; /* Associated descriptor. */
+};
+
+SLIST_HEAD(_Elf_Extent_List, _Elf_Extent);
+
+/*
  * Update the internal data structures associated with an ELF object.
  * Returns the size in bytes the ELF object would occupy in its file
  * representation.
@@ -277,62 +300,88 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t *rc)
 }
 
 
+static void
+_libelf_release_extents(struct _Elf_Extent_List *extents)
+{
+	struct _Elf_Extent *ex;
+
+	while ((ex = SLIST_FIRST(extents)) != NULL) {
+		SLIST_REMOVE_HEAD(extents, ex_next);
+		free(ex);
+	}
+}
+
 /*
- * Insert a section in ascending order in the list
+ * Insert a region in ascending order in the list
  */
 
 static int
-_libelf_insert_section(Elf *e, Elf_Scn *s)
+_libelf_insert_extent(struct _Elf_Extent_List *extents, int type,
+    uint64_t start, uint64_t size, void *desc)
 {
-	Elf_Scn *t, *prevt;
-	uint64_t smax, smin, tmax, tmin;
+	struct _Elf_Extent *ex, *t, *prevt;
+	uint64_t rmax, rmin, tmax, tmin;
 
-	smin = s->s_offset;
-	smax = smin + s->s_size;
+	assert(type >= ELF_EXTENT_EHDR && type <= ELF_EXTENT_SHDR);
 
+	rmin = start;
+	rmax = rmin + size;
+
+	/* First, look for overlaps with existing extents. */
 	prevt = NULL;
-	STAILQ_FOREACH(t, &e->e_u.e_elf.e_scn, s_next) {
-		tmin = t->s_offset;
-		tmax = tmin + t->s_size;
+	SLIST_FOREACH(t, extents, ex_next) {
+		tmin = t->ex_start;
+		tmax = tmin + t->ex_size;
 
-		if (tmax <= smin) {
+		if (tmax <= rmin) {
 			/*
-			 * 't' lies entirely before 's': ...| t |...| s |...
+			 * 't' lies entirely before 'r': ...| t |...| r |...
 			 */
 			prevt = t;
 			continue;
-		} else if (smax <= tmin)
+		} else if (rmax <= tmin)
 			/*
-			 * 's' lies entirely before 't', and after 'prevt':
-			 *      ...| prevt |...| s |...| t |...
+			 * 'r' lies entirely before 't', and after 'prevt':
+			 *      ...| prevt |...| r |...| t |...
 			 */
 			break;
-		else {	/* 's' and 't' overlap. */
+		else {	/* 'r' and 't' overlap. */
 			LIBELF_SET_ERROR(LAYOUT, 0);
 			return (0);
 		}
 	}
 
+	/* Allocate and fill in a new extent descriptor. */
+	if ((ex = malloc(sizeof(struct _Elf_Extent))) == NULL) {
+		LIBELF_SET_ERROR(RESOURCE, errno);
+		return (0);
+	}
+	ex->ex_start = start;
+	ex->ex_size = size;
+	ex->ex_desc = desc;
+	ex->ex_type = type;
+
+	/* Insert the region descriptor into the correct place. */
 	if (prevt)
-		STAILQ_INSERT_AFTER(&e->e_u.e_elf.e_scn, prevt, s, s_next);
+		SLIST_INSERT_AFTER(prevt, ex, ex_next);
 	else
-		STAILQ_INSERT_HEAD(&e->e_u.e_elf.e_scn, s, s_next);
+		SLIST_INSERT_HEAD(extents, ex, ex_next);
 	return (1);
 }
 
 static off_t
-_libelf_resync_sections(Elf *e, off_t rc)
+_libelf_resync_sections(Elf *e, off_t rc, struct _Elf_Extent_List *extents)
 {
 	int ec;
 	off_t nrc;
-	size_t sh_type, shdr_start, shdr_end;
+	size_t sh_type;
 	Elf_Scn *s, *ts;
 
 	ec = e->e_class;
 
 	/*
 	 * Make a pass through sections, computing the extent of each
-	 * section. Order in increasing order of addresses.
+	 * section.
 	 */
 
 	nrc = rc;
@@ -349,46 +398,12 @@ _libelf_resync_sections(Elf *e, off_t rc)
 		if (sh_type == SHT_NOBITS || sh_type == SHT_NULL)
 			continue;
 
-		if (s->s_offset < (uint64_t) rc) {
-			if (s->s_offset + s->s_size < (uint64_t) rc) {
-				/*
-				 * Try insert this section in the
-				 * correct place in the list,
-				 * detecting overlaps if any.
-				 */
-				STAILQ_REMOVE(&e->e_u.e_elf.e_scn, s, _Elf_Scn,
-				    s_next);
-				if (_libelf_insert_section(e, s) == 0)
-					return ((off_t) -1);
-			} else {
-				LIBELF_SET_ERROR(LAYOUT, 0);
-				return ((off_t) -1);
-			}
-		} else
-			rc = s->s_offset + s->s_size;
-	}
-
-	/*
-	 * If the application is controlling file layout, check for an
-	 * overlap between this section's extents and the SHDR table.
-	 */
-	if (e->e_flags & ELF_F_LAYOUT) {
-
-		if (e->e_class == ELFCLASS32)
-			shdr_start = e->e_u.e_elf.e_ehdr.e_ehdr32->e_shoff;
-		else
-			shdr_start = e->e_u.e_elf.e_ehdr.e_ehdr64->e_shoff;
-
-		shdr_end = shdr_start + _libelf_fsize(ELF_T_SHDR, e->e_class,
-		    e->e_version, e->e_u.e_elf.e_nscn);
-
-		STAILQ_FOREACH(s, &e->e_u.e_elf.e_scn, s_next) {
-			if (s->s_offset >= shdr_end ||
-			    s->s_offset + s->s_size <= shdr_start)
-				continue;
-			LIBELF_SET_ERROR(LAYOUT, 0);
+		if (!_libelf_insert_extent(extents, ELF_EXTENT_SECTION,
+		    s->s_offset, s->s_size, s))
 			return ((off_t) -1);
-		}
+
+		if (rc < s->s_offset + s->s_size)
+			rc = s->s_offset + s->s_size;
 	}
 
 	assert(nrc == rc);
@@ -397,14 +412,14 @@ _libelf_resync_sections(Elf *e, off_t rc)
 }
 
 static off_t
-_libelf_resync_elf(Elf *e)
+_libelf_resync_elf(Elf *e, struct _Elf_Extent_List *extents)
 {
 	int ec, eh_class, eh_type;
 	unsigned int eh_byteorder, eh_version;
 	size_t align, fsz;
 	size_t phnum, shnum;
 	off_t rc, phoff, shoff;
-	void *ehdr;
+	void *ehdr, *phdr;
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
 
@@ -486,6 +501,9 @@ _libelf_resync_elf(Elf *e)
 
 	rc += _libelf_fsize(ELF_T_EHDR, ec, eh_version, (size_t) 1);
 
+	if (!_libelf_insert_extent(extents, ELF_EXTENT_EHDR, 0, rc, ehdr))
+		return ((off_t) -1);
+
 	/*
 	 * Compute the layout the program header table, if one is
 	 * present.  The program header table needs to be aligned to a
@@ -513,6 +531,12 @@ _libelf_resync_elf(Elf *e)
 			phoff = roundup(rc, align);
 
 		rc = phoff + fsz;
+
+		phdr = _libelf_getphdr(e, ec);
+
+		if (!_libelf_insert_extent(extents, ELF_EXTENT_PHDR, phoff,
+			fsz, phdr))
+			return ((off_t) -1);
 	} else
 		phoff = 0;
 
@@ -526,7 +550,7 @@ _libelf_resync_elf(Elf *e)
 	    _libelf_load_section_headers(e, ehdr) == 0)
 		return ((off_t) -1);
 
-	if ((rc = _libelf_resync_sections(e, rc)) < 0)
+	if ((rc = _libelf_resync_sections(e, rc, extents)) < 0)
 		return ((off_t) -1);
 
 	/*
@@ -538,7 +562,7 @@ _libelf_resync_elf(Elf *e)
 	 * table.
 	 */
 	if (shnum) {
-		fsz = _libelf_fsize(ELF_T_SHDR, ec, eh_version, (size_t) 1);
+		fsz = _libelf_fsize(ELF_T_SHDR, ec, eh_version, shnum);
 		align = _libelf_falign(ELF_T_SHDR, ec);
 
 		if (e->e_flags & ELF_F_LAYOUT) {
@@ -549,8 +573,12 @@ _libelf_resync_elf(Elf *e)
 		} else
 			shoff = roundup(rc, align);
 
-		if (shoff + fsz * shnum > (size_t) rc)
-			rc = shoff + fsz * shnum;
+		if (shoff + fsz > (size_t) rc)
+			rc = shoff + fsz;
+
+		if (!_libelf_insert_extent(extents, ELF_EXTENT_SHDR, shoff,
+		    fsz, NULL))
+			return ((off_t) -1);
 	} else
 		shoff = 0;
 
@@ -579,18 +607,23 @@ _libelf_resync_elf(Elf *e)
 }
 
 /*
- * Write out the contents of a section.
+ * Write out the contents of an ELF section.
  */
-
-static off_t
-_libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
+static size_t
+_libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
-	size_t fsz, msz, nobjects;
+	size_t fsz, msz, nobjects, rc;
 	uint32_t sh_type;
 	uint64_t sh_off, sh_size;
 	int elftype;
+	Elf_Scn *s;
 	Elf_Data *d, dst;
+
+	assert(ex->ex_type == ELF_EXTENT_SECTION);
+
+	s = ex->ex_desc;
+	rc = ex->ex_start;
 
 	if ((ec = e->e_class) == ELFCLASS32) {
 		sh_type = s->s_shdr.s_shdr32.sh_type;
@@ -685,6 +718,164 @@ _libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
 }
 
 /*
+ * Write out an ELF Executable Header.
+ */
+
+static off_t
+_libelf_write_ehdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+{
+	int ec;
+	void *ehdr;
+	size_t fsz, msz;
+	Elf_Data dst, src;
+
+	assert(ex->ex_type == ELF_EXTENT_EHDR);
+	assert(ex->ex_start == 0); /* Ehdr always comes first. */
+
+	ec = e->e_class;
+
+	ehdr = _libelf_ehdr(e, ec, 0);
+	assert(ehdr != NULL);
+
+	fsz = _libelf_fsize(ELF_T_EHDR, ec, e->e_version, (size_t) 1);
+	msz = _libelf_msize(ELF_T_EHDR, ec, e->e_version);
+
+	(void) memset(&dst, 0, sizeof(dst));
+	(void) memset(&src, 0, sizeof(src));
+
+	src.d_buf     = ehdr;
+	src.d_size    = msz;
+	src.d_type    = ELF_T_EHDR;
+	src.d_version = dst.d_version = e->e_version;
+
+	dst.d_buf     = nf;
+	dst.d_size    = fsz;
+
+	if (_libelf_xlate(&dst, &src, e->e_byteorder, ec, ELF_TOFILE) ==
+	    NULL)
+		return ((off_t) -1);
+
+	return ((off_t) fsz);
+}
+
+/*
+ * Write out an ELF program header table.
+ */
+
+static off_t
+_libelf_write_phdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+{
+	int ec;
+	void *ehdr;
+	Elf32_Ehdr *eh32;
+	Elf64_Ehdr *eh64;
+	Elf_Data dst, src;
+	size_t fsz, phnum;
+	uint64_t phoff;
+
+	assert(ex->ex_type == ELF_EXTENT_PHDR);
+
+	ec = e->e_class;
+	ehdr = _libelf_ehdr(e, ec, 0);
+	phnum = e->e_u.e_elf.e_nphdr;
+
+	assert(phnum > 0);
+
+	if (ec == ELFCLASS32) {
+		eh32 = (Elf32_Ehdr *) ehdr;
+		phoff = (uint64_t) eh32->e_phoff;
+	} else {
+		eh64 = (Elf64_Ehdr *) ehdr;
+		phoff = eh64->e_phoff;
+	}
+
+	assert(phoff > 0);
+	assert(ex->ex_start == phoff);
+	assert(phoff % _libelf_falign(ELF_T_PHDR, ec) == 0);
+
+	(void) memset(&dst, 0, sizeof(dst));
+	(void) memset(&src, 0, sizeof(src));
+
+	fsz = _libelf_fsize(ELF_T_PHDR, ec, e->e_version, phnum);
+	assert(fsz > 0);
+
+	src.d_buf = _libelf_getphdr(e, ec);
+	src.d_version = dst.d_version = e->e_version;
+	src.d_type = ELF_T_PHDR;
+	src.d_size = phnum * _libelf_msize(ELF_T_PHDR, ec,
+	    e->e_version);
+
+	dst.d_size = fsz;
+	dst.d_buf = nf + ex->ex_start;
+
+	if (_libelf_xlate(&dst, &src, e->e_byteorder, ec, ELF_TOFILE) ==
+	    NULL)
+		return ((off_t) -1);
+
+	return (phoff + fsz);
+}
+
+/*
+ * Write out an ELF section header table.
+ */
+
+static off_t
+_libelf_write_shdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+{
+	int ec;
+	void *ehdr;
+	Elf_Scn *scn;
+	uint64_t shoff;
+	Elf32_Ehdr *eh32;
+	Elf64_Ehdr *eh64;
+	size_t fsz, nscn;
+	Elf_Data dst, src;
+
+	assert(ex->ex_type == ELF_EXTENT_SHDR);
+
+	ec = e->e_class;
+	ehdr = _libelf_ehdr(e, ec, 0);
+	nscn = e->e_u.e_elf.e_nscn;
+
+	if (ec == ELFCLASS32) {
+		eh32 = (Elf32_Ehdr *) ehdr;
+		shoff = (uint64_t) eh32->e_shoff;
+	} else {
+		eh64 = (Elf64_Ehdr *) ehdr;
+		shoff = eh64->e_shoff;
+	}
+
+	assert(nscn > 0);
+	assert(shoff % _libelf_falign(ELF_T_SHDR, ec) == 0);
+	assert(ex->ex_start == shoff);
+
+	(void) memset(&dst, 0, sizeof(dst));
+	(void) memset(&src, 0, sizeof(src));
+
+	src.d_type = ELF_T_SHDR;
+	src.d_size = _libelf_msize(ELF_T_SHDR, ec, e->e_version);
+	src.d_version = dst.d_version = e->e_version;
+
+	fsz = _libelf_fsize(ELF_T_SHDR, ec, e->e_version, (size_t) 1);
+
+	STAILQ_FOREACH(scn, &e->e_u.e_elf.e_scn, s_next) {
+		if (ec == ELFCLASS32)
+			src.d_buf = &scn->s_shdr.s_shdr32;
+		else
+			src.d_buf = &scn->s_shdr.s_shdr64;
+
+		dst.d_size = fsz;
+		dst.d_buf = nf + ex->ex_start + scn->s_ndx * fsz;
+
+		if (_libelf_xlate(&dst, &src, e->e_byteorder, ec,
+		    ELF_TOFILE) == NULL)
+			return ((off_t) -1);
+	}
+
+	return (ex->ex_start + nscn * fsz);
+}
+
+/*
  * Write out the file image.
  *
  * The original file could have been mapped in with an ELF_C_RDWR
@@ -702,18 +893,12 @@ _libelf_write_scn(Elf *e, char *nf, Elf_Scn *s, off_t rc)
  */
 
 static off_t
-_libelf_write_elf(Elf *e, off_t newsize)
+_libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 {
-	int ec;
-	off_t maxrc, rc;
-	size_t fsz, msz, phnum, shnum;
-	uint64_t phoff, shoff;
-	void *ehdr;
+	off_t nrc, rc;
 	char *newfile;
-	Elf_Data dst, src;
 	Elf_Scn *scn, *tscn;
-	Elf32_Ehdr *eh32;
-	Elf64_Ehdr *eh64;
+	struct _Elf_Extent *ex;
 
 	assert(e->e_kind == ELF_K_ELF);
 	assert(e->e_cmd != ELF_C_READ);
@@ -724,129 +909,41 @@ _libelf_write_elf(Elf *e, off_t newsize)
 		return ((off_t) -1);
 	}
 
-	ec = e->e_class;
+	nrc = rc = 0;
+	SLIST_FOREACH(ex, extents, ex_next) {
 
-	ehdr = _libelf_ehdr(e, ec, 0);
-	assert(ehdr != NULL);
+		/* Fill inter-extent gaps. */
+		if (ex->ex_start > rc)
+			(void) memset(newfile + rc, LIBELF_PRIVATE(fillchar),
+			    ex->ex_start - rc);
 
-	phnum = e->e_u.e_elf.e_nphdr;
-
-	if (ec == ELFCLASS32) {
-		eh32 = (Elf32_Ehdr *) ehdr;
-
-		phoff = (uint64_t) eh32->e_phoff;
-		shnum = eh32->e_shnum;
-		shoff = (uint64_t) eh32->e_shoff;
-	} else {
-		eh64 = (Elf64_Ehdr *) ehdr;
-
-		phoff = eh64->e_phoff;
-		shnum = eh64->e_shnum;
-		shoff = eh64->e_shoff;
-	}
-
-	fsz = _libelf_fsize(ELF_T_EHDR, ec, e->e_version, (size_t) 1);
-	msz = _libelf_msize(ELF_T_EHDR, ec, e->e_version);
-
-	(void) memset(&dst, 0, sizeof(dst));
-	(void) memset(&src, 0, sizeof(src));
-
-	src.d_buf     = ehdr;
-	src.d_size    = msz;
-	src.d_type    = ELF_T_EHDR;
-	src.d_version = dst.d_version = e->e_version;
-
-	rc = 0;
-
-	dst.d_buf     = newfile + rc;
-	dst.d_size    = fsz;
-
-	if (_libelf_xlate(&dst, &src, e->e_byteorder, ec, ELF_TOFILE) ==
-	    NULL)
-		goto error;
-
-	rc += fsz;
-
-	/*
-	 * Write the program header table if present.
-	 */
-
-	if (phnum != 0 && phoff != 0) {
-		assert((unsigned) rc <= phoff);
-
-		fsz = _libelf_fsize(ELF_T_PHDR, ec, e->e_version, phnum);
-
-		assert(phoff % _libelf_falign(ELF_T_PHDR, ec) == 0);
-		assert(fsz > 0);
-
-		src.d_buf = _libelf_getphdr(e, ec);
-		src.d_version = dst.d_version = e->e_version;
-		src.d_type = ELF_T_PHDR;
-		src.d_size = phnum * _libelf_msize(ELF_T_PHDR, ec,
-		    e->e_version);
-
-		dst.d_size = fsz;
-
-		if ((uint64_t) rc < phoff)
-			(void) memset(newfile + rc,
-			    LIBELF_PRIVATE(fillchar), phoff - rc);
-
-		dst.d_buf = newfile + rc;
-
-		if (_libelf_xlate(&dst, &src, e->e_byteorder, ec, ELF_TOFILE) ==
-		    NULL)
-			goto error;
-
-		rc = phoff + fsz;
-	}
-
-	/*
-	 * Write out individual sections.
-	 */
-
-	STAILQ_FOREACH(scn, &e->e_u.e_elf.e_scn, s_next)
- 		if ((rc = _libelf_write_scn(e, newfile, scn, rc)) < 0)
-			goto error;
-
-	/*
-	 * Write out the section header table, if required.  Note that
-	 * if flag ELF_F_LAYOUT has been set the section header table
-	 * could reside in between byte ranges mapped by section
-	 * descriptors.
-	 */
-	if (shnum != 0 && shoff != 0) {
-		if ((uint64_t) rc < shoff)
-			(void) memset(newfile + rc,
-			    LIBELF_PRIVATE(fillchar), shoff - rc);
-
-		maxrc = rc;
-		rc = shoff;
-
-		assert(rc % _libelf_falign(ELF_T_SHDR, ec) == 0);
-
-		src.d_type = ELF_T_SHDR;
-		src.d_size = _libelf_msize(ELF_T_SHDR, ec, e->e_version);
-		src.d_version = dst.d_version = e->e_version;
-
-		fsz = _libelf_fsize(ELF_T_SHDR, ec, e->e_version, (size_t) 1);
-
-		STAILQ_FOREACH(scn, &e->e_u.e_elf.e_scn, s_next) {
-			if (ec == ELFCLASS32)
-				src.d_buf = &scn->s_shdr.s_shdr32;
-			else
-				src.d_buf = &scn->s_shdr.s_shdr64;
-
-			dst.d_size = fsz;
-			dst.d_buf = newfile + rc + scn->s_ndx * fsz;
-
-			if (_libelf_xlate(&dst, &src, e->e_byteorder, ec,
-				ELF_TOFILE) != &dst)
+		switch (ex->ex_type) {
+		case ELF_EXTENT_EHDR:
+			if ((rc = _libelf_write_ehdr(e, newfile, ex)) < 0)
 				goto error;
+			break;
+
+		case ELF_EXTENT_PHDR:
+			if ((rc = _libelf_write_phdr(e, newfile, ex)) < 0)
+				goto error;
+			break;
+
+		case ELF_EXTENT_SECTION:
+			if ((rc = _libelf_write_scn(e, newfile, ex)) < 0)
+				goto error;
+			break;
+
+		case ELF_EXTENT_SHDR:
+			if ((rc = _libelf_write_shdr(e, newfile, ex)) < 0)
+				goto error;
+			break;
+
+		default:
+			assert(0);
+			break;
 		}
 
-		rc += e->e_u.e_elf.e_nscn * fsz;
-		if (maxrc > rc)
-			rc = maxrc;
+		assert(ex->ex_start + ex->ex_size == rc);
 	}
 
 	assert(rc == newsize);
@@ -887,7 +984,7 @@ _libelf_write_elf(Elf *e, off_t newsize)
 	STAILQ_FOREACH_SAFE(scn, &e->e_u.e_elf.e_scn, s_next, tscn)
 		_libelf_release_scn(scn);
 
-	if (ec == ELFCLASS32) {
+	if (e->e_class == ELFCLASS32) {
 		free(e->e_u.e_elf.e_ehdr.e_ehdr32);
 		if (e->e_u.e_elf.e_phdr.e_phdr32)
 			free(e->e_u.e_elf.e_phdr.e_phdr32);
@@ -918,6 +1015,7 @@ elf_update(Elf *e, Elf_Cmd c)
 {
 	int ec;
 	off_t rc;
+	struct _Elf_Extent_List extents;
 
 	rc = (off_t) -1;
 
@@ -940,16 +1038,23 @@ elf_update(Elf *e, Elf_Cmd c)
 		return (rc);
 	}
 
-	if ((rc = _libelf_resync_elf(e)) < 0)
-		return (rc);
+	SLIST_INIT(&extents);
+
+	if ((rc = _libelf_resync_elf(e, &extents)) < 0)
+		goto done;
 
 	if (c == ELF_C_NULL)
-		return (rc);
+		goto done;
 
 	if (e->e_fd < 0) {
+		rc = (off_t) -1;
 		LIBELF_SET_ERROR(SEQUENCE, 0);
-		return ((off_t) -1);
+		goto done;
 	}
 
-	return (_libelf_write_elf(e, rc));
+	return (_libelf_write_elf(e, rc, &extents));
+
+done:
+	_libelf_release_extents(&extents);
+	return (rc);
 }
