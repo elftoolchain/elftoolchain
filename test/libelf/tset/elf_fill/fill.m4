@@ -42,7 +42,11 @@ IC_REQUIRES_VERSION_INIT();
 
 include(`elfts.m4')
 
-define(`TS_FILLCHAR', `0xAB');
+define(`TS_ALIGN', 512)
+define(`TS_FILLCHAR', `0xAB')
+define(`TS_OFFSET_1', 512)
+define(`TS_OFFSET_2', 1024)
+define(`TS_SHDR_OFFSET', 2048)
 
 /*
  * Test the `elf_fill' entry point.
@@ -122,7 +126,7 @@ tcDefaultLayout$2$1(void)
 		goto done;
 	}
 
-	d->d_align = 512;
+	d->d_align = TS_ALIGN;
 	d->d_buf = testdata;
 	d->d_size = sizeof(testdata);
 	d->d_type = ELF_T_BYTE;
@@ -151,7 +155,7 @@ tcDefaultLayout$2$1(void)
 		goto done;
 	}
 
-	d->d_align = 512;
+	d->d_align = TS_ALIGN;
 	d->d_buf = testdata;
 	d->d_size = sizeof(testdata);
 	d->d_type = ELF_T_BYTE;
@@ -186,7 +190,8 @@ tcDefaultLayout$2$1(void)
 		goto done;
 	}
 
-	for (p = r + fsz; p < r + 512; p++)
+	/* Section data would be placed at the next alignment boundary. */
+	for (p = r + fsz; p < r + TS_ALIGN; p++)
 		if (*p != TS_FILLCHAR) {
 			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
 			    TS_FILLCHAR);
@@ -194,24 +199,26 @@ tcDefaultLayout$2$1(void)
 		}
 
 	/* Check whether valid contents exist at first section offset. */
-	if (memcmp(r + 512, testdata, sizeof(testdata)) != 0) {
+	if (memcmp(r + TS_ALIGN, testdata, sizeof(testdata)) != 0) {
 		TP_FAIL("memcmp(first) failed.");
 		goto done;
 	}
 
-	/* Check the second gap. */
-	for (p = r + 512 + sizeof(testdata); p < r + 1024; p++)
+	/* Check the between sections.  */
+	for (p = r + TS_ALIGN + sizeof(testdata); p < r + 2*TS_ALIGN; p++)
 		if (*p != TS_FILLCHAR) {
 			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
 			    TS_FILLCHAR);
 			goto done;
 		}
 
-	result = TET_PASS;
 	/* Check whether valid contents exist at second section offset. */
-	if (memcmp(r + 1024, testdata, sizeof(testdata)) != 0)
+	if (memcmp(r + 2*TS_ALIGN, testdata, sizeof(testdata)) != 0) {
 		TP_FAIL("memcmp(second) failed.");
+		goto done;
+	}
 
+	result = TET_PASS;
  done:
 	if (r)
 		(void) munmap(r, rc);
@@ -230,8 +237,8 @@ FN(64,MSB)
 
 
 /*
- * Check the fill character is used for application specified
- * layout.
+ * Check that regions are filled correctly, for application specified
+ * layouts.
  */
 define(`FN',`
 void
@@ -293,7 +300,7 @@ tcAppLayout$2$1(void)
 	}
 
 	sh->sh_type  = SHT_PROGBITS;
-	sh->sh_offset = 1024;
+	sh->sh_offset = TS_OFFSET_2;
 	sh->sh_addralign = 1;
 	sh->sh_size = sizeof(testdata);
 
@@ -325,7 +332,7 @@ tcAppLayout$2$1(void)
 	}
 
 	sh->sh_type  = SHT_PROGBITS;
-	sh->sh_offset = 512;
+	sh->sh_offset = TS_OFFSET_1;
 	sh->sh_addralign = 1;
 	sh->sh_size = sizeof(testdata);
 
@@ -343,9 +350,9 @@ tcAppLayout$2$1(void)
 	d->d_type = ELF_T_BYTE;
 
 	/*
-	 * Position the section header at offset 2048.
+	 * Position the section header after section data.
 	 */
-	eh->e_shoff = 2048;
+	eh->e_shoff = TS_SHDR_OFFSET;
 
 	if ((rc = elf_update(e, ELF_C_WRITE)) < 0) {
 		TP_UNRESOLVED("elf_update() failed: \"%s\".", elf_errmsg(-1));
@@ -377,7 +384,7 @@ tcAppLayout$2$1(void)
 		goto done;
 	}
 
-	for (p = r + fsz; p < r + 512; p++)
+	for (p = r + fsz; p < r + TS_OFFSET_1; p++)
 		if (*p != TS_FILLCHAR) {
 			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
 			    TS_FILLCHAR);
@@ -385,13 +392,29 @@ tcAppLayout$2$1(void)
 		}
 
 	/* Check whether valid contents exist at first section offset. */
-	if (memcmp(r + 512, testdata, sizeof(testdata)) != 0) {
+	if (memcmp(r + TS_OFFSET_1, testdata, sizeof(testdata)) != 0) {
 		TP_FAIL("memcmp(first) failed.");
 		goto done;
 	}
 
 	/* Check the second gap. */
-	for (p = r + 512 + sizeof(testdata); p < r + 1024; p++)
+	for (p = r + TS_OFFSET_1 + sizeof(testdata); p < r + TS_OFFSET_2; p++)
+		if (*p != TS_FILLCHAR) {
+			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
+			    TS_FILLCHAR);
+			goto done;
+		}
+
+	/* Check whether valid contents exist at second section offset. */
+	if (memcmp(r + TS_OFFSET_2, testdata, sizeof(testdata)) != 0) {
+		TP_FAIL("memcmp(second) failed.");
+		goto done;
+	}
+
+	/* Check the gap till the shdr table. */
+	for (p = r + TS_OFFSET_2 + sizeof(testdata);
+	     p < r + TS_SHDR_OFFSET;
+	     p++)
 		if (*p != TS_FILLCHAR) {
 			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
 			    TS_FILLCHAR);
@@ -399,17 +422,7 @@ tcAppLayout$2$1(void)
 		}
 
 	result = TET_PASS;
-	/* Check whether valid contents exist at second section offset. */
-	if (memcmp(r + 1024, testdata, sizeof(testdata)) != 0)
-		TP_FAIL("memcmp(second) failed.");
 
-	/* Check the gap till the shdr table. */
-	for (p = r + 1024 + sizeof(testdata); p < r + 2048; p++)
-		if (*p != TS_FILLCHAR) {
-			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
-			    TS_FILLCHAR);
-			goto done;
-		}
  done:
 	if (r)
 		(void) munmap(r, rc);
@@ -425,5 +438,3 @@ FN(32,LSB)
 FN(32,MSB)
 FN(64,LSB)
 FN(64,MSB)
-
-
