@@ -129,7 +129,7 @@ changequote({,})
        '\0',
        '.', 's', 'h', 's', 't', 'r', 't', 'a', 'b', '\0',
        '.', 'z', 'e', 'r', 'o', 's', 'e', 'c', 't', 'i', 'o', 'n', '\0'
-changequote(`,')
+changequote
        };
 
 undefine(`_FN')
