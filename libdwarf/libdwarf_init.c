@@ -232,7 +232,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Handler errhand,
 		}
 	}
 
-	if (dbg->dbg_mode == DW_DLC_WRITE || dbg->dbg_mode == DW_DLC_RDWR) {
+	if (dbg->dbg_mode == DW_DLC_WRITE) {
 		ret = _dwarf_producer_init(dbg, pro_flags, error);
 		if (ret != DW_DLE_NONE) {
 			_dwarf_deinit(dbg);
