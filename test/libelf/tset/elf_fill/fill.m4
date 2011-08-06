@@ -438,3 +438,121 @@ FN(32,LSB)
 FN(32,MSB)
 FN(64,LSB)
 FN(64,MSB)
+
+/*
+ * Check that the region between the Ehdr and Phdr is filled correctly,
+ * when the application specifies the file layout.
+ */
+define(`FN',`
+void
+tcAppLayoutEhdrPhdrGap$2$1(void)
+{
+	Elf *e;
+	Elf$1_Ehdr *eh;
+	Elf$1_Phdr *ph;
+	int fd, result;
+	size_t fsz;
+	off_t rc;
+	unsigned char *p, *r;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("$2$1: elf_fill()/app-layout fills gaps.");
+
+	result = TET_UNRESOLVED;
+	e = NULL;
+	fd = -1;
+	r = NULL;
+
+	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_WRITE, fd, goto done;);
+
+	/*
+	 * We create an ELF file with the PHDR placed an offset away
+	 * from the EHDR.
+	 */
+	elf_fill(TS_FILLCHAR);
+	if (elf_flagelf(e, ELF_C_SET, ELF_F_LAYOUT) != ELF_F_LAYOUT) {
+		TP_UNRESOLVED("elf_flagdata() failed: \"%s\".",
+		   elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf$1_newehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_newehdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	eh->e_ident[EI_DATA] = ELFDATA2$2;
+
+	/*
+	 * Create the PHDR.
+	 */
+	if ((ph = elf$1_newphdr(e, 1)) == NULL) {
+		TP_UNRESOLVED("elf_newphdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/*
+	 * Position the PHDR.
+	 */
+	eh->e_phoff = TS_OFFSET_1;
+
+	/*
+	 * Update the ELF object.
+	 */
+	if ((rc = elf_update(e, ELF_C_WRITE)) < 0) {
+		TP_UNRESOLVED("elf_update() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	(void) elf_end(e); e = NULL;
+	(void) close(fd); fd = -1;
+
+	/*
+	 * Mmap() in the file and check that the contents match.
+	 */
+
+	if ((fd = open(TS_NEWFILE, O_RDONLY, 0)) < 0) {
+		TP_UNRESOLVED("open() failed: %s.", strerror(errno));
+		goto done;
+	}
+
+	if ((r = mmap(NULL, (size_t) rc, PROT_READ, MAP_SHARED, fd,
+	    (off_t) 0)) == MAP_FAILED) {
+		TP_UNRESOLVED("mmap() failed: %s.", strerror(errno));
+		goto done;
+	}
+
+	/* Check the gap between the EHDR and the PHDR. */
+	if ((fsz = elf$1_fsize(ELF_T_EHDR, 1, EV_CURRENT)) == 0) {
+		TP_UNRESOLVED("elf$1_fsize(ELF_T_EHDR) failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	for (p = r + fsz; p < r + TS_OFFSET_1; p++)
+		if (*p != TS_FILLCHAR) {
+			TP_FAIL("offset 0x%x [%d] != %d", p - r, *p,
+			    TS_FILLCHAR);
+			goto done;
+		}
+
+	result = TET_PASS;
+
+ done:
+	if (r)
+		(void) munmap(r, rc);
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	unlink(TS_NEWFILE);
+	tet_result(result);
+}')
+
+FN(32,LSB)
+FN(32,MSB)
+FN(64,LSB)
+FN(64,MSB)
