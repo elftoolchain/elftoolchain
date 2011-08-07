@@ -1090,8 +1090,10 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 			warnx("could not find DW_TAG_compile_unit die");
 			continue;
 		}
-		if (dwarf_srclines(die, &lbuf, &lcount, &de) != DW_DLV_OK) {
-			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+		ret = dwarf_srclines(die, &lbuf, &lcount, &de);
+		if (ret != DW_DLV_OK) {
+			if (ret == DW_DLV_ERROR)
+				warnx("dwarf_srclines: %s", dwarf_errmsg(de));
 			continue;
 		}
 		for (i = 0; i < lcount; i++) {
