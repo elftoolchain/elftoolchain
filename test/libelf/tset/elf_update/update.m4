@@ -877,6 +877,8 @@ void
 tcRdwrIdempotent$2$1(void)
 {
 	Elf *e;
+	off_t fsz;
+	struct stat sb;
 	size_t strtabidx;
 	Elf_Scn *strtabscn;
 	int error, fd, tfd, result;
@@ -902,6 +904,12 @@ tcRdwrIdempotent$2$1(void)
 
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, tfd, goto done;);
+
+	if (fstat(tfd, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
 
 	/* Retrieve the index of the section name string table. */
 	if (elf_getshdrstrndx(e, &strtabidx) != 0) {
@@ -933,8 +941,14 @@ tcRdwrIdempotent$2$1(void)
 	}
 
 	/* Update the underlying ELF object. */
-	if (elf_update(e, ELF_C_WRITE) < 0) {
+	if ((fsz = elf_update(e, ELF_C_WRITE)) < 0) {
 		TP_UNRESOLVED("elf_update() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz);
 		goto done;
 	}
 
@@ -1166,6 +1180,7 @@ define(`FN',`
 void
 tcRdWrModeNoOp_$1$2(void)
 {
+	struct stat sb;
 	int error, fd, result;
 	Elf *e;
 	Elf$1_Ehdr *eh;
@@ -1193,6 +1208,12 @@ tcRdWrModeNoOp_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
+	if (fstat(fd, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
+
 	if ((eh = elf$1_getehdr(e)) == NULL) {
 		TP_UNRESOLVED("elf$1_getehdr() failed: \"%s\".",
 		    elf_errmsg(-1));
@@ -1202,6 +1223,12 @@ tcRdWrModeNoOp_$1$2(void)
 	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
 		TP_FAIL("elf_update(NULL) failed: \"%s\".",
 		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz1);
 		goto done;
 	}
 
@@ -1260,6 +1287,7 @@ tcRdWrModeNoDataChange_$1$2(void)
 	Elf_Scn *scn;
 	const char *srcfile = "rdwr.$2$1";
 	off_t fsz1, fsz2;
+	struct stat sb;
 	char *tfn;
 
 	TP_CHECK_INITIALIZATION();
@@ -1282,6 +1310,12 @@ tcRdWrModeNoDataChange_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
+	if (fstat(fd, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
+
 	if ((scn = elf_getscn(e, 1)) == NULL) {
 		TP_UNRESOLVED("elf_getscn() failed: \"%s\".",
 		    elf_errmsg(-1));
@@ -1297,6 +1331,12 @@ tcRdWrModeNoDataChange_$1$2(void)
 	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
 		TP_FAIL("elf_update(NULL) failed: \"%s\".",
 		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz1);
 		goto done;
 	}
 
@@ -1352,6 +1392,7 @@ tcRdWrModeEhdrChange_$1$2(void)
 {
 	int error, fd, result;
 	unsigned int flag;
+	struct stat sb;
 	Elf *e;
 	Elf$1_Ehdr *eh;
 	const char *srcfile = "rdwr.$2$1";
@@ -1379,6 +1420,12 @@ tcRdWrModeEhdrChange_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
+	if (fstat(fd, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
+
 	if ((eh = elf$1_getehdr(e)) == NULL) {
 		TP_UNRESOLVED("elf_getscn() failed: \"%s\".",
 		    elf_errmsg(-1));
@@ -1398,6 +1445,12 @@ tcRdWrModeEhdrChange_$1$2(void)
 	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
 		TP_FAIL("elf_update(NULL) failed: \"%s\".",
 		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz1);
 		goto done;
 	}
 
@@ -1456,6 +1509,7 @@ tcRdWrExtendSection_$1$2(void)
 {
 	int error, fd, result;
 	unsigned int flag;
+	struct stat sb;
 	Elf *e;
 	Elf_Scn *scn;
 	Elf_Data *d;
@@ -1484,6 +1538,12 @@ tcRdWrExtendSection_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
+	if (stat(reffile, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
+
 	/* Retrieve section 1 and extend it. */
 
 	if ((scn = elf_getscn(e, 1)) == NULL) {
@@ -1510,6 +1570,12 @@ tcRdWrExtendSection_$1$2(void)
 	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
 		TP_FAIL("elf_update(NULL) failed: \"%s\".",
 		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz1);
 		goto done;
 	}
 
@@ -1565,6 +1631,7 @@ tcRdWrShrinkSection_$1$2(void)
 {
 	int error, fd, result;
 	unsigned int flag;
+	struct stat sb;
 	Elf *e;
 	Elf_Scn *scn;
 	Elf_Data *d;
@@ -1593,7 +1660,13 @@ tcRdWrShrinkSection_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
-	/* Retrieve section 1 and extend it. */
+	if (fstat(fd, &sb) < 0) {
+		TP_UNRESOLVED("fstat() failed: \"%s\".",
+		    strerror(errno));
+		goto done;
+	}
+
+	/* Retrieve section 1 and shrink it. */
 
 	if ((scn = elf_getscn(e, 1)) == NULL) {
 		TP_UNRESOLVED("elf_getscn() failed: \"%s\".",
@@ -1609,6 +1682,12 @@ tcRdWrShrinkSection_$1$2(void)
 
 	d->d_size = strlen(base_data);
 
+	if (elf_flagdata(d, ELF_C_SET, ELF_F_DIRTY) != ELF_F_DIRTY) {
+		TP_UNRESOLVED("elf_flagdata() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
 	if (elf_flagscn(scn, ELF_C_SET, ELF_F_DIRTY) != ELF_F_DIRTY) {
 		TP_UNRESOLVED("elf_flagscn() failed: \"%s\".",
 		    elf_errmsg(-1));
@@ -1618,6 +1697,12 @@ tcRdWrShrinkSection_$1$2(void)
 	if ((fsz1 = elf_update(e, ELF_C_NULL)) < 0) {
 		TP_FAIL("elf_update(NULL) failed: \"%s\".",
 		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if (fsz1 != sb.st_size) {
+		TP_FAIL("Size error: expected=%d, elf_update()=%d",
+		    sb.st_size, fsz1);
 		goto done;
 	}
 
