@@ -1826,7 +1826,7 @@ tcShdrPhdrCollision$1$2(void)
 	}
 
 	if ((error = elf_errno()) != ELF_E_LAYOUT) {
-		TP_FAIL("elf_update() did not fail with ELF_E_$5; "
+		TP_FAIL("elf_update() did not fail with ELF_E_LAYOUT; "
 		    "error=%d \"%s\".", error, elf_errmsg(error));
 		goto done;
 	}
@@ -1930,7 +1930,7 @@ tcShdrSectionCollision$1$2(void)
 	}
 
 	if ((error = elf_errno()) != ELF_E_LAYOUT) {
-		TP_FAIL("elf_update() did not fail with ELF_E_$5; "
+		TP_FAIL("elf_update() did not fail with ELF_E_LAYOUT; "
 		    "error=%d \"%s\".", error, elf_errmsg(error));
 		goto done;
 	}
