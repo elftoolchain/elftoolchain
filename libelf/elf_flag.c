@@ -64,17 +64,16 @@ elf_flagdata(Elf_Data *d, Elf_Cmd c, unsigned int flags)
 	if (d == NULL)
 		return (0);
 
-	if ((c != ELF_C_SET && c != ELF_C_CLR) || (scn = d->d_scn) == NULL ||
-	    (e = scn->s_elf) == NULL || e->e_kind != ELF_K_ELF ||
+	if ((c != ELF_C_SET && c != ELF_C_CLR) ||
 	    (flags & ~ELF_F_DIRTY) != 0) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (0);
 	}
 
 	if (c == ELF_C_SET)
-	    r = scn->s_flags |= flags;
+		r = d->d_flags |= flags;
 	else
-	    r = scn->s_flags &= ~flags;
+		r = d->d_flags &= ~flags;
 
 	return (r);
 }
