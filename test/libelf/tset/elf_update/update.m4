@@ -42,6 +42,7 @@
 #include "tet_api.h"
 
 include(`elfts.m4')
+define(`TS_OFFSET_SHDR',512)
 
 /*
  * Tests for the `elf_update' API.
@@ -861,9 +862,6 @@ MKFN(UnsupportedVersion, `d->d_version = EV_CURRENT+1;', VERSION,
 MKFN(UnknownElfType, `d->d_type = ELF_T_NUM;', DATA, "an unknown type")
 MKFN(IllegalSize, `d->d_size = 1;', DATA, "an illegal size")
 
-
-/* TODO: check that overlapping sections are rejected */
-/* TODO: check that non-overlapping sections are permitted */
 
 /*
  * Ensure that updating the section header on an ELF object opened
@@ -2008,6 +2006,152 @@ tcShdrSectionCollision$1$2(void)
 
 	/* Make this section overlap with the section header. */
 	sh->sh_offset = fsz;
+
+	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
+		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
+		    (intmax_t) offset);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_LAYOUT) {
+		TP_FAIL("elf_update() did not fail with ELF_E_LAYOUT; "
+		    "error=%d \"%s\".", error, elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	(void) unlink(TS_NEWFILE);
+
+	tet_result(result);
+}
+')
+
+FN(32,`lsb')
+FN(32,`msb')
+FN(64,`lsb')
+FN(64,`msb')
+
+/*
+ * Check that overlapping sections are rejected when ELF_F_LAYOUT is set.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcSectionOverlap$1$2(void)
+{
+	int error, fd, result, flags;
+	off_t offset;
+	size_t fsz, psz, roundup, ssz;
+	Elf$1_Ehdr *eh;
+	Elf$1_Shdr *sh;
+	Elf_Data *d;
+	Elf_Scn *scn;
+	Elf *e;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TOUPPER($2)$1: an overlap between two sections is "
+	    "detected.");
+
+	result = TET_UNRESOLVED;
+	fd = -1;
+	e = NULL;
+
+	_TS_OPEN_FILE(e, TS_NEWFILE, ELF_C_WRITE, fd, goto done;);
+
+	flags = elf_flagelf(e, ELF_C_SET, ELF_F_LAYOUT);
+	if ((flags & ELF_F_LAYOUT) == 0) {
+		TP_UNRESOLVED("elf_flagelf() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf$1_newehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_newehdr() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Fill in sane values for the Ehdr. */
+	eh->e_type = ET_REL;
+	eh->e_ident[EI_CLASS] = ELFCLASS`'$1;
+	eh->e_ident[EI_DATA] = ELFDATA2`'TOUPPER($2);
+	eh->e_shoff = TS_OFFSET_SHDR;
+
+	if ((fsz = elf$1_fsize(ELF_T_EHDR, 1, EV_CURRENT)) == 0) {
+		TP_UNRESOLVED("fsize() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	/*
+	 * Build the first section.
+	 */
+
+	if ((scn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("elf_newscn() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((sh = elf$1_getshdr(scn)) == NULL) {
+		TP_UNRESOLVED("elf$1_getshdr() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((d = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	d->d_type = ELF_T_BYTE;
+	d->d_off = 0;
+	d->d_buf = base_data;
+	d->d_size = strlen(base_data);
+
+	/* Fill in application-specified fields. */
+	sh->sh_type = SHT_PROGBITS;
+	sh->sh_addralign = 1;
+	sh->sh_size = 1;
+	sh->sh_entsize = 1;
+	sh->sh_offset = fsz;
+
+	/*
+	 * Build the second section.
+	 */
+
+	if ((scn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("elf_newscn() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((sh = elf$1_getshdr(scn)) == NULL) {
+		TP_UNRESOLVED("elf$1_getshdr() failed: %s.", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((d = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("elf_newdata() failed: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	d->d_buf = base_data;
+	d->d_size = strlen(base_data);
+
+	/* Fill in application-specified fields. */
+	sh->sh_type = SHT_PROGBITS;
+	sh->sh_addralign = 1;
+	sh->sh_size = 1;
+	sh->sh_entsize = 1;
+
+	sh->sh_offset = fsz + 1; /* Overlap with the first section. */
 
 	if ((offset = elf_update(e, ELF_C_NULL)) != (off_t) -1) {
 		TP_FAIL("elf_update() succeeded unexpectedly; offset=%jd.",
