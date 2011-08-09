@@ -866,7 +866,7 @@ MKFN(IllegalSize, `d->d_size = 1;', DATA, "an illegal size")
 /* TODO: check that non-overlapping sections are permitted */
 
 /*
- * Ensure that updating a section header on an ELF object opened
+ * Ensure that updating the section header on an ELF object opened
  * in ELF_C_RDWR mode in an idempotent manner leaves the object
  * in a sane state.  See ticket #269.
  */
@@ -874,7 +874,7 @@ MKFN(IllegalSize, `d->d_size = 1;', DATA, "an illegal size")
 undefine(`FN')
 define(`FN',`
 void
-tcRdwrIdempotent$2$1(void)
+tcRdWrShdrIdempotent$2$1(void)
 {
 	Elf *e;
 	off_t fsz;
@@ -884,6 +884,7 @@ tcRdwrIdempotent$2$1(void)
 	int error, fd, tfd, result;
 	GElf_Shdr strtabshdr;
 	char *srcfile = "newscn.$2$1", *tfn;
+	char *reffile = "newscn2.$2$1";
 
 	TP_CHECK_INITIALIZATION();
 
@@ -905,7 +906,7 @@ tcRdwrIdempotent$2$1(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, tfd, goto done;);
 
-	if (fstat(tfd, &sb) < 0) {
+	if (stat(reffile, &sb) < 0) {
 		TP_UNRESOLVED("fstat() failed: \"%s\".",
 		    strerror(errno));
 		goto done;
@@ -960,7 +961,7 @@ tcRdwrIdempotent$2$1(void)
 
 	e = NULL;
 	/* Compare against the original. */
-	result = elfts_compare_files(srcfile, tfn);
+	result = elfts_compare_files(reffile, tfn);
 
  done:
 	if (e)
