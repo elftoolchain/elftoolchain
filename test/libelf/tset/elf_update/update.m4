@@ -281,7 +281,7 @@ tcClassMismatch$1$2(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("TOUPPER($2)$1: class-mismatch is detected.");
+	TP_ANNOUNCE("TOUPPER($2)$1: a class-mismatch is detected.");
 
 	result = TET_UNRESOLVED;
 	e = NULL;
@@ -886,8 +886,8 @@ tcRdWrShdrIdempotent$2$1(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("TOUPPER($2)$1: no-op update of section headers "
-	    "works as expected");
+	TP_ANNOUNCE("TOUPPER($2)$1: (liblayout) a no-op update of section "
+	    "headers works as expected");
 
 	result = TET_UNRESOLVED;
 	e = NULL;
@@ -1856,7 +1856,7 @@ tcShdrPhdrCollision$1$2(void)
 
 	TP_CHECK_INITIALIZATION();
 
-	TP_ANNOUNCE("TOUPPER($2)$1: an overlap of the ehdr and phdr is "
+	TP_ANNOUNCE("TOUPPER($2)$1: an overlap of the shdr and phdr is "
 	    "detected.");
 
 	result = TET_UNRESOLVED;
