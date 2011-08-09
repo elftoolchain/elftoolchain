@@ -2002,7 +2002,7 @@ tcShdrSectionCollision$1$2(void)
 	sh->sh_type = SHT_PROGBITS;
 	sh->sh_addralign = 1;
 	sh->sh_size = 1;
-	sh->sh_entsize;
+	sh->sh_entsize = 1;
 
 	/* Make this section overlap with the section header. */
 	sh->sh_offset = fsz;
