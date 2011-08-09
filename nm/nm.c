@@ -1091,11 +1091,10 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 			continue;
 		}
 		ret = dwarf_srclines(die, &lbuf, &lcount, &de);
-		if (ret != DW_DLV_OK) {
-			if (ret == DW_DLV_ERROR)
-				warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+		if (ret != DW_DLV_OK)
 			continue;
-		}
 		for (i = 0; i < lcount; i++) {
 			if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
 				warnx("dwarf_lineaddr: %s", dwarf_errmsg(de));
