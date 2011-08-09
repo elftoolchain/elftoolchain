@@ -1659,7 +1659,7 @@ tcRdWrShrinkSection_$1$2(void)
 	/* Open the copied object in RDWR mode. */
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
-	if (fstat(fd, &sb) < 0) {
+	if (stat(reffile, &sb) < 0) {
 		TP_UNRESOLVED("fstat() failed: \"%s\".",
 		    strerror(errno));
 		goto done;
