@@ -57,8 +57,6 @@ elf_flagarhdr(Elf_Arhdr *a, Elf_Cmd c, unsigned int flags)
 unsigned int
 elf_flagdata(Elf_Data *d, Elf_Cmd c, unsigned int flags)
 {
-	Elf *e;
-	Elf_Scn *scn;
 	unsigned int r;
 
 	if (d == NULL)
