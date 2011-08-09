@@ -74,6 +74,7 @@ extern struct _libelf_globals _libelf;
 #define	LIBELF_F_SHDRS_LOADED	0x040000 /* whether all shdrs were read in */
 #define	LIBELF_F_AR_VARIANT_SVR4 0x080000 /* BSD style ar(1) archive */
 #define	LIBELF_F_AR_HEADER	0x100000  /* translated header available */
+#define	LIBELF_F_MASK		0x00FFFF  /* Flags defined by the API. */
 
 struct _Elf {
 	int		e_activations;	/* activation count */

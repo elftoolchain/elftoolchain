@@ -51,7 +51,7 @@ elf_flagarhdr(Elf_Arhdr *a, Elf_Cmd c, unsigned int flags)
 	else
 		r = a->ar_flags &= ~flags;
 
-	return (r);
+	return (r & LIBELF_F_MASK);
 }
 
 unsigned int
@@ -75,7 +75,7 @@ elf_flagdata(Elf_Data *d, Elf_Cmd c, unsigned int flags)
 	else
 		r = d->d_flags &= ~flags;
 
-	return (r);
+	return (r & LIBELF_F_MASK);
 }
 
 unsigned int
@@ -137,7 +137,7 @@ elf_flagelf(Elf *e, Elf_Cmd c, unsigned int flags)
 		r = e->e_flags |= flags;
 	else
 		r = e->e_flags &= ~flags;
-	return (r);
+	return (r & LIBELF_F_MASK);
 }
 
 unsigned int
@@ -187,7 +187,7 @@ elf_flagscn(Elf_Scn *s, Elf_Cmd c, unsigned int flags)
 		r = s->s_flags |= flags;
 	else
 		r = s->s_flags &= ~flags;
-	return (r);
+	return (r & LIBELF_F_MASK);
 }
 
 unsigned int
