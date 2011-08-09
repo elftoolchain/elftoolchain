@@ -6,7 +6,7 @@ YAML_FILES=	check_elf \
 		getclass \
 		ehdr \
 		fsize \
-		newehdr newscn \
+		newehdr newscn newscn2 \
 		phdr \
 		rdwr rdwr1 rdwr2 \
 		shdr \
