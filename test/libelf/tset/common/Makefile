@@ -11,6 +11,7 @@ YAML_FILES=	check_elf \
 		rdwr rdwr1 rdwr2 \
 		shdr \
 		u1 \
+		versioning \
 		xlate xscn-1 xscn-2 xscn-3 \
 		zerosection
 
