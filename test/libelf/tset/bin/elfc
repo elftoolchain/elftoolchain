@@ -356,7 +356,30 @@ defaults = {
 	'sh_name': '0',
 	'sh_offset': None,
 	'sh_size': None,
-	'sh_type': 'SHT_NULL'
+	'sh_type': 'SHT_NULL',
+	# Verdaux
+	'vda_name': 0,
+	'vda_next': 0,
+	# Verdef
+	'vd_version': 1,
+	'vd_flags': 0,
+	'vd_ndx': 0,
+	'vd_cnt': 0,
+	'vd_hash': 0,
+	'vd_aux': 0,
+	'vd_next': 0,
+	# Vernaux
+	'vna_hash': 0,
+	'vna_flags': 0,
+	'vna_other': 0,
+	'vna_name': 0,
+	'vna_next': 0,
+	# Verneed
+	'vn_version': 1,
+	'vn_cnt': 0,
+	'vn_file': 0,
+	'vn_aux': 0,
+	'vn_next': 0
 }
 
 #
@@ -1513,9 +1536,9 @@ yaml_tags = [
 	(u'!Section', ElfSection),
 	(u'!Sym', ElfSym),
 	(u'!Syminfo', ElfSyminfo),
-	(u'!Verdaux', ElfVerdef),
+	(u'!Verdaux', ElfVerdaux),
 	(u'!Verdef', ElfVerdef),
-	(u'!Vernaux', ElfVerneed),
+	(u'!Vernaux', ElfVernaux),
 	(u'!Verneed', ElfVerneed) ]
 
 def init_parser():
