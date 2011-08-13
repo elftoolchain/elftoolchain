@@ -96,6 +96,27 @@ struct line_info_entry {
 };
 SLIST_HEAD(line_info_head, line_info_entry);
 
+/* List for function line number information. */
+struct func_info_entry {
+	char		*name;	/* function name */
+	char		*file;	/* file name with path */
+	uint64_t	lowpc;	/* low address */
+	uint64_t	highpc;	/* high address */
+	uint64_t	line;	/* line number */
+	SLIST_ENTRY(func_info_entry) entries;
+};
+SLIST_HEAD(func_info_head, func_info_entry);
+
+/* List for variable line number information. */
+struct var_info_entry {
+	char		*name;	/* variable name */
+	char		*file;	/* file name with path */
+	uint64_t	addr;	/* address */
+	uint64_t	line;	/* line number */
+	SLIST_ENTRY(var_info_entry) entries;
+};
+SLIST_HEAD(var_info_head, var_info_entry);
+
 /* output numric type */
 enum radix {
 	RADIX_DEFAULT, RADIX_OCT, RADIX_HEX, RADIX_DEC
@@ -192,7 +213,6 @@ static void		print_version(void);
 static int		read_elf(Elf *, const char *, Elf_Kind);
 static int		read_object(const char *);
 static int		read_files(int, char **);
-static struct line_info_entry	*search_addr(struct line_info_head *, GElf_Sym *);
 static void		set_opt_value_print_fn(enum radix);
 static int		sym_elem_def(char, const GElf_Sym *, const char *);
 static int		sym_elem_global(char, const GElf_Sym *, const char *);
@@ -212,9 +232,11 @@ static void		sym_list_dest(struct sym_head *);
 static int		sym_list_insert(struct sym_head *, const char *,
 			    const GElf_Sym *);
 static void		sym_list_print(struct sym_print_data *,
+			    struct func_info_head *, struct var_info_head *,
 			    struct line_info_head *);
 static void		sym_list_print_each(struct sym_entry *,
-			    struct sym_print_data *, struct line_info_head *);
+			    struct sym_print_data *, struct func_info_head *,
+			    struct var_info_head *, struct line_info_head *);
 static struct sym_entry	*sym_list_sort(struct sym_print_data *);
 static int		sym_section_filter(const GElf_Shdr *);
 static void		sym_size_oct_print(const GElf_Sym *);
@@ -907,6 +929,169 @@ sym_section_filter(const GElf_Shdr *shdr)
 	return (0);
 }
 
+static uint64_t
+get_block_value(Dwarf_Debug dbg, Dwarf_Block *block)
+{
+	Elf *elf;
+	GElf_Ehdr eh;
+	Dwarf_Error de;
+
+	if (dwarf_get_elf(dbg, &elf, &de) != DW_DLV_OK) {
+		warnx("dwarf_get_elf failed: %s", dwarf_errmsg(de));
+		return (0);
+	}
+
+	if (gelf_getehdr(elf, &eh) != &eh) {
+		warnx("gelf_getehdr failed: %s", elf_errmsg(-1));
+		return (0);
+	}
+
+	if (block->bl_len == 5) {
+		if (eh.e_ident[EI_DATA] == ELFDATA2LSB)
+			return (le32dec((uint8_t *) block->bl_data + 1));
+		else
+			return (be32dec((uint8_t *) block->bl_data + 1));
+	} else if (block->bl_len == 9) {
+		if (eh.e_ident[EI_DATA] == ELFDATA2LSB)
+			return (le64dec((uint8_t *) block->bl_data + 1));
+		else
+			return (be64dec((uint8_t *) block->bl_data + 1));
+	}
+
+	return (0);
+}
+
+static void
+search_line_attr(Dwarf_Debug dbg, struct func_info_head *func_info,
+    struct var_info_head *var_info, Dwarf_Die die, char **src_files,
+    Dwarf_Signed filecount)
+{
+	Dwarf_Attribute at;
+	Dwarf_Unsigned udata;
+	Dwarf_Half tag;
+	Dwarf_Block *block;
+	Dwarf_Bool flag;
+	Dwarf_Die ret_die;
+	Dwarf_Error de;
+	struct func_info_entry *func;
+	struct var_info_entry *var;
+	const char *str;
+	int ret;
+
+	if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+		warnx("dwarf_tag failed: %s", dwarf_errmsg(de));
+		goto cont_search;
+	}
+
+	/* We're interested in DIEs which define functions or variables. */
+	if (tag != DW_TAG_subprogram && tag != DW_TAG_entry_point &&
+	    tag != DW_TAG_inlined_subroutine && tag != DW_TAG_variable)
+		goto cont_search;
+
+	if (tag == DW_TAG_variable) {
+
+		/* Ignore "artificial" variable. */
+		if (dwarf_attrval_flag(die, DW_AT_artificial, &flag, &de) ==
+		    DW_DLV_OK && flag)
+			goto cont_search;
+
+		/* Ignore pure declaration. */
+		if (dwarf_attrval_flag(die, DW_AT_declaration, &flag, &de) ==
+		    DW_DLV_OK && flag)
+			goto cont_search;
+
+		/* Ignore stack varaibles. */
+		if (dwarf_attrval_flag(die, DW_AT_external, &flag, &de) !=
+		    DW_DLV_OK || !flag)
+			goto cont_search;
+
+		if ((var = calloc(1, sizeof(*var))) == NULL) {
+			warn("calloc failed");
+			goto cont_search;
+		}
+
+		if (dwarf_attrval_unsigned(die, DW_AT_decl_file, &udata,
+		    &de) == DW_DLV_OK && udata > 0 &&
+		    (Dwarf_Signed) (udata - 1) < filecount)
+			var->file = strdup(src_files[udata - 1]);
+
+		if (dwarf_attrval_unsigned(die, DW_AT_decl_line, &udata, &de) ==
+		    DW_DLV_OK)
+			var->line = udata;
+
+		if (dwarf_attrval_string(die, DW_AT_name, &str, &de) ==
+		    DW_DLV_OK)
+			var->name = strdup(str);
+
+		if (dwarf_attr(die, DW_AT_location, &at, &de) == DW_DLV_OK &&
+		    dwarf_formblock(at, &block, &de) == DW_DLV_OK) {
+			/*
+			 * Since we ignored stack variables, the rest are the
+			 * external varaibles which should always use DW_OP_addr
+			 * operator for DW_AT_location value.
+			 */
+			if (*((uint8_t *)block->bl_data) == DW_OP_addr)
+				var->addr = get_block_value(dbg, block);
+		}
+
+		SLIST_INSERT_HEAD(var_info, var, entries);
+
+	} else {
+
+		if ((func = calloc(1, sizeof(*func))) == NULL) {
+			warn("calloc failed");
+			goto cont_search;
+		}
+
+		/*
+		 * Note that dwarf_attrval_unsigned() handles DW_AT_abstract_origin
+		 * internally, so it can retrieve DW_AT_decl_file/DW_AT_decl_line
+		 * attributes for inlined functions as well.
+		 */
+		if (dwarf_attrval_unsigned(die, DW_AT_decl_file, &udata,
+		    &de) == DW_DLV_OK && udata > 0 &&
+		    (Dwarf_Signed) udata < filecount)
+			func->file = strdup(src_files[udata - 1]);
+
+		if (dwarf_attrval_unsigned(die, DW_AT_decl_line, &udata, &de) ==
+		    DW_DLV_OK)
+			func->line = udata;
+
+		if (dwarf_attrval_string(die, DW_AT_name, &str, &de) ==
+		    DW_DLV_OK)
+			func->name = strdup(str);
+
+		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &udata, &de) ==
+		    DW_DLV_OK)
+			func->lowpc = udata;
+		if (dwarf_attrval_unsigned(die, DW_AT_high_pc, &udata, &de) ==
+		    DW_DLV_OK)
+			func->highpc = udata;
+
+		SLIST_INSERT_HEAD(func_info, func, entries);
+	}
+
+cont_search:
+
+	/* Search children. */
+	ret = dwarf_child(die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_child: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		search_line_attr(dbg, func_info, var_info, ret_die, src_files,
+		    filecount);
+
+	/* Search sibling. */
+	ret = dwarf_siblingof(dbg, die, &ret_die, &de);
+	if (ret == DW_DLV_ERROR)
+		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK)
+		search_line_attr(dbg, func_info, var_info, ret_die, src_files,
+		    filecount);
+
+	dwarf_dealloc(dbg, die, DW_DLA_DIE);
+}
+
 /*
  * Read elf file and collect symbol information, sort them, print.
  * Return 1 at failed, 0 at success.
@@ -916,23 +1101,27 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 {
 	Dwarf_Debug dbg;
 	Dwarf_Die die;
-	Dwarf_Line *lbuf;
 	Dwarf_Error de;
 	Dwarf_Half tag;
-	Dwarf_Unsigned lineno;
-	Dwarf_Signed lcount;
-	Dwarf_Addr lineaddr;
 	Elf_Data *dynstr_data, *strtab_data;
 	Elf_Arhdr *arhdr;
 	Elf_Scn *scn;
 	GElf_Shdr shdr;
 	GElf_Half i;
+	Dwarf_Line *lbuf;
+	Dwarf_Unsigned lineno;
+	Dwarf_Signed lcount, filecount;
+	Dwarf_Addr lineaddr;
 	struct sym_print_data p_data;
 	struct sym_head list_head;
 	struct line_info_head *line_info;
+	struct func_info_head *func_info;
+	struct var_info_head *var_info;
 	struct line_info_entry *lie;
+	struct func_info_entry *func;
+	struct var_info_entry *var;
 	const char *shname, *objname;
-	char *type_table, **sec_table, *sfile;
+	char *type_table, **sec_table, *sfile, **src_files;
 	size_t strndx, shnum;
 	int ret, rtn, e_err;
 
@@ -948,6 +1137,8 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	type_table = NULL;
 	sec_table = NULL;
 	line_info = NULL;
+	func_info = NULL;
+	var_info = NULL;
 	objname = NULL;
 	rtn = 0;
 
@@ -1065,13 +1256,19 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	}
 
 	line_info = malloc(sizeof(struct line_info_head));
-	if (line_info == NULL) {
+	func_info = malloc(sizeof(struct func_info_head));
+	var_info = malloc(sizeof(struct var_info_head));
+	if (line_info == NULL || func_info == NULL || var_info == NULL) {
 		warn("malloc failed");
 		(void) dwarf_finish(dbg, &de);
 		goto process_sym;
 	}
 	SLIST_HINIT_AFTER(line_info);
 	SLIST_INIT(line_info);
+	SLIST_HINIT_AFTER(func_info);
+	SLIST_INIT(func_info);
+	SLIST_HINIT_AFTER(var_info);
+	SLIST_INIT(var_info);
 
 	while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
 	    &de)) ==  DW_DLV_OK) {
@@ -1090,12 +1287,24 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 			warnx("could not find DW_TAG_compile_unit die");
 			continue;
 		}
-		ret = dwarf_srclines(die, &lbuf, &lcount, &de);
+
+		/* Retrieve source file list. */
+		ret = dwarf_srcfiles(die, &src_files, &filecount, &de);
 		if (ret == DW_DLV_ERROR)
 			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
 		if (ret != DW_DLV_OK)
 			continue;
-		for (i = 0; i < lcount; i++) {
+
+		/*
+		 * Retrieve line number information from .debug_line section.
+		 */
+
+		ret = dwarf_srclines(die, &lbuf, &lcount, &de);
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+		if (ret != DW_DLV_OK)
+			goto line_attr;
+		for (i = 0; (Dwarf_Signed) i < lcount; i++) {
 			if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
 				warnx("dwarf_lineaddr: %s", dwarf_errmsg(de));
 				continue;
@@ -1119,6 +1328,10 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 				warn("strdup failed");
 			SLIST_INSERT_HEAD(line_info, lie, entries);
 		}
+
+	line_attr:
+		/* Retrieve line number information from DIEs. */
+		search_line_attr(dbg, func_info, var_info, die, src_files, filecount);
 	}
 
 	(void) dwarf_finish(dbg, &de);
@@ -1138,18 +1351,38 @@ process_sym:
 	p_data.filename = filename;
 	p_data.objname = objname;
 
-	sym_list_print(&p_data, line_info);
+	sym_list_print(&p_data, func_info, var_info, line_info);
 
 next_cmd:
-	if (nm_opts.debug_line && line_info != NULL) {
-		while (!SLIST_EMPTY(line_info)) {
-			lie = SLIST_FIRST(line_info);
-			SLIST_REMOVE_HEAD(line_info, entries);
-			free(lie->file);
-			free(lie);
+	if (nm_opts.debug_line) {
+		if (func_info != NULL) {
+			while (!SLIST_EMPTY(func_info)) {
+				func = SLIST_FIRST(func_info);
+				SLIST_REMOVE_HEAD(func_info, entries);
+				free(func->file);
+				free(func->name);
+				free(func);
+			}
 		}
-		free(line_info);
-		line_info = NULL;
+		if (var_info != NULL) {
+			while (!SLIST_EMPTY(var_info)) {
+				var = SLIST_FIRST(var_info);
+				SLIST_REMOVE_HEAD(var_info, entries);
+				free(var->file);
+				free(var->name);
+				free(var);
+			}
+		}
+		if (line_info != NULL) {
+			while (!SLIST_EMPTY(line_info)) {
+				lie = SLIST_FIRST(line_info);
+				SLIST_REMOVE_HEAD(line_info, entries);
+				free(lie->file);
+				free(lie);
+			}
+			free(line_info);
+			line_info = NULL;
+		}
 	}
 
 	if (sec_table != NULL)
@@ -1250,20 +1483,46 @@ read_files(int argc, char **argv)
 	return (rtn);
 }
 
-static struct line_info_entry *
-search_addr(struct line_info_head *l, GElf_Sym *g)
+static void
+print_lineno(struct sym_entry *ep, struct func_info_head *func_info,
+    struct var_info_head *var_info, struct line_info_head *line_info)
 {
-	struct line_info_entry *ep;
+	struct func_info_entry *func;
+	struct var_info_entry *var;
+	struct line_info_entry *lie;
 
-	if (l == NULL || g == NULL)
-		return (NULL);
-
-	SLIST_FOREACH(ep, l, entries) {
-		if (ep->addr == g->st_value)
-			return (ep);
+	/* For function symbol, search the function line information list.  */
+	if ((ep->sym->st_info & 0xf) == STT_FUNC && func_info != NULL) {
+		SLIST_FOREACH(func, func_info, entries) {
+			if (!strcmp(ep->name, func->name) &&
+			    ep->sym->st_value >= func->lowpc &&
+			    ep->sym->st_value < func->highpc) {
+				printf("\t%s:%" PRIu64, func->file, func->line);
+				return;
+			}
+		}
 	}
 
-	return (NULL);
+	/* For variable symbol, search the variable line information list.  */
+	if ((ep->sym->st_info & 0xf) == STT_OBJECT && var_info != NULL) {
+		SLIST_FOREACH(var, var_info, entries) {
+			if (!strcmp(ep->name, var->name) &&
+			    ep->sym->st_value == var->addr) {
+				printf("\t%s:%" PRIu64, var->file, var->line);
+				return;
+			}
+		}
+	}
+
+	/* Otherwise search line number information the .debug_line section. */
+	if (line_info != NULL) {
+		SLIST_FOREACH(lie, line_info, entries) {
+			if (ep->sym->st_value == lie->addr) {
+				printf("\t%s:%" PRIu64, lie->file, lie->line);
+				return;
+			}
+		}
+	}
 }
 
 static void
@@ -1554,7 +1813,8 @@ sym_list_insert(struct sym_head *headp, const char *name, const GElf_Sym *sym)
 
 /* If file has not .debug_info, line_info will be NULL */
 static void
-sym_list_print(struct sym_print_data *p, struct line_info_head *line_info)
+sym_list_print(struct sym_print_data *p, struct func_info_head *func_info,
+    struct var_info_head *var_info, struct line_info_head *line_info)
 {
 	struct sym_entry *e_v;
 	size_t si;
@@ -1566,10 +1826,12 @@ sym_list_print(struct sym_print_data *p, struct line_info_head *line_info)
 		return;
 	if (nm_opts.sort_reverse == false)
 		for (si = 0; si != p->list_num; ++si)
-			sym_list_print_each(&e_v[si], p, line_info);
+			sym_list_print_each(&e_v[si], p, func_info, var_info,
+			    line_info);
 	else
 		for (i = p->list_num - 1; i != -1; --i)
-			sym_list_print_each(&e_v[i], p, line_info);
+			sym_list_print_each(&e_v[i], p, func_info, var_info,
+			    line_info);
 
 	free(e_v);
 }
@@ -1577,9 +1839,9 @@ sym_list_print(struct sym_print_data *p, struct line_info_head *line_info)
 /* If file has not .debug_info, line_info will be NULL */
 static void
 sym_list_print_each(struct sym_entry *ep, struct sym_print_data *p,
+    struct func_info_head *func_info, struct var_info_head *var_info,
     struct line_info_head *line_info)
 {
-	struct line_info_entry *lep;
 	const char *sec;
 	char type;
 
@@ -1643,11 +1905,8 @@ sym_list_print_each(struct sym_entry *ep, struct sym_print_data *p,
 
 	nm_opts.elem_print_fn(type, sec, ep->sym, ep->name);
 
-	if (nm_opts.debug_line == true && line_info != NULL &&
-	    !IS_UNDEF_SYM_TYPE(type)) {
-		if ((lep = search_addr(line_info, ep->sym)) != NULL)
-			printf("\t%s:%" PRIu64, lep->file, lep->line);
-	}
+	if (nm_opts.debug_line == true && !IS_UNDEF_SYM_TYPE(type))
+		print_lineno(ep, func_info, var_info, line_info);
 
 	printf("\n");
 }
