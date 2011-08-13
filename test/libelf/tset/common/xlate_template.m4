@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2010 Joseph Koshy
+ * Copyright (c) 2006,2010-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,38 +71,45 @@ define(`DO',`pushdef(`__SZ__',$1)$2`'popdef(`__SZ__')')
 /*
  * ELF_TYPE_LIST((TYPE, VERSION)...)
  *
- * Associates each Elf Type with the FreeBSD version where it is guaranteed
- * to be present and with a `C Name'.
+ * Lists all ELF types for which macro expansion is desired and associates
+ * each such type with its `C Name'.
+ *
+ * Note that the following ELF types with variable sized `file'/memory
+ * representations need to be handled specially and are not part of
+ * this list:
+ * - ELF_T_BYTE
+ * - ELF_T_GNUHASH
+ * - ELF_T_NOTE
+ * - ELF_T_VDEF
+ * - ELF_T_VNEED
  */
 define(`ELF_COMMON_TYPES',
-  ``ADDR,	Addr,		600102',
-   `CAP,	Cap,		700025',
-   `DYN,	Dyn,		600102',
-   `EHDR,	Ehdr,		600102',
-   `HALF,	Half,		600102',
-   `LWORD,	Lword,		700025',
-   `MOVE,	Move,		700025',
-   `OFF,	Off,		600102',
-   `PHDR,	Phdr,		600102',
-   `REL,	Rel,		600102',
-   `RELA,	Rela,		600102',
-   `SHDR,	Shdr,		600102',
-   `SWORD,	Sword,		600102',
-   `SYM,	Sym,		600102',
-   `SYMINFO,	Syminfo,	700025',
-   `VDEF,	Verdef,		700009',
-   `VNEED,	Verneed,	700009',
-   `WORD,	Word,		600102'')
+  ``ADDR,	Addr',
+   `CAP,	Cap',
+   `DYN,	Dyn',
+   `EHDR,	Ehdr',
+   `HALF,	Half',
+   `LWORD,	Lword',
+   `MOVE,	Move',
+   `OFF,	Off',
+   `PHDR,	Phdr',
+   `REL,	Rel',
+   `RELA,	Rela',
+   `SHDR,	Shdr',
+   `SWORD,	Sword',
+   `SYM,	Sym',
+   `SYMINFO,	Syminfo',
+   `WORD,	Word'')
 
 define(`ELF32_TYPES',
   `ELF_COMMON_TYPES,
-   `_,		_,		_'')
+   `_,		_'')
 
 define(`ELF64_TYPES',
   `ELF_COMMON_TYPES,
-   `SXWORD,	Sxword,		700009',
-   `XWORD,	Xword,		700009',
-   `_,		_,		_'')
+   `SXWORD,	Sxword',
+   `XWORD,	Xword',
+   `_,		_'')
 
 /*
  * Tests that need to be written manually: include those for
