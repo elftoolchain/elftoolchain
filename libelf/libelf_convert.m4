@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006-2008 Joseph Koshy
+ * Copyright (c) 2006-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,6 +24,43 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Generate conversion routines for converting between in-memory and
+ * file representations of Elf data structures.
+ *
+ * These conversions use the type information defined in `elf_types.m4'.
+ *
+ * For the purposes of generating conversion code, ELF types may be
+ * classified according to the following characteristics:
+ *
+ * 1. Whether the ELF type can be directly mapped to a C language type
+ *    (e.g., an Elf32_Word would map to a 'uint32_t').
+ * 2. Whether the type has word size dependent variants (e.g.,
+ *    Elf32_Ehdr and El64_Ehdr).
+ * 3. Whether the ELF types has a fixed representation or not.  Some
+ *    types like Elf{32,64}_Note use a variable size representation.
+ *
+ ** Handling File and Memory Representations
+ *
+ * `In-memory' representations of an Elf data structure use natural
+ * alignments and native byte ordering.  This allows pointer
+ * arithmetic and casting to work as expected.  On the other hand, the
+ * `file' representation of an ELF data structure could possibly be
+ * packed tighter than its `in-memory' representation, and could be of
+ * a differing byte order.  Reading ELF objects that are members of
+ * `ar' archives present an additional complication: `ar' pads file
+ * data to even addresses, so file data structures in an archive
+ * member residing inside an `ar' archive could be at misaligned
+ * memory addresses when brought into memory.
+ *
+ * In summary, casting the `char *' pointers that point to memory
+ * representations (i.e., source pointers for the *_tof() functions
+ * and the destination pointers for the *_tom() functions), is safe,
+ * as these pointers should be correctly aligned for the memory type
+ * already.  However, pointers to file representations have to be
+ * treated as being potentially unaligned and no casting can be done.
+ */
+
 #include <sys/cdefs.h>
 
 #include <assert.h>
@@ -40,13 +77,13 @@ LIBELF_VCSID("$Id$");
  * Macros to swap various integral quantities.
  */
 
-#define	SWAP_HALF(X) 	do {						\
+#define	SWAP_HALF(X)	do {						\
 		uint16_t _x = (uint16_t) (X);				\
 		uint16_t _t = _x & 0xFF;				\
 		_t <<= 8; _x >>= 8; _t |= _x & 0xFF;			\
 		(X) = _t;						\
 	} while (0)
-#define	SWAP_WORD(X) 	do {						\
+#define	SWAP_WORD(X)	do {						\
 		uint32_t _x = (uint32_t) (X);				\
 		uint32_t _t = _x & 0xFF;				\
 		_t <<= 8; _x >>= 8; _t |= _x & 0xFF;			\
@@ -91,7 +128,7 @@ LIBELF_VCSID("$Id$");
 		const char *const _q = (char *) &_t;	\
 		_p[0]		= _q[0];				\
 		_p[1]		= _q[1];				\
-		(P) 		= _p + 2;				\
+		(P)		= _p + 2;				\
 	} while (0)
 #define	WRITE_WORD(P,X)	do {						\
 		uint32_t _t	= (X);					\
@@ -197,27 +234,6 @@ LIBELF_VCSID("$Id$");
 
 divert(-1)
 
-/*
- * Generate conversion routines for converting between in-memory and
- * file representations of Elf data structures.
- *
- * `In-memory' representations of an Elf data structure use natural
- * alignments and native byte ordering.  This allows arithmetic and
- * casting to work as expected.  On the other hand the `file'
- * representation of an ELF data structure could be packed tighter
- * than its `in-memory' representation, and could be of a differing
- * byte order.  An additional complication is that `ar' only pads data
- * to even addresses and so ELF archive member data being read from
- * inside an `ar' archive could end up at misaligned memory addresses.
- *
- * Consequently, casting the `char *' pointers that point to memory
- * representations (i.e., source pointers for the *_tof() functions
- * and the destination pointers for the *_tom() functions), is safe,
- * as these pointers should be correctly aligned for the memory type
- * already.  However, pointers to file representations have to be
- * treated as being potentially unaligned and no casting can be done.
- */
-
 include(SRCDIR`/elf_types.m4')
 
 /*
@@ -229,7 +245,6 @@ define(`IGNORE',
    define(IGNORE_$1`'64,	1)')
 
 IGNORE(MOVEP)
-IGNORE(NOTE)
 IGNORE(GNUHASH)
 
 define(IGNORE_BYTE,		1)	/* 'lator, leave 'em bytes alone */
@@ -328,8 +343,8 @@ define(`SWAP_FIELD',
       `SWAP_$2(t.$1);
 			',
       `ifelse($2,BYTE,`',
-        `ifelse($2,IDENT,`',
-          `SWAP_$2'SZ()`(t.$1);
+	`ifelse($2,IDENT,`',
+	  `SWAP_$2'SZ()`(t.$1);
 			')')')')')
 define(`SWAP_MEMBERS',
   `ifelse($#,1,`/**/',
@@ -519,7 +534,7 @@ libelf_cvt32_GNUHASH_tom(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
 	return (libelf_cvt_WORD_tom(dst, dsz, src, srcsz / sizeof(uint32_t),
-	        byteswap));
+		byteswap));
 }
 
 static int
@@ -527,7 +542,7 @@ libelf_cvt32_GNUHASH_tof(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
 	return (libelf_cvt_WORD_tof(dst, dsz, src, srcsz / sizeof(uint32_t),
-	        byteswap));
+		byteswap));
 }
 
 static int
@@ -569,7 +584,7 @@ libelf_cvt64_GNUHASH_tom(char *dst, size_t dsz, char *src, size_t srcsz,
 	gh->gh_symndx    = symndx;
 	gh->gh_maskwords = maskwords;
 	gh->gh_shift2    = shift2;
-	
+
 	dsz -= sizeof(Elf_GNU_Hash_Header);
 	dst += sizeof(Elf_GNU_Hash_Header);
 
@@ -601,7 +616,7 @@ libelf_cvt64_GNUHASH_tom(char *dst, size_t dsz, char *src, size_t srcsz,
 	srcsz -= sz;
 
 	if (dsz < srcsz)	/* Destination lacks space. */
-	        return (0);
+		return (0);
 
 	nchains = srcsz / sizeof(uint32_t);
 	chains = (uint32_t *) (uintptr_t) dst;
@@ -647,7 +662,7 @@ libelf_cvt64_GNUHASH_tof(char *dst, size_t dsz, char *src, size_t srcsz,
 	if (srcsz < sz || dsz < sz)
 		return (0);
 
- 	/* Write out the header. */
+	/* Write out the header. */
 	if (byteswap) {
 		SWAP_WORD(t0);
 		SWAP_WORD(t1);
@@ -704,7 +719,7 @@ libelf_cvt64_GNUHASH_tof(char *dst, size_t dsz, char *src, size_t srcsz,
  * The destination buffer needs to be at least `count' bytes in size.
  */
 static int
-libelf_cvt_NOTE_tom(char *dst, size_t dsz, char *src, size_t count, 
+libelf_cvt_NOTE_tom(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	uint32_t namesz, descsz, type;
@@ -834,14 +849,14 @@ define(`CONV',
     `ifdef(`BASE_'$1,
       `.$3$2 = libelf_cvt_$1_$3',
       `ifdef(`SIZEDEP_'$1,
-        `.$3$2 = libelf_cvt_$1$2_$3',
-        `.$3$2 = libelf_cvt$2_$1_$3')')')')
+	`.$3$2 = libelf_cvt_$1$2_$3',
+	`.$3$2 = libelf_cvt$2_$1_$3')')')')
 
 define(`CONVERTER_NAME',
   `ifdef(`IGNORE_'$1,`',
     `[ELF_T_$1] = {
-        CONV($1,32,tof), CONV($1,32,tom),
-        CONV($1,64,tof), CONV($1,64,tom) },
+	CONV($1,32,tof), CONV($1,32,tom),
+	CONV($1,64,tof), CONV($1,64,tom) },
 ')')
 
 define(`CONVERTER_NAMES',
