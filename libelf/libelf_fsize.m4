@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,8 @@ define(`IDENT_SIZE',	`EI_NIDENT')
 /* Types that have variable length. */
 define(`GNUHASH_SIZE',	1)
 define(`NOTE_SIZE',	1)
+define(`VDEF_SIZE',	1)
+define(`VNEED_SIZE',	1)
 
 /* Currently unimplemented types. */
 define(`MOVEP_SIZE',	0)
