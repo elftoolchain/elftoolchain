@@ -528,7 +528,8 @@ define(`DEFINE_TEST_DATA',
 		.tsd_msz = sizeof(ELFMEMSTRUCT($1,__SZ__))
 }')
 
-define(`DEFINE_TEST_DATA_BYTE',`
+dnl Tests for variable length Elf types.
+define(`DEFINE_TEST_DATA_VARIABLE_LENGTH',`
 [ELF_T_BYTE] = {
 	/* For byte compares, the LSB/MSB and memory data are identical. */
 	.tsd_name = "BYTE",
@@ -542,13 +543,13 @@ define(`DEFINE_TEST_DATA_BYTE',`
 define(`MKTD',`DEFINE_TEST_DATA($1) `,'')
 
 ifdef(`ISELF32',`static struct testdata ELFTESTS(32)[] = {
-DO(32,`DEFINE_TEST_DATA_BYTE'),
+DO(32,`DEFINE_TEST_DATA_VARIABLE_LENGTH'),
 DO(32,`DOELFTYPES(`MKTD')')
 { }
 };')
 
 ifdef(`ISELF64',`static struct testdata ELFTESTS(64)[] = {
-DO(64,`DEFINE_TEST_DATA_BYTE'),
+DO(64,`DEFINE_TEST_DATA_VARIABLE_LENGTH'),
 DO(64,`DOELFTYPES(`MKTD')')
 { }
 };')
