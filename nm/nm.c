@@ -281,6 +281,40 @@ static const struct option nm_longopts[] = {
 	{ NULL,			0,			NULL,		0   }
 };
 
+#if defined(ELFTC_NEED_BYTEORDER_EXTENSIONS)
+static __inline uint32_t
+be32dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3]);
+}
+
+static __inline uint32_t
+le32dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return ((p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0]);
+}
+
+static __inline uint64_t
+be64dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return (((uint64_t)be32dec(p) << 32) | be32dec(p + 4));
+}
+
+static __inline uint64_t
+le64dec(const void *pp)
+{
+	unsigned char const *p = (unsigned char const *)pp;
+
+	return (((uint64_t)le32dec(p + 4) << 32) | le32dec(p));
+}
+#endif
+
 static int
 cmp_name(const void *l, const void *r)
 {
