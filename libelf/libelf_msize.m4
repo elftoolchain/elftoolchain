@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,14 @@ struct msize {
 divert(-1)
 include(SRCDIR`/elf_types.m4')
 
+/*
+ * ELF types whose memory representations have a variable size.
+ */
 define(BYTE_SIZE,	1)
 define(GNUHASH_SIZE,	1)
 define(NOTE_SIZE,	1)
+define(VDEF_SIZE,	1)
+define(VNEED_SIZE,	1)
 
 /*
  * Unimplemented types.
