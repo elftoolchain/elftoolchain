@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 13, 2011
+.Dd August 14, 2011
 .Os
 .Dt ELF 3
 .Sh NAME
@@ -243,11 +243,13 @@ An
 .Vt Elf_Data
 data structure describes an individual chunk of a ELF file as
 represented in memory.
-It has the following application visible members:
+It has the following application-visible members:
 .Bl -tag -width ".Vt unsigned int d_version" -compact
 .It Vt "uint64_t d_align"
 The in-file alignment of the data buffer within its containing ELF section.
 This value must be non-zero and a power of two.
+.It Vt "void *d_buf"
+A pointer to data in memory.
 .It Vt "uint64_t d_off"
 The offset with the containing section where this descriptors data
 would be placed.
@@ -255,8 +257,6 @@ This field will be computed by the library unless the application
 requests full control of the ELF object's layout.
 .It Vt "uint64_t d_size"
 The number of bytes of data in this descriptor.
-.It Vt "void *d_buf"
-A pointer to data in memory.
 .It Vt "Elf_Type d_type"
 The ELF type (see below) of the data in this descriptor.
 .It Vt "unsigned int d_version"
@@ -270,7 +270,9 @@ descriptors.
 Existing data descriptors associated with an ELF section may be
 structures are retrieved using the
 .Fn elf_getdata
-function.
+and
+.Fn elf_rawdata
+functions.
 The
 .Fn elf_newdata
 function may be used to attach new data descriptors to an ELF section.
