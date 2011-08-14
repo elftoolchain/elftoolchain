@@ -1084,7 +1084,7 @@ search_line_attr(Dwarf_Debug dbg, struct func_info_head *func_info,
 		 */
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_file, &udata,
 		    &de) == DW_DLV_OK && udata > 0 &&
-		    (Dwarf_Signed) udata < filecount)
+		    (Dwarf_Signed) (udata - 1) < filecount)
 			func->file = strdup(src_files[udata - 1]);
 
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_line, &udata, &de) ==
