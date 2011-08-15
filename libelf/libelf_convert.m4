@@ -97,10 +97,12 @@ define(`IGNORE',`NOCVT($1)NOFUNC($1)')
 
 # Mark ELF types that should not be processed by the M4 macros below.
 
-# Types for which we supply handcoded conversion functions.
+# Types for which we use functions with non-standard names.
 IGNORE(`BYTE')			# Uses a wrapper around memcpy().
-IGNORE(`GNUHASH')		# Not a fixed size type.
 IGNORE(`NOTE')			# Not a fixed size type.
+
+# Types for which we supply hand-coded functions.
+NOFUNC(`GNUHASH')		# A type with complex internal structure.
 
 # Unimplemented types.
 IGNORE(`MOVEP')
@@ -341,24 +343,26 @@ define(`MAKE_TYPE_CONVERTERS',
 #
 # Generate the name of a convertor function.
 define(`CONV',
-  `ifdef(`NOFUNC_'$1,
+  `ifdef(`NOFUNC_'$1$2,
     `.$3$2 = NULL',
-    `ifdef(`NOFUNC_'$1$2,
-      `.$3$2 = NULL',
-      `ifdef(`PRIM_'$1,
-	`ifdef(`SIZEDEP_'$1,
-	  `.$3$2 = libelf_cvt_$1$2_$3',
-	  `.$3$2 = libelf_cvt_$1_$3')',
-	`.$3$2 = libelf_cvt_$1$2_$3')')')')
+    `ifdef(`PRIM_'$1,
+      `ifdef(`SIZEDEP_'$1,
+        `.$3$2 = libelf_cvt_$1$2_$3',
+	`.$3$2 = libelf_cvt_$1_$3')',
+      `.$3$2 = libelf_cvt_$1$2_$3')')')
 
 # CONVERTER_NAME(ELFTYPE)
 #
 # Generate the contents of one `struct cvt' instance.
 define(`CONVERTER_NAME',
   `ifdef(`NOCVT_'$1,`',
-    `[ELF_T_$1] = {
-	CONV($1,32,tof), CONV($1,32,tom),
-	CONV($1,64,tof), CONV($1,64,tom) },
+    `	[ELF_T_$1] = {
+		CONV($1,32,tof),
+		CONV($1,32,tom),
+		CONV($1,64,tof),
+		CONV($1,64,tom)
+	},
+
 ')')
 
 # CONVERTER_NAMES(ELFTYPELIST)
@@ -899,13 +903,6 @@ CONVERTER_NAMES(ELF_TYPE_LIST)
 		.tom32 = libelf_cvt_BYTE_tox,
 		.tof64 = libelf_cvt_BYTE_tox,
 		.tom64 = libelf_cvt_BYTE_tox
-	},
-
-	[ELF_T_GNUHASH] = {
-		.tof32 = libelf_cvt_GNUHASH32_tof,
-		.tom32 = libelf_cvt_GNUHASH32_tom,
-		.tof64 = libelf_cvt_GNUHASH64_tof,
-		.tom64 = libelf_cvt_GNUHASH64_tom
 	},
 
 	[ELF_T_NOTE] = {
