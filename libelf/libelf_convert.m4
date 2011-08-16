@@ -347,7 +347,7 @@ define(`CONV',
     `.$3$2 = NULL',
     `ifdef(`PRIM_'$1,
       `ifdef(`SIZEDEP_'$1,
-        `.$3$2 = libelf_cvt_$1$2_$3',
+	`.$3$2 = libelf_cvt_$1$2_$3',
 	`.$3$2 = libelf_cvt_$1_$3')',
       `.$3$2 = libelf_cvt_$1$2_$3')')')
 
