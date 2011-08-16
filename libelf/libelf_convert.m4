@@ -103,6 +103,8 @@ IGNORE(`NOTE')			# Not a fixed size type.
 
 # Types for which we supply hand-coded functions.
 NOFUNC(`GNUHASH')		# A type with complex internal structure.
+NOFUNC(`VDEF')			# See MAKE_VERSION_CONVERTERS below.
+NOFUNC(`VNEED')			# ..
 
 # Unimplemented types.
 IGNORE(`MOVEP')
@@ -372,6 +374,158 @@ define(`CONVERTER_NAMES',
   `ifelse($#,1,`',
     `CONVERTER_NAME($1)CONVERTER_NAMES(shift($@))')')
 
+#
+# Handling ELF version sections.
+#
+
+# _FSZ(FIELD,BASETYPE) - return the file size for a field.
+define(`_FSZ',
+  `ifelse($2,`HALF',2,
+     $2,`WORD',4)')
+
+# FSZ(STRUCT) - determine the file size of a structure.
+define(`FSZ',
+  `ifelse($#,1,0,
+    `eval(_FSZ($1) + FSZ(shift($@)))')')
+
+# MAKE_VERSION_CONVERTERS(TYPE,BASE,AUX,PFX) -- Generate conversion
+# functions for versioning structures.
+define(`MAKE_VERSION_CONVERTERS',
+  `MAKE_VERSION_CONVERTER($1,$2,$3,$4,32)
+   MAKE_VERSION_CONVERTER($1,$2,$3,$4,64)')
+
+# MAKE_VERSION_CONVERTOR(TYPE,CBASE,CAUX,PFX,SIZE) -- Generate a
+# conversion function.
+define(`MAKE_VERSION_CONVERTER',`
+static int
+libelf_cvt_$1$5_tof(char *dst, size_t dsz, char *src, size_t count,
+    int byteswap)
+{
+	Elf$5_$2	t;
+	Elf$5_$3	a;
+	const size_t	verfsz = FSZ(Elf$5_$2_DEF);
+	const size_t	auxfsz = FSZ(Elf$5_$3_DEF);
+	const size_t	vermsz = sizeof(Elf$5_$2);
+	const size_t	auxmsz = sizeof(Elf$5_$3);
+	char * const	dstend = dst + dsz;
+	char * const	srcend = src + count;
+	char		*dtmp, *dstaux, *srcaux;
+	Elf$5_Word	aux, anext, cnt, vnext;
+
+	for (dtmp = dst, vnext = ~0;
+	     vnext != 0 && dtmp + verfsz <= dstend && src + vermsz <= srcend;
+	     dtmp += vnext, src += vnext) {
+
+		/* Read in an Elf$5_$2 structure. */
+		t = *((Elf$5_$2 *) (uintptr_t) src);
+
+		aux = t.$4_aux;
+		cnt = t.$4_cnt;
+		vnext = t.$4_next;
+
+		if (byteswap) {
+			SWAP_STRUCT($2, $5)
+		}
+
+		dst = dtmp;
+		WRITE_STRUCT($2, $5)
+
+		if (aux < verfsz)
+			return (0);
+
+		/* Process AUX entries. */
+		for (anext = ~0, dstaux = dtmp + aux, srcaux = src + aux;
+		     cnt != 0 && anext != 0 && dstaux + auxfsz <= dstend &&
+			srcaux + auxmsz <= srcend;
+		     dstaux += anext, srcaux += anext, cnt--) {
+
+			/* Read in an Elf$5_$3 structure. */
+			a = *((Elf$5_$3 *) (uintptr_t) srcaux);
+			anext = a.$4a_next;
+
+			if (byteswap) {
+				pushdef(`t',`a')SWAP_STRUCT($3, $5)popdef(`t')
+			}
+
+			dst = dstaux;
+			pushdef(`t',`a')WRITE_STRUCT($3, $5)popdef(`t')
+		}
+
+		if (anext || cnt)
+			return (0);
+	}
+
+	if (vnext)
+		return (0);
+
+	return (1);
+}
+
+static int
+libelf_cvt_$1$5_tom(char *dst, size_t dsz, char *src, size_t count,
+    int byteswap)
+{
+	Elf$5_$2	t, *dp;
+	Elf$5_$3	a, *ap;
+	const size_t	verfsz = FSZ(Elf$5_$2_DEF);
+	const size_t	auxfsz = FSZ(Elf$5_$3_DEF);
+	const size_t	vermsz = sizeof(Elf$5_$2);
+	const size_t	auxmsz = sizeof(Elf$5_$3);
+	char * const	dstend = dst + dsz;
+	char * const	srcend = src + count;
+	char		*dstaux, *s, *srcaux, *stmp;
+	Elf$5_Word	aux, anext, cnt, vnext;
+
+	for (stmp = src, vnext = ~0;
+	     vnext != 0 && stmp + verfsz <= srcend && dst + vermsz <= dstend;
+	     stmp += vnext, dst += vnext) {
+
+		/* Read in a $1 structure. */
+		s = stmp;
+		READ_STRUCT($2, $5)
+		if (byteswap) {
+			SWAP_STRUCT($2, $5)
+		}
+
+		dp = (Elf$5_$2 *) (uintptr_t) dst;
+		*dp = t;
+
+		aux = t.$4_aux;
+		cnt = t.$4_cnt;
+		vnext = t.$4_next;
+
+		if (aux < vermsz)
+			return (0);
+
+		/* Process AUX entries. */
+		for (anext = ~0, dstaux = dst + aux, srcaux = stmp + aux;
+		     cnt != 0 && anext != 0 && dstaux + auxmsz <= dstend &&
+			srcaux + auxfsz <= srcend;
+		     dstaux += anext, srcaux += anext, cnt--) {
+
+			s = srcaux;
+			pushdef(`t',`a')READ_STRUCT($3, $5)popdef(`t')
+
+			if (byteswap) {
+				pushdef(`t',`a')SWAP_STRUCT($3, $5)popdef(`t')
+			}
+
+			anext = a.$4a_next;
+
+			ap = ((Elf$5_$3 *) (uintptr_t) dstaux);
+			*ap = a;
+		}
+
+		if (anext || cnt)
+			return (0);
+	}
+
+	if (vnext)
+		return (0);
+
+	return (1);
+}')
+
 divert(0)
 
 /*
@@ -543,6 +697,8 @@ divert(0)
 
 /*[*/
 MAKE_TYPE_CONVERTERS(ELF_TYPE_LIST)
+MAKE_VERSION_CONVERTERS(VDEF,Verdef,Verdaux,vd)
+MAKE_VERSION_CONVERTERS(VNEED,Verneed,Vernaux,vn)
 /*]*/
 
 /*
