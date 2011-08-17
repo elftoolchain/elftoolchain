@@ -300,7 +300,7 @@ _dwarf_die_gen_recursive(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 	 * Search abbrev list to find a matching entry.
 	 */
 	die->die_ab = NULL;
-	STAILQ_FOREACH(ab, &cu->cu_abbrev, ab_next) {
+	for (ab = cu->cu_abbrev_hash; ab != NULL; ab = ab->ab_hh.next) {
 		if (die->die_tag != ab->ab_tag)
 			continue;
 		if (ab->ab_children == DW_CHILDREN_no && die->die_child != NULL)
@@ -421,13 +421,13 @@ _dwarf_die_gen(Dwarf_P_Debug dbg, Dwarf_CU cu, Dwarf_Rel_Section drs,
 
 gen_fail:
 
-	STAILQ_FOREACH_SAFE(ab, &cu->cu_abbrev, ab_next, tab) {
+	HASH_ITER(ab_hh, cu->cu_abbrev_hash, ab, tab) {
+		HASH_DELETE(ab_hh, cu->cu_abbrev_hash, ab);
 		STAILQ_FOREACH_SAFE(ad, &ab->ab_attrdef, ad_next, tad) {
 			STAILQ_REMOVE(&ab->ab_attrdef, ad, _Dwarf_AttrDef,
 			    ad_next);
 			free(ad);
 		}
-		STAILQ_REMOVE(&cu->cu_abbrev, ab, _Dwarf_Abbrev, ab_next);
 		free(ab);
 	}
 
