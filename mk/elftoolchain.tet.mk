@@ -6,7 +6,6 @@
 .error Make variable \"TOP\" has not been defined.
 .endif
 
-.include "${TOP}/mk/elftoolchain.os.mk"
 .include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 # Inform make(1) about the suffixes we use.
@@ -35,8 +34,6 @@ SRCS=		${_C_SRCS} ${_M4_SRCS}	# See <bsd.prog.mk>.
 CLEANFILES+=	${_M4_SRCS:S/.m4$/.c/g} ${TS_DATA}
 
 ${PROG}:	${TS_DATA} 
-
-NO_MAN?=	1
 
 .if defined(GENERATE_TEST_SCAFFOLDING)
 _TC_SRC=	${.OBJDIR}/tc.c				# Test driver.
