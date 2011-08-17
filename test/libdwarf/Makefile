@@ -21,7 +21,8 @@ TET_OPTIONS+=	-e
 .MAIN: all
 
 _cmd:	.USE
-	TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
+	TET_ROOT=${TET_ROOT} TET_SUITE_ROOT=${.CURDIR} \
+	${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
 
 tccbuild tccclean execute:	_cmd
 
