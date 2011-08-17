@@ -15,3 +15,8 @@ MPOSTTEX?=	/usr/local/bin/latex
 MPOST?=		/usr/local/bin/mpost
 PDFLATEX?=	/usr/local/bin/pdflatex
 .endif
+
+# Translate the spelling of build knob (see ticket #316).
+.if defined(NOMAN)
+NO_MAN=		yes
+.endif

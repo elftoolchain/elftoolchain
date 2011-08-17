@@ -32,6 +32,5 @@ ${f}:	${_YO}
 	@cp ${.ALLSRC} ${.TARGET}
 .endfor
 
-.if ${OS_HOST} == "NetBSD"
+# Test cases do not supply manual pages.
 NOMAN=	noman
-.endif

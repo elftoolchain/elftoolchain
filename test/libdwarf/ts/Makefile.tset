@@ -41,3 +41,6 @@ ${f}:	${TS_OBJROOT}/common/object/${f}.gz
 .endfor
 
 WARNS?=		2
+
+# Test cases do not have manual pages.
+NOMAN=		noman
