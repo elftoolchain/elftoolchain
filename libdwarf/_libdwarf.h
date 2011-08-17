@@ -125,7 +125,6 @@ struct _Dwarf_Abbrev {
 	uint64_t	ab_atnum;	/* Number of attribute defines. */
 	UT_hash_handle	ab_hh;		/* Uthash handle. */
 	STAILQ_HEAD(, _Dwarf_AttrDef) ab_attrdef; /* List of attribute defs. */
-	STAILQ_ENTRY(_Dwarf_Abbrev) ab_next; /* Next abbrev in the list. */
 };
 
 struct _Dwarf_Die {
@@ -337,7 +336,6 @@ struct _Dwarf_CU {
 	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	Dwarf_Abbrev	cu_abbrev_hash; /* Abbrev hash table. */
-	STAILQ_HEAD(, _Dwarf_Abbrev) cu_abbrev; /* List of abbrevs. */
 	STAILQ_ENTRY(_Dwarf_CU) cu_next; /* Next compilation unit. */
 };
 

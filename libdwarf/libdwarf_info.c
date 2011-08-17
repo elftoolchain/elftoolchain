@@ -139,8 +139,6 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 		cu->cu_pointer_size	 = dbg->read(ds->ds_data, &offset, 1);
 		cu->cu_next_offset	 = next_offset;
 
-		STAILQ_INIT(&cu->cu_abbrev);
-
 		/* Add the compilation unit to the list. */
 		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
@@ -205,7 +203,6 @@ _dwarf_info_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	cu->cu_dbg = dbg;
 	cu->cu_version = 2;	/* DWARF2 */
 	cu->cu_pointer_size = dbg->dbg_pointer_size;
-	STAILQ_INIT(&cu->cu_abbrev);
 	STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
 	/* Create .debug_info section. */
