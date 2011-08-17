@@ -1,5 +1,7 @@
 # $Id$
 
+.include "${TOP}/mk/elftoolchain.os.mk"
+
 # libdwarf test suite uses libdwarf in /usr/local (i.e. SGI libdwarf),
 # if TCGEN is defined.
 .if defined(TCGEN)
@@ -13,10 +15,14 @@ LDADD+=		-ldwarf
 DPADD+=		${LIBELF}
 LDADD+=		-lelf
 
-OS_HOST != uname -s
+# Determine the location of the XML handling library.
 .if ${OS_HOST} == FreeBSD
 LDADD+=		-lbsdxml
 .else
+.if ${OS_HOST} == NetBSD
+CFLAGS+=	-I/usr/pkg/include
+LDADD+=		-L/usr/pkg/lib
+.endif
 LDADD+=		-lexpat
 .endif
 
@@ -40,7 +46,11 @@ ${f}:	${TS_OBJROOT}/common/object/${f}.gz
 .endif
 .endfor
 
+# NetBSD turns on -Wstrict-prototypes for WARNS>0; however
+# TET 3.8's headers do not compile with -Wstrict-prototypes.
+.if ${OS_HOST} != NetBSD
 WARNS?=		2
+.endif
 
 # Test cases do not have manual pages.
 NOMAN=		noman
