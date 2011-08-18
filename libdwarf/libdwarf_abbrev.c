@@ -107,7 +107,7 @@ _dwarf_abbrev_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Unsigned *offset,
 	uint64_t aboff;
 	uint64_t adoff;
 	uint64_t tag;
-	u_int8_t children;
+	uint8_t children;
 	int ret;
 
 	assert(abp != NULL);
