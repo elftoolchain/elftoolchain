@@ -63,6 +63,11 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 		return (DW_DLV_ERROR);
 	}
 
+	if ((dbg->dbgp_flags & DW_DLC_SYMBOLIC_RELOCATIONS) == 0) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
+	}
+
 	if (dbg->dbgp_drscnt == 0) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
 		return (DW_DLV_NO_ENTRY);
