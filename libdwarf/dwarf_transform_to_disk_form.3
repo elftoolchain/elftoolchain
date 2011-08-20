@@ -26,7 +26,7 @@
 .\"
 .Dd August 20, 2011
 .Os
-.Dt DWARF_TRANSFORM_TO_DISK_FORM
+.Dt DWARF_TRANSFORM_TO_DISK_FORM 3
 .Sh NAME
 .Nm dwarf_transform_to_disk_form
 .Nd transform DWARF information into byte streams
@@ -48,7 +48,9 @@ byte streams for the applicatin to write out as ELF sections.
 Argument
 .Ar dbg
 should reference a DWARF producer instance allocated using
-.Xr dwarf_producer_init 3 .
+.Xr dwarf_producer_init 3
+or
+.Xr dwarf_producer_init_b 3 .
 .Pp
 If argument
 .Ar err
