@@ -74,9 +74,8 @@ dwarf_get_relocation_info(Dwarf_P_Debug dbg, Dwarf_Signed *elf_section_index,
 	}
 
 	if (dbg->dbgp_drspos == NULL) {
-		/* FIXME Use other error code. */
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_ERROR);
+		return (DW_DLV_NO_ENTRY);
 	}
 
 	drs = dbg->dbgp_drspos;
