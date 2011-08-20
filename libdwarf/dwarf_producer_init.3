@@ -52,91 +52,107 @@
 .Fa "Dwarf_Error *error"
 .Fc
 .Sh DESCRIPTION
-Function
-.Fn dwarf_producer_init_b
-allocates and returns a
+These functions allocate and return a
 .Vt Dwarf_P_Debug
-descriptor reprenting a DWARF producer instance.
+descriptor representing a DWARF producer instance.
 .Pp
-Argument
+The argument
 .Ar errhand
-denotes a function to be called in case of an error.
+should contain the adddress of a function to be called in case of an
+error.
 If this argument is
-.Dv NULL
-then a default error handling scheme is used.
+.Dv NULL ,
+the default error handling scheme is used, see
+.Xr dwarf 3 .
 .Pp
-Argument
+The argument
 .Ar errarg
-is passed to the error handler function denoted by argument
-.Ar errhand
-when it is invoked.
+will be passed to the error handler function when it is invoked.
 .Pp
-Argument
+The argument
 .Ar err
 references a memory location that would hold a
 .Vt Dwarf_Error
 descriptor in case of an error.
 .Pp
-Argument
+The argument
 .Ar flags
-specifies various characteristics of the created DWARF producer
-instance, and can contain following flags:
+specifies additional characteristics of the DWARF producer instance.
+The following flags are recognized:
 .Pp
-.Bl -tag -width "DW_DLC_ISA_MIPS"
-.It DW_DLC_WRITE
-Permit writing of DWARF information.
-This flag is required to set.
-It is not allowd to set
-.Dv DW_DLC_READ
-or
-.Dv DW_DLC_RDWR
-flag, as the producer doesn't support those modes.
-.It DW_DLC_SIZE_32
-The target address size is 32-bit. (This is the default.)
-.It DW_DLC_SIZE_64
-The target address size is 64-bit.
-.It DW_DLC_ISA_IA64
+.Bl -tag -width "Dv DW_DLC_ISA_MIPS"
+.It Dv DW_DLC_ISA_IA64
+.Pq Deprecated
 The target instruction set architecture is IA64.
 This flag is deprecated.
-It is recommanded that application code should use
+Application code should use the
 .Xr dwarf_producer_set_isa 3
-to specify target instruction set architecture.
-.It DW_DLC_ISA_MIPS
+function to specify target instruction set architecture.
+.It Dv DW_DLC_ISA_MIPS
+.Pq Deprecated
 The target instruction set architecture is MIPS.
 This flag is deprecated.
-It is recommanded that application code should use
+Application code should use the
 .Xr dwarf_producer_set_isa 3
-to specify target instruction set architecture.
-.It DW_DLC_STREAM_RELOCATIONS
-Generate stream relocations. (This is the default.)
-.It DW_DLC_SYMBOLIC_RELOCATIONS
+function to specify target instruction set architecture.
+.It Dv DW_DLC_SIZE_32
+.Pq Default
+The target address size is 32-bit.
+.It Dv DW_DLC_SIZE_64
+The target address size is 64-bit.
+.It Dv DW_DLC_STREAM_RELOCATIONS
+.Pq Default
+Generate stream relocations.
+.It Dv DW_DLC_SYMBOLIC_RELOCATIONS
 Generate symbolic relocations.
-.It DW_DLC_TARGET_BIGENDIAN
+.It Dv DW_DLC_TARGET_BIGENDIAN
 The target is big endian.
-If neither
-.Dv DW_DLC_TARGET_BIGENDIAN
-or
-.Dv DW_DLC_TARGET_LITTLEENDIAN
-is set, the target endianness is assumed the same as the host
-endianness.
-.It DW_DLC_TARGET_LITTLEENDIAN
-The target is littlen endian.
-If neither
-.Dv DW_DLC_TARGET_BIGENDIAN
-or
-.Dv DW_DLC_TARGET_LITTLEENDIAN
-is set, the target endianness is assumed the same as the host
-endianness.
+.It Dv DW_DLC_TARGET_LITTLEENDIAN
+The target is little endian.
+.It Dv DW_DLC_WRITE
+.Pq Required
+Permit writing of DWARF information.
 .El
+.Pp
+The following flags are mutually exclusive.
+.Bl -bullet -compact
+.It
+Flags
+.Dv DW_DLC_ISA_IA64
+and
+.Dv DW_DLC_ISA_MIPS .
+.It
+Flags
+.Dv DW_DLC_SIZE_32
+and
+.Dv DW_DLC_SIZE_64 .
+.It
+Flags
+.Dv DW_DLC_STREAM_RELOCATIONS
+and
+.Dv DW_DLC_SYMBOLIC_RELOCATIONS .
+.It
+Flags
+.Dv DW_DLC_TARGET_BIGENDIAN
+and
+.Dv DW_DLC_TARGET_LITTLEENDIAN .
+.El
+If neither of the flags
+.Dv DW_DLC_TARGET_BIGENDIAN
+and
+.Dv DW_DLC_TARGET_LITTLEENDIAN
+is set, the target's endianness is assumed to be the same as the host's
+endianness.
 .Pp
 Argument
 .Ar func
-should point to a application-provided callback function of type
+should point to an application-provided callback function of type
 .Vt Dwarf_Callback_Func_b .
-The function type
+The type
 .Vt Dwarf_Callback_Func_b
-is defined in header file
-.In libdwarf.h :
+is defined in the header file
+.In libdwarf.h
+as:
 .Bd -literal -offset indent
 typedef int (*Dwarf_Callback_Func_b)(char *name, int size,
     Dwarf_Unsigned type, Dwarf_Unsigned flags, Dwarf_Unsigned link,
@@ -146,21 +162,33 @@ typedef int (*Dwarf_Callback_Func_b)(char *name, int size,
 This function is called by the
 .Lb libdwarf
 once for each section in the object file that the library needs to
-create.  Some arguments of this callback function speicify the various
-ELF section header values of the section to be created:
-.Bl -tag -width "flags" -compact
+create.
+The arguments to this callback function specify the values in the ELF
+section header for the section being created:
+.Pp
+.Bl -tag -width indent -compact -offset indent
 .It Ar name
-name of the section.
+The name of the section being created.
 .It Ar size
-sh_size value of the section header.
+The
+.Va sh_size
+value in the section header.
 .It Ar type
-sh_type value of the section header.
+The
+.Va sh_type
+value in the section header.
 .It Ar flags
-sh_flags value of the section header.
+The
+.Va sh_flags
+value in the section header.
 .It Ar link
-sh_link value of the section header.
+The
+.Va sh_link
+value in the section header.
 .It Ar info
-sh_info value of the section header.
+The
+.Va sh_info
+value in the section header.
 .El
 .Pp
 On success, the callback function should return the section index
@@ -168,25 +196,31 @@ value of the created section, and set the location pointed to by
 argument
 .Ar index
 to the symbol table index of the symbol that associated with the newly
-created section.  The symbol index will be used in the relocation
-entries refering to the created section.
+created section.
+This symbol table index will be used in relocation entries
+referring to the created section.
 .Pp
-On failure, the callback function should return -1 and set the location
-pointed to by argument
+In case of failure, the callback function should return -1 and set the
+location pointed to by argument
 .Ar error
-to an application-defined error code. Currently the error code is
-simply ignored by the library.
+to an application-defined error code.
+This application returned error code is currently ignored by the
+library.
 .Pp
+Function
+.Fn dwarf_producer_init
+is deprecated.
 Function
 .Fn dwarf_producer_init
 is identical to function
 .Fn dwarf_producer_init_b
 except that the callback function it expects can not properly handle
-arbitrary section symbol index values and thus is deprecated.
+arbitrary section symbol index values.
 .Ss Memory Management
 The
 .Vt Dwarf_P_Debug
-instance returned by these functions should be freed using
+instance returned by these functions should be freed using the
+function
 .Fn dwarf_producer_finish .
 .Sh RETURN VALUES
 On success, these functions return the created DWARF producer
@@ -196,52 +230,52 @@ In case of an error, they return
 and set the argument
 .Ar err .
 .Sh ERRORS
-These function can fail with:
+These functions can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar func
 was NULL.
 .It Bq Er DW_DLE_ARGUMENT
-Flag
+The flag
 .Dv DW_DLC_WRITE
 was not set in argument
 .Ar flags .
 .It Bq Er DW_DLE_ARGUMENT
-Both flags
+The flags
 .Dv DW_DLC_SIZE_32
 and
 .Dv DW_DLC_SIZE_64
-were set in argument
+were both set in argument
 .Ar flags .
 .It Bq Er DW_DLE_ARGUMENT
-Both flags
+The flags
 .Dv DW_DLC_ISA_IA64
 and
 .Dv DW_DLC_ISA_MIPS
-were set in argument
+were both set in argument
 .Ar flags .
 .It Bq Er DW_DLE_ARGUMENT
-Both flags
+The flags
 .Dv DW_DLC_TARGET_BIGENDIAN
 and
 .Dv DW_DLC_TARGET_LITTLEENDIAN
-were set in argument
+were both set in argument
 .Ar flags .
 .It Bq Er DW_DLE_ARGUMENT
-Both flags
+The flags
 .Dv DW_DLC_STREAM_RELOCATIONS
 and
 .Dv DW_DLC_SYMBOLIC_RELOCATIONS
-were set in argument
+were both set in argument
 .Ar flags .
 .It Bq Er DW_DLE_MEMORY
-An out of memory condition was encountered during the execution of the
-functions.
+An out of memory condition was encountered.
+.El
 .Sh EXAMPLES
 To initialize a
 .Vt Dwarf_P_Debug
-instance for a mips32 big endian object, use:
+instance for a MIPS32 big endian object, use:
 .Bd -literal -offset indent
 Dwarf_P_Debug dbg;
 Dwarf_Unsigned flags;
