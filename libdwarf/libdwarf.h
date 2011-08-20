@@ -300,6 +300,8 @@ typedef struct Dwarf_Relocation_Data_s {
 	Dwarf_Unsigned drd_symbol_index;
 } *Dwarf_Relocation_Data;
 
+#define	DWARF_DRD_BUFFER_VERSION	2
+
 /*
  * Error numbers which are specific to this implementation.
  */
