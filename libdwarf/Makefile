@@ -151,6 +151,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_loclist_from_expr.3			\
 	dwarf_next_cu_header.3				\
 	dwarf_producer_init.3				\
+	dwarf_reset_section_bytes.3			\
 	dwarf_seterrarg.3				\
 	dwarf_set_frame_cfa_value.3			\
 	dwarf_set_reloc_application.3			\
