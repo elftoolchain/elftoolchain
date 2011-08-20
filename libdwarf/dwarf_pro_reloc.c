@@ -42,7 +42,7 @@ dwarf_get_relocation_info_count(Dwarf_P_Debug dbg, Dwarf_Unsigned *reloc_cnt,
 	}
 
 	*reloc_cnt = dbg->dbgp_drscnt;
-	*drd_buffer_version = 2;
+	*drd_buffer_version = DWARF_DRD_BUFFER_VERSION;
 
 	return (DW_DLV_OK);
 }
