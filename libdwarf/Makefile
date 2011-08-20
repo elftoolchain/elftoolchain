@@ -137,6 +137,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_get_macro_details.3			\
 	dwarf_get_pubtypes.3				\
 	dwarf_get_ranges.3				\
+	dwarf_get_section_bytes.3			\
 	dwarf_get_str.3					\
 	dwarf_get_types.3				\
 	dwarf_get_vars.3				\
