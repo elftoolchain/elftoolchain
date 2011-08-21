@@ -84,7 +84,8 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf_attr.3					\
+MAN=	dwarf_add_die_to_debug.3			\
+	dwarf_attr.3					\
 	dwarf_attrlist.3				\
 	dwarf_attrval_signed.3				\
 	dwarf_child.3					\
