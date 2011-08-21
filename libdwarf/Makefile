@@ -90,6 +90,7 @@ MAN=	dwarf_attr.3					\
 	dwarf_child.3					\
 	dwarf_dealloc.3					\
 	dwarf_die_abbrev_code.3				\
+	dwarf_die_link.3				\
 	dwarf_diename.3					\
 	dwarf_dieoffset.3				\
 	dwarf_errmsg.3					\
