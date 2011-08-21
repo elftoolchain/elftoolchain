@@ -134,6 +134,9 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DW_DLE_ARGUMENT);
 	}
 
+	if ((pf & DW_DLC_SIZE_32) == 0 && (pf & DW_DLC_SIZE_64) == 0)
+		pf |= DW_DLC_SIZE_32;
+
 	if (pf & DW_DLC_SIZE_64)
 		dbg->dbg_pointer_size = 8;
 	else
@@ -154,27 +157,33 @@ _dwarf_producer_init(Dwarf_Debug dbg, Dwarf_Unsigned pf, Dwarf_Error *error)
 		return (DW_DLE_ARGUMENT);
 	}
 
+	if ((pf & DW_DLC_TARGET_BIGENDIAN) == 0 &&
+	    (pf & DW_DLC_TARGET_LITTLEENDIAN) == 0) {
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_BIG_ENDIAN
+		pf |= DW_DLC_TARGET_BIGENDIAN;
+#else
+		pf |= DW_DLC_TARGET_LITTLEENDIAN;
+#endif
+	}
+
 	if (pf & DW_DLC_TARGET_BIGENDIAN) {
 		dbg->write = _dwarf_write_msb;
 		dbg->write_alloc = _dwarf_write_msb_alloc;
 	} else if (pf & DW_DLC_TARGET_LITTLEENDIAN) {
 		dbg->write = _dwarf_write_lsb;
 		dbg->write_alloc = _dwarf_write_lsb_alloc;
-	} else {
-#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_BIG_ENDIAN
-		dbg->write = _dwarf_write_msb;
-		dbg->write_alloc = _dwarf_write_msb_alloc;
-#else  /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_BIG_ENDIAN */
-		dbg->write = _dwarf_write_lsb;
-		dbg->write_alloc = _dwarf_write_lsb_alloc;
-#endif	/* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_BIG_ENDIAN */
-	}
+	} else
+		assert(0);
 
 	if (pf & DW_DLC_STREAM_RELOCATIONS &&
 	    pf & DW_DLC_SYMBOLIC_RELOCATIONS) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLE_ARGUMENT);
 	}
+
+	if ((pf & DW_DLC_STREAM_RELOCATIONS) == 0 &&
+	    (pf & DW_DLC_SYMBOLIC_RELOCATIONS) == 0)
+		pf |= DW_DLC_STREAM_RELOCATIONS;
 
 	dbg->dbgp_flags = pf;
 

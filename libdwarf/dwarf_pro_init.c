@@ -33,6 +33,11 @@ dwarf_producer_init(Dwarf_Unsigned flags, Dwarf_Callback_Func func,
 	Dwarf_P_Debug dbg;
 	int mode;
 
+	if (flags & DW_DLC_READ || flags & DW_DLC_RDWR) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	}
+
 	if (flags & DW_DLC_WRITE)
 		mode = DW_DLC_WRITE;
 	else {
@@ -66,6 +71,11 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 {
 	Dwarf_P_Debug dbg;
 	int mode;
+
+	if (flags & DW_DLC_READ || flags & DW_DLC_RDWR) {
+		DWARF_SET_ERROR(NULL, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_BADADDR);
+	}
 
 	if (flags & DW_DLC_WRITE)
 		mode = DW_DLC_WRITE;
