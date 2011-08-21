@@ -610,8 +610,8 @@ _dwarf_get_minlen(Dwarf_P_Debug dbg)
 	assert(dbg != NULL);
 
 	switch (dbg->dbgp_isa) {
-	case DW_DLC_ISA_X86:
-	case DW_DLC_ISA_X86_64:
+	case DW_ISA_X86:
+	case DW_ISA_X86_64:
 		return (1);
 	default:
 		return (4);

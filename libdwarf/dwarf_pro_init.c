@@ -95,11 +95,11 @@ dwarf_producer_init_b(Dwarf_Unsigned flags, Dwarf_Callback_Func_b func,
 }
 
 int
-dwarf_producer_set_isa(Dwarf_P_Debug dbg, Dwarf_Unsigned isa,
+dwarf_producer_set_isa(Dwarf_P_Debug dbg, enum Dwarf_ISA isa,
     Dwarf_Error *error)
 {
 
-	if (dbg == NULL || (isa >= DW_DLC_ISA_MAX && isa != DW_DLC_ISA_IA64)) {
+	if (dbg == NULL || isa >= DW_ISA_MAX) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_ERROR);
 	}

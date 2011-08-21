@@ -37,20 +37,20 @@ _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 	assert(dbg != NULL);
 
 	switch (dbg->dbgp_isa) {
-	case DW_DLC_ISA_X86:
+	case DW_ISA_X86:
 		return (R_386_32);
-	case DW_DLC_ISA_X86_64:
+	case DW_ISA_X86_64:
 		return (is64 ? R_X86_64_64 : R_X86_64_32);
-	case DW_DLC_ISA_SPARC:
+	case DW_ISA_SPARC:
 		return (is64 ? R_SPARC_UA64 : R_SPARC_UA32);
-	case DW_DLC_ISA_PPC:
+	case DW_ISA_PPC:
 		return R_PPC_ADDR32;
-	case DW_DLC_ISA_ARM:
+	case DW_ISA_ARM:
 		/* TODO */
 		return (0);
-	case DW_DLC_ISA_MIPS:
+	case DW_ISA_MIPS:
 		return (is64 ? R_MIPS_64 : R_MIPS_32);
-	case DW_DLC_ISA_IA64:
+	case DW_ISA_IA64:
 		return (is64 ? R_IA_64_DIR64LSB : R_IA_64_DIR32LSB);
 	default:
 		break;

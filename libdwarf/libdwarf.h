@@ -429,15 +429,17 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define DW_DLC_TARGET_LITTLEENDIAN	0x00100000
 
 /*
- * ISA supported by elftoolchain libdwarf.
+ * Instruction set architectures supported by this implementation.
  */
-enum {
-	DW_DLC_ISA_X86 = 1,
-	DW_DLC_ISA_X86_64,
-	DW_DLC_ISA_SPARC,
-	DW_DLC_ISA_PPC,
-	DW_DLC_ISA_ARM,
-	DW_DLC_ISA_MAX
+enum Dwarf_ISA {
+	DW_ISA_ARM,
+	DW_ISA_IA64,
+	DW_ISA_MIPS,
+	DW_ISA_PPC,
+	DW_ISA_SPARC,
+	DW_ISA_X86,
+	DW_ISA_X86_64,
+	DW_ISA_MAX
 };
 
 /* Function prototype definitions. */
@@ -743,7 +745,7 @@ Dwarf_P_Debug	dwarf_producer_init(Dwarf_Unsigned, Dwarf_Callback_Func,
 		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
 Dwarf_P_Debug	dwarf_producer_init_b(Dwarf_Unsigned, Dwarf_Callback_Func_b,
 		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
-int		dwarf_producer_set_isa(Dwarf_P_Debug, Dwarf_Unsigned,
+int		dwarf_producer_set_isa(Dwarf_P_Debug, enum Dwarf_ISA,
 		    Dwarf_Error *);
 void		dwarf_pubtypes_dealloc(Dwarf_Debug, Dwarf_Type *, Dwarf_Signed);
 int		dwarf_pubtype_cu_offset(Dwarf_Type, Dwarf_Off *, Dwarf_Error *);
