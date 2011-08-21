@@ -123,6 +123,35 @@ were non-NULL.
 An out of memory condition was encountered during the execution of the
 functions.
 .El
+.Sh EXAMPLES
+To create debugging information entries and add them to the producer
+instance, use:
+.Bd -literal -offset indent
+Dwarf_P_Debug dbg;
+Dwarf_P_Die die1, die2;
+Dwarf_Error de;
+
+/* ... assume dbg refers to a DWARF producer instance ... */
+
+die1 = dwarf_new_die(dbg, DW_TAG_compilation_unit, NULL, NULL, NULL,
+    NULL, &de);
+if (die1 == NULL) {
+	warnx("dwarf_new_die failed: %s", dwarf_errmsg(-1));
+	return;
+}
+
+die2 = dwarf_new_die(dbg, DW_TAG_base_type, die1, NULL, NULL,
+    NULL, &de);
+if (die1 == NULL) {
+	warnx("dwarf_new_die failed: %s", dwarf_errmsg(-1));
+	return;
+}
+
+if (dwarf_add_die_to_debug(dbg, die1, &de) != DW_DLV_OK) {
+	warnx("dwarf_add_die_to_debug failed: %s", dwarf_errmsg(-1));
+	return;
+}
+.Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_add_die_to_debug 3 ,
