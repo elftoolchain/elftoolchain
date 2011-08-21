@@ -411,9 +411,9 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 /*
  * Access modes.
  */
-#define DW_DLC_READ        	0
-#define DW_DLC_WRITE		1
-#define	DW_DLC_RDWR		2
+#define DW_DLC_READ        	0x0001
+#define DW_DLC_WRITE		0x0002
+#define	DW_DLC_RDWR		0x0004
 
 /*
  * Flags used by libdwarf producer.
@@ -421,7 +421,7 @@ typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 #define DW_DLC_SIZE_64			0x40000000
 #define DW_DLC_SIZE_32			0x20000000
 #define DW_DLC_OFFSET_SIZE_64		0x10000000
-#define DW_DLC_ISA_MIPS			0x00000000
+#define DW_DLC_ISA_MIPS			0x80000000
 #define DW_DLC_ISA_IA64			0x01000000
 #define DW_DLC_STREAM_RELOCATIONS	0x02000000
 #define DW_DLC_SYMBOLIC_RELOCATIONS	0x04000000
