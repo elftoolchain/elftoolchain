@@ -38,7 +38,7 @@ dwarf_add_die_to_debug(Dwarf_P_Debug dbg, Dwarf_P_Die first_die,
 
 	dbg->dbgp_root_die = first_die;
 
-	return (0);
+	return (DW_DLV_OK);
 }
 
 Dwarf_P_Die
