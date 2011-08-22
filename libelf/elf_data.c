@@ -58,6 +58,10 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 		return (STAILQ_NEXT(d, d_next));
 
 	if (e->e_rawfile == NULL) {
+		/*
+		 * In the ELF_C_WRITE case, there is no source that
+		 * can provide data for the section.
+		 */
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
