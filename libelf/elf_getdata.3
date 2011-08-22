@@ -176,7 +176,7 @@ NULL if an error occurs.
 These functions may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]" 
 .It Bq Er ELF_E_ARGUMENT
-Either of arguments
+Either of the arguments
 .Ar scn
 or
 .Ar data
@@ -195,9 +195,14 @@ Retrieval of data from the underlying object failed.
 .It Bq Er ELF_E_RESOURCE
 An out of memory condition was detected.
 .It Bq Er ELF_E_SECTION
-The section type associated with section
+Section
 .Ar scn
-is not recognized by the library.
+had type
+.Dv SHT_NULL .
+.It Bq Er ELF_E_SECTION
+The type of the section
+.Ar scn
+was not recognized by the library.
 .It Bq Er ELF_E_SECTION
 The size of the section
 .Ar scn
