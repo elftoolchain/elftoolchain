@@ -84,7 +84,7 @@ static void
 version(void)
 {
 
-	fprintf(stderr, "%s 1.0\n", ELFTC_GETPROGNAME());
+	fprintf(stderr, "%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 	exit(0);
 }
 
