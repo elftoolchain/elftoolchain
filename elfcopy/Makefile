@@ -3,7 +3,6 @@
 TOP=	..
 
 PROG=	elfcopy
-VERSION=	1.0.0
 
 SRCS=	archive.c ascii.c binary.c main.c sections.c segments.c symbols.c
 
@@ -18,7 +17,6 @@ LDADD+= -larchive
 
 NO_SHARED?=	yes
 
-CFLAGS+=	-DELFCOPY_VERSION=\"${VERSION}\"
 LINKS=	${BINDIR}/elfcopy ${BINDIR}/strip
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
