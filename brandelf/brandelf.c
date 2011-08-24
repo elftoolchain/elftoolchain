@@ -38,6 +38,7 @@
 #include <fcntl.h>
 #include <gelf.h>
 #include <libelf.h>
+#include <libelftc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +52,7 @@ static int elftype(const char *);
 static const char *iselftype(int);
 static Elf *openelf(int, const char *);
 static void printelftypes(void);
+static void printversion(void);
 static void usage(void);
 
 struct ELFtypes {
@@ -94,7 +96,7 @@ main(int argc, char **argv)
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		errx(1, "elf_version error");
 
-	while ((ch = getopt(argc, argv, "f:lt:v")) != -1)
+	while ((ch = getopt(argc, argv, "Vf:lt:v")) != -1)
 		switch (ch) {
 		case 'f':
 			if (change)
@@ -121,6 +123,9 @@ main(int argc, char **argv)
 				    "the -f option.");
 			change = 1;
 			strtype = optarg;
+			break;
+		case 'V':
+			printversion();
 			break;
 		default:
 			usage();
@@ -220,6 +225,14 @@ usage(void)
 	(void)fprintf(stderr,
 	    "usage: brandelf [-lv] [-f ELF_ABI_number] [-t brand] file ...\n");
 	exit(1);
+}
+
+static void
+printversion(void)
+{
+	(void) fprintf(stdout, "%s (%s)\n", ELFTC_GETPROGNAME(),
+	    elftc_version());
+	exit(0);
 }
 
 static const char *
