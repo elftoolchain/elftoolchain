@@ -1,4 +1,4 @@
-.\" Copyright (c) 2009 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2009,2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 17, 2009
+.Dd August 24, 2011
 .Os
 .Dt ELFTC_DEMANGLE 3
 .Sh NAME
@@ -34,7 +34,12 @@
 .Sh SYNOPSIS
 .In libelftc.h
 .Ft int
-.Fn elftc_demangle "const char *encodedname" "char *buffer" "size_t bufsize" "unsigned int flags"
+.Fo elftc_demangle
+.Fa "const char *encodedname"
+.Fa "char *buffer"
+.Fa "size_t bufsize"
+.Fa "unsigned int flags"
+.Fc
 .Sh DESCRIPTION
 Function
 .Fn elftc_demangle
@@ -56,7 +61,7 @@ Argument
 specifies the encoding style in use for argument
 .Ar encodedname .
 Supported encoding styles are:
-.Bl -tag -width ".Dv ELFTC_DEM_NOPARAM"
+.Bl -tag -width ".Dv ELFTC_DEM_GNU3"
 .It Dv ELFTC_DEM_ARM
 The encoding style used by compilers adhering to the conventions of the
 C++ Annotated Reference Manual.
@@ -80,21 +85,21 @@ In case of an error it returns -1 and sets the
 variable.
 .Sh EXAMPLES
 To decode a name that uses an unknown encoding style use:
-.Bd -literal
-	char buffer[1024];
-	const char *funcname;
+.Bd -literal -offset indent
+char buffer[1024];
+const char *funcname;
 	
-	funcname = ...; /* points to string to be demangled */
-	if (elftc_demangle(funcname, buffer, sizeof(buffer), 0) == 0)
-		printf("Demangled name: %\\n", buffer);
-	else
-		perror("Cannot demangle %s", funcname);
+funcname = ...; /* points to string to be demangled */
+if (elftc_demangle(funcname, buffer, sizeof(buffer), 0) == 0)
+	printf("Demangled name: %\\n", buffer);
+else
+	perror("Cannot demangle %s", funcname);
 .Ed
 .Sh ERRORS
 Function
 .Fn elftc_demangle
 may fail with the following errors:
-.Bl -tag -width "[ELF_E_RESOURCE]"
+.Bl -tag -width ".Bq Er ENAMETOOLONG"
 .It Bq Er EINVAL
 Argument
 .Ar encodedname
