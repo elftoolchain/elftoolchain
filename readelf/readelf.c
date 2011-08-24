@@ -35,6 +35,7 @@
 #include <gelf.h>
 #include <getopt.h>
 #include <libdwarf.h>
+#include <libelftc.h>
 #include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -6522,7 +6523,8 @@ _decode_uleb128(uint8_t **dp)
 static void
 readelf_version(void)
 {
-
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
+	    elftc_version());
 	exit(EX_OK);
 }
 
