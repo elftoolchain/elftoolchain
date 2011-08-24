@@ -4,6 +4,6 @@ TOP=	..
 
 PROG=	brandelf
 WARNS?=	6
-LDADD=	-lelf
+LDADD=	-lelftc -lelf
 
 .include "${TOP}/mk/elftoolchain.prog.mk"

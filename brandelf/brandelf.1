@@ -35,6 +35,7 @@
 .Nd mark an ELF binary for a specific ABI
 .Sh SYNOPSIS
 .Nm
+.Op Fl V
 .Op Fl lv
 .Op Fl f Ar ELF_ABI_number
 .Op Fl t Ar brand
@@ -46,6 +47,8 @@ utility marks an ELF binary to be run under a certain ABI.
 .Pp
 The options are as follows:
 .Bl -tag -width indent
+.It Fl V
+Print a version identifier and exit.
 .It Fl f Ar ELF_ABI_number
 Forces branding with the supplied ELF ABI number.
 Incompatible with the
