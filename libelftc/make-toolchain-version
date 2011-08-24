@@ -8,7 +8,7 @@
 #
 branch="HEAD"
 buildhost=`uname -s`
-elftcname="Elftoolchain"
+elftcname="elftoolchain"
 options="b:e:h:o:t:"
 top=""
 versionfile="elftc_version.c"
