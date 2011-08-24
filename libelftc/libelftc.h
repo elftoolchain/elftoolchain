@@ -60,6 +60,7 @@ unsigned int		 elftc_bfd_target_class(Bfd_Target *tgt);
 unsigned int		 elftc_bfd_target_machine(Bfd_Target *tgt);
 int		 	 elftc_demangle(const char *mangledname, char *buffer,
 			     size_t bufsize, unsigned int flags);
+const char		*elftc_version(void);
 __END_DECLS
 
 #endif	/* _LIBELFTC_H_ */
