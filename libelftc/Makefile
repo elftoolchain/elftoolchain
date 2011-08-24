@@ -20,7 +20,8 @@ WARNS?=	6
 LDADD+=	-lelf
 
 MAN3=	elftc_bfd_find_target.3 \
-	elftc_demangle.3
+	elftc_demangle.3 \
+	elftc_version.3
 
 MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 	elftc_bfd_find_target.3 elftc_bfd_target_class.3 \
