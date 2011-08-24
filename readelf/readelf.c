@@ -6550,9 +6550,6 @@ main(int argc, char **argv)
 	unsigned long	 sn;
 	int		 opt, i;
 
-	if (argc < 3)
-		readelf_usage();
-
 	re = &re_storage;
 	memset(re, 0, sizeof(*re));
 	STAILQ_INIT(&re->v_dumpop);
@@ -6649,6 +6646,9 @@ main(int argc, char **argv)
 
 	argv += optind;
 	argc -= optind;
+
+	if (argc == 0 || re->options == 0)
+		readelf_usage();
 
 	if (argc > 1)
 		re->flags |= DISPLAY_FILENAME;
