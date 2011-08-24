@@ -1,4 +1,4 @@
-.\" Copyright (c) 2010 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2010-2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 6, 2010
+.Dd August 24, 2011
 .Os
 .Dt ELFTC_BFD_FIND_TARGET
 .Sh NAME
@@ -58,51 +58,51 @@ Binary object descriptors encapsulate properties of an object format
 such as its file representation, ELF class, and byte endianness.
 .Pp
 Known descriptor names and their properties include:
-.Bl -column -offset "XXXX" "elf32-alpha-freebsd" "Object format" "Byte Order" "ELF Class"
+.Bl -column -offset "XXXX" ".Li elf32-x86-64-freebsd" "Object format" "Byte Order" "ELF Class"
 .It Em Name Ta Em "Object Format" Ta Em "Byte Order" Ta Em "ELF Class"
-.It binary Ta Binary Ta - Ta -
-.It elf32-avr Ta ELF Ta LSB Ta 32
-.It elf32-big Ta ELF Ta MSB Ta 32
-.It elf32-bigarm Ta ELF Ta MSB Ta 32
-.It elf32-bigmips Ta ELF Ta MSB Ta 32
-.It elf32-i386 Ta ELF Ta LSB Ta 32
-.It elf32-i386-freebsd Ta ELF Ta LSB Ta 32
-.It elf32-ia64-big Ta ELF Ta MSB Ta 32
-.It elf32-little Ta ELF Ta LSB Ta 32
-.It elf32-littlearm Ta ELF Ta LSB Ta 32
-.It elf32-littlemips Ta ELF Ta LSB Ta 32
-.It elf32-powerpc Ta ELF Ta MSB Ta 32
-.It elf32-powerpcle Ta ELF Ta LSB Ta 32
-.It elf32-sh Ta ELF Ta MSB Ta 32
-.It elf32-shl Ta ELF Ta LSB Ta 32
-.It elf32-sh-nbsd Ta ELF Ta MSB Ta 32
-.It elf32-shl-nbsd Ta ELF Ta LSB Ta 32
-.It elf32-shbig-linux Ta ELF Ta MSB Ta 32
-.It elf32-shl-linux Ta ELF Ta LSB Ta 32
-.It elf32-sparc Ta ELF Ta MSB Ta 32
-.It elf64-alpha Ta ELF Ta LSB Ta 64
-.It elf64-alpha-freebsd Ta ELF Ta LSB Ta 64
-.It elf64-big Ta ELF Ta MSB Ta 64
-.It elf64-bigmips Ta ELF Ta MSB Ta 64
-.It elf64-ia64-big Ta ELF Ta MSB Ta 64
-.It elf64-ia64-little Ta ELF Ta LSB Ta 64
-.It elf64-little Ta ELF Ta LSB Ta 64
-.It elf64-littlemips Ta ELF Ta LSB Ta 64
-.It elf64-powerpc Ta ELF Ta MSB Ta 64
-.It elf64-powerpcle Ta ELF Ta LSB Ta 64
-.It elf64-sh64 Ta ELF Ta MSB Ta 64
-.It elf64-sh64l Ta ELF Ta LSB Ta 64
-.It elf64-sh64-nbsd Ta ELF Ta MSB Ta 64
-.It elf64-sh64l-nbsd Ta ELF Ta LSB Ta 64
-.It elf64-sh64big-linux Ta ELF Ta MSB Ta 64
-.It elf64-sh64-linux Ta ELF Ta LSB Ta 64
-.It elf64-sparc Ta ELF Ta MSB Ta 64
-.It elf64-sparc-freebsd Ta ELF Ta MSB Ta 64
-.It elf64-x86-64 Ta ELF Ta LSB Ta 64
-.It elf64-x86-64-freebsd Ta ELF Ta LSB Ta 64
-.It ihex Ta IHEX Ta - Ta -
-.It srec Ta SREC Ta - Ta -
-.It symbolsrec Ta SREC Ta - Ta -
+.It Li binary Ta Binary Ta - Ta -
+.It Li elf32-avr Ta ELF Ta LSB Ta 32
+.It Li elf32-big Ta ELF Ta MSB Ta 32
+.It Li elf32-bigarm Ta ELF Ta MSB Ta 32
+.It Li elf32-bigmips Ta ELF Ta MSB Ta 32
+.It Li elf32-i386 Ta ELF Ta LSB Ta 32
+.It Li elf32-i386-freebsd Ta ELF Ta LSB Ta 32
+.It Li elf32-ia64-big Ta ELF Ta MSB Ta 32
+.It Li elf32-little Ta ELF Ta LSB Ta 32
+.It Li elf32-littlearm Ta ELF Ta LSB Ta 32
+.It Li elf32-littlemips Ta ELF Ta LSB Ta 32
+.It Li elf32-powerpc Ta ELF Ta MSB Ta 32
+.It Li elf32-powerpcle Ta ELF Ta LSB Ta 32
+.It Li elf32-sh Ta ELF Ta MSB Ta 32
+.It Li elf32-shl Ta ELF Ta LSB Ta 32
+.It Li elf32-sh-nbsd Ta ELF Ta MSB Ta 32
+.It Li elf32-shl-nbsd Ta ELF Ta LSB Ta 32
+.It Li elf32-shbig-linux Ta ELF Ta MSB Ta 32
+.It Li elf32-shl-linux Ta ELF Ta LSB Ta 32
+.It Li elf32-sparc Ta ELF Ta MSB Ta 32
+.It Li elf64-alpha Ta ELF Ta LSB Ta 64
+.It Li elf64-alpha-freebsd Ta ELF Ta LSB Ta 64
+.It Li elf64-big Ta ELF Ta MSB Ta 64
+.It Li elf64-bigmips Ta ELF Ta MSB Ta 64
+.It Li elf64-ia64-big Ta ELF Ta MSB Ta 64
+.It Li elf64-ia64-little Ta ELF Ta LSB Ta 64
+.It Li elf64-little Ta ELF Ta LSB Ta 64
+.It Li elf64-littlemips Ta ELF Ta LSB Ta 64
+.It Li elf64-powerpc Ta ELF Ta MSB Ta 64
+.It Li elf64-powerpcle Ta ELF Ta LSB Ta 64
+.It Li elf64-sh64 Ta ELF Ta MSB Ta 64
+.It Li elf64-sh64l Ta ELF Ta LSB Ta 64
+.It Li elf64-sh64-nbsd Ta ELF Ta MSB Ta 64
+.It Li elf64-sh64l-nbsd Ta ELF Ta LSB Ta 64
+.It Li elf64-sh64big-linux Ta ELF Ta MSB Ta 64
+.It Li elf64-sh64-linux Ta ELF Ta LSB Ta 64
+.It Li elf64-sparc Ta ELF Ta MSB Ta 64
+.It Li elf64-sparc-freebsd Ta ELF Ta MSB Ta 64
+.It Li elf64-x86-64 Ta ELF Ta LSB Ta 64
+.It Li elf64-x86-64-freebsd Ta ELF Ta LSB Ta 64
+.It Li ihex Ta IHEX Ta - Ta -
+.It Li srec Ta SREC Ta - Ta -
+.It Li symbolsrec Ta SREC Ta - Ta -
 .El
 .Pp
 Function
@@ -120,7 +120,7 @@ Function
 returns the object format associated with target descriptor
 .Ar target .
 The known object formats are:
-.Bl -tag -offset "XXXX" -width "Dv ETF_BINARY" -compact
+.Bl -tag -offset "XXXX" -width ".Dv ETF_BINARY" -compact
 .It Dv ETF_ELF
 An ELF object.
 .It Dv ETF_BINARY
@@ -173,18 +173,17 @@ in case of error.
 To return descriptor information associated with target name
 .Dq elf64-big
 use:
-.Bd -literal
-    struct Bfd_Target *t;
+.Bd -literal -offset indent
+struct Bfd_Target *t;
 
-    if ((t = elftc_bfd_find_target("elf64-big")) == NULL)
-            errx(EX_USAGE, "Cannot find target descriptor");
+if ((t = elftc_bfd_find_target("elf64-big")) == NULL)
+	errx(EX_USAGE, "Cannot find target descriptor");
 
-    printf("Class: %s\\n", elftc_bfd_target_class(t) == ELFCLASS32 ?
-            "ELFCLASS32" : "ELFCLASS64");
-    printf("Byteorder: %s\\n",
-            elftc_bfd_target_byteorder(t) == ELFDATA2LSB ?
-            "LSB" : "MSB");
-    printf("Flavor: %d\\n", elftc_bfd_target_flavor(t));
+printf("Class: %s\\n", elftc_bfd_target_class(t) == ELFCLASS32 ?
+    "ELFCLASS32" : "ELFCLASS64");
+printf("Byteorder: %s\\n",
+    elftc_bfd_target_byteorder(t) == ELFDATA2LSB ? "LSB" : "MSB");
+printf("Flavor: %d\\n", elftc_bfd_target_flavor(t));
 .Ed
 .Sh SEE ALSO
 .Xr elf 3
