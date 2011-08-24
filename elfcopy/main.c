@@ -95,6 +95,7 @@ static struct option strip_longopts[] =
 	{"strip-debug", no_argument, NULL, 'S'},
 	{"strip-symbol", required_argument, NULL, 'N'},
 	{"strip-unneeded", no_argument, NULL, ECP_STRIP_UNNEEDED},
+	{"version", no_argument, NULL, 'V'},
 	{"wildcard", no_argument, NULL, 'w'},
 	{NULL, 0, NULL, 0}
 };
@@ -151,6 +152,7 @@ static struct option elfcopy_longopts[] =
 	{"strip-symbol", required_argument, NULL, 'N'},
 	{"strip-symbols", required_argument, NULL, ECP_STRIP_SYMBOLS},
 	{"strip-unneeded", no_argument, NULL, ECP_STRIP_UNNEEDED},
+	{"version", no_argument, NULL, 'V'},
 	{"weaken", no_argument, NULL, ECP_WEAKEN_ALL},
 	{"weaken-symbol", required_argument, NULL, 'W'},
 	{"weaken-symbols", required_argument, NULL, ECP_WEAKEN_SYMBOLS},
@@ -693,7 +695,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 	char			*fn, *s;
 	int			 opt;
 
-	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSwW:xX",
+	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSwW:xXV",
 	    elfcopy_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'B':
@@ -743,6 +745,11 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case 'p':
 			ecp->flags |= PRESERVE_DATE;
+			break;
+		case 'V':
+			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
+			    elftc_version());
+			exit(EX_OK);
 			break;
 		case 'w':
 			ecp->flags |= WILDCARD;
@@ -924,8 +931,9 @@ mcs_main(struct elfcopy *ecp, int argc, char **argv)
 			print = 1;
 			break;
 		case 'V':
-			fprintf(stderr, "mcs %s\n", ELFCOPY_VERSION);
+			(void) printf("mcs (%s)\n", elftc_version());
 			exit(EX_OK);
+			break;
 		default:
 			mcs_usage();
 		}
@@ -986,7 +994,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 	int			 i;
 
 	outfile = NULL;
-	while ((opt = getopt_long(argc, argv, "I:K:N:o:O:pR:sSdgxXw",
+	while ((opt = getopt_long(argc, argv, "I:K:N:o:O:pR:sSdgVxXw",
 	    strip_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'R':
@@ -1019,6 +1027,11 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case 'p':
 			ecp->flags |= PRESERVE_DATE;
+			break;
+		case 'V':
+			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
+			    elftc_version());
+			exit(EX_OK);
 			break;
 		case 'w':
 			ecp->flags |= WILDCARD;

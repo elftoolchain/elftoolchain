@@ -49,6 +49,7 @@
 .Op Fl -strip-debug
 .Op Fl -strip-symbol= Ns Ar symbolname
 .Op Fl -strip-unneeded
+.Op Fl -version
 .Op Fl -weaken-symbol= Ns Ar symbolname
 .Op Fl I Ar objformat
 .Op Fl K Ar symbolname
@@ -57,6 +58,7 @@
 .Op Fl O Ar objformat
 .Op Fl R Ar sectionname
 .Op Fl S
+.Op Fl V
 .Op Fl X
 .Op Fl d
 .Op Fl h
@@ -177,6 +179,8 @@ Do not copy the symbol named by argument
 to the output.
 .It Fl -strip-unneeded
 Do not copy symbols that are not needed for relocation processing.
+.It Fl -version
+Print a version identifier and exit.
 .It Fl -weaken-symbol= Ns Ar symbolname
 Mark the symbol named by argument
 .Ar symbolname
@@ -199,6 +203,9 @@ Identical to option
 .It Fl S
 Identical to option
 .Fl -strip-all .
+.It Fl V
+Identical to option
+.Fl -version .
 .It Fl W Ar symbolname
 Identical to option
 .Fl -weaken-symbol= Ns symbolname .
