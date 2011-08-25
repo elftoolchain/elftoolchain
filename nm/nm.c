@@ -83,7 +83,6 @@ struct sym_print_data {
 
 struct nm_prog_info {
 	const char	*name;
-	const char	*version;
 	const char	*def_filename;
 };
 
@@ -736,8 +735,7 @@ global_init(void)
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		errx(1, "elf_version error");
 
-	nm_info.name = "nm";
-	nm_info.version = "1.0";
+	nm_info.name = ELFTC_GETPROGNAME();
 	nm_info.def_filename = "a.out";
 
 	nm_opts.print_symbol = PRINT_SYM_SYM;
@@ -934,8 +932,7 @@ Name                  Value           Class        Type         Size            
 static void
 print_version(void)
 {
-
-	printf("%s %s\n", nm_info.name, nm_info.version);
+	(void) printf("%s (%s)\n", nm_info.name, elftc_version());
 	exit(EX_OK);
 }
 
@@ -2077,7 +2074,7 @@ usage(int exitcode)
 	printf("\
 \n    -u, --undefined-only      Display only undefined symbols.\
 \n        --defined-only        Display only defined symbols.\
-\n    -V, --version             Show the version number for %s.\
+\n    -V, --version             Show the version identifier for %s.\
 \n    -v                        Sort output by value.\
 \n    -x                        Write numeric values in hexadecimal.\
 \n                              Equivalent to specifying \"-t x\".",
