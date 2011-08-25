@@ -62,11 +62,11 @@ cd ${top} || usage "ERROR: Cannot change directory to \"${top}\"."
 
 versionstring=""
 if [ -d .svn ]; then
-    versionstring="svn-"$(svnversion)
+    versionstring="svn:"$(svnversion)
 elif [ -d CVS ]; then
-    versionstring="cvs-unknown"
+    versionstring="cvs:unknown"
 else # Try Git
-    versionstring=$(git describe --all --dirty --long)
+    versionstring="git:"$(git describe --all --dirty --long)
 
     if [ ${?} -ne 0 ]; then
 	usage "Cannot determine tree version."
