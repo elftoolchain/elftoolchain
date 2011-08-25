@@ -17,6 +17,7 @@ LDADD+= -larchive
 
 NO_SHARED?=	yes
 
-LINKS=	${BINDIR}/elfcopy ${BINDIR}/strip
+LINKS=	${BINDIR}/elfcopy ${BINDIR}/strip 	\
+	${BINDIR}/elfcopy ${BINDIR}/mcs
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
