@@ -7,8 +7,8 @@ SRCS=	findtextrel.c
 
 WARNS?=	6
 
-DPADD=	${LIBELF} ${LIBDWARF}
-LDADD=	-ldwarf -lelf
+DPADD=	${LIBELFTC} ${LIBDWARF} ${LIBELF} 
+LDADD=	-lelftc -ldwarf -lelf
 
 MAN1=	findtextrel.1
 

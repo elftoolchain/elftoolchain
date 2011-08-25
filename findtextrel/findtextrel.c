@@ -32,6 +32,7 @@
 #include <gelf.h>
 #include <getopt.h>
 #include <libdwarf.h>
+#include <libelftc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -57,8 +58,7 @@ usage(void)
 static void
 version(void)
 {
-
-	fprintf(stderr, "%s 1.0\n", ELFTC_GETPROGNAME());
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 	exit(0);
 }
 
