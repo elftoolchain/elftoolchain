@@ -209,6 +209,7 @@ static void	parse_sec_address_op(struct elfcopy *ecp, int optnum,
 static void	parse_sec_flags(struct sec_action *sac, char *s);
 static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
     unsigned int op);
+static void	print_version(void);
 static void	strip_main(struct elfcopy *ecp, int argc, char **argv);
 static void	strip_usage(void);
 static void	set_osabi(struct elfcopy *ecp, const char *abi);
@@ -747,9 +748,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			ecp->flags |= PRESERVE_DATE;
 			break;
 		case 'V':
-			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
-			    elftc_version());
-			exit(EX_OK);
+			print_version();
 			break;
 		case 'w':
 			ecp->flags |= WILDCARD;
@@ -931,8 +930,7 @@ mcs_main(struct elfcopy *ecp, int argc, char **argv)
 			print = 1;
 			break;
 		case 'V':
-			(void) printf("mcs (%s)\n", elftc_version());
-			exit(EX_OK);
+			print_version();
 			break;
 		default:
 			mcs_usage();
@@ -1029,9 +1027,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 			ecp->flags |= PRESERVE_DATE;
 			break;
 		case 'V':
-			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
-			    elftc_version());
-			exit(EX_OK);
+			print_version();
 			break;
 		case 'w':
 			ecp->flags |= WILDCARD;
@@ -1283,6 +1279,13 @@ strip_usage()
 
 	fprintf(stderr, "usage: strip\n");
 	exit(EX_USAGE);
+}
+
+static void
+print_version(void)
+{
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
+	exit(EX_OK);
 }
 
 int
