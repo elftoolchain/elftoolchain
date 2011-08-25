@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD: src/usr.bin/elfdump/elfdump.1,v 1.6 2005/01/18 13:43:48 ru Exp $
 .\"
-.Dd January 15, 2003
+.Dd August 25, 2011
 .Dt ELFDUMP 1
 .Os
 .Sh NAME
@@ -34,8 +34,9 @@
 files
 .Sh SYNOPSIS
 .Nm
-.Op Fl S
 .Fl a | cdeGhiknprsv
+.Op Fl S
+.Op Fl V
 .Op Fl N Ar name
 .Op Fl w Ar file
 .Ar file ...
@@ -87,6 +88,8 @@ Output in the Solaris
 format.
 .It Fl v
 Dump the symbol-versioning sections.
+.It Fl V
+Print a version identifier and exit.
 .It Fl w Ar file
 Write output to a
 .Ar file
@@ -147,7 +150,7 @@ manual page was written by
 .An Kai Wang Aq kaiw@FreeBSD.org
 rewrote it using the
 .Lb libelf
-and implemented additional functionalities.
+and implemented additional functionality.
 .Sh BUGS
 Does not fully implement the
 .Tn ELF
