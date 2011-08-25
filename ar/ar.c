@@ -65,6 +65,7 @@
 #include <archive.h>
 #include <errno.h>
 #include <getopt.h>
+#include <libelftc.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,7 +96,6 @@ static void	set_mode(struct bsdar *bsdar, char opt);
 static void	only_mode(struct bsdar *bsdar, const char *opt,
 		    const char *valid_modes);
 static void	bsdar_version(void);
-static void	ranlib_version(void);
 
 int
 main(int argc, char **argv)
@@ -128,7 +128,7 @@ main(int argc, char **argv)
 				bsdar->options |= AR_D;
 				break;
 			case 'V':
-				ranlib_version();
+				bsdar_version();
 				break;
 			case OPTION_HELP:
 				ranlib_usage();
@@ -402,13 +402,7 @@ ranlib_usage()
 static void
 bsdar_version()
 {
-	(void)printf("BSD ar %s - %s\n", BSDAR_VERSION, archive_version());
-	exit(EX_OK);
-}
-
-static void
-ranlib_version()
-{
-	(void)printf("ranlib %s - %s\n", BSDAR_VERSION, archive_version());
+	(void)printf("%s (%s, %s)\n", ELFTC_GETPROGNAME(), archive_version(),
+	    elftc_version());
 	exit(EX_OK);
 }
