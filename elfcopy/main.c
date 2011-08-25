@@ -204,21 +204,21 @@ static struct {
 static int	copy_tempfile(int fd, const char *out);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
+static void	elfcopy_main(struct elfcopy *ecp, int argc, char **argv);
+static void	elfcopy_usage(void);
+static void	mcs_main(struct elfcopy *ecp, int argc, char **argv);
+static void	mcs_usage(void);
 static void	parse_sec_address_op(struct elfcopy *ecp, int optnum,
     const char *optname, char *s);
 static void	parse_sec_flags(struct sec_action *sac, char *s);
 static void	parse_symlist_file(struct elfcopy *ecp, const char *fn,
     unsigned int op);
 static void	print_version(void);
+static void	set_input_target(struct elfcopy *ecp, const char *target_name);
+static void	set_osabi(struct elfcopy *ecp, const char *abi);
+static void	set_output_target(struct elfcopy *ecp, const char *target_name);
 static void	strip_main(struct elfcopy *ecp, int argc, char **argv);
 static void	strip_usage(void);
-static void	set_osabi(struct elfcopy *ecp, const char *abi);
-static void	set_input_target(struct elfcopy *ecp, const char *target_name);
-static void	set_output_target(struct elfcopy *ecp, const char *target_name);
-static void	mcs_main(struct elfcopy *ecp, int argc, char **argv);
-static void	mcs_usage(void);
-static void	elfcopy_main(struct elfcopy *ecp, int argc, char **argv);
-static void	elfcopy_usage(void);
 
 /* 
  * An ELF object usually has a sturcture described by the
