@@ -230,8 +230,7 @@ usage(void)
 static void
 printversion(void)
 {
-	(void) fprintf(stdout, "%s (%s)\n", ELFTC_GETPROGNAME(),
-	    elftc_version());
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 	exit(0);
 }
 
