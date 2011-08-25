@@ -425,8 +425,8 @@ _exit1:
 void
 usage(void)
 {
-	(void) fprintf(stderr,
-	    "strings [-afho] [-e s|S|l|L|b|B] [-n #] [-t o|x|d] file ...\n");
+	(void) fprintf(stderr, "%s [-afhovV] [-e b|l|s|B|L|S] [-n #] [-#] "
+	    "[-t o|x|d] file ...\n", ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
