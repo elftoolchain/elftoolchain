@@ -33,6 +33,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
+#include <libelftc.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -834,7 +835,7 @@ main(int ac, char **av)
 	memset(ed, 0, sizeof(*ed));
 	STAILQ_INIT(&ed->snl);
 	ed->out = stdout;
-	while ((ch = getopt(ac, av, "acdeiGhknN:prsSvw:")) != -1)
+	while ((ch = getopt(ac, av, "acdeiGhknN:prsSvVw:")) != -1)
 		switch (ch) {
 		case 'a':
 			ed->options = ED_ALL;
@@ -880,6 +881,11 @@ main(int ac, char **av)
 			break;
 		case 'v':
 			ed->options |= ED_SYMVER;
+			break;
+		case 'V':
+			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
+			    elftc_version());
+			exit(EX_OK);
 			break;
 		case 'w':
 			if ((ed->out = fopen(optarg, "w")) == NULL)
@@ -2734,7 +2740,7 @@ elf_print_checksum(struct elfdump *ed)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: elfdump [-S] [-a | -cdeGhiknprsv] [-N name] "
+	fprintf(stderr, "usage: elfdump [-S] [-a | -cdeGhiknprsvV] [-N name] "
 	    "[-w file] file...\n");
 	exit(EX_USAGE);
 }
