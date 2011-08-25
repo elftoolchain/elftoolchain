@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 20, 2011
+.Dd August 25, 2011
 .Os
 .Dt DWARF_TRANSFORM_TO_DISK_FORM 3
 .Sh NAME
@@ -43,11 +43,11 @@
 Function
 .Fn dwarf_transform_to_disk_form
 transforms the DWARF information gathered by the producer into
-byte streams for the applicatin to write out as ELF sections.
+byte streams for the application to write out as ELF sections.
 If the flag
 .Dv DW_DLC_SYMBOLIC_RELOCATIONS
-is set in the producer flags, it will also generates the
-relocation arrays associated.
+is set on the producer, the function will also generate the associated
+relocation arrays.
 .Pp
 Argument
 .Ar dbg
@@ -60,24 +60,24 @@ If argument
 .Ar err
 is not NULL, it will be used to store error information in case
 of an error.
-.Sh RETURN VALUES
-On success, function
-.Fn dwarf_transform_to_disk_form
-returns the total number of ELF sections generated. Application
-code can then call the function
+.Pp
+After a call to this function, the application can call the function
 .Xr dwarf_get_section_bytes 3
 to retrieve the byte streams for each ELF section.
 If the flag
 .Dv DW_DLC_SYMBOLIC_RELOCATIONS
-is set, application code can also call the function
+was set on the descriptor, the application can also call the function
 .Xr dwarf_get_relocation_info 3
 to retrieve the generated relocation arrays.
-.Pp
+.Sh RETURN VALUES
+On success, function
+.Fn dwarf_transform_to_disk_form
+returns the total number of ELF sections generated.
 In case of an error, function
 .Fn dwarf_transform_to_disk_form
-return
+returns
 .Dv DW_DLV_NOCOUNT
-and set the argument
+and sets the argument
 .Ar err .
 .Sh ERRORS
 Function
@@ -89,8 +89,7 @@ Argument
 .Ar dbg
 was NULL.
 .It Bq Er DW_DLE_MEMORY
-An out of memory condition was encountered during the execution of the
-functions.
+An out of memory condition was encountered during execution.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
