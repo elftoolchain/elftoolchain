@@ -30,6 +30,7 @@
 #include <fcntl.h>
 #include <gelf.h>
 #include <getopt.h>
+#include <libelftc.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -878,10 +879,10 @@ Usage: size [options] file ...\n\
   --radix=radix      Display numeric values in the specified radix.\n\
                      Supported values are: 8, 10 and 16.\n\
   --totals           Show cumulative totals of section sizes.\n\
-  --version          Display program version and exit.\n\
+  --version          Display a version identifier and exit.\n\
   -A                 Equivalent to `--format=sysv'.\n\
   -B                 Equivalent to `--format=berkeley'.\n\
-  -V                 Equivalent to `--version;.\n\
+  -V                 Equivalent to `--version'.\n\
   -d                 Equivalent to `--radix=10'.\n\
   -h                 Same as option --help.\n\
   -o                 Equivalent to `--radix=8'.\n\
@@ -898,6 +899,6 @@ usage(void)
 static void
 show_version(void)
 {
-	(void) fprintf(stdout, SIZE_VERSION_STRING "\n");
+	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 	exit(EX_OK);
 }
