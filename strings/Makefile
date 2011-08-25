@@ -4,8 +4,8 @@ TOP=	..
 
 PROG=   strings
 WARNS?= 6
-DPADD=	${LIBELF}
-LDADD=  -lelf
+DPADD=	${LIBELFTC} ${LIBELF}
+LDADD=  -lelftc -lelf
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
 

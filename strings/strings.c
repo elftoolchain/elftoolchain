@@ -42,13 +42,12 @@
 #include <unistd.h>
 
 #include <libelf.h>
+#include <libelftc.h>
 #include <gelf.h>
 
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
-
-#define	STRINGS_VERSION_STRING		"strings 1.0"
 
 enum radix_style {
 	RADIX_DECIMAL,
@@ -433,6 +432,6 @@ usage(void)
 void
 show_version(void)
 {
-        (void) fprintf(stdout, STRINGS_VERSION_STRING "\n");
+        (void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
         exit(EX_OK);
 }
