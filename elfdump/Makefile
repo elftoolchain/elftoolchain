@@ -5,8 +5,8 @@ TOP=	..
 PROG=	elfdump
 WARNS?=	6
 
-DPADD=	${LIBELF}
-LDADD=	-lelf
+DPADD=	${LIBELFTC} ${LIBELF}
+LDADD=	-lelftc -lelf
 
 USE_LIBARCHIVE?=	0
 .if defined(USE_LIBARCHIVE) && (${USE_LIBARCHIVE} > 0)
