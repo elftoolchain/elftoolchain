@@ -56,7 +56,9 @@
 .Sh DESCRIPTION
 The
 .Nm
-utility displays information about ELF objects.
+utility displays information about ELF objects and
+.Xr ar 1
+archives.
 .Pp
 The
 .Nm
@@ -75,7 +77,7 @@ Turn on the following flags:
 and
 .Fl V .
 .It Fl c | Fl -archive-index
-This option is recognized, but is ignored.
+Print the archive symbol table for archives.
 .It Fl d | Fl -dynamic
 Print the contents of the
 .Li SHT_DYNAMIC
