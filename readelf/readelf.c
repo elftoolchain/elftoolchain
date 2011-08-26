@@ -6528,18 +6528,43 @@ readelf_version(void)
 	exit(EX_OK);
 }
 
-static void
-readelf_help(void)
-{
+static const char *usagemsg = "\
+Usage: %s <options> ELF-object...\n\
+  Display information about ELF objects.\n\n\
+  Options:\n\
+  -a | --all               Turn on flags -dhIlrsASV.\n\
+  -c | --archive-index     (accepted, but ignored)\n\
+  -d | --dynamic           Print the contents of SHT_DYNAMIC sections.\n\
+  -e | --headers           Print all headers in the object.\n\
+  -g | --section-groups    (accepted, but ignored)\n\
+  -h | --file-header       Print the file header for the object.\n\
+  -l | --program-headers   Print the PHDR table for the object.\n\
+  -n | --notes             Print the contents of SHT_NOTE sections.\n\
+  -p INDEX | --string-dump=INDEX\n\
+                           Print the contents of section at index INDEX.\n\
+  -r | --relocs            Print relocation information.\n\
+  -t | --section-details   Print additional information about sections.\n\
+  -v | --version           Print a version identifier and exit.\n\
+  -x INDEX | --hex-dump=INDEX\n\
+                           Display contents of a section as hexadecimal.\n\
+  -A | --arch-specific     (accepted, but ignored)\n\
+  -D | --use-dynamic       Print the symbol table specified by the DT_SYMTAB\n\
+                           entry in the \".dynamic\" section.\n\
+  -H | --help              Print a help message.\n\
+  -I | --histogram         Print information on bucket list lengths for \n\
+                           hash sections.\n\
+  -N | --full-section-name (accepted, but ignored)\n\
+  -S | --sections | --section-headers\n\
+                           Print information about section headers.\n\
+  -V | --version-info      Print symbol versoning information.\n\
+  -W | --wide              Print information without wrapping long lines.\n\
+";
 
-	exit(EX_OK);
-}
 
 static void
 readelf_usage(void)
 {
-
-	fprintf(stderr, "usage: readelf <options> object ...\n");
+	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
@@ -6557,6 +6582,9 @@ main(int argc, char **argv)
 	while ((opt = getopt_long(argc, argv, "AacDdegHhIi:lNnp:rSstuVvWw:x:",
 	    longopts, NULL)) != -1) {
 		switch(opt) {
+		case '?':
+			readelf_usage();
+			break;
 		case 'A':
 			re->options |= RE_AA;
 			break;
@@ -6580,7 +6608,7 @@ main(int argc, char **argv)
 			re->options |= RE_G;
 			break;
 		case 'H':
-			readelf_help();
+			readelf_usage();
 			break;
 		case 'h':
 			re->options |= RE_H;
