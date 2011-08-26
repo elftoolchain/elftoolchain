@@ -6215,7 +6215,8 @@ process_members:
 			goto next_member;
 		}
 		if (strcmp(arhdr->ar_name, "/") == 0 ||
-		    strcmp(arhdr->ar_name, "//") == 0)
+		    strcmp(arhdr->ar_name, "//") == 0 ||
+		    strcmp(arhdr->ar_name, "__.SYMDEF") == 0)
 			goto next_member;
 		printf("\nFile: %s(%s)\n", re->filename, arhdr->ar_name);
 		dump_elf(re);
