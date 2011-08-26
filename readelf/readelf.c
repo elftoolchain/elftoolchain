@@ -6529,11 +6529,11 @@ readelf_version(void)
 }
 
 static const char *usagemsg = "\
-Usage: %s <options> ELF-object...\n\
-  Display information about ELF objects.\n\n\
+Usage: %s <options> file...\n\
+  Display information about ELF objects and ar(1) archives.\n\n\
   Options:\n\
   -a | --all               Turn on flags -dhIlrsASV.\n\
-  -c | --archive-index     (accepted, but ignored)\n\
+  -c | --archive-index     Print the archive symbol table for archives.\n\
   -d | --dynamic           Print the contents of SHT_DYNAMIC sections.\n\
   -e | --headers           Print all headers in the object.\n\
   -g | --section-groups    (accepted, but ignored)\n\
