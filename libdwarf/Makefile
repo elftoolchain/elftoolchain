@@ -88,6 +88,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_const_value_string.3		\
 	dwarf_add_AT_name.3				\
 	dwarf_add_AT_producer.3				\
+	dwarf_add_AT_targ_address.3			\
 	dwarf_add_die_to_debug.3			\
 	dwarf_attr.3					\
 	dwarf_attrlist.3				\
@@ -173,6 +174,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 MLINKS+= \
 	dwarf_add_AT_const_value_string.3 dwarf_add_AT_const_value_signedint.3 \
 	dwarf_add_AT_const_value_string.3 dwarf_add_AT_const_value_unsignedint.3 \
+	dwarf_add_AT_targ_address.3 dwarf_add_AT_targ_address_b.3 \
 	dwarf_attrval_signed.3	dwarf_attrval_flag.3	\
 	dwarf_attrval_signed.3	dwarf_attrval_string.3	\
 	dwarf_attrval_signed.3	dwarf_attrval_unsigned.3 \
