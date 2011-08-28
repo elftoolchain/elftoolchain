@@ -89,6 +89,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_name.3				\
 	dwarf_add_AT_producer.3				\
 	dwarf_add_AT_signed_const.3			\
+	dwarf_add_AT_string.3				\
 	dwarf_add_AT_targ_address.3			\
 	dwarf_add_die_to_debug.3			\
 	dwarf_attr.3					\
