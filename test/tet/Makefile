@@ -8,6 +8,8 @@ TOP=	../..
 
 TET_BUILD_MARKER=	.tet-build-done
 
+.PHONY:	all clean depend
+
 .if exists(${TET_ROOT}/configure)
 all: ${TET_BUILD_MARKER}
 
@@ -23,6 +25,9 @@ clean:
 depend:	.SILENT
 	true
 .else
+clean:
+	@true
+
 all depend:	.SILENT
 	echo "ERROR: The distribution of TET v${TET_VERSION} is missing."
 	echo
