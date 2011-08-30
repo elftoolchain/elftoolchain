@@ -2957,8 +2957,10 @@ dump_symtab(struct readelf *re, int i)
 			printf(" %s", name);
 		/* Append symbol version string for SHT_DYNSYM symbol table. */
 		if (s->type == SHT_DYNSYM && re->vname != NULL &&
-		    re->vs != NULL && re->vs[j] > 1)
-			printf("@%s (%d)", re->vname[re->vs[j]], re->vs[j]);
+		    re->vs != NULL && re->vs[j] > 1) {
+			printf("@%s (%d)", re->vname[re->vs[j] & 0x7fff],
+			    re->vs[j] & 0x7fff);
+		}
 		putchar('\n');
 	}
 
@@ -3503,9 +3505,13 @@ dump_versym(struct readelf *re)
 		if ((i & 3) == 0) {
 			if (i > 0)
 				putchar('\n');
-			printf("  %03x", i);
+			printf("  %03x:", i);
 		}
-		printf(" %3d %-12s ", re->vs[i], re->vname[re->vs[i]]);
+		if (re->vs[i] & 0x8000)
+			printf(" %3dh %-12s ", re->vs[i] & 0x7fff,
+			    re->vname[re->vs[i] & 0x7fff]);
+		else
+			printf(" %3d %-12s ", re->vs[i], re->vname[re->vs[i]]);
 	}
 	putchar('\n');
 }
