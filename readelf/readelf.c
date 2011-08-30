@@ -3508,10 +3508,10 @@ dump_versym(struct readelf *re)
 			printf("  %03x:", i);
 		}
 		if (re->vs[i] & 0x8000)
-			printf(" %3dh %-12s ", re->vs[i] & 0x7fff,
+			printf(" %3xh %-12s ", re->vs[i] & 0x7fff,
 			    re->vname[re->vs[i] & 0x7fff]);
 		else
-			printf(" %3d %-12s ", re->vs[i], re->vname[re->vs[i]]);
+			printf(" %3x %-12s ", re->vs[i], re->vname[re->vs[i]]);
 	}
 	putchar('\n');
 }
