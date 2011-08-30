@@ -280,7 +280,6 @@ static const char *phdr_type(unsigned int ptype);
 static const char *ppc_abi_fp(uint64_t fp);
 static const char *ppc_abi_vector(uint64_t vec);
 static const char *r_type(unsigned int mach, unsigned int type);
-static void readelf_help(void);
 static void readelf_usage(void);
 static void readelf_version(void);
 static void search_ver(struct readelf *re);
