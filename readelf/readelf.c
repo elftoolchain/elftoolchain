@@ -289,6 +289,7 @@ static const char *st_shndx(unsigned int shndx);
 static const char *st_type(unsigned int stype);
 static const char *st_vis(unsigned int svis);
 static const char *top_tag(unsigned int tag);
+static void unload_sections(struct readelf *re);
 static uint64_t _read_lsb(Elf_Data *d, uint64_t *offsetp,
     int bytes_to_read);
 static uint64_t _read_msb(Elf_Data *d, uint64_t *offsetp,
@@ -6060,6 +6061,27 @@ load_sections(struct readelf *re)
 }
 
 static void
+unload_sections(struct readelf *re)
+{
+
+	if (re->sl != NULL) {
+		free(re->sl);
+		re->sl = NULL;
+	}
+	re->shnum = 0;
+	re->vd_s = NULL;
+	re->vn_s = NULL;
+	re->vs_s = NULL;
+	re->vs = NULL;
+	re->vs_sz = 0;
+	if (re->vname != NULL) {
+		free(re->vname);
+		re->vname = NULL;
+		re->vname_sz = 0;
+	}
+}
+
+static void
 dump_elf(struct readelf *re)
 {
 
@@ -6110,6 +6132,8 @@ dump_elf(struct readelf *re)
 		dump_arch_specific_info(re);
 	if (re->options & RE_W)
 		dump_dwarf(re);
+	if (re->options & ~RE_H)
+		unload_sections(re);
 }
 
 static void
