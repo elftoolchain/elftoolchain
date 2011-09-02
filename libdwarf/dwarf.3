@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 31, 2011
+.Dd September 2, 2011
 .Os
 .Dt DWARF 3
 .Sh NAME
@@ -298,7 +298,7 @@ Retrieve a register rule.
 Retrieve a register rule (revised API).
 .It Fn dwarf_get_fde_instr_bytes
 Retrieve instructions from an FDE descriptor.
-.It Fn dwarf_get_fde_list , dwarf_get_fde_list_eh
+.It Fn dwarf_get_fde_list , Fn dwarf_get_fde_list_eh
 Retrieve frame information.
 .It Fn dwarf_get_fde_n
 Retrieve an FDE descriptor.
@@ -312,8 +312,6 @@ Retrieve the offset of the debugging information entry for a
 compilation unit.
 .It Fn dwarf_next_cu_header , Fn dwarf_next_cu_header_b
 Step through compilation units in a debug context.
-.It Fn dwarf_srcfiles
-Retrieve source files for a compilation unit.
 .El
 .It Debugging Information Entries
 .Bl -tag -compact
@@ -393,12 +391,14 @@ Check if the source line corresponds to the end of a sequence of
 instructions.
 .It Fn dwarf_lineno
 Retrieve the line number for a line descriptor.
-.It Fn dwarf_off
+.It Fn dwarf_lineoff
 Retrieve the column number for a line descriptor.
 .It Fn dwarf_linesrc
 Retrieve the source file for a line descriptor.
 .It Fn dwarf_line_srcfileno
 Retrieve the index of the source file for a line descriptor.
+.It Fn dwarf_srcfiles
+Retrieve source files for a compilation unit.
 .It Fn dwarf_srclines
 Return line number information for a compilation unit.
 .El
@@ -509,7 +509,7 @@ Retrieve descriptors for user-defined types.
 Return the offset for the compilation unit for a type.
 .It Fn dwarf_pubtype_die_offset , Fn dwarf_type_die_offset
 Return the offset for the debugging information entry for a type.
-.It Fn dwarf_pubtype_name , Fn dwarf_typename
+.It Fn dwarf_pubtypename , Fn dwarf_typename
 Retrieve the name of a type.
 .It Fn dwarf_pubtype_name_offsets , Fn dwarf_type_name_offsets
 Retrieve the name and offsets for a type.
@@ -562,11 +562,12 @@ below.
 .It Attribute Management
 The following functions are used to attach attributes to a debugging
 information entry:
-.Fn dwarf_add_AT_comp_dir 3  ,
-.Fn dwarf_add_AT_const_value_signedint 3 ,
-.Fn dwarf_add_AT_const_value_signedint 3 ,
+.Fn dwarf_add_AT_comp_dir ,
+.Fn dwarf_add_AT_const_value_signedint ,
+.Fn dwarf_add_AT_const_value_signed_const ,
 .Fn dwarf_add_AT_const_value_string ,
 .Fn dwarf_add_AT_const_value_unsignedint ,
+.Fn dwarf_add_AT_flag ,
 .Fn dwarf_add_AT_name ,
 .Fn dwarf_add_AT_producer ,
 .Fn dwarf_add_AT_signed_const ,
@@ -634,7 +635,6 @@ The following API is an extension:
 .Fn dwarf_producer_set_isa .
 .El
 .Sh SEE ALSO
-.Xr dwarf 3 ,
 .Xr elf 3
 .Sh STANDARDS
 The DWARF standard is defined by
