@@ -72,6 +72,8 @@ creates a
 .Dv DW_AT_const_value
 attribute containing a signed value specified by argument
 .Ar value .
+The created attribute will have DWARF form
+.Dv DW_FORM_sdata .
 .Pp
 Function
 .Fn dwarf_add_AT_const_value_unsignedint
@@ -79,6 +81,8 @@ creates a
 .Dv DW_AT_const_value
 attribute containing an unsigned value specified by argument
 .Ar value .
+The created attribute will have DWARF form
+.Dv DW_FORM_udata .
 .Pp
 Function
 .Fn dwarf_add_AT_const_value_string
@@ -86,6 +90,8 @@ creates a
 .Dv DW_AT_const_value
 attribute containing an NUL-terminated string pointed to by argument
 .Ar str .
+The created attribute will have DWARF form
+.Dv DW_FORM_strp .
 .Pp
 If argument
 .Ar err
