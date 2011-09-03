@@ -90,6 +90,9 @@ of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_add_AT_dataref
+returns the created attribute descriptor.
+In case of an error, function
+.Fn dwarf_add_AT_dataref
 returns
 .Dv DW_DLV_BADADDR
 and sets the argument
