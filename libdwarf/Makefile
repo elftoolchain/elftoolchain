@@ -90,6 +90,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_flag.3				\
 	dwarf_add_AT_name.3				\
 	dwarf_add_AT_producer.3				\
+	dwarf_add_AT_ref_address.3			\
 	dwarf_add_AT_signed_const.3			\
 	dwarf_add_AT_string.3				\
 	dwarf_add_AT_targ_address.3			\
