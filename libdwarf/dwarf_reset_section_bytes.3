@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 20, 2011
+.Dd September 3, 2011
 .Os
 .Dt DWARF_RESET_SECTION_BYTES 3
 .Sh NAME
 .Nm dwarf_reset_section_bytes
-.Nd reset section byte streams and relocation arrays
+.Nd reset the internal state of a producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -41,13 +41,14 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_reset_section_bytes
-resets the internal byte streams and relocation array pointers,
-so the next call to the function
-.Xr dwarf_reset_section_bytes 3
-will return the byte stream for the first generated section, and the
+resets the internal state of a DWARF producer instance, so that the
 next call to the function
+.Xr dwarf_get_section_bytes 3
+will return the byte stream for the first generated section, and
+the next call to the function
 .Xr dwarf_get_relocation_info 3
-will return the first relocation array.
+will return the first relocation array for the DWARF producer
+instance.
 .Pp
 Argument
 .Ar dbg
