@@ -354,7 +354,7 @@ dwarf_add_AT_flag(Dwarf_P_Debug dbg, Dwarf_P_Die die, Dwarf_Half attr,
 	at->at_die = die;
 	at->at_attrib = attr;
 	at->at_form = DW_FORM_flag;
-	at->u[0].u64 = flag;
+	at->u[0].u64 = flag ? 1 : 0;
 
 	STAILQ_INSERT_TAIL(&die->die_attr, at, at_next);
 
