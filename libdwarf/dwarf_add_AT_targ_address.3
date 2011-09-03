@@ -60,6 +60,13 @@ creates an attribute belonging to the address class and attach it to
 the debugging information entry referenced by argument
 .Ar die .
 .Pp
+The created attribute will have DWARF form
+.Dv DW_FORM_addr .
+If flag
+.Dv DW_DLC_SIZE_64
+is set, the attribute value is 8 bytes in size.
+Otherwise the attribute value is 4 bytes in size.
+.Pp
 Argument
 .Ar dbg
 should reference a DWARF producer instance allocated using
