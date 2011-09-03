@@ -83,6 +83,16 @@ Function
 creates an attribute with an unsigned value specified in argument
 .Ar value .
 .Pp
+The attribute created by these function will have one of the
+DWARF forms
+.Dv DW_FORM_data1 ,
+.Dv DW_FORM_data2 ,
+.Dv DW_FORM_data4
+or
+.Dv DW_FORM_data8 ,
+depending on the size of the value specified in argument
+.Ar value .
+.Pp
 If argument
 .Ar err
 is not NULL, it will be used by these functions to store error
