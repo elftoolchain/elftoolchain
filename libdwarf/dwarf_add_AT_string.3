@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 28, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_ADD_AT_STRING 3
 .Sh NAME
 .Nm dwarf_add_AT_string
-.Nd create attribute of string class
+.Nd create and attach a string class attribute
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,10 +45,12 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_AT_string
-creates an attribute belonging to the string class and attach it to
-the debugging information entry referenced by argument
+creates an attribute descriptor belonging to the
+.Sq string
+class and attaches it to the debugging information entry referenced by
+argument
 .Ar die .
-The created attribute will have DWARF form
+The created attribute descriptor will have DWARF form
 .Dv DW_FORM_strp .
 .Pp
 Argument
@@ -65,12 +67,13 @@ should reference a debugging information entry allocated using
 .Pp
 Argument
 .Ar attr
-should specify the attribute code of the attribute to create.
+should specify the attribute code for the created attribute
+descriptor.
 .Pp
 Argument
 .Ar str
 should hold a pointer to a NUL-terminated string which will become the
-value of the created attribute.
+value of the created attribute descriptor.
 .Pp
 If argument
 .Ar err
@@ -99,7 +102,8 @@ or
 .Ar str
 was NULL.
 .It Bq Er DW_DLE_MEMORY
-An out of memory condition was encountered during execution.
+An out of memory condition was encountered during the execution of
+the function.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
