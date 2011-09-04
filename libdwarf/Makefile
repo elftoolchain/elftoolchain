@@ -110,6 +110,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_expand_frame_instructions.3		\
+	dwarf_expr_current_offset.3			\
 	dwarf_find_macro_value_start.3			\
 	dwarf_finish.3					\
 	dwarf_formaddr.3				\
