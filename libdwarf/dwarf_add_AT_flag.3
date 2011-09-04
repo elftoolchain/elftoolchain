@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 28, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_ADD_AT_FLAG 3
 .Sh NAME
 .Nm dwarf_add_AT_flag
-.Nd create attribute of flag class
+.Nd create and attach a flag attribute
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,10 +45,12 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_AT_flag
-creates an attribute belonging to the flag class and attach it to
-the debugging information entry referenced by argument
+creates an attribute descriptor belonging to the
+.Sq flag
+class, and attaches it to the debugging information entry referenced
+by argument
 .Ar die .
-The created attribute will have DWARF form
+The created attribute descriptor will have DWARF form
 .Dv DW_FORM_flag .
 .Pp
 Argument
@@ -65,11 +67,15 @@ should reference a debugging information entry allocated using
 .Pp
 Argument
 .Ar attr
-should specify the attribute code of the attribute to create.
+should specify the attribute code for the new attribute descriptor.
 .Pp
 Argument
 .Ar flag
-should specify the value of the attribute.
+should specify the value of the new attribute descriptor.
+A zero value is treated as
+.Sq false
+and a non-zero value as
+.Sq true .
 .Pp
 If argument
 .Ar err
@@ -91,13 +97,14 @@ Function
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Either arguments
+Either of the arguments
 .Ar dbg
 or
 .Ar die
 was NULL.
 .It Bq Er DW_DLE_MEMORY
-An out of memory condition was encountered during execution.
+An out of memory condition was encountered during the execution of the
+function.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
