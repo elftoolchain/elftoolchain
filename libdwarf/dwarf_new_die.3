@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 21, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_NEW_DIE 3
 .Sh NAME
@@ -60,22 +60,26 @@ or
 Argument
 .Ar tag
 should specify the tag of the newly created debugging information entry.
+Valid values for this argument are those for the
+.Dv DW_TAG_ Ns *
+symbols defined in
+.In libdwarf.h .
 .Pp
 Argument
 .Ar parent
-specify the parent link of the debugging information entry.
+specifies the parent link of the debugging information entry.
 .Pp
 Argument
 .Ar child
-specify the first child link of the debugging information entry.
+specifies the first child link of the debugging information entry.
 .Pp
 Argument
 .Ar left
-specify the left sibling link of the debugging information entry.
+specifies the left sibling link of the debugging information entry.
 .Pp
 Argument
 .Ar right
-specify the right sibling link of the debugging information entry.
+specifies the right sibling link of the debugging information entry.
 .Pp
 Only one of arguments
 .Ar parent ,
@@ -83,10 +87,10 @@ Only one of arguments
 .Ar left
 and
 .Ar right
-is allowd to be non-NULL.
-Application code can call function
+is allowed to be non-NULL.
+Application code can subsequently call the function
 .Xr dwarf_die_link 3
-later to change the links for the created debugging information entry.
+to change the links for the created debugging information entry.
 .Pp
 If argument
 .Ar err
@@ -100,7 +104,7 @@ In case of an error, function
 .Fn dwarf_new_die
 returns
 .Dv DW_DLV_BADADDR
-and set the argument
+and sets the argument
 .Ar err .
 .Sh ERRORS
 Function
@@ -121,7 +125,7 @@ and
 were non-NULL.
 .It Bq Er DW_DLE_MEMORY
 An out of memory condition was encountered during the execution of the
-functions.
+function.
 .El
 .Sh EXAMPLES
 To create debugging information entries and add them to the producer
