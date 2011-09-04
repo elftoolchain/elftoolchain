@@ -43,10 +43,10 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_die_to_debug
-sets the root debugging information entry of the DWARF producer
+sets the root debugging information entry of a DWARF producer
 instance.
-All the debugging information entries linked to the root DIE in the
-graph will also be added into the producer instance.
+All debugging information entries linked to the root entry will also
+be added to the producer instance.
 .Pp
 Argument
 .Ar dbg
@@ -73,7 +73,7 @@ In case of an error, function
 .Fn dwarf_new_die
 returns
 .Dv DW_DLV_NOCOUNT
-and set the argument
+and sets the argument
 .Ar err .
 .Sh ERRORS
 Function
