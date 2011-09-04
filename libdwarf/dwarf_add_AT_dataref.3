@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 3, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_ADD_AT_DATAREF 3
 .Sh NAME
 .Nm dwarf_add_AT_dataref
-.Nd create attribute with relocatable address value
+.Nd create an attribute descriptor for a relocatable address
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -46,17 +46,16 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_AT_dataref
-creates an attribute containing a relocatable address value
-with the size of the target address.
+creates an attribute descriptor for a relocatable address and attaches
+it to the debugging information entry referenced by argument
+.Ar die .
 .Pp
 If flag
 .Dv DW_DLC_SIZE_64
-is set, the address value is 8 bytes in size and the DWARF form
-.Dv DW_FORM_data8
-will be used.
-Otherwise, the address value is 4 bytes in size and the DWARF form
-.Dv DW_FORM_data4
-will be used.
+is set, the address value will be 8 bytes in size and of the DWARF form
+.Dv DW_FORM_data8 .
+Otherwise, the address value will be 4 bytes in size and of the DWARF form
+.Dv DW_FORM_data4 .
 .Pp
 Argument
 .Ar dbg
@@ -72,16 +71,16 @@ should reference a debugging information entry allocated using
 .Pp
 Argument
 .Ar attr
-should specify the attribute code of the attribute to create.
+specifies the attribute code of the created attribute descriptor.
 .Pp
 Argument
 .Ar pc_value
-should hold a relocatable address value which will become the value
-of the created attribute.
+specifies the value of the relocatable address.
 .Pp
 Argument
 .Ar sym_index
-should specify the ELF symbol index of the symbol used for the relocation.
+specifies the ELF symbol index of the symbol to be used for
+relocation.
 .Pp
 If argument
 .Ar err
@@ -103,13 +102,14 @@ Function
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Either arguments
+Either of the arguments
 .Ar dbg
 or
 .Ar die
 was NULL.
 .It Bq Er DW_DLE_MEMORY
-An out of memory condition was encountered during execution.
+An out of memory condition was encountered during the execution of the
+function.
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
