@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 21, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_DIE_LINK 3
 .Sh NAME
@@ -46,30 +46,27 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_die_link
-links the provided debugging information entry to another debugging
-information entry.
-The debugging information entry will be unlinked first if necessary.
+links debugging information entries together.
 .Pp
 Argument
 .Ar die
-should specify the debugging information entry whose link the function
-is going to modify.
+should specify the debugging information entry to be updated.
 .Pp
 Argument
 .Ar parent
-specify the new parent link of the debugging information entry.
+specifies the new parent link for the debugging information entry.
 .Pp
 Argument
 .Ar child
-specify the new first child link of the debugging information entry.
+specifies the new first child link for the debugging information entry.
 .Pp
 Argument
 .Ar left
-specify the new left sibling link of the debugging information entry.
+specifies the new left sibling link for the debugging information entry.
 .Pp
 Argument
 .Ar right
-specify the new right sibling link of the debugging information entry.
+specifies the new right sibling link for the debugging information entry.
 .Pp
 Only one of arguments
 .Ar parent ,
@@ -77,7 +74,10 @@ Only one of arguments
 .Ar left
 and
 .Ar right
-is allowd to be non-NULL.
+is allowed to be non-NULL.
+Existing links to parent, child, left or right debugging information
+entries, if any, will be unlinked before the specified link is
+established.
 .Pp
 If argument
 .Ar err
@@ -92,9 +92,10 @@ In case of an error, function
 .Fn dwarf_die_link
 returns
 .Dv DW_DLV_BADADDR
-and set the argument
+and sets the argument
 .Ar err .
 .Sh ERRORS
+The function
 .Fn dwarf_die_link
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
