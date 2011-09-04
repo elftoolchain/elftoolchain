@@ -24,13 +24,13 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 28, 2011
+.Dd September 4, 2011
 .Os
 .Dt DWARF_ADD_AT_TARG_ADDRESS 3
 .Sh NAME
 .Nm dwarf_add_AT_targ_address ,
 .Nm dwarf_add_AT_targ_address_b
-.Nd create attribute of address class
+.Nd create and attach address class attributes
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -56,16 +56,19 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_AT_targ_address_b
-creates an attribute belonging to the address class and attach it to
-the debugging information entry referenced by argument
+creates an attribute descriptor belonging to the
+.Sq address
+class and attaches it to the debugging information entry referenced by
+argument
 .Ar die .
 .Pp
-The created attribute will have DWARF form
+The created attribute descriptor will have DWARF form
 .Dv DW_FORM_addr .
 If flag
 .Dv DW_DLC_SIZE_64
-is set, the attribute value is 8 bytes in size.
-Otherwise the attribute value is 4 bytes in size.
+is set on the producer instance, the attribute value will be 8 bytes
+in size.
+Otherwise the attribute value will be 4 bytes in size.
 .Pp
 Argument
 .Ar dbg
@@ -81,16 +84,17 @@ should reference a debugging information entry allocated using
 .Pp
 Argument
 .Ar attr
-should specify the attribute code of the attribute to create.
+should specify the attribute code of the created attribute descriptor.
 .Pp
 Argument
 .Ar pc_value
-should hold a relocatable address value which will become the value
-of the created attribute.
+should hold a relocatable address value which will become the value of
+the created attribute descriptor.
 .Pp
 Argument
 .Ar sym_index
-should specify the ELF symbol index of the symbol used for the relocation.
+should specify the ELF symbol index of the symbol to be used for
+relocating the address value.
 .Pp
 If argument
 .Ar err
@@ -100,11 +104,9 @@ of an error.
 Function
 .Fn dwarf_add_AT_targ_address
 is deprecated.
-Function
-.Fn dwarf_add_AT_targ_address
-is identical to function
+It is similar to function
 .Fn dwarf_add_AT_targ_address_b
-except that it can not handle arbitrary symbol index value.
+except that it cannot handle all possible symbol index values.
 .Sh RETURN VALUES
 On success, these functions return the created attribute descriptor.
 In case of an error, these functions return
