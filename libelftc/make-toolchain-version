@@ -34,9 +34,11 @@ usage()
 #
 # Parse options.
 #
-set -- `getopt ${options} "$@"`
+TEMP=`getopt ${options} "$@"`
 
 [ ${?} -eq 0 ] || usage
+
+eval set -- "${TEMP}"
 
 for option in ${*}; do
     case ${option} in
