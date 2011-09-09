@@ -24,13 +24,13 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 4, 2011
+.Dd September 9, 2011
 .Os
 .Dt DWARF_ADD_EXPR_ADDR 3
 .Sh NAME
 .Nm dwarf_add_expr_addr ,
 .Nm dwarf_add_expr_addr_b
-.Nd add DW_OP_addr location expression
+.Nd add a DW_OP_addr location expression
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -52,15 +52,16 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_expr_addr_b
-add a
+adds a
 .Dv DW_OP_addr
-location expression into the location expression descriptor referenced
+location expression to the location expression descriptor referenced
 by argument
 .Ar expr .
 .Pp
 Argument
 .Ar expr
 should reference a location expression descriptor allocated using
+the function
 .Xr dwarf_new_expr 3 .
 .Pp
 Argument
@@ -85,7 +86,7 @@ It is similar to function
 except that it cannot handle all possible symbol index values.
 .Sh RETURN VALUES
 On success, these functions return the size in bytes of the location
-expression byte stream currently generated.
+expression byte stream generated.
 In case of an error, these functions return
 .Dv DW_DLV_NOCOUNT
 and set the argument
