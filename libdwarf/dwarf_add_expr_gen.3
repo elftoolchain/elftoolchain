@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 4, 2011
+.Dd September 9, 2011
 .Os
 .Dt DWARF_ADD_EXPR_GEN 3
 .Sh NAME
 .Nm dwarf_add_expr_gen
-.Nd add location expression
+.Nd add an operator to a location expression descriptor
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,18 +45,19 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_expr_gen
-add a location expression operator into the location expression
+adds a location expression operator to the location expression
 descriptor referenced by argument
 .Ar expr .
 .Pp
 Argument
 .Ar expr
 should reference a location expression descriptor allocated using
+the function
 .Xr dwarf_new_expr 3 .
 .Pp
 Argument
 .Ar opcode
-should specify the operation code of the location expression operator.
+specifies the operation code of the location expression operator.
 Valid values for this argument are those denoted by the
 .Dv DW_OP_ Ns *
 constants defined in
@@ -69,11 +70,11 @@ operation, application code should instead use
 .Pp
 Argument
 .Ar val1
-should hold the first operand of the location expression operator.
+specifies the first operand of the location expression operator.
 .Pp
 Argument
 .Ar val2
-should hold the second operand of the location expression operator.
+specifies the second operand of the location expression operator.
 .Pp
 If argument
 .Ar err
@@ -83,7 +84,7 @@ of an error.
 On success, function
 .Fn dwarf_add_expr_gen
 returns the size in bytes of the location expression byte stream
-currently generated.
+generated.
 In case of an error, function
 .Fn dwarf_add_expr_gen
 returns
