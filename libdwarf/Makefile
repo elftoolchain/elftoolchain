@@ -168,6 +168,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_highpc.3					\
 	dwarf_init.3					\
 	dwarf_lineno.3					\
+	dwarf_lne_set_address.3				\
 	dwarf_loclist.3					\
 	dwarf_loclist_from_expr.3			\
 	dwarf_new_die.3					\
