@@ -75,7 +75,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 	STAILQ_INSERT_TAIL(&li->li_lnlist, ln, ln_next);
 	li->li_lnlen++;
 
-	return (0);
+	return (DW_DLV_OK);
 }
 
 Dwarf_Unsigned
