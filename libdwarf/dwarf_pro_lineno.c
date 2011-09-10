@@ -102,7 +102,7 @@ dwarf_lne_set_address(Dwarf_P_Debug dbg, Dwarf_Addr offs, Dwarf_Unsigned symndx,
 	STAILQ_INSERT_TAIL(&li->li_lnlist, ln, ln_next);
 	li->li_lnlen++;
 
-	return (0);
+	return (DW_DLV_OK);
 }
 
 Dwarf_Unsigned
@@ -134,7 +134,7 @@ dwarf_lne_end_sequence(Dwarf_P_Debug dbg, Dwarf_Addr addr, Dwarf_Error *error)
 	STAILQ_INSERT_TAIL(&li->li_lnlist, ln, ln_next);
 	li->li_lnlen++;
 
-	return (0);
+	return (DW_DLV_OK);
 }
 
 Dwarf_Unsigned
