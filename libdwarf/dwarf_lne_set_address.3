@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 10, 2011
+.Dd September 14, 2011
 .Os
 .Dt DWARF_LNE_SET_ADDRESS 3
 .Sh NAME
 .Nm dwarf_lne_set_address
-.Nd set line number information base address
+.Nd set the base address for line number information
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -44,7 +44,9 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_lne_set_address
-sets the line number information base address.
+sets the base address used by subsequent invocations of the
+.Xr dwarf_add_line_entry 3
+function.
 .Pp
 Argument
 .Ar dbg
@@ -56,14 +58,10 @@ or
 Argument
 .Ar off
 specifies a relocatable program address.
-Subsequent calls to
-.Xr dwarf_add_line_entry 3
-will use it as base program address.
 .Pp
 Argument
 .Ar symndx
-specifies the ELF symbol index of the symbol to be used for
-relocation.
+specifies the index of the ELF symbol to be used for relocation.
 .Pp
 If argument
 .Ar err
@@ -76,6 +74,7 @@ returns
 .Dv DW_DLV_OK .
 In case of an error, function
 .Fn dwarf_lne_set_address
+returns
 .Dv DW_DLV_NOCOUNT
 and sets the argument
 .Ar err .
@@ -89,9 +88,9 @@ Argument
 .Ar dbg
 was NULL.
 .It Bq Er DW_DLE_ARGUMENT
-Value of argument
+The argument
 .Ar symndx
-was 0.
+had an illegal value.
 .It Bq Er DW_DLE_MEMORY
 An out of memory condition was encountered during the execution of the
 function.
