@@ -69,8 +69,8 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 	ln->ln_fileno = file;
 	ln->ln_lineno = lineno;
 	ln->ln_column = column;
-	ln->ln_bblock = basic_block;
-	ln->ln_stmt   = is_stmt;
+	ln->ln_bblock = basic_block != 0;
+	ln->ln_stmt   = is_stmt != 0;
 	ln->ln_endseq = 0;
 	STAILQ_INSERT_TAIL(&li->li_lnlist, ln, ln_next);
 	li->li_lnlen++;
