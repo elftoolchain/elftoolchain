@@ -2737,10 +2737,32 @@ elf_print_checksum(struct elfdump *ed)
 	PRT("\nelf checksum: %#lx\n", gelf_checksum(ed->elf));
 }
 
+static const char *usagemsg = "\
+Usage: %s [options] file...\n\
+  Display information about ELF objects and ar(1) archives.\n\n\
+  Options:\n\
+  -a                        Show all information.\n\
+  -c                        Show shared headers.\n\
+  -d                        Show dynamic symbols.\n\
+  -e                        Show the ELF header.\n\
+  -G                        Show the GOT.\n\
+  -h                        Show hash values.\n\
+  -i                        Show the dynamic interpreter.\n\
+  -k                        Show the ELF checksum.\n\
+  -n                        Show the contents of note sections.\n\
+  -N NAME                   Show the section named \"NAME\".\n\
+  -p                        Show the program header.\n\
+  -r                        Show relocations.\n\
+  -s                        Show the symbol table.\n\
+  -S                        Use the Solaris elfdump format.\n\
+  -v                        Show symbol-versioning information.\n\
+  -V                        Print a version identifier and exit.\n\
+  -w FILE                   Write output to \"FILE\".\n\
+";
+
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: elfdump [-S] [-a | -cdeGhiknprsvV] [-N name] "
-	    "[-w file] file...\n");
+	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
