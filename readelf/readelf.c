@@ -6559,10 +6559,10 @@ readelf_version(void)
 }
 
 static const char *usagemsg = "\
-Usage: %s <options> file...\n\
+Usage: %s [options] file...\n\
   Display information about ELF objects and ar(1) archives.\n\n\
   Options:\n\
-  -a | --all               Turn on flags -dhIlrsASV.\n\
+  -a | --all               Equivalent to specifying options '-dhIlrsASV'.\n\
   -c | --archive-index     Print the archive symbol table for archives.\n\
   -d | --dynamic           Print the contents of SHT_DYNAMIC sections.\n\
   -e | --headers           Print all headers in the object.\n\
@@ -6573,6 +6573,7 @@ Usage: %s <options> file...\n\
   -p INDEX | --string-dump=INDEX\n\
                            Print the contents of section at index INDEX.\n\
   -r | --relocs            Print relocation information.\n\
+  -s | --syms | --symbols  Print symbol tables.\n\
   -t | --section-details   Print additional information about sections.\n\
   -v | --version           Print a version identifier and exit.\n\
   -x INDEX | --hex-dump=INDEX\n\
