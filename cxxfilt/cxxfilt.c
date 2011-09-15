@@ -71,19 +71,29 @@ static struct {
 	{"gnu-v3", ELFTC_DEM_GNU3}
 };
 
+static const char *usagemsg = "\
+Usage: %s [options] [encoded-names...]\n\
+  Translate C++ symbol names to human-readable form.\n\n\
+  Options:\n\
+  -_ | --strip-underscores     Remove leading underscores prior to decoding.\n\
+  -n | --no-strip-underscores  Do no remote leading underscores.\n\
+  -p | --no-params             (Accepted but ignored).\n\
+  -s SCHEME | --format=SCHEME  Select the encoding scheme to use.\n\
+  --help                       Print a help message.\n\
+  --version                    Print a version identifier and exit.\n\
+";
+
 static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: %s [options] [name ...]\n",
-	    ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(1);
 }
 
 static void
 version(void)
 {
-
 	fprintf(stderr, "%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
 	exit(0);
 }
