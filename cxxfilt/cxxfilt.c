@@ -76,9 +76,11 @@ Usage: %s [options] [encoded-names...]\n\
   Translate C++ symbol names to human-readable form.\n\n\
   Options:\n\
   -_ | --strip-underscores     Remove leading underscores prior to decoding.\n\
-  -n | --no-strip-underscores  Do no remote leading underscores.\n\
+  -n | --no-strip-underscores  Do not remove leading underscores.\n\
   -p | --no-params             (Accepted but ignored).\n\
   -s SCHEME | --format=SCHEME  Select the encoding scheme to use.\n\
+                               Valid schemes are: 'arm', 'auto', 'gnu' and\n\
+                               'gnu-v3'.\n\
   --help                       Print a help message.\n\
   --version                    Print a version identifier and exit.\n\
 ";
