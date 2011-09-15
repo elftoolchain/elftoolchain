@@ -15,6 +15,8 @@ LDADD=	-lelf -lelftc
 LDADD+= -larchive
 .endif
 
+MAN=	elfcopy.1 mcs.1
+
 NO_SHARED?=	yes
 
 LINKS=	${BINDIR}/elfcopy ${BINDIR}/strip 	\
