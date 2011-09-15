@@ -674,7 +674,7 @@ copy_done:
 		free(tempfile);
 	}
 
-	if (fchmod(ofd, sb.st_mode) == -1)
+	if (strcmp(dst, "/dev/null") && fchmod(ofd, sb.st_mode) == -1)
 		err(EX_IOERR, "fchmod %s failed", dst);
 
 	if (ecp->flags & PRESERVE_DATE) {
