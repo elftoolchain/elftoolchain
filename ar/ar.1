@@ -1,4 +1,4 @@
-.\" Copyright (c) 2007 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2007,2009-2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -21,9 +21,7 @@
 .\" out of the use of this software, even if advised of the possibility of
 .\" such damage.
 .\"
-.\" $FreeBSD$
-.\"
-.Dd May 17, 2010
+.Dd September 15, 2011
 .Os
 .Dt AR 1
 .Sh NAME
@@ -90,6 +88,7 @@
 .Ar
 .Nm
 .Fl s
+.Op Fl D
 .Op Fl j
 .Op Fl z
 .Ar archive
@@ -112,9 +111,14 @@
 .Op Ar
 .Nm
 .Fl M
+.Nm
+.Fl V
 .Nm ranlib
 .Op Fl D
+.Op Fl t
 .Ar archive ...
+.Nm ranlib
+.Fl V
 .Sh DESCRIPTION
 The
 .Nm
@@ -318,10 +322,16 @@ option alone is equivalent to invoking
 .It Fl S
 Do not generate an archive symbol table.
 .It Fl t
-List the files specified by arguments
+For
+.Nm ,
+list the files specified by arguments
 .Ar
 in the order in which they appear in the archive, one per line.
 If no files are specified, all files in the archive are listed.
+.Pp
+For
+.Nm ranlib ,
+the option is accepted, but is ignored.
 .It Fl T
 Use only the first fifteen characters of the archive member name or
 command line file name argument when naming archive members.
