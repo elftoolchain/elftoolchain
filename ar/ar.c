@@ -372,30 +372,59 @@ only_mode(struct bsdar *bsdar, const char *opt, const char *valid_modes)
 		    "Option %s is not permitted in mode -%c", opt, bsdar->mode);
 }
 
+static const char *ar_usagemsg = "\
+Usage: %s <command> [options] archive file...\n\
+  Manage archives.\n\n\
+  Where <command> is one of:\n\
+  -d            Delete members from the archive.\n\
+  -m            Move archive members within the archive.\n\
+  -p            Write the contents of members to standard output.\n\
+  -q            Append files to an archive.\n\
+  -r            Replace (add) files to an archive.\n\
+  -s            Add an archive symbol to an archive.\n\
+  -t            List files in an archive.\n\
+  -x            Extract members from an archive.\n\
+  -M            Execute MRI librarian commands.\n\
+  -V            Print a version identifier and exit.\n\n\
+  Options:\n\
+  -a MEMBER     Add members after the specified member.\n\
+  -b MEMBER | -i MEMBER\n\
+                Add members before the specified member.\n\
+  -c            Do not print a message when creating a new archive.\n\
+  -f | -T       Only use the first fifteen characters of the member name.\n\
+  -j            (This option is accepted, but is ignored).\n\
+  -l            (This option is accepted, but is ignored).\n\
+  -o            Preserve modification times when extracting members.\n\
+  -u            Conditionally update or extract members.\n\
+  -v            Be verbose.\n\
+  -z            (This option is accepted, but is ignored).\n\
+  -C            Do not overwrite existing files in the file system.\n\
+  -D            Use fixed metadata, for consistent archive checksums.\n\
+  -F FORMAT | --flavor=FORMAT\n\
+                Create archives with the specified format.\n\
+  -S            Do not generate an archive symbol table.\n\
+";
+
 static void
 bsdar_usage()
 {
-
-	(void)fprintf(stderr, "usage:  ar -d [-Tjsvz] archive file ...\n");
-	(void)fprintf(stderr, "\tar -m [-Tjsvz] archive file ...\n");
-	(void)fprintf(stderr, "\tar -m [-Tabijsvz] position archive file ...\n");
-	(void)fprintf(stderr, "\tar -p [-Tv] archive [file ...]\n");
-	(void)fprintf(stderr, "\tar -q [-TcDjsvz] [-F flavor] archive file ...\n");
-	(void)fprintf(stderr, "\tar -r [-TcDjsuvz] [-F flavor] archive file ...\n");
-	(void)fprintf(stderr, "\tar -r [-TabcDijsuvz] [-F flavor] position archive file ...\n");
-	(void)fprintf(stderr, "\tar -s [-jz] archive\n");
-	(void)fprintf(stderr, "\tar -t [-Tv] archive [file ...]\n");
-	(void)fprintf(stderr, "\tar -x [-CTouv] archive [file ...]\n");
-	(void)fprintf(stderr, "\tar -V\n");
+	(void) fprintf(stderr, ar_usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
+
+static const char *ranlib_usagemsg = "\
+Usage: %s [options] archive...\n\
+  Update or create archive symbol tables.\n\n\
+  Options:\n\
+  -t              (This option is accepted, but ignored).\n\
+  -D              Use fixed metadata, for consistent archive checksums.\n\
+  -V              Print a version identifier and exit.\n\
+";
 
 static void
 ranlib_usage()
 {
-
-	(void)fprintf(stderr, "usage:	ranlib [-t] archive ...\n");
-	(void)fprintf(stderr, "\tranlib -V\n");
+	(void)fprintf(stderr, ranlib_usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
