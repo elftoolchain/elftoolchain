@@ -119,7 +119,7 @@ dwarf_lne_end_sequence(Dwarf_P_Debug dbg, Dwarf_Addr addr, Dwarf_Error *error)
 	li = dbg->dbgp_lineinfo;
 
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
-	if (ln && ln->ln_addr > addr) {
+	if (ln && ln->ln_addr >= addr) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
