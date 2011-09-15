@@ -110,7 +110,8 @@ static struct option elfcopy_longopts[] =
 	{"adjust-warnings", no_argument, NULL, ECP_CHANGE_WARN},
 	{"binary-architecture", required_argument, NULL, 'B'},
 	{"change-addresses", required_argument, NULL, ECP_CHANGE_ADDR},
-	{"change-section-address", required_argument, NULL, ECP_CHANGE_SEC_ADDR},
+	{"change-section-address", required_argument, NULL,
+	 ECP_CHANGE_SEC_ADDR},
 	{"change-section-lma", required_argument, NULL, ECP_CHANGE_SEC_LMA},
 	{"change-section-vma", required_argument, NULL, ECP_CHANGE_SEC_VMA},
 	{"change-start", required_argument, NULL, ECP_CHANGE_START},
@@ -125,7 +126,8 @@ static struct option elfcopy_longopts[] =
 	{"keep-symbol", required_argument, NULL, 'K'},
 	{"keep-symbols", required_argument, NULL, ECP_KEEP_SYMBOLS},
 	{"keep-global-symbol", required_argument, NULL, 'G'},
-	{"keep-global-symbols", required_argument, NULL, ECP_KEEP_GLOBAL_SYMBOLS},
+	{"keep-global-symbols", required_argument, NULL,
+	 ECP_KEEP_GLOBAL_SYMBOLS},
 	{"localize-symbol", required_argument, NULL, 'L'},
 	{"localize-symbols", required_argument, NULL, ECP_LOCALIZE_SYMBOLS},
 	{"no-adjust-warnings", no_argument, NULL, ECP_NO_CHANGE_WARN},
@@ -220,7 +222,7 @@ static void	set_output_target(struct elfcopy *ecp, const char *target_name);
 static void	strip_main(struct elfcopy *ecp, int argc, char **argv);
 static void	strip_usage(void);
 
-/* 
+/*
  * An ELF object usually has a sturcture described by the
  * diagram below.
  *  _____________
@@ -283,9 +285,9 @@ create_elf(struct elfcopy *ecp)
 	if (gelf_getehdr(ecp->ein, &ieh) == NULL)
 		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
-        if ((ecp->iec = gelf_getclass(ecp->ein)) == ELFCLASSNONE)
-                errx(EX_SOFTWARE, "getclass() failed: %s",
-                    elf_errmsg(-1));
+	if ((ecp->iec = gelf_getclass(ecp->ein)) == ELFCLASSNONE)
+		errx(EX_SOFTWARE, "getclass() failed: %s",
+		    elf_errmsg(-1));
 
 	if (ecp->oec == ELFCLASSNONE)
 		ecp->oec = ecp->iec;
@@ -843,7 +845,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			/* Check for optional flags. */
 			if ((s = strchr(fn, ',')) != NULL)
 				*s++ = '\0';
-				
+
 			sac = lookup_sec_act(ecp, optarg, 1);
 			sac->rename = 1;
 			sac->newname = fn;
