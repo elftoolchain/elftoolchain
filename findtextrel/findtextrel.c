@@ -47,11 +47,18 @@ static struct option longopts[] = {
 	{NULL, 0, NULL, 0}
 };
 
+static const char *usagemsg = "\
+Usage: %s [options] [files...]\n\
+  Show text relocations present in position independent code.\n\n\
+  Options:\n\
+  -H                  Print a help message.\n\
+  -V                  Print a version identifier and exit.\n\
+";
+
 static void
 usage(void)
 {
-
-	fprintf(stderr, "usage: %s [files ...]\n", ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(1);
 }
 
