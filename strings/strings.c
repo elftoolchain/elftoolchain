@@ -421,11 +421,24 @@ _exit1:
 	return (EX_OK);
 }
 
+static const char *usagemsg = "\
+Usage: %s [options] [file...]\n\
+  Print contiguous sequences of printable characters.\n\n\
+  Options:\n\
+  -a     | --all               Scan the entire file for strings.\n\
+  -e ENC | --encoding=ENC      Select the character encoding to use.\n\
+  -f     | --print-file-name   Print the file name before each string.\n\
+  -h     | --help              Print a help message and exit.\n\
+  -n N   | --bytes=N | -N      Print sequences with 'N' or more characters.\n\
+  -o                           Print offsets in octal.\n\
+  --radix=RADIX                Print offsets using the specified radix.\n\
+  -v     | --version           Print a version identifier and exit.\n\
+";
+
 void
 usage(void)
 {
-	(void) fprintf(stderr, "%s [-afhovV] [-e b|l|s|B|L|S] [-n #] [-#] "
-	    "[-t o|x|d] file ...\n", ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
