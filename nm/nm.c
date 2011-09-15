@@ -2048,7 +2048,7 @@ usage(int exitcode)
 \n    -e                        Display only global and static symbols.");
 	printf("\
 \n    -f                        Produce full output (default).\
-\n    --format=format           Display output in specific format.  Allowed\
+\n        --format=format       Display output in specific format.  Allowed\
 \n                              formats are: \"bsd\", \"posix\" and \"sysv\".\
 \n    -g                        Display only global symbol information.\
 \n    -h, --help                Show this help message.\
