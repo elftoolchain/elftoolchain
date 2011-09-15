@@ -57,12 +57,24 @@ static int demangle, func, base;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
 
+static const char *usagemsg = "\
+Usage: %s [options] hexaddress...\n\
+  Map program addresses to source file names and line numbers.\n\n\
+  Options:\n\
+  -b TGT  | --target=TGT      (Accepted but ignored).\n\
+  -e EXE  | --exec=EXE        Use program \"EXE\" to translate addresses.\n\
+  -f      | --functions       Display function names.\n\
+  -j NAME | --section=NAME    Values are offsets into section \"NAME\".\n\
+  -s      | --basename        Only show the base name for each file name.\n\
+  -C      | --demangle        Demangle C++ names.\n\
+  -H      | --help            Print a help message.\n\
+  -V      | --version         Print a version identifier and exit.\n\
+";
+
 static void
 usage(void)
 {
-
-	fprintf(stderr, "usage: %s [-b target] [-Cfs] [-e exe] addr addr"
-	    " ...\n", ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
 	exit(1);
 }
 
