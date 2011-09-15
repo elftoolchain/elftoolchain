@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 14, 2011
+.Dd September 15, 2011
 .Os
 .Dt DWARF_LNE_END_SEQUENCE 3
 .Sh NAME
@@ -44,7 +44,7 @@
 Function
 .Fn dwarf_lne_end_sequence
 sets the address that indicates the end of a sequence of target machine
-instruction.
+instructions.
 .Pp
 Argument
 .Ar dbg
@@ -82,6 +82,10 @@ can fail with:
 Argument
 .Ar dbg
 was NULL.
+.It Bq Er DW_DLE_ARGUMENT
+The value in argument
+.Ar addr
+overlapped an existing line information entry.
 .It Bq Er DW_DLE_MEMORY
 An out of memory condition was encountered during the execution of the
 function.
