@@ -838,7 +838,10 @@ tbl_flush(void)
 	const char *str;
 	int i, j;
 
-	assert(tb != NULL && tb->col > 0);
+	if (tb == NULL)
+		return;
+
+	assert(tb->col > 0);
 	for (i = 0; i < tb->row; i++) {
 		if (style == STYLE_BERKELEY)
 			printf("  ");
