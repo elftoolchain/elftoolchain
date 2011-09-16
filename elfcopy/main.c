@@ -1267,11 +1267,22 @@ elfcopy_usage()
 	exit(EX_USAGE);
 }
 
+static const char *mcs_usagemsg = "\
+Usage: %s [options] file...\n\
+  Manipulate the comment section in an ELF object.\n\n\
+  Options:\n\
+  -a STRING    Append 'STRING' to the comment section.\n\
+  -c           Remove duplicate entries from the comment section.\n\
+  -d           Delete the comment section.\n\
+  -n NAME      Operate on the ELF section with name 'NAME'.\n\
+  -p           Print the contents of the comment section.\n\
+  -V           Print a version identifier and exit.\n\
+";
+
 static void
 mcs_usage()
 {
-
-	fprintf(stderr, "usage: mcs [-cdpVz] [-a string] [-n name] file ...\n");
+	(void) fprintf(stderr, mcs_usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
