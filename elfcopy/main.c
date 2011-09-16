@@ -1259,11 +1259,47 @@ set_osabi(struct elfcopy *ecp, const char *abi)
 		errx(EX_USAGE, "unrecognized OSABI %s", abi);
 }
 
+static const char *elfcopy_usagemsg = "\
+Usage: %s [options] infile [outfile]\n\
+  Transform an ELF object.\n\n\
+  Options:\n\
+  -d | -g | --strip-debug      Remove debugging information from the output.\n\
+  -j SECTION | --only-section=SECTION\n\
+                               Copy only the named section to the output.\n\
+  -p | --preserve-dates        Preserve access and modification times.\n\
+  -x | --discard-all           Do not copy non-globals to the output.\n\
+  -I FORMAT | --input-target=FORMAT\n\
+                               (Accepted but ignored).\n\
+  -K SYM | --keep-symbol=SYM   Copy symbol SYM to the output.\n\
+  -L SYM | --localize-symbol=SYM\n\
+                               Make symbol SYM local to the output file.\n\
+  -N SYM | --strip-symbol=SYM  Do not copy symbol SYM to the output.\n\
+  -R NAME | --remove-section=NAME\n\
+                               Remove the named section.\n\
+  -S | --strip-all             Remove all symbol and relocation information\n\
+                               from the output.\n\
+  -V | --version               Print a version identifier and exit.\n\
+  -W SYM | --weaken-symbol=SYM Mark symbol SYM as weak in the output.\n\
+  -X | --discard-locals        Do not copy compiler generated symbols to\n\
+                               the output.\n\
+  --add-section NAME=FILE      Add the contents of FILE to the ELF object as\n\
+                               a new section named NAME.\n\
+  --only-keep-debug            Copy only debugging information.\n\
+  --output-target=FORMAT       Use the specified format for the output.\n\
+  --rename-section OLDNAME=NEWNAME[,FLAGS]\n\
+                               Rename and optionally change section flags.\n\
+  --set-section-flags SECTION=FLAGS\n\
+                               Set section flags for the named section.\n\
+                               Supported flags are: 'alloc', 'code',\n\
+                               'contents', 'data', 'debug', 'load',\n\
+                               'noload', 'readonly', 'rom', and 'shared'.\n\
+  --strip-unneeded             Do not copy relocation information.\n\
+";
+
 static void
 elfcopy_usage()
 {
-
-	fprintf(stderr, "usage: elfcopy\n");
+	(void) fprintf(stderr, elfcopy_usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
