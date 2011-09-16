@@ -21,7 +21,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 15, 2011
+.Dd September 16, 2011
 .Os
 .Dt MCS 1
 .Sh NAME
@@ -44,6 +44,13 @@
 The
 .Nm
 utility is used to manipulate comment sections in an ELF object.
+If a command-line argument
+.Ar file
+names an
+.Xr ar 1
+archive, then
+.Nm
+will operate on the ELF objects contained in the archive.
 .Pp
 By default
 .Nm
@@ -78,6 +85,29 @@ and
 options (if any) are completed.
 .It Fl V
 Print a version identifier and exit.
+.El
+.Sh COMPATIBILITY
+The behavior of the
+.Nm
+utility differs from its SVR4 counterpart in the following ways:
+.Bl -bullet -compact
+.It
+If the
+.Fl d
+option is specified, it causes any
+.Fl a ,
+.Fl c
+and
+.Fl p
+options present to be ignored.
+.It
+The order of options
+.Fl a ,
+.Fl c ,
+.Fl d ,
+and
+.Fl p
+on the command line is not significant.
 .El
 .Sh DIAGNOSTICS
 .Ex -std
