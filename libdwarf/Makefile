@@ -97,6 +97,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_string.3				\
 	dwarf_add_AT_targ_address.3			\
 	dwarf_add_die_to_debug.3			\
+	dwarf_add_directory_decl.3			\
 	dwarf_add_expr_addr.3				\
 	dwarf_add_expr_gen.3				\
 	dwarf_add_line_entry.3				\
