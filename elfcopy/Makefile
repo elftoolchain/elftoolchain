@@ -15,7 +15,7 @@ LDADD=	-lelf -lelftc
 LDADD+= -larchive
 .endif
 
-MAN=	elfcopy.1 mcs.1
+MAN=	elfcopy.1 mcs.1 strip.1
 
 NO_SHARED?=	yes
 
