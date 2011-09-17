@@ -201,7 +201,7 @@ Retrieve program address space mappings.
 .It Fn dwarf_get_cu_die_offset
 Retrieve the offset associated with a compilation unit for an address
 range descriptor.
-.It Fn dwarf_get_ranges
+.It Fn dwarf_get_ranges , Fn dwarf_get_ranges_a
 Retrieve information about non-contiguous address ranges for
 a debugging information entry.
 .El
@@ -374,10 +374,16 @@ Functions
 and
 .Fn dwarf_init
 may be used for initialization.
-.Pp
 The function
 .Fn dwarf_finish
 may be used to release resources.
+.Pp
+The functions
+.Fn dwarf_object_init
+and
+.Fn dwarf_object_finish
+allow an application to specify alternate low-level file access
+routines.
 .It Line Numbers
 .Bl -tag -compact
 .It Fn dwarf_lineaddr
@@ -566,9 +572,13 @@ information entry:
 .Fn dwarf_add_AT_const_value_signedint ,
 .Fn dwarf_add_AT_const_value_string ,
 .Fn dwarf_add_AT_const_value_unsignedint ,
+.Fn dwarf_add_AT_dataref ,
 .Fn dwarf_add_AT_flag ,
+.Fn dwarf_add_AT_location_expr ,
 .Fn dwarf_add_AT_name ,
 .Fn dwarf_add_AT_producer ,
+.Fn dwarf_add_AT_ref_address ,
+.Fn dwarf_add_AT_reference ,
 .Fn dwarf_add_AT_signed_const ,
 .Fn dwarf_add_AT_string ,
 .Fn dwarf_add_AT_targ_address ,
@@ -605,6 +615,64 @@ Retrieve the ELF byte stream for a section.
 Reset internal state for a producer instance.
 .It Fn dwarf_transform_to_disk_form
 Prepare byte streams for writing out.
+.El
+.It Macros
+.Bl -tag -compact
+.It Fn dwarf_def_macro
+Add a macro definition.
+.It Fn dwarf_end_macro_file , Fn dwarf_start_macro_file
+Record macro file related information.
+.It Fn dwarf_undef_macro
+Note the removal of a macro definition.
+.It Fn dwarf_vendor_ext
+Enables storing macro information as specified in the DWARF standard.
+.El
+.It Symbols, Expressions, Addresses and Offsets
+.Bl -tag -compact
+.It Fn dwarf_add_arange , Fn dwarf_add_arange_b
+Add address range information.
+.It Fn dwarf_add_directory_decl
+Add information about an include directory to a producer instance.
+.It Fn dwarf_add_fde_inst
+Add an operation to a frame descriptor entry.
+.It Fn dwarf_add_file_decl
+Add information about a source file to a producer instance.
+.It Fn dwarf_add_frame_cie
+Add call information to a frame descriptor.
+.It Fn dwarf_add_frame_fde , Fn dwarf_add_frame_fde_b
+Link a frame descriptor to a producer instance.
+.It Fn dwarf_add_funcname
+Add information about a function to a producer instance.
+.It Fn dwarf_add_line_entry
+Record mapping information between machine addresses and a source line.
+.It Fn dwarf_add_expr_addr , Fn dwarf_add_expr_addr_b
+Add a
+.Dv DW_OP_addr
+opcode to a location expression.
+.It Fn dwarf_add_expr_gen
+Add an operator to a location expression.
+.It Fn dwarf_add_pubname
+Add information about a global name to a producer instance.
+.It Fn dwarf_add_typename
+Add information about a type to a producer instance.
+.It Fn dwarf_add_varname
+Add information about a static variable to a producer instance.
+.It Fn dwarf_add_weakname
+Add information about a weak symbol to a producer instance.
+.It Fn dwarf_expr_current_offset
+Retrieve the current size of a location expression.
+.It Fn dwarf_expr_into_block
+Convert a location expression into a byte stream.
+.It Fn dwarf_fde_cfa_offset
+Append a
+.Dv DW_CFA_offset
+operation to a frame descriptor.
+.It Fn dwarf_lne_end_sequence, Fn dwarf_lne_set_address
+Note address ranges for source lines.
+.It Fn dwarf_new_expr
+Allocate a location expression descriptor.
+.It Fn dwarf_new_fde
+Allocate a frame descriptor.
 .El
 .It Miscellaneous
 The function
