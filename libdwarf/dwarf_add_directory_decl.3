@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 15, 2011
+.Dd September 17, 2011
 .Os
 .Dt DWARF_ADD_DIRECTORY_DECL 3
 .Sh NAME
@@ -44,7 +44,7 @@
 Function
 .Fn dwarf_add_directory_decl
 adds a source directory name to a producer instance and returns the
-index value generated for that directory.
+index value generated for the directory name.
 .Pp
 Argument
 .Ar dbg
@@ -55,7 +55,7 @@ or
 .Pp
 Argument
 .Ar name
-should point a NUL-terminated string representing the name of
+should point a NUL-terminated string containing the name of
 the directory.
 .Pp
 If argument
@@ -78,7 +78,7 @@ Function
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Either arguments
+Either of the arguments
 .Ar dbg
 or
 .Ar name
