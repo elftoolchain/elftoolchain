@@ -57,17 +57,18 @@ or
 .Pp
 Argument
 .Ar name
-should point a NUL-terminated string representing the name of
+should point to a NUL-terminated string containing the name of
 the source file.
 .Pp
-If the provided file name is not a fully qualified pathname,
-argument
+If the file name in argument
+.Ar name
+is not a fully qualified pathname, argument
 .Ar dirndx
-should specify the index of the direcotry where the source file resides,
-otherwise argument
+should specify the index of the directory where the source file resides.
+Otherwise, argument
 .Ar dirndx
 should be 0.
-Valid directory indices are returned by
+Valid directory indices are those returned by the function
 .Xr dwarf_add_directory_decl 3 .
 .Pp
 Argument
