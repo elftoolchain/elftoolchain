@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 2, 2011
+.Dd September 17, 2011
 .Os
 .Dt DWARF 3
 .Sh NAME
@@ -282,7 +282,7 @@ Retrieve the form of an attribute.
 Retrieve the index for a CIE descriptor.
 .It Fn dwarf_get_cie_info
 Retrieve information from a CIE descriptor.
-.It Fn dwarf_cie_of_fde
+.It Fn dwarf_get_cie_of_fde
 Retrieve a CIE descriptor.
 .It Fn dwarf_get_fde_at_pc
 Retrieve an FDE descriptor for an address.
@@ -290,7 +290,7 @@ Retrieve an FDE descriptor for an address.
 Retrieve register rule row.
 .It Fn dwarf_get_fde_info_for_all_regs3
 Retrieve register rule row (revised API).
-.It Fn dwarf_get_fde_info_for_cfa_regs3
+.It Fn dwarf_get_fde_info_for_cfa_reg3
 Retrieve a CFA register rule.
 .It Fn dwarf_get_fde_info_for_reg
 Retrieve a register rule.
@@ -564,7 +564,6 @@ The following functions are used to attach attributes to a debugging
 information entry:
 .Fn dwarf_add_AT_comp_dir ,
 .Fn dwarf_add_AT_const_value_signedint ,
-.Fn dwarf_add_AT_const_value_signed_const ,
 .Fn dwarf_add_AT_const_value_string ,
 .Fn dwarf_add_AT_const_value_unsignedint ,
 .Fn dwarf_add_AT_flag ,
