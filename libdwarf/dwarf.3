@@ -113,6 +113,8 @@ A descriptor for a source line.
 An unsigned file offset, corresponding to an
 .Vt off_t
 type supported by the underlying operating system.
+.It Vt Dwarf_P_Expr
+A descriptor for a location expression.
 .It Vt Dwarf_Ptr
 A virtual address used by an application.
 .It Vt Dwarf_Signed
@@ -667,7 +669,7 @@ Convert a location expression into a byte stream.
 Append a
 .Dv DW_CFA_offset
 operation to a frame descriptor.
-.It Fn dwarf_lne_end_sequence, Fn dwarf_lne_set_address
+.It Fn dwarf_lne_end_sequence , Fn dwarf_lne_set_address
 Note address ranges for source lines.
 .It Fn dwarf_new_expr
 Allocate a location expression descriptor.
