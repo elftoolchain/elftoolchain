@@ -21,7 +21,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 16, 2011
+.Dd September 17, 2011
 .Os
 .Dt STRIP 1
 .Sh NAME
@@ -38,10 +38,10 @@
 .Op Fl -strip-unneeded
 .Op Fl w | Fl -wildcard
 .Op Fl x | Fl -discard-all
-.Op Fl I Ar bfdname | Fl -input-target= Ns Ar bfdname
+.Op Fl I Ar format | Fl -input-target= Ns Ar format
 .Op Fl K Ar symbol | Fl -keep-symbol= Ns Ar symbol
 .Op Fl N Ar symbol | Fl -strip-symbol= Ns Ar symbol
-.Op Fl O Ar target | Fl -output-target= Ns Ar target
+.Op Fl O Ar format | Fl -output-target= Ns Ar format
 .Op Fl R Ar sectionname | Fl -remove-section= Ns Ar sectionname
 .Op Fl V | Fl -version
 .Op Fl X | Fl -discard-locals
@@ -91,7 +91,7 @@ Mark the end of a character class.
 .El
 .It Fl x | Fl -discard-all
 Discard all non-global symbols.
-.It Fl I Ar bfdname | Fl -input-target= Ns Ar bfdname
+.It Fl I Ar format | Fl -input-target= Ns Ar format
 These options are accepted, but are ignored.
 .It Fl K Ar symbol | Fl -keep-symbol= Ns Ar symbol
 Keep the symbol
@@ -103,9 +103,9 @@ Remove the symbol
 .Ar symbol
 even if it would otherwise have been kept.
 This option may be specified multiple times.
-.It Fl O Ar target | Fl -output-target= Ns Ar target
+.It Fl O Ar format | Fl -output-target= Ns Ar format
 Set the output file format to
-.Ar target .
+.Ar format .
 For the full list of supported formats, please see the documentation
 for function
 .Xr elftc_bfd_find_target 3 .
