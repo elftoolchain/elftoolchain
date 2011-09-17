@@ -1322,11 +1322,32 @@ mcs_usage()
 	exit(EX_USAGE);
 }
 
+static const char *strip_usagemsg = "\
+Usage: %s [options] file...\n\
+  Discard information from ELF objects.\n\n\
+  Options:\n\
+  -d | -g | -S | --strip-debug    Remove debugging symbols.\n\
+  -h | --help                     Print a help message.\n\
+  --only-keep-debug               Keep debugging information only.\n\
+  -p | --preserve-dates           Preserve access and modification times.\n\
+  -s | --strip-all                Remove all symbols.\n\
+  --strip-unneeded                Remove symbols not needed for relocation\n\
+                                  processing.\n\
+  -w | --wildcard                 Use shell-style patterns to name symbols.\n\
+  -x | --discard-all              Discard all non-global symbols.\n\
+  -I TGT| --input-target=TGT      (Accepted, but ignored).\n\
+  -K SYM | --keep-symbol=SYM      Keep symbol 'SYM' in the output.\n\
+  -N SYM | --strip-symbol=SYM     Remove symbol 'SYM' from the output.\n\
+  -O TGT | --output-target=TGT    Set the output file format to 'TGT'.\n\
+  -R SEC | --remove-section=SEC   Remove the section named 'SEC'.\n\
+  -V | --version                  Print a version identifier and exit.\n\
+  -X | --discard-locals           Remove compiler-generated local symbols.\n\
+";
+
 static void
 strip_usage()
 {
-
-	fprintf(stderr, "usage: strip\n");
+	(void) fprintf(stderr, strip_usagemsg, ELFTC_GETPROGNAME());
 	exit(EX_USAGE);
 }
 
