@@ -24,13 +24,13 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 17, 2011
+.Dd September 18, 2011
 .Os
 .Dt DWARF_ADD_ARANGE 3
 .Sh NAME
 .Nm dwarf_add_arange ,
 .Nm dwarf_add_arange_b
-.Nd add address range information
+.Nd add address range information to a DWARF producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -56,7 +56,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_arange_b
-adds a address range entry to a producer instance.
+adds an address range entry to a producer instance.
 .Pp
 Argument
 .Ar dbg
@@ -82,33 +82,33 @@ Argument
 .Ar end_symbol_index
 specifies the ELF symbol index of the second symbol to be used for
 relocation.
-.Pp
+.Bl -bullet
+.It
 If argument
 .Ar end_symbol_index
 is not 0, the
 .Dv DW_DLC_SYMBOLIC_RELOCATIONS
 flag should have been set on the DWARF producer instance.
-In this case the address value specified by argument
+The address value specified by argument
 .Ar start
 will be treated as an offset value from the first symbol,
 and the argument
 .Ar offset_from_end_symbol
 should hold an offset value from the second symbol.
-.Pp
-Application code can later retrieve the relocation entries for the
+Application code can retrieve the relocation entries for the
 symbol pair by calling function
 .Xr dwarf_get_relocation_info 3 .
 The relocation entry for the first symbol will have type
 .Dv dwarf_drt_first_of_length_pair
 and the relocation entry for the second symbol will have type
 .Dv dwarf_drt_second_of_length_pair .
-.Pp
+.It
 If argument
 .Ar end_symbol_index
 is 0, argument
 .Ar offset_from_end_symbol
-will be ignored.
-Only one symbol is used for relocation in this case.
+will be ignored and only one symbol is used for relocation.
+.El
 .Pp
 If argument
 .Ar err
@@ -121,7 +121,7 @@ is deprecated.
 It is similar to function
 .Fn dwarf_add_arange_b
 except that it cannot handle all possible symbol index values
-and it cannot handle two relocation symbols.
+and supports only one relocation symbol.
 .Sh RETURN VALUES
 On success, these functions return a non-zero value.
 In case of an error, these functions return 0 and set
