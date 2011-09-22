@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2009,2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,7 @@ elf_end(Elf *e)
 			break;
 		}
 
-		if (e->e_flags & LIBELF_F_MMAP)
+		if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
 			(void) munmap(e->e_rawfile, e->e_rawsize);
 
 		sv = e;

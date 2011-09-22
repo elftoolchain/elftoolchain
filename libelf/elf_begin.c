@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008 Joseph Koshy
+ * Copyright (c) 2006,2008-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ _libelf_open_object(int fd, Elf_Cmd c)
 		return (NULL);
 	}
 
-	e->e_flags |= LIBELF_F_MMAP;
+	e->e_flags |= LIBELF_F_RAWFILE_MMAP;
 	e->e_fd = fd;
 	e->e_cmd = c;
 

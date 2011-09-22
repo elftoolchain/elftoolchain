@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006,2008-2010 Joseph Koshy
+ * Copyright (c) 2006,2008-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,15 +66,16 @@ extern struct _libelf_globals _libelf;
 #define	LIBELF_ADJUST_AR_SIZE(S)	(((S) + 1U) & ~1U)
 
 /*
- * Flags for library internal use.  These use the upper 16 bits of a
- * flags field.
+ * Flags for library internal use.  These use the upper 16 bits of the
+ * `e_flags' field.
  */
-#define	LIBELF_F_DATA_MALLOCED	0x010000 /* whether data was malloc'ed */
-#define	LIBELF_F_MMAP		0x020000 /* whether e_rawfile was mmap'ed */
-#define	LIBELF_F_SHDRS_LOADED	0x040000 /* whether all shdrs were read in */
-#define	LIBELF_F_AR_VARIANT_SVR4 0x080000 /* BSD style ar(1) archive */
-#define	LIBELF_F_AR_HEADER	0x100000  /* translated header available */
-#define	LIBELF_F_MASK		0x00FFFF  /* Flags defined by the API. */
+#define	LIBELF_F_API_MASK	0x00FFFF  /* Flags defined by the API. */
+#define	LIBELF_F_AR_HEADER	0x010000  /* translated header available */
+#define	LIBELF_F_AR_VARIANT_SVR4 0x020000 /* BSD style ar(1) archive */
+#define	LIBELF_F_DATA_MALLOCED	0x040000 /* whether data was malloc'ed */
+#define	LIBELF_F_RAWFILE_MALLOC	0x080000 /* whether e_rawfile was malloc'ed */
+#define	LIBELF_F_RAWFILE_MMAP	0x100000 /* whether e_rawfile was mmap'ed */
+#define	LIBELF_F_SHDRS_LOADED	0x200000 /* whether all shdrs were read in */
 
 struct _Elf {
 	int		e_activations;	/* activation count */
@@ -82,7 +83,7 @@ struct _Elf {
 	int		e_class;	/* ELFCLASS*  */
 	Elf_Cmd		e_cmd;		/* ELF_C_* used at creation time */
 	int		e_fd;		/* associated file descriptor */
-	unsigned int	e_flags;	/* ELF_F_*, LIBELF_F_* flags */
+	unsigned int	e_flags;	/* ELF_F_* & LIBELF_F_* flags */
 	Elf_Kind	e_kind;		/* ELF_K_* */
 	Elf		*e_parent; 	/* non-NULL for archive members */
 	char		*e_rawfile;	/* uninterpreted bytes */
