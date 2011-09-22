@@ -115,18 +115,9 @@ elf_begin(int fd, Elf_Cmd c, Elf *a)
 		return (NULL);
 
 	case ELF_C_WRITE:
-
-		if (a != NULL) { /* not allowed for ar(1) archives. */
+		/* ELF_C_WRITE mode is not supported for ar(1) archives. */
+		if (a != NULL) {
 			LIBELF_SET_ERROR(ARGUMENT, 0);
-			return (NULL);
-		}
-
-		/*
-		 * Check writeability of `fd' immediately and fail if
-		 * not writeable.
-		 */
-		if (ftruncate(fd, (off_t) 0) < 0) {
-			LIBELF_SET_ERROR(IO, errno);
 			return (NULL);
 		}
 
@@ -136,6 +127,7 @@ elf_begin(int fd, Elf_Cmd c, Elf *a)
 			e->e_fd = fd;
 			e->e_cmd = c;
 		}
+
 		return (e);
 
 	case ELF_C_RDWR:
