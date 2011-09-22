@@ -193,13 +193,15 @@ cleanup_tempfile(void)
 }
 
 
+define(`FN',`
 void
-tcCmdWriteFdRead(void)
+tcCmdWriteFdRead_$1(void)
 {
 	Elf *e;
+	Elf$1_Ehdr *eh;
 	int error, fd, result;
 
-	TP_ANNOUNCE("cmd == ELF_C_WRITE on non-writable FD is rejected.");
+	TP_ANNOUNCE("($1): cmd == ELF_C_WRITE fails with a non-writable FD.");
 
 	TP_SET_VERSION();
 
@@ -211,15 +213,35 @@ tcCmdWriteFdRead(void)
 
 	result = TET_PASS;
 	error = -1;
-	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) != NULL ||
-	    (error = elf_errno()) != ELF_E_IO)
-		TP_FAIL("fn=%s e = %p, error = %d", filename,
-		    (void *) e, error);
+
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
+		TP_UNRESOLVED("elf_begin() failed: %s", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf$1_getehdr(e)) == NULL) {
+		TP_UNRESOLVED("elf$1_getehdr() failed: %s", elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Verify that elf_update() fails with the appropriate error. */
+	if (elf_update(e, ELF_C_WRITE) >= 0) {
+		TP_FAIL("fn=%s, elf_update() succeeded unexpectedly.",
+		    filename);
+		goto done;
+	}
+
+	if ((error = elf_errno()) != ELF_E_IO)
+		TP_FAIL("fn=%s, error=%d \"%s\".", filename, error,
+		    elf_errmsg(error));
 
  done:
 	cleanup_tempfile();
 	tet_result(result);
-}
+}')
+
+FN(32)
+FN(64)
 
 void
 tcCmdWriteFdRdwr(void)
