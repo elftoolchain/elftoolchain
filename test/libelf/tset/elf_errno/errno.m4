@@ -52,7 +52,7 @@ tcInitialValue(void)
 {
 	int err;
 
-	TP_ANNOUNCE("Initial error value must be zero");
+	TP_ANNOUNCE("The initial error value must be zero.");
 	err = elf_errno();
 	tet_result(err == 0 ? TET_PASS : TET_FAIL);
 }
@@ -66,7 +66,7 @@ tcReset(void)
 {
 	int err;
 
-	TP_ANNOUNCE("error number must be reset by elf_errno()");
+	TP_ANNOUNCE("A pending error number must be reset by elf_errno().");
 
 	(void) elf_errno();	/* discard stored error */
 	err = elf_errno();
@@ -89,18 +89,19 @@ tcNonResetWithNull(void)
 	e = e1 = NULL;
 
 	TP_ANNOUNCE("a pending error number is not reset by "
-	    "elf_begin(ELF_C_NULL)");
+	    "elf_begin(ELF_C_NULL).");
 
 	TP_SET_VERSION();
 
 	/* Force an error. */
-	if ((fd = open("/dev/null", O_RDONLY)) < 0) {
-		TP_UNRESOLVED("open(/dev/null) failed: %s", strerror(errno));
+	if ((fd = open(".", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open(.) failed: %s", strerror(errno));
 		goto done;
 	}
 
 	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) != NULL) {
-		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) unexpectedly succeeded");
+		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) succeeded "
+		    "unexpectedly.");
 		goto done;
 	}
 
@@ -112,7 +113,7 @@ tcNonResetWithNull(void)
 	}
 
 	/* Recheck the old error. */
-	if ((error = elf_errno()) != ELF_E_IO) {
+	if ((error = elf_errno()) != ELF_E_ARGUMENT) {
 		TP_FAIL("unexpected error %d \"%s\"", error,
 			elf_errmsg(error));
 		goto done;
@@ -146,23 +147,24 @@ tcExpectedErrorIsReturned(void)
 	fd = -1;
 	e = NULL;
 
-	TP_ANNOUNCE("a pending error number is correctly returned");
+	TP_ANNOUNCE("A pending error number is correctly returned.");
 
 	TP_SET_VERSION();
 
 	/* Force an error. */
-	if ((fd = open("/dev/null", O_RDONLY)) < 0) {
-		TP_UNRESOLVED("open(/dev/null) failed: %s", strerror(errno));
+	if ((fd = open(".", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open(.) failed: %s", strerror(errno));
 		goto done;
 	}
 
 	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) != NULL) {
-		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) unexpectedly succeeded");
+		TP_UNRESOLVED("elf_begin(ELF_C_WRITE) succeeded "
+		    "unexpectedly.");
 		goto done;
 	}
 
 	/* Check the current error. */
-	if ((error = elf_errno()) != ELF_E_IO) {
+	if ((error = elf_errno()) != ELF_E_ARGUMENT) {
 		TP_FAIL("unexpected error %d \"%s\"", error,
 			elf_errmsg(error));
 		goto done;
