@@ -23,7 +23,7 @@
 .\"
 .\" $Id$ 
 .\"
-.Dd July 20, 2011
+.Dd September 23, 2011
 .Os
 .Dt ELF_BEGIN 3
 .Sh NAME
@@ -87,7 +87,7 @@ and
 .Ar elf .
 It can be used for both
 .Xr ar 1
-archives and for regular ELF files.
+archives and for ELF objects.
 .Pp
 If argument
 .Ar elf
@@ -134,7 +134,7 @@ then the value of the argument
 is ignored.
 .It Dv ELF_C_RDWR
 This command is used to prepare an ELF file for reading and writing.
-This command is not valid for
+This command is not supported for
 .Xr ar 1
 archives.
 .Pp
@@ -170,8 +170,7 @@ Argument
 should have been opened for writing.
 Argument
 .Ar elf
-is ignored, and the previous contents of file referenced by
-argument
+is ignored, and the previous contents of file referenced by argument
 .Ar fd
 are overwritten.
 .El
@@ -248,8 +247,9 @@ The archive denoted by argument
 .Ar elf
 could not be parsed.
 .It Bq Er ELF_E_ARGUMENT
-An unrecognized value was specified in argument
-.Ar cmd .
+The value in argument
+.Ar cmd
+was unrecognized.
 .It Bq Er ELF_E_ARGUMENT
 A non-null value for argument
 .Ar elf
@@ -276,11 +276,22 @@ archive was opened with with
 .Ar cmd
 set to
 .Dv ELF_C_RDWR .
+.It Bq Er ELF_E_ARGUMENT
+The file referenced by argument
+.Ar fd
+was empty.
+.It Bq Er ELF_E_ARGUMENT
+The underlying file for argument
+.Ar fd
+was of an unsupported type.
 .It Bq Er ELF_E_IO
-Function
-.Fn elf_begin
-was unable to truncate a file opened for writing using
-.Dv ELF_C_WRITE .
+The file descriptor in argument
+.Ar fd
+was invalid.
+.It Bq Er ELF_E_IO
+The file descriptor in argument
+.Ar fd
+could not be read or written to.
 .It Bq Er ELF_E_RESOURCE
 An out of memory condition was encountered.
 .It Bq Er ELF_E_SEQUENCE
