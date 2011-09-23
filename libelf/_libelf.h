@@ -76,6 +76,7 @@ extern struct _libelf_globals _libelf;
 #define	LIBELF_F_RAWFILE_MALLOC	0x080000 /* whether e_rawfile was malloc'ed */
 #define	LIBELF_F_RAWFILE_MMAP	0x100000 /* whether e_rawfile was mmap'ed */
 #define	LIBELF_F_SHDRS_LOADED	0x200000 /* whether all shdrs were read in */
+#define	LIBELF_F_SPECIAL_FILE	0x400000 /* non-regular file */
 
 struct _Elf {
 	int		e_activations;	/* activation count */
