@@ -232,11 +232,11 @@ elf_begin(int fd, Elf_Cmd c, Elf *a)
 		return (NULL);
 
 	case ELF_C_WRITE:
-		/* ELF_C_WRITE mode is not supported for ar(1) archives. */
-		if (a != NULL) {
-			LIBELF_SET_ERROR(ARGUMENT, 0);
-			return (NULL);
-		}
+		/*
+		 * The ELF_C_WRITE command is required to ignore the
+		 * descriptor passed in.
+		 */
+		a = NULL;
 		break;
 
 	case ELF_C_RDWR:
