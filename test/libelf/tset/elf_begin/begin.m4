@@ -301,6 +301,40 @@ tcCmdWriteFdWrite(void)
 	tet_result(result);
 }
 
+void
+tcCmdWriteParamIgnored(void)
+{
+	Elf *e, *t;
+	int error, fd, fd1, result;
+
+	TP_ANNOUNCE("cmd == ELF_C_WRITE ignores the last parameter.");
+
+	TP_SET_VERSION();
+
+	if (setup_tempfile() == 0 ||
+	    (fd = open(filename, O_WRONLY, 0)) < 0 ||
+	    (fd1 = open(filename, O_RDONLY, 0)) < 0) {
+		TP_UNRESOLVED("setup failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if ((t = elf_begin(fd1, ELF_C_READ, NULL)) == NULL) {
+		TP_UNRESOLVED("elf_begin() failed unexpectedly: \"%s\".",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	result = TET_PASS;
+	error = -1;
+	if ((e = elf_begin(fd, ELF_C_WRITE, t)) == NULL) {
+		TP_FAIL("elf_begin() failed: \"%s\".", elf_errmsg(-1));
+	}
+
+ done:
+	cleanup_tempfile();
+	tet_result(result);
+}
+
 
 /*
  * Check that opening various classes/endianness of ELF files
@@ -361,10 +395,8 @@ FN(64,`msb')
 /*
  * Check that an AR archive detects a cmd mismatch.
  */
-undefine(`FN')
-define(`FN',`
 void
-tcArCmdMismatch$1(void)
+tcArCmdMismatchRDWR(void)
 {
 	Elf *e, *e2;
 	int error, fd, result;
@@ -377,10 +409,12 @@ tcArCmdMismatch$1(void)
 	e = e2 = NULL;
 	fd = -1;
 
+	/* Open the archive with ELF_C_READ. */
 	_TS_OPEN_FILE(e, TS_ARFILE, ELF_C_READ, fd, goto done;);
 
+	/* Attempt to iterate through it with ELF_C_RDWR. */
 	result = TET_PASS;
-	if ((e2 = elf_begin(fd, ELF_C_$1, e)) != NULL ||
+	if ((e2 = elf_begin(fd, ELF_C_RDWR, e)) != NULL ||
 	    (error = elf_errno()) != ELF_E_ARGUMENT)
 		TP_FAIL("e2=%p error=%d \"%s\".", (void *) e2,
 		    error, elf_errmsg(error));
@@ -392,10 +426,7 @@ tcArCmdMismatch$1(void)
 	if (fd >= 0)
 		(void) close(fd);
 	tet_result(result);
-}')
-
-FN(WRITE)
-FN(RDWR)
+}
 
 /*
  * Check that an AR archive allows valid cmd values.
