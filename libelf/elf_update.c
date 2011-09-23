@@ -25,6 +25,7 @@
  */
 
 #include <sys/mman.h>
+#include <sys/stat.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -986,7 +987,7 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 	struct _Elf_Extent *ex;
 
 	assert(e->e_kind == ELF_K_ELF);
-	assert(e->e_cmd != ELF_C_READ);
+	assert(e->e_cmd == ELF_C_RDWR || e->e_cmd == ELF_C_WRITE);
 	assert(e->e_fd >= 0);
 
 	if ((newfile = malloc((size_t) newsize)) == NULL) {
@@ -1037,35 +1038,57 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 	assert(rc == newsize);
 
 	/*
-	 * Write out the constructed contents and remap the file in
-	 * read-only.
+	 * For regular files, throw away existing file content and
+	 * unmap any existing mappings.
 	 */
+	if ((e->e_flags & LIBELF_F_SPECIAL_FILE) == 0) {
+		if (ftruncate(e->e_fd, (off_t) 0) < 0 ||
+		    lseek(e->e_fd, (off_t) 0, SEEK_SET)) {
+			LIBELF_SET_ERROR(IO, errno);
+			goto error;
+		}
+		if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
+			assert(e->e_rawfile != NULL);
+			assert(e->e_cmd == ELF_C_RDWR);
+			if (munmap(e->e_rawfile, e->e_rawsize) < 0) {
+				LIBELF_SET_ERROR(IO, errno);
+				goto error;
+			}
+		}
+	}
 
-	if (e->e_rawfile && munmap(e->e_rawfile, e->e_rawsize) < 0) {
+	/*
+	 * Write out the new contents.
+	 */
+	if (write(e->e_fd, newfile, (size_t) newsize) != newsize) {
 		LIBELF_SET_ERROR(IO, errno);
 		goto error;
 	}
 
-	if (write(e->e_fd, newfile, (size_t) newsize) != newsize ||
-	    lseek(e->e_fd, (off_t) 0, SEEK_SET) < 0) {
-		LIBELF_SET_ERROR(IO, errno);
-		goto error;
-	}
-
-	if (e->e_cmd != ELF_C_WRITE) {
-
-		if (e->e_rawsize > (size_t) newsize &&
-		    ftruncate(e->e_fd, newsize) < 0) {
-			LIBELF_SET_ERROR(IO, errno);
-			goto error;
+	/*
+	 * For files opened in ELF_C_RDWR mode, set up the new 'raw'
+	 * contents.
+	 */
+	if (e->e_cmd == ELF_C_RDWR) {
+		assert(e->e_rawfile != NULL);
+		if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
+			if ((e->e_rawfile = mmap(NULL, (size_t) newsize,
+			    PROT_READ, MAP_PRIVATE, e->e_fd, (off_t) 0)) ==
+			    MAP_FAILED) {
+				LIBELF_SET_ERROR(IO, errno);
+				goto error;
+			}
+		} else if (e->e_flags & LIBELF_F_RAWFILE_MALLOC) {
+			free(e->e_rawfile);
+			e->e_rawfile = newfile;
+			newfile = NULL;
 		}
 
-		if ((e->e_rawfile = mmap(NULL, (size_t) newsize, PROT_READ,
-		    MAP_PRIVATE, e->e_fd, (off_t) 0)) == MAP_FAILED) {
-			LIBELF_SET_ERROR(IO, errno);
-			goto error;
-		}
+		/* Record the new size of the file. */
 		e->e_rawsize = newsize;
+	} else {
+		/* File opened in ELF_C_WRITE mode. */
+		assert(e->e_rawfile == NULL);
 	}
 
 	/*
@@ -1095,7 +1118,9 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 		e->e_u.e_elf.e_phdr.e_phdr64 = NULL;
 	}
 
-	free(newfile);
+	/* Free the temporary buffer. */
+	if (newfile)
+		free(newfile);
 
 	return (rc);
 

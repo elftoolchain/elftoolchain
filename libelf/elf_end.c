@@ -76,8 +76,12 @@ elf_end(Elf *e)
 			break;
 		}
 
-		if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
-			(void) munmap(e->e_rawfile, e->e_rawsize);
+		if (e->e_rawfile) {
+			if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
+				(void) munmap(e->e_rawfile, e->e_rawsize);
+			else if (e->e_flags & LIBELF_F_RAWFILE_MALLOC)
+				free(e->e_rawfile);
+		}
 
 		sv = e;
 		if ((e = e->e_parent) != NULL)

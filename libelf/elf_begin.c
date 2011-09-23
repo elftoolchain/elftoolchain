@@ -32,68 +32,185 @@
 #include <sys/stat.h>
 
 #include <ar.h>
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <libelf.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "_libelf.h"
 
 LIBELF_VCSID("$Id$");
 
+#define	_LIBELF_INITSIZE	(64*1024)
+
+/*
+ * Read from a device file, pipe or socket.
+ */
+static void *
+_libelf_read_special_file(int fd, size_t *fsz)
+{
+	ssize_t readsz;
+	size_t bufsz, datasz;
+	unsigned char *buf, *t;
+
+	datasz = 0;
+	readsz = 0;
+	bufsz = _LIBELF_INITSIZE;
+	if ((buf = malloc(bufsz)) == NULL)
+		goto resourceerror;
+
+	/*
+	 * Read data from the file descriptor till we reach EOF, or
+	 * till an error is encountered.
+	 */
+	do {
+		/* Check if we need to expand the data buffer. */
+		if (datasz == bufsz) {
+			bufsz *= 2;
+			if ((t = realloc(buf, bufsz)) == NULL)
+				goto resourceerror;
+			buf = t;
+		}
+
+		do {
+			readsz = bufsz - datasz;
+			t = buf + datasz;
+			if ((readsz = read(fd, t, readsz)) <= 0)
+				break;
+			datasz += readsz;
+		} while (datasz < bufsz);
+
+	} while (readsz > 0);
+
+	if (readsz < 0) {
+		LIBELF_SET_ERROR(IO, errno);
+		goto error;
+	}
+
+	assert(readsz == 0);
+
+	/*
+	 * Free up extra buffer space.
+	 */
+	if (bufsz > datasz) {
+		if (datasz > 0) {
+			if ((t = realloc(buf, datasz)) == NULL)
+				goto resourceerror;
+			buf = t;
+		} else {	/* Zero bytes read. */
+			LIBELF_SET_ERROR(ARGUMENT, 0);
+			free(buf);
+			buf = NULL;
+		}
+	}
+
+	*fsz = datasz;
+	return (buf);
+
+resourceerror:
+	LIBELF_SET_ERROR(RESOURCE, 0);
+error:
+	if (buf != NULL)
+		free(buf);
+	return (NULL);
+}
+
+
 static Elf *
 _libelf_open_object(int fd, Elf_Cmd c)
 {
 	Elf *e;
 	void *m;
+	mode_t mode;
+	size_t fsize;
 	struct stat sb;
+	unsigned int flags;
 
-	/*
-	 * 'Raw' files are always mapped with 'PROT_READ'.  At
-	 * elf_update(3) time for files opened with ELF_C_RDWR the
-	 * mapping is unmapped, file data is written to using write(2)
-	 * and then the raw data is immediately mapped back in.
-	 */
+	assert(c == ELF_C_READ || c == ELF_C_RDWR || c == ELF_C_WRITE);
+
 	if (fstat(fd, &sb) < 0) {
 		LIBELF_SET_ERROR(IO, errno);
 		return (NULL);
 	}
 
+	mode = sb.st_mode;
+	fsize = (size_t) sb.st_size;
+
 	/*
-	 * Restrict elf_begin(3) to regular files.
-	 *
-	 * In some operating systems, some special files can appear to
-	 * contain ELF objects (for example, /dev/ksyms in NetBSD).
-	 * If such files need to be processed using libelf,
-	 * applications can use elf_memory(3) on an appropriately
-	 * populated memory arena.
+	 * Reject unsupported file types.
 	 */
-	if (!S_ISREG(sb.st_mode)) {
+	if (!S_ISREG(mode) && !S_ISCHR(mode) && !S_ISFIFO(mode) &&
+	    !S_ISSOCK(mode)) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
 
+	/*
+	 * For ELF_C_WRITE mode, allocate and return a descriptor.
+	 */
+	if (c == ELF_C_WRITE) {
+		if ((e = _libelf_allocate_elf()) != NULL) {
+			_libelf_init_elf(e, ELF_K_ELF);
+			e->e_byteorder = LIBELF_PRIVATE(byteorder);
+			e->e_fd = fd;
+			e->e_cmd = c;
+			if (!S_ISREG(mode))
+				e->e_flags |= LIBELF_F_SPECIAL_FILE;
+		}
+
+		return (e);
+	}
+
+
+	/*
+	 * ELF_C_READ and ELF_C_RDWR mode.
+	 */
 	m = NULL;
-	if ((m = mmap(NULL, (size_t) sb.st_size, PROT_READ, MAP_PRIVATE, fd,
-	    (off_t) 0)) == MAP_FAILED) {
-		LIBELF_SET_ERROR(IO, errno);
+	flags = 0;
+	if (S_ISREG(mode)) {
+		/*
+		 * Always map regular files in with 'PROT_READ'
+		 * permissions.
+		 *
+		 * For objects opened in ELF_C_RDWR mode, when
+		 * elf_update(3) is called, we remove this mapping,
+		 * write file data out using write(2), and map the new
+		 * contents back.
+		 */
+		if ((m = mmap(NULL, fsize, PROT_READ, MAP_PRIVATE, fd,
+		    (off_t) 0)) == MAP_FAILED) {
+			LIBELF_SET_ERROR(IO, errno);
+			return (NULL);
+		}
+
+		flags = LIBELF_F_RAWFILE_MMAP;
+	} else if ((m = _libelf_read_special_file(fd, &fsize)) != NULL)
+		flags = LIBELF_F_RAWFILE_MALLOC | LIBELF_F_SPECIAL_FILE;
+	else
+		return (NULL);
+
+	if ((e = elf_memory(m, fsize)) == NULL) {
+		assert((flags & LIBELF_F_RAWFILE_MALLOC) ||
+		    (flags & LIBELF_F_RAWFILE_MMAP));
+		if (flags & LIBELF_F_RAWFILE_MMAP)
+			(void) munmap(m, fsize);
+		else
+			free(m);
 		return (NULL);
 	}
 
-	if ((e = elf_memory(m, (size_t) sb.st_size)) == NULL) {
-		(void) munmap(m, (size_t) sb.st_size);
-		return (NULL);
-	}
-
-	e->e_flags |= LIBELF_F_RAWFILE_MMAP;
-	e->e_fd = fd;
-	e->e_cmd = c;
-
+	/* ar(1) archives aren't supported in RDWR mode. */
 	if (c == ELF_C_RDWR && e->e_kind == ELF_K_AR) {
 		(void) elf_end(e);
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
+
+	e->e_flags |= flags;
+	e->e_fd = fd;
+	e->e_cmd = c;
 
 	return (e);
 }
@@ -120,15 +237,7 @@ elf_begin(int fd, Elf_Cmd c, Elf *a)
 			LIBELF_SET_ERROR(ARGUMENT, 0);
 			return (NULL);
 		}
-
-		if ((e = _libelf_allocate_elf()) != NULL) {
-			_libelf_init_elf(e, ELF_K_ELF);
-			e->e_byteorder = LIBELF_PRIVATE(byteorder);
-			e->e_fd = fd;
-			e->e_cmd = c;
-		}
-
-		return (e);
+		break;
 
 	case ELF_C_RDWR:
 		if (a != NULL) { /* not allowed for ar(1) archives. */
