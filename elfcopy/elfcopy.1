@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 16, 2011
+.Dd September 23, 2011
 .Os
 .Dt ELFCOPY 1
 .Sh NAME
@@ -31,41 +31,26 @@
 .Nd copy and translate object files
 .Sh SYNOPSIS
 .Nm
+.Op Fl I Ar objformat | Fl -input-target= Ns Ar objformat
+.Op Fl K Ar symbolname | Fl -keep-symbol= Ns Ar symbolname
+.Op Fl L Ar symbolname | Fl -localize-symbol= Ns Ar symbolname
+.Op Fl N Ar symbolname | Fl -strip-symbol= Ns Ar symbolname
+.Op Fl O Ar objformat | Fl -output-target= Ns Ar objformat
+.Op Fl R Ar sectionname | Fl -remove-section= Ns Ar sectionname
+.Op Fl S | Fl -strip-all
+.Op Fl V | Fl -version
+.Op Fl W Ar symbolname | Fl -weaken-symbol= Ns Ar symbolname
+.Op Fl X | Fl -discard-locals
+.Op Fl d | Fl g | Fl -strip-debug
+.Op Fl h | Fl -help
+.Op Fl j Ar sectionname | Fl -only-section= Ns Ar sectionname
+.Op Fl p | Fl -preserve-dates
+.Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
-.Op Fl -discard-all
-.Op Fl -discard-locals
-.Op Fl -help
-.Op Fl -input-target= Ns Ar objformat
-.Op Fl -keep-symbol= Ns Ar symbolname
-.Op Fl -localize-symbol= Ns Ar symbolname
 .Op Fl -only-keep-debug
-.Op Fl -only-section= Ns Ar sectionname
-.Op Fl -output-target= Ns Ar objformat
-.Op Fl -preserve-dates
-.Op Fl -remove-section= Ns Ar sectionname
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
-.Op Fl -strip-all
-.Op Fl -strip-debug
-.Op Fl -strip-symbol= Ns Ar symbolname
 .Op Fl -strip-unneeded
-.Op Fl -version
-.Op Fl -weaken-symbol= Ns Ar symbolname
-.Op Fl I Ar objformat
-.Op Fl K Ar symbolname
-.Op Fl L Ar symbolname
-.Op Fl N Ar symbolname
-.Op Fl O Ar objformat
-.Op Fl R Ar sectionname
-.Op Fl S
-.Op Fl V
-.Op Fl X
-.Op Fl d
-.Op Fl h
-.Op Fl g
-.Op Fl j Ar sectionname
-.Op Fl p
-.Op Fl x
 .Ar infile
 .Op Ar outfile
 .Sh DESCRIPTION
@@ -87,6 +72,52 @@ The
 .Nm
 utility supports the following options:
 .Bl -tag -width indent
+.It Fl I Ar objformat | Fl -input-target= Ns Ar objformat
+This option is accepted for compatibility with GNU
+.Xr objcopy 1 ,
+but is ignored.
+.It Fl K Ar symbolname | Fl -keep-symbol= Ns Ar symbolname
+Copy the symbol named by argument
+.Ar symbolname
+to the output.
+.It Fl L Ar symbolname | Fl -localize-symbol= Ns Ar symbolname
+Make the symbol named by argument
+.Ar symbolname
+local to the output file.
+.It Fl N Ar symbol | Fl -strip-symbol= Ns Ar symbolname
+Do not copy the symbol named by argument
+.Ar symbolname
+to the output.
+.It Fl O Ar objformat | Fl -output-target= Ns Ar objformat
+Write the output file using the object format specified in argument
+.Ar objformat .
+.It Fl R Ar sectionname | Fl -remove-section= Ns Ar sectionname
+Remove any section with name
+.Ar sectionname
+from the output file.
+.It Fl S | Fl -strip-all
+Do not copy symbol and relocation information to the target file.
+.It Fl V | Fl -version
+Print a version identifier and exit.
+.It Fl W Ar symbolname | Fl -weaken-symbol= Ns Ar symbolname
+Mark the symbol named by argument
+.Ar symbolname
+as weak in the output.
+.It Fl X | Fl -discard-locals
+Do not copy compiler generated local symbols to the output.
+.It Fl d | Fl g | Fl -strip-debug
+Do not copy debugging information to the target file.
+.It Fl h | Fl -help
+Display a help message and exit.
+.It Fl j Ar sectionname | Fl -only-section= Ns Ar sectionname
+Copy only the section named by argument
+.Ar sectionname
+to the output.
+.It Fl p | Fl -preserve-dates
+Set the access and modification times of the output file to the
+same as those of the input.
+.It Fl x | Fl -discard-all
+Do not copy non-global symbols to the output.
 .It Fl -add-section Ar sectionname Ns = Ns Ar filename
 Add a new section to the output file with name
 .Ar sectionname .
@@ -95,38 +126,8 @@ argument
 .Ar filename .
 The size of the section will be the number of bytes in file
 .Ar filename .
-.It Fl -discard-all
-Do not copy non-global symbols to the output.
-.It Fl -discard-locals
-Do not copy compiler generated local symbols to the output.
-.It Fl -input-target= Ns Ar objformat
-This option is accepted for compatibility with GNU
-.Xr objcopy 1 ,
-but is ignored.
-.It Fl -keep-symbol= Ns Ar symbolname
-Copy the symbol named by argument
-.Ar symbolname
-to the output.
-.It Fl -localize-symbol= Ns Ar symbolname
-Make the symbol named by argument
-.Ar symbolname
-local to the output file.
 .It Fl -only-keep-debug
 Copy only debugging information to the output file.
-.It Fl -only-section= Ns Ar sectionname
-Copy only the section named by argument
-.Ar sectionname
-to the output.
-.It Fl -output-target= Ns Ar objformat
-Write the output file using the object format specified in argument
-.Ar objformat .
-.It Fl -preserve-dates
-Set the access and modification times of the output file to the
-same as those of the input.
-.It Fl -remove-section= Ns Ar sectionname
-Remove any section with name
-.Ar sectionname
-from the output file.
 .It Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 Rename the section named by argument
 .Ar oldname
@@ -169,64 +170,8 @@ The section contains ROM'able contents.
 .It share
 This flag is accepted but is ignored.
 .El
-.It Fl -strip-all
-Do not copy symbol and relocation information to the target file.
-.It Fl -strip-debug
-Do not copy debugging information to the target file.
-.It Fl -strip-symbol= Ns Ar symbolname
-Do not copy the symbol named by argument
-.Ar symbolname
-to the output.
 .It Fl -strip-unneeded
 Do not copy symbols that are not needed for relocation processing.
-.It Fl -version
-Print a version identifier and exit.
-.It Fl -weaken-symbol= Ns Ar symbolname
-Mark the symbol named by argument
-.Ar symbolname
-as weak in the output.
-.It Fl I Ar objformat
-Identical to option
-.Fl -input-target= Ns Ar format .
-.It Fl K Ar symbolname
-Identical to option
-.Fl -keep-symbol= Ns Ar symbolname .
-.It Fl L Ar symbolname
-Identical to option
-.Fl -localize-symbol= Ns Ar symbolname .
-.It Fl N Ar symbolname
-Identical to option
-.Fl -strip-symbol= Ns Ar symbolname .
-.It Fl R Ar sectionname
-Identical to option
-.Fl -remove-section= Ns Ar sectionname .
-.It Fl S
-Identical to option
-.Fl -strip-all .
-.It Fl V
-Identical to option
-.Fl -version .
-.It Fl W Ar symbolname
-Identical to option
-.Fl -weaken-symbol= Ns symbolname .
-.It Fl X
-Identical to option
-.Fl -discard-locals .
-.It Fl d
-Identical to option
-.Fl -strip-debug .
-.It Fl g
-Identical to option
-.Fl -strip-debug .
-.It Fl j Ar sectionname
-Identical to option
-.Fl -only-section= Ns Ar sectionname .
-.It Fl p
-Identical to option
-.Fl -preserve-dates .
-.It Fl x
-Identical to option
-.Fl -discard-all .
 .El
 .Sh DIAGNOSTICS
 .Ex -std
