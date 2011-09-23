@@ -199,7 +199,6 @@ static int		get_sym(Elf *, struct sym_head *, int,
 static char		get_sym_type(const GElf_Sym *, const char *);
 static void		global_dest(void);
 static void		global_init(void);
-static bool		is_file(const char *);
 static bool		is_sec_data(GElf_Shdr *);
 static bool		is_sec_debug(const char *);
 static bool		is_sec_nobits(GElf_Shdr *);
@@ -760,31 +759,6 @@ global_init(void)
 	nm_opts.size_print_fn = &sym_size_dec_print;
 
 	SLIST_INIT(&nm_out_filter);
-}
-
-static bool
-is_file(const char *path)
-{
-	struct stat sb;
-
-	if (path == NULL)
-		return (false);
-
-	errno = 0;
-	if (stat(path, &sb) != 0) {
-		if (errno == ENOENT)
-			warnx("'%s': No such file", path);
-		else
-			warn("'%s'", path);
-		return (false);
-	}
-
-	if (!S_ISLNK(sb.st_mode) && !S_ISREG(sb.st_mode)) {
-		warnx("Warning: '%s' is not an ordinary file", path);
-		return (false);
-	}
-
-	return (true);
 }
 
 static bool
@@ -1438,9 +1412,6 @@ read_object(const char *filename)
 	int fd, rtn, e_err;
 
 	assert(filename != NULL && "filename is null");
-
-	if (is_file(filename) == false)
-		return (1);
 
 	if ((fd = open(filename, O_RDONLY)) == -1) {
 		warn("'%s'", filename);
