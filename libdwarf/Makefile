@@ -103,6 +103,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_expr_gen.3				\
 	dwarf_add_file_decl.3				\
 	dwarf_add_line_entry.3				\
+	dwarf_add_pubname.3				\
 	dwarf_attr.3					\
 	dwarf_attrlist.3				\
 	dwarf_attrval_signed.3				\
