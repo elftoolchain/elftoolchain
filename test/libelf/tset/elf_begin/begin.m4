@@ -42,7 +42,8 @@
 
 include(`elfts.m4')
 
-define(`TS_ARFILE',`"a.ar"')
+define(`TS_ARFILE_BSD',`"a-bsd.ar"')
+define(`TS_ARFILE_SVR4',`"a.ar"')
 
 /*
  * Test the `elf_begin' entry point.
@@ -393,117 +394,6 @@ FN(64,`lsb')
 FN(64,`msb')
 
 /*
- * Check that an AR archive detects a cmd mismatch.
- */
-void
-tcArCmdMismatchRDWR(void)
-{
-	Elf *e, *e2;
-	int error, fd, result;
-
-	TP_ANNOUNCE("a cmd mismatch is detected.");
-
-	TP_SET_VERSION();
-
-	result = TET_UNRESOLVED;
-	e = e2 = NULL;
-	fd = -1;
-
-	/* Open the archive with ELF_C_READ. */
-	_TS_OPEN_FILE(e, TS_ARFILE, ELF_C_READ, fd, goto done;);
-
-	/* Attempt to iterate through it with ELF_C_RDWR. */
-	result = TET_PASS;
-	if ((e2 = elf_begin(fd, ELF_C_RDWR, e)) != NULL ||
-	    (error = elf_errno()) != ELF_E_ARGUMENT)
-		TP_FAIL("e2=%p error=%d \"%s\".", (void *) e2,
-		    error, elf_errmsg(error));
- done:
-	if (e)
-		(void) elf_end(e);
-	if (e2)
-		(void) elf_end(e2);
-	if (fd >= 0)
-		(void) close(fd);
-	tet_result(result);
-}
-
-/*
- * Check that an AR archive allows valid cmd values.
- */
-undefine(`FN')
-define(`FN',`
-void
-tcArCmdMatch$1(void)
-{
-	Elf *e, *e2;
-	int fd, result;
-
-	TP_ANNOUNCE("a cmd match is allowed.");
-
-	TP_SET_VERSION();
-
-	result = TET_UNRESOLVED;
-	e = e2 = NULL;
-	fd = -1;
-
-	TS_OPEN_FILE(e, TS_ARFILE, ELF_C_READ, fd);
-
-	result = TET_PASS;
-	if ((e2 = elf_begin(fd, ELF_C_$1, e)) == NULL)
-		TP_FAIL("error=\"%s\".", elf_errmsg(-1));
-
- done:
-	if (e)
-		(void) elf_end(e);
-	if (e2)
-		(void) elf_end(e2);
-	if (fd >= 0)
-		(void) close(fd);
-	tet_result(result);
-}')
-
-FN(READ)
-
-/*
- * Check that a member is correctly retrieved.
- */
-void
-tcArRetrieval(void)
-{
-	Elf *e, *e1;
-	int fd, result;
-	Elf_Kind k;
-
-	TP_ANNOUNCE("an archive member is correctly retrieved.");
-
-	TP_SET_VERSION();
-
-	e = e1 = NULL;
-	fd = -1;
-
-	_TS_OPEN_FILE(e, TS_ARFILE, ELF_C_READ, fd, goto done;);
-
-	result = TET_PASS;
-	if ((e1 = elf_begin(fd, ELF_C_READ, e)) == NULL) {
-		TP_FAIL("elf_begin() failed: \"%s\".", elf_errmsg(-1));
-		goto done;
-	}
-
-	if ((k = elf_kind(e1)) != ELF_K_ELF)
-		TP_FAIL("kind %d, expected %d.", k, ELF_K_ELF);
-
- done:
-	if (e1)
-		(void) elf_end(e1);
-	if (e)
-		(void) elf_end(e);
-	if (fd != -1)
-		(void) close(fd);
-	tet_result(result);
-}
-
-/*
  * Check an `fd' mismatch is detected.
  */
 void
@@ -541,12 +431,88 @@ tcFdMismatch(void)
 	tet_result(result);
 }
 
+undefine(`ARFN')
+define(`ARFN',`
+/*
+ * Check that an $1-style AR archive detects a cmd mismatch.
+ */
+void
+tcArCmdMismatchRDWR_$1(void)
+{
+	Elf *e, *e2;
+	int error, fd, result;
+
+	TP_ANNOUNCE("($1): a cmd mismatch is detected.");
+
+	TP_SET_VERSION();
+
+	result = TET_UNRESOLVED;
+	e = e2 = NULL;
+	fd = -1;
+
+	/* Open the archive with ELF_C_READ. */
+	_TS_OPEN_FILE(e, TS_ARFILE_$1, ELF_C_READ, fd, goto done;);
+
+	/* Attempt to iterate through it with ELF_C_RDWR. */
+	result = TET_PASS;
+	if ((e2 = elf_begin(fd, ELF_C_RDWR, e)) != NULL ||
+	    (error = elf_errno()) != ELF_E_ARGUMENT)
+		TP_FAIL("e2=%p error=%d \"%s\".", (void *) e2,
+		    error, elf_errmsg(error));
+ done:
+	if (e)
+		(void) elf_end(e);
+	if (e2)
+		(void) elf_end(e2);
+	if (fd >= 0)
+		(void) close(fd);
+	tet_result(result);
+}
+
+/*
+ * Check that a member is correctly retrieved for $1-style archives.
+ */
+void
+tcArRetrieval_$1(void)
+{
+	Elf *e, *e1;
+	int fd, result;
+	Elf_Kind k;
+
+	TP_ANNOUNCE("($1): an archive member is correctly retrieved.");
+
+	TP_SET_VERSION();
+
+	e = e1 = NULL;
+	fd = -1;
+
+	_TS_OPEN_FILE(e, TS_ARFILE_$1, ELF_C_READ, fd, goto done;);
+
+	result = TET_PASS;
+	if ((e1 = elf_begin(fd, ELF_C_READ, e)) == NULL) {
+		TP_FAIL("elf_begin() failed: \"%s\".", elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((k = elf_kind(e1)) != ELF_K_ELF)
+		TP_FAIL("kind %d, expected %d.", k, ELF_K_ELF);
+
+ done:
+	if (e1)
+		(void) elf_end(e1);
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+	tet_result(result);
+}
+
 /*
  * Check opening of ar(1) archives opened with elf_memory().
  */
 
 void
-tcArMemoryFdIgnored(void)
+tcArMemoryFdIgnored_$1(void)
 {
 	Elf *e, *e1;
 	int fd, result;
@@ -554,8 +520,8 @@ tcArMemoryFdIgnored(void)
 	struct stat sb;
 	char *b;
 
-	TP_ANNOUNCE("The fd value is ignored for archives opened with "
-	    "elf_memory().");
+	TP_ANNOUNCE("($1): The fd value is ignored for archives opened "
+	    "with elf_memory().");
 
 	TP_SET_VERSION();
 
@@ -569,8 +535,8 @@ tcArMemoryFdIgnored(void)
 	 * an ar(1) archive.
 	 */
 
-	if ((fd = open(TS_ARFILE, O_RDONLY)) < 0) {
-		TP_UNRESOLVED("open of " TS_ARFILE " failed: %s",
+	if ((fd = open(TS_ARFILE_$1, O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open of \"" TS_ARFILE_$1 "\" failed: %s",
 		    strerror(errno));
 		goto done;
 	}
@@ -620,3 +586,7 @@ tcArMemoryFdIgnored(void)
 		(void) close(fd);
 	tet_result(result);
 }
+')
+
+ARFN(`BSD')
+ARFN(`SVR4')
