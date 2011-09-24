@@ -49,7 +49,7 @@ _dwarf_add_macro(Dwarf_P_Debug dbg, int type, Dwarf_Unsigned lineno,
 	md->dmd_fileindex = fileindex;
 	md->dmd_macro = NULL;
 
-	if (str1 == NULL || str2 == NULL)
+	if (str1 == NULL)
 		return (DW_DLV_OK);
 	else if (str2 == NULL) {
 		if ((md->dmd_macro = strdup(str1)) == NULL) {
