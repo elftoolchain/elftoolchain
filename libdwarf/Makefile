@@ -105,6 +105,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_funcname.3				\
 	dwarf_add_line_entry.3				\
 	dwarf_add_pubname.3				\
+	dwarf_add_typename.3				\
 	dwarf_add_varname.3				\
 	dwarf_add_weakname.3				\
 	dwarf_attr.3					\
