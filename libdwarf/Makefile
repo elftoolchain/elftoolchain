@@ -193,6 +193,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_srclines.3				\
 	dwarf_tag.3					\
 	dwarf_transform_to_disk_form.3			\
+	dwarf_undef_macro.3				\
 	dwarf_whatattr.3
 
 MLINKS+= \
