@@ -118,6 +118,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_die_link.3				\
 	dwarf_diename.3					\
 	dwarf_dieoffset.3				\
+	dwarf_end_macro_file.3				\
 	dwarf_errmsg.3					\
 	dwarf_errno.3					\
 	dwarf_expand_frame_instructions.3		\
