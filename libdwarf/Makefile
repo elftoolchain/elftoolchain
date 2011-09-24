@@ -113,6 +113,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_attrval_signed.3				\
 	dwarf_child.3					\
 	dwarf_dealloc.3					\
+	dwarf_def_macro.3				\
 	dwarf_die_abbrev_code.3				\
 	dwarf_die_link.3				\
 	dwarf_diename.3					\
