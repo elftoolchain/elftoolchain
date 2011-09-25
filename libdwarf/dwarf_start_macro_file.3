@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 24, 2011
+.Dd September 25, 2011
 .Os
 .Dt DWARF_START_MACRO_FILE 3
 .Sh NAME
 .Nm dwarf_start_macro_file
-.Nd mark the start of source file inclusion
+.Nd mark the start of a source file inclusion
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -58,6 +58,8 @@ Argument
 .Ar lineno
 specifies the line number of the source line where the source
 file inclusion occurs.
+A value of zero is used to indicate the file for the compilation unit
+source itself.
 .Pp
 Argument
 .Ar fileindex
