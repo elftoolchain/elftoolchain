@@ -114,6 +114,7 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	 * DW_AT_MIPS_fde attribute, which points to the offset the
 	 * correspoding FDE, into this DIE. Do we need this?
 	 */
+	(void) die;
 
 	if (dbg == NULL || fde == NULL || fde->fde_dbg != dbg) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
