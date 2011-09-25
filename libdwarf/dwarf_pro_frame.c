@@ -115,7 +115,7 @@ dwarf_add_frame_fde_b(Dwarf_P_Debug dbg, Dwarf_P_Fde fde, Dwarf_P_Die die,
 	 * correspoding FDE, into this DIE. Do we need this?
 	 */
 
-	if (dbg == NULL || fde == NULL || die == NULL || fde->fde_dbg != dbg) {
+	if (dbg == NULL || fde == NULL || fde->fde_dbg != dbg) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
