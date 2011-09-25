@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 24, 2011
+.Dd September 25, 2011
 .Os
 .Dt DWARF_DEF_MACRO 3
 .Sh NAME
 .Nm dwarf_def_macro
-.Nd add a macro definition
+.Nd add a macro definition to a DWARF producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,7 +45,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_def_macro
-adds a macro definition to the producer instance.
+adds a macro definition to a DWARF producer instance.
 .Pp
 Argument
 .Ar dbg
@@ -58,11 +58,15 @@ Argument
 .Ar lineno
 specifies the line number of the source line where the macro is
 defined.
+A line number of zero is used for macros that are defined
+before any source file is read.
 .Pp
 Argument
 .Ar name
 should point to a NUL-terminated string containing the name
 of the macro.
+For function-like macros this parameter should also include
+parentheses and parameter names if any.
 .Pp
 Argument
 .Ar value
@@ -87,6 +91,18 @@ returns
 .Dv DW_DLV_ERROR
 and sets the argument
 .Ar err .
+.Sh EXAMPLE
+To record the fact that a macro named
+.Dv _STDIO_H_
+was defined at line 20 of the current macro file, use:
+.Bd -literal -offset indent
+Dwarf_P_Debug dbg;
+Dwarf_Error de;
+
+/* ... Assume 'dbg' refers to a DWARF producer instance... */
+if (dwarf_def_macro(dbg, 20, "_STDIO_H_", NULL, &de) != DW_DLV_OK)
+	errx(1, "dwarf_def_macro failed: %s", dwarf_errmsg(-1));
+.Ed
 .Sh ERRORS
 Function
 .Fn dwarf_def_macro
@@ -102,20 +118,6 @@ was NULL.
 An out of memory condition was encountered during the execution of the
 function.
 .El
-.Sh EXAMPLE
-To add a macro definition, use:
-.Bd -literal -offset indent
-Dwarf_P_Debug dbg;
-Dwarf_Error de;
-
-/* ... assume dbg refers to a DWARF producer instance ... */
-
-if (dwarf_def_macro(dbg, 20, "_STDIO_H_", NULL, &de) != DW_DLV_OK)
-	errx(1, "dwarf_def_macro failed: %s", dwarf_errmsg(-1));
-
-if (dwarf_undef_macro(dbg, 220, "_STDIO_H_", &de) != DW_DLV_OK)
-	errx(1, "dwarf_def_macro failed: %s", dwarf_errmsg(-1));
-.Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_end_macro_file 3 ,
