@@ -101,6 +101,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_directory_decl.3			\
 	dwarf_add_expr_addr.3				\
 	dwarf_add_expr_gen.3				\
+	dwarf_add_fde_inst.3				\
 	dwarf_add_file_decl.3				\
 	dwarf_add_funcname.3				\
 	dwarf_add_line_entry.3				\
