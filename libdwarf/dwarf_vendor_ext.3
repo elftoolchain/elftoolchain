@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 24, 2011
+.Dd September 25, 2011
 .Os
 .Dt DWARF_VENDOR_EXT 3
 .Sh NAME
 .Nm dwarf_vendor_ext
-.Nd add vendor-specific macro information
+.Nd add vendor-specific macro information to a DWARF producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -44,7 +44,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_vendor_ext
-adds a vendor-specific macro information entry to the producer
+adds a vendor-specific macro information entry to a DWARF producer
 instance.
 .Pp
 Argument
@@ -57,18 +57,23 @@ or
 Argument
 .Ar constant
 specifies a constant value for the macro information entry.
-The meaning of the constant is undefined by the DWARF specification.
 .Pp
 Argument
 .Ar string
 point to a NUL-terminated string containing the string value
 for the macro information entry.
-The meaning of the string is undefined by the DWARF specification.
 .Pp
 If argument
 .Ar err
 is not NULL, it will be used to store error information in case of an
 error.
+.Pp
+The meaning of the arguments
+.Ar constant
+and
+.Ar string
+are not defined by the DWARF specification, but are instead governed
+by application and vendor conventions.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_vendor_ext
