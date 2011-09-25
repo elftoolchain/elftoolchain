@@ -104,6 +104,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_fde_inst.3				\
 	dwarf_add_file_decl.3				\
 	dwarf_add_frame_cie.3				\
+	dwarf_add_frame_fde.3				\
 	dwarf_add_funcname.3				\
 	dwarf_add_line_entry.3				\
 	dwarf_add_pubname.3				\
@@ -210,6 +211,7 @@ MLINKS+= \
 	dwarf_add_AT_targ_address.3 dwarf_add_AT_targ_address_b.3 \
 	dwarf_add_arange.3	dwarf_add_arange_b.3	\
 	dwarf_add_expr_addr.3	dwarf_add_expr_addr_b.3	\
+	dwarf_add_frame_fde.3	dwarf_add_frame_fde_b.3	\
 	dwarf_attrval_signed.3	dwarf_attrval_flag.3	\
 	dwarf_attrval_signed.3	dwarf_attrval_string.3	\
 	dwarf_attrval_signed.3	dwarf_attrval_unsigned.3 \
