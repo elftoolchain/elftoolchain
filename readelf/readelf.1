@@ -22,7 +22,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd September 14, 2011
+.Dd September 26, 2011
 .Os
 .Dt READELF 1
 .Sh NAME
@@ -43,7 +43,10 @@
 .Op Fl t | Fl -section-details
 .Op Fl x Ar section-index | Fl -hex-dump Ns = Ns Ar section-index
 .Op Fl v | Fl -version
-.Op Fl w Ns Oo Ns liaprmfFso Ns Oc | Fl -debug-dump Ns Op Ns = Ns Ar dumpoptions
+.Oo
+.Fl w Ns Oo Ns Ar afilmoprsFLR Ns Oc |
+.Fl -debug-dump Ns Op Ns = Ns Ar long-option-name , Ns ...
+.Oc
 .Op Fl A | Fl -arch-specific
 .Op Fl D | Fl -use-dynamic
 .Op Fl H | Fl -help
@@ -111,6 +114,32 @@ fields in section headers.
 Prints a version identifier for
 .Nm
 and exits.
+.It Fl w Ns Oo afilmoprsFLR Oc | Xo
+.Fl -debug-dump Ns Op Ns = Ns Ar long-option-name , Ns ...
+.Xc
+Display DWARF information.
+The
+.Fl w
+option is used with one or more of the short options in the following
+table; the
+.Fl -debug-dump
+option is used with a comma-separated list of the equivalent long
+option names:
+.Bl -column ".Em Short Option" "aranges|ranges"
+.It Em Short Option Ta Em Long Option Ta Em Description
+.It a Ta abbrev Ta Show abbreviation information.
+.It f Ta frames Ta Show frame information, displaying frame instructions.
+.It i Ta info Ta Show debugging information entries.
+.It l Ta rawline Ta Show line information in raw form.
+.It m Ta macro Ta Show macro information.
+.It o Ta loc Ta Show location list information.
+.It p Ta pubnames Ta Show global names.
+.It r Ta aranges|ranges Ta Show address range information.
+.It s Ta str Ta Show the debug string table.
+.It F Ta Ta Show frame information, displaying register rules.
+.It L Ta decodedline Ta Show line information in decoded form.
+.It R Ta Ranges Ta Show range lists.
+.El
 .It Fl x Ar section-index | Fl -hex-dump Ns = Ns Ar section-index
 Display the contents of the section with index
 .Ar section-index
