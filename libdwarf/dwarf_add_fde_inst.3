@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 24, 2011
+.Dd September 26, 2011
 .Os
 .Dt DWARF_ADD_FDE_INST 3
 .Sh NAME
 .Nm dwarf_add_fde_inst
-.Nd add call frame instruction
+.Nd add a call frame instruction to a DWARF frame descriptor
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -45,7 +45,7 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_fde_inst
-adds a call frame instruction into the frame descriptor
+adds a call frame instruction to the DWARF frame descriptor
 referenced by argument
 .Ar fde .
 .Pp
@@ -56,7 +56,8 @@ should reference a frame descriptor allocated using
 .Pp
 Argument
 .Ar op
-specifies the operator of the frame instruction.
+specifies the operator for the frame instruction.
+The DWARF standard defines the set of legal values for this argument.
 .Pp
 Argument
 .Ar val1
@@ -105,3 +106,8 @@ function.
 .Xr dwarf_add_frame_cie 3 ,
 .Xr dwarf_fde_cfa_offset 3 ,
 .Xr dwarf_new_fde 3
+.Rs
+.%T "The DWARF Debugging Information Format"
+.%V "Version 4"
+.%O "http://www.dwarfstd.org/"
+.Re
