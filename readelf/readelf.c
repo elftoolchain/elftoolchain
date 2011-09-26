@@ -5411,6 +5411,8 @@ dump_dwarf_frame(struct readelf *re, int alt)
 	struct section *s;
 	int i;
 
+	(void) dwarf_set_frame_cfa_value(re->dbg, DW_FRAME_CFA_COL);
+
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && (!strcmp(s->name, ".debug_frame") ||
