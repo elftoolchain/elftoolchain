@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 25, 2011
+.Dd September 26, 2011
 .Os
 .Dt DWARF_ADD_FRAME_CIE 3
 .Sh NAME
 .Nm dwarf_add_frame_cie
-.Nd add call frame common information entry
+.Nd add a call frame common information entry to a DWARF producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -42,13 +42,14 @@
 .Fa "Dwarf_Small daf"
 .Fa "Dwarf_Small ra"
 .Fa "Dwarf_Ptr initinst"
-.Fa "Dwarf_Unsigned inst_len"
+.Fa "Dwarf_Unsigned initlen"
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
 Function
 .Fn dwarf_add_frame_cie
-adds a call frame common information entry to the producer instance.
+adds a DWARF call frame common information entry (CIE) to a producer
+instance.
 .Pp
 Argument
 .Ar dbg
@@ -59,8 +60,8 @@ or
 .Pp
 Argument
 .Ar augmenter
-should point to a NUL-terminated string containing the augmenter
-for the common information entry.
+should point to a NUL-terminated augmentation string for the common
+information entry.
 .Pp
 Argument
 .Ar caf
@@ -80,7 +81,7 @@ should point to a byte stream containing the initial instructions
 for the common information entry.
 .Pp
 Argument
-.Ar inst_len
+.Ar initlen
 should hold the length in bytes of the byte stream pointed to by
 argument
 .Ar initinst .
