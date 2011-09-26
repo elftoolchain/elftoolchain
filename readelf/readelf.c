@@ -6350,6 +6350,12 @@ parse_dwarf_op_short(struct readelf *re, const char *op)
 {
 	int i;
 
+	if (op == NULL) {
+		re->dop |= DW_A | DW_F | DW_I | DW_L | DW_O | DW_P | DW_R |
+		    DW_RR | DW_S;
+		return;
+	}
+
 	for (; *op != '\0'; op++) {
 		for (i = 0; dwarf_op[i].ln != NULL; i++) {
 			if (dwarf_op[i].sn == *op) {
@@ -6365,6 +6371,12 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 {
 	char *p, *token, *bp;
 	int i;
+
+	if (op == NULL) {
+		re->dop |= DW_A | DW_F | DW_I | DW_L | DW_O | DW_P | DW_R |
+		    DW_RR | DW_S;
+		return;
+	}
 
 	if ((p = strdup(op)) == NULL)
 		err(EX_SOFTWARE, "strdup failed");
@@ -6613,7 +6625,7 @@ main(int argc, char **argv)
 	memset(re, 0, sizeof(*re));
 	STAILQ_INIT(&re->v_dumpop);
 
-	while ((opt = getopt_long(argc, argv, "AacDdegHhIi:lNnp:rSstuVvWw:x:",
+	while ((opt = getopt_long(argc, argv, "AacDdegHhIi:lNnp:rSstuVvWw::x:",
 	    longopts, NULL)) != -1) {
 		switch(opt) {
 		case '?':
