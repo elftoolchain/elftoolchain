@@ -60,6 +60,11 @@ dwarf_get_ranges(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Ranges **ranges,
 		return (DW_DLV_ERROR);
 	}
 
+	if (!dbg->dbg_info_loaded) {
+		if (_dwarf_info_load(dbg, 1, error) != DW_DLE_NONE)
+			return (DW_DLV_ERROR);
+	}
+
 	return (_dwarf_get_ranges(dbg, STAILQ_FIRST(&dbg->dbg_cu), offset,
 	    ranges, ret_cnt, ret_byte_cnt, error));
 }
