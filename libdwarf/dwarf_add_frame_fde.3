@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 25, 2011
+.Dd September 26, 2011
 .Os
 .Dt DWARF_ADD_FRAME_FDE 3
 .Sh NAME
 .Nm dwarf_add_frame_fde
-.Nd add call frame descriptor
+.Nd add a call frame descriptor to a DWARF producer instance
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -63,7 +63,7 @@ Function
 .Fn dwarf_add_frame_fde_b
 adds the call frame descriptor referenced by argument
 .Ar fde
-into a producer instance.
+to a producer instance.
 .Pp
 Argument
 .Ar dbg
@@ -79,64 +79,73 @@ should reference a frame descriptor allocated using
 .Pp
 Argument
 .Ar die
-is ignored by this implementation of
+is ignored by this implementation of the
 .Lb libdwarf .
 .Pp
 Argument
 .Ar cie
 specifies the index of call frame common information entry for
 the frame descriptor.
-Valid indices are those returned by
+Valid indices are those returned by the function
 .Xr dwarf_add_frame_cie 3 .
-.Pp
-Argument
-.Ar virt_addr
-specifies the relocatable start address of the function
-associated with the frame descriptor.
-.Pp
-Argument
-.Ar code_len
-specifies the size in bytes of the machine instructions of the
-function associated with the frame descriptor.
 .Pp
 Argument
 .Ar symbol_index
 specifies the ELF symbol index of the first symbol to be used for
 relocation.
 .Pp
-Argument
-.Ar end_symbol_index
-specifies the ELF symbol index of the second symbol to be used for
-relocation.
+The meaning of the arguments
+.Ar virt_addr ,
+.Ar code_len
+and
+.Ar offset_from_end_sym
+depend on the value of argument
+.Ar end_symbol_index :
 .Bl -bullet
 .It
-If argument
+If the argument
 .Ar end_symbol_index
-is not 0, the
-.Dv DW_DLC_SYMBOLIC_RELOCATIONS
-flag should have been set on the DWARF producer instance.
-Argument
-.Ar code_len
-is ignored.
-The address value specified by argument
+is zero, the argument
 .Ar virt_addr
-will be treated as an offset value from the first symbol,
+specifies the relocatable address of the start of the function
+associated with the frame descriptor, the argument
+.Ar code_len
+specifies the size in bytes of the machine instructions for this
+function, the argument
+.Ar symbol_index
+specifies the ELF symbol to be used for relocating the address in
+argument
+.Ar virt_addr ,
 and the argument
 .Ar offset_from_end_symbol
-should hold an offset value from the second symbol.
-Application code can retrieve the relocation entries for the
-symbol pair by calling function
+is ignored.
+.It
+If the argument
+.Ar end_symbol_index
+is non-zero, it specifies the ELF symbol index of the second symbol to
+be used for relocation.
+In this case, the argument
+.Ar virt_addr
+specifies an offset from the relocatable symbol specified by argument
+.Ar symbol_index ,
+the argument
+.Ar offset_from_end_symbol
+should specify an offset from the symbol named by the argument
+.Ar end_symbol_index ,
+and the argument
+.Ar code_len
+will be ignored.
+The
+.Dv DW_DLC_SYMBOLIC_RELOCATIONS
+flag should also have been set on the DWARF producer instance.
+.Pp
+Application code can retrieve the relocation entries for the symbol
+pair by calling function
 .Xr dwarf_get_relocation_info 3 .
 The relocation entry for the first symbol will have type
 .Dv dwarf_drt_first_of_length_pair
 and the relocation entry for the second symbol will have type
 .Dv dwarf_drt_second_of_length_pair .
-.It
-If argument
-.Ar end_symbol_index
-is 0, argument
-.Ar offset_from_end_symbol
-will be ignored and only one symbol is used for relocation.
 .El
 .Pp
 If argument
@@ -160,7 +169,7 @@ and set the argument
 These functions can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Either arguments
+One of the arguments
 .Ar dbg
 or
 .Ar fde
@@ -168,7 +177,7 @@ was NULL.
 .It Bq Er DW_DLE_ARGUMENT
 The frame descriptor referenced by argument
 .Ar fde
-was not created for the producer instance referenced by argument
+did not belong to the producer instance referenced by argument
 .Ar dbg .
 .It Bq Er DW_DLE_ARGUMENT
 The common information entry index specified by argument
@@ -186,6 +195,7 @@ was not set on the producer instance.
 .Xr dwarf_add_fde_inst 3 ,
 .Xr dwarf_add_frame_cie 3 ,
 .Xr dwarf_fde_cfa_offset 3 ,
+.Xr dwarf_get_relocation_info 3 ,
 .Xr dwarf_new_fde 3 ,
 .Xr dwarf_producer_init 3 ,
 .Xr dwarf_producer_init_b 3
