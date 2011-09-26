@@ -5385,7 +5385,8 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				    (uintmax_t) cie_caf,
 				    (uintmax_t) cie_daf,
 				    (uintmax_t) cie_ra);
-				dump_dwarf_frame_regtable(fde, 0, 1, cie_ra);
+				dump_dwarf_frame_regtable(fde, low_pc, 1,
+				    cie_ra);
 				putchar('\n');
 			}
 		}
