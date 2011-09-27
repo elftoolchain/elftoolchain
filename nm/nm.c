@@ -165,12 +165,9 @@ struct nm_prog_options {
 
 #define	CHECK_SYM_PRINT_DATA(p)	(p->headp == NULL || p->sh_num == 0 ||	      \
 p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
-#define	IS_SYM_TYPE(t)		(t == '?' || isalpha(t) != 0)
-#define	IS_UNDEF_SYM_TYPE(t)	(t == 'U' || t == 'v' || t == 'w')
+#define	IS_SYM_TYPE(t)		((t) == '?' || isalpha((t)) != 0)
+#define	IS_UNDEF_SYM_TYPE(t)	((t) == 'U' || (t) == 'v' || (t) == 'w')
 #define	IS_COM_SYM(s)		(s->st_shndx == SHN_COMMON)
-#define	FASTLOWER(t)		(t + 32)
-#define	STDLOWER(t)		(tolower(t))
-#define	TOLOWER(t)		(STDLOWER(t))
 #define	SLIST_HINIT_AFTER(l)	{l->slh_first = NULL;}
 #define	STAILQ_HINIT_AFTER(l)	{l.stqh_first = NULL; \
 l.stqh_last = &(l).stqh_first;}
@@ -716,7 +713,7 @@ get_sym_type(const GElf_Sym *sym, const char *type_table)
 		return ('U');
 
 	return (is_local == true && type_table[sym->st_shndx] != 'N' ?
-	    TOLOWER(type_table[sym->st_shndx]) :
+	    tolower((unsigned char) type_table[sym->st_shndx]) :
 	    type_table[sym->st_shndx]);
 }
 
@@ -1686,25 +1683,25 @@ static int
 sym_elem_def(char type, const GElf_Sym *sym, const char *name)
 {
 
-	assert(IS_SYM_TYPE(type));
+	assert(IS_SYM_TYPE((unsigned char) type));
 
 	UNUSED(sym);
 	UNUSED(name);
 
-	return (!IS_UNDEF_SYM_TYPE(type));
+	return (!IS_UNDEF_SYM_TYPE((unsigned char) type));
 }
 
 static int
 sym_elem_global(char type, const GElf_Sym *sym, const char *name)
 {
 
-	assert(IS_SYM_TYPE(type));
+	assert(IS_SYM_TYPE((unsigned char) type));
 
 	UNUSED(sym);
 	UNUSED(name);
 
 	/* weak symbols resemble global. */
-	return (isupper(type) || type == 'w');
+	return (isupper((unsigned char) type) || type == 'w');
 }
 
 static int
@@ -1757,12 +1754,12 @@ static int
 sym_elem_undef(char type, const GElf_Sym *sym, const char *name)
 {
 
-	assert(IS_SYM_TYPE(type));
+	assert(IS_SYM_TYPE((unsigned char) type));
 
 	UNUSED(sym);
 	UNUSED(name);
 
-	return (IS_UNDEF_SYM_TYPE(type));
+	return (IS_UNDEF_SYM_TYPE((unsigned char) type));
 }
 
 static void
