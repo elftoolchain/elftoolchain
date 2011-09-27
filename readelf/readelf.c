@@ -4440,8 +4440,8 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
 	Dwarf_Off dieoff, cuoff, culen;
-	Dwarf_Unsigned ate, attr_count, v_udata;
-	Dwarf_Signed v_sdata;
+	Dwarf_Unsigned ate, v_udata;
+	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
 	Dwarf_Half tag, attr, form;
@@ -4485,7 +4485,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		goto cont_search;
 	}
 
-	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+	for (i = 0; i < attr_count; i++) {
 		if (dwarf_whatform(attr_list[i], &form, &de) != DW_DLV_OK) {
 			warnx("dwarf_whatform failed: %s", dwarf_errmsg(de));
 			continue;
@@ -4942,8 +4942,8 @@ dump_dwarf_ranges_foreach(struct readelf *re, Dwarf_Die die, Dwarf_Addr base)
 	Dwarf_Error de;
 	Dwarf_Addr base0;
 	Dwarf_Half attr;
-	Dwarf_Signed cnt;
-	Dwarf_Unsigned off, attr_count, bytecnt;
+	Dwarf_Signed attr_count, cnt;
+	Dwarf_Unsigned off, bytecnt;
 	int i, j, ret;
 
 	if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
@@ -4953,7 +4953,7 @@ dump_dwarf_ranges_foreach(struct readelf *re, Dwarf_Die die, Dwarf_Addr base)
 		goto cont_search;
 	}
 
-	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+	for (i = 0; i < attr_count; i++) {
 		if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
 			warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
 			continue;
@@ -5427,7 +5427,7 @@ dump_dwarf_str(struct readelf *re)
 {
 	struct section *s;
 	Elf_Data *d;
-	char *p;
+	unsigned char *p;
 	int elferr, end, i, j;
 
 	printf("\nContents of section .debug_str:\n");
@@ -5493,7 +5493,8 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 {
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
-	Dwarf_Unsigned attr_count, off;
+	Dwarf_Unsigned off;
+	Dwarf_Signed attr_count;
 	Dwarf_Half attr, form;
 	Dwarf_Error de;
 	struct loc_at *la, *nla;
@@ -5505,7 +5506,7 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 			warnx("dwarf_attrlist failed: %s", dwarf_errmsg(de));
 		goto cont_search;
 	}
-	for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
+	for (i = 0; i < attr_count; i++) {
 		if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {
 			warnx("dwarf_whatattr failed: %s", dwarf_errmsg(de));
 			continue;
@@ -5953,7 +5954,7 @@ str_dump(struct readelf *re)
 {
 	struct section *s;
 	Elf_Data *d;
-	char *start, *end, *buf_end;
+	unsigned char *start, *end, *buf_end;
 	unsigned int len;
 	int i, j, elferr, found;
 
@@ -5971,8 +5972,8 @@ str_dump(struct readelf *re)
 		}
 		if (d->d_size <= 0)
 			continue;
-		buf_end = (char *) d->d_buf + d->d_size;
-		start = d->d_buf;
+		buf_end = (unsigned char *) d->d_buf + d->d_size;
+		start = (unsigned char *) d->d_buf;
 		found = 0;
 		printf("\nString dump of section '%s':\n", s->name);
 		for (;;) {
@@ -5983,7 +5984,8 @@ str_dump(struct readelf *re)
 			end = start + 1;
 			while (end < buf_end && isprint(*end))
 				end++;
-			printf("  [%6lx]  ", (long) (start - (char *) d->d_buf));
+			printf("  [%6lx]  ",
+			    (long) (start - (unsigned char *) d->d_buf));
 			len = end - start;
 			for (j = 0; (unsigned int) j < len; j++)
 				putchar(start[j]);
