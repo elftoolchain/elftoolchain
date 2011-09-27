@@ -6153,11 +6153,16 @@ dump_elf(struct readelf *re)
 static void
 dump_dwarf(struct readelf *re)
 {
+	int error;
 	Dwarf_Error de;
 
-	if (dwarf_elf_init(re->elf, DW_DLC_READ, NULL, NULL, &re->dbg, &de))
-		errx(EX_SOFTWARE, "dwarf_elf_init failed: %s",
-		    dwarf_errmsg(de));
+	if (dwarf_elf_init(re->elf, DW_DLC_READ, NULL, NULL, &re->dbg, &de)) {
+		if ((error = dwarf_errno(de)) != DW_DLE_DEBUG_INFO_NULL)
+			errx(EX_SOFTWARE, "dwarf_elf_init failed: %s",
+			    dwarf_errmsg(de));
+		return;
+	}
+
 	if (re->dop & DW_A)
 		dump_dwarf_abbrev(re);
 	if (re->dop & DW_L)
