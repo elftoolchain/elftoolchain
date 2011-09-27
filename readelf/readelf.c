@@ -90,6 +90,9 @@ ELFTC_VCSID("$Id$");
 #define	DW_R	0x00000400
 #define	DW_S	0x00000800
 
+#define	DW_DEFAULT_OPTIONS (DW_A | DW_F | DW_I | DW_L | DW_O | DW_P | \
+	    DW_R | DW_RR | DW_S)
+
 /*
  * readelf(1) run control flags.
  */
@@ -6353,8 +6356,7 @@ parse_dwarf_op_short(struct readelf *re, const char *op)
 	int i;
 
 	if (op == NULL) {
-		re->dop |= DW_A | DW_F | DW_I | DW_L | DW_O | DW_P | DW_R |
-		    DW_RR | DW_S;
+		re->dop |= DW_DEFAULT_OPTIONS;
 		return;
 	}
 
@@ -6375,8 +6377,7 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 	int i;
 
 	if (op == NULL) {
-		re->dop |= DW_A | DW_F | DW_I | DW_L | DW_O | DW_P | DW_R |
-		    DW_RR | DW_S;
+		re->dop |= DW_DEFAULT_OPTIONS;
 		return;
 	}
 
