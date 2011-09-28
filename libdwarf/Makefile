@@ -191,6 +191,7 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_new_fde.3					\
 	dwarf_next_cu_header.3				\
 	dwarf_producer_init.3				\
+	dwarf_producer_set_isa.3			\
 	dwarf_reset_section_bytes.3			\
 	dwarf_seterrarg.3				\
 	dwarf_set_frame_cfa_value.3			\
