@@ -713,9 +713,6 @@ int		dwarf_linesrc(Dwarf_Line, char **, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_lne_end_sequence(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Error *);
 Dwarf_Unsigned	dwarf_lne_set_address(Dwarf_P_Debug, Dwarf_Addr, Dwarf_Unsigned,
 		    Dwarf_Error *);
-int		dwarf_locdesc(Dwarf_Die, uint64_t, Dwarf_Locdesc **, Dwarf_Signed *,
-		    Dwarf_Error *);
-int		dwarf_locdesc_free(Dwarf_Locdesc *, Dwarf_Error *);
 int		dwarf_loclist(Dwarf_Attribute, Dwarf_Locdesc **, Dwarf_Signed *,
 		    Dwarf_Error *);
 int		dwarf_loclist_from_expr(Dwarf_Debug, Dwarf_Ptr, Dwarf_Unsigned,
