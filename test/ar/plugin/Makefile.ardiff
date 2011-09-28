@@ -2,6 +2,8 @@
 
 TOP=	../../..
 
+.include "${TOP}/mk/elftoolchain.os.mk"
+
 PROG=	ardiff
 
 NOMAN=	noman
@@ -10,5 +12,10 @@ WARNS?=	6
 
 DPADD=	${LIBARCHIVE} ${LIBBZ2} ${LIBZ}
 LDADD=	-larchive -lbz2 -lz
+
+.if ${OS_HOST} == "FreeBSD"
+DPADD+=	${LIBLZMA}
+LDADD+=	-llzma
+.endif
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
