@@ -6,7 +6,7 @@ TOP=	../../..
 
 PROG=	ardiff
 
-NO_MAN=
+NOMAN=
 
 WARNS?=	6
 

@@ -4,7 +4,7 @@ TOP=	../../..
 
 PROG=	teraser
 
-NO_MAN=
+NOMAN=
 
 WARNS?=	6
 
