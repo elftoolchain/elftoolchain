@@ -97,24 +97,23 @@ and sets argument
 .Sh EXAMPLES
 To retrieve the attribute list for a DWARF debugging information
 entry use:
-.Bd -literal
-	Dwarf_Die dw_die;
-	Dwarf_Error dw_e;
-	Dwarf_Unsigned dw_count;
-	Dwarf_Attribute *dw_attributes;
-	int error, i;
+.Bd -literal -offset indent
+Dwarf_Die dw_die;
+Dwarf_Error dw_e;
+Dwarf_Unsigned dw_count;
+Dwarf_Attribute *dw_attributes;
+int error, i;
 
-	\&... variable dw_die contains a reference to the DIE of interest ...
+\&... variable dw_die contains a reference to the DIE of interest ...
 
-	/* Retrieve the attribute list from the DIE. */
-	if ((error = dwarf_attrlist(dw_die, &dw_attributes, &dw_count,
-		&dw_e)) != DW_DLV_OK)
-		errx(1, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
+/* Retrieve the attribute list from the DIE. */
+if ((error = dwarf_attrlist(dw_die, &dw_attributes, &dw_count,
+	&dw_e)) != DW_DLV_OK)
+	errx(1, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
 
-	/* Process the attribute list. */
-        for (i = 0; i < dw_count; ++i) {
-		/* Use the returned pointers in dw_attributes[i] here. */
-        }
+/* Process the attribute list. */
+for (i = 0; i < dw_count; ++i) {
+	/* Use the returned pointers in dw_attributes[i] here. */
 }
 .Ed
 .Sh ERRORS
