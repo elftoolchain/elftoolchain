@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 28, 2011
+.Dd September 29, 2011
 .Os
 .Dt DWARF_PRODUCER_SET_ISA 3
 .Sh NAME
@@ -38,7 +38,7 @@
 .Fo dwarf_producer_set_isa
 .Fa "Dwarf_P_Debug dbg"
 .Fa "enum Dwarf_ISA isa"
-.Fa "Dwarf_Error *error"
+.Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
 The function
@@ -60,6 +60,11 @@ Legal values for this argument are those defined by the
 .Vt "enum Dwarf_ISA"
 enumeration defined in the header file
 .In libdwarf.h .
+.Pp
+If the argument
+.Ar err
+is not NULL, it will be used to store error information in case of an
+error.
 .Sh COMPATIBILITY
 The
 .Fn dwarf_producer_set_isa
@@ -70,7 +75,7 @@ On success, the function
 returns
 .Dv DW_DLV_OK .
 In case of an error, this function returns
-.Dv DW_DLV_NOCOUNT
+.Dv DW_DLV_ERROR
 and sets the argument
 .Ar err .
 .Sh ERRORS
