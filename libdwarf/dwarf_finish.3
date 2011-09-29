@@ -1,4 +1,4 @@
-.\" Copyright (c) 2009 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2009,2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,11 +23,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 12, 2009
+.Dd September 28, 2011
 .Os
 .Dt DWARF_FINISH 3
 .Sh NAME
-.Nm dwarf_finish
+.Nm dwarf_finish ,
+.Nm dwarf_object_finish
 .Nd free resources associated with a debug descriptor
 .Sh LIBRARY
 .Lb libdwarf
@@ -35,12 +36,19 @@
 .In libdwarf.h
 .Ft int
 .Fn dwarf_finish "Dwarf_Debug dbg" "Dwarf_Error *err"
+.Ft int
+.Fn dwarf_object_finish "Dwarf_Debug dbg" "Dwarf_Error *err"
 .Sh DESCRIPTION
 The
 .Fn dwarf_finish
-function is used to release the resources associated with a debug
+and
+.Fn dwarf_object_finish
+functions are used to release the resources associated with a debug
 descriptor allocated by a prior call to
-.Xr dwarf_init 3 .
+.Xr dwarf_init 3
+and
+.Xr dwarf_object_init 3
+respectively.
 .Pp
 Argument
 .Ar dbg
@@ -53,7 +61,9 @@ will be used to record error information in case of an error.
 .Pp
 After a call to
 .Fn dwarf_finish
-argument
+or
+.Fn dwarf_object_finish ,
+the argument
 .Ar dbg
 will be invalid and should not be used further.
 .Pp
@@ -69,14 +79,12 @@ the instance using
 and closing it using
 .Xr elf_end 3 .
 .Sh RETURN VALUES
-Function
-.Fn dwarf_finish
-returns
+These functions return
 .Dv DW_DLV_OK
 if successful.
-In case of an error, the function returns
+In case of an error, the functions return
 .Dv DW_DLV_ERROR
-and records additional information in argument
+and record additional information in argument
 .Ar err .
 .Sh EXAMPLES
 To deallocate a
@@ -84,12 +92,25 @@ To deallocate a
 instance allocated using
 .Xr dwarf_elf_init 3
 use:
-.Bd -literal
-	Dwarf_Debug dbg;
-	Dwarf_Error de;
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Error de;
 
-	if (dwarf_finish(dbg, &de) != DW_DLV_OK)
-		errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+if (dwarf_finish(dbg, &de) != DW_DLV_OK)
+	errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+.Ed
+.Pp
+To deallocate a
+.Vt Dwarf_Debug
+instance allocated using
+.Xr dwarf_object_init 3
+use:
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Error de;
+
+if (dwarf_object_finish(dbg, &de) != DW_DLV_OK)
+	errx(1, "dwarf_object_finish: %s", dwarf_errmsg(de));
 .Ed
 .Pp
 To deallocate a
@@ -97,18 +118,18 @@ To deallocate a
 instance allocated using
 .Xr dwarf_init 3
 use:
-.Bd -literal
-	Dwarf_Debug dbg;
-	Dward_Error de;
-	Elf *e;
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dward_Error de;
+Elf *e;
 
-	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
-		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(&de));
+if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
+	errx(1, "dwarf_get_elf: %s", dwarf_errmsg(&de));
 
-	if (dwarf_finish(dbg, &de) != DW_DLV_OK)
-		errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+if (dwarf_finish(dbg, &de) != DW_DLV_OK)
+	errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
 
-	(void) elf_end(e);
+(void) elf_end(e);
 .Ed
 .Sh SEE ALSO
 .Xr elf_end 3 ,
