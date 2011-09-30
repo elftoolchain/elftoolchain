@@ -6,7 +6,7 @@
 NO_SHARED?=	yes
 
 # TeX and friends are packaged in the teTeX package.
-MKTEX?=yes
+MKTEX?=		yes
 
 .if defined(MKTEX) && ${MKTEX} == "yes"
 EPSTOPDF?=	/usr/local/bin/epstopdf
