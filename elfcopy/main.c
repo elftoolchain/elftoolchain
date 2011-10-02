@@ -1285,8 +1285,10 @@ Usage: %s [options] infile [outfile]\n\
                                the output.\n\
   --add-section NAME=FILE      Add the contents of FILE to the ELF object as\n\
                                a new section named NAME.\n\
+  --gap-fill=val               Fill the gaps between sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
+  --pad-to=address             Pad output object LMA address.\n\
   --rename-section OLDNAME=NEWNAME[,FLAGS]\n\
                                Rename and optionally change section flags.\n\
   --set-section-flags SECTION=FLAGS\n\

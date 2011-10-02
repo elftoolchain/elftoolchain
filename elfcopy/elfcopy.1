@@ -48,7 +48,9 @@
 .Op Fl w | Fl -wildcard
 .Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
+.Op Fl -gap-fill Ar val
 .Op Fl -only-keep-debug
+.Op Fl -pad-to Ar address
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
 .Op Fl -strip-unneeded
@@ -145,8 +147,15 @@ argument
 .Ar filename .
 The size of the section will be the number of bytes in file
 .Ar filename .
+.It Fl -gap-fill Ar val
+Fill the gaps between sections with the value specified by argument
+.Ar val .
 .It Fl -only-keep-debug
 Copy only debugging information to the output file.
+.It Fl -pad-to Ar address
+Pad the output object LMA address to
+.Ar address
+by inceasing the size of the section with the highest LMA address.
 .It Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 Rename the section named by argument
 .Ar oldname
