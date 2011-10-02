@@ -1285,9 +1285,9 @@ Usage: %s [options] infile [outfile]\n\
                                the output.\n\
   --add-section NAME=FILE      Add the contents of FILE to the ELF object as\n\
                                a new section named NAME.\n\
-  --adjust-start val | --change-start val\n\
+  --adjust-start=val | --change-start=val\n\
                                Adjust entry point address of the ELF object.\n\
-  --change-addresses val | --adjust-vma val\n\
+  --change-addresses=val | --adjust-vma=val\n\
                                Increase VMA and LMA addresses of all the\n\
                                sections.\n\
   --change-section-address section{=,+,-}val\n\
@@ -1316,7 +1316,9 @@ Usage: %s [options] infile [outfile]\n\
                                Supported flags are: 'alloc', 'code',\n\
                                'contents', 'data', 'debug', 'load',\n\
                                'noload', 'readonly', 'rom', and 'shared'.\n\
-  --set-start address          Set entry point address of the ELF object.\n\
+  --set-start=address          Set entry point address of the ELF object.\n\
+  --srec-len=val               Set the maximum length of a S-Record line.\n\
+  --srec-forceS3               Only generate S3 S-Records.\n\
   --strip-unneeded             Do not copy relocation information.\n\
 ";
 

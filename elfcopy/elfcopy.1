@@ -61,6 +61,8 @@
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
 .Op Fl -set-start Ar address
+.Op Fl -srec-len Ar val
+.Op Fl -srec-forceS3
 .Op Fl -strip-unneeded
 .Ar infile
 .Op Ar outfile
@@ -237,8 +239,17 @@ The section contains ROM'able contents.
 This flag is accepted but is ignored.
 .El
 .It Fl -set-start Ar address
-Set the entry point address of output ELF object to
+Set the entry point address of the output ELF object to
 .Ar address .
+.It Fl -srec-len Ar val
+Set the maximum length of a S-Record line to
+.Ar val .
+This option is only meaningful when the output target is set to
+.Nm srec .
+.It Fl -srec-forceS3
+Only generate S-Record of type S3.
+This option is only meaningful when the output target is set to
+.Nm srec .
 .It Fl -strip-unneeded
 Do not copy symbols that are not needed for relocation processing.
 .El
