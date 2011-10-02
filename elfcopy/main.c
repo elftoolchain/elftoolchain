@@ -1285,6 +1285,8 @@ Usage: %s [options] infile [outfile]\n\
                                the output.\n\
   --add-section NAME=FILE      Add the contents of FILE to the ELF object as\n\
                                a new section named NAME.\n\
+  --adjust-start val | --change-start val\n\
+                               Adjust entry point address of the ELF object.\n\
   --gap-fill=val               Fill the gaps between sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
@@ -1296,6 +1298,7 @@ Usage: %s [options] infile [outfile]\n\
                                Supported flags are: 'alloc', 'code',\n\
                                'contents', 'data', 'debug', 'load',\n\
                                'noload', 'readonly', 'rom', and 'shared'.\n\
+  --set-start address          Set entry point address of the ELF object.\n\
   --strip-unneeded             Do not copy relocation information.\n\
 ";
 

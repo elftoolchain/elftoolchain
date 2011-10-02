@@ -48,11 +48,13 @@
 .Op Fl w | Fl -wildcard
 .Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
+.Op Fl -adjust-start Ar val | Fl -change-start Ar val
 .Op Fl -gap-fill Ar val
 .Op Fl -only-keep-debug
 .Op Fl -pad-to Ar address
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
+.Op Fl -set-start Ar address
 .Op Fl -strip-unneeded
 .Ar infile
 .Op Ar outfile
@@ -147,6 +149,9 @@ argument
 .Ar filename .
 The size of the section will be the number of bytes in file
 .Ar filename .
+.It Fl -adjust-start Ar val | Fl -change-start Ar val
+Incease the entry point address of the output ELF object by value
+.Ar val .
 .It Fl -gap-fill Ar val
 Fill the gaps between sections with the value specified by argument
 .Ar val .
@@ -198,6 +203,9 @@ The section contains ROM'able contents.
 .It share
 This flag is accepted but is ignored.
 .El
+.It Fl -set-start Ar address
+Set the entry point address of output ELF object to
+.Ar address .
 .It Fl -strip-unneeded
 Do not copy symbols that are not needed for relocation processing.
 .El
