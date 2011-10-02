@@ -1300,7 +1300,12 @@ Usage: %s [options] infile [outfile]\n\
   --change-section-vma section{=,+,-}val\n\
                                Set or change the VMA address of the named\n\
                                section.\n\
+  --change-warnings | --adjust-warning\n\
+                               Issue warnings for non-existent sections.\n\
   --gap-fill=val               Fill the gaps between sections.\n\
+  --no-change-warnings | --no-adjust-warning\n\
+                               Do not issue warnings for non-existent\n\
+                               sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
   --pad-to=address             Pad output object LMA address.\n\

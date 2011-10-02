@@ -53,7 +53,9 @@
 .Op Fl -change-section-address Ar section{=,+,-}val | Fl -adjust-section-vma Ar section{=,+,-}val
 .Op Fl -change-section-lma Ar section{=,+,-}val
 .Op Fl -change-section-vma Ar section{=,+,-}val
+.Op Fl -change-warnings | Fl -adjust-warnings
 .Op Fl -gap-fill Ar val
+.Op Fl -no-change-warnings | Fl -no-adjust-warnings
 .Op Fl -only-keep-debug
 .Op Fl -pad-to Ar address
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
@@ -168,9 +170,24 @@ Set or change the LMA address of the section named by
 .It Fl -change-section-vma Ar section{=,+,-}val
 Set or change the VMA address of the section named by
 .Ar section .
+.It Fl -change-warnings | Fl -adjust-warnings
+Issue a warning if the section specified by options
+.Fl -change-section-address ,
+.Fl -change-section-lma
+or
+.Fl -change-section-vma
+doesn't exist in the input object.
+This is the default.
 .It Fl -gap-fill Ar val
 Fill the gaps between sections with the value specified by argument
 .Ar val .
+.It Fl -no-change-warnings | Fl -no-adjust-warnings
+Do not issue a warning if the section specified by options
+.Fl -change-section-address ,
+.Fl -change-section-lma
+or
+.Fl -change-section-vma
+doesn't exist in the input object.
 .It Fl -only-keep-debug
 Copy only debugging information to the output file.
 .It Fl -pad-to Ar address
