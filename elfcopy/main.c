@@ -1267,6 +1267,7 @@ Usage: %s [options] infile [outfile]\n\
   -j SECTION | --only-section=SECTION\n\
                                Copy only the named section to the output.\n\
   -p | --preserve-dates        Preserve access and modification times.\n\
+  -w | --wildcard              Use shell-style patterns to name symbols.\n\
   -x | --discard-all           Do not copy non-globals to the output.\n\
   -I FORMAT | --input-target=FORMAT\n\
                                (Accepted but ignored).\n\

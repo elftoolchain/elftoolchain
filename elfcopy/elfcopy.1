@@ -45,6 +45,7 @@
 .Op Fl h | Fl -help
 .Op Fl j Ar sectionname | Fl -only-section= Ns Ar sectionname
 .Op Fl p | Fl -preserve-dates
+.Op Fl w | Fl -wildcard
 .Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
 .Op Fl -only-keep-debug
@@ -116,6 +117,24 @@ to the output.
 .It Fl p | Fl -preserve-dates
 Set the access and modification times of the output file to the
 same as those of the input.
+.It Fl w | Fl -wildcard
+Use shell-style patterns to name symbols.
+The following meta-characters are recognized in patterns:
+.Bl -tag -width "...." -compact
+.It Li !
+If this is the first character of the pattern, invert the sense of the
+pattern match.
+.It Li *
+Matches any string of characters in a symbol name.
+.It Li ?
+Matches zero or one character in a symbol name.
+.It Li [
+Mark the start of a character class.
+.It Li \e
+Remove the special meaning of the next character in the pattern.
+.It Li ]
+Mark the end of a character class.
+.El
 .It Fl x | Fl -discard-all
 Do not copy non-global symbols to the output.
 .It Fl -add-section Ar sectionname Ns = Ns Ar filename
