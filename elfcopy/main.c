@@ -1309,6 +1309,13 @@ Usage: %s [options] infile [outfile]\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
   --pad-to=address             Pad output object LMA address.\n\
+  --prefix-alloc-sections=STRING\n\
+                               Prefix the section names of all the allocated\n\
+                               sections with STRING.\n\
+  --prefix-sections=STRING     Prefix the section names of all the sections\n\
+                               with STRING.\n\
+  --prefix-symbols=STRING      Prefix the symbol names of all the symbols\n\
+                               with STRING.\n\
   --rename-section OLDNAME=NEWNAME[,FLAGS]\n\
                                Rename and optionally change section flags.\n\
   --set-section-flags SECTION=FLAGS\n\

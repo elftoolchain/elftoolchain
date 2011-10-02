@@ -58,6 +58,9 @@
 .Op Fl -no-change-warnings | Fl -no-adjust-warnings
 .Op Fl -only-keep-debug
 .Op Fl -pad-to Ar address
+.Op Fl -prefix-alloc-sections Ar string
+.Op Fl -prefix-sections Ar string
+.Op Fl -prefix-symbols Ar string
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
 .Op Fl -set-start Ar address
@@ -196,6 +199,15 @@ Copy only debugging information to the output file.
 Pad the output object LMA address to
 .Ar address
 by inceasing the size of the section with the highest LMA address.
+.It Fl -prefix-alloc-sections Ar string
+Prefix the section names of all the allocated sections with
+.Ar string .
+.It Fl -prefix-sections Ar string
+Prefix the section names of all the sections with
+.Ar string .
+.It Fl -prefix-symbols Ar string
+Prefix the symbol names of all the symbols with
+.Ar string .
 .It Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 Rename the section named by argument
 .Ar oldname
