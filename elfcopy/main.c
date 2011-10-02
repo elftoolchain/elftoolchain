@@ -1287,6 +1287,19 @@ Usage: %s [options] infile [outfile]\n\
                                a new section named NAME.\n\
   --adjust-start val | --change-start val\n\
                                Adjust entry point address of the ELF object.\n\
+  --change-addresses val | --adjust-vma val\n\
+                               Increase VMA and LMA addresses of all the\n\
+                               sections.\n\
+  --change-section-address section{=,+,-}val\n\
+  --adjust-section-vma section{=,+,-}val\n\
+                               Set or change VMA and LMA addresses of the\n\
+                               named section.\n\
+  --change-section-lma section{=,+,-}val\n\
+                               Set or change the LMA address of the named\n\
+                               section.\n\
+  --change-section-vma section{=,+,-}val\n\
+                               Set or change the VMA address of the named\n\
+                               section.\n\
   --gap-fill=val               Fill the gaps between sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\

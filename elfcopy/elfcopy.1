@@ -49,6 +49,10 @@
 .Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
 .Op Fl -adjust-start Ar val | Fl -change-start Ar val
+.Op Fl -change-addresses Ar val | Fl -adjust-vma Ar val
+.Op Fl -change-section-address Ar section{=,+,-}val | Fl -adjust-section-vma Ar section{=,+,-}val
+.Op Fl -change-section-lma Ar section{=,+,-}val
+.Op Fl -change-section-vma Ar section{=,+,-}val
 .Op Fl -gap-fill Ar val
 .Op Fl -only-keep-debug
 .Op Fl -pad-to Ar address
@@ -152,6 +156,18 @@ The size of the section will be the number of bytes in file
 .It Fl -adjust-start Ar val | Fl -change-start Ar val
 Incease the entry point address of the output ELF object by value
 .Ar val .
+.It Fl -change-addresses Ar val | Fl -adjust-vma Ar val
+Increase both the VMA and LMA addresses of all sections by
+.Ar val .
+.It Fl -change-section-address Ar section{=,+,-}val | Fl -adjust-section-vma Ar section{=,+,-}val
+Set or change both the VMA and LMA addresses of the section named by
+.Ar section .
+.It Fl -change-section-lma Ar section{=,+,-}val
+Set or change the LMA address of the section named by
+.Ar section .
+.It Fl -change-section-vma Ar section{=,+,-}val
+Set or change the VMA address of the section named by
+.Ar section .
 .It Fl -gap-fill Ar val
 Fill the gaps between sections with the value specified by argument
 .Ar val .
