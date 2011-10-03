@@ -22,13 +22,13 @@ clean:
 	cd ${TET_ROOT}/src && ${MAKE} clean
 	rm -f ${TET_BUILD_MARKER}
 
-depend:	.SILENT
-	true
+depend test:	.SILENT
+	@true
 .else
 clean:
 	@true
 
-all depend:	.SILENT
+all depend test:	.SILENT
 	echo "ERROR: The distribution of TET v${TET_VERSION} is missing."
 	echo
 	echo "Please download the distribution from:"
