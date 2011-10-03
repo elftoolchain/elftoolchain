@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 23, 2011
+.Dd October 03, 2011
 .Os
 .Dt ELFCOPY 1
 .Sh NAME
@@ -48,24 +48,33 @@
 .Op Fl w | Fl -wildcard
 .Op Fl x | Fl -discard-all
 .Op Fl -add-section Ar sectionname Ns = Ns Ar filename
-.Op Fl -adjust-start Ar val | Fl -change-start Ar val
-.Op Fl -change-addresses Ar val | Fl -adjust-vma Ar val
-.Op Fl -change-section-address Ar section{=,+,-}val | Fl -adjust-section-vma Ar section{=,+,-}val
-.Op Fl -change-section-lma Ar section{=,+,-}val
-.Op Fl -change-section-vma Ar section{=,+,-}val
-.Op Fl -change-warnings | Fl -adjust-warnings
-.Op Fl -gap-fill Ar val
-.Op Fl -no-change-warnings | Fl -no-adjust-warnings
+.Oo
+.Fl -adjust-section-vma Ar section Ns {+|-|=} Ns Ar val |
+.Fl -change-section-address Ar section Ns {+|-|=} Ns Ar val
+.Oc
+.Oo
+.Fl -adjust-start Ns = Ns Ar increment |
+.Fl -change-start Ns = Ns Ar increment
+.Oc
+.Oo
+.Fl -adjust-vma Ns = Ns Ar increment |
+.Fl -change-addresses Ns = Ns Ar increment
+.Oc
+.Op Fl -adjust-warnings | Fl -change-warnings
+.Op Fl -change-section-lma Ar section Ns {+|-|=} Ns Ar val
+.Op Fl -change-section-vma Ar section Ns {+|-|=} Ns Ar val
+.Op Fl -gap-fill Ns = Ns Ar val
+.Op Fl -no-adjust-warnings | Fl -no-change-warnings
 .Op Fl -only-keep-debug
-.Op Fl -pad-to Ar address
-.Op Fl -prefix-alloc-sections Ar string
-.Op Fl -prefix-sections Ar string
-.Op Fl -prefix-symbols Ar string
+.Op Fl -pad-to Ns = Ns Ar address
+.Op Fl -prefix-alloc-sections Ns = Ns Ar string
+.Op Fl -prefix-sections Ns = Ns Ar string
+.Op Fl -prefix-symbols Ns = Ns Ar string
 .Op Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
 .Op Fl -set-section-flags Ar sectionname Ns = Ns Ar flags
-.Op Fl -set-start Ar address
-.Op Fl -srec-len Ar val
+.Op Fl -set-start Ns = Ns Ar address
 .Op Fl -srec-forceS3
+.Op Fl -srec-len Ns = Ns Ar val
 .Op Fl -strip-unneeded
 .Ar infile
 .Op Ar outfile
@@ -160,52 +169,82 @@ argument
 .Ar filename .
 The size of the section will be the number of bytes in file
 .Ar filename .
-.It Fl -adjust-start Ar val | Fl -change-start Ar val
-Incease the entry point address of the output ELF object by value
-.Ar val .
-.It Fl -change-addresses Ar val | Fl -adjust-vma Ar val
-Increase both the VMA and LMA addresses of all sections by
-.Ar val .
-.It Fl -change-section-address Ar section{=,+,-}val | Fl -adjust-section-vma Ar section{=,+,-}val
-Set or change both the VMA and LMA addresses of the section named by
+.It Xo
+.Fl -adjust-section-vma Ar section Ns {+|-|=} Ns Ar val |
+.Fl -change-section-address Ar section Ns {+|-|=} Ns Ar val
+.Xc
+Depending on the operator specified, increase, decrease or set both
+the virtual memory address and the load memory address of the section
+named by the argument
 .Ar section .
-.It Fl -change-section-lma Ar section{=,+,-}val
-Set or change the LMA address of the section named by
-.Ar section .
-.It Fl -change-section-vma Ar section{=,+,-}val
-Set or change the VMA address of the section named by
-.Ar section .
-.It Fl -change-warnings | Fl -adjust-warnings
-Issue a warning if the section specified by options
+The argument
+.Ar val
+specifies the desired increment, decrement or new value for the
+address.
+.It Xo
+.Fl -adjust-start Ns = Ns Ar increment |
+.Fl -change-start Ns = Ns Ar increment
+.Xc
+Increase the entry point address of the output ELF object by the value
+specified in the argument
+.Ar increment .
+.It Xo
+.Fl -adjust-vma Ns = Ns Ar increment |
+.Fl -change-addresses Ns = Ns Ar increment
+.Xc
+Increase the virtual memory address and the load memory address of all
+sections by the value specified by the argument
+.Ar increment .
+.It Fl -adjust-warnings | Fl -change-warnings
+Issue a warning if the section specified by the options
 .Fl -change-section-address ,
 .Fl -change-section-lma
 or
 .Fl -change-section-vma
-doesn't exist in the input object.
+does not exist in the input object.
 This is the default.
-.It Fl -gap-fill Ar val
-Fill the gaps between sections with the value specified by argument
+.It Fl -change-section-lma Ar section Ns {+|-|=} Ns Ar val
+Change or set the load memory address of the section named by the
+argument
+.Ar section .
+Depending on the operator specified, the value in argument
+.Ar val
+will be used as an increment, a decrement or as the new value
+of the load memory address.
+.It Fl -change-section-vma Ar section Ns {+|-|=} Ns Ar val
+Change or set the virtual memory address of the section named by the
+argument
+.Ar section .
+Depending on the operator specified, the value in argument
+.Ar val
+will be used as an increment, a decrement or as the new value
+of the virtual memory address.
+.It Fl -gap-fill Ns = Ns Ar val
+Fill the gaps between sections with the byte value specified by
+the argument
 .Ar val .
-.It Fl -no-change-warnings | Fl -no-adjust-warnings
-Do not issue a warning if the section specified by options
+.It Fl -no-adjust-warnings | Fl -no-change-warnings
+Do not issue a warning if the section specified by the options
 .Fl -change-section-address ,
 .Fl -change-section-lma
 or
 .Fl -change-section-vma
-doesn't exist in the input object.
+is missing in the input object.
 .It Fl -only-keep-debug
 Copy only debugging information to the output file.
-.It Fl -pad-to Ar address
-Pad the output object LMA address to
+.It Fl -pad-to Ns = Ns Ar address
+Pad the load memory address of the output object to the value
+specified by the argument
 .Ar address
-by inceasing the size of the section with the highest LMA address.
-.It Fl -prefix-alloc-sections Ar string
+by increasing the size of the section with the highest load memory
+address.
+.It Fl -prefix-alloc-sections Ns = Ns Ar string
 Prefix the section names of all the allocated sections with
 .Ar string .
-.It Fl -prefix-sections Ar string
+.It Fl -prefix-sections Ns = Ns Ar string
 Prefix the section names of all the sections with
 .Ar string .
-.It Fl -prefix-symbols Ar string
+.It Fl -prefix-symbols Ns = Ns Ar string
 Prefix the symbol names of all the symbols with
 .Ar string .
 .It Fl -rename-section Ar oldname Ns = Ns Ar newname Ns Op Ar ,flags
@@ -250,18 +289,20 @@ The section contains ROM'able contents.
 .It share
 This flag is accepted but is ignored.
 .El
-.It Fl -set-start Ar address
-Set the entry point address of the output ELF object to
+.It Fl -set-start Ns = Ns Ar address
+Set the start address of the output ELF object to the value specified
+by the argument
 .Ar address .
-.It Fl -srec-len Ar val
-Set the maximum length of a S-Record line to
+.It Fl -srec-forceS3
+Only generate S-records of type
+.Dq S3 .
+This option is only meaningful when the output target is set to
+.Dq srec .
+.It Fl -srec-len Ns = Ns Ar val
+Set the maximum length of an S-record line to
 .Ar val .
 This option is only meaningful when the output target is set to
-.Nm srec .
-.It Fl -srec-forceS3
-Only generate S-Record of type S3.
-This option is only meaningful when the output target is set to
-.Nm srec .
+.Dq srec .
 .It Fl -strip-unneeded
 Do not copy symbols that are not needed for relocation processing.
 .El
