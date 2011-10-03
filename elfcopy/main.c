@@ -1285,30 +1285,32 @@ Usage: %s [options] infile [outfile]\n\
                                the output.\n\
   --add-section NAME=FILE      Add the contents of FILE to the ELF object as\n\
                                a new section named NAME.\n\
-  --adjust-start=val | --change-start=val\n\
-                               Adjust entry point address of the ELF object.\n\
-  --change-addresses=val | --adjust-vma=val\n\
-                               Increase VMA and LMA addresses of all the\n\
-                               sections.\n\
-  --change-section-address section{=,+,-}val\n\
-  --adjust-section-vma section{=,+,-}val\n\
-                               Set or change VMA and LMA addresses of the\n\
-                               named section.\n\
-  --change-section-lma section{=,+,-}val\n\
-                               Set or change the LMA address of the named\n\
-                               section.\n\
-  --change-section-vma section{=,+,-}val\n\
-                               Set or change the VMA address of the named\n\
-                               section.\n\
-  --change-warnings | --adjust-warning\n\
+  --adjust-section-vma SECTION{=,+,-}VAL | \\\n\
+    --change-section-address SECTION{=,+,-}VAL\n\
+                               Set or adjust the VMA and the LMA of the\n\
+                               named section by VAL.\n\
+  --adjust-start=INCR | --change-start=INCR\n\
+                               Add INCR to the start address for the ELF\n\
+                               object.\n\
+  --adjust-vma=INCR | --change-addresses=INCR\n\
+                               Increase the VMA and LMA of all sections by\n\
+                               INCR.\n\
+  --adjust-warning | --change-warnings\n\
                                Issue warnings for non-existent sections.\n\
-  --gap-fill=val               Fill the gaps between sections.\n\
-  --no-change-warnings | --no-adjust-warning\n\
+  --change-section-lma SECTION{=,+,-}VAL\n\
+                               Set or adjust the LMA address of the named\n\
+                               section by VAL.\n\
+  --change-section-vma SECTION{=,+,-}VAL\n\
+                               Set or adjust the VMA address of the named\n\
+                               section by VAL.\n\
+  --gap-fill=VAL               Fill the gaps between sections with bytes\n\
+                               of value VAL.\n\
+  --no-adjust-warning| --no-change-warnings\n\
                                Do not issue warnings for non-existent\n\
                                sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
-  --pad-to=address             Pad output object LMA address.\n\
+  --pad-to=ADDRESS             Pad the output object upto the given address.\n\
   --prefix-alloc-sections=STRING\n\
                                Prefix the section names of all the allocated\n\
                                sections with STRING.\n\
@@ -1323,9 +1325,9 @@ Usage: %s [options] infile [outfile]\n\
                                Supported flags are: 'alloc', 'code',\n\
                                'contents', 'data', 'debug', 'load',\n\
                                'noload', 'readonly', 'rom', and 'shared'.\n\
-  --set-start=address          Set entry point address of the ELF object.\n\
-  --srec-len=val               Set the maximum length of a S-Record line.\n\
+  --set-start=ADDRESS          Set the start address of the ELF object.\n\
   --srec-forceS3               Only generate S3 S-Records.\n\
+  --srec-len=LEN               Set the maximum length of a S-Record line.\n\
   --strip-unneeded             Do not copy relocation information.\n\
 ";
 
