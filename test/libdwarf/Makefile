@@ -14,17 +14,15 @@ TET_OPTIONS+=	-b
 TET_OPTIONS+=	-c
 .endif
 
-.if make(execute)
+.if make(execute) || make(test)
 TET_OPTIONS+=	-e
 .endif
 
 .MAIN: all
 
-_cmd:	.USE
+execute tccbuild tccclean test:	.PHONY
 	TET_ROOT=${TET_ROOT} TET_SUITE_ROOT=${.CURDIR} \
 	${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
-
-tccbuild tccclean execute:	_cmd
 
 SUBDIR=		ts
 
