@@ -2,24 +2,11 @@
 
 TOP=		../..
 AR=		${TOP}/ar/ar
-RANLIB=		${TOP}/ar/ranlib
 
-.MAIN:	all ${RANLIB}
+.MAIN:	all
 
-# check if ar(1) executable is available.
-_check_ar:
-	test -f ${AR}
-
-execute test: _check_ar
+execute test: ${AR}
 	/bin/sh run.sh
-
-clean: ranlibclean
-
-${RANLIB}: ${AR}
-	ln -f ${AR} ${RANLIB}
-
-ranlibclean:
-	rm -f ${RANLIB}
 
 SUBDIR=		plugin
 
