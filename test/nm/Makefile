@@ -24,7 +24,7 @@ TET_OPTIONS+=	-e
 
 tccbuild tccclean test execute:	.PHONY
 	TET_EXECUTE=${TET_EXECUTE} TET_SUITE_ROOT=${.CURDIR} \
-		${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
+	TET_ROOT=${TET_ROOT} ${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
 
 SUBDIR=		ts
 
