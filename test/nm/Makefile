@@ -16,7 +16,7 @@ TET_OPTIONS+=	-b
 TET_OPTIONS+=	-c
 .endif
 
-.if make(execute)
+.if make(execute) || make(test)
 TET_OPTIONS+=	-e
 .endif
 
