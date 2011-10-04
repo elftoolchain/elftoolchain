@@ -22,4 +22,15 @@ NO_SHARED?=	yes
 LINKS=	${BINDIR}/elfcopy ${BINDIR}/strip 	\
 	${BINDIR}/elfcopy ${BINDIR}/mcs
 
+EXTRA_TARGETS=	strip mcs
+
+CLEANFILES+=	${EXTRA_TARGETS}
+
+# Create in-place symbolic links to "elfcopy" at build time.
+
+all:	${EXTRA_TARGETS}
+
+${EXTRA_TARGETS}:	${PROG}
+	ln -s ${PROG} ${.TARGET}
+
 .include "${TOP}/mk/elftoolchain.prog.mk"
