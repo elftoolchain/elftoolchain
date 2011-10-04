@@ -10,7 +10,7 @@ RANLIB=		${TOP}/ar/ranlib
 _check_ar:
 	test -f ${AR}
 
-execute: _check_ar
+execute test: _check_ar
 	/bin/sh run.sh
 
 clean: ranlibclean
