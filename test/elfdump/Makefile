@@ -11,4 +11,5 @@ TET_EXECUTE=	${.OBJDIR}
 all clean depend:
 
 execute test:
-	TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc -e .
+	TET_EXECUTE=${TET_EXECUTE} TET_SUITE_ROOT=${.CURDIR} \
+		${TET_ROOT}/bin/tcc -e .
