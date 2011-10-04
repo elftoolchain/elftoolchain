@@ -23,10 +23,10 @@ clean:
 	rm -f ${TET_BUILD_MARKER}
 
 depend test:	.SILENT
-	@true
+	true
 .else
-clean:
-	@true
+clean:	.SILENT
+	true
 
 all depend test:	.SILENT
 	echo "ERROR: The distribution of TET v${TET_VERSION} is missing."
@@ -35,5 +35,5 @@ all depend test:	.SILENT
 	echo "	${TET_DOWNLOAD_URL}"
 	echo "and unpack it into directory \"${TET_ROOT}\"."
 	echo
-	@false
+	false
 .endif
