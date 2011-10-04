@@ -10,7 +10,7 @@ MCS=		${TOP}/elfcopy/mcs
 _check_elfcopy:
 	test -f ${ELFCOPY}
 
-execute: _check_elfcopy
+execute test: _check_elfcopy
 	/bin/sh run.sh
 
 clean: stripclean mcsclean
