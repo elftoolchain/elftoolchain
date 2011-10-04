@@ -1,6 +1,8 @@
 # $Id$
 
-TET_ROOT?=	/usr/tet
+TOP = ../..
+
+.include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 .if !defined(TET_EXECUTE)
 TET_EXECUTE=	${.OBJDIR}
@@ -20,11 +22,9 @@ TET_OPTIONS+=	-e
 
 .MAIN: all
 
-_cmd:	.USE
+tccbuild tccclean test execute:	.PHONY
 	TET_EXECUTE=${TET_EXECUTE} TET_SUITE_ROOT=${.CURDIR} \
 		${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
-
-tccbuild tccclean execute:	_cmd
 
 SUBDIR=		ts
 
