@@ -30,3 +30,11 @@ SUBDIR += test
 SUBDIR += documentation
 
 .include <bsd.subdir.mk>
+
+#
+# Special targets.
+#
+
+# Run the test suites.
+test:	all .PHONY
+	(cd ./test; ${MAKE} ${.TARGET})

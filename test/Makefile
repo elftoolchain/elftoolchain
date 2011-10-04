@@ -3,6 +3,8 @@
 # TET-based test suites used by the Elftoolchain project.
 #
 
+TOP=		..
+
 # Build TET first.
 SUBDIR+=	tet
 
@@ -16,4 +18,4 @@ SUBDIR+=	elfcopy
 SUBDIR+=	elfdump
 SUBDIR+=	nm
 
-.include <bsd.subdir.mk>
+.include "$(TOP)/mk/elftoolchain.subdir.mk"
