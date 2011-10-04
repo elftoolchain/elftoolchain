@@ -1,6 +1,8 @@
 # $Id$
 
-TET_ROOT?=	/home/tmp/tet
+TOP=		../..
+
+.include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 .if !defined(TET_EXECUTE)
 TET_EXECUTE=	${.OBJDIR}
@@ -8,5 +10,5 @@ TET_EXECUTE=	${.OBJDIR}
 
 all clean depend:
 
-execute:
+execute test:
 	TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc -e .
