@@ -5,7 +5,7 @@
 
 MKLINT?=	no
 MKPIC?=		no
-MKTEX?=		yes
+MKTEX?=		no
 
 OBJECT_FORMAT=	ELF	# work around a bug in the pmake package
 
