@@ -5,7 +5,7 @@ test_format_bsd1()
     # $1 test file
     # $2 oracle file
 
-    run "-B" $1 $2
+    run "-t d -B" $1 $2
 }
 
 test_format_bsd2()
@@ -13,7 +13,7 @@ test_format_bsd2()
     # $1 test file
     # $2 oracle file
 
-    run "--format=bsd" $1 $2
+    run "-t d --format=bsd" $1 $2
 }
 
 test_dynamic1()
@@ -21,7 +21,7 @@ test_dynamic1()
     # $1 test file
     # $2 oracle file
 
-    run "-D" $1 $2
+    run "-t d -D" $1 $2
 }
 
 test_dynamic2()
@@ -29,7 +29,7 @@ test_dynamic2()
     # $1 test file
     # $2 oracle file
 
-    run "--dynamic" $1 $2
+    run "-t d --dynamic" $1 $2
 }
 
 test_external()
@@ -37,7 +37,7 @@ test_external()
     # $1 test file
     # $2 oracle file
 
-    run "-g" $1 $2
+    run "-t d -g" $1 $2
 }
 
 test_hexa1()
@@ -69,7 +69,7 @@ test_no_sort1()
     # $1 test file
     # $2 oracle file
 
-    run "-p" $1 $2
+    run "-t d -p" $1 $2
 }
 
 test_no_sort2()
@@ -77,7 +77,7 @@ test_no_sort2()
     # $1 test file
     # $2 oracle file
 
-    run "--no-sort" $1 $2
+    run "-t d --no-sort" $1 $2
 }
 
 test_num_sort1()
@@ -85,7 +85,7 @@ test_num_sort1()
     # $1 test file
     # $2 oracle file
 
-    run "-n" $1 $2
+    run "-t d -n" $1 $2
 }
 
 test_num_sort2()
@@ -93,7 +93,7 @@ test_num_sort2()
     # $1 test file
     # $2 oracle file
 
-    run "--numeric-sort" $1 $2
+    run "-t d --numeric-sort" $1 $2
 }
 
 test_octal1()
@@ -141,7 +141,7 @@ test_print_file_name1()
     # $1 test file
     # $2 oracle file
 
-    run "-A" $1 $2
+    run "-t d -A" $1 $2
 }
 
 test_print_file_name2()
@@ -149,7 +149,7 @@ test_print_file_name2()
     # $1 test file
     # $2 oracle file
 
-    run "--print-file-name" $1 $2
+    run "-t d --print-file-name" $1 $2
 }
 
 test_print_size1()
@@ -157,7 +157,7 @@ test_print_size1()
     # $1 test file
     # $2 oracle file
 
-    run "-S" $1 $2
+    run "-t d -S" $1 $2
 }
 
 test_print_size2()
@@ -165,7 +165,7 @@ test_print_size2()
     # $1 test file
     # $2 oracle file
 
-    run "--print-size" $1 $2
+    run "-t d --print-size" $1 $2
 }
 
 test_reverse_sort1()
@@ -173,7 +173,7 @@ test_reverse_sort1()
     # $1 test file
     # $2 oracle file
 
-    run "-r" $1 $2
+    run "-t d -r" $1 $2
 }
 
 test_reverse_sort2()
@@ -181,7 +181,7 @@ test_reverse_sort2()
     # $1 test file
     # $2 oracle file
 
-    run "--reverse-sort" $1 $2
+    run "-t d --reverse-sort" $1 $2
 }
 
 test_reverse_sort_num()
@@ -189,7 +189,7 @@ test_reverse_sort_num()
     # $1 test file
     # $2 oracle file
 
-    run "-r -n" $1 $2
+    run "-t d -r -n" $1 $2
 }
 
 test_reverse_sort_no()
@@ -197,7 +197,7 @@ test_reverse_sort_no()
     # $1 test file
     # $2 oracle file
 
-    run "-r -p" $1 $2
+    run "-t d -r -p" $1 $2
 }
 
 test_reverse_sort_size()
@@ -205,7 +205,7 @@ test_reverse_sort_size()
     # $1 test file
     # $2 oracle file
 
-    run "-r --size-sort" $1 $2
+    run "-t d -r --size-sort" $1 $2
 }
 
 test_size_sort()
@@ -213,7 +213,7 @@ test_size_sort()
     # $1 test file
     # $2 oracle file
 
-    run "--size-sort" $1 $2
+    run "-t d --size-sort" $1 $2
 }
 
 test_sysv()
@@ -221,7 +221,7 @@ test_sysv()
     # $1 test file
     # $2 oracle file
 
-    run "--format=sysv" $1 $2
+    run "-t d --format=sysv" $1 $2
 }
 
 test_undef1()
@@ -229,7 +229,7 @@ test_undef1()
     # $1 test file
     # $2 oracle file
 
-    run "-u" $1 $2
+    run "-t d -u" $1 $2
 }
 
 test_undef2()
@@ -237,7 +237,7 @@ test_undef2()
     # $1 test file
     # $2 oracle file
 
-    run "--undefined-only" $1 $2
+    run "-t d --undefined-only" $1 $2
 }
 
 test_debug_syms1()

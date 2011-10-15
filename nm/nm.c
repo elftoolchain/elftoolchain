@@ -173,11 +173,21 @@ p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
 l.stqh_last = &(l).stqh_first;}
 #define	UNUSED(p)		((void)p)
 #define	HASH_DEBUG		0x3633d 	/* .debug */
-#define	HASH_DEBUG_INFO		0x295b9000	/* .debug_info */
-#define	HASH_RELA_DEBUG_INFO	0xf675b6ca	/* .rela.debug_info */
+/* DWARF sections */
 #define	HASH_DEBUG_ABBREV	0x9f091d2	/* .debug_abbrev */
-#define	HASH_DEBUG_STR		0x8458441	/* .debug_str */
+#define	HASH_DEBUG_ARANGES	0x31b39855	/* .debug_aranges */
+#define	HASH_DEBUG_FRAME	0xcec9ca7f	/* .debug_frame */
+#define	HASH_DEBUG_INFO		0x295b9000	/* .debug_info */
 #define	HASH_DEBUG_LINE		0x295b9118	/* .debug_line */
+#define	HASH_DEBUG_LOC		0x845836a	/* .debug_loc */
+#define	HASH_DEBUG_MACINFO	0x31b5a85d	/* .debug_macinfo */
+#define	HASH_DEBUG_PUBNAMES	0xf8949ca3	/* .debug_pubnames */
+#define	HASH_DEBUG_PUBTYPES	0xf894b74c	/* .debug_pubtypes */
+#define	HASH_DEBUG_RANGES	0x9f163ac	/* .debug_ranges */
+#define	HASH_DEBUG_STR		0x8458441	/* .debug_str */
+#define	HASH_DEBUG_TYPES	0xcec9f175	/* .debug_types */
+
+#define	HASH_RELA_DEBUG_INFO	0xf675b6ca	/* .rela.debug_info */
 #define	HASH_RELA_DEBUG_LINE	0xf675b7e2	/* .rela.debug_line*/
 #define	HASH_LINKONCE		0xd2e00fc1 	/* .gnu.linkonce.wi. */
 #define	HASH_LINE		0xb1d6 		/* .line */
@@ -192,7 +202,10 @@ static int		filter_insert(fn_filter);
 static uint32_t		get_hash_str(const char *);
 static void		get_opt(int, char **);
 static int		get_sym(Elf *, struct sym_head *, int,
-			    const Elf_Data *, const Elf_Data *, const char *);
+			    const Elf_Data *, const Elf_Data *, const char *,
+			    const char **, int);
+static const char *	get_sym_name(const GElf_Sym *, const Elf_Data *,
+			    const char **, int);
 static char		get_sym_type(const GElf_Sym *, const char *);
 static void		global_dest(void);
 static void		global_init(void);
@@ -624,7 +637,7 @@ get_opt(int argc, char **argv)
 static int
 get_sym(Elf *elf, struct sym_head *headp, int shnum,
     const Elf_Data *dynstr_data, const Elf_Data *strtab_data,
-    const char *type_table)
+    const char *type_table, const char **sec_table, int sec_table_size)
 {
 	Elf_Scn *scn;
 	Elf_Data *data;
@@ -661,9 +674,10 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 		while ((data = elf_getdata(scn, data)) != NULL) {
 			int j = 1;
 			while (gelf_getsym(data, j++, &sym) != NULL) {
-				sym_name = table == NULL ? "(null)" :
-				    (char *)((char *)(table->d_buf) +
-					sym.st_name);
+
+				sym_name = get_sym_name(&sym, table, sec_table,
+				    sec_table_size);
+
 				filter = false;
 				type = get_sym_type(&sym, type_table);
 				SLIST_FOREACH(fep, &nm_out_filter,
@@ -684,6 +698,38 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 	}
 
 	return (rtn);
+}
+
+static const char *
+get_sym_name(const GElf_Sym *sym, const Elf_Data *str_data,
+    const char **sec_table, int sec_table_size)
+{
+	const char *sym_name;
+
+	sym_name = NULL;
+
+	if (sym == NULL || str_data == NULL)
+		goto exit;
+
+	sym_name =
+	    (const char *)((const char *)(str_data->d_buf) + sym->st_name);
+
+	/* Set symbol name to section name if name and size are empty */
+	if (sym_name != NULL &&
+	    strlen(sym_name) == 0 &&
+	    sym->st_size == 0 &&
+	    sec_table != NULL &&
+	    sym->st_shndx < sec_table_size &&
+	    sec_table[sym->st_shndx] != NULL) {
+
+		sym_name = sec_table[sym->st_shndx];
+	}
+
+exit:
+	if (sym_name == NULL)
+		sym_name = "(null)";
+
+	return (sym_name);
 }
 
 static char
@@ -777,11 +823,19 @@ is_sec_debug(const char *shname)
 	hash_shname = get_hash_str(shname);
 
 	return (hash_shname == HASH_DEBUG ||
-	    hash_shname == HASH_DEBUG_INFO ||
-	    hash_shname == HASH_RELA_DEBUG_INFO ||
 	    hash_shname == HASH_DEBUG_ABBREV ||
-	    hash_shname == HASH_DEBUG_STR ||
+	    hash_shname == HASH_DEBUG_ARANGES ||
+	    hash_shname == HASH_DEBUG_FRAME ||
+	    hash_shname == HASH_DEBUG_INFO ||
 	    hash_shname == HASH_DEBUG_LINE ||
+	    hash_shname == HASH_DEBUG_LOC ||
+	    hash_shname == HASH_DEBUG_MACINFO ||
+	    hash_shname == HASH_DEBUG_PUBNAMES ||
+	    hash_shname == HASH_DEBUG_PUBTYPES ||
+	    hash_shname == HASH_DEBUG_RANGES ||
+	    hash_shname == HASH_DEBUG_STR ||
+	    hash_shname == HASH_DEBUG_TYPES ||
+	    hash_shname == HASH_RELA_DEBUG_INFO ||
 	    hash_shname == HASH_RELA_DEBUG_LINE ||
 	    hash_shname == HASH_LINKONCE ||
 	    hash_shname == HASH_LINE ||
@@ -1341,7 +1395,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 process_sym:
 
 	p_data.list_num = get_sym(elf, &list_head, shnum, dynstr_data,
-	    strtab_data, type_table);
+	    strtab_data, type_table, (const char **)sec_table, shnum);
 
 	if (p_data.list_num == 0)
 		goto next_cmd;
@@ -1534,25 +1588,18 @@ set_opt_value_print_fn(enum radix t)
 		nm_opts.size_print_fn = &sym_size_oct_print;
 
 		break;
-	case RADIX_HEX :
-		nm_opts.value_print_fn = &sym_value_hex_print;
-		nm_opts.size_print_fn = &sym_size_hex_print;
-
-		break;
 	case RADIX_DEC :
 		nm_opts.value_print_fn = &sym_value_dec_print;
 		nm_opts.size_print_fn = &sym_size_dec_print;
 
 		break;
+	case RADIX_HEX :
+                /* FALLTHROUGH */
 	case RADIX_DEFAULT :
+                /* FALLTHROUGH */
 	default :
-		if (nm_opts.elem_print_fn == &sym_elem_print_all_portable) {
-			nm_opts.value_print_fn = &sym_value_hex_print;
-			nm_opts.size_print_fn = &sym_size_hex_print;
-		} else {
-			nm_opts.value_print_fn = &sym_value_dec_print;
-			nm_opts.size_print_fn = &sym_size_dec_print;
-		}
+		nm_opts.value_print_fn = &sym_value_hex_print;
+		nm_opts.size_print_fn  = &sym_size_hex_print;
 	}
 
 	assert(nm_opts.value_print_fn != NULL &&
@@ -2048,7 +2095,7 @@ usage(int exitcode)
 \n                            Equivalent to specifying \"-t x\".",
 	    nm_info.name);
 	printf("\n\
-\n  The default options are: output in bsd format, use a decimal radix,\
+\n  The default options are: output in bsd format, use a hexadecimal radix,\
 \n  sort by symbol name, do not demangle names.\n");
 
 	exit(exitcode);
