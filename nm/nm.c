@@ -172,26 +172,6 @@ p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
 #define	STAILQ_HINIT_AFTER(l)	{l.stqh_first = NULL; \
 l.stqh_last = &(l).stqh_first;}
 #define	UNUSED(p)		((void)p)
-#define	HASH_DEBUG		0x3633d 	/* .debug */
-/* DWARF sections */
-#define	HASH_DEBUG_ABBREV	0x9f091d2	/* .debug_abbrev */
-#define	HASH_DEBUG_ARANGES	0x31b39855	/* .debug_aranges */
-#define	HASH_DEBUG_FRAME	0xcec9ca7f	/* .debug_frame */
-#define	HASH_DEBUG_INFO		0x295b9000	/* .debug_info */
-#define	HASH_DEBUG_LINE		0x295b9118	/* .debug_line */
-#define	HASH_DEBUG_LOC		0x845836a	/* .debug_loc */
-#define	HASH_DEBUG_MACINFO	0x31b5a85d	/* .debug_macinfo */
-#define	HASH_DEBUG_PUBNAMES	0xf8949ca3	/* .debug_pubnames */
-#define	HASH_DEBUG_PUBTYPES	0xf894b74c	/* .debug_pubtypes */
-#define	HASH_DEBUG_RANGES	0x9f163ac	/* .debug_ranges */
-#define	HASH_DEBUG_STR		0x8458441	/* .debug_str */
-#define	HASH_DEBUG_TYPES	0xcec9f175	/* .debug_types */
-
-#define	HASH_RELA_DEBUG_INFO	0xf675b6ca	/* .rela.debug_info */
-#define	HASH_RELA_DEBUG_LINE	0xf675b7e2	/* .rela.debug_line*/
-#define	HASH_LINKONCE		0xd2e00fc1 	/* .gnu.linkonce.wi. */
-#define	HASH_LINE		0xb1d6 		/* .line */
-#define	HASH_STAB		0xb610 		/* .stab */
 
 static int		cmp_name(const void *, const void *);
 static int		cmp_none(const void *, const void *);
@@ -199,7 +179,6 @@ static int		cmp_size(const void *, const void *);
 static int		cmp_value(const void *, const void *);
 static void		filter_dest(void);
 static int		filter_insert(fn_filter);
-static uint32_t		get_hash_str(const char *);
 static void		get_opt(int, char **);
 static int		get_sym(Elf *, struct sym_head *, int,
 			    const Elf_Data *, const Elf_Data *, const char *,
@@ -458,21 +437,6 @@ parse_demangle_option(const char *opt)
 
 	/* NOTREACHED */
 	return (0);
-}
-
-static uint32_t
-get_hash_str(const char *str)
-{
-	unsigned int rtn = 0;
-
-	if (str == NULL)
-		return (0);
-	while (*str != '\0') {
-		rtn = 5 * rtn + *str;
-		++str;
-	}
-
-	return (rtn);
 }
 
 static void
@@ -805,30 +769,25 @@ is_sec_data(GElf_Shdr *s)
 static bool
 is_sec_debug(const char *shname)
 {
-	unsigned int hash_shname;
+	const char *dbg_sec[] = {
+		".debug",
+		".gnu.linkonce.wi.",
+		".line",
+		".rel.debug",
+		".rela.debug",
+		".stab",
+		NULL
+	};
+	const char **p;
 
 	assert(shname != NULL && "shname is NULL");
 
-	hash_shname = get_hash_str(shname);
+	for (p = dbg_sec; *p; p++) {
+		if (!strncmp(shname, *p, strlen(*p)))
+			return (true);
+	}
 
-	return (hash_shname == HASH_DEBUG ||
-	    hash_shname == HASH_DEBUG_ABBREV ||
-	    hash_shname == HASH_DEBUG_ARANGES ||
-	    hash_shname == HASH_DEBUG_FRAME ||
-	    hash_shname == HASH_DEBUG_INFO ||
-	    hash_shname == HASH_DEBUG_LINE ||
-	    hash_shname == HASH_DEBUG_LOC ||
-	    hash_shname == HASH_DEBUG_MACINFO ||
-	    hash_shname == HASH_DEBUG_PUBNAMES ||
-	    hash_shname == HASH_DEBUG_PUBTYPES ||
-	    hash_shname == HASH_DEBUG_RANGES ||
-	    hash_shname == HASH_DEBUG_STR ||
-	    hash_shname == HASH_DEBUG_TYPES ||
-	    hash_shname == HASH_RELA_DEBUG_INFO ||
-	    hash_shname == HASH_RELA_DEBUG_LINE ||
-	    hash_shname == HASH_LINKONCE ||
-	    hash_shname == HASH_LINE ||
-	    hash_shname == HASH_STAB);
+	return (false);
 }
 
 static bool
