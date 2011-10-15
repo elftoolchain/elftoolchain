@@ -120,6 +120,7 @@ static int	cpp_demangle_read_expression_trinary(struct cpp_demangle_data *,
 		    const char *, size_t, const char *, size_t);
 static int	cpp_demangle_read_function(struct cpp_demangle_data *, int *,
 		    struct vector_type_qualifier *);
+static int	cpp_demangle_local_source_name(struct cpp_demangle_data *ddata);
 static int	cpp_demangle_read_local_name(struct cpp_demangle_data *);
 static int	cpp_demangle_read_name(struct cpp_demangle_data *);
 static int	cpp_demangle_read_nested_name(struct cpp_demangle_data *);
@@ -2710,6 +2711,39 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 	/* source name */
 	if (ELFTC_ISDIGIT(*ddata->cur) != 0)
 		return (cpp_demangle_read_sname(ddata));
+
+	/* local source name */
+	if (*ddata->cur == 'L')
+		return (cpp_demangle_local_source_name(ddata));
+
+	return (1);
+}
+
+/*
+ * Read local source name.
+ *
+ * References:
+ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=31775
+ *   http://gcc.gnu.org/viewcvs?view=rev&revision=124467
+ */
+static int
+cpp_demangle_local_source_name(struct cpp_demangle_data *ddata)
+{
+	/* L */
+	if (ddata == NULL || *ddata->cur != 'L')
+		return (0);
+	++ddata->cur;
+
+	/* source name */
+	if (!cpp_demangle_read_sname(ddata))
+		return (0);
+
+	/* discriminator */
+	if (*ddata->cur == '_') {
+		++ddata->cur;
+		while (ELFTC_ISDIGIT(*ddata->cur) != 0)
+			++ddata->cur;
+	}
 
 	return (1);
 }
