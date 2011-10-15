@@ -708,24 +708,13 @@ get_sym_name(const GElf_Sym *sym, const Elf_Data *str_data,
 
 	sym_name = NULL;
 
-	if (sym == NULL || str_data == NULL)
-		goto exit;
+	/* Show section name as symbol name for STT_SECTION symbols. */
+	if (GELF_ST_TYPE(sym->st_info) == STT_SECTION) {
+		if (sec_table != NULL && sym->st_shndx < sec_table_size)
+			sym_name = sec_table[sym->st_shndx];
+	} else
+		sym_name = (const char *) str_data->d_buf + sym->st_name;
 
-	sym_name =
-	    (const char *)((const char *)(str_data->d_buf) + sym->st_name);
-
-	/* Set symbol name to section name if name and size are empty */
-	if (sym_name != NULL &&
-	    strlen(sym_name) == 0 &&
-	    sym->st_size == 0 &&
-	    sec_table != NULL &&
-	    sym->st_shndx < sec_table_size &&
-	    sec_table[sym->st_shndx] != NULL) {
-
-		sym_name = sec_table[sym->st_shndx];
-	}
-
-exit:
 	if (sym_name == NULL)
 		sym_name = "(null)";
 
