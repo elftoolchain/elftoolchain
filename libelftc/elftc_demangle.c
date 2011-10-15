@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <libelf.h>
 #include <libelftc.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "_libelftc.h"
@@ -96,12 +97,14 @@ elftc_demangle(const char *mangledname, char *buffer, size_t bufsize,
 	}
 
 	if (buffer == NULL || bufsize < strlen(rlt) + 1) {
+		free(rlt);
 		errno = ENAMETOOLONG;
 		return (-1);
 	}
 
 	strncpy(buffer, rlt, bufsize);
 	buffer[bufsize - 1] = '\0';
+	free(rlt);
 
 	return (0);
 }
