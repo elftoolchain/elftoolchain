@@ -32,9 +32,9 @@ SUBDIR += documentation
 .include <bsd.subdir.mk>
 
 #
-# Special targets.
+# Special top-level targets.
 #
 
 # Run the test suites.
-test:	all .PHONY
-	(cd ./test; ${MAKE} ${.TARGET})
+run-tests:	all .PHONY
+	(cd ${.CURDIR}/test; ${MAKE} test)
