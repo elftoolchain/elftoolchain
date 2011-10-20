@@ -73,3 +73,6 @@ ${_L:R}.o:	${_Y:R}.h
 .if defined(DEBUG)
 CFLAGS:=	${CFLAGS:N-O2} -g
 .endif
+
+# Bring in rules related to test code.
+.include "${TOP}/mk/elftoolchain.test.mk"

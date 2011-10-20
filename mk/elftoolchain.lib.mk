@@ -31,3 +31,6 @@ LDFLAGS+=	-L${TOP}/libelf
 .if defined(DEBUG)
 CFLAGS:=	${CFLAGS:N-O2} -g
 .endif
+
+# Bring in rules related to test code.
+.include "${TOP}/mk/elftoolchain.test.mk"
