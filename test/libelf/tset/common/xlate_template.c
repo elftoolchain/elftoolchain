@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2006 Joseph Koshy
+ * Copyright (c) 2006,2010-2011 Joseph Koshy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -269,7 +269,6 @@
 	MEMBER(vn_aux,		WORD)		\
 	MEMBER(vn_next,		WORD)
 
-#if	__FreeBSD_version >= 700009
 static unsigned char TYPEDEFNAME(L,CAP)[] = {
 #undef	MEMBER
 #define	MEMBER(N,K)	K##_SEQ_LSB
@@ -280,7 +279,6 @@ static unsigned char TYPEDEFNAME(M,CAP)[] = {
 #define	MEMBER(N,K)	K##_SEQ_MSB
 	TYPEDEFINITION(M,CAP)()
 };
-#endif	/* __FreeBSD_version */
 
 static unsigned char TYPEDEFNAME(L,DYN)[] = {
 #undef	MEMBER
@@ -311,7 +309,6 @@ static unsigned char TYPEDEFNAME(M,HALF)[] = {
 	HALF_SEQ_MSB
 };
 
-#if	__FreeBSD_version >= 700009
 static unsigned char TYPEDEFNAME(L,MOVE)[] = {
 #undef	MEMBER
 #define	MEMBER(N,K)	K##_SEQ_LSB
@@ -322,7 +319,6 @@ static unsigned char TYPEDEFNAME(M,MOVE)[] = {
 #define	MEMBER(N,K)	K##_SEQ_MSB
 	TYPEDEFINITION(M,MOVE)()
 };
-#endif	/* __FreeBSD_version */
 
 static unsigned char TYPEDEFNAME(L,PHDR)[] = {
 #undef	MEMBER
@@ -379,7 +375,6 @@ static unsigned char TYPEDEFNAME(M,SYM)[] = {
 	TYPEDEFINITION(M,SYM)()
 };
 
-#if	__FreeBSD_version >= 700009
 static unsigned char TYPEDEFNAME(L,SYMINFO)[] = {
 #undef	MEMBER
 #define	MEMBER(N,K)	K##_SEQ_LSB
@@ -390,7 +385,6 @@ static unsigned char TYPEDEFNAME(M,SYMINFO)[] = {
 #define	MEMBER(N,K)	K##_SEQ_MSB
 	TYPEDEFINITION(M,SYMINFO)()
 };
-#endif	/* __FreeBSD_version */
 
 static unsigned char TYPEDEFNAME(L,QUAD)[] = {
 	QUAD_SEQ_LSB
@@ -407,7 +401,6 @@ static unsigned char TYPEDEFNAME(M,WORD)[] = {
 	WORD_SEQ_MSB
 };
 
-#if	__FreeBSD_version >= 700009
 static unsigned char TYPEDEFNAME(L,VDEF)[] = {
 #undef	MEMBER
 #define	MEMBER(N,K)	K##_SEQ_LSB
@@ -429,7 +422,6 @@ static unsigned char TYPEDEFNAME(M,VNEED)[] = {
 #define	MEMBER(N,K)	K##_SEQ_MSB
 	TYPEDEFINITION(M,VNEED)()
 };
-#endif	/* __FreeBSD_version */
 
 #if	TS_XLATESZ == 32
 /*
@@ -446,14 +438,12 @@ static unsigned char TYPEDEFNAME(M,VNEED)[] = {
 static Elf32_Addr MEMSTRUCTNAME(ADDR) = WORD_VAL;
 #define	ADDR32_SIZE	sizeof(Elf32_Addr)
 
-#if	__FreeBSD_version >= 700009
 static Elf32_Cap MEMSTRUCTNAME(CAP) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
 	ELF_TYPE_E32_CAP()
 };
 #define	CAP32_SIZE	sizeof(Elf32_Cap)
-#endif	/* __FreeBSD_version */
 
 static Elf32_Dyn MEMSTRUCTNAME(DYN) = {
 #undef	MEMBER
@@ -472,14 +462,12 @@ static Elf32_Ehdr MEMSTRUCTNAME(EHDR) = {
 static Elf32_Half MEMSTRUCTNAME(HALF) = HALF_VAL;
 #define	HALF32_SIZE	sizeof(Elf32_Half)
 
-#if	__FreeBSD_version >= 700009
 static Elf32_Move MEMSTRUCTNAME(MOVE) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
 	ELF_TYPE_E32_MOVE()
 };
 #define	MOVE32_SIZE	sizeof(Elf32_Move)
-#endif	/* __FreeBSD_version */
 
 static Elf32_Off MEMSTRUCTNAME(OFF) = WORD_VAL;
 #define	OFF32_SIZE	sizeof(Elf32_Off)
@@ -522,16 +510,13 @@ static Elf32_Sym MEMSTRUCTNAME(SYM) = {
 };
 #define	SYM32_SIZE	sizeof(Elf32_Sym)
 
-#if	__FreeBSD_version >= 700009
 static Elf32_Syminfo MEMSTRUCTNAME(SYMINFO) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
 	ELF_TYPE_E32_SYMINFO()
 };
 #define	SYMINFO32_SIZE	sizeof(Elf32_Syminfo)
-#endif	/* __FreeBSD_version */
 
-#if	__FreeBSD_version >= 700009
 static Elf32_Verdef MEMSTRUCTNAME(VDEF) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
@@ -545,7 +530,6 @@ static Elf32_Verneed MEMSTRUCTNAME(VNEED) = {
 	ELF_TYPE_E32_VNEED()
 };
 #define	VNEED32_SIZE	sizeof(Elf32_Verneed)
-#endif	/* __FreeBSD_version */
 
 static Elf32_Word MEMSTRUCTNAME(WORD) = WORD_VAL;
 #define	WORD32_SIZE	sizeof(Elf32_Word)
@@ -569,14 +553,12 @@ static Elf32_Word MEMSTRUCTNAME(WORD) = WORD_VAL;
 static Elf64_Addr MEMSTRUCTNAME(ADDR) = QUAD_VAL;
 #define	ADDR64_SIZE	sizeof(Elf64_Addr)
 
-#if	__FreeBSD_version >= 700009
 static Elf64_Cap MEMSTRUCTNAME(CAP) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
 	ELF_TYPE_E64_CAP()
 };
 #define	CAP64_SIZE	sizeof(Elf64_Cap)
-#endif	/* __FreeBSD_version */
 
 static Elf64_Dyn MEMSTRUCTNAME(DYN) = {
 #undef	MEMBER
@@ -595,14 +577,12 @@ static Elf64_Ehdr MEMSTRUCTNAME(EHDR) = {
 static Elf64_Half MEMSTRUCTNAME(HALF) = HALF_VAL;
 #define	HALF64_SIZE	sizeof(Elf64_Half)
 
-#if	__FreeBSD_version >= 700009
 static Elf64_Move MEMSTRUCTNAME(MOVE) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
 	ELF_TYPE_E64_MOVE()
 };
 #define	MOVE64_SIZE	sizeof(Elf64_Move)
-#endif	/* __FreeBSD_version */
 
 static Elf64_Phdr MEMSTRUCTNAME(PHDR) = {
 #undef	MEMBER
@@ -648,7 +628,6 @@ static Elf64_Sym MEMSTRUCTNAME(SYM) = {
 };
 #define	SYM64_SIZE	sizeof(Elf64_Sym)
 
-#if	__FreeBSD_version >= 700009
 static Elf64_Syminfo MEMSTRUCTNAME(SYMINFO) = {
 #undef	MEMBER
 #define	MEMBER(N,K)	.N = K##_VAL ,
@@ -669,7 +648,6 @@ static Elf64_Verneed MEMSTRUCTNAME(VNEED) = {
 	ELF_TYPE_E64_VNEED()
 };
 #define	VNEED64_SIZE	sizeof(Elf64_Verneed)
-#endif	/* __FreeBSD_version */
 
 static Elf64_Word MEMSTRUCTNAME(WORD) = WORD_VAL;
 #define	WORD64_SIZE	sizeof(Elf64_Word)
@@ -707,15 +685,11 @@ static struct testdata 	TESTDATASET [] = {
 	}
 #if	TS_XLATESZ == 32
 	DEFINE_TEST_DATA(ADDR),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(CAP),
-#endif	/* __FreeBSD_version */
 	DEFINE_TEST_DATA(DYN),
 	DEFINE_TEST_DATA(EHDR),
 	DEFINE_TEST_DATA(HALF),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(MOVE),
-#endif	/* __FreeBSD_version */
 	DEFINE_TEST_DATA(OFF),
 	DEFINE_TEST_DATA(PHDR),
 	DEFINE_TEST_DATA(REL),
@@ -723,25 +697,17 @@ static struct testdata 	TESTDATASET [] = {
 	DEFINE_TEST_DATA(SHDR),
 	DEFINE_TEST_DATA(SWORD),
 	DEFINE_TEST_DATA(SYM),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(SYMINFO),
-#endif	/* __FreeBSD_version */
-	DEFINE_TEST_DATA(WORD),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(VDEF),
 	DEFINE_TEST_DATA(VNEED),
-#endif
+	DEFINE_TEST_DATA(WORD),
 #else
 	DEFINE_TEST_DATA(ADDR),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(CAP),
-#endif	/* __FreeBSD_version */
 	DEFINE_TEST_DATA(DYN),
 	DEFINE_TEST_DATA(EHDR),
 	DEFINE_TEST_DATA(HALF),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(MOVE),
-#endif	/* __FreeBSD_version */
 	DEFINE_TEST_DATA(OFF),
 	DEFINE_TEST_DATA(PHDR),
 	DEFINE_TEST_DATA(REL),
@@ -750,14 +716,10 @@ static struct testdata 	TESTDATASET [] = {
 	DEFINE_TEST_DATA(SWORD),
 	DEFINE_TEST_DATA(SXWORD),
 	DEFINE_TEST_DATA(SYM),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(SYMINFO),
-#endif	/* __FreeBSD_version */
-	DEFINE_TEST_DATA(WORD),
-#if	__FreeBSD_version >= 700009
 	DEFINE_TEST_DATA(VDEF),
 	DEFINE_TEST_DATA(VNEED),
-#endif
+	DEFINE_TEST_DATA(WORD),
 	DEFINE_TEST_DATA(XWORD),
 #endif	/* TS_XLATESZ == 32 */
 	{ .tsd_name = NULL }
