@@ -159,22 +159,6 @@
 	MEMBER(si_boundto,	HALF)		\
 	MEMBER(si_flags,	HALF)
 
-#define	ELF_TYPE_E32_VDEF()			\
-	MEMBER(vd_version,	HALF)		\
-	MEMBER(vd_flags,	HALF)		\
-	MEMBER(vd_ndx,		HALF)		\
-	MEMBER(vd_cnt,		HALF)		\
-	MEMBER(vd_hash,		WORD)		\
-	MEMBER(vd_aux,		WORD)		\
-	MEMBER(vd_next,		WORD)
-
-#define ELF_TYPE_E32_VNEED()			\
-	MEMBER(vn_version,	HALF)		\
-	MEMBER(vn_cnt,		HALF)		\
-	MEMBER(vn_file,		WORD)		\
-	MEMBER(vn_aux,		WORD)		\
-	MEMBER(vn_next,		WORD)
-
 /*
  * Definitions of 64 bit ELF file structures.
  */
@@ -252,22 +236,6 @@
 #define	ELF_TYPE_E64_SYMINFO()			\
 	MEMBER(si_boundto,	HALF)		\
 	MEMBER(si_flags,	HALF)
-
-#define	ELF_TYPE_E64_VDEF()			\
-	MEMBER(vd_version,	HALF)		\
-	MEMBER(vd_flags,	HALF)		\
-	MEMBER(vd_ndx,		HALF)		\
-	MEMBER(vd_cnt,		HALF)		\
-	MEMBER(vd_hash,		WORD)		\
-	MEMBER(vd_aux,		WORD)		\
-	MEMBER(vd_next,		WORD)
-
-#define ELF_TYPE_E64_VNEED()			\
-	MEMBER(vn_version,	HALF)		\
-	MEMBER(vn_cnt,		HALF)		\
-	MEMBER(vn_file,		WORD)		\
-	MEMBER(vn_aux,		WORD)		\
-	MEMBER(vn_next,		WORD)
 
 static unsigned char TYPEDEFNAME(L,CAP)[] = {
 #undef	MEMBER
@@ -401,28 +369,6 @@ static unsigned char TYPEDEFNAME(M,WORD)[] = {
 	WORD_SEQ_MSB
 };
 
-static unsigned char TYPEDEFNAME(L,VDEF)[] = {
-#undef	MEMBER
-#define	MEMBER(N,K)	K##_SEQ_LSB
-	TYPEDEFINITION(L,VDEF)()
-};
-static unsigned char TYPEDEFNAME(M,VDEF)[] = {
-#undef	MEMBER
-#define	MEMBER(N,K)	K##_SEQ_MSB
-	TYPEDEFINITION(M,VDEF)()
-};
-
-static unsigned char TYPEDEFNAME(L,VNEED)[] = {
-#undef	MEMBER
-#define	MEMBER(N,K)	K##_SEQ_LSB
-	TYPEDEFINITION(L,VNEED)()
-};
-static unsigned char TYPEDEFNAME(M,VNEED)[] = {
-#undef	MEMBER
-#define	MEMBER(N,K)	K##_SEQ_MSB
-	TYPEDEFINITION(M,VNEED)()
-};
-
 #if	TS_XLATESZ == 32
 /*
  * 32 bit reference structures.
@@ -516,20 +462,6 @@ static Elf32_Syminfo MEMSTRUCTNAME(SYMINFO) = {
 	ELF_TYPE_E32_SYMINFO()
 };
 #define	SYMINFO32_SIZE	sizeof(Elf32_Syminfo)
-
-static Elf32_Verdef MEMSTRUCTNAME(VDEF) = {
-#undef	MEMBER
-#define	MEMBER(N,K)	.N = K##_VAL ,
-	ELF_TYPE_E32_VDEF()
-};
-#define	VDEF32_SIZE	sizeof(Elf32_Verdef)
-
-static Elf32_Verneed MEMSTRUCTNAME(VNEED) = {
-#undef	MEMBER
-#define	MEMBER(N,K)	.N = K##_VAL ,
-	ELF_TYPE_E32_VNEED()
-};
-#define	VNEED32_SIZE	sizeof(Elf32_Verneed)
 
 static Elf32_Word MEMSTRUCTNAME(WORD) = WORD_VAL;
 #define	WORD32_SIZE	sizeof(Elf32_Word)
@@ -635,20 +567,6 @@ static Elf64_Syminfo MEMSTRUCTNAME(SYMINFO) = {
 };
 #define	SYMINFO64_SIZE	sizeof(Elf64_Syminfo)
 
-static Elf64_Verdef MEMSTRUCTNAME(VDEF) = {
-#undef	MEMBER
-#define	MEMBER(N,K)	.N = K##_VAL ,
-	ELF_TYPE_E64_VDEF()
-};
-#define	VDEF64_SIZE	sizeof(Elf64_Verdef)
-
-static Elf64_Verneed MEMSTRUCTNAME(VNEED) = {
-#undef	MEMBER
-#define	MEMBER(N,K)	.N = K##_VAL ,
-	ELF_TYPE_E64_VNEED()
-};
-#define	VNEED64_SIZE	sizeof(Elf64_Verneed)
-
 static Elf64_Word MEMSTRUCTNAME(WORD) = WORD_VAL;
 #define	WORD64_SIZE	sizeof(Elf64_Word)
 
@@ -698,8 +616,6 @@ static struct testdata 	TESTDATASET [] = {
 	DEFINE_TEST_DATA(SWORD),
 	DEFINE_TEST_DATA(SYM),
 	DEFINE_TEST_DATA(SYMINFO),
-	DEFINE_TEST_DATA(VDEF),
-	DEFINE_TEST_DATA(VNEED),
 	DEFINE_TEST_DATA(WORD),
 #else
 	DEFINE_TEST_DATA(ADDR),
@@ -717,8 +633,6 @@ static struct testdata 	TESTDATASET [] = {
 	DEFINE_TEST_DATA(SXWORD),
 	DEFINE_TEST_DATA(SYM),
 	DEFINE_TEST_DATA(SYMINFO),
-	DEFINE_TEST_DATA(VDEF),
-	DEFINE_TEST_DATA(VNEED),
 	DEFINE_TEST_DATA(WORD),
 	DEFINE_TEST_DATA(XWORD),
 #endif	/* TS_XLATESZ == 32 */
