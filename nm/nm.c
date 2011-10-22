@@ -1542,9 +1542,7 @@ set_opt_value_print_fn(enum radix t)
 
 		break;
 	case RADIX_HEX :
-                /* FALLTHROUGH */
 	case RADIX_DEFAULT :
-                /* FALLTHROUGH */
 	default :
 		nm_opts.value_print_fn = &sym_value_hex_print;
 		nm_opts.size_print_fn  = &sym_size_hex_print;
