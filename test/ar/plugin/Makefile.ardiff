@@ -10,8 +10,8 @@ NOMAN=	noman
 
 WARNS?=	6
 
-DPADD=	${LIBARCHIVE} ${LIBBZ2} ${LIBZ}
-LDADD=	-larchive -lbz2 -lz
+DPADD=	${LIBARCHIVE}
+LDADD=	-larchive
 
 .if ${OS_HOST} == "FreeBSD"
 DPADD+=	${LIBLZMA}

@@ -94,8 +94,8 @@ main(int argc, char **argv)
 
 	/* Open file 1 */
 	a1 = archive_read_new();
-	archive_read_support_compression_all(a1);
-	archive_read_support_format_all(a1);
+	archive_read_support_compression_none(a1);
+	archive_read_support_format_ar(a1);
 	if (archive_read_open_file(a1, argv[0],
 	    1024*10)) {
 		warnx("%s", archive_error_string(a1));
@@ -104,8 +104,8 @@ main(int argc, char **argv)
 
 	/* Open file 2 */
 	a2 = archive_read_new();
-	archive_read_support_compression_all(a2);
-	archive_read_support_format_all(a2);
+	archive_read_support_compression_none(a2);
+	archive_read_support_format_ar(a2);
 	if (archive_read_open_file(a2, argv[1],
 	    1024*10)) {
 		warnx("%s", archive_error_string(a2));
