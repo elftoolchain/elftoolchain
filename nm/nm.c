@@ -118,22 +118,28 @@ SLIST_HEAD(var_info_head, var_info_entry);
 
 /* output numric type */
 enum radix {
-	RADIX_DEFAULT, RADIX_OCT, RADIX_HEX, RADIX_DEC
+	RADIX_OCT,
+	RADIX_HEX,
+	RADIX_DEC
 };
 
 /* output symbol type, PRINT_SYM_DYN for dynamic symbol only */
 enum print_symbol {
-	PRINT_SYM_SYM, PRINT_SYM_DYN
+	PRINT_SYM_SYM,
+	PRINT_SYM_DYN
 };
 
 /* output name type */
 enum print_name {
-	PRINT_NAME_NONE, PRINT_NAME_FULL, PRINT_NAME_MULTI
+	PRINT_NAME_NONE,
+	PRINT_NAME_FULL,
+	PRINT_NAME_MULTI
 };
 
 struct nm_prog_options {
 	enum print_symbol	print_symbol;
 	enum print_name		print_name;
+	enum radix		t;
 	int			demangle_type;
 	bool			print_debug;
 	bool			print_armap;
@@ -444,12 +450,11 @@ static void
 get_opt(int argc, char **argv)
 {
 	int ch;
-	enum radix t;
 
 	if (argc <= 0 || argv == NULL)
 		return;
 
-	t = RADIX_DEFAULT;
+	nm_opts.t = RADIX_HEX;
 	while ((ch = getopt_long(argc, argv, "ABCDSVPaefghlnoprst:uvx",
 		    nm_longopts, NULL)) != -1) {
 		switch (ch) {
@@ -482,7 +487,6 @@ get_opt(int argc, char **argv)
 			default:
 				warnx("%s: Invalid format", optarg);
 				usage(EX_USAGE);
-				/* NOTREACHED */
 			}
 
 			break;
@@ -510,7 +514,7 @@ get_opt(int argc, char **argv)
 			filter_insert(sym_elem_global);
 			break;
 		case 'o':
-			t = RADIX_OCT;
+			nm_opts.t = RADIX_OCT;
 			break;
 		case 'p':
 			nm_opts.sort_fn = &cmp_none;
@@ -525,18 +529,17 @@ get_opt(int argc, char **argv)
 			/* t require always argument to getopt_long */
 			switch (optarg[0]) {
 			case 'd':
-				t = RADIX_DEC;
+				nm_opts.t = RADIX_DEC;
 				break;
 			case 'o':
-				t = RADIX_OCT;
+				nm_opts.t = RADIX_OCT;
 				break;
 			case 'x':
-				t = RADIX_HEX;
+				nm_opts.t = RADIX_HEX;
 				break;
 			default:
 				warnx("%s: Invalid radix", optarg);
 				usage(EX_USAGE);
-				/* NOTREACHED */
 			}
 			break;
 		case 'u':
@@ -551,7 +554,7 @@ get_opt(int argc, char **argv)
 			nm_opts.sort_fn = &cmp_value;
 			break;
 		case 'x':
-			t = RADIX_HEX;
+			nm_opts.t = RADIX_HEX;
 			break;
 		case 0:
 			if (nm_opts.sort_size != 0) {
@@ -566,10 +569,8 @@ get_opt(int argc, char **argv)
 			break;
 		case 'h':
 			usage(EX_OK);
-			/* NOTREACHED */
 		default :
 			usage(EX_USAGE);
-			/* NOTREACHED */
 		}
 	}
 
@@ -579,7 +580,7 @@ get_opt(int argc, char **argv)
 	assert(nm_opts.value_print_fn != NULL &&
 	    "nm_opts.value_print_fn is null");
 
-	set_opt_value_print_fn(t);
+	set_opt_value_print_fn(nm_opts.t);
 
 	if (nm_opts.undef_only == true) {
 		if (nm_opts.sort_fn == &cmp_size)
@@ -1534,18 +1535,17 @@ set_opt_value_print_fn(enum radix t)
 {
 
 	switch (t) {
-	case RADIX_OCT :
+	case RADIX_OCT:
 		nm_opts.value_print_fn = &sym_value_oct_print;
 		nm_opts.size_print_fn = &sym_size_oct_print;
 
 		break;
-	case RADIX_DEC :
+	case RADIX_DEC:
 		nm_opts.value_print_fn = &sym_value_dec_print;
 		nm_opts.size_print_fn = &sym_size_dec_print;
 
 		break;
-	case RADIX_HEX :
-	case RADIX_DEFAULT :
+	case RADIX_HEX:
 	default :
 		nm_opts.value_print_fn = &sym_value_hex_print;
 		nm_opts.size_print_fn  = &sym_size_hex_print;
@@ -1564,9 +1564,12 @@ sym_elem_print_all(char type, const char *sec, const GElf_Sym *sym,
 	    nm_opts.value_print_fn == NULL)
 		return;
 
-	if (IS_UNDEF_SYM_TYPE(type))
-		printf("                ");
-	else {
+	if (IS_UNDEF_SYM_TYPE(type)) {
+		if (nm_opts.t == RADIX_HEX && nm_elfclass == ELFCLASS32)
+			printf("%-8s", "");
+		else
+			printf("%-16s", "");
+	} else {
 		switch ((nm_opts.sort_fn == & cmp_size ? 2 : 0) +
 		    nm_opts.print_size) {
 		case 3:
