@@ -234,8 +234,9 @@ static void		sym_value_hex_print(const GElf_Sym *);
 static void		sym_value_dec_print(const GElf_Sym *);
 static void		usage(int);
 
-struct nm_prog_info	nm_info;
-struct nm_prog_options	nm_opts;
+static struct nm_prog_info	nm_info;
+static struct nm_prog_options	nm_opts;
+static int			nm_elfclass;
 
 /*
  * Point to current sym_print_data to use portable qsort function.
@@ -243,7 +244,7 @@ struct nm_prog_options	nm_opts;
  *
  * Using in sym_list_sort.
  */
-struct sym_print_data	*nm_print_data;
+static struct sym_print_data	*nm_print_data;
 
 static const struct option nm_longopts[] = {
 	{ "debug-syms",		no_argument,		NULL,		'a' },
@@ -1146,6 +1147,8 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	objname = NULL;
 	rtn = 0;
 
+	nm_elfclass = gelf_getclass(elf);
+
 	if (kind == ELF_K_AR) {
 		if ((arhdr = elf_getarhdr(elf)) == NULL)
 			goto next_cmd;
@@ -1951,7 +1954,10 @@ sym_size_hex_print(const GElf_Sym *sym)
 
 	assert(sym != NULL && "sym is null");
 
-	printf("%016" PRIx64, sym->st_size);
+	if (nm_elfclass == ELFCLASS32)
+		printf("%08" PRIx64, sym->st_size);
+	else
+		printf("%016" PRIx64, sym->st_size);
 }
 
 static void
@@ -1978,7 +1984,10 @@ sym_value_hex_print(const GElf_Sym *sym)
 
 	assert(sym != NULL && "sym is null");
 
-	printf("%016" PRIx64, sym->st_value);
+	if (nm_elfclass == ELFCLASS32)
+		printf("%08" PRIx64, sym->st_value);
+	else
+		printf("%016" PRIx64, sym->st_value);
 }
 
 static void
