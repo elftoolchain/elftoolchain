@@ -905,8 +905,7 @@ tcRdWrShdrIdempotent$2$1(void)
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, tfd, goto done;);
 
 	if (stat(reffile, &sb) < 0) {
-		TP_UNRESOLVED("fstat() failed: \"%s\".",
-		    strerror(errno));
+		TP_UNRESOLVED("stat() failed: \"%s\".", strerror(errno));
 		goto done;
 	}
 
@@ -1661,8 +1660,7 @@ tcRdWrExtendSection_$1$2(void)
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
 	if (stat(reffile, &sb) < 0) {
-		TP_UNRESOLVED("fstat() failed: \"%s\".",
-		    strerror(errno));
+		TP_UNRESOLVED("stat() failed: \"%s\".", strerror(errno));
 		goto done;
 	}
 
@@ -1783,8 +1781,7 @@ tcRdWrShrinkSection_$1$2(void)
 	_TS_OPEN_FILE(e, tfn, ELF_C_RDWR, fd, goto done;);
 
 	if (stat(reffile, &sb) < 0) {
-		TP_UNRESOLVED("fstat() failed: \"%s\".",
-		    strerror(errno));
+		TP_UNRESOLVED("stat() failed: \"%s\".", strerror(errno));
 		goto done;
 	}
 
