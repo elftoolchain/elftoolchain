@@ -75,8 +75,6 @@
 
 #include "ar.h"
 
-#include "_elftc.h"
-
 enum options
 {
 	OPTION_HELP
