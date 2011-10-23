@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Id$
 
 # This script is adapted from Jan Psota's Tar Comparison Program(TCP).
 

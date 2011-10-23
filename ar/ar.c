@@ -75,6 +75,8 @@
 
 #include "ar.h"
 
+ELFTC_VCSID("$Id$");
+
 enum options
 {
 	OPTION_HELP

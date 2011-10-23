@@ -39,6 +39,8 @@
 
 #include "ar.h"
 
+ELFTC_VCSID("$Id$");
+
 static void read_archive(struct bsdar *bsdar, char mode);
 
 void
