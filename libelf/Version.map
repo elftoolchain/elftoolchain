@@ -95,14 +95,3 @@ global:
 local:
 	*;
 };
-
-/*
- * Private symbols, mostly test hooks
- */
-FBSDprivate_1.0 {
-global:
-	_libelf_set_error;
-	_libelf_get_max_error;
-	_libelf_get_no_error_message;
-	_libelf_get_unknown_error_message;
-};
