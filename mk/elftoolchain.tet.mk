@@ -1,3 +1,4 @@
+# $Id$
 #
 # Rules for handling TET based test suites.
 #
