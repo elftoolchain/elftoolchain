@@ -37,6 +37,8 @@
 
 #include "_libelftc.h"
 
+ELFTC_VCSID("$Id$");
+
 /**
  * @file cpp_demangle_gnu2.c
  * @brief Decode function name encoding in GNU 2.

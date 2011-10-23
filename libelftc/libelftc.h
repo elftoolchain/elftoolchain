@@ -24,6 +24,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * $FreeBSD: users/kaiwang27/elftc/libelftc.h 392 2009-05-31 19:17:46Z kaiwang27 $
+ * $Id$
  */
 
 #ifndef	_LIBELFTC_H_

@@ -2,6 +2,8 @@
 #
 # This script generates a project-wide version identifier for use by
 # the `elftc_version()' API.
+#
+# $Id$
 
 #
 # Defaults.

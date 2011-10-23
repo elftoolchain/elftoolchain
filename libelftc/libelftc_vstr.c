@@ -33,6 +33,8 @@
 
 #include "_libelftc.h"
 
+ELFTC_VCSID("$Id$");
+
 /**
  * @file vector_str.c
  * @brief Dynamic vector data for string implementation.
