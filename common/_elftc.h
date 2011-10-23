@@ -78,7 +78,11 @@
 #endif
 
 #if defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
+#if defined(__GNUC__)
+#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
+#else
 #define	ELFTC_VCSID(ID)		/**/
+#endif
 #endif
 
 #if defined(__NetBSD__)
