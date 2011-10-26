@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 void
 _dwarf_nametbl_cleanup(Dwarf_NameSec *nsp)
 {

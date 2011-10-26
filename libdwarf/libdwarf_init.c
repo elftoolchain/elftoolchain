@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 Dwarf_Section *
 _dwarf_find_section(Dwarf_Debug dbg, const char *name)
 {

@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 #define	_SECTION_INIT_SIZE	128
 
 int

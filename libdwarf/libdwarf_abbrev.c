@@ -27,6 +27,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 _dwarf_abbrev_add(Dwarf_CU cu, uint64_t entry, uint64_t tag, uint8_t children,
     uint64_t aboff, Dwarf_Abbrev *abp, Dwarf_Error *error)

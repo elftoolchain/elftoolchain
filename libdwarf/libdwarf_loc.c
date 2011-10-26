@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 /*
  * Given an array of bytes of length 'len' representing a
  * DWARF expression, compute the number of operations based

@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 #define	_FILEINDEX_STACK_SIZE	16384
 
 static int

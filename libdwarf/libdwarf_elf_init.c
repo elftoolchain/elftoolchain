@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 static const char *debug_name[] = {
 	".debug_abbrev",
 	".debug_aranges",

@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 #define	_INIT_DWARF_STRTAB_SIZE 1024
 
 int
