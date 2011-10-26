@@ -1,4 +1,6 @@
 # LibELF test suite.
+#
+# $Id$
 
 # TET reserved codes
 0 "PASS"

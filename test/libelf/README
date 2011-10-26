@@ -1,4 +1,5 @@
 : README
+: $Id$
 
 This directory contains a test suite for libelf.
 
