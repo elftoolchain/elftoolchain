@@ -12,7 +12,7 @@
  * By default, it compares nothing and consider the test "not ok"
  * iff it encounters errors while reading archive.
  *
- * $FreeBSD$
+ * $Id$
  */
 
 #include <archive.h>

@@ -2,7 +2,7 @@
  * make it easy to `diff'.  (option -e)
  * 2. Check the sanity of timestamp. (option -c)
  *
- * $FreeBSD$
+ * $Id$
  */
 
 #include <errno.h>
