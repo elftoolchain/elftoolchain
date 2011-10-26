@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id$
+#
 # Find the native ELF format for a host platform by compiling a
 # test object and examining the resulting object.
 #
