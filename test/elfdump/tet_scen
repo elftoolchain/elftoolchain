@@ -1,3 +1,5 @@
+# $Id$
+
 all
         "Starting Test Suite"
 	^exec1

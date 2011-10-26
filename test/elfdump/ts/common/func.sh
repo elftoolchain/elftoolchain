@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# $Id$
 
 tpstart() # write test purpose banner and initialise variables
 {
