@@ -1,5 +1,6 @@
 %YAML 1.1
 ---
+# $Id$
 #
 # This file is used to test handling of sections with symbol
 # versioning information.

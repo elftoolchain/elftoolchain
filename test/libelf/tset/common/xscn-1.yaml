@@ -1,5 +1,6 @@
 %YAML 1.1
 ---
+# $Id$
 #
 # This file is used for tests requiring malformed extended section
 # numbering.  'e_shnum' is set to zero, but the section at index

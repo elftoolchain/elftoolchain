@@ -1,4 +1,6 @@
 %YAML 1.1
+# $Id$
+#
 # This is the library-defined layout of the 'newscn' ELF object.
 ---
 ehdr: !Ehdr

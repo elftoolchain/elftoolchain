@@ -1,5 +1,7 @@
 %YAML 1.1
 ---
+# $Id$
+#
 # An ELF file containing a zero-sized section.
 
 ehdr: !Ehdr
