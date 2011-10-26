@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id$
+#
 # This shell script generates scaffolding for a TET C API test case
 # given a list of objects that use the TET C API.
 #
