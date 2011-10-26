@@ -26,10 +26,6 @@
 
 #include "_libdwarf.h"
 
-#ifndef	R_MIPS_64
-#define	R_MIPS_64	18
-#endif
-
 Dwarf_Unsigned
 _dwarf_get_reloc_type(Dwarf_P_Debug dbg, int is64)
 {
