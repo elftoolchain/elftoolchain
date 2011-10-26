@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
     Dwarf_Signed *listlen, Dwarf_Error *error)

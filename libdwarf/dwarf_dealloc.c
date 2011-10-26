@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 void
 dwarf_dealloc(Dwarf_Debug dbg, Dwarf_Ptr p, Dwarf_Unsigned alloc_type)
 {

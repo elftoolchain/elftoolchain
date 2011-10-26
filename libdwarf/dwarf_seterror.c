@@ -26,7 +26,7 @@
 
 #include "_libdwarf.h"
 
-ELFTC_VCSID();
+ELFTC_VCSID("$Id$");
 
 #define	_SET_FIELD(R, F, V)					\
 	do {							\

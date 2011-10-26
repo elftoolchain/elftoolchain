@@ -27,6 +27,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_attr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Attribute *atp,
     Dwarf_Error *error)

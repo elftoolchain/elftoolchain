@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
     Dwarf_Error *error)

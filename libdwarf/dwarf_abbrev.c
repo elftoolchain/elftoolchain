@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_get_abbrev(Dwarf_Debug dbg, Dwarf_Unsigned offset,
     Dwarf_Abbrev *return_abbrev, Dwarf_Unsigned *length,

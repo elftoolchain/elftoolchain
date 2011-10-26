@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 static struct _Dwarf_P_Expr_Entry *
 _dwarf_add_expr(Dwarf_P_Expr expr, Dwarf_Small opcode, Dwarf_Unsigned val1,
     Dwarf_Unsigned val2, Dwarf_Error *error)

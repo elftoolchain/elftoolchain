@@ -27,6 +27,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_get_ACCESS_name(unsigned access, const char **s)
 {

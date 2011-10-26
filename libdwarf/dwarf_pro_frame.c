@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 Dwarf_P_Fde
 dwarf_new_fde(Dwarf_P_Debug dbg, Dwarf_Error *error)
 {

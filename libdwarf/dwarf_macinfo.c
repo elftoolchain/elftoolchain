@@ -26,6 +26,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 char *
 dwarf_find_macro_value_start(char *macro_string)
 {

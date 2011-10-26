@@ -27,6 +27,8 @@
 
 #include "_libdwarf.h"
 
+ELFTC_VCSID("$Id$");
+
 int
 dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 {
