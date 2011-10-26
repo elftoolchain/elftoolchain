@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# $Id$
 
 test_format_bsd1()
 {

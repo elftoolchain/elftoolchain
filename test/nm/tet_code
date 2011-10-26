@@ -1,3 +1,5 @@
+# $Id$
+
 # TET reserved codes
 0 "PASS"
 1 "FAIL"

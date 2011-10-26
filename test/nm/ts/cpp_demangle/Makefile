@@ -1,3 +1,5 @@
+# $Id$
+
 TET_ROOT?=	/usr/tet
 LIBDIR=		$(TET_ROOT)/lib/tet3
 INCDIR=		$(TET_ROOT)/inc/tet3
