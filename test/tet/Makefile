@@ -1,6 +1,8 @@
 #
 # Build TET from source.
 #
+# $Id$
+#
 
 TOP=	../..
 
