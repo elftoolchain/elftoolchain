@@ -1,7 +1,7 @@
 #
 # Build recipes for NetBSD.
 #
-# $Id: os.NetBSD.mk -1   $
+# $Id$
 #
 
 MKLINT?=	no		# lint dies with a sigbus
