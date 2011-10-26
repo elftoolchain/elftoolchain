@@ -1,3 +1,4 @@
+# $Id$
 inittest moveafter-liba-v tc/moveafter-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

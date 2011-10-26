@@ -1,3 +1,4 @@
+# $Id$
 inittest print-liblong-v tc/print-liblong-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

@@ -1,3 +1,4 @@
+# $Id$
 inittest quickadd-liba-v tc/quickadd-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

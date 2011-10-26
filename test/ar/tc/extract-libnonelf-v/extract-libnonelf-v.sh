@@ -1,3 +1,4 @@
+# $Id$
 inittest extract-libnonelf-v tc/extract-libnonelf-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

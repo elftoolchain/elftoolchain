@@ -1,3 +1,4 @@
+# $Id$
 inittest addself-liba tc/addself-liba
 extshar ${TESTDIR}
 extshar ${RLTDIR}

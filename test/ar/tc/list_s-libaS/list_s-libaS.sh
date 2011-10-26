@@ -1,3 +1,4 @@
+# $Id$
 inittest list_s-libaS tc/list_s-libaS
 extshar ${TESTDIR}
 extshar ${RLTDIR}

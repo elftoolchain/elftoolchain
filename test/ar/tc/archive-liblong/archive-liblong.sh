@@ -1,3 +1,4 @@
+# $Id$
 inittest archive-liblong tc/archive-liblong
 extshar ${TESTDIR}
 extshar ${RLTDIR}

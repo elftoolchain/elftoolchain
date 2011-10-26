@@ -1,3 +1,4 @@
+# $Id$
 inittest optionl-liba tc/optionl-liba
 extshar ${TESTDIR}
 extshar ${RLTDIR}

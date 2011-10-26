@@ -1,3 +1,4 @@
+# $Id$
 if ! uname -m | grep -q 64; then
     inittest bsd-archive-liba32 tc/bsd-archive-liba32
     extshar ${TESTDIR}

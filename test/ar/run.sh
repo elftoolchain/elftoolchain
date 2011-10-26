@@ -1,5 +1,5 @@
 #!/bin/sh
-# $FreeBSD$
+# $Id$
 #
 # Run all the tests.
 

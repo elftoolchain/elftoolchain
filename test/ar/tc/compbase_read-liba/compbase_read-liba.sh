@@ -1,3 +1,4 @@
+# $Id$
 inittest compbase_read-liba tc/compbase_read-liba
 extshar ${TESTDIR}
 extshar ${RLTDIR}

@@ -1,3 +1,4 @@
+# $Id$
 inittest arscript-2 tc/arscript-2
 extshar ${TESTDIR}
 extshar ${RLTDIR}

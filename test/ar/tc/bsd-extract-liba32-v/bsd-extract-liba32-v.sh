@@ -1,3 +1,4 @@
+# $Id$
 inittest bsd-extract-liba32-v tc/bsd-extract-liba32-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

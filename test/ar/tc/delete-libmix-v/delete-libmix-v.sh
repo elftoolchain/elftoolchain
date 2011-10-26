@@ -1,3 +1,4 @@
+# $Id$
 inittest delete-libmix-v tc/delete-libmix-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

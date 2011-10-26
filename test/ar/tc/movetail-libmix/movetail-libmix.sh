@@ -1,3 +1,4 @@
+# $Id$
 inittest movetail-libmix tc/movetail-libmix
 extshar ${TESTDIR}
 extshar ${RLTDIR}

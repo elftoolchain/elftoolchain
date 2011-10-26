@@ -1,3 +1,4 @@
+# $Id$
 inittest extract-libmix-v tc/extract-libmix-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

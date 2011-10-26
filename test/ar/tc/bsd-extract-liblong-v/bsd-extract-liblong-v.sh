@@ -1,3 +1,4 @@
+# $Id$
 inittest bsd-extract-liblong-v tc/bsd-extract-liblong-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

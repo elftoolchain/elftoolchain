@@ -1,3 +1,4 @@
+# $Id$
 inittest print-libmix-v tc/print-libmix-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

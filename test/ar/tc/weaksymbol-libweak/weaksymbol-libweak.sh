@@ -1,3 +1,4 @@
+# $Id$
 inittest weaksymbol-libweak tc/weaksymbol-libweak
 extshar ${TESTDIR}
 extshar ${RLTDIR}

@@ -1,3 +1,4 @@
+# $Id$
 inittest delete_all-liba-v tc/delete_all-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

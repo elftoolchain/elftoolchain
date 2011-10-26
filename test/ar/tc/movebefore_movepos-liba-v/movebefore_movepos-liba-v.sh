@@ -1,3 +1,4 @@
+# $Id$
 inittest movebefore_movepos-liba-v tc/movebefore_movepos-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

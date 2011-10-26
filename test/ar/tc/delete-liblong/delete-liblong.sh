@@ -1,3 +1,4 @@
+# $Id$
 inittest delete-liblong tc/delete-liblong
 extshar ${TESTDIR}
 extshar ${RLTDIR}

@@ -1,3 +1,4 @@
+# $Id$
 inittest archive-liba-v tc/archive-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

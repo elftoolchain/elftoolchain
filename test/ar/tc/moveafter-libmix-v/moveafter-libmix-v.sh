@@ -1,3 +1,4 @@
+# $Id$
 inittest moveafter-libmix-v tc/moveafter-libmix-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

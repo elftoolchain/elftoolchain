@@ -1,3 +1,4 @@
+# $Id$
 inittest archive-libnonelf-v tc/archive-libnonelf-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}

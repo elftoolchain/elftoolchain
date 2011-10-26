@@ -1,3 +1,4 @@
+# $Id$
 inittest extract-liba-v tc/extract-liba-v
 extshar ${TESTDIR}
 extshar ${RLTDIR}
