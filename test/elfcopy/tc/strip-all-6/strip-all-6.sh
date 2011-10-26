@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-all-6 tc/strip-all-6
 extshar ${TESTDIR}
 extshar ${RLTDIR}

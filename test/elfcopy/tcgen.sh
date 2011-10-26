@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# $Id$
 
 # A script to generate test cases.
 

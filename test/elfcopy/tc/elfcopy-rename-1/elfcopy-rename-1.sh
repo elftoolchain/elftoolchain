@@ -1,3 +1,4 @@
+# $Id$
 inittest elfcopy-rename-1 tc/elfcopy-rename-1
 extshar ${TESTDIR}
 extshar ${RLTDIR}

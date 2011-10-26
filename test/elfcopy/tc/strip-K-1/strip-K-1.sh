@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-K-1 tc/strip-K-1
 extshar ${TESTDIR}
 extshar ${RLTDIR}

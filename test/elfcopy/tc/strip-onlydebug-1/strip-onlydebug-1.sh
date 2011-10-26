@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-onlydebug-1 tc/strip-onlydebug-1
 extshar ${TESTDIR}
 extshar ${RLTDIR}

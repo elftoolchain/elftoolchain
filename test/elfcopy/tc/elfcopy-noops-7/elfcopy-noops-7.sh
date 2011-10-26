@@ -1,3 +1,4 @@
+# $Id$
 inittest elfcopy-noops-7 tc/elfcopy-noops-7
 extshar ${TESTDIR}
 extshar ${RLTDIR}

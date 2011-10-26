@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-all-archive-2 tc/strip-all-archive-2
 extshar ${TESTDIR}
 extshar ${RLTDIR}

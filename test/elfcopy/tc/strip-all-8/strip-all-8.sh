@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-all-8 tc/strip-all-8
 extshar ${TESTDIR}
 extshar ${RLTDIR}

@@ -1,3 +1,4 @@
+# $Id$
 inittest strip-unneeded-2 tc/strip-unneeded-2
 extshar ${TESTDIR}
 extshar ${RLTDIR}

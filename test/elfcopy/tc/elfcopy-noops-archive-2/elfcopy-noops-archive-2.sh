@@ -1,3 +1,4 @@
+# $Id$
 inittest elfcopy-noops-archive-2 tc/elfcopy-noops-archive-2
 extshar ${TESTDIR}
 extshar ${RLTDIR}

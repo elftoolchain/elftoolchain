@@ -1,3 +1,5 @@
+# $Id$
+#
 # `init' initializes test engine global data.
 #
 init() {
