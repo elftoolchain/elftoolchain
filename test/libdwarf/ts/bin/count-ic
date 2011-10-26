@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id$
+#
 # This shell script generates ic_count.c which contains a single
 # variable definition `ic_count'. Variable `ic_count' is assigned
 # the number of IC (invocable components) in the directory `dir'.

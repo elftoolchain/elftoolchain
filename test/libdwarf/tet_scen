@@ -1,3 +1,5 @@
+# $Id$
+
 all
 	"Starting Test Suite"
 	^dwarf_init
