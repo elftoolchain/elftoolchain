@@ -28,6 +28,8 @@
 
 #include <libelf.h>
 #include <gelf.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "elfts.h"
 #include "tet_api.h"
@@ -138,9 +140,9 @@ void
 tcNonZeroSection$1$2(void)
 {
 	Elf *e;
-	int error, fd, result, shstrndx;
+	int error, fd, result;
 	const size_t strsectionsize = sizeof stringsection;
-	size_t n;
+	size_t n, shstrndx;
 	const char *buf;
 	Elf_Scn *scn;
 	Elf_Data *ed;
