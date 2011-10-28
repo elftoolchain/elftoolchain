@@ -28,7 +28,7 @@ echo c - ./glob
 mkdir -p ./glob > /dev/null 2>&1
 echo x - ./glob/glob.o.uu
 sed 's/^X//' >./glob/glob.o.uu << '08f54ce57ae16ee49e80e07b25b53cad'
-Xbegin 644 ./glob/glob.o
+Xbegin 644 ./glob.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````*!V````
 XM`````````$```````$``'``9``^V!X3`=":%]G5'2(U7`3')/%MT,W\:/"IT
 XM)SP_9F:0="`/M@)(@\(!A,!UY#'`D,,\7'3M/%UUZ87)9F:09I!TX+@!````
@@ -1052,7 +1052,7 @@ Xend
 08f54ce57ae16ee49e80e07b25b53cad
 echo x - ./glob/fnmatch.o.uu
 sed 's/^X//' >./glob/fnmatch.o.uu << 'b483319a2b8624af2d41c47d4e321b7b'
-Xbegin 644 ./glob/fnmatch.o
+Xbegin 644 ./fnmatch.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````(A2````
 XM`````````$```````$``&@`7`$%7059!54%455-(@^Q(2(ET)!B)5"04B4PD
 XM$`^V!X3`#X3R!P``08G-08G.2(GS@^$"2(UO`4R-?"0P08/E$$&#Y@&)3"0D
@@ -1737,7 +1737,7 @@ echo c - ./kmkbuiltin
 mkdir -p ./kmkbuiltin > /dev/null 2>&1
 echo x - ./kmkbuiltin/kbuild_protection.o.uu
 sed 's/^X//' >./kmkbuiltin/kbuild_protection.o.uu << 'ba9c783b814204367d9452f4eebce68e'
-Xbegin 644 ./kmkbuiltin/kbuild_protection.o
+Xbegin 644 ./kbuild_protection.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````-@J````
 XM`````````$```````$``'``9`,<'`!$1`,9'"0#&1P@!QT<$`@```,-F9F:0
 XM9F:09F:0QP<`````PV9FD&9FD&9FD+@"````PV9F9I!F9I!F9I!(B5PD\$B)
@@ -2188,7 +2188,7 @@ Xend
 ba9c783b814204367d9452f4eebce68e
 echo x - ./kmkbuiltin/err.o.uu
 sed 's/^X//' >./kmkbuiltin/err.o.uu << '0e59f08b905695fcc4fe4d89f926df6c'
-Xbegin 644 ./kmkbuiltin/err.o
+Xbegin 644 ./err.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````.@3````
 XM`````````$```````$``&@`7`%-(B?M(@>S0````2(E4)#`/MM!(B4PD.$B-
 XM!)4`````N@````!,B40D0$R)3"1(2(ET)"A(*<)(C80DSP```/_B#REX\0\I
@@ -2439,7 +2439,7 @@ Xend
 0e59f08b905695fcc4fe4d89f926df6c
 echo x - ./kmkbuiltin/setmode.o.uu
 sed 's/^X//' >./kmkbuiltin/setmode.o.uu << '045cd6eee6e4feeb0303b319509b422a'
-Xbegin 644 ./kmkbuiltin/setmode.o
+Xbegin 644 ./setmode.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````'@Q````
 XM`````````$```````$``'0`:`$%42(7_08GT58GU4TB)^P^$.`$``$B-2P1%
 XMB>*)[D&!XDE````/MD'\/&</A)4```!_(SPM#X0%`0``/%AF9I`/A.$````\
@@ -2916,7 +2916,7 @@ Xend
 045cd6eee6e4feeb0303b319509b422a
 echo x - ./kmkbuiltin/strmode.o.uu
 sed 's/^X//' >./kmkbuiltin/strmode.o.uu << '665ec2e03604b3bfba9eb90e1fba7d44'
-Xbegin 644 ./kmkbuiltin/strmode.o
+Xbegin 644 ./strmode.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````)`-````
 XM`````````$```````$``&P`8`%6)_5-(B?-(@^P(2(7V#X00`P``#[?-B<@E
 XM`/```#T`8```#X37`@``#X[T````/0"@```/A+8"``!F9I!F9I`/CNH!```]
@@ -3071,7 +3071,7 @@ Xend
 665ec2e03604b3bfba9eb90e1fba7d44
 echo x - ./kmkbuiltin/kbuild_version.o.uu
 sed 's/^X//' >./kmkbuiltin/kbuild_version.o.uu << '7a5d72540cc986f1046b76957afa7b12'
-Xbegin 644 ./kmkbuiltin/kbuild_version.o
+Xbegin 644 ./kbuild_version.o
 XM?T5,1@(!`0D```````````$`/@`!`````````````````````````'`&````
 XM`````````$```````$``&@`7`%.^`````$B)^TB#[!#H`````$B%P'062(U8
 XM`;X`````2(G?Z`````!(A<!UZKXN````2(G?Z`````!(A<!T,D@IV$B)VD&Y
