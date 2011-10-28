@@ -4,6 +4,8 @@
 #
 # Run all the tests.
 
+test_log=test.log
+
 # setup cleanup trap
 trap 'rm -rf /tmp/elfcopy-*; rm -rf /tmp/strip-*; exit' 0 2 3 15
 
@@ -13,6 +15,9 @@ trap 'rm -rf /tmp/elfcopy-*; rm -rf /tmp/strip-*; exit' 0 2 3 15
 # global initialization.
 init
 
+exec >${test_log} 2>&1
+echo @TEST-RUN: `date`
+
 # run tests.
 for f in tc/*; do
     if [ -d $f ]; then
@@ -21,4 +26,4 @@ for f in tc/*; do
 done
 
 # show statistics.
-statistic
+echo @RESULT: `statistic`
