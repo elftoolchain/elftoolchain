@@ -1,1 +1,1 @@
-ar: fatal: Can't add archive to itself
+ar: warning: cannot add archive "liba.a" to itself
