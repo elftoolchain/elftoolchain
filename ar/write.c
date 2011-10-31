@@ -158,6 +158,12 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 		goto giveup;
 	}
 
+	if (sb.st_dev == bsdar->ar_dev && sb.st_ino == bsdar->ar_ino) {
+		bsdar_warnc(bsdar, 0, "cannot add archive \"%s\" to itself",
+		    obj->name);
+		goto giveup;
+	}
+
 	/*
 	 * When option '-u' is specified and member is not newer than the
 	 * existing one, the replace will not happen. While if mtime == 0,
@@ -409,6 +415,9 @@ write_archive(struct bsdar *bsdar, char mode)
 			bsdar_warnc(bsdar, 0, "creating %s", bsdar->filename);
 		goto new_archive;
 	}
+
+	bsdar->ar_dev = sb.st_dev;
+	bsdar->ar_ino = sb.st_ino;
 
 	/*
 	 * First read members from existing archive.

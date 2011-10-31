@@ -110,6 +110,9 @@ struct bsdar {
 	int		  argc;
 	char		**argv;
 
+	dev_t		  ar_dev;	/* archive device. */
+	ino_t		  ar_ino;	/* archive inode. */
+
 	/*
 	 * Fields for the archive string table.
 	 */
