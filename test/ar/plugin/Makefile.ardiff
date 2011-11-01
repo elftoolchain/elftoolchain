@@ -13,9 +13,4 @@ WARNS?=	6
 DPADD=	${LIBARCHIVE}
 LDADD=	-larchive
 
-.if ${OS_HOST} == "FreeBSD"
-DPADD+=	${LIBLZMA}
-LDADD+=	-llzma
-.endif
-
 .include "${TOP}/mk/elftoolchain.prog.mk"
