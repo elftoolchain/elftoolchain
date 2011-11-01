@@ -23,11 +23,15 @@ SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
 
-# Build test suites.
+# Build the test suites.
+.if exists(${.CURDIR}/test)
 SUBDIR += test
+.endif
 
 # Build documentation at the end.
+.if exists(${.CURDIR}/documentation)
 SUBDIR += documentation
+.endif
 
 .include <bsd.subdir.mk>
 
@@ -36,5 +40,7 @@ SUBDIR += documentation
 #
 
 # Run the test suites.
+.if exists(${.CURDIR}/test)
 run-tests:	all .PHONY
 	(cd ${.CURDIR}/test; ${MAKE} test)
+.endif
