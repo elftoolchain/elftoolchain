@@ -13,7 +13,7 @@ _TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX}
 
 .MAIN:	all
 
-all:	${DOC}.pdf
+all:	${DOC}.pdf .PHONY
 
 # Build an index.
 #
@@ -70,7 +70,7 @@ depend:		.depend
 cleandepend:	.PHONY
 	rm -f .depend
 
-clean:
+clean:		.PHONY
 	rm -f ${CLEANFILES}
 
 # Include rules for `make obj`
@@ -78,7 +78,7 @@ clean:
 
 .else
 
-all clean obj depend:	.SILENT
+all clean depend install obj:	.PHONY .SILENT
 	echo -n WARNING: building \"${.CURDIR:T}\" skipped:
 .if	defined(MKTEX) && ${MKTEX} == "yes"
 	echo " missing tools."
