@@ -11,6 +11,8 @@
 TEXINPUTS=	`kpsepath tex`:${.CURDIR}
 _TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX}
 
+DOCSUBDIR=	elftoolchain	# Destination directory.
+
 .MAIN:	all
 
 all:	${DOC}.pdf .PHONY
@@ -72,6 +74,11 @@ cleandepend:	.PHONY
 
 clean:		.PHONY
 	rm -f ${CLEANFILES}
+
+install:	all
+	@mkdir -p ${DESTDIR}/${DOCDIR}/${DOCSUBDIR}
+	${INSTALL} -g ${DOCGRP} -o ${DOCOWN} ${DOC}.pdf \
+		${DESTDIR}/${DOCDIR}/${DOCSUBDIR}
 
 # Include rules for `make obj`
 .include <bsd.obj.mk>
