@@ -1,0 +1,180 @@
+Installation Instructions
+=========================
+
+This file contains instructions on building and installing the
+libraries and utilities in the elftoolchain project's sources.
+
+Supported Operating Systems
+---------------------------
+
+The source tree is currently built and tested on the following
+operating systems.
+
+  =================   ========   =======================
+  Operating System    Version    Supported Architectures
+  -----------------   --------   -----------------------
+  FreeBSD_            v8.2       amd64 & i386
+  NetBSD_             v5.0.2     i386
+  Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
+  =================   ========   =======================
+
+.. _FreeBSD: http://www.freebsd.org/
+.. _NetBSD:  http://www.netbsd.org/
+.. _Ubuntu:  http://www.ubuntu.com/
+
+
+Building the Source Tree
+========================
+
+The core libraries and utilities that make up the software release are
+always built by default.  Builds of the project's test suites (in the
+``test/`` subdirectory), and of additional documentation (in the
+directory ``documentation/``) are optional and will only be attempted
+if these directories are present.
+
+Prerequisites
+-------------
+
+:FreeBSD 8.2:
+    - The core libraries and utilities should build out of the box on
+      stock FreeBSD.
+
+    - To build and run the test suite the following pre-requisite
+      steps need to be performed:
+
+      #. The current release of the `Test Execution Toolkit`_ needs to
+         be downloaded and unpacked into the ``test/tet/`` directory.
+
+      #. The ``py-yaml`` package needs to be installed::
+
+            % sudo pkg_add -r py-yaml
+
+    - To build additional documentation, the ``teTeX`` package is
+      needed::
+
+            % sudo pkg_add -r teTeX
+
+:NetBSD 5.0.2:
+    - The core libraries and utilities should build out of the box
+      on stock NetBSD.
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_, needs
+         to be downloaded and unpacked into the ``test/tet/``
+         directory.
+
+      #. The following additional package needs to be installed, as
+      	 listed in the example command line below ::
+
+            % sudo pkg_add py26-yaml
+
+    - Building additional documentation under NetBSD is not currently
+      supported.
+
+:Ubuntu GNU/Linux 10.04:
+    - The following packages are pre-requisites for building the
+      sources on Ubuntu GNU/Linux:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``binutils``	      Needed for the build.
+      ``bison``	              Parser generator.
+      ``flex``	              Lexical analyser.
+      ``gcc``                 C compiler.
+      ``libarchive-dev``      Archive access library.
+      ``libc6-dev``           Files for C language development.
+      ``m4``                  Macro processor.
+      ``pmake`` 	      A ``make`` that uses BSD-make syntax.
+      ``sharutils``           For ``uudecode``.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+	  % sudo apt-get install binutils bison flex gcc libarchive-dev \
+	    libc6-dev m4 pmake
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_, needs
+         to be downloaded and unpacked into the ``test/tet/``
+         directory.
+
+      #. The following additional packages need to be installed, as
+      	 listed in the example command line below::
+
+            % sudo pkg_add libexpat1-dev python-yaml sharutils
+
+    - Builds of additional documentation are not currently supported
+      under GNU/Linux.
+
+.. _Test Execution Toolkit: http://tetworks.opengroup.org/
+.. _OpenGroup: http://www.opengroup.org/
+    
+
+Building the software
+---------------------
+
+The software may be built by running **make**.
+
+On FreeBSD_ and NetBSD_::
+
+  % make
+
+On Ubuntu GNU/Linux with the **pmake** package installed::
+
+  % pmake
+
+
+Testing the software
+---------------------
+
+The ``run-tests`` target in the top-level Makefile will build and
+execute the test suites that are part of this software.
+
+On FreeBSD_ and NetBSD_::
+
+    % make run-tests
+
+On Ubuntu GNU/Linux with the **pmake** package installed::
+
+    % pmake run-tests
+
+Installing the Software
+=======================
+
+The software may be installed using the ``install`` target.
+
+On FreeBSD_ and NetBSD_::
+
+    % make install
+
+On Ubuntu GNU/Linux with the **pmake** package installed::
+
+    % pmake install
+
+
+By default the ``install`` target will install utilities into
+``/usr/bin/``, libraries into ``/usr/lib/`` and manual pages into
+``/usr/share/man/man[0-9]/``.
+
+The installation directory may be changed using the ``DESTDIR``
+variable.  For example::
+
+    % pmake DESTDIR=$HOME/local install
+
+
+Additional Information
+======================
+
+Additional information about the project may be found on the `project
+website`.
+
+.. _project website:  http://elftoolchain.sourceforge.net/
+
+.. Local Variables:
+.. mode: rst
+.. End:
+
