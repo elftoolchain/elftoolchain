@@ -1,5 +1,7 @@
 /*
  * Iterate through an ar(1) archive.
+ *
+ * $Id$
  */
 
 #include <err.h>

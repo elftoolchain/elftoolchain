@@ -1,5 +1,7 @@
 /*
  * Print the ELF Program Header Table in an ELF object.
+ *
+ * $Id$
  */
 
 #include <err.h>

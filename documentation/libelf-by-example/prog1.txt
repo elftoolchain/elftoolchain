@@ -1,3 +1,9 @@
+/*
+ * Getting started with libelf.
+ *
+ * $Id$
+ */
+
 #include <err.h>
 #include <fcntl.h>
 #include <libelf.h> @\co{1}@

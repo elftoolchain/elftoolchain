@@ -1,5 +1,7 @@
 /*
  * Print the names of ELF sections.
+ *
+ * $Id$
  */
 
 #include <err.h>
