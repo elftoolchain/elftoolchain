@@ -27,7 +27,6 @@
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <netinet/in.h>
 #include <ar.h>
 #include <assert.h>
 #include <ctype.h>
