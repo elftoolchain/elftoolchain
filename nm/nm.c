@@ -45,7 +45,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include "_elftc.h"
