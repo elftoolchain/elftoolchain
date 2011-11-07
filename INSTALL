@@ -119,11 +119,11 @@ Building the software
 
 The software may be built by running **make**.
 
-On FreeBSD_ and NetBSD_::
+On FreeBSD_ and NetBSD_, use::
 
   % make
 
-On Ubuntu GNU/Linux with the **pmake** package installed::
+On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
   % pmake
 
@@ -134,11 +134,11 @@ Testing the software
 The ``run-tests`` target in the top-level Makefile will build and
 execute the test suites that are part of this software.
 
-On FreeBSD_ and NetBSD_::
+On FreeBSD_ and NetBSD_, use::
 
     % make run-tests
 
-On Ubuntu GNU/Linux with the **pmake** package installed::
+On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
     % pmake run-tests
 
@@ -147,11 +147,11 @@ Installing the Software
 
 The software may be installed using the ``install`` target.
 
-On FreeBSD_ and NetBSD_::
+On FreeBSD_ and NetBSD_, use::
 
     % make install
 
-On Ubuntu GNU/Linux with the **pmake** package installed::
+On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
     % pmake install
 
@@ -170,7 +170,7 @@ Additional Information
 ======================
 
 Additional information about the project may be found on the `project
-website`.
+website`_.
 
 .. _project website:  http://elftoolchain.sourceforge.net/
 
