@@ -157,6 +157,15 @@ for submitting new bug reports.
 
 .. _`Trac instance`: http://sourceforge.net/apps/trac/elftoolchain/report
 
+
+Copyright and License
+=====================
+
+This software is copyright its authors, and is distributed under the
+`BSD License`_.
+
+.. _BSD License: http://www.opensource.org/licenses/bsd-license.php
+
 .. Local Variables:
 .. mode: rst
 .. End:
