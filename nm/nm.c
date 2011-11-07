@@ -319,7 +319,7 @@ cmp_name(const void *l, const void *r)
 	assert(((const struct sym_entry *)r)->name != NULL);
 
 	return (strcmp(((const struct sym_entry *)l)->name,
-		((const struct sym_entry *)r)->name));
+	    ((const struct sym_entry *)r)->name));
 }
 
 static int
@@ -440,7 +440,7 @@ parse_demangle_option(const char *opt)
 	else if (!strncasecmp(opt, "arm", 3))
 		return (ELFTC_DEM_ARM);
 	else
-		errx(EX_USAGE, "unknown demangling style '%s'", opt);
+		errx(1, "unknown demangling style '%s'", opt);
 
 	/* NOTREACHED */
 	return (0);
@@ -486,7 +486,7 @@ get_opt(int argc, char **argv)
 				break;
 			default:
 				warnx("%s: Invalid format", optarg);
-				usage(EX_USAGE);
+				usage(1);
 			}
 
 			break;
@@ -539,7 +539,7 @@ get_opt(int argc, char **argv)
 				break;
 			default:
 				warnx("%s: Invalid radix", optarg);
-				usage(EX_USAGE);
+				usage(1);
 			}
 			break;
 		case 'u':
@@ -568,9 +568,9 @@ get_opt(int argc, char **argv)
 				nm_opts.demangle_type = -1;
 			break;
 		case 'h':
-			usage(EX_OK);
+			usage(0);
 		default :
-			usage(EX_USAGE);
+			usage(1);
 		}
 	}
 
@@ -584,11 +584,9 @@ get_opt(int argc, char **argv)
 
 	if (nm_opts.undef_only == true) {
 		if (nm_opts.sort_fn == &cmp_size)
-			errx(EX_USAGE, "--size-sort with -u is meaningless");
-
+			errx(1, "--size-sort with -u is meaningless");
 		if (nm_opts.def_only != 0)
-			errx(EX_USAGE,
-			    "-u with --defined-only is meaningless");
+			errx(1, "-u with --defined-only is meaningless");
 	}
 	if (nm_opts.print_debug == false)
 		filter_insert(sym_elem_nondebug);
@@ -615,7 +613,7 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 	const char *sym_name;
 	char type;
 	bool filter;
-	int i;
+	int i, j;
 
 	assert(elf != NULL);
 	assert(headp != NULL);
@@ -638,7 +636,7 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 
 		data = NULL;
 		while ((data = elf_getdata(scn, data)) != NULL) {
-			int j = 1;
+			j = 1;
 			while (gelf_getsym(data, j++, &sym) != NULL) {
 
 				sym_name = get_sym_name(&sym, table, sec_table,
@@ -734,28 +732,22 @@ global_init(void)
 
 	nm_info.name = ELFTC_GETPROGNAME();
 	nm_info.def_filename = "a.out";
-
 	nm_opts.print_symbol = PRINT_SYM_SYM;
 	nm_opts.print_name = PRINT_NAME_NONE;
 	nm_opts.demangle_type = -1;
 	nm_opts.print_debug = false;
 	nm_opts.print_armap = false;
 	nm_opts.print_size = 0;
-
 	nm_opts.debug_line = false;
-
 	nm_opts.def_only = 0;
 	nm_opts.undef_only = false;
-
 	nm_opts.sort_size = 0;
 	nm_opts.sort_reverse = false;
 	nm_opts.no_demangle = 0;
-
 	nm_opts.sort_fn = &cmp_name;
 	nm_opts.elem_print_fn = &sym_elem_print_all;
 	nm_opts.value_print_fn = &sym_value_dec_print;
 	nm_opts.size_print_fn = &sym_size_dec_print;
-
 	SLIST_INIT(&nm_out_filter);
 }
 
@@ -907,8 +899,9 @@ Name                  Value           Class        Type         Size            
 static void
 print_version(void)
 {
+
 	(void) printf("%s (%s)\n", nm_info.name, elftc_version());
-	exit(EX_OK);
+	exit(0);
 }
 
 /*
@@ -1869,36 +1862,30 @@ sym_list_print_each(struct sym_entry *ep, struct sym_print_data *p,
 		/* LOPROC or LORESERVE */
 		sec = "*LOPROC*";
 		break;
-
 	case SHN_HIPROC:
 		sec = "*HIPROC*";
 		break;
-
 	case SHN_LOOS:
 		sec = "*LOOS*";
 		break;
-
 	case SHN_HIOS:
 		sec = "*HIOS*";
 		break;
-
 	case SHN_ABS:
 		sec = "*ABS*";
 		break;
-
 	case SHN_COMMON:
 		sec = "*COM*";
 		break;
-
 	case SHN_HIRESERVE:
 		/* HIRESERVE or XINDEX */
 		sec = "*HIRESERVE*";
 		break;
-
 	default:
 		if (ep->sym->st_shndx > p->sh_num)
 			return;
 		sec = p->s_table[ep->sym->st_shndx];
+		break;
 	};
 
 	nm_opts.elem_print_fn(type, sec, ep->sym, ep->name);
@@ -1947,7 +1934,6 @@ sym_size_oct_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	printf("%016" PRIo64, sym->st_size);
 }
 
@@ -1956,7 +1942,6 @@ sym_size_hex_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	if (nm_elfclass == ELFCLASS32)
 		printf("%08" PRIx64, sym->st_size);
 	else
@@ -1968,7 +1953,6 @@ sym_size_dec_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	printf("%016" PRId64, sym->st_size);
 }
 
@@ -1977,7 +1961,6 @@ sym_value_oct_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	printf("%016" PRIo64, sym->st_value);
 }
 
@@ -1986,7 +1969,6 @@ sym_value_hex_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	if (nm_elfclass == ELFCLASS32)
 		printf("%08" PRIx64, sym->st_value);
 	else
@@ -1998,7 +1980,6 @@ sym_value_dec_print(const GElf_Sym *sym)
 {
 
 	assert(sym != NULL && "sym is null");
-
 	printf("%016" PRId64, sym->st_value);
 }
 
@@ -2066,26 +2047,12 @@ usage(int exitcode)
 int
 main(int argc, char **argv)
 {
-	int rtn = 1;
-
-	assert(argc > 0);
+	int rtn;
 
 	global_init();
-
-	assert(nm_info.name != NULL && "nm_info.name is null");
-	assert(nm_info.def_filename != NULL && "nm_info.def_filename is null");
-
 	get_opt(argc, argv);
-
-	assert(nm_opts.sort_fn != NULL && "nm_opts.sort_fn is null");
-	assert(nm_opts.elem_print_fn != NULL &&
-	    "nm_opts.elem_print_fn is null");
-	assert(nm_opts.value_print_fn != NULL &&
-	    "nm_opts.value_print_fn is null");
-
 	rtn = read_files(argc - optind, argv + optind);
-
 	global_dest();
 
-	return (rtn);
+	exit(rtn);
 }

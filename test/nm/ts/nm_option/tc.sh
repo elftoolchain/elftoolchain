@@ -38,7 +38,7 @@ tp7()
 }
 
 ERROR_OK="0"
-ERROR_USAGE="64"
+ERROR_USAGE="1"
 
 tet_startup=""
 tet_cleanup=""
