@@ -13,7 +13,7 @@ TET_PATCH_MARKER=	.tet-patch-done
 
 .MAIN:	all
 
-.PHONY:	all clean depend
+.PHONY:	all clean clobber depend
 
 .if exists(${TET_ROOT}/configure)
 
@@ -38,6 +38,9 @@ clean:
 	cd ${TET_ROOT}/src && ${MAKE} clean
 	rm -f ${TET_BUILD_MARKER}
 
+clobber:
+	rm -rf ${TET_ROOT} ${TET_BUILD_MARKER} ${TET_PATCH_MARKER}
+
 depend test:	.SILENT
 	true
 
@@ -46,9 +49,6 @@ depend test:	.SILENT
 #
 # The TET source tree was not detected.
 #
-
-clean:	.SILENT
-	true
 
 all depend test:	.SILENT
 	echo "ERROR: The distribution of TET v${TET_VERSION} is missing."
@@ -59,4 +59,6 @@ all depend test:	.SILENT
 	echo
 	false
 
+clean clobber:
+	rm -f ${TET_BUILD_MARKER} ${TET_PATCH_MARKER}
 .endif
