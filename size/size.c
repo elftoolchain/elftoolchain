@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include "_elftc.h"
@@ -45,6 +44,13 @@ ELFTC_VCSID("$Id$");
 #define	BUF_SIZE			1024
 #define	ELF_ALIGN(val,x) (((val)+(x)-1) & ~((x)-1))
 #define	SIZE_VERSION_STRING		"size 1.0"
+
+enum return_code {
+	RETURN_OK,
+	RETURN_NOINPUT,
+	RETURN_DATAERR,
+	RETURN_USAGE
+};
 
 enum output_style {
 	STYLE_BERKELEY,
@@ -114,13 +120,13 @@ static void	tbl_flush(void);
 int
 main(int argc, char **argv)
 {
-	int ch, exitcode, r;
+	int ch, r, rc;
 	const char **files, *fn;
 
-	exitcode = EX_OK;
+	rc = RETURN_OK;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
 	while ((ch = getopt_long(argc, argv, "ABVdhotx", size_longopts,
@@ -175,7 +181,7 @@ main(int argc, char **argv)
 				}
 				break;
 			default:
-				err(EX_SOFTWARE, "Error in option handling.");
+				err(EXIT_FAILURE, "Error in option handling.");
 				/*NOTREACHED*/
 			}
 			break;
@@ -191,9 +197,9 @@ main(int argc, char **argv)
 	files = (argc == 0) ? default_args : (const char **) argv;
 
 	while ((fn = *files) != NULL) {
-		exitcode = handle_elf(fn);
-		if (exitcode != EX_OK)
-			warnx(exitcode == EX_NOINPUT ?
+		rc = handle_elf(fn);
+		if (rc != RETURN_OK)
+			warnx(rc == RETURN_NOINPUT ?
 			      "'%s': No such file" :
 			      "%s: File format not recognized", fn);
 		files++;
@@ -203,7 +209,7 @@ main(int argc, char **argv)
 			berkeley_totals();
 		tbl_flush();
 	}
-        return (exitcode);
+        return (rc);
 }
 
 static Elf_Data *
@@ -485,9 +491,9 @@ handle_core(char const *name, Elf *elf, GElf_Ehdr *elfhdr)
 	const char *seg_name;
 
 	if (name == NULL || elf == NULL || elfhdr == NULL)
-		return (EX_DATAERR);
+		return (RETURN_DATAERR);
 	if  (elfhdr->e_shnum != 0 || elfhdr->e_type != ET_CORE)
-		return (EX_DATAERR);
+		return (RETURN_DATAERR);
 
 	seg_name = core_cmdline = NULL;
 	if (style == STYLE_SYSV)
@@ -552,7 +558,7 @@ handle_core(char const *name, Elf *elf, GElf_Ehdr *elfhdr)
 		}
 	}
 	free(core_cmdline);
-	return (EX_OK);
+	return (RETURN_OK);
 }
 
 /*
@@ -572,10 +578,10 @@ handle_elf(char const *name)
 	int exit_code, fd;
 
 	if (name == NULL)
-		return (EX_NOINPUT);
+		return (RETURN_NOINPUT);
 
 	if ((fd = open(name, O_RDONLY, 0)) < 0)
-		return (EX_NOINPUT);
+		return (RETURN_NOINPUT);
 
 	elf_cmd = ELF_C_READ;
 	elf1 = elf_begin(fd, elf_cmd, NULL);
@@ -585,7 +591,7 @@ handle_elf(char const *name)
 			(void) elf_end(elf);
 			(void) elf_end(elf1);
 			(void) close(fd);
-			return (EX_DATAERR);
+			return (RETURN_DATAERR);
 		}
 		if (elf_kind(elf) != ELF_K_ELF ||
 		    (gelf_getehdr(elf, &elfhdr) == NULL)) {
@@ -634,7 +640,7 @@ handle_elf(char const *name)
 	}
 	(void) elf_end(elf1);
 	(void) close(fd);
-	return (EX_OK);
+	return (RETURN_OK);
 }
 
 /*
@@ -784,11 +790,11 @@ tbl_new(int col)
 	assert(tb == NULL);
 	assert(col > 0);
 	if ((tb = calloc(1, sizeof(*tb))) == NULL)
-		err(EX_SOFTWARE, "calloc");
+		err(EXIT_FAILURE, "calloc");
 	if ((tb->tbl = calloc(col, sizeof(*tb->tbl))) == NULL)
-		err(EX_SOFTWARE, "calloc");
+		err(EXIT_FAILURE, "calloc");
 	if ((tb->width = calloc(col, sizeof(*tb->width))) == NULL)
-		err(EX_SOFTWARE, "calloc");
+		err(EXIT_FAILURE, "calloc");
 	tb->col = col;
 	tb->row = 0;
 }
@@ -801,7 +807,7 @@ tbl_print(const char *s, int col)
 	assert(tb != NULL && tb->col > 0 && tb->row > 0 && col < tb->col);
 	assert(s != NULL && tb->tbl[col][tb->row - 1] == NULL);
 	if ((tb->tbl[col][tb->row - 1] = strdup(s)) == NULL)
-		err(EX_SOFTWARE, "strdup");
+		err(EXIT_FAILURE, "strdup");
 	len = strlen(s);
 	if (len > tb->width[col])
 		tb->width[col] = len;
@@ -827,7 +833,7 @@ tbl_append(void)
 	for (i = 0; i < tb->col; i++) {
 		tb->tbl[i] = realloc(tb->tbl[i], sizeof(*tb->tbl[i]) * tb->row);
 		if (tb->tbl[i] == NULL)
-			err(EX_SOFTWARE, "realloc");
+			err(EXIT_FAILURE, "realloc");
 		tb->tbl[i][tb->row - 1] = NULL;
 	}
 }
@@ -896,12 +902,12 @@ static void
 usage(void)
 {
 	(void) fprintf(stderr, "%s", usagemsg);
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static void
 show_version(void)
 {
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
