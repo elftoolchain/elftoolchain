@@ -166,7 +166,8 @@ main(int argc, char **argv)
 			break;
 		case 's':
 			if ((format = find_format(optarg)) < 0)
-				errx(1, "unsupported format: %s", optarg);
+				errx(EXIT_FAILURE, "unsupported format: %s",
+				    optarg);
 			break;
 		case OPTION_VERSION:
 			version();
