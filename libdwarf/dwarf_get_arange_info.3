@@ -118,7 +118,8 @@ if (dwarf_get_aranges(dbg, &aranges, &cnt, &de) != DW_DLV_OK)
 for (i = 0; i < cnt; i++) {
 	if (dwarf_get_arange_info(aranges[i], &start, &length,
 	    &die_off, &de) != DW_DLV_OK) {
-		warnx("dwarf_get_arange_info: %s", dwarf_errmsg(de));
+		warnx("dwarf_get_arange_info: %s",
+		    dwarf_errmsg(de));
 		continue;
 	}
 	/* Do something with the returned information. */

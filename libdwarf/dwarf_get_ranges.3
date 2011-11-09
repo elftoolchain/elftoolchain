@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 17, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_GET_RANGES 3
 .Sh NAME
@@ -219,7 +219,8 @@ int i, j;
 
 if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
     DW_DLV_OK)
-	errx(1, "dwarf_attrlist failed: %s", dwarf_errmsg(de));
+	errx(EXIT_FAILURE, "dwarf_attrlist failed: %s",
+	    dwarf_errmsg(de));
 
 for (i = 0; (Dwarf_Unsigned) i < attr_count; i++) {
 	if (dwarf_whatattr(attr_list[i], &attr, &de) != DW_DLV_OK) {

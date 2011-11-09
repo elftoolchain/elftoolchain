@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 12, 2009
+.Dd November 9, 2011
 .Os
 .Dt DWARF_GET_ELF 3
 .Sh NAME
@@ -85,15 +85,15 @@ To retrieve the
 instance associated with a
 .Vt Dwarf_Debug
 instance use:
-.Bd -literal
-	Dwarf_Debug dbg;
-	Dwarf_Error de;
-	Elf *elf;
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Error de;
+Elf *elf;
 
-	\&... allocate dbg using dwarf_init() etc ...
+\&... allocate dbg using dwarf_init() etc ...
 
-	if (dwarf_get_elf(dbg, &elf, &de) != DW_DLV_OK)
-		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(de));
+if (dwarf_get_elf(dbg, &elf, &de) != DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_get_elf: %s", dwarf_errmsg(de));
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,

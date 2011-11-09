@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 11, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_GET_FDE_INFO_FOR_REG3 3
 .Sh NAME
@@ -184,7 +184,7 @@ Dwarf_Error de;
 if (dwarf_get_fde_range(fde, &low_pc, &func_len, &fde_addr,
     &fde_length, &cie_offset, &cie_index, &fde_offset,
     &de) != DW_DLV_OK)
-	errx(1, "dwarf_get_fde_range failed: %s",
+	errx(EXIT_FAILURE, "dwarf_get_fde_range failed: %s",
 	    dwarf_errmsg(de));
 
 /* Iterate all the table rows. */

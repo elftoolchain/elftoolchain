@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 28, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_FINISH 3
 .Sh NAME
@@ -97,7 +97,7 @@ Dwarf_Debug dbg;
 Dwarf_Error de;
 
 if (dwarf_finish(dbg, &de) != DW_DLV_OK)
-	errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+	errx(EXIT_FAILURE, "dwarf_finish: %s", dwarf_errmsg(de));
 .Ed
 .Pp
 To deallocate a
@@ -110,7 +110,8 @@ Dwarf_Debug dbg;
 Dwarf_Error de;
 
 if (dwarf_object_finish(dbg, &de) != DW_DLV_OK)
-	errx(1, "dwarf_object_finish: %s", dwarf_errmsg(de));
+	errx(EXIT_FAILURE, "dwarf_object_finish: %s",
+	    dwarf_errmsg(de));
 .Ed
 .Pp
 To deallocate a
@@ -124,10 +125,10 @@ Dward_Error de;
 Elf *e;
 
 if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
-	errx(1, "dwarf_get_elf: %s", dwarf_errmsg(&de));
+	errx(EXIT_FAILURE, "dwarf_get_elf: %s", dwarf_errmsg(&de));
 
 if (dwarf_finish(dbg, &de) != DW_DLV_OK)
-	errx(1, "dwarf_finish: %s", dwarf_errmsg(de));
+	errx(EXIT_FAILURE, "dwarf_finish: %s", dwarf_errmsg(de));
 
 (void) elf_end(e);
 .Ed

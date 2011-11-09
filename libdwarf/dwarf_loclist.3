@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 6, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_LOCLIST 3
 .Sh NAME
@@ -207,9 +207,9 @@ Dwarf_Loc *lr;
 Dwarf_Error de;
 int i;
 
-if (dwarf_loclist_n(at, &llbuf, &lcnt, &de) != DW_DLV_OK) {
-	errx(1, "dwarf_loclist_n failed: %s", dwarf_errmsg(de));
-}
+if (dwarf_loclist_n(at, &llbuf, &lcnt, &de) != DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_loclist_n failed: %s",
+	    dwarf_errmsg(de));
 
 for (i = 0; i < lcnt; i++) {
 	/* ... Use llbuf[i] ... */

@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 25, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_DEF_MACRO 3
 .Sh NAME
@@ -101,7 +101,8 @@ Dwarf_Error de;
 
 /* ... Assume 'dbg' refers to a DWARF producer instance... */
 if (dwarf_def_macro(dbg, 20, "_STDIO_H_", NULL, &de) != DW_DLV_OK)
-	errx(1, "dwarf_def_macro failed: %s", dwarf_errmsg(-1));
+	errx(EXIT_FAILURE, "dwarf_def_macro failed: %s",
+	    dwarf_errmsg(-1));
 .Ed
 .Sh ERRORS
 Function

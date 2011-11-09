@@ -136,21 +136,21 @@ Dwarf_Unsigned dir, filendx;
 
 dir = dwarf_add_directory_decl(dbg, "/home/foo", &de);
 if (dir == DW_DLV_NOCOUNT)
-	errx(1, "dwarf_add_directory_decl failed: %s",
+	errx(EXIT_FAILURE, "dwarf_add_directory_decl failed: %s",
 	    dwarf_errmsg(-1));
 
 filendx = dwarf_add_file_decl(dbg, "bar.c", dir, 0, 1234, &de);
 if (filendx == DW_DLV_NOCOUNT)
-	errx(1, "dwarf_add_file_decl failed: %s",
+	errx(EXIT_FAILURE, "dwarf_add_file_decl failed: %s",
 	    dwarf_errmsg(-1));
 
 if (dwarf_lne_set_address(dbg, 0x4012b0, 12, &de) != DW_DLV_OK)
-	errx(1, "dwarf_lne_set_address failed: %s",
+	errx(EXIT_FAILURE, "dwarf_lne_set_address failed: %s",
 	    dwarf_errmsg(-1));
 
 if (dwarf_add_line_entry(dbg, filendx, 10, 258, 0, 1, 1, &de) !=
     DW_DLV_OK)
-	errx(1, "dwarf_add_line_entry failed: %s",
+	errx(EXIT_FAILURE, "dwarf_add_line_entry failed: %s",
 	    dwarf_errmsg(-1));
 .Ed
 .Sh SEE ALSO

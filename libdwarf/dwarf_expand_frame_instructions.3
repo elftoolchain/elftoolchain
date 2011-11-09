@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 4, 2011
+.Dd November 9, 2011
 .Os
 .Dt DWARF_EXPAND_FRAME_INSTRUCTIONS 3
 .Sh NAME
@@ -148,12 +148,13 @@ Dwarf_Error de;
 
 if (dwarf_get_fde_instr_bytes(fde, &fde_inst, &fde_instlen,
     &de) != DW_DLV_OK)
-	errx(1, "dwarf_get_fde_instr_bytes failed: %s",
+	errx(EXIT_FAILURE, "dwarf_get_fde_instr_bytes failed: %s",
 	    dwarf_errmsg(de));
 
 if (dwarf_expand_frame_instructions(cie, fde_inst, fde_instlen,
     &ops, &opcnt, &de) != DW_DLV_OK)
-	errx(1, "dwarf_expand_frame_instructions failed: %s",
+	errx(EXIT_FAILURE,
+	    "dwarf_expand_frame_instructions failed: %s",
 	    dwarf_errmsg(de));
 
 for (i = 0; i < opcnt; i++) {

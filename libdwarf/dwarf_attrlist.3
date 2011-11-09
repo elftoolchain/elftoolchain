@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 11, 2010
+.Dd November 9, 2011
 .Os
 .Dt DWARF_ATTRLIST 3
 .Sh NAME
@@ -109,7 +109,7 @@ int error, i;
 /* Retrieve the attribute list from the DIE. */
 if ((error = dwarf_attrlist(dw_die, &dw_attributes, &dw_count,
 	&dw_e)) != DW_DLV_OK)
-	errx(1, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
+	errx(EXIT_FAILURE, "dwarf_attrlist: %s", dwarf_errmsg(dw_e));
 
 /* Process the attribute list. */
 for (i = 0; i < dw_count; ++i) {

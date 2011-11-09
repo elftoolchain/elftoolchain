@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 27, 2010
+.Dd November 9, 2011
 .Os
 .Dt DWARF_SRCLINES 3
 .Sh NAME
@@ -118,33 +118,35 @@ To obtain an array of
 .Vt Dwarf_Line
 descriptors and to retrieve the source file, line number, and virtual address
 associated with each descriptor:
-.Bd -literal
-	int n;
-	Dwarf_Die die;
-	Dwarf_Error de;
-	char *filename;
-	Dwarf_Line *lines;
-	Dwarf_Signed nlines;
-	Dwarf_Addr lineaddr;
-	Dwarf_Unsigned lineno;
+.Bd -literal -offset indent
+int n;
+Dwarf_Die die;
+Dwarf_Error de;
+char *filename;
+Dwarf_Line *lines;
+Dwarf_Signed nlines;
+Dwarf_Addr lineaddr;
+Dwarf_Unsigned lineno;
 
-	\&...variable die contains a reference to a DIE for a compilation unit...
+/* variable "die" should reference a DIE for a compilation unit */
 
-	if (dwarf_srclines(die, &lines, &nlines, &de) != DW_DLV_OK)
-		errx(1, "dwarf_srclines: %s", dwarf_errmsg(de));
+if (dwarf_srclines(die, &lines, &nlines, &de) != DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_srclines: %s", dwarf_errmsg(de));
 
-	for (n = 0; n < nlines; n++) {
-		/* Retrieve the file name for this descriptor. */
-		if (dwarf_linesrc(lines[n], &filename, &de))
-			errx(1, "dwarf_linesrc: %s", dwarf_errmsg(de));
+for (n = 0; n < nlines; n++) {
+	/* Retrieve the file name for this descriptor. */
+	if (dwarf_linesrc(lines[n], &filename, &de))
+		errx(EXIT_FAILURE, "dwarf_linesrc: %s",
+		    dwarf_errmsg(de));
 
-		/* Retrieve the line number in the source file. */
-		if (dwarf_lineno(lines[n], &lineno, &de))
-			errx(1, "dwarf_lineno: %s", dwarf_errmsg(de));
-
-		/* Retrieve the virtual address associated with this line. */
-		if (dwarf_lineaddr(lines[n], &lineaddr, &de))
-			errx(1, "dwarf_lineaddr: %s", dwarf_errmsg(de));
+	/* Retrieve the line number in the source file. */
+	if (dwarf_lineno(lines[n], &lineno, &de))
+		errx(EXIT_FAILURE, "dwarf_lineno: %s",
+		    dwarf_errmsg(de));
+	/* Retrieve the virtual address for this line. */
+	if (dwarf_lineaddr(lines[n], &lineaddr, &de))
+		errx(EXIT_FAILURE, "dwarf_lineaddr: %s",
+		    dwarf_errmsg(de));
 	}
 .Ed
 .Sh SEE ALSO

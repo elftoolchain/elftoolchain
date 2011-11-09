@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 12, 2009
+.Dd November 9, 2011
 .Os
 .Dt DWARF_INIT 3
 .Sh NAME
@@ -161,13 +161,13 @@ To initialize a
 .Vt Dwarf_Debug
 instance from a open file descriptor referencing an ELF object, and
 with the default error handler, use:
-.Bd -literal
-	Dwarf_Error err;
-	Dwarf_Debug dbg;
+.Bd -literal -offset indent
+Dwarf_Error err;
+Dwarf_Debug dbg;
 
-	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &err) !=
-	    DW_DLV_OK)
-		errx(1, "dwarf_init: %s", dwarf_errmsg(err));
+if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &err) !=
+    DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_init: %s", dwarf_errmsg(err));
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,

@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 30, 2010
+.Dd November 9, 2011
 .Os
 .Dt DWARF_CHILD 3
 .Sh NAME
@@ -166,33 +166,35 @@ To retrieve the first DWARF Debugging Information Entry descriptor for
 the first compilation unit associated with a
 .Vt Dwarf_Debug
 instance, and to traverse all its children, use:
-.Bd -literal
-	Dwarf_Debug dbg;
-	Dwarf_Die die, die0;
-	Dwarf_Error de;
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Die die, die0;
+Dwarf_Error de;
 
-	\&... allocate dbg using dwarf_init() etc ...
+\&... allocate dbg using dwarf_init() etc ...
 
-	if (dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL, &de) !=
-	    DW_DLV_OK)
-		errx(1, "dwarf_next_cu_header: %s", dwarf_errmsg(de));
+if (dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL, &de) !=
+    DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_next_cu_header: %s",
+	    dwarf_errmsg(de));
 
-	/* Get the first DIE for the current compilation unit. */
-	die = NULL;
-	if (dwarf_siblingof(dbg, die, &die0, &de) != DW_DLV_OK)
-		errx(1, "dwarf_siblingof: %s", dwarf_errmsg(de));
+/* Get the first DIE for the current compilation unit. */
+die = NULL;
+if (dwarf_siblingof(dbg, die, &die0, &de) != DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_siblingof: %s", dwarf_errmsg(de));
 
-	/* Get the first child of this DIE. */
+/* Get the first child of this DIE. */
+die = die0;
+if (dwarf_child(die, &die0, &de) != DW_DLV_OK)
+	errx(EXIT_FAILURE, "dwarf_child: %s", dwarf_errmsg(de));
+
+/* Get the rest of children. */
+do {
 	die = die0;
-	if (dwarf_child(die, &die0, &de) != DW_DLV_OK)
-		errx(1, "dwarf_child: %s", dwarf_errmsg(de));
-
-	/* Get the rest of children. */
-	do {
-		die = die0;
-		if (dwarf_siblingof(dbg, die, &die0, &de) == DW_DLV_ERROR)
-			errx(1, "dwarf_siblingof: %s", dwarf_errmsg(de));
-	} while (die0 != NULL);
+	if (dwarf_siblingof(dbg, die, &die0, &de) == DW_DLV_ERROR)
+		errx(EXIT_FAILURE, "dwarf_siblingof: %s",
+		    dwarf_errmsg(de));
+} while (die0 != NULL);
 .Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
