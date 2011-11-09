@@ -7,6 +7,8 @@ TEST_LOG=	test.log
 
 .MAIN:	all
 
+.PHONY:	clobber execute test
+
 execute test: ${AR}
 	/bin/sh run.sh
 

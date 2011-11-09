@@ -20,7 +20,9 @@ TET_OPTIONS+=	-e
 
 .MAIN: all
 
-execute tccbuild tccclean test:	.PHONY
+.PHONY:	clobber execute tccbuild tccclean test
+
+execute tccbuild tccclean test:
 	TET_ROOT=${TET_ROOT} TET_SUITE_ROOT=${.CURDIR} \
 	${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
 

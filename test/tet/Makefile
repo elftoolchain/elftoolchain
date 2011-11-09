@@ -13,7 +13,7 @@ TET_PATCH_MARKER=	.tet-patch-done
 
 .MAIN:	all
 
-.PHONY:	all clean clobber depend
+.PHONY:	all clean clobber depend test
 
 .if exists(${TET_ROOT}/configure)
 

@@ -8,6 +8,8 @@ TEST_LOG=	test.log
 
 .MAIN:	all
 
+.PHONY:	clobber execute test
+
 execute test: ${ELFCOPY}
 	/bin/sh run.sh
 

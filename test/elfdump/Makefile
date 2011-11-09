@@ -8,6 +8,8 @@ TOP=		../..
 TET_EXECUTE=	${.OBJDIR}
 .endif
 
+.PHONY:	all clean clobber execute test
+
 all clean depend:
 
 execute test:
