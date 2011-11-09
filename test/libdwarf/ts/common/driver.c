@@ -256,35 +256,37 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 
 	if (!strcmp(el, "ic")) {
 		if (_cur_ic != NULL)
-			errx(1, "Nested IC at line %jd",
+			errx(EXIT_FAILURE, "Nested IC at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_ic = calloc(1, sizeof(*_cur_ic));
 		STAILQ_INIT(&_cur_ic->tplist);
 		if (_cur_ic == NULL)
-			err(1, "calloc");
+			err(EXIT_FAILURE, "calloc");
 		for (i = 0; attr[i]; i += 2) {
 			if (!strcmp(attr[i], "file")) {
 				_cur_ic->file = strdup(attr[i + 1]);
 				if (_cur_ic->file == NULL)
-					err(1, "strdup");
+					err(EXIT_FAILURE, "strdup");
 				break;
 			}
 		}
 		if (_cur_ic->file == NULL)
-			errx(1, "IC without 'file' attribute at line %jd",
+			errx(EXIT_FAILURE, "IC without 'file' attribute "
+			    "at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 
 	} else if (!strcmp(el, "tp")) {
 		if (_cur_ic == NULL)
-			errx(1, "TP without containing IC at line %jd",
+			errx(EXIT_FAILURE, "TP without containing IC at "
+			    "line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_cur_tp != NULL)
-			errx(1, "Nested TP at line %jd",
+			errx(EXIT_FAILURE, "Nested TP at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_tp = calloc(1, sizeof(*_cur_tp));
 		STAILQ_INIT(&_cur_tp->vclist);
 		if (_cur_tp == NULL)
-			err(1, "calloc");
+			err(EXIT_FAILURE, "calloc");
 		for (i = 0; attr[i]; i += 2) {
 			if (!strcmp(attr[i], "func")) {
 				for (j = 0; dwarf_tp_array[j].tp_name != NULL;
@@ -296,33 +298,36 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 						break;
 					}
 				if (_cur_tp->dtp == NULL)
-					errx(1, "TP function '%s' not found",
+					errx(EXIT_FAILURE,
+					    "TP function '%s' not found",
 					    attr[i]);
 				break;
 			}
 		}
 		if (_cur_tp->dtp == NULL)
-			errx(1, "TP without 'func' attribute at line %jd",
+			errx(EXIT_FAILURE,
+			    "TP without 'func' attribute at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 
 	} else if (!strcmp(el, "vc")) {
 		if (_cur_tp == NULL)
-			errx(1, "VC without containing IC at line %jd",
+			errx(EXIT_FAILURE,
+			    "VC without containing IC at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_cur_vc != NULL)
-			errx(1, "Nested VC at line %jd",
+			errx(EXIT_FAILURE, "Nested VC at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_cur_vc = calloc(1, sizeof(*_cur_vc));
 		
 		_cur_vc->op = _OP_EQ;
 		_cur_vc->fail = _FAIL_CONTINUE;
 		if (_cur_vc == NULL)
-			err(1, "calloc");
+			err(EXIT_FAILURE, "calloc");
 		for (i = 0; attr[i]; i += 2) {
 			if (!strcmp(attr[i], "var")) {
 				_cur_vc->var = strdup(attr[i + 1]);
 				if (_cur_vc->var == NULL)
-					err(1, "strdup");
+					err(EXIT_FAILURE, "strdup");
 			} else if (!strcmp(attr[i], "type")) {
 				if (!strcmp(attr[i + 1], "int"))
 					_cur_vc->vt = _VTYPE_INT;
@@ -333,7 +338,8 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 				else if (!strcmp(attr[i + 1], "block"))
 					_cur_vc->vt = _VTYPE_BLOCK;
 				else
-					errx(1, "Unknown value type %s at "
+					errx(EXIT_FAILURE,
+					    "Unknown value type %s at "
 					    "line %jd", attr[i + 1],
 					    (intmax_t) XML_GetCurrentLineNumber(p));
 			} else if (!strcmp(attr[i], "op")) {
@@ -343,16 +349,17 @@ _xml_start_cb(void *data, const char *el, const char **attr)
 				if (!strcmp(attr[i + 1], "abort"))
 					_cur_vc->fail = _FAIL_ABORT;
 			} else
-				errx(1, "Unknown attr %s at line %jd",
+				errx(EXIT_FAILURE,
+				    "Unknown attr %s at line %jd",
 				    attr[i],
 				    (intmax_t) XML_GetCurrentLineNumber(p));
 		}
 		if (_cur_vc->var == NULL || _cur_vc->vt == _VTYPE_NONE)
-			errx(1, "VC without 'var' or 'type' attribute at"
-			    " line %jd",
+			errx(EXIT_FAILURE,
+			    "VC without 'var' or 'type' attribute at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 	} else
-		errx(1, "Unknown element %s at line %jd", el,
+		errx(EXIT_FAILURE, "Unknown element %s at line %jd", el,
 		    (intmax_t) XML_GetCurrentLineNumber(p));
 }
 
@@ -365,13 +372,13 @@ _xml_end_cb(void *data, const char *el)
 
 	if (!strcmp(el, "ic")) {
 		if (_cur_ic == NULL)
-			errx(1, "bogus IC end tag at line %jd",
+			errx(EXIT_FAILURE, "bogus IC end tag at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		STAILQ_INSERT_TAIL(&_iclist, _cur_ic, next);
 		_cur_ic = NULL;
 	} else if (!strcmp(el, "tp")) {
 		if (_cur_tp == NULL)
-			errx(1, "bogus TP end tag at line %jd",
+			errx(EXIT_FAILURE, "bogus TP end tag at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		assert(_cur_ic != NULL);
 		_test_cnt++;
@@ -381,10 +388,11 @@ _xml_end_cb(void *data, const char *el)
 		_cur_tp = NULL;
 	} else if (!strcmp(el, "vc")) {
 		if (_cur_vc == NULL)
-			errx(1, "bogus VC end tag at line %jd",
+			errx(EXIT_FAILURE, "bogus VC end tag at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		if (_xml_data_pos == 0 && _cur_vc->vt != _VTYPE_STRING)
-			errx(1, "VC element without value defined at line %jd",
+			errx(EXIT_FAILURE,
+			    "VC element without value defined at line %jd",
 			    (intmax_t) XML_GetCurrentLineNumber(p));
 		_xml_data[_xml_data_pos] = '\0';
 		switch (_cur_vc->vt) {
@@ -397,7 +405,7 @@ _xml_end_cb(void *data, const char *el)
 		case _VTYPE_STRING:
 			_cur_vc->v.str = strdup(_xml_data);
 			if (_cur_vc->v.str == NULL)
-				err(1, "strdup");
+				err(EXIT_FAILURE, "strdup");
 			break;
 		case _VTYPE_BLOCK:
 			driver_base64_decode(_xml_data, _xml_data_pos,
@@ -445,36 +453,36 @@ driver_parse_ic_desc(const char *fname)
 	char cmd[_CMD_SIZE];
 
 	if ((fname0 = strdup(fname)) == NULL)
-		err(1, "strduo");
+		err(EXIT_FAILURE, "strdup");
 	fname0[strlen(fname) - 3] = '\0';
 	snprintf(cmd, _CMD_SIZE, "gunzip -f -c %s > %s", fname, fname0);
 	if (system(cmd) < 0)
-		err(1, "systemp");
+		err(EXIT_FAILURE, "system");
 
 	if ((xml_name = strdup(fname)) == NULL)
-		err(1, "strdup");
+		err(EXIT_FAILURE, "strdup");
 	ext = strrchr(xml_name, '.');
 	assert(ext != NULL);
 	*ext = '\0';
 
 	if ((p = XML_ParserCreate(NULL)) == NULL)
-		errx(1, "XML_ParserCreate failed");
+		errx(EXIT_FAILURE, "XML_ParserCreate failed");
 	XML_SetUserData(p, p);
 	XML_SetElementHandler(p, _xml_start_cb, _xml_end_cb);
 	XML_SetCharacterDataHandler(p, _xml_data_cb);
 
 	if ((fd = open(xml_name, O_RDONLY)) < 0)
-		err(1, "open %s failed", xml_name);
+		err(EXIT_FAILURE, "open %s failed", xml_name);
 
 	final = 0;
 	for (;;) {
 		bytes = read(fd, _xml_buf, _XML_BUFSIZE);
 		if (bytes < 0)
-			err(1, "read %s failed", xml_name);
+			err(EXIT_FAILURE, "read %s failed", xml_name);
 		if (bytes == 0)
 			final = 1;
 		if (!XML_Parse(p, _xml_buf, (int) bytes, final))
-			errx(1, "XML_Parse error at line %jd: %s\n",
+			errx(EXIT_FAILURE, "XML_Parse error at line %jd: %s\n",
 			    (intmax_t) XML_GetCurrentLineNumber(p),
 			    XML_ErrorString(XML_GetErrorCode(p)));
 		if (final)
@@ -491,7 +499,7 @@ driver_parse_ic(void)
 	DIR *dirp;
 
 	if ((dirp = opendir(".")) == NULL)
-		err(1, "opendir");
+		err(EXIT_FAILURE, "opendir");
 	while ((dp = readdir(dirp)) != NULL) {
 		if (strlen(dp->d_name) <= 7)
 			continue;
@@ -530,20 +538,21 @@ driver_gen_ic(void)
 
 	flist = getenv("ICLIST");
 	if (flist == NULL)
-		errx(1, "Driver in TCGEN mode but ICLIST env is not defined");
+		errx(EXIT_FAILURE,
+		    "Driver in TCGEN mode but ICLIST env is not defined");
 	if ((flist = strdup(flist)) == NULL)
-		err(1, "strdup");
+		err(EXIT_FAILURE, "strdup");
 	while ((token = strsep(&flist, ":")) != NULL) {
 		snprintf(nbuf, sizeof(nbuf), "%s.xml", token);
 		if ((fp = fopen(nbuf, "w")) == NULL)
-			err(1, "fopen %s failed", nbuf);
+			err(EXIT_FAILURE, "fopen %s failed", nbuf);
 		fprintf(fp, "<ic file='%s'>\n", token);
 		driver_gen_tp(fp, token);
 		fprintf(fp, "</ic>\n");
 		fclose(fp);
 		snprintf(cmd, _CMD_SIZE, "gzip -f %s", nbuf);
 		if (system(cmd) < 0)
-			err(1, "system");
+			err(EXIT_FAILURE, "system");
 	}
 	free(flist);
 }
@@ -751,7 +760,7 @@ driver_base64_encode(const char *plain, int plainsize, char **code,
 
 	*code = malloc(sizeof(char) * plainsize * 2);
 	if (*code == NULL)
-		err(1, "malloc");
+		err(EXIT_FAILURE, "malloc");
 
 	base64_init_encodestate(&state);
 
@@ -872,7 +881,7 @@ driver_base64_decode(const char *code, int codesize, char **plain, int *plainsiz
 
 	*plain = malloc(sizeof(char) * codesize);
 	if (*plain == NULL)
-		err(1, "malloc");
+		err(EXIT_FAILURE, "malloc");
 
 	base64_init_decodestate(&state);
 
