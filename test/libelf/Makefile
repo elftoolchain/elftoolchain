@@ -26,6 +26,9 @@ execute tccbuild tccclean test:	.PHONY
 	TET_ROOT=${TET_ROOT} TET_EXECUTE=${TET_EXECUTE} \
 		TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
 
+clobber:	clean
+	rm -rf ${TET_RESULTS_DIR}
+
 SUBDIR=		tset
 
 .include <bsd.subdir.mk>

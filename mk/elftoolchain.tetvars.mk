@@ -14,3 +14,7 @@ TET_ROOT?=		${TOP}/test/tet/tet${TET_VERSION}
 
 TET_DOWNLOAD_URL=	\
 	http://tetworks.opengroup.org/downloads/38/software/Sources/${TET_VERSION}/tet${TET_VERSION}-src.tar.gz
+
+# The directory where test journals are placed.
+TET_RESULTS_DIR?=	results
+
