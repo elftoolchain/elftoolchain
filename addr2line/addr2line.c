@@ -149,14 +149,14 @@ cont_search:
 	/* Search children. */
 	ret = dwarf_child(die, &ret_die, &de);
 	if (ret == DW_DLV_ERROR)
-		errx(1, "dwarf_child: %s", dwarf_errmsg(de));
+		errx(EXIT_FAILURE, "dwarf_child: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
 		search_func(dbg, ret_die, addr, rlt_func);
 
 	/* Search sibling. */
 	ret = dwarf_siblingof(dbg, die, &ret_die, &de);
 	if (ret == DW_DLV_ERROR)
-		errx(1, "dwarf_siblingof: %s", dwarf_errmsg(de));
+		errx(EXIT_FAILURE, "dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
 		search_func(dbg, ret_die, addr, rlt_func);
 }
@@ -268,7 +268,8 @@ out:
 	 */
 	while (ret != DW_DLV_NO_ENTRY) {
 		if (ret == DW_DLV_ERROR)
-			errx(1, "dwarf_next_cu_header: %s", dwarf_errmsg(de));
+			errx(EXIT_FAILURE, "dwarf_next_cu_header: %s",
+			    dwarf_errmsg(de));
 		ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
 		    &de);
 	}
@@ -330,7 +331,7 @@ find_section_base(const char *exe, Elf *e, const char *section)
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
 
-	errx(1, "%s: cannot find section %s", exe, section);
+	errx(EXIT_FAILURE, "%s: cannot find section %s", exe, section);
 }
 
 int
@@ -382,13 +383,13 @@ main(int argc, char **argv)
 		exe = "a.out";
 
 	if ((fd = open(exe, O_RDONLY)) < 0)
-		err(1, "%s", exe);
+		err(EXIT_FAILURE, "%s", exe);
 
 	if (dwarf_init(fd, DW_DLC_READ, NULL, NULL, &dbg, &de))
-		errx(1, "dwarf_init: %s", dwarf_errmsg(de));
+		errx(EXIT_FAILURE, "dwarf_init: %s", dwarf_errmsg(de));
 
 	if (dwarf_get_elf(dbg, &e, &de) != DW_DLV_OK)
-		errx(1, "dwarf_get_elf: %s", dwarf_errmsg(de));
+		errx(EXIT_FAILURE, "dwarf_get_elf: %s", dwarf_errmsg(de));
 
 	if (section)
 		find_section_base(exe, e, section);
