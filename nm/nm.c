@@ -438,7 +438,7 @@ parse_demangle_option(const char *opt)
 	else if (!strncasecmp(opt, "arm", 3))
 		return (ELFTC_DEM_ARM);
 	else
-		errx(1, "unknown demangling style '%s'", opt);
+		errx(EXIT_FAILURE, "unknown demangling style '%s'", opt);
 
 	/* NOTREACHED */
 	return (0);
@@ -582,9 +582,11 @@ get_opt(int argc, char **argv)
 
 	if (nm_opts.undef_only == true) {
 		if (nm_opts.sort_fn == &cmp_size)
-			errx(1, "--size-sort with -u is meaningless");
+			errx(EXIT_FAILURE,
+			    "--size-sort with -u is meaningless");
 		if (nm_opts.def_only != 0)
-			errx(1, "-u with --defined-only is meaningless");
+			errx(EXIT_FAILURE,
+			    "-u with --defined-only is meaningless");
 	}
 	if (nm_opts.print_debug == false)
 		filter_insert(sym_elem_nondebug);
@@ -726,7 +728,7 @@ global_init(void)
 {
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(1, "elf_version error");
+		errx(EXIT_FAILURE, "elf_version error");
 
 	nm_info.name = ELFTC_GETPROGNAME();
 	nm_info.def_filename = "a.out";
