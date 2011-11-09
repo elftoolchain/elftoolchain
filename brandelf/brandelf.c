@@ -94,14 +94,14 @@ main(int argc, char **argv)
 	int ch, change = 0, verbose = 0, force = 0, listed = 0, e_err = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(1, "elf_version error");
+		errx(EXIT_FAILURE, "elf_version error");
 
 	while ((ch = getopt(argc, argv, "Vf:lt:v")) != -1)
 		switch (ch) {
 		case 'f':
 			if (change)
-				errx(1, "ERROR: the -f option is incompatible "
-				    "with the -t option.");
+				errx(EXIT_FAILURE, "ERROR: the -f option is "
+				    "incompatible with the -t option.");
 			force = 1;
 			type = atoi(optarg);
 			if (errno == ERANGE || type < 0 || type > 255) {
@@ -119,8 +119,8 @@ main(int argc, char **argv)
 			break;
 		case 't':
 			if (force)
-				errx(1, "the -t option is incompatible with "
-				    "the -f option.");
+				errx(EXIT_FAILURE, "the -t option is "
+				    "incompatible with the -f option.");
 			change = 1;
 			strtype = optarg;
 			break;

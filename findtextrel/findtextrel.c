@@ -322,7 +322,7 @@ find_textrel(const char *fn)
 		goto exit;
 	}
 	if ((ph = calloc(eh.e_phnum, sizeof(GElf_Phdr))) == NULL)
-		err(1, "calloc");
+		err(EXIT_FAILURE, "calloc failed");
 	phnum = 0;
 	for (i = 0; (unsigned) i < eh.e_phnum; i++) {
 		if (gelf_getphdr(e, i, &ph[phnum]) != &ph[phnum]) {
@@ -392,7 +392,7 @@ main(int argc, char **argv)
 	int i, opt;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(1, "elf_version(): %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "elf_version(): %s", elf_errmsg(-1));
 
 	while ((opt = getopt_long(argc, argv, "HV", longopts, NULL)) != -1) {
 		switch (opt) {
