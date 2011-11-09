@@ -1,0 +1,13 @@
+# $Id$
+
+--- tet3.8/configure--	2011-11-09 09:33:25.125991990 +0530
++++ tet3.8/configure	2011-11-09 09:37:51.489444314 +0530
+@@ -317,7 +317,7 @@
+ *-sgi-irix*)
+ 	fname=irix.mk
+ 	;;
+-*-freebsd)
++*-freebsd | *-netbsd)	# Use FreeBSD's configuration for NetBSD for now.
+ 	fname=freebsd.mk
+ 	;;
+ *-bsdi)
