@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 1, 2006
+.Dd November 9, 2011
 .Os
 .Dt ELF_VERSION 3
 .Sh NAME
@@ -80,7 +80,7 @@ operating version and check for an error using the following code
 snippet:
 .Bd -literal -offset indent
 if (elf_version(EV_CURRENT) == EV_NONE)
-	err(EX_SOFTWARE, "ELF library too old");
+	err(EXIT_FAILURE, "ELF library too old");
 .Ed
 .Sh ERRORS
 Function
