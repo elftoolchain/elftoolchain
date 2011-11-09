@@ -7,9 +7,9 @@
 .include "$(TOP)/mk/elftoolchain.os.mk"
 
 .if ${OS_HOST} == FreeBSD
-SUBDIR_TARGETS+=	test
+SUBDIR_TARGETS+=	clobber test
 .else
-TARGETS+=	test
+TARGETS+=	clobber test
 .endif
 
 .include <bsd.subdir.mk>
