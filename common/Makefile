@@ -5,7 +5,9 @@ TOP=	..
 INCS=	elfdefinitions.h
 INCSDIR?=	/usr/include
 
-all obj depend:
+.PHONY:	all clean clobber depend obj
+
+all depend obj:
 
 clean clobber:
 	rm -f ${CLEANFILES}
