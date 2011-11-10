@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -3067,13 +3066,13 @@ dump_svr4_hash(struct section *s)
 
 	maxl = 0;
 	if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		for (j = bucket[i]; j > 0 && (uint32_t)j < nchain; j = chain[j])
 			if (++bl[i] > maxl)
 				maxl = bl[i];
 	if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		c[bl[i]]++;
 	printf("\nHistogram for bucket list length (total of %u buckets):\n",
@@ -3139,13 +3138,13 @@ dump_svr4_hash64(struct readelf *re, struct section *s)
 
 	maxl = 0;
 	if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		for (j = bucket[i]; j > 0 && (uint32_t)j < nchain; j = chain[j])
 			if (++bl[i] > maxl)
 				maxl = bl[i];
 	if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint64_t)i < nbucket; i++)
 		c[bl[i]]++;
 	printf("Histogram for bucket list length (total of %ju buckets):\n",
@@ -3204,7 +3203,7 @@ dump_gnu_hash(struct readelf *re, struct section *s)
 
 	maxl = 0;
 	if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		for (j = bucket[i]; j > 0 && (uint32_t)j - symndx < nchain;
 		     j++) {
@@ -3214,7 +3213,7 @@ dump_gnu_hash(struct readelf *re, struct section *s)
 				break;
 		}
 	if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	for (i = 0; (uint32_t)i < nbucket; i++)
 		c[bl[i]]++;
 	printf("Histogram for bucket list length (total of %u buckets):\n",
@@ -5218,7 +5217,7 @@ dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
 
 	vec = calloc((DW_REG_TABLE_SIZE + 7) / 8, 1);
 	if (vec == NULL)
-		err(1, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 
 	pre_pc = ~((Dwarf_Addr) 0);
 	cur_pc = pc;
@@ -5539,7 +5538,7 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 				break;
 			if (off < la->la_off) {
 				if ((nla = malloc(sizeof(*nla))) == NULL)
-					err(1, "malloc failed");
+					err(EXIT_FAILURE, "malloc failed");
 				nla->la_at = attr_list[i];
 				nla->la_off = off;
 				nla->la_lowpc = lowpc;
@@ -5549,7 +5548,7 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 		}
 		if (la == NULL) {
 			if ((nla = malloc(sizeof(*nla))) == NULL)
-				err(1, "malloc failed");
+				err(EXIT_FAILURE, "malloc failed");
 			nla->la_at = attr_list[i];
 			nla->la_off = off;
 			nla->la_lowpc = lowpc;
@@ -6022,7 +6021,7 @@ load_sections(struct readelf *re)
 	if (re->sl != NULL)
 		free(re->sl);
 	if ((re->sl = calloc(re->shnum, sizeof(*re->sl))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 
 	/* Get the index of .shstrtab section. */
 	if (!elf_getshstrndx(re->elf, &shstrndx)) {
@@ -6158,7 +6157,7 @@ dump_dwarf(struct readelf *re)
 
 	if (dwarf_elf_init(re->elf, DW_DLC_READ, NULL, NULL, &re->dbg, &de)) {
 		if ((error = dwarf_errno(de)) != DW_DLE_DEBUG_INFO_NULL)
-			errx(EX_SOFTWARE, "dwarf_elf_init failed: %s",
+			errx(EXIT_FAILURE, "dwarf_elf_init failed: %s",
 			    dwarf_errmsg(de));
 		return;
 	}
@@ -6313,7 +6312,7 @@ add_dumpop(struct readelf *re, size_t sn, int op)
 
 	if ((d = find_dumpop(re, sn, 0)) == NULL) {
 		if ((d = malloc(sizeof(*d))) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 		d->sn = sn;
 		d->op = op;
 		STAILQ_INSERT_TAIL(&re->v_dumpop, d, dumpop_list);
@@ -6387,7 +6386,7 @@ parse_dwarf_op_long(struct readelf *re, const char *op)
 	}
 
 	if ((p = strdup(op)) == NULL)
-		err(EX_SOFTWARE, "strdup failed");
+		err(EXIT_FAILURE, "strdup failed");
 	bp = p;
 
 	while ((token = strsep(&p, ",")) != NULL) {
@@ -6578,7 +6577,7 @@ readelf_version(void)
 {
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
 	    elftc_version());
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 static const char *usagemsg = "\
@@ -6619,7 +6618,7 @@ static void
 readelf_usage(void)
 {
 	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 int
@@ -6736,7 +6735,7 @@ main(int argc, char **argv)
 		re->flags |= DISPLAY_FILENAME;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
 	for (i = 0; i < argc; i++)
@@ -6745,5 +6744,5 @@ main(int argc, char **argv)
 			dump_object(re);
 		}
 
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
