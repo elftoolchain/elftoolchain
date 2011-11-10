@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include "elfcopy.h"
 
@@ -205,16 +204,16 @@ mark_symbols(struct elfcopy *ecp, size_t sc)
 
 	ecp->v_rel = calloc((sc + 7) / 8, 1);
 	if (ecp->v_rel == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 
 	if (elf_getshstrndx(ecp->ein, &indx) == 0)
-		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
+		errx(EXIT_FAILURE, "elf_getshstrndx failed: %s",
 		    elf_errmsg(-1));
 
 	s = NULL;
 	while ((s = elf_nextscn(ecp->ein, s)) != NULL) {
 		if (gelf_getshdr(s, &sh) != &sh)
-			errx(EX_SOFTWARE, "elf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "elf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
 		if (sh.sh_type != SHT_REL && sh.sh_type != SHT_RELA)
@@ -225,7 +224,7 @@ mark_symbols(struct elfcopy *ecp, size_t sc)
 		 * output object.
 		 */
 		if ((name = elf_strptr(ecp->ein, indx, sh.sh_name)) == NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 		if (is_remove_section(ecp, name) ||
 		    is_remove_reloc_sec(ecp, sh.sh_info))
@@ -242,13 +241,13 @@ mark_symbols(struct elfcopy *ecp, size_t sc)
 			for (i = 0; i < len; i++) {
 				if (sh.sh_type == SHT_REL) {
 					if (gelf_getrel(d, i, &r) != &r)
-						errx(EX_SOFTWARE,
+						errx(EXIT_FAILURE,
 						    "elf_getrel failed: %s",
 						     elf_errmsg(-1));
 					n = GELF_R_SYM(r.r_info);
 				} else {
 					if (gelf_getrela(d, i, &ra) != &ra)
-						errx(EX_SOFTWARE,
+						errx(EXIT_FAILURE,
 						    "elf_getrela failed: %s",
 						     elf_errmsg(-1));
 					n = GELF_R_SYM(ra.r_info);
@@ -261,12 +260,12 @@ mark_symbols(struct elfcopy *ecp, size_t sc)
 		}
 		elferr = elf_errno();
 		if (elferr != 0)
-			errx(EX_SOFTWARE, "elf_getdata failed: %s",
+			errx(EXIT_FAILURE, "elf_getdata failed: %s",
 			    elf_errmsg(elferr));
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 }
 
@@ -288,17 +287,17 @@ generate_symbols(struct elfcopy *ecp)
 	int		 ec, elferr, i;
 
 	if (elf_getshstrndx(ecp->ein, &ishstrndx) == 0)
-		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
+		errx(EXIT_FAILURE, "elf_getshstrndx failed: %s",
 		    elf_errmsg(-1));
 	if ((ec = gelf_getclass(ecp->eout)) == ELFCLASSNONE)
-		errx(EX_SOFTWARE, "gelf_getclass failed: %s",
+		errx(EXIT_FAILURE, "gelf_getclass failed: %s",
 		    elf_errmsg(-1));
 
 	/* Create buffers for .symtab and .strtab. */
 	if ((sy_buf = calloc(1, sizeof(*sy_buf))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	if ((st_buf = calloc(1, sizeof(*st_buf))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	sy_buf->gcap = sy_buf->lcap = 64;
 	st_buf->gcap = 256;
 	st_buf->lcap = 64;
@@ -317,7 +316,7 @@ generate_symbols(struct elfcopy *ecp)
 	 */
 	ecp->v_secsym = calloc((ecp->nos + 7) / 8, 1);
 	if (ecp->v_secsym == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 
 	/* Locate .strtab of input object. */
 	symndx = 0;
@@ -325,11 +324,11 @@ generate_symbols(struct elfcopy *ecp)
 	is = NULL;
 	while ((is = elf_nextscn(ecp->ein, is)) != NULL) {
 		if (gelf_getshdr(is, &ish) != &ish)
-			errx(EX_SOFTWARE, "elf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "elf_getshdr failed: %s",
 			    elf_errmsg(-1));
 		if ((name = elf_strptr(ecp->ein, ishstrndx, ish.sh_name)) ==
 		    NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 		if (strcmp(name, ".strtab") == 0) {
 			symndx = elf_ndxscn(is);
@@ -338,31 +337,31 @@ generate_symbols(struct elfcopy *ecp)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 	/* FIXME don't panic if can't find .strtab */
 	if (symndx == 0)
-		errx(EX_DATAERR, "can't find .strtab section");
+		errx(EXIT_FAILURE, "can't find .strtab section");
 
 	/* Locate .symtab of input object. */
 	is = NULL;
 	while ((is = elf_nextscn(ecp->ein, is)) != NULL) {
 		if (gelf_getshdr(is, &ish) != &ish)
-			errx(EX_SOFTWARE, "elf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "elf_getshdr failed: %s",
 			    elf_errmsg(-1));
 		if ((name = elf_strptr(ecp->ein, ishstrndx, ish.sh_name)) ==
 		    NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 		if (strcmp(name, ".symtab") == 0)
 			break;
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 	if (is == NULL)
-		errx(EX_DATAERR, "can't find .strtab section");
+		errx(EXIT_FAILURE, "can't find .strtab section");
 
 	/*
 	 * Create bit vector gsym to mark global symbols, and symndx
@@ -375,14 +374,14 @@ generate_symbols(struct elfcopy *ecp)
 	if (sc > 0) {
 		ecp->symndx = calloc(sc, sizeof(*ecp->symndx));
 		if (ecp->symndx == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		gsym = calloc((sc + 7) / 8, sizeof(*gsym));
 		if (gsym == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		if ((id = elf_getdata(is, NULL)) == NULL) {
 			elferr = elf_errno();
 			if (elferr != 0)
-				errx(EX_SOFTWARE, "elf_getdata failed: %s",
+				errx(EXIT_FAILURE, "elf_getdata failed: %s",
 				    elf_errmsg(elferr));
 			return (0);
 		}
@@ -392,10 +391,10 @@ generate_symbols(struct elfcopy *ecp)
 	/* Copy/Filter each symbol. */
 	for (i = 0; (size_t)i < sc; i++) {
 		if (gelf_getsym(id, i, &sym) != &sym)
-			errx(EX_SOFTWARE, "gelf_getsym failed: %s",
+			errx(EXIT_FAILURE, "gelf_getsym failed: %s",
 			    elf_errmsg(-1));
 		if ((name = elf_strptr(ecp->ein, symndx, sym.st_name)) == NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 
 		/* Symbol filtering. */
@@ -442,7 +441,7 @@ generate_symbols(struct elfcopy *ecp)
 		if (ecp->prefix_sym != NULL && name != NULL && *name != '\0') {
 			namelen = strlen(name) + strlen(ecp->prefix_sym) + 1;
 			if ((newname = malloc(namelen)) == NULL)
-				err(EX_SOFTWARE, "malloc failed");
+				err(EXIT_FAILURE, "malloc failed");
 			snprintf(newname, namelen, "%s%s", ecp->prefix_sym,
 			    name);
 			name = newname;
@@ -494,9 +493,9 @@ generate_symbols(struct elfcopy *ecp)
 			continue;
 
 		if ((ndx = elf_ndxscn(s->os)) == SHN_UNDEF)
-			errx(EX_SOFTWARE, "elf_ndxscn failed: %s",
+			errx(EXIT_FAILURE, "elf_ndxscn failed: %s",
 			    elf_errmsg(-1));
-		
+
 		if (!BIT_ISSET(ecp->v_secsym, ndx)) {
 			sym.st_name  = 0;
 			sym.st_value = s->vma;
@@ -559,14 +558,14 @@ create_symtab(struct elfcopy *ecp)
 		if (s->os == NULL)
 			continue;
 		if ((ndx = elf_ndxscn(s->os)) == SHN_UNDEF)
-			errx(EX_SOFTWARE, "elf_ndxscn failed: %s",
+			errx(EXIT_FAILURE, "elf_ndxscn failed: %s",
 			    elf_errmsg(-1));
 		if (ndx > maxndx)
 			maxndx = ndx;
 	}
 	ecp->secndx[elf_ndxscn(sy->is)] = maxndx + 1;
 	ecp->secndx[elf_ndxscn(st->is)] = maxndx + 2;
-	
+
 	/*
 	 * Generate symbols for output object if SYMTAB_INTACT is not set.
 	 * If there is no symbol in the input object or all the symbols are
@@ -585,7 +584,7 @@ create_symtab(struct elfcopy *ecp)
 	/* Create output Elf_Scn for .symtab and .strtab. */
 	if ((sy->os = elf_newscn(ecp->eout)) == NULL ||
 	    (st->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		errx(EXIT_FAILURE, "elf_newscn failed: %s",
 		    elf_errmsg(-1));
 	/* Update secndx anyway. */
 	ecp->secndx[elf_ndxscn(sy->is)] = elf_ndxscn(sy->os);
@@ -629,18 +628,18 @@ create_external_symtab(struct elfcopy *ecp)
 
 	/* Let sh_link field of .symtab section point to .strtab section. */
 	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)
-		errx(EX_SOFTWARE, "692 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "692 gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	sh.sh_link = elf_ndxscn(ecp->strtab->os);
 	if (!gelf_update_shdr(ecp->symtab->os, &sh))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Create buffers for .symtab and .strtab. */
 	if ((sy_buf = calloc(1, sizeof(*sy_buf))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	if ((st_buf = calloc(1, sizeof(*st_buf))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	sy_buf->gcap = sy_buf->lcap = 64;
 	st_buf->gcap = 256;
 	st_buf->lcap = 64;
@@ -683,7 +682,7 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 	struct symbuf *sy_buf;
 	struct strbuf *st_buf;
 	int pos;
-	
+
 	/*
 	 * Convenient macro for copying global/local 32/64 bit symbols
 	 * from input object to the buffer created for output object.
@@ -695,13 +694,13 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 		sy_buf->B##SZ = malloc(sy_buf->B##cap *			\
 		    sizeof(Elf##SZ##_Sym));				\
 		if (sy_buf->B##SZ == NULL)				\
-			err(EX_SOFTWARE, "malloc failed");		\
+			err(EXIT_FAILURE, "malloc failed");		\
 	} else if (sy_buf->n##B##s >= sy_buf->B##cap) {			\
 		sy_buf->B##cap *= 2;					\
 		sy_buf->B##SZ = realloc(sy_buf->B##SZ, sy_buf->B##cap *	\
 		    sizeof(Elf##SZ##_Sym));				\
 		if (sy_buf->B##SZ == NULL)				\
-			err(EX_SOFTWARE, "realloc failed");		\
+			err(EXIT_FAILURE, "realloc failed");		\
 	}								\
 	sy_buf->B##SZ[sy_buf->n##B##s].st_info	= st_info;		\
 	sy_buf->B##SZ[sy_buf->n##B##s].st_other	= st_other;		\
@@ -717,7 +716,7 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 	if (st_buf->B == NULL) {					\
 		st_buf->B = calloc(st_buf->B##cap, sizeof(*st_buf->B));	\
 		if (st_buf->B == NULL)					\
-			err(EX_SOFTWARE, "malloc failed");		\
+			err(EXIT_FAILURE, "malloc failed");		\
 	}								\
 	if (name != NULL && *name != '\0') {				\
 		pos = lookup_exact_string(st_buf->B,			\
@@ -733,7 +732,7 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 				st_buf->B = realloc(st_buf->B,		\
 				    st_buf->B##cap);			\
 				if (st_buf->B == NULL)			\
-					err(EX_SOFTWARE,		\
+					err(EXIT_FAILURE,		\
 					    "realloc failed");		\
 			}						\
 			strncpy(&st_buf->B[st_buf->B##sz], name,	\
@@ -803,10 +802,10 @@ create_symtab_data(struct elfcopy *ecp)
 	st = ecp->strtab;
 
 	if (gelf_getshdr(sy->os, &shy) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getshdr(st->os, &sht) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/*
@@ -817,7 +816,7 @@ create_symtab_data(struct elfcopy *ecp)
 	sy_buf = sy->buf;
 	if (sy_buf->nls > 0) {
 		if ((lsydata = elf_newdata(sy->os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+			errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
 			     elf_errmsg(-1));
 		if (ecp->oec == ELFCLASS32) {
 			lsydata->d_align	= 4;
@@ -839,7 +838,7 @@ create_symtab_data(struct elfcopy *ecp)
 	}
 	if (sy_buf->ngs > 0) {
 		if ((gsydata = elf_newdata(sy->os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+			errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
 			     elf_errmsg(-1));
 		if (ecp->oec == ELFCLASS32) {
 			gsydata->d_align	= 4;
@@ -869,7 +868,7 @@ create_symtab_data(struct elfcopy *ecp)
 	 */
 	st_buf = st->buf;
 	if ((lstdata = elf_newdata(st->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+		errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
 		    elf_errmsg(-1));
 	lstdata->d_align	= 1;
 	lstdata->d_off		= 0;
@@ -880,7 +879,7 @@ create_symtab_data(struct elfcopy *ecp)
 
 	if (st_buf->gsz > 0) {
 		if ((gstdata = elf_newdata(st->os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+			errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
 			    elf_errmsg(-1));
 		gstdata->d_align	= 1;
 		gstdata->d_off		= lstdata->d_size;
@@ -914,10 +913,10 @@ create_symtab_data(struct elfcopy *ecp)
 	sht.sh_link		= 0;
 
 	if (!gelf_update_shdr(sy->os, &shy))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 	if (!gelf_update_shdr(st->os, &sht))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -929,7 +928,7 @@ add_to_symop_list(struct elfcopy *ecp, const char *name, const char *newname,
 
 	if ((s = lookup_symop_list(ecp, name, ~0U)) == NULL) {
 		if ((s = calloc(1, sizeof(*s))) == NULL)
-			errx(EX_SOFTWARE, "not enough memory");
+			errx(EXIT_FAILURE, "not enough memory");
 		s->name = name;
 		if (op == SYMOP_REDEF)
 			s->newname = newname;

@@ -32,7 +32,6 @@
 #include <err.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #ifndef LIBELF_AR
@@ -73,7 +72,7 @@ process_ar_obj(struct elfcopy *ecp, struct ar_obj *obj)
 	/* Output to a temporary file. */
 	create_tempfile(&tempfile, &fd);
 	if ((ecp->eout = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL)
-		errx(EX_SOFTWARE, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 	elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
 	create_elf(ecp);
@@ -82,19 +81,19 @@ process_ar_obj(struct elfcopy *ecp, struct ar_obj *obj)
 
 	/* Extract archive symbols. */
 	if ((ecp->eout = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_SOFTWARE, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 	extract_arsym(ecp);
 	elf_end(ecp->eout);
 
 	if (fstat(fd, &sb) == -1)
-		err(EX_IOERR, "fstat %s failed", tempfile);
+		err(EXIT_FAILURE, "fstat %s failed", tempfile);
 	obj->size = sb.st_size;
 	if ((obj->maddr = mmap(NULL, obj->size, PROT_READ,
 	    MAP_PRIVATE, fd, (off_t)0)) == MAP_FAILED)
-		err(EX_SOFTWARE, "can't mmap file: %s", tempfile);
+		err(EXIT_FAILURE, "can't mmap file: %s", tempfile);
 	if (unlink(tempfile))
-		err(EX_IOERR, "unlink %s failed", tempfile);
+		err(EXIT_FAILURE, "unlink %s failed", tempfile);
 	free(tempfile);
 	close(fd);
 	if (strlen(obj->name) > _MAXNAMELEN_SVR4)
@@ -114,7 +113,7 @@ add_to_ar_str_table(struct elfcopy *ecp, const char *name)
 		ecp->as_cap = _INIT_AS_CAP;
 		ecp->as_sz = 0;
 		if ((ecp->as = malloc(ecp->as_cap)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 	}
 
 	/*
@@ -125,7 +124,7 @@ add_to_ar_str_table(struct elfcopy *ecp, const char *name)
 		ecp->as_cap *= 2;
 		ecp->as = realloc(ecp->as, ecp->as_cap);
 		if (ecp->as == NULL)
-			err(EX_SOFTWARE, "realloc failed");
+			err(EXIT_FAILURE, "realloc failed");
 	}
 	strncpy(&ecp->as[ecp->as_sz], name, strlen(name));
 	ecp->as_sz += strlen(name);
@@ -142,14 +141,14 @@ add_to_ar_sym_table(struct elfcopy *ecp, const char *name)
 
 	if (ecp->s_so == NULL) {
 		if ((ecp->s_so = malloc(_INIT_SYMOFF_CAP)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 		ecp->s_so_cap = _INIT_SYMOFF_CAP;
 		ecp->s_cnt = 0;
 	}
 
 	if (ecp->s_sn == NULL) {
 		if ((ecp->s_sn = malloc(_INIT_SYMNAME_CAP)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 		ecp->s_sn_cap = _INIT_SYMNAME_CAP;
 		ecp->s_sn_sz = 0;
 	}
@@ -158,7 +157,7 @@ add_to_ar_sym_table(struct elfcopy *ecp, const char *name)
 		ecp->s_so_cap *= 2;
 		ecp->s_so = realloc(ecp->s_so, ecp->s_so_cap);
 		if (ecp->s_so == NULL)
-			err(EX_SOFTWARE, "realloc failed");
+			err(EXIT_FAILURE, "realloc failed");
 	}
 	ecp->s_so[ecp->s_cnt] = ecp->rela_off;
 	ecp->s_cnt++;
@@ -171,7 +170,7 @@ add_to_ar_sym_table(struct elfcopy *ecp, const char *name)
 		ecp->s_sn_cap *= 2;
 		ecp->s_sn = realloc(ecp->s_sn, ecp->s_sn_cap);
 		if (ecp->s_sn == NULL)
-			err(EX_SOFTWARE, "realloc failed");
+			err(EXIT_FAILURE, "realloc failed");
 	}
 	strncpy(&ecp->s_sn[ecp->s_sn_sz], name, strlen(name));
 	ecp->s_sn_sz += strlen(name);
@@ -321,7 +320,7 @@ extract_arsym(struct elfcopy *ecp)
  */
 #define	AC(CALL) do {							\
 	if ((CALL))							\
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));	\
+		errx(EXIT_FAILURE, "%s", archive_error_string(a));	\
 } while (0)
 
 /* Earlier versions of libarchive had some functions that returned 'void'. */
@@ -375,16 +374,16 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 
 	ecp->rela_off = 0;
 	if (lseek(ifd, 0, SEEK_SET) == -1)
-		err(EX_IOERR, "lseek failed");
+		err(EXIT_FAILURE, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "%s", archive_error_string(a));
 	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, ifd, 10240));
 	for(;;) {
 		r = archive_read_next_header(a, &entry);
 		if (r == ARCHIVE_FATAL)
-			errx(EX_DATAERR, "%s", archive_error_string(a));
+			errx(EXIT_FAILURE, "%s", archive_error_string(a));
 		if (r == ARCHIVE_EOF)
 			break;
 		if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY)
@@ -402,25 +401,26 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 
 		if (size > 0) {
 			if ((buff = malloc(size)) == NULL)
-				err(EX_SOFTWARE, "malloc failed");
+				err(EXIT_FAILURE, "malloc failed");
 			if (archive_read_data(a, buff, size) != (ssize_t)size) {
 				warnx("%s", archive_error_string(a));
 				free(buff);
 				continue;
 			}
 			if ((obj = malloc(sizeof(*obj))) == NULL)
-				err(EX_SOFTWARE, "malloc failed");
+				err(EXIT_FAILURE, "malloc failed");
 			if ((obj->name = strdup(name)) == NULL)
-				err(EX_SOFTWARE, "strdup failed");
+				err(EXIT_FAILURE, "strdup failed");
 			obj->uid = archive_entry_uid(entry);
 			obj->gid = archive_entry_gid(entry);
 			obj->md = archive_entry_mode(entry);
 			obj->mtime = archive_entry_mtime(entry);
 			if ((ecp->ein = elf_memory(buff, size)) == NULL)
-				errx(EX_SOFTWARE, "elf_memory() failed: %s",
+				errx(EXIT_FAILURE, "elf_memory() failed: %s",
 				    elf_errmsg(-1));
 			if (elf_kind(ecp->ein) != ELF_K_ELF)
-				errx(EX_SOFTWARE, "file format not recognized");
+				errx(EXIT_FAILURE,
+				    "file format not recognized");
 			process_ar_obj(ecp, obj);
 		}
 	}
@@ -437,7 +437,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	int			 nr;
 
 	if ((a = archive_write_new()) == NULL)
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "%s", archive_error_string(a));
 	archive_write_set_format_ar_svr4(a);
 	archive_write_set_compression_none(a);
 	AC(archive_write_open_fd(a, ofd));
@@ -491,7 +491,7 @@ static void
 ac_write_data(struct archive *a, const void *buf, size_t s)
 {
 	if (archive_write_data(a, buf, s) != (ssize_t)s)
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "%s", archive_error_string(a));
 }
 
 #endif	/* ! LIBELF_AR */

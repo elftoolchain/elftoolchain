@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include "elfcopy.h"
@@ -89,7 +88,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 	char dr;
 
 	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_DATAERR, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Output a symbol table for `symbolsrec' target. */
@@ -190,7 +189,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 
 	/* Generate S{7,8,9} end of block recrod. */
 	if (gelf_getehdr(e, &eh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 	srec_write_Se(ofd, eh.e_entry, ecp->flags & SREC_FORCE_S3);
 }
@@ -218,16 +217,16 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 		}
 
 	if ((_ifd = dup(ifd)) < 0)
-		err(EX_IOERR, "dup failed");
+		err(EXIT_FAILURE, "dup failed");
 	if ((ifp = fdopen(_ifd, "r")) == NULL)
-		err(EX_IOERR, "fdopen failed");
+		err(EXIT_FAILURE, "fdopen failed");
 
 	/* Create EHDR for output .o file. */
 	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
-		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		errx(EXIT_FAILURE, "gelf_newehdr failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Initialise e_ident fields. */
@@ -251,7 +250,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	/* Data sections are inserted after EHDR. */
 	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
 	if (off == 0)
-		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "gelf_fsize() failed: %s", elf_errmsg(-1));
 
 	/* Create data sections. */
 	s = NULL;
@@ -318,7 +317,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 
 	/* Insert .shstrtab after data sections. */
 	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		errx(EXIT_FAILURE, "elf_newscn failed: %s",
 		    elf_errmsg(-1));
 	insert_to_sec_list(ecp, ecp->shstrtab, 1);
 
@@ -382,7 +381,7 @@ done:
 	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
 	 */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
@@ -393,7 +392,7 @@ done:
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Resync section offsets. */
@@ -404,12 +403,12 @@ done:
 
 	/* Update ehdr since we modified e_shoff. */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Write out the output elf object. */
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
-		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -425,7 +424,7 @@ create_ihex(int ifd, int ofd)
 	uint16_t addr_hi, old_addr_hi;
 
 	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_DATAERR, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 
 	old_addr_hi = 0;
@@ -466,7 +465,7 @@ create_ihex(int ifd, int ofd)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
 
 	if (gelf_getehdr(e, &eh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 	ihex_write_05(ofd, eh.e_entry);
 	ihex_write_01(ofd);
@@ -493,16 +492,16 @@ create_elf_from_ihex(struct elfcopy *ecp, int ifd)
 		}
 
 	if ((_ifd = dup(ifd)) < 0)
-		err(EX_IOERR, "dup failed");
+		err(EXIT_FAILURE, "dup failed");
 	if ((ifp = fdopen(_ifd, "r")) == NULL)
-		err(EX_IOERR, "fdopen failed");
+		err(EXIT_FAILURE, "fdopen failed");
 
 	/* Create EHDR for output .o file. */
 	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
-		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		errx(EXIT_FAILURE, "gelf_newehdr failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Initialise e_ident fields. */
@@ -526,7 +525,7 @@ create_elf_from_ihex(struct elfcopy *ecp, int ifd)
 	/* Data sections are inserted after EHDR. */
 	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
 	if (off == 0)
-		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "gelf_fsize() failed: %s", elf_errmsg(-1));
 
 	/* Create data sections. */
 	s = NULL;
@@ -598,7 +597,7 @@ done:
 
 	/* Insert .shstrtab after data sections. */
 	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		errx(EXIT_FAILURE, "elf_newscn failed: %s",
 		    elf_errmsg(-1));
 	insert_to_sec_list(ecp, ecp->shstrtab, 1);
 
@@ -613,7 +612,7 @@ done:
 	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
 	 */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
@@ -624,7 +623,7 @@ done:
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Resync section offsets. */
@@ -635,12 +634,12 @@ done:
 
 	/* Update ehdr since we modified e_shoff. */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Write out the output elf object. */
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
-		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -654,7 +653,7 @@ new_data_section(struct elfcopy *ecp, int sec_index, uint64_t off,
 	char *name;
 
 	if ((name = malloc(_SEC_NAMESZ)) == NULL)
-		errx(EX_SOFTWARE, "malloc failed");
+		errx(EXIT_FAILURE, "malloc failed");
 	snprintf(name, _SEC_NAMESZ, ".sec%d", sec_index);
 
 	return (create_external_section(ecp, name, NULL, 0, off, SHT_PROGBITS,
@@ -667,7 +666,7 @@ finalize_data_section(struct section *s)
 	Elf_Data *od;
 
 	if ((od = elf_newdata(s->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_newdata() failed: %s",
 		    elf_errmsg(-1));
 	od->d_align = s->align;
 	od->d_off = 0;
@@ -685,13 +684,13 @@ append_data(struct section *s, const void *buf, size_t sz)
 		s->sz = 0;
 		s->cap = _SEC_INIT_CAP;
 		if ((s->buf = malloc(s->cap)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 	}
 
 	while (sz + s->sz > s->cap) {
 		s->cap *= 2;
 		if ((s->buf = realloc(s->buf, s->cap)) == NULL)
-			err(EX_SOFTWARE, "realloc failed");
+			err(EXIT_FAILURE, "realloc failed");
 	}
 
 	p = s->buf;
@@ -766,7 +765,7 @@ srec_write_symtab(int ofd, const char *ofn, Elf *e, Elf_Scn *scn, GElf_Shdr *sh)
 
 #define _WRITE_LINE do {						\
 	if (write(ofd, line, strlen(line)) != (ssize_t) strlen(line)) 	\
-		errx(EX_IOERR, "write failed");				\
+		errx(EXIT_FAILURE, "write failed");				\
 	} while (0)
 
 
@@ -880,7 +879,7 @@ srec_write(int ofd, char type, uint64_t addr, const void *buf, size_t sz)
 	line[len++] = '\r';
 	line[len++] = '\n';
 	if (write(ofd, line, len) != (ssize_t) len)
-		err(EX_DATAERR, "write failed");
+		err(EXIT_FAILURE, "write failed");
 }
 
 static void
@@ -1000,7 +999,7 @@ ihex_write(int ofd, int type, uint64_t addr, uint64_t num, const void *buf,
 	int len, checksum;
 
 	if (sz > 16)
-		errx(EX_SOFTWARE, "Internal: ihex_write() sz too big");
+		errx(EXIT_FAILURE, "Internal: ihex_write() sz too big");
 	checksum = 0;
 	line[0] = ':';
 	len = 1;
@@ -1018,7 +1017,7 @@ ihex_write(int ofd, int type, uint64_t addr, uint64_t num, const void *buf,
 	line[len++] = '\r';
 	line[len++] = '\n';
 	if (write(ofd, line, len) != (ssize_t) len)
-		err(EX_DATAERR, "write failed");
+		err(EXIT_FAILURE, "write failed");
 }
 
 static int

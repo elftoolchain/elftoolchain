@@ -36,7 +36,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include "elfcopy.h"
@@ -283,10 +282,10 @@ create_elf(struct elfcopy *ecp)
 
 	/* Create EHDR. */
 	if (gelf_getehdr(ecp->ein, &ieh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 	if ((ecp->iec = gelf_getclass(ecp->ein)) == ELFCLASSNONE)
-		errx(EX_SOFTWARE, "getclass() failed: %s",
+		errx(EXIT_FAILURE, "getclass() failed: %s",
 		    elf_errmsg(-1));
 
 	if (ecp->oec == ELFCLASSNONE)
@@ -295,10 +294,10 @@ create_elf(struct elfcopy *ecp)
 		ecp->oed = ieh.e_ident[EI_DATA];
 
 	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
-		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		errx(EXIT_FAILURE, "gelf_newehdr failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	memcpy(oeh.e_ident, ieh.e_ident, sizeof(ieh.e_ident));
@@ -319,14 +318,14 @@ create_elf(struct elfcopy *ecp)
 	else if (ieh.e_type == ET_REL)
 		ecp->flags |= RELOCATABLE;
 	else
-		errx(EX_DATAERR, "unsupported e_type");
+		errx(EXIT_FAILURE, "unsupported e_type");
 
 	if (!elf_getshnum(ecp->ein, &ishnum))
-		errx(EX_SOFTWARE, "elf_getshnum failed: %s",
+		errx(EXIT_FAILURE, "elf_getshnum failed: %s",
 		    elf_errmsg(-1));
 	if (ishnum > 0 && (ecp->secndx = calloc(ishnum,
 	    sizeof(*ecp->secndx))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 
 	/* Read input object program header. */
 	setup_phdr(ecp);
@@ -373,7 +372,7 @@ create_elf(struct elfcopy *ecp)
 	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
 	 */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
@@ -388,7 +387,7 @@ create_elf(struct elfcopy *ecp)
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/*
@@ -412,7 +411,7 @@ create_elf(struct elfcopy *ecp)
 	if (ecp->ophnum > 0) {
 		oeh.e_phoff = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
 		if (oeh.e_phoff == 0)
-			errx(EX_SOFTWARE, "gelf_fsize() failed: %s",
+			errx(EXIT_FAILURE, "gelf_fsize() failed: %s",
 			    elf_errmsg(-1));
 	}
 
@@ -431,7 +430,7 @@ create_elf(struct elfcopy *ecp)
 	 * modified e_shoff and e_phoff.
 	 */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	if (ecp->ophnum > 0)
@@ -439,7 +438,7 @@ create_elf(struct elfcopy *ecp)
 
 	/* Write out the output elf object. */
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
-		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -463,7 +462,7 @@ create_tempfile(char **fn, int *fd)
 		plen = strlen(_TEMPFILE);
 		tmpf = malloc(tlen + plen + 2);
 		if (tmpf == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 		strncpy(tmpf, tmpdir, tlen);
 		cp = &tmpf[tlen - 1];
 		if (*cp++ != '/')
@@ -473,12 +472,12 @@ create_tempfile(char **fn, int *fd)
 	} else {
 		tmpf = strdup(_TEMPFILEPATH);
 		if (tmpf == NULL)
-			err(EX_SOFTWARE, "strdup failed");
+			err(EXIT_FAILURE, "strdup failed");
 	}
 	if ((*fd = mkstemp(tmpf)) == -1)
-		err(EX_IOERR, "mkstemp %s failed", tmpf);
+		err(EXIT_FAILURE, "mkstemp %s failed", tmpf);
 	if (fchmod(*fd, 0644) == -1)
-		err(EX_IOERR, "fchmod %s failed", tmpf);
+		err(EXIT_FAILURE, "fchmod %s failed", tmpf);
 	*fn = tmpf;
 
 #undef _TEMPFILE
@@ -493,25 +492,25 @@ copy_tempfile(int fd, const char *out)
 	int out_fd, bytes;
 
 	if (fstat(fd, &sb) == -1)
-		err(EX_IOERR, "fstat tmpfile failed");
+		err(EXIT_FAILURE, "fstat tmpfile failed");
 	if ((buf = malloc((size_t) sb.st_blksize)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	if (unlink(out) < 0)
-		err(EX_IOERR, "unlink %s failed", out);
+		err(EXIT_FAILURE, "unlink %s failed", out);
 	if ((out_fd = open(out, O_CREAT | O_WRONLY, 0755)) == -1)
-		err(EX_IOERR, "create %s failed", out);
+		err(EXIT_FAILURE, "create %s failed", out);
 
 	if (lseek(fd, 0, SEEK_SET) < 0)
-		err(EX_IOERR, "lseek tmpfile failed");
+		err(EXIT_FAILURE, "lseek tmpfile failed");
 	while ((bytes = read(fd, buf, sb.st_blksize)) > 0) {
 		if (write(out_fd, buf, (size_t) bytes) != bytes) {
 			(void) unlink(out);
-			err(EX_IOERR, "write %s failed", out);
+			err(EXIT_FAILURE, "write %s failed", out);
 		}
 	}
 	if (bytes < 0) {
 		(void) unlink(out);
-		err(EX_IOERR, "read failed");
+		err(EXIT_FAILURE, "read failed");
 	}
 
 	free(buf);
@@ -531,18 +530,18 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	tempfile = NULL;
 
 	if (src == NULL)
-		errx(EX_SOFTWARE, "internal: src == NULL");
+		errx(EXIT_FAILURE, "internal: src == NULL");
 	if ((ifd = open(src, O_RDONLY)) == -1)
-		err(EX_IOERR, "open %s failed", src);
+		err(EXIT_FAILURE, "open %s failed", src);
 
 	if (fstat(ifd, &sb) == -1)
-		err(EX_IOERR, "fstat %s failed", src);
+		err(EXIT_FAILURE, "fstat %s failed", src);
 
 	if (dst == NULL)
 		create_tempfile(&tempfile, &ofd);
 	else
 		if ((ofd = open(dst, O_RDWR|O_CREAT, 0755)) == -1)
-			err(EX_IOERR, "open %s failed", dst);
+			err(EXIT_FAILURE, "open %s failed", dst);
 
 #ifndef LIBELF_AR
 	/* Detect and process ar(1) archive using libarchive. */
@@ -553,7 +552,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 #endif
 
 	if (lseek(ifd, 0, SEEK_SET) < 0)
-		err(EX_IOERR, "lseek failed");
+		err(EXIT_FAILURE, "lseek failed");
 
 	/*
 	 * If input object is not ELF file, convert it to an intermediate
@@ -562,7 +561,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	if (ecp->itf != ETF_ELF) {
 		create_tempfile(&elftemp, &efd);
 		if ((ecp->eout = elf_begin(efd, ELF_C_WRITE, NULL)) == NULL)
-			errx(EX_SOFTWARE, "elf_begin() failed: %s",
+			errx(EXIT_FAILURE, "elf_begin() failed: %s",
 			    elf_errmsg(-1));
 		elf_flagelf(ecp->eout, ELF_C_SET, ELF_F_LAYOUT);
 		if (ecp->itf == ETF_BINARY)
@@ -572,27 +571,27 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		else if (ecp->itf == ETF_SREC)
 			create_elf_from_srec(ecp, ifd);
 		else
-			errx(EX_SOFTWARE, "Internal: invalid target flavour");
+			errx(EXIT_FAILURE, "Internal: invalid target flavour");
 		elf_end(ecp->eout);
 
 		/* Open intermediate ELF object as new input object. */
 		close(ifd);
 		if ((ifd = open(elftemp, O_RDONLY)) == -1)
-			err(EX_IOERR, "open %s failed", src);
+			err(EXIT_FAILURE, "open %s failed", src);
 		close(efd);
 		free(elftemp);
 	}
 
 	if ((ecp->ein = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_DATAERR, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 
 	switch (elf_kind(ecp->ein)) {
 	case ELF_K_NONE:
-		errx(EX_DATAERR, "file format not recognized");
+		errx(EXIT_FAILURE, "file format not recognized");
 	case ELF_K_ELF:
 		if ((ecp->eout = elf_begin(ofd, ELF_C_WRITE, NULL)) == NULL)
-			errx(EX_SOFTWARE, "elf_begin() failed: %s",
+			errx(EXIT_FAILURE, "elf_begin() failed: %s",
 			    elf_errmsg(-1));
 
 		/* elfcopy(1) manage ELF layout by itself. */
@@ -614,7 +613,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			 */
 			if (tempfile != NULL) {
 				if (unlink(tempfile) < 0)
-					err(EX_IOERR, "unlink %s failed",
+					err(EXIT_FAILURE, "unlink %s failed",
 					    tempfile);
 				free(tempfile);
 			}
@@ -635,8 +634,8 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 				    dst != NULL ? dst : src);
 				break;
 			default:
-				errx(EX_SOFTWARE, "Internal: unsupported output"
-				    " flavour %d", ecp->oec);
+				errx(EXIT_FAILURE, "Internal: unsupported"
+				    " output flavour %d", ecp->oec);
 			}
 
 			close(ofd);
@@ -649,7 +648,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		/* XXX: Not yet supported. */
 		break;
 	default:
-		errx(EX_DATAERR, "file format not supported");
+		errx(EXIT_FAILURE, "file format not supported");
 	}
 
 	elf_end(ecp->ein);
@@ -665,17 +664,17 @@ copy_done:
 			if (errno == EXDEV) {
 				ofd = copy_tempfile(ofd, dst);
 				if (unlink(tempfile) < 0)
-					err(EX_IOERR, "unlink %s failed",
+					err(EXIT_FAILURE, "unlink %s failed",
 					    tempfile);
 			} else
-				err(EX_IOERR, "rename %s to %s failed",
+				err(EXIT_FAILURE, "rename %s to %s failed",
 				    tempfile, dst);
 		}
 		free(tempfile);
 	}
 
 	if (strcmp(dst, "/dev/null") && fchmod(ofd, sb.st_mode) == -1)
-		err(EX_IOERR, "fchmod %s failed", dst);
+		err(EXIT_FAILURE, "fchmod %s failed", dst);
 
 	if (ecp->flags & PRESERVE_DATE) {
 		tv[0].tv_sec = sb.st_atime;
@@ -683,7 +682,7 @@ copy_done:
 		tv[1].tv_sec = sb.st_mtime;
 		tv[1].tv_usec = 0;
 		if (futimes(ofd, tv) == -1)
-			err(EX_IOERR, "futimes failed");
+			err(EXIT_FAILURE, "futimes failed");
 	}
 
 	close(ifd);
@@ -707,7 +706,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case 'R':
 			sac = lookup_sec_act(ecp, optarg, 1);
 			if (sac->copy != 0)
-				errx(EX_DATAERR,
+				errx(EXIT_FAILURE,
 				    "both copy and remove specified");
 			sac->remove = 1;
 			ecp->flags |= SEC_REMOVE;
@@ -729,7 +728,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case 'j':
 			sac = lookup_sec_act(ecp, optarg, 1);
 			if (sac->remove != 0)
-				errx(EX_DATAERR,
+				errx(EXIT_FAILURE,
 				    "both copy and remove specified");
 			sac->copy = 1;
 			ecp->flags |= SEC_COPY;
@@ -828,7 +827,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_REDEF_SYMBOL:
 			if ((s = strchr(optarg, '=')) == NULL)
-				errx(EX_USAGE,
+				errx(EXIT_FAILURE,
 				    "illegal format for --redefine-sym");
 			*s++ = '\0';
 			add_to_symop_list(ecp, optarg, s, SYMOP_REDEF);
@@ -838,7 +837,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_RENAME_SECTION:
 			if ((fn = strchr(optarg, '=')) == NULL)
-				errx(EX_USAGE,
+				errx(EXIT_FAILURE,
 				    "illegal format for --rename-section");
 			*fn++ = '\0';
 
@@ -857,7 +856,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 			break;
 		case ECP_SET_SEC_FLAGS:
 			if ((s = strchr(optarg, '=')) == NULL)
-				errx(EX_USAGE,
+				errx(EXIT_FAILURE,
 				    "illegal format for --set-section-flags");
 			*s++ = '\0';
 			sac = lookup_sec_act(ecp, optarg, 1);
@@ -1073,7 +1072,8 @@ parse_sec_flags(struct sec_action *sac, char *s)
 				break;
 			}
 		if (!found)
-			errx(EX_USAGE, "unrecognized section flag %s", flag);
+			errx(EXIT_FAILURE, "unrecognized section flag %s",
+			    flag);
 	}
 }
 
@@ -1091,7 +1091,7 @@ parse_sec_address_op(struct elfcopy *ecp, int optnum, const char *optname,
 		v++;
 	} while (*v != '\0' && *v != '=' && *v != '+' && *v != '-');
 	if (*v == '\0' || *(v + 1) == '\0')
-		errx(EX_USAGE, "invalid format for %s", optname);
+		errx(EXIT_FAILURE, "invalid format for %s", optname);
 	op = *v;
 	*v++ = '\0';
 	sac = lookup_sec_act(ecp, name, 1);
@@ -1138,7 +1138,7 @@ parse_symlist_file(struct elfcopy *ecp, const char *fn, unsigned int op)
 	char		*data, *p, *line, *end, *e, *n;
 
 	if (stat(fn, &sb) == -1)
-		err(EX_IOERR, "stat %s failed", fn);
+		err(EXIT_FAILURE, "stat %s failed", fn);
 
 	/* Check if we already read and processed this file. */
 	STAILQ_FOREACH(sf, &ecp->v_symfile, symfile_list) {
@@ -1147,16 +1147,16 @@ parse_symlist_file(struct elfcopy *ecp, const char *fn, unsigned int op)
 	}
 
 	if ((fp = fopen(fn, "r")) == NULL)
-		err(EX_IOERR, "can not open %s", fn);
+		err(EXIT_FAILURE, "can not open %s", fn);
 	if ((data = malloc(sb.st_size + 1)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	if (fread(data, 1, sb.st_size, fp) == 0 || ferror(fp))
-		err(EX_DATAERR, "fread failed");
+		err(EXIT_FAILURE, "fread failed");
 	fclose(fp);
 	data[sb.st_size] = '\0';
 
 	if ((sf = calloc(1, sizeof(*sf))) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	sf->dev = sb.st_dev;
 	sf->ino = sb.st_ino;
 	sf->size = sb.st_size + 1;
@@ -1192,7 +1192,7 @@ process_symfile:
 				add_to_symop_list(ecp, line, NULL, op);
 			else {
 				if (strlen(line) < 3)
-					errx(EX_USAGE,
+					errx(EXIT_FAILURE,
 					    "illegal format for"
 					    " --redefine-sym");
 				for(n = line + 1; n < e; n++) {
@@ -1203,7 +1203,7 @@ process_symfile:
 					}
 				}
 				if (n >= e)
-					errx(EX_USAGE,
+					errx(EXIT_FAILURE,
 					    "illegal format for"
 					    " --redefine-sym");
 				add_to_symop_list(ecp, line, n, op);
@@ -1223,7 +1223,7 @@ set_input_target(struct elfcopy *ecp, const char *target_name)
 	Bfd_Target *tgt;
 
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
-		errx(EX_USAGE, "%s: invalid target name", target_name);
+		errx(EXIT_FAILURE, "%s: invalid target name", target_name);
 	ecp->itf = elftc_bfd_target_flavor(tgt);
 }
 
@@ -1233,7 +1233,7 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 	Bfd_Target *tgt;
 
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
-		errx(EX_USAGE, "%s: invalid target name", target_name);
+		errx(EXIT_FAILURE, "%s: invalid target name", target_name);
 	ecp->otf = elftc_bfd_target_flavor(tgt);
 	if (ecp->otf == ETF_ELF) {
 		ecp->oec = elftc_bfd_target_class(tgt);
@@ -1256,7 +1256,7 @@ set_osabi(struct elfcopy *ecp, const char *abi)
 			break;
 		}
 	if (!found)
-		errx(EX_USAGE, "unrecognized OSABI %s", abi);
+		errx(EXIT_FAILURE, "unrecognized OSABI %s", abi);
 }
 
 static const char *elfcopy_usagemsg = "\
@@ -1335,7 +1335,7 @@ static void
 elfcopy_usage()
 {
 	(void) fprintf(stderr, elfcopy_usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static const char *mcs_usagemsg = "\
@@ -1354,7 +1354,7 @@ static void
 mcs_usage()
 {
 	(void) fprintf(stderr, mcs_usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static const char *strip_usagemsg = "\
@@ -1383,14 +1383,14 @@ static void
 strip_usage()
 {
 	(void) fprintf(stderr, strip_usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static void
 print_version(void)
 {
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 int
@@ -1399,12 +1399,12 @@ main(int argc, char **argv)
 	struct elfcopy *ecp;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
 	ecp = malloc(sizeof(*ecp));
 	if (ecp == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	memset(ecp, 0, sizeof(*ecp));
 
 	ecp->itf = ecp->otf = ETF_ELF;
@@ -1435,5 +1435,5 @@ main(int argc, char **argv)
 
 	free(ecp);
 
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }

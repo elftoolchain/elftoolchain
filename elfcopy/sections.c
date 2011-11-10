@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include "elfcopy.h"
 
@@ -111,18 +110,18 @@ is_remove_reloc_sec(struct elfcopy *ecp, uint32_t sh_info)
 	int		 elferr;
 
 	if (elf_getshstrndx(ecp->ein, &indx) == 0)
-		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
+		errx(EXIT_FAILURE, "elf_getshstrndx failed: %s",
 		    elf_errmsg(-1));
 
 	is = NULL;
 	while ((is = elf_nextscn(ecp->ein, is)) != NULL) {
 		if (sh_info == elf_ndxscn(is)) {
 			if (gelf_getshdr(is, &ish) == NULL)
-				errx(EX_SOFTWARE, "gelf_getshdr failed: %s",
+				errx(EXIT_FAILURE, "gelf_getshdr failed: %s",
 				    elf_errmsg(-1));
 			if ((name = elf_strptr(ecp->ein, indx, ish.sh_name)) ==
 			    NULL)
-				errx(EX_SOFTWARE, "elf_strptr failed: %s",
+				errx(EXIT_FAILURE, "elf_strptr failed: %s",
 				    elf_errmsg(-1));
 			if (is_remove_section(ecp, name))
 				return (1);
@@ -132,7 +131,7 @@ is_remove_reloc_sec(struct elfcopy *ecp, uint32_t sh_info)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 
 	/* Remove reloc section if we can't find the target section. */
@@ -192,7 +191,7 @@ check_section_rename(struct elfcopy *ecp, struct section *s)
 	if (prefix != NULL) {
 		namelen = strlen(s->name) + strlen(prefix) + 1;
 		if ((newname = malloc(namelen)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 		snprintf(newname, namelen, "%s%s", prefix, s->name);
 		s->name = newname;
 	}
@@ -275,7 +274,7 @@ lookup_sec_act(struct elfcopy *ecp, const char *name, int add)
 		return NULL;
 
 	if ((sac = malloc(sizeof(*sac))) == NULL)
-		errx(EX_SOFTWARE, "not enough memory");
+		errx(EXIT_FAILURE, "not enough memory");
 	memset(sac, 0, sizeof(*sac));
 	sac->name = name;
 	STAILQ_INSERT_TAIL(&ecp->v_sac, sac, sac_list);
@@ -325,7 +324,7 @@ create_scn(struct elfcopy *ecp)
 	 * or load address adjustment.
 	 */
 	if ((s = calloc(1, sizeof(*s))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	s->off = 0;
 	s->sz = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT) +
 	    gelf_fsize(ecp->eout, ELF_T_PHDR, ecp->ophnum, EV_CURRENT);
@@ -338,16 +337,16 @@ create_scn(struct elfcopy *ecp)
 	init_shstrtab(ecp);
 
 	if (elf_getshstrndx(ecp->ein, &indx) == 0)
-		errx(EX_SOFTWARE, "elf_getshstrndx failed: %s",
+		errx(EXIT_FAILURE, "elf_getshstrndx failed: %s",
 		    elf_errmsg(-1));
 
 	is = NULL;
 	while ((is = elf_nextscn(ecp->ein, is)) != NULL) {
 		if (gelf_getshdr(is, &ish) == NULL)
-			errx(EX_SOFTWARE, "219 gelf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "219 gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 		if ((name = elf_strptr(ecp->ein, indx, ish.sh_name)) == NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 
 		/* Skip sections to be removed. */
@@ -369,7 +368,7 @@ create_scn(struct elfcopy *ecp)
 		/* Create internal section object. */
 		if (strcmp(name, ".shstrtab") != 0) {
 			if ((s = calloc(1, sizeof(*s))) == NULL)
-				err(EX_SOFTWARE, "calloc failed");
+				err(EXIT_FAILURE, "calloc failed");
 			s->name		= name;
 			s->is		= is;
 			s->off		= ish.sh_offset;
@@ -410,14 +409,14 @@ create_scn(struct elfcopy *ecp)
 					insert_sections(ecp);
 			}
  			if ((s->os = elf_newscn(ecp->eout)) == NULL)
-				errx(EX_SOFTWARE, "elf_newscn failed: %s",
+				errx(EXIT_FAILURE, "elf_newscn failed: %s",
 				    elf_errmsg(-1));
 			if ((newndx = elf_ndxscn(s->os)) == SHN_UNDEF)
-				errx(EX_SOFTWARE, "elf_ndxscn failed: %s",
+				errx(EXIT_FAILURE, "elf_ndxscn failed: %s",
 				    elf_errmsg(-1));
 		}
 		if ((oldndx = elf_ndxscn(is)) == SHN_UNDEF)
-			errx(EX_SOFTWARE, "elf_ndxscn failed: %s",
+			errx(EXIT_FAILURE, "elf_ndxscn failed: %s",
 			    elf_errmsg(-1));
 		if (oldndx != SHN_UNDEF && newndx != SHN_UNDEF)
 			ecp->secndx[oldndx] = newndx;
@@ -449,7 +448,7 @@ create_scn(struct elfcopy *ecp)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 }
 
@@ -466,11 +465,11 @@ insert_shtab(struct elfcopy *ecp, int tail)
 	 * just as normal sections.
 	 */
 	if ((shtab = calloc(1, sizeof(*shtab))) == NULL)
-		errx(EX_SOFTWARE, "calloc failed");
+		errx(EXIT_FAILURE, "calloc failed");
 	if (!tail) {
 		/* shoff of input object is used as a hint. */
 		if (gelf_getehdr(ecp->ein, &ieh) == NULL)
-			errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+			errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 			    elf_errmsg(-1));
 		shtab->off = ieh.e_shoff;
 	} else
@@ -484,7 +483,7 @@ insert_shtab(struct elfcopy *ecp, int tail)
 	/* Remember there is always a null section, so we +1 here. */
 	shtab->sz = gelf_fsize(ecp->eout, ELF_T_SHDR, nsecs + 1, EV_CURRENT);
 	if (shtab->sz == 0)
-		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "gelf_fsize() failed: %s", elf_errmsg(-1));
 	shtab->align = (ecp->oec == ELFCLASS32 ? 4 : 8);
 	shtab->loadable = 0;
 	shtab->pseudo = 1;
@@ -556,7 +555,7 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 	int		 elferr, i;
 
 	if (gelf_getshdr(s->is, &ish) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* We don't want to touch relocation info for dynamic symbols. */
@@ -580,13 +579,13 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 	if (nrels == 0) {					\
 		if ((REL##SZ = malloc(cap *			\
 		    sizeof(Elf##SZ##_Rel))) == NULL)		\
-			err(EX_SOFTWARE, "malloc failed");	\
+			err(EXIT_FAILURE, "malloc failed");	\
 	}							\
 	if (nrels >= cap) {					\
 		cap *= 2;					\
 		if ((REL##SZ = realloc(REL##SZ, cap *		\
 		    sizeof(Elf##SZ##_Rel))) == NULL)		\
-			err(EX_SOFTWARE, "realloc failed");	\
+			err(EXIT_FAILURE, "realloc failed");	\
 	}							\
 	REL##SZ[nrels].r_offset = REL.r_offset;			\
 	REL##SZ[nrels].r_info	= REL.r_info;			\
@@ -602,23 +601,23 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 	rela32 = NULL;
 	rela64 = NULL;
 	if ((id = elf_getdata(s->is, NULL)) == NULL)
-		errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 		    elf_errmsg(-1));
 	n = ish.sh_size / ish.sh_entsize;
 	for(i = 0; (uint64_t)i < n; i++) {
 		if (s->type == SHT_REL) {
 			if (gelf_getrel(id, i, &rel) != &rel)
-				errx(EX_SOFTWARE, "gelf_getrel failed: %s",
+				errx(EXIT_FAILURE, "gelf_getrel failed: %s",
 				    elf_errmsg(-1));
 		} else {
 			if (gelf_getrela(id, i, &rela) != &rela)
-				errx(EX_SOFTWARE, "gelf_getrel failed: %s",
+				errx(EXIT_FAILURE, "gelf_getrel failed: %s",
 				    elf_errmsg(-1));
 		}
 		name = elf_strptr(ecp->ein, elf_ndxscn(ecp->strtab->is),
 		    GELF_R_SYM(rel.r_info));
 		if (name == NULL)
-			errx(EX_SOFTWARE, "elf_strptr failed: %s",
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
 		if (lookup_symop_list(ecp, name, SYMOP_KEEP) != NULL) {
 			if (ecp->oec == ELFCLASS32) {
@@ -636,7 +635,7 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 		    elf_errmsg(elferr));
 
 	if (ecp->oec == ELFCLASS32) {
@@ -667,25 +666,25 @@ update_reloc(struct elfcopy *ecp, struct section *s)
 
 #define UPDATEREL(REL) do {						\
 	if (gelf_get##REL(od, i, &REL) != &REL)				\
-		errx(EX_SOFTWARE, "gelf_get##REL failed: %s",		\
+		errx(EXIT_FAILURE, "gelf_get##REL failed: %s",		\
 		    elf_errmsg(-1));					\
 	REL.r_info = GELF_R_INFO(ecp->symndx[GELF_R_SYM(REL.r_info)],	\
 	    GELF_R_TYPE(REL.r_info));					\
 	if (!gelf_update_##REL(od, i, &REL))				\
-		errx(EX_SOFTWARE, "gelf_update_##REL failed: %s",	\
+		errx(EXIT_FAILURE, "gelf_update_##REL failed: %s",	\
 		    elf_errmsg(-1));					\
 } while(0)
 
 	if (s->sz == 0)
 		return;
 	if (gelf_getshdr(s->os, &osh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 	/* Only process .symtab reloc info. */
 	if (osh.sh_link != elf_ndxscn(ecp->symtab->is))
 		return;
 	if ((od = elf_getdata(s->os, NULL)) == NULL)
-		errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 		    elf_errmsg(-1));
 	n = osh.sh_size / osh.sh_entsize;
 	for(i = 0; (uint64_t)i < n; i++) {
@@ -706,12 +705,12 @@ pad_section(struct elfcopy *ecp, struct section *s)
 		return;
 
 	if ((s->pad = malloc(s->pad_sz)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	memset(s->pad, ecp->fill, s->pad_sz);
 
 	/* Create a new Elf_Data to contain the padding bytes. */
 	if ((od = elf_newdata(s->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_newdata() failed: %s",
 		    elf_errmsg(-1));
 	od->d_align = 1;
 	od->d_off = s->sz;
@@ -722,11 +721,11 @@ pad_section(struct elfcopy *ecp, struct section *s)
 
 	/* Update section header. */
 	if (gelf_getshdr(s->os, &osh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	osh.sh_size = s->sz + s->pad_sz;
 	if (!gelf_update_shdr(s->os, &osh))
-		errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
+		errx(EXIT_FAILURE, "elf_update_shdr failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -774,13 +773,13 @@ resync_sections(struct elfcopy *ecp)
 
 		/* Update section header accordingly. */
 		if (gelf_getshdr(s->os, &osh) == NULL)
-			errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+			errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 			    elf_errmsg(-1));
 		osh.sh_addr = s->vma;
 		osh.sh_offset = s->off;
 		osh.sh_size = s->sz;
 		if (!gelf_update_shdr(s->os, &osh))
-			errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
+			errx(EXIT_FAILURE, "elf_update_shdr failed: %s",
 			    elf_errmsg(-1));
 
 		/* Add padding for previous section, if need. */
@@ -829,7 +828,7 @@ modify_section(struct elfcopy *ecp, struct section *s)
 		dstsz += strlen(sac->string) + 1;
 	}
 	if ((b = malloc(dstsz)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	s->buf = b;
 
 	/* Compress section. */
@@ -906,7 +905,7 @@ print_section(struct section *s)
 			print_data(id->d_buf, id->d_size);
 		elferr = elf_errno();
 		if (elferr != 0)
-			errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+			errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 			    elf_errmsg(elferr));
 	}
 	putchar('\n');
@@ -929,14 +928,14 @@ read_section(struct section *s, size_t *size)
 		else
 			b = malloc(sz + id->d_size);
 		if (b == NULL)
-			err(EX_SOFTWARE, "malloc or realloc failed");
+			err(EXIT_FAILURE, "malloc or realloc failed");
 
 		memcpy(&b[sz], id->d_buf, id->d_size);
 		sz += id->d_size;
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 		    elf_errmsg(elferr));
 
 	*size = sz;
@@ -951,10 +950,10 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 	GElf_Shdr ish, osh;
 
 	if (gelf_getshdr(s->is, &ish) == NULL)
-		errx(EX_SOFTWARE, "526 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "526 gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getshdr(s->os, &osh) == NULL)
-		errx(EX_SOFTWARE, "529 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "529 gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 
 	if (copy)
@@ -992,7 +991,7 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 		add_to_shstrtab(ecp, name);
 
 	if (!gelf_update_shdr(s->os, &osh))
-		errx(EX_SOFTWARE, "elf_update_shdr failed: %s",
+		errx(EXIT_FAILURE, "elf_update_shdr failed: %s",
 		    elf_errmsg(-1));
 }
 
@@ -1008,13 +1007,13 @@ copy_data(struct section *s)
 	if ((id = elf_getdata(s->is, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			errx(EX_SOFTWARE, "elf_getdata() failed: %s",
+			errx(EXIT_FAILURE, "elf_getdata() failed: %s",
 			    elf_errmsg(elferr));
 		return;
 	}
 
 	if ((od = elf_newdata(s->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_newdata() failed: %s",
 		    elf_errmsg(-1));
 
 	if (s->nocopy) {
@@ -1046,10 +1045,10 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 	GElf_Shdr	 osh;
 
 	if ((os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn() failed: %s",
+		errx(EXIT_FAILURE, "elf_newscn() failed: %s",
 		    elf_errmsg(-1));
 	if ((s = calloc(1, sizeof(*s))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	s->name = name;
 	s->off = off;
 	s->sz = size;
@@ -1063,20 +1062,20 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 	insert_to_sec_list(ecp, s, 1);
 
 	if (gelf_getshdr(os, &osh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	osh.sh_flags = flags;
 	osh.sh_type = s->type;
 	osh.sh_addr = s->vma;
 	osh.sh_addralign = s->align;
 	if (!gelf_update_shdr(os, &osh))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 	add_to_shstrtab(ecp, name);
 
 	if (buf != NULL && size != 0) {
 		if ((od = elf_newdata(os)) == NULL)
-			errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+			errx(EXIT_FAILURE, "elf_newdata() failed: %s",
 			    elf_errmsg(-1));
 		od->d_align = align;
 		od->d_off = 0;
@@ -1150,7 +1149,7 @@ update_shdr(struct elfcopy *ecp, int update_link)
 			continue;
 
 		if (gelf_getshdr(s->os, &osh) == NULL)
-			errx(EX_SOFTWARE, "668 gelf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "668 gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
 		/* Find section name in string table and set sh_name. */
@@ -1172,12 +1171,12 @@ update_shdr(struct elfcopy *ecp, int update_link)
 			osh.sh_info = ecp->secndx[osh.sh_info];
 
 		if (!gelf_update_shdr(s->os, &osh))
-			errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+			errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 			    elf_errmsg(-1));
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		errx(EX_SOFTWARE, "elf_nextscn failed: %s",
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
 }
 
@@ -1187,7 +1186,7 @@ init_shstrtab(struct elfcopy *ecp)
 	struct section *s;
 
 	if ((ecp->shstrtab = calloc(1, sizeof(*ecp->shstrtab))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	s = ecp->shstrtab;
 	s->name = ".shstrtab";
 	s->is = NULL;
@@ -1208,7 +1207,7 @@ set_shstrtab(struct elfcopy *ecp)
 	s = ecp->shstrtab;
 
 	if (gelf_getshdr(s->os, &sh) == NULL)
-		errx(EX_SOFTWARE, "692 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "692 gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	sh.sh_addr	= 0;
 	sh.sh_addralign	= 1;
@@ -1220,7 +1219,7 @@ set_shstrtab(struct elfcopy *ecp)
 	sh.sh_link	= 0;
 
 	if ((data = elf_newdata(s->os)) == NULL)
-		errx(EX_SOFTWARE, "elf_newdata() failed: %s",
+		errx(EXIT_FAILURE, "elf_newdata() failed: %s",
 		    elf_errmsg(-1));
 
 	/*
@@ -1235,7 +1234,7 @@ set_shstrtab(struct elfcopy *ecp)
 
 	sh.sh_size	= s->sz;
 	if (!gelf_update_shdr(s->os, &sh))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 
 	data->d_align	= 1;
@@ -1246,7 +1245,7 @@ set_shstrtab(struct elfcopy *ecp)
 	data->d_version	= EV_CURRENT;
 
 	if (!elf_setshstrndx(ecp->eout, elf_ndxscn(s->os)))
-		errx(EX_SOFTWARE, "elf_setshstrndx() failed: %s",
+		errx(EXIT_FAILURE, "elf_setshstrndx() failed: %s",
 		     elf_errmsg(-1));
 }
 
@@ -1260,28 +1259,28 @@ add_section(struct elfcopy *ecp, const char *arg)
 	int		 len;
 
 	if ((s = strchr(arg, '=')) == NULL)
-		errx(EX_USAGE,
+		errx(EXIT_FAILURE,
 		    "illegal format for --add-section option");
 	if ((sa = malloc(sizeof(*sa))) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 
 	len = s - arg;
 	if ((sa->name = malloc(len + 1)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	strncpy(sa->name, arg, len);
 	sa->name[len] = '\0';
 
 	fn = s + 1;
 	if (stat(fn, &sb) == -1)
-		err(EX_DATAERR, "stat failed");
+		err(EXIT_FAILURE, "stat failed");
 	sa->size = sb.st_size;
 	if ((sa->content = malloc(sa->size)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	if ((fp = fopen(fn, "r")) == NULL)
-		err(EX_DATAERR, "can not open %s", fn);
+		err(EXIT_FAILURE, "can not open %s", fn);
 	if (fread(sa->content, 1, sa->size, fp) == 0 ||
 	    ferror(fp))
-		err(EX_DATAERR, "fread failed");
+		err(EXIT_FAILURE, "fread failed");
 	fclose(fp);
 
 	STAILQ_INSERT_TAIL(&ecp->v_sadd, sa, sadd_list);
@@ -1303,18 +1302,18 @@ add_gnu_debuglink(struct elfcopy *ecp)
 
 	/* Read debug file content. */
 	if ((sa = malloc(sizeof(*sa))) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	if ((sa->name = strdup(".gnu_debuglink")) == NULL)
-		err(EX_SOFTWARE, "strdup failed");
+		err(EXIT_FAILURE, "strdup failed");
 	if (stat(ecp->debuglink, &sb) == -1)
-		err(EX_DATAERR, "stat failed");
+		err(EXIT_FAILURE, "stat failed");
 	if ((buf = malloc(sb.st_size)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	if ((fp = fopen(ecp->debuglink, "r")) == NULL)
-		err(EX_DATAERR, "can not open %s", ecp->debuglink);
+		err(EXIT_FAILURE, "can not open %s", ecp->debuglink);
 	if (fread(buf, 1, sb.st_size, fp) == 0 ||
 	    ferror(fp))
-		err(EX_DATAERR, "fread failed");
+		err(EXIT_FAILURE, "fread failed");
 	fclose(fp);
 
 	/* Calculate crc checksum.  */
@@ -1323,13 +1322,13 @@ add_gnu_debuglink(struct elfcopy *ecp)
 
 	/* Calculate section size and the offset to store crc checksum. */
 	if ((fnbase = basename(ecp->debuglink)) == NULL)
-		err(EX_DATAERR, "basename failed");
+		err(EXIT_FAILURE, "basename failed");
 	crc_off = roundup(strlen(fnbase) + 1, 4);
 	sa->size = crc_off + 4;
 
 	/* Section content. */
 	if ((sa->content = calloc(1, sa->size)) == NULL)
-		err(EX_SOFTWARE, "malloc failed");
+		err(EXIT_FAILURE, "malloc failed");
 	strncpy(sa->content, fnbase, strlen(fnbase));
 	if (ecp->oed == ELFDATA2LSB) {
 		sa->content[crc_off] = crc & 0xFF;
@@ -1358,7 +1357,7 @@ insert_to_strtab(struct section *t, const char *s)
 	if (t->sz == 0) {
 		t->cap = 512;
 		if ((t->buf = malloc(t->cap)) == NULL)
-			err(EX_SOFTWARE, "malloc failed");
+			err(EXIT_FAILURE, "malloc failed");
 	}
 
 	slen = strlen(s);
@@ -1385,7 +1384,7 @@ insert_to_strtab(struct section *t, const char *s)
 	while (t->sz + slen + 1 >= t->cap) {
 		t->cap *= 2;
 		if ((t->buf = realloc(t->buf, t->cap)) == NULL)
-			err(EX_SOFTWARE, "realloc failed");
+			err(EXIT_FAILURE, "realloc failed");
 	}
 	b = t->buf;
 	strncpy(&b[t->sz], s, slen);

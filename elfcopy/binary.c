@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include "elfcopy.h"
@@ -56,12 +55,12 @@ create_binary(int ifd, int ofd)
 	int elferr;
 
 	if ((e = elf_begin(ifd, ELF_C_READ, NULL)) == NULL)
-		errx(EX_DATAERR, "elf_begin() failed: %s",
+		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
 
 	base = 0;
 	if (lseek(ofd, base, SEEK_SET) < 0)
-		err(EX_DATAERR, "lseek failed");
+		err(EXIT_FAILURE, "lseek failed");
 
 	/*
 	 * Find base offset in the first iteration.
@@ -115,11 +114,11 @@ create_binary(int ifd, int ofd)
 		/* lseek to section offset relative to `base'. */
 		off = sh.sh_offset - base;
 		if (lseek(ofd, off, SEEK_SET) < 0)
-			err(EX_DATAERR, "lseek failed");
+			err(EXIT_FAILURE, "lseek failed");
 
 		/* Write out section contents. */
 		if (write(ofd, d->d_buf, d->d_size) != (ssize_t) d->d_size)
-			err(EX_DATAERR, "write failed");
+			err(EXIT_FAILURE, "write failed");
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -156,11 +155,11 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 		}
 
 	if (fstat(ifd, &sb) == -1)
-		err(EX_IOERR, "fstat failed");
+		err(EXIT_FAILURE, "fstat failed");
 
 	if ((content = mmap(NULL, (size_t) sb.st_size, PROT_READ, MAP_PRIVATE,
 	    ifd, (off_t) 0)) == MAP_FAILED) {
-		err(EX_SOFTWARE, "mmap failed");
+		err(EXIT_FAILURE, "mmap failed");
 	}
 
 	/*
@@ -170,10 +169,10 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 
 	/* Create EHDR for output .o file. */
 	if (gelf_newehdr(ecp->eout, ecp->oec) == NULL)
-		errx(EX_SOFTWARE, "gelf_newehdr failed: %s",
+		errx(EXIT_FAILURE, "gelf_newehdr failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Initialise e_ident fields. */
@@ -200,13 +199,13 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	 */
 	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
 	if (off == 0)
-		errx(EX_SOFTWARE, "gelf_fsize() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "gelf_fsize() failed: %s", elf_errmsg(-1));
 	(void) create_external_section(ecp, ".data", content, sb.st_size, off,
 	    SHT_PROGBITS, ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, 0, 1);
 
 	/* Insert .shstrtab after .data section. */
 	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
-		errx(EX_SOFTWARE, "elf_newscn failed: %s",
+		errx(EXIT_FAILURE, "elf_newscn failed: %s",
 		    elf_errmsg(-1));
 	insert_to_sec_list(ecp, ecp->shstrtab, 1);
 
@@ -245,7 +244,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	 * before elf_setshstrndx() since it will overwrite e->e_shstrndx.
 	 */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Generate section name string table (.shstrtab). */
@@ -257,16 +256,16 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 
 	/* Properly set sh_link field of .symtab section. */
 	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)
-		errx(EX_SOFTWARE, "692 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "692 gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	sh.sh_link = elf_ndxscn(ecp->strtab->os);
 	if (!gelf_update_shdr(ecp->symtab->os, &sh))
-		errx(EX_SOFTWARE, "gelf_update_shdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Renew oeh to get the updated e_shstrndx. */
 	if (gelf_getehdr(ecp->eout, &oeh) == NULL)
-		errx(EX_SOFTWARE, "gelf_getehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Resync section offsets. */
@@ -277,11 +276,11 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 
 	/* Update ehdr since we modified e_shoff. */
 	if (gelf_update_ehdr(ecp->eout, &oeh) == 0)
-		errx(EX_SOFTWARE, "gelf_update_ehdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_update_ehdr() failed: %s",
 		    elf_errmsg(-1));
 
 	/* Write out the output elf object. */
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
-		errx(EX_SOFTWARE, "elf_update() failed: %s",
+		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
 }

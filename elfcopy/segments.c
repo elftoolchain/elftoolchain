@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include "elfcopy.h"
 
@@ -172,14 +171,14 @@ adjust_addr(struct elfcopy *ecp)
 #endif
 
 		if (lma % s->align != 0)
-			errx(EX_DATAERR, "The load address %#jx for section "
-			    "%s is not aligned to %ju", (uintmax_t) lma,
-			    s->name, s->align);
+			errx(EXIT_FAILURE, "The load address %#jx for "
+			    "section %s is not aligned to %ju",
+			    (uintmax_t) lma, s->name, s->align);
 
 		if (lma < s->lma) {
 			/* Move section to lower address. */
 			if (lma < s->lma - s->seg->addr)
-				errx(EX_DATAERR, "Not enough space to move "
+				errx(EXIT_FAILURE, "Not enough space to move "
 				    "section %s load address to %#jx", s->name,
 				    (uintmax_t) lma);
 			start = lma - (s->lma - s->seg->addr);
@@ -196,7 +195,7 @@ adjust_addr(struct elfcopy *ecp)
 				start = s->seg->addr;
 			end = lma + (s->seg->addr + s->seg->msz - s->lma);
 			if (end < start)
-				errx(EX_DATAERR, "Not enough space to move "
+				errx(EXIT_FAILURE, "Not enough space to move "
 				    "section %s load address to %#jx", s->name,
 				    (uintmax_t) lma);
 		}
@@ -213,7 +212,7 @@ adjust_addr(struct elfcopy *ecp)
 				continue;
 			if (end < seg->addr)
 				continue;
-			errx(EX_DATAERR, "The extent of segment containing "
+			errx(EXIT_FAILURE, "The extent of segment containing "
 			    "section %s overlaps with segment(%#jx,%#jx)",
 			    s->name, seg->addr, seg->addr + seg->msz);
 		}
@@ -365,7 +364,7 @@ setup_phdr(struct elfcopy *ecp)
 	int		 i;
 
 	if (elf_getphnum(ecp->ein, &iphnum) == 0)
-		errx(EX_DATAERR, "elf_getphnum failed: %s",
+		errx(EXIT_FAILURE, "elf_getphnum failed: %s",
 		    elf_errmsg(-1));
 
 	ecp->ophnum = ecp->iphnum = iphnum;
@@ -380,10 +379,10 @@ setup_phdr(struct elfcopy *ecp)
 
 	for (i = 0; (size_t)i < iphnum; i++) {
 		if (gelf_getphdr(ecp->ein, i, &iphdr) != &iphdr)
-			errx(EX_SOFTWARE, "gelf_getphdr failed: %s",
+			errx(EXIT_FAILURE, "gelf_getphdr failed: %s",
 			    elf_errmsg(-1));
 		if ((seg = calloc(1, sizeof(*seg))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		seg->addr	= iphdr.p_vaddr;
 		seg->off	= iphdr.p_offset;
 		seg->fsz	= iphdr.p_filesz;
@@ -434,7 +433,8 @@ copy_phdr(struct elfcopy *ecp)
 	 * elf_update is needed to update e_phnum of ehdr.
 	 */
 	if (gelf_newphdr(ecp->eout, ecp->ophnum) == NULL)
-		errx(EX_SOFTWARE, "gelf_newphdr() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "gelf_newphdr() failed: %s",
+		    elf_errmsg(-1));
 
 	/*
 	 * This elf_update() call is to update the e_phnum field in
@@ -442,7 +442,7 @@ copy_phdr(struct elfcopy *ecp)
 	 * which does sanity check by comparing ndx argument with e_phnum.
 	 */
 	if (elf_update(ecp->eout, ELF_C_NULL) < 0)
-		errx(EX_SOFTWARE, "elf_update() failed: %s", elf_errmsg(-1));
+		errx(EXIT_FAILURE, "elf_update() failed: %s", elf_errmsg(-1));
 
 	/*
 	 * iphnum == ophnum, since we don't remove program headers even if
@@ -453,10 +453,10 @@ copy_phdr(struct elfcopy *ecp)
 		if (i >= ecp->iphnum)
 			break;
 		if (gelf_getphdr(ecp->ein, i, &iphdr) != &iphdr)
-			errx(EX_SOFTWARE, "gelf_getphdr failed: %s",
+			errx(EXIT_FAILURE, "gelf_getphdr failed: %s",
 			    elf_errmsg(-1));
 		if (gelf_getphdr(ecp->eout, i, &ophdr) != &ophdr)
-			errx(EX_SOFTWARE, "gelf_getphdr failed: %s",
+			errx(EXIT_FAILURE, "gelf_getphdr failed: %s",
 			    elf_errmsg(-1));
 
 		ophdr.p_type = iphdr.p_type;
@@ -468,7 +468,7 @@ copy_phdr(struct elfcopy *ecp)
 		ophdr.p_filesz = seg->fsz;
 		ophdr.p_memsz = seg->msz;
 		if (!gelf_update_phdr(ecp->eout, i, &ophdr))
-			err(EX_SOFTWARE, "gelf_update_phdr failed :%s",
+			err(EXIT_FAILURE, "gelf_update_phdr failed :%s",
 			    elf_errmsg(-1));
 
 		i++;
