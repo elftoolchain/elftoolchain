@@ -38,7 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 #include <libelf.h>
@@ -48,6 +47,12 @@
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
+
+enum return_code {
+	RETURN_OK,
+	RETURN_NOINPUT,
+	RETURN_SOFTWARE
+};
 
 enum radix_style {
 	RADIX_DECIMAL,
@@ -102,11 +107,11 @@ main(int argc, char **argv)
 {
 	int ch, rc;
 
-	rc = EX_OK;
+	rc = RETURN_OK;
 	min_len = 0;
 	encoding_size = 1;
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
 	while ((ch = getopt_long(argc, argv, "1234567890ae:fhn:ot:Vv",
@@ -201,11 +206,11 @@ handle_file(const char *name)
 	int fd, rt;
 
 	if (name == NULL)
-		return (EX_NOINPUT);
+		return (RETURN_NOINPUT);
 	if (strcmp("{standard input}", name) != 0) {
 		if (freopen(name, "rb", stdin) == NULL) {
 			warnx("'%s': %s", name, strerror(errno));
-			return (EX_NOINPUT);
+			return (RETURN_NOINPUT);
 		}
 	} else {
 		return (find_strings(name, (off_t)0, (off_t)0));
@@ -213,7 +218,7 @@ handle_file(const char *name)
 
 	fd = fileno(stdin);
 	if (fd < 0)
-		return (EX_NOINPUT);
+		return (RETURN_NOINPUT);
 	rt = handle_elf(name, fd);
 	return (rt);
 }
@@ -231,7 +236,7 @@ handle_binary(const char *name, int fd)
 	(void) lseek(fd, (off_t)0, SEEK_SET);
 	if (!fstat(fd, &buf))
 		return (find_strings(name, (off_t)0, buf.st_size));
-	return (EX_SOFTWARE);
+	return (RETURN_SOFTWARE);
 }
 
 /*
@@ -249,7 +254,7 @@ handle_elf(const char *name, int fd)
 	Elf_Scn *scn;
 	int rc;
 
-	rc = EX_OK;
+	rc = RETURN_OK;
 	/* If entire file is choosen, treat it as a binary file */
 	if (entire_file)
 		return (handle_binary(name, fd));
@@ -264,7 +269,7 @@ handle_elf(const char *name, int fd)
 	if (gelf_getehdr(elf, &elfhdr) == NULL) {
 		(void) elf_end(elf);
 		warnx("%s: ELF file could not be processed", name);
-		return (EX_SOFTWARE);
+		return (RETURN_SOFTWARE);
 	}
 
 	if (elfhdr.e_shnum == 0 && elfhdr.e_type == ET_CORE) {
@@ -344,7 +349,7 @@ find_strings(const char *name, off_t offset, off_t size)
 	if ((obuf = (char*)calloc(1, min_len + 1)) == NULL) {
 		(void) fprintf(stderr, "Unable to allocate memory: %s\n",
 		     strerror(errno));
-		return (EX_SOFTWARE);
+		return (RETURN_SOFTWARE);
 	}
 
 	(void) fseeko(stdin, offset, SEEK_SET);
@@ -418,7 +423,7 @@ find_strings(const char *name, off_t offset, off_t size)
 	}
 _exit1:
 	free(obuf);
-	return (EX_OK);
+	return (RETURN_OK);
 }
 
 static const char *usagemsg = "\
@@ -439,12 +444,12 @@ void
 usage(void)
 {
 	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 void
 show_version(void)
 {
         (void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
-        exit(EX_OK);
+        exit(EXIT_SUCCESS);
 }
