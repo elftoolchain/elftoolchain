@@ -18,4 +18,4 @@ execute test:
 		${TET_ROOT}/bin/tcc -e .
 
 clobber:	clean
-	rm -rf ${TET_RESULTS_DIR}
+	rm -rf ${TET_RESULTS_DIR} ${TET_TMP_DIR}

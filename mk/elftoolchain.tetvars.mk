@@ -18,3 +18,5 @@ TET_DOWNLOAD_URL=	\
 # The directory where test journals are placed.
 TET_RESULTS_DIR?=	results
 
+# The temporary directory used by TET.
+TET_TMP_DIR?=		tet_tmp_dir

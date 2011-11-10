@@ -29,7 +29,7 @@ execute tccbuild tccclean test:
 		TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
 
 clobber:	clean
-	rm -rf ${TET_RESULTS_DIR}
+	rm -rf ${TET_RESULTS_DIR} ${TET_TMP_DIR}
 
 SUBDIR=		tset
 
