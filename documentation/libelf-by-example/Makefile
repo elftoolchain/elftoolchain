@@ -19,11 +19,17 @@ IMAGES_MP=		fig-arstr.mp fig-ariter.mp fig-data.mp \
 
 .include "${TOP}/mk/elftoolchain.tex.mk"
 
+.if ${OS_HOST} == "Linux"
+EXTRA_LIBS=	-lbsd
+.endif
+
 check-example-syntax: .PHONY
 .for f in ${SRCS:Mprog*}
 	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' \
 		${.CURDIR}/${f} > ${.OBJDIR}/$${c}; \
-	echo -n $${c} ' '; cc ${.OBJDIR}/$${c} -L${.CURDIR}/${TOP}/libelf \
-		-lelf && rm ${.OBJDIR}/$${c}
+	echo -n $${c} ' '; cc -I${.CURDIR}/${TOP}/common \
+		-I${.CURDIR}/${TOP}/libelf ${.OBJDIR}/$${c} \
+		-L${.CURDIR}/${TOP}/libelf -lelf ${EXTRA_LIBS} && \
+		rm ${.OBJDIR}/$${c}
 .endfor
 	@echo
