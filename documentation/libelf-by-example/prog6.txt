@@ -44,7 +44,7 @@ main(int argc, char **argv)
             errx(EXIT_FAILURE, "elf_getarhdr() failed: %s.",
                 elf_errmsg(-1));
 
-        (void) printf("%20s %d\n", arh->ar_name,
+        (void) printf("%20s %zd\n", arh->ar_name,
             arh->ar_size);
 
         (void) elf_next(e); @\co{5}@
