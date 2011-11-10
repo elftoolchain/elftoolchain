@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 24, 2011
+.Dd November 9, 2011
 .Os
 .Dt ELFTC_BFD_FIND_TARGET
 .Sh NAME
@@ -177,7 +177,7 @@ use:
 struct Bfd_Target *t;
 
 if ((t = elftc_bfd_find_target("elf64-big")) == NULL)
-	errx(EX_USAGE, "Cannot find target descriptor");
+	errx(EXIT_FAILURE, "Cannot find target descriptor");
 
 printf("Class: %s\\n", elftc_bfd_target_class(t) == ELFCLASS32 ?
     "ELFCLASS32" : "ELFCLASS64");
