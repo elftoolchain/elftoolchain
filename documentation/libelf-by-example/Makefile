@@ -30,6 +30,6 @@ check-example-syntax: .PHONY
 	echo -n $${c} ' '; cc -I${.CURDIR}/${TOP}/common \
 		-I${.CURDIR}/${TOP}/libelf ${.OBJDIR}/$${c} \
 		-L${.CURDIR}/${TOP}/libelf -lelf ${EXTRA_LIBS} && \
-		rm ${.OBJDIR}/$${c}
+		rm ${.OBJDIR}/$${c} a.out
 .endfor
 	@echo
