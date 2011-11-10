@@ -13,7 +13,7 @@ TEST_LOG=	test.log
 execute test: ${ELFCOPY}
 	/bin/sh run.sh
 
-clobber:
+clobber:	clean
 	rm -f ${TEST_LOG}
 
 SUBDIR=		plugin
