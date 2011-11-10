@@ -114,7 +114,8 @@ Dwarf_Unsigned length;
 Dwarf_Error de;
 
 if (dwarf_get_aranges(dbg, &aranges, &cnt, &de) != DW_DLV_OK)
-	errx("dwarf_get_aranges: %s", dwarf_errmsg(de));
+	errx(EXIT_FAILURE, "dwarf_get_aranges: %s",
+	    dwarf_errmsg(de));
 for (i = 0; i < cnt; i++) {
 	if (dwarf_get_arange_info(aranges[i], &start, &length,
 	    &die_off, &de) != DW_DLV_OK) {
