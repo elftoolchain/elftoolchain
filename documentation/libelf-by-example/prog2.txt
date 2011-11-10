@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <sysexits.h>
 #include <unistd.h>
 #include <vis.h>
 
@@ -24,36 +23,36 @@ main(int argc, char **argv)
     GElf_Ehdr ehdr; @\co{2}@
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", argv[0]);
+        errx(EXIT_FAILURE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        errx(EX_SOFTWARE, "ELF library initialization "
+        errx(EXIT_FAILURE, "ELF library initialization "
             "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
-        err(EX_NOINPUT, "open \"%s\" failed", argv[1]);
+        err(EXIT_FAILURE, "open \"%s\" failed", argv[1]);
 
     if ((e = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
-        errx(EX_SOFTWARE, "elf_begin() failed: %s.",
+        errx(EXIT_FAILURE, "elf_begin() failed: %s.",
             elf_errmsg(-1));
 
     if (elf_kind(e) != ELF_K_ELF)
-        errx(EX_DATAERR, "\"%s\" is not an ELF object.",
+        errx(EXIT_FAILURE, "\"%s\" is not an ELF object.",
             argv[1]);
 
     if (gelf_getehdr(e, &ehdr) == NULL) @\co{3}@
-        errx(EX_SOFTWARE, "getehdr() failed: %s.",
+        errx(EXIT_FAILURE, "getehdr() failed: %s.",
             elf_errmsg(-1));
 
     if ((i = gelf_getclass(e)) == ELFCLASSNONE) @\co{4}@
-        errx(EX_SOFTWARE, "getclass() failed: %s.",
+        errx(EXIT_FAILURE, "getclass() failed: %s.",
             elf_errmsg(-1));
 
     (void) printf("%s: %d-bit ELF object\n", argv[1],
         i == ELFCLASS32 ? 32 : 64);
 
     if ((id = elf_getident(e, NULL)) == NULL) @\co{5}@
-        errx(EX_SOFTWARE, "getident() failed: %s.",
+        errx(EXIT_FAILURE, "getident() failed: %s.",
             elf_errmsg(-1));
 
     (void) printf("%3s e_ident[0..%1d] %7s", " ",
@@ -83,21 +82,21 @@ main(int argc, char **argv)
     PRINT_FIELD(e_shentsize);
 
     if (elf_getshdrnum(e, &n) != 0) @\co{7}@
-        errx(EX_SOFTWARE, "getshdrnum() failed: %s.",
+        errx(EXIT_FAILURE, "getshdrnum() failed: %s.",
             elf_errmsg(-1));
     (void) printf(PRINT_FMT, "(shnum)", (uintmax_t) n);
 
     if (elf_getshdrstrndx(e, &n) != 0) @\co{8}@
-        errx(EX_SOFTWARE, "getshdrstrndx() failed: %s.",
+        errx(EXIT_FAILURE, "getshdrstrndx() failed: %s.",
             elf_errmsg(-1));
     (void) printf(PRINT_FMT, "(shstrndx)", (uintmax_t) n);
 
     if (elf_getphdrnum(e, &n) != 0) @\co{9}@
-        errx(EX_SOFTWARE, "getphdrnum() failed: %s.",
+        errx(EXIT_FAILURE, "getphdrnum() failed: %s.",
             elf_errmsg(-1));
     (void) printf(PRINT_FMT, "(phnum)", (uintmax_t) n);
 
     (void) elf_end(e);
     (void) close(fd);
-    exit(EX_OK);
+    exit(EXIT_SUCCESS);
 }

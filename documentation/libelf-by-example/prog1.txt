@@ -9,7 +9,6 @@
 #include <libelf.h> @\co{1}@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 int
@@ -21,17 +20,17 @@ main(int argc, char **argv)
     Elf_Kind ek; @\co{3}@
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", argv[0]);
+        errx(EXIT_FAILURE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE) @\co{4}@
-        errx(EX_SOFTWARE, "ELF library initialization "
+        errx(EXIT_FAILURE, "ELF library initialization "
             "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
-        err(EX_NOINPUT, "open \%s\" failed", argv[1]);
+        err(EXIT_FAILURE, "open \%s\" failed", argv[1]);
 
     if ((e = elf_begin(fd, ELF_C_READ@\co{5}@, NULL)) == NULL)
-        errx(EX_SOFTWARE, "elf_begin() failed: %s.",
+        errx(EXIT_FAILURE, "elf_begin() failed: %s.",
             elf_errmsg(-1));  @\co{6}@
 
     ek = elf_kind(e); @\co{7}@
@@ -55,5 +54,5 @@ main(int argc, char **argv)
     (void) elf_end(e); @\co{8}@
     (void) close(fd);
 
-    exit(EX_OK);
+    exit(EXIT_SUCCESS);
 }

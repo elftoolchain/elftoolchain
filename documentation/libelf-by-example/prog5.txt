@@ -9,7 +9,6 @@
 #include <libelf.h> @\co{1}@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sysexits.h>
 #include <unistd.h>
 
 uint32_t hash_words[] = { @\co{2}@
@@ -37,21 +36,21 @@ main(int argc, char **argv)
     Elf32_Shdr *shdr;
 
     if (argc != 2)
-        errx(EX_USAGE, "usage: %s file-name", argv[0]);
+        errx(EXIT_FAILURE, "usage: %s file-name", argv[0]);
 
     if (elf_version(EV_CURRENT) == EV_NONE)
-        errx(EX_SOFTWARE, "ELF library initialization "
+        errx(EXIT_FAILURE, "ELF library initialization "
             "failed: %s", elf_errmsg(-1));
 
     if ((fd = open(argv[1], O_WRONLY|O_CREAT, 0777)) < 0) @\co{4}@
-        err(EX_OSERR, "open \%s\" failed", argv[1]);
+        err(EXIT_FAILURE, "open \%s\" failed", argv[1]);
 
     if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) @\co{5}@
-        errx(EX_SOFTWARE, "elf_begin() failed: %s.",
+        errx(EXIT_FAILURE, "elf_begin() failed: %s.",
             elf_errmsg(-1));
 
     if ((ehdr = elf32_newehdr(e)) == NULL) @\co{6}@
-        errx(EX_SOFTWARE, "elf32_newehdr() failed: %s.",
+        errx(EXIT_FAILURE, "elf32_newehdr() failed: %s.",
             elf_errmsg(-1));
 
     ehdr->e_ident[EI_DATA] = ELFDATA2MSB;
@@ -59,15 +58,15 @@ main(int argc, char **argv)
     ehdr->e_type = ET_EXEC;
 
     if ((phdr = elf32_newphdr(e, 1)) == NULL) @\co{7}@
-        errx(EX_SOFTWARE, "elf32_newphdr() failed: %s.",
+        errx(EXIT_FAILURE, "elf32_newphdr() failed: %s.",
             elf_errmsg(-1));
 
     if ((scn = elf_newscn(e)) == NULL) @\co{8}@
-        errx(EX_SOFTWARE, "elf_newscn() failed: %s.",
+        errx(EXIT_FAILURE, "elf_newscn() failed: %s.",
             elf_errmsg(-1));
 
     if ((data = elf_newdata(scn)) == NULL)
-        errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+        errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
             elf_errmsg(-1));
 
     data->d_align = 4;
@@ -78,7 +77,7 @@ main(int argc, char **argv)
     data->d_version = EV_CURRENT;
 
     if ((shdr = elf32_getshdr(scn)) == NULL)
-        errx(EX_SOFTWARE, "elf32_getshdr() failed: %s.",
+        errx(EXIT_FAILURE, "elf32_getshdr() failed: %s.",
             elf_errmsg(-1));
 
     shdr->sh_name = 1;
@@ -87,11 +86,11 @@ main(int argc, char **argv)
     shdr->sh_entsize = 0;
 
     if ((scn = elf_newscn(e)) == NULL) @\co{9}@
-        errx(EX_SOFTWARE, "elf_newscn() failed: %s.",
+        errx(EXIT_FAILURE, "elf_newscn() failed: %s.",
             elf_errmsg(-1));
 
     if ((data = elf_newdata(scn)) == NULL)
-        errx(EX_SOFTWARE, "elf_newdata() failed: %s.",
+        errx(EXIT_FAILURE, "elf_newdata() failed: %s.",
             elf_errmsg(-1));
 
     data->d_align = 1;
@@ -102,7 +101,7 @@ main(int argc, char **argv)
     data->d_version = EV_CURRENT;
 
     if ((shdr = elf32_getshdr(scn)) == NULL)
-        errx(EX_SOFTWARE, "elf32_getshdr() failed: %s.",
+        errx(EXIT_FAILURE, "elf32_getshdr() failed: %s.",
             elf_errmsg(-1));
 
     shdr->sh_name = 6;
@@ -113,7 +112,7 @@ main(int argc, char **argv)
     elf_setshstrndx(e, elf_ndxscn(scn)); @\co{10}@
 
     if (elf_update(e, ELF_C_NULL) < 0) @\co{11}@
-        errx(EX_SOFTWARE, "elf_update(NULL) failed: %s.",
+        errx(EXIT_FAILURE, "elf_update(NULL) failed: %s.",
             elf_errmsg(-1));
 
     phdr->p_type = PT_PHDR;
@@ -123,11 +122,12 @@ main(int argc, char **argv)
     (void) elf_flagphdr(e, ELF_C_SET, ELF_F_DIRTY);
 
     if (elf_update(e, ELF_C_WRITE) < 0) @\co{12}@
-        errx(EX_SOFTWARE, "elf_update() failed: %s.",
+        errx(EXIT_FAILURE, "elf_update() failed: %s.",
             elf_errmsg(-1));
 
     (void) elf_end(e);
     (void) close(fd);
 
-    exit(EX_OK);
+    exit(EXIT_SUCCESS);
 }
+
