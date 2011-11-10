@@ -86,7 +86,7 @@ install:	all
 .else
 
 all clean depend install obj:	.PHONY .SILENT
-	echo -n WARNING: building \"${.CURDIR:T}\" skipped:
+	echo -n WARNING: make \"${.TARGET}\" in \"${.CURDIR:T}\" skipped:
 .if	defined(MKTEX) && ${MKTEX} == "yes"
 	echo " missing tools."
 .else
