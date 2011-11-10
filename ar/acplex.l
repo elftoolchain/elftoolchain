@@ -31,7 +31,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include "_elftc.h"
 
@@ -74,7 +73,7 @@ SAVE|save		{ return (SAVE); }
 [-_A-Za-z0-9/:$.\\]+	{
 	yylval.str = strdup(yytext);
 	if (yylval.str == NULL)
-		err(EX_SOFTWARE, "strdup failed");
+		err(EXIT_FAILURE, "strdup failed");
 	return (FNAME);
 }
 

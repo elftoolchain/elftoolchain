@@ -61,7 +61,7 @@
  */
 #define	AC(CALL) do {					\
 	if ((CALL))					\
-		bsdar_errc(bsdar, EX_SOFTWARE, 0, "%s",	\
+		bsdar_errc(bsdar, 0, "%s",		\
 		    archive_error_string(a));		\
 } while (0)
 
@@ -135,8 +135,7 @@ struct bsdar {
 	TAILQ_HEAD(, ar_obj) v_obj;	/* object(member) list */
 };
 
-void	bsdar_errc(struct bsdar *, int _eval, int _code,
-	    const char *fmt, ...);
+void	bsdar_errc(struct bsdar *, int _code, const char *fmt, ...);
 int	bsdar_is_pseudomember(struct bsdar *_ar, const char *_name);
 void	bsdar_warnc(struct bsdar *, int _code, const char *fmt, ...);
 const char *bsdar_strmode(mode_t m);

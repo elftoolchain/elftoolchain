@@ -78,14 +78,14 @@ bsdar_verrc(struct bsdar *bsdar, int code, const char *fmt, va_list ap)
 }
 
 void
-bsdar_errc(struct bsdar *bsdar, int eval, int code, const char *fmt, ...)
+bsdar_errc(struct bsdar *bsdar, int code, const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
 	bsdar_verrc(bsdar, code, fmt, ap);
 	va_end(ap);
-	exit(eval);
+	exit(EXIT_FAILURE);
 }
 
 #define	AR_STRMODE_SIZE	12

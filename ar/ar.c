@@ -71,7 +71,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include "ar.h"
 
@@ -146,7 +145,7 @@ main(int argc, char **argv)
 		for (;(bsdar->filename = *argv++) != NULL;)
 			ar_mode_s(bsdar);
 
-		exit(EX_OK);
+		exit(EXIT_SUCCESS);
 	} else {
 		if (argc < 2)
 			bsdar_usage();
@@ -157,8 +156,7 @@ main(int argc, char **argv)
 		if (*argv[1] != '-') {
 			len = strlen(argv[1]) + 2;
 			if ((p = malloc(len)) == NULL)
-				bsdar_errc(bsdar, EX_SOFTWARE, errno,
-				    "malloc failed");
+				bsdar_errc(bsdar, errno, "malloc failed");
 			(void) snprintf(p, len, "-%s", argv[1]);
 			argv[1] = p;
 		}
@@ -261,23 +259,23 @@ main(int argc, char **argv)
 		bsdar_usage();
 
 	if (bsdar->options & AR_A && bsdar->options & AR_B)
-		bsdar_errc(bsdar, EX_USAGE, 0,
+		bsdar_errc(bsdar, 0,
 		    "only one of -a and -[bi] options allowed");
 
 	if (bsdar->options & AR_J && bsdar->options & AR_Z)
-		bsdar_errc(bsdar, EX_USAGE, 0,
+		bsdar_errc(bsdar, 0,
 		    "only one of -j and -z options allowed");
 
 	if (bsdar->options & AR_S && bsdar->options & AR_SS)
-		bsdar_errc(bsdar, EX_USAGE, 0,
+		bsdar_errc(bsdar, 0,
 		    "only one of -s and -S options allowed");
 
 	if (bsdar->options & (AR_A | AR_B)) {
 		if (*argv == NULL)
-			bsdar_errc(bsdar, EX_USAGE, 0,
+			bsdar_errc(bsdar, 0,
 			    "no position operand specified");
 		if ((bsdar->posarg = basename(*argv)) == NULL)
-			bsdar_errc(bsdar, EX_SOFTWARE, errno,
+			bsdar_errc(bsdar, errno,
 			    "basename failed");
 		argc--;
 		argv++;
@@ -302,7 +300,7 @@ main(int argc, char **argv)
 
 	if (bsdar->mode == 'M') {
 		ar_mode_script(bsdar);
-		exit(EX_OK);
+		exit(EXIT_SUCCESS);
 	}
 
 	if ((bsdar->filename = *argv) == NULL)
@@ -315,7 +313,7 @@ main(int argc, char **argv)
 	    bsdar->options & AR_S) {
 		ar_mode_s(bsdar);
 		if (!bsdar->mode)
-			exit(EX_OK);
+			exit(EXIT_SUCCESS);
 	}
 
 	switch(bsdar->mode) {
@@ -350,7 +348,7 @@ main(int argc, char **argv)
 			bsdar_warnc(bsdar, 0, "%s: not found in archive",
 			    bsdar->argv[i]);
 
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 static void
@@ -358,8 +356,8 @@ set_mode(struct bsdar *bsdar, char opt)
 {
 
 	if (bsdar->mode != '\0' && bsdar->mode != opt)
-		bsdar_errc(bsdar, EX_USAGE, 0,
-		    "Can't specify both -%c and -%c", opt, bsdar->mode);
+		bsdar_errc(bsdar, 0, "Can't specify both -%c and -%c",
+		    opt, bsdar->mode);
 	bsdar->mode = opt;
 }
 
@@ -368,8 +366,8 @@ only_mode(struct bsdar *bsdar, const char *opt, const char *valid_modes)
 {
 
 	if (strchr(valid_modes, bsdar->mode) == NULL)
-		bsdar_errc(bsdar, EX_USAGE, 0,
-		    "Option %s is not permitted in mode -%c", opt, bsdar->mode);
+		bsdar_errc(bsdar, 0, "Option %s is not permitted in mode -%c",
+		    opt, bsdar->mode);
 }
 
 static const char *ar_usagemsg = "\
@@ -409,7 +407,7 @@ static void
 bsdar_usage()
 {
 	(void) fprintf(stderr, ar_usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static const char *ranlib_usagemsg = "\
@@ -425,7 +423,7 @@ static void
 ranlib_usage()
 {
 	(void)fprintf(stderr, ranlib_usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -433,5 +431,5 @@ bsdar_version()
 {
 	(void)printf("%s (%s, %s)\n", ELFTC_GETPROGNAME(), archive_version(),
 	    elftc_version());
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
