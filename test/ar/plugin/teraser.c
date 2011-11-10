@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -135,12 +134,12 @@ main(int argc, char **argv)
 		}
 	}
 
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 static void
 usage(void)
 {
 	fprintf(stderr, "usage: teraser [-ce] [-t name] archive ...\n");
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }

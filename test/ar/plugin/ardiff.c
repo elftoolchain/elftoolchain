@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 #define COUNTER	"/tmp/bsdar-test-total"
 #define PASSED	"/tmp/bsdar-test-passed"
@@ -206,7 +205,7 @@ main(int argc, char **argv)
 
 	/* Passed! */
 	filesame(tc);
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 static void
@@ -219,7 +218,7 @@ filediff(const char *tc, const char *msg, const char *e)
 		fprintf(stdout, "%s - archive diff not ok (%s)\n", tc, msg);
 
 	incct(COUNTER);
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 static void
@@ -251,5 +250,5 @@ static void
 usage(void)
 {
 	fprintf(stderr, "usage: ardiff archive1 archive2\n");
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }

@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sysexits.h>
 
 #include <tet_api.h>
 
@@ -110,7 +109,7 @@ startup()
 	if (system("cp " TC_DIR "/" TESTFILE " .") < 0) {
 		tet_infoline("cannot cp object");
 		
-		exit(EX_SOFTWARE);
+		exit(EXIT_FAILURE);
 	}
 }
 
