@@ -37,7 +37,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sysexits.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -885,11 +884,11 @@ main(int ac, char **av)
 		case 'V':
 			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
 			    elftc_version());
-			exit(EX_OK);
+			exit(EXIT_SUCCESS);
 			break;
 		case 'w':
 			if ((ed->out = fopen(optarg, "w")) == NULL)
-				err(EX_NOINPUT, "%s", optarg);
+				err(EXIT_FAILURE, "%s", optarg);
 			break;
 		case '?':
 		default:
@@ -916,7 +915,7 @@ main(int ac, char **av)
 	if (ac > 1)
 		ed->flags |= PRINT_FILENAME;
 	if (elf_version(EV_CURRENT) == EV_NONE)
-		errx(EX_SOFTWARE, "ELF library initialization failed: %s",
+		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
 	for (i = 0; i < ac; i++)
@@ -926,7 +925,7 @@ main(int ac, char **av)
 			elf_print_object(ed);
 		}
 
-	exit(EX_OK);
+	exit(EXIT_SUCCESS);
 }
 
 #ifdef USE_LIBARCHIVE_AR
@@ -987,16 +986,16 @@ ac_print_ar(struct elfdump *ed, int fd)
 	int			 i, r;
 
 	if (lseek(fd, 0, SEEK_SET) == -1)
-		err(EX_IOERR, "lseek failed");
+		err(EXIT_FAILURE, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
-		errx(EX_SOFTWARE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "%s", archive_error_string(a));
 	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, fd, 10240));
 	for(;;) {
 		r = archive_read_next_header(a, &entry);
 		if (r == ARCHIVE_FATAL)
-			errx(EX_DATAERR, "%s", archive_error_string(a));
+			errx(EXIT_FAILURE, "%s", archive_error_string(a));
 		if (r == ARCHIVE_EOF)
 			break;
 		if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY)
@@ -1032,7 +1031,7 @@ ac_print_ar(struct elfdump *ed, int fd)
 			}
 			arsym = calloc(cnt, sizeof(*arsym));
 			if (arsym == NULL)
-				err(EX_SOFTWARE, "calloc failed");
+				err(EXIT_FAILURE, "calloc failed");
 			b += sizeof(uint32_t);
 			for (i = 0; (size_t)i < cnt; i++) {
 				arsym[i].off = be32dec(b);
@@ -1306,7 +1305,7 @@ load_sections(struct elfdump *ed)
 	if (ed->shnum == 0)
 		return;
 	if ((ed->sl = calloc(ed->shnum, sizeof(*ed->sl))) == NULL)
-		err(EX_SOFTWARE, "calloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	if (!elf_getshstrndx(ed->elf, &shstrndx)) {
 		warnx("elf_getshstrndx failed: %s", elf_errmsg(-1));
 		return;
@@ -2096,7 +2095,7 @@ elf_print_got(struct elfdump *ed)
 		 * section entry.
 		 */
 		if ((got = calloc(len, sizeof(struct rel_entry))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		find_gotrel(ed, s, got);
 		if (ed->ec == ELFCLASS32) {
 			PRT(" ndx     addr      value    reloc              ");
@@ -2269,14 +2268,14 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 	if (ed->flags & SOLARIS_FMT) {
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint32_t)i < nbucket; i++)
 			for (j = bucket[i]; j > 0 && (uint32_t)j < nchain;
 			     j = chain[j])
 				if (++bl[i] > maxl)
 					maxl = bl[i];
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint32_t)i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
@@ -2372,14 +2371,14 @@ elf_print_svr4_hash64(struct elfdump *ed, struct section *s)
 	if (ed->flags & SOLARIS_FMT) {
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint64_t)i < nbucket; i++)
 			for (j = bucket[i]; j > 0 && (uint64_t)j < nchain;
 			     j = chain[j])
 				if (++bl[i] > maxl)
 					maxl = bl[i];
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint64_t)i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
@@ -2469,7 +2468,7 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 	if (ed->flags & SOLARIS_FMT) {
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint32_t)i < nbucket; i++)
 			for (j = bucket[i];
 			     j > 0 && (uint32_t)j - symndx < nchain;
@@ -2480,7 +2479,7 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 					break;
 			}
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
-			err(EX_SOFTWARE, "calloc failed");
+			err(EXIT_FAILURE, "calloc failed");
 		for (i = 0; (uint32_t)i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
@@ -2764,5 +2763,5 @@ static void
 usage(void)
 {
 	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
-	exit(EX_USAGE);
+	exit(EXIT_FAILURE);
 }
