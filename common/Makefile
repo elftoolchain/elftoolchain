@@ -7,7 +7,7 @@ INCSDIR?=	/usr/include
 
 all obj depend:
 
-clean:
+clean clobber:
 	rm -f ${CLEANFILES}
 
 .include "${TOP}/mk/elftoolchain.inc.mk"

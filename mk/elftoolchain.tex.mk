@@ -72,7 +72,7 @@ depend:		.depend
 cleandepend:	.PHONY
 	rm -f .depend
 
-clean:		.PHONY
+clean clobber:		.PHONY
 	rm -f ${CLEANFILES}
 
 install:	all
@@ -85,7 +85,7 @@ install:	all
 
 .else
 
-all clean depend install obj:	.PHONY .SILENT
+all clean clobber depend install obj:	.PHONY .SILENT
 	echo -n WARNING: make \"${.TARGET}\" in \"${.CURDIR:T}\" skipped:
 .if	defined(MKTEX) && ${MKTEX} == "yes"
 	echo " missing tools."

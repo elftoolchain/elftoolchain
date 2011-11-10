@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=		..
+
 SUBDIR=		libelf-by-example
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"

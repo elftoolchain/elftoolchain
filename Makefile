@@ -1,5 +1,7 @@
 # $Id$
 
+TOP=	.
+
 # Build configuration information first.
 SUBDIR += common
 
@@ -33,7 +35,7 @@ SUBDIR += test
 SUBDIR += documentation
 .endif
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"
 
 #
 # Special top-level targets.

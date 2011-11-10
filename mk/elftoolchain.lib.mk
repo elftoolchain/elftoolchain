@@ -10,6 +10,9 @@
 
 .include <bsd.lib.mk>
 
+# Support a 'clobber' target.
+clobber:	clean	.PHONY
+
 # Adjust CFLAGS
 CFLAGS+=	-I.			# OBJDIR
 CFLAGS+=	-I${.CURDIR}		# Sources

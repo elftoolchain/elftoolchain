@@ -70,6 +70,9 @@ ${_L:R}.o:	${_Y:R}.h
 
 .include <bsd.prog.mk>
 
+# Support a 'clobber' target.
+clobber:	clean	.PHONY
+
 .if defined(DEBUG)
 CFLAGS:=	${CFLAGS:N-O2} -g
 .endif
