@@ -83,9 +83,9 @@ Downloading Released Software
 -----------------------------
 
 Released versions of the project's software may also be downloaded
-from SourceForge's `release management system`.
+from SourceForge's `file release system`_.
 
-.. _release management system: http://sourceforge.net/projects/elftoolchain/files/
+.. _file release system: http://sourceforge.net/projects/elftoolchain/files/
 
 Copyright and License
 ---------------------
