@@ -55,8 +55,8 @@ This release comprises the following libraries and utilities.
 Documentation
 ~~~~~~~~~~~~~
 
-Each public API and invocable utility has its own manual (%MAN% pages
-in all).
+Each public API and invocable utility has its own manual page
+(%NENTRIES% manual entries, documented in %NFILES% files).
 
 Additionally, this release contains the following documentation:
 
@@ -94,13 +94,13 @@ such as the BSD-family of operating systems and GNU/Linux.
 This release has been built and tested on the following operating
 systems:
 
-  =================   ========   =======================
-  Operating System    Version    Supported Architectures
-  -----------------   --------   -----------------------
-  FreeBSD_            v8.2       amd64 & i386
-  NetBSD_             v5.0.2     i386
-  Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
-  =================   ========   =======================
+  ====================  ===========  ===========================
+  **Operating System**  **Version**  **Supported Architectures**
+  --------------------  -----------  ---------------------------
+  FreeBSD_              v8.2         amd64 & i386
+  NetBSD_               v5.0.2       i386
+  Ubuntu_ GNU/Linux     10.04LTS     i386 & x86_64
+  ====================  ===========  ===========================
 
 
 Installation and Upgrades
@@ -137,6 +137,33 @@ Known Limitations
 -----------------
 
 .. Known limitations.
+
+Test Statistics
+---------------
+
+The test summary for this release is presented below:
+
+ ========= ========= ===============  ================  ===================
+ **Suite** **Tests** **FreeBSD**      **NetBSD**        **Ubuntu 10.04LTS**
+ ========= ========= ===============  ================  ===================
+ ar 	  
+ elfcopy  
+ elfdump  
+ libdwarf 
+ libelf   
+ ========= ========= ===============  ================  ===================
+
+Key:
+
+  :P:
+      Test successes.
+  :F:
+      Test failures.
+  :U:
+      Unresolved tests.
+
+Notes
+~~~~~
 
 More Information
 ================
