@@ -1221,7 +1221,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 
 	if ((dynndx == SHN_UNDEF && nm_opts.print_symbol == PRINT_SYM_DYN) ||
 	    (strndx == SHN_UNDEF && nm_opts.print_symbol == PRINT_SYM_SYM)) {
-		warnx("%s: No symbols", OBJNAME);
+		warnx("%s: no symbols", OBJNAME);
 		/* This is not an error case */
 		goto next_cmd;
 	}
