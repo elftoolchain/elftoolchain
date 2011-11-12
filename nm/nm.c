@@ -173,8 +173,6 @@ p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
 #define	IS_UNDEF_SYM_TYPE(t)	((t) == 'U' || (t) == 'v' || (t) == 'w')
 #define	IS_COM_SYM(s)		(s->st_shndx == SHN_COMMON)
 #define	SLIST_HINIT_AFTER(l)	{l->slh_first = NULL;}
-#define	STAILQ_HINIT_AFTER(l)	{l.stqh_first = NULL; \
-l.stqh_last = &(l).stqh_first;}
 #define	UNUSED(p)		((void)p)
 
 static int		cmp_name(const void *, const void *);
@@ -1102,9 +1100,6 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 #define	OBJNAME	(objname == NULL ? filename : objname)
 
 	assert(filename != NULL && "filename is null");
-
-	/* Instead of TAILQ_HEAD_INITIALIZER to avoid warning */
-	STAILQ_HINIT_AFTER(list_head);
 
 	type_table = NULL;
 	sec_table = NULL;
