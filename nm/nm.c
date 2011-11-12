@@ -171,7 +171,6 @@ struct nm_prog_options {
 p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
 #define	IS_SYM_TYPE(t)		((t) == '?' || isalpha((t)) != 0)
 #define	IS_UNDEF_SYM_TYPE(t)	((t) == 'U' || (t) == 'v' || (t) == 'w')
-#define	IS_COM_SYM(s)		(s->st_shndx == SHN_COMMON)
 #define	SLIST_HINIT_AFTER(l)	{l->slh_first = NULL;}
 #define	UNUSED(p)		((void)p)
 
@@ -1773,8 +1772,8 @@ sym_list_insert(struct sym_head *headp, const char *name, const GElf_Sym *sym)
 
 	memcpy(e->sym, sym, sizeof(GElf_Sym));
 
-	/* GNU nm display size instead value. */
-	if (IS_COM_SYM(sym))
+	/* Display size instead of value for common symbol. */
+	if (sym->st_shndx == SHN_COMMON)
 		e->sym->st_value = sym->st_size;
 
 	STAILQ_INSERT_TAIL(headp, e, sym_entries);
