@@ -184,10 +184,9 @@ static int		cmp_value(const void *, const void *);
 static void		filter_dest(void);
 static int		filter_insert(fn_filter);
 static void		get_opt(int, char **);
-static int		get_sym(Elf *, struct sym_head *, int,
-			    const Elf_Data *, const Elf_Data *, const char *,
-			    const char **, int);
-static const char *	get_sym_name(const GElf_Sym *, const Elf_Data *,
+static int		get_sym(Elf *, struct sym_head *, int, size_t, size_t,
+			    const char *, const char **, int);
+static const char *	get_sym_name(Elf *, const GElf_Sym *, size_t,
 			    const char **, int);
 static char		get_sym_type(const GElf_Sym *, const char *);
 static void		global_dest(void);
@@ -596,19 +595,18 @@ get_opt(int argc, char **argv)
 
 /*
  * Get symbol information from elf.
- * param shnum Total section header number(ehdr.e_shnum).
  */
 static int
-get_sym(Elf *elf, struct sym_head *headp, int shnum,
-    const Elf_Data *dynstr_data, const Elf_Data *strtab_data,
-    const char *type_table, const char **sec_table, int sec_table_size)
+get_sym(Elf *elf, struct sym_head *headp, int shnum, size_t dynndx,
+    size_t strndx, const char *type_table, const char **sec_table,
+    int sec_table_size)
 {
 	Elf_Scn *scn;
 	Elf_Data *data;
-	const Elf_Data *table;
 	GElf_Shdr shdr;
 	GElf_Sym sym;
 	struct filter_entry *fep;
+	size_t ndx;
 	int rtn;
 	const char *sym_name;
 	char type;
@@ -619,38 +617,35 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 	assert(headp != NULL);
 
 	rtn = 0;
-	for (i = 1; i < shnum; ++i) {
-		if ((scn = elf_getscn(elf, i)) == NULL)
+	for (i = 1; i < shnum; i++) {
+		if ((scn = elf_getscn(elf, i)) == NULL) {
+			warnx("elf_getscn failed: %s", elf_errmsg(-1));
 			return (0);
-		if (gelf_getshdr(scn, &shdr) == NULL)
+		}
+		if (gelf_getshdr(scn, &shdr) != &shdr) {
+			warnx("gelf_getshdr failed: %s", elf_errmsg(-1));
 			return (0);
+		}
 		if (sym_section_filter(&shdr) != 1)
 			continue;
 
-		if (shdr.sh_type == SHT_DYNSYM && dynstr_data != NULL)
-			table = dynstr_data;
-		else if (shdr.sh_type == SHT_SYMTAB && strtab_data != NULL)
-			table = strtab_data;
-		else
-			table = NULL;
+		ndx = shdr.sh_type == SHT_DYNSYM ? dynndx : strndx;
 
 		data = NULL;
 		while ((data = elf_getdata(scn, data)) != NULL) {
 			j = 1;
 			while (gelf_getsym(data, j++, &sym) != NULL) {
-
-				sym_name = get_sym_name(&sym, table, sec_table,
-				    sec_table_size);
-
+				sym_name = get_sym_name(elf, &sym, ndx,
+				    sec_table, sec_table_size);
 				filter = false;
 				type = get_sym_type(&sym, type_table);
 				SLIST_FOREACH(fep, &nm_out_filter,
-				    filter_entries)
+				    filter_entries) {
 					if (!fep->fn(type, &sym, sym_name)) {
 						filter = true;
 						break;
 					}
-
+				}
 				if (filter == false) {
 					if (sym_list_insert(headp, sym_name,
 					    &sym) == 0)
@@ -665,8 +660,8 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum,
 }
 
 static const char *
-get_sym_name(const GElf_Sym *sym, const Elf_Data *str_data,
-    const char **sec_table, int sec_table_size)
+get_sym_name(Elf *elf, const GElf_Sym *sym, size_t ndx, const char **sec_table,
+    int sec_table_size)
 {
 	const char *sym_name;
 
@@ -677,7 +672,7 @@ get_sym_name(const GElf_Sym *sym, const Elf_Data *str_data,
 		if (sec_table != NULL && sym->st_shndx < sec_table_size)
 			sym_name = sec_table[sym->st_shndx];
 	} else
-		sym_name = (const char *) str_data->d_buf + sym->st_name;
+		sym_name = elf_strptr(elf, ndx, sym->st_name);
 
 	if (sym_name == NULL)
 		sym_name = "(null)";
@@ -1102,7 +1097,6 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	Dwarf_Die die;
 	Dwarf_Error de;
 	Dwarf_Half tag;
-	Elf_Data *dynstr_data, *strtab_data;
 	Elf_Arhdr *arhdr;
 	Elf_Scn *scn;
 	GElf_Shdr shdr;
@@ -1121,7 +1115,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	struct var_info_entry *var;
 	const char *shname, *objname;
 	char *type_table, **sec_table, *sfile, **src_files;
-	size_t strndx, shnum;
+	size_t shstrndx, shnum, dynndx, strndx;
 	int ret, rtn, e_err;
 
 #define	OBJNAME	(objname == NULL ? filename : objname)
@@ -1131,14 +1125,14 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	/* Instead of TAILQ_HEAD_INITIALIZER to avoid warning */
 	STAILQ_HINIT_AFTER(list_head);
 
-	dynstr_data = NULL;
-	strtab_data = NULL;
 	type_table = NULL;
 	sec_table = NULL;
 	line_info = NULL;
 	func_info = NULL;
 	var_info = NULL;
 	objname = NULL;
+	dynndx = SHN_UNDEF;
+	strndx = SHN_UNDEF;
 	rtn = 0;
 
 	nm_elfclass = gelf_getclass(elf);
@@ -1162,7 +1156,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		rtn = 1;
 		goto next_cmd;
 	}
-	if (!elf_getshstrndx(elf, &strndx)) {
+	if (!elf_getshstrndx(elf, &shstrndx)) {
 		warnx("%s: cannot get str index", OBJNAME);
 		rtn = 1;
 		goto next_cmd;
@@ -1200,22 +1194,32 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		/*
 		 * Cannot test by type and attribute for dynstr, strtab
 		 */
-		shname = elf_strptr(elf, strndx, (size_t) shdr.sh_name);
+		shname = elf_strptr(elf, shstrndx, (size_t) shdr.sh_name);
 		if (shname != NULL) {
 			if ((sec_table[i] = strdup(shname)) == NULL)
 				goto next_cmd;
 			if (!strncmp(shname, ".dynstr", 7)) {
-				if ((dynstr_data = elf_getdata(scn, NULL)) ==
-				    NULL)
+				dynndx = elf_ndxscn(scn);
+				if (dynndx == SHN_UNDEF) {
+					warnx("%s: elf_ndxscn failed: %s",
+					    OBJNAME, elf_errmsg(-1));
 					goto next_cmd;
+				}
 			}
 			if (!strncmp(shname, ".strtab", 7)) {
-				if ((strtab_data = elf_getdata(scn, NULL)) ==
-				    NULL)
+				strndx = elf_ndxscn(scn);
+				if (strndx == SHN_UNDEF) {
+					warnx("%s: elf_ndxscn failed: %s",
+					    OBJNAME, elf_errmsg(-1));
 					goto next_cmd;
+				}					
 			}
-		} else if ((sec_table[i] = strdup("*UND*")) == NULL)
-				goto next_cmd;
+		} else {
+			sec_table[i] = strdup("*UND*");
+			if (sec_table[i] == NULL)
+				err(EXIT_FAILURE, "strdup");
+		}
+
 
 		if (is_sec_text(&shdr))
 			type_table[i] = 'T';
@@ -1234,8 +1238,8 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 
 	print_header(filename, objname);
 
-	if ((dynstr_data == NULL && nm_opts.print_symbol == PRINT_SYM_DYN) ||
-	    (strtab_data == NULL && nm_opts.print_symbol == PRINT_SYM_SYM)) {
+	if ((dynndx == SHN_UNDEF && nm_opts.print_symbol == PRINT_SYM_DYN) ||
+	    (strndx == SHN_UNDEF && nm_opts.print_symbol == PRINT_SYM_SYM)) {
 		warnx("%s: No symbols", OBJNAME);
 		/* This is not an error case */
 		goto next_cmd;
@@ -1339,8 +1343,8 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 
 process_sym:
 
-	p_data.list_num = get_sym(elf, &list_head, shnum, dynstr_data,
-	    strtab_data, type_table, (const char **)sec_table, shnum);
+	p_data.list_num = get_sym(elf, &list_head, shnum, dynndx, strndx,
+	    type_table, (const char **)sec_table, shnum);
 
 	if (p_data.list_num == 0)
 		goto next_cmd;
