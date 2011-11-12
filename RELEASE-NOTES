@@ -10,10 +10,15 @@
 Release Notes for Elftoolchain Software Version %%
 ==================================================
 
-The Elftoolchain project develops tools for managing ELF binaries.
-
 These release notes document version %VER% of the software released by
-the Elftoolchain project on SourceForge.Net.
+the Elftoolchain project.
+
+About The Project
+-----------------
+
+The `Elftoolchain project`_ develops BSD-licensed implementations of
+essential compilation tools and libraries for handling ELF based program
+objects.
 
 About The Release
 -----------------
@@ -97,9 +102,6 @@ systems:
   Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
   =================   ========   =======================
 
-.. _FreeBSD: http://www.freebsd.org/
-.. _NetBSD:  http://www.netbsd.org/
-.. _Ubuntu:  http://www.ubuntu.com/
 
 Installation and Upgrades
 =========================
@@ -116,6 +118,7 @@ Upgrading
 .. Special notes about upgrading this software from a prior release.
 .. For example, if we introduce any backwards-incompatible behaviour,
 .. or if we deprecate existing behaviour.
+
 
 Release Information
 ===================
@@ -155,8 +158,6 @@ Reporting Bugs
 Please use our `Trac instance`_ for viewing existing bug reports and
 for submitting new bug reports.
 
-.. _`Trac instance`: http://sourceforge.net/apps/trac/elftoolchain/report
-
 
 Copyright and License
 =====================
@@ -165,6 +166,11 @@ This software is copyright its authors, and is distributed under the
 `BSD License`_.
 
 .. _BSD License: http://www.opensource.org/licenses/bsd-license.php
+.. _Elftoolchain project: http://elftoolchain.sourceforge.net/
+.. _FreeBSD: http://www.freebsd.org/
+.. _NetBSD:  http://www.netbsd.org/
+.. _`Trac instance`: http://sourceforge.net/apps/trac/elftoolchain/report
+.. _Ubuntu:  http://www.ubuntu.com/
 
 .. Local Variables:
 .. mode: rst
