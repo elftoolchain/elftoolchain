@@ -228,7 +228,6 @@ static void		sym_list_print_each(struct sym_entry *,
 			    struct sym_print_data *, struct func_info_head *,
 			    struct var_info_head *, struct line_info_head *);
 static struct sym_entry	*sym_list_sort(struct sym_print_data *);
-static int		sym_section_filter(const GElf_Shdr *);
 static void		sym_size_oct_print(const GElf_Sym *);
 static void		sym_size_hex_print(const GElf_Sym *);
 static void		sym_size_dec_print(const GElf_Sym *);
@@ -620,13 +619,19 @@ get_sym(Elf *elf, struct sym_head *headp, int shnum, size_t dynndx,
 	for (i = 1; i < shnum; i++) {
 		if ((scn = elf_getscn(elf, i)) == NULL) {
 			warnx("elf_getscn failed: %s", elf_errmsg(-1));
-			return (0);
+			continue;
 		}
 		if (gelf_getshdr(scn, &shdr) != &shdr) {
 			warnx("gelf_getshdr failed: %s", elf_errmsg(-1));
-			return (0);
+			continue;
 		}
-		if (sym_section_filter(&shdr) != 1)
+		if (shdr.sh_type == SHT_SYMTAB) {
+			if (nm_opts.print_symbol != PRINT_SYM_SYM)
+				continue;
+		} else if (shdr.sh_type == SHT_DYNSYM) {
+			if (nm_opts.print_symbol != PRINT_SYM_DYN)
+				continue;
+		} else
 			continue;
 
 		ndx = shdr.sh_type == SHT_DYNSYM ? dynndx : strndx;
@@ -897,30 +902,6 @@ print_version(void)
 
 	(void) printf("%s (%s)\n", nm_info.name, elftc_version());
 	exit(0);
-}
-
-/*
- * return -1 at error. 0 at false, 1 at true.
- */
-static int
-sym_section_filter(const GElf_Shdr *shdr)
-{
-
-	if (shdr == NULL)
-		return (-1);
-
-	if (!nm_opts.print_debug && shdr->sh_type == SHT_PROGBITS &&
-	    shdr->sh_flags == 0)
-		return (1);
-	if (nm_opts.print_symbol == PRINT_SYM_SYM &&
-	    shdr->sh_type == SHT_SYMTAB)
-		return (1);
-	if (nm_opts.print_symbol == PRINT_SYM_DYN &&
-	    shdr->sh_type == SHT_DYNSYM)
-		return (1);
-
-	/* In manual page, SHT_GNU_versym is also symbol section */
-	return (0);
 }
 
 static uint64_t
