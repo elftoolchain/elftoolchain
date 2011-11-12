@@ -411,8 +411,10 @@ filter_insert(fn_filter filter_fn)
 
 	assert(filter_fn != NULL);
 
-	if ((e = malloc(sizeof(struct filter_entry))) == NULL)
+	if ((e = malloc(sizeof(struct filter_entry))) == NULL) {
+		warn("malloc");
 		return (0);
+	}
 	e->fn = filter_fn;
 	SLIST_INSERT_HEAD(&nm_out_filter, e, filter_entries);
 
@@ -983,16 +985,30 @@ search_line_attr(Dwarf_Debug dbg, struct func_info_head *func_info,
 
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_file, &udata,
 		    &de) == DW_DLV_OK && udata > 0 &&
-		    (Dwarf_Signed) (udata - 1) < filecount)
+		    (Dwarf_Signed) (udata - 1) < filecount) {
 			var->file = strdup(src_files[udata - 1]);
+			if (var->file == NULL) {
+				warn("strdup");
+				free(var);
+				goto cont_search;
+			}
+		}
 
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_line, &udata, &de) ==
 		    DW_DLV_OK)
 			var->line = udata;
 
 		if (dwarf_attrval_string(die, DW_AT_name, &str, &de) ==
-		    DW_DLV_OK)
+		    DW_DLV_OK) {
 			var->name = strdup(str);
+			if (var->name == NULL) {
+				warn("strdup");
+				if (var->file)
+					free(var->file);
+				free(var);
+				goto cont_search;
+			}
+		}
 
 		if (dwarf_attr(die, DW_AT_location, &at, &de) == DW_DLV_OK &&
 		    dwarf_formblock(at, &block, &de) == DW_DLV_OK) {
@@ -1021,16 +1037,30 @@ search_line_attr(Dwarf_Debug dbg, struct func_info_head *func_info,
 		 */
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_file, &udata,
 		    &de) == DW_DLV_OK && udata > 0 &&
-		    (Dwarf_Signed) (udata - 1) < filecount)
+		    (Dwarf_Signed) (udata - 1) < filecount) {
 			func->file = strdup(src_files[udata - 1]);
+			if (func->file == NULL) {
+				warn("strdup");
+				free(func);
+				goto cont_search;
+			}
+		}
 
 		if (dwarf_attrval_unsigned(die, DW_AT_decl_line, &udata, &de) ==
 		    DW_DLV_OK)
 			func->line = udata;
 
 		if (dwarf_attrval_string(die, DW_AT_name, &str, &de) ==
-		    DW_DLV_OK)
+		    DW_DLV_OK) {
 			func->name = strdup(str);
+			if (func->name == NULL) {
+				warn("strdup");
+				if (func->file)
+					free(func->file);
+				free(func);
+				goto cont_search;
+			}
+		}
 
 		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &udata, &de) ==
 		    DW_DLV_OK)
@@ -1137,20 +1167,22 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	}
 	/* type_table for type determine */
 	if ((type_table = malloc(sizeof(char) * shnum)) == NULL) {
-		warn("%s", OBJNAME);
+		warn("%s: malloc", OBJNAME);
 		rtn = 1;
 		goto next_cmd;
 	}
 	/* sec_table for section name to display in sysv format */
 	if ((sec_table = calloc(shnum, sizeof(char *))) == NULL) {
-		warn("%s", OBJNAME);
+		warn("%s: calloc", OBJNAME);
 		rtn = 1;
 		goto next_cmd;
 	}
 
 	type_table[0] = 'U';
-	if ((sec_table[0] = strdup("*UND*")) == NULL)
+	if ((sec_table[0] = strdup("*UND*")) == NULL) {
+		warn("strdup");
 		goto next_cmd;
+	}
 
 	for (i = 1; i < shnum; ++i) {
 		type_table[i] = 'U';
@@ -1170,8 +1202,10 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		 */
 		shname = elf_strptr(elf, shstrndx, (size_t) shdr.sh_name);
 		if (shname != NULL) {
-			if ((sec_table[i] = strdup(shname)) == NULL)
+			if ((sec_table[i] = strdup(shname)) == NULL) {
+				warn("strdup");
 				goto next_cmd;
+			}
 			if (!strncmp(shname, ".dynstr", 7)) {
 				dynndx = elf_ndxscn(scn);
 				if (dynndx == SHN_UNDEF) {
@@ -1190,8 +1224,10 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 			}
 		} else {
 			sec_table[i] = strdup("*UND*");
-			if (sec_table[i] == NULL)
-				err(EXIT_FAILURE, "strdup");
+			if (sec_table[i] == NULL) {
+				warn("strdup");
+				goto next_cmd;
+			}
 		}
 
 
@@ -1238,7 +1274,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	func_info = malloc(sizeof(struct func_info_head));
 	var_info = malloc(sizeof(struct var_info_head));
 	if (line_info == NULL || func_info == NULL || var_info == NULL) {
-		warn("malloc failed");
+		warn("malloc");
 		(void) dwarf_finish(dbg, &de);
 		goto process_sym;
 	}
@@ -1294,14 +1330,17 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 				continue;
 			}
 			if ((lie = malloc(sizeof(*lie))) == NULL) {
-				warn("malloc failed");
+				warn("malloc");
 				continue;
 			}
 			lie->addr = lineaddr;
 			lie->line = lineno;
 			lie->file = strdup(sfile);
-			if (lie->file == NULL)
-				warn("strdup failed");
+			if (lie->file == NULL) {
+				warn("strdup");
+				free(lie);
+				continue;
+			}
 			SLIST_INSERT_HEAD(line_info, lie, entries);
 		}
 
@@ -1754,13 +1793,17 @@ sym_list_insert(struct sym_head *headp, const char *name, const GElf_Sym *sym)
 
 	if (headp == NULL || name == NULL || sym == NULL)
 		return (0);
-	if ((e = malloc(sizeof(struct sym_entry))) == NULL)
+	if ((e = malloc(sizeof(struct sym_entry))) == NULL) {
+		warn("malloc");
 		return (0);
+	}
 	if ((e->name = strdup(name)) == NULL) {
+		warn("strdup");
 		free(e);
 		return (0);
 	}
 	if ((e->sym = malloc(sizeof(GElf_Sym))) == NULL) {
+		warn("malloc");
 		free(e->name);
 		free(e);
 		return (0);
@@ -1880,8 +1923,10 @@ sym_list_sort(struct sym_print_data *p)
 	if (p == NULL || CHECK_SYM_PRINT_DATA(p))
 		return (NULL);
 
-	if ((e_v = malloc(sizeof(struct sym_entry) * p->list_num)) == NULL)
+	if ((e_v = malloc(sizeof(struct sym_entry) * p->list_num)) == NULL) {
+		warn("malloc");
 		return (NULL);
+	}
 
 	idx = 0;
 	STAILQ_FOREACH(ep, p->headp, sym_entries) {
