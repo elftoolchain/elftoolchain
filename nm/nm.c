@@ -66,7 +66,7 @@ typedef int (*fn_filter)(char, const GElf_Sym *, const char *);
 
 /* output filter list */
 SLIST_HEAD(filter_head, filter_entry) nm_out_filter =
-SLIST_HEAD_INITIALIZER(nm_out_filter);
+    SLIST_HEAD_INITIALIZER(nm_out_filter);
 
 struct filter_entry {
 	fn_filter	fn;
@@ -171,7 +171,6 @@ struct nm_prog_options {
 p->t_table == NULL || p->s_table == NULL || p->filename == NULL)
 #define	IS_SYM_TYPE(t)		((t) == '?' || isalpha((t)) != 0)
 #define	IS_UNDEF_SYM_TYPE(t)	((t) == 'U' || (t) == 'v' || (t) == 'w')
-#define	SLIST_HINIT_AFTER(l)	{l->slh_first = NULL;}
 #define	UNUSED(p)		((void)p)
 
 static int		cmp_name(const void *, const void *);
@@ -1243,11 +1242,8 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 		(void) dwarf_finish(dbg, &de);
 		goto process_sym;
 	}
-	SLIST_HINIT_AFTER(line_info);
 	SLIST_INIT(line_info);
-	SLIST_HINIT_AFTER(func_info);
 	SLIST_INIT(func_info);
-	SLIST_HINIT_AFTER(var_info);
 	SLIST_INIT(var_info);
 
 	while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
