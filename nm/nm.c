@@ -1129,6 +1129,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 
 	assert(filename != NULL && "filename is null");
 
+	STAILQ_INIT(&list_head);
 	type_table = NULL;
 	sec_table = NULL;
 	line_info = NULL;
