@@ -55,25 +55,29 @@ done
 
 [ -n "${top}" ] || usage
 
-# Try to determine the tree version.
+# Try to determine the in-tree revision number.
 #
-# - If using SVN, use the `svninfo' tool.
-# - If using CVS, use the string `unknown'.
-# - Otherwise use `git --describe'.
+# This script attempts to handle the case where our sources have been
+# incorporated into an operating system's base sources.
+#
+# - If SVN is detected, we use the `svninfo' tool to determine the
+#   in-tree revision number.
+# - If CVS is detected, we use the string `unknown'.
+# - Otherwise, we use `git --describe'.
 
 curdir=`pwd`
 cd ${top} || usage "ERROR: Cannot change directory to \"${top}\"."
 
-versionstring=""
-if [ -d .svn ]; then
-    versionstring="svn:"$(svnversion)
-elif [ -d CVS ]; then
-    versionstring="cvs:unknown"
-else # Try Git
-    versionstring="git:"$(git describe --all --dirty --long)
+if [ -d .svn ]; then		# FreeBSD and SF.Net sources.
+    versionstring=" svn:"$(svnversion)
+elif [ -d CVS ]; then		# NetBSD.
+    versionstring=" cvs:unknown"
+else				# DragonFlyBSD.
+    versionstring=" git:"$(git describe --all --dirty --long 2> /dev/null)
 
-    if [ ${?} -ne 0 ]; then
-	usage "Cannot determine tree version."
+    # Cannot determine an in-tree version number.
+    if [ $? -ne 0 ]; then
+	versionstring=""
     fi
 fi
 
@@ -94,7 +98,7 @@ cat > ${tmpfile} <<EOF
 const char *
 elftc_version(void)
 {
-	return "${elftcname} ${branch} ${buildhost} ${versionstring}";
+	return "${elftcname} ${branch} ${buildhost}${versionstring}";
 }
 EOF
 
