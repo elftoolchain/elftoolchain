@@ -1,4 +1,4 @@
-.\" Copyright (c) 2009 Joseph Koshy <jkoshy@users.sourceforge.net>
+.\" Copyright (c) 2009-2011 Joseph Koshy <jkoshy@users.sourceforge.net>
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,12 @@
 .Nd decode C++ symbols
 .Sh SYNOPSIS
 .Nm
+.Op Fl -help
 .Op Fl _ | Fl -strip-underscores
 .Op Fl n | Fl -no-strip-underscores
 .Op Fl p | Fl -no-params
 .Op Fl s Ar scheme | Fl -format Ns = Ns Ar scheme
-.Op Fl -help
-.Op Fl -version
+.Op Fl V | Fl -version
 .Op Ar encoded-names ...
 .Sh DESCRIPTION
 The
@@ -68,6 +68,8 @@ The
 .Nm
 utility recognizes the following options:
 .Bl -tag -width indent
+.It Fl -help
+Print a help message and exit.
 .It Fl _ | Fl -strip-underscores
 Remove a leading underscore from symbol names prior to decoding them.
 .It Fl n | Fl -no-strip-underscores
@@ -89,9 +91,7 @@ Use the encoding scheme used by the GNU C++ compiler.
 .It Ar gnu-v3
 Use the encoding scheme used by the GNU C++ compiler, version 3.
 .El
-.It Fl -help
-Print a help message.
-.It Fl -version
+.It Fl V | Fl -version
 Print a version identifier for
 .Nm
 and exit.
