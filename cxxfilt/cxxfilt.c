@@ -57,7 +57,7 @@ static struct option longopts[] =
 	{"no-params", no_argument, NULL, 'p'},
 	{"no-strip-underscores", no_argument, NULL, 'n'},
 	{"strip-underscores", no_argument, NULL, '_'},
-	{"version", no_argument, NULL, OPTION_VERSION},
+	{"version", no_argument, NULL, 'V'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -153,7 +153,8 @@ main(int argc, char **argv)
 	char *dem, buf[STRBUFSZ];
 	int c, i, p, s, opt;
 
-	while ((opt = getopt_long(argc, argv, "_nps:", longopts, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "_nps:V", longopts, NULL)) !=
+	    -1) {
 		switch (opt) {
 		case '_':
 			stripus = 1;
@@ -169,7 +170,7 @@ main(int argc, char **argv)
 				errx(EXIT_FAILURE, "unsupported format: %s",
 				    optarg);
 			break;
-		case OPTION_VERSION:
+		case 'V':
 			version();
 			/* NOT REACHED */
 		case OPTION_HELP:
