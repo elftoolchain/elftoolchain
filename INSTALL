@@ -79,14 +79,16 @@ Prerequisites
       ===================     =====================================
       **Package**             **Description**
       ===================     =====================================
-      ``binutils``	      Needed for the build.
-      ``bison``	              Parser generator.
-      ``flex``	              Lexical analyser.
+      ``binutils``            Needed for the build.
+      ``bison``               Parser generator.
+      ``flex``                Lexical analyser.
       ``gcc``                 C compiler.
       ``libarchive-dev``      Archive access library.
       ``libc6-dev``           Files for C language development.
+      ``libexpat1-dev``       An XML processing library.
       ``m4``                  Macro processor.
-      ``pmake`` 	      A ``make`` that uses BSD-make syntax.
+      ``pmake``               A ``make`` that uses BSD-make syntax.
+      ``python-yaml``         A YAML library for Python.
       ``sharutils``           For ``uudecode``.
       ===================     =====================================
 
