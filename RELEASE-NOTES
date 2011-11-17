@@ -7,11 +7,8 @@
 
 .. The tokens '%.*%' need be replaced with actual content.
 
-Release Notes for Elftoolchain Software Version %%
-==================================================
-
-These release notes document version %VER% of the software released by
-the Elftoolchain project.
+Release Notes for Elftoolchain Software Version %.%.%
+=====================================================
 
 About The Project
 -----------------
