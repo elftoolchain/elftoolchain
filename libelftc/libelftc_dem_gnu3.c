@@ -315,13 +315,12 @@ cpp_demangle_push_fp(struct cpp_demangle_data *ddata,
 		return (0);
 
 	rtn = 0;
-	if ((len = strlen(f)) > 0 &&
-	    cpp_demangle_push_str(ddata, f, len))
-		rtn = 1;
+	if ((len = strlen(f)) > 0)
+	    rtn = cpp_demangle_push_str(ddata, f, len);
 
 	free(f);
 
-	return (0);
+	return (rtn);
 }
 
 static int
@@ -366,6 +365,7 @@ cpp_demangle_push_subst_v(struct cpp_demangle_data *ddata, struct vector_str *v)
 		return (0);
 
 	rtn = cpp_demangle_push_subst(ddata, str, str_len);
+
 	free(str);
 
 	return (rtn);
@@ -1768,7 +1768,7 @@ clean:
 	free(subst_str);
 	vector_str_dest(&v);
 
-	return (1);
+	return (rtn);
 }
 
 static int
