@@ -65,7 +65,7 @@ Prerequisites
          directory.
 
       #. The following additional package needs to be installed, as
-      	 listed in the example command line below ::
+         listed in the example command line below ::
 
             % sudo pkg_add py26-yaml
 
@@ -74,7 +74,7 @@ Prerequisites
 
 :Ubuntu GNU/Linux 10.04:
     - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux:
+      sources on Ubuntu GNU/Linux 10.04:
 
       ===================     =====================================
       **Package**             **Description**
@@ -105,16 +105,54 @@ Prerequisites
          directory.
 
       #. The following additional packages need to be installed, as
-      	 listed in the example command line below::
+         listed in the example command line below::
 
             % sudo pkg_add libexpat1-dev python-yaml sharutils
 
     - Builds of additional documentation are not currently supported
-      under GNU/Linux.
+      under Ubuntu GNU/Linux 10.04.
+
+:Ubuntu GNU/Linux 11.10:
+    - The following packages are pre-requisites for building the
+      sources on Ubuntu GNU/Linux 11.10:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``bison``               Parser generator.
+      ``flex``                Lexical analyser.
+      ``gcc``                 C compiler.
+      ``libarchive-dev``      Archive access library.
+      ``libexpat1-dev``       An XML processing library.
+      ``m4``                  Macro processor.
+      ``pmake``               A ``make`` that uses BSD-make syntax.
+      ``python-yaml``         A YAML library for Python.
+      ``sharutils``           For ``uudecode``.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+          % sudo apt-get install bison flex gcc libarchive-dev \
+            m4 pmake
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_, needs
+         to be downloaded and unpacked into the ``test/tet/``
+         directory.
+
+      #. The following additional packages need to be installed, as
+         listed in the example command line below::
+
+            % sudo pkg_add libexpat1-dev python-yaml sharutils
+
+    - Builds of additional documentation are not currently supported
+      under Ubuntu GNU/Linux 11.10.
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
-    
+
 
 Building the software
 ---------------------
