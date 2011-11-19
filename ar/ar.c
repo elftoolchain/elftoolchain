@@ -404,7 +404,7 @@ Usage: %s <command> [options] archive file...\n\
 ";
 
 static void
-bsdar_usage()
+bsdar_usage(void)
 {
 	(void) fprintf(stderr, ar_usagemsg, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
@@ -420,14 +420,14 @@ Usage: %s [options] archive...\n\
 ";
 
 static void
-ranlib_usage()
+ranlib_usage(void)
 {
 	(void)fprintf(stderr, ranlib_usagemsg, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 
 static void
-bsdar_version()
+bsdar_version(void)
 {
 	(void)printf("%s (%s, %s)\n", ELFTC_GETPROGNAME(), archive_version(),
 	    elftc_version());

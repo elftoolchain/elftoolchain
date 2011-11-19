@@ -1332,7 +1332,7 @@ Usage: %s [options] infile [outfile]\n\
 ";
 
 static void
-elfcopy_usage()
+elfcopy_usage(void)
 {
 	(void) fprintf(stderr, elfcopy_usagemsg, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
@@ -1351,7 +1351,7 @@ Usage: %s [options] file...\n\
 ";
 
 static void
-mcs_usage()
+mcs_usage(void)
 {
 	(void) fprintf(stderr, mcs_usagemsg, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
@@ -1380,7 +1380,7 @@ Usage: %s [options] file...\n\
 ";
 
 static void
-strip_usage()
+strip_usage(void)
 {
 	(void) fprintf(stderr, strip_usagemsg, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
