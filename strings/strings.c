@@ -426,7 +426,7 @@ _exit1:
 	return (RETURN_OK);
 }
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] [file...]\n\
   Print contiguous sequences of printable characters.\n\n\
   Options:\n\
@@ -437,13 +437,12 @@ Usage: %s [options] [file...]\n\
   -n N   | --bytes=N | -N      Print sequences with 'N' or more characters.\n\
   -o                           Print offsets in octal.\n\
   --radix=RADIX                Print offsets using the specified radix.\n\
-  -v     | --version           Print a version identifier and exit.\n\
-";
+  -v     | --version           Print a version identifier and exit.\n"
 
 void
 usage(void)
 {
-	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 

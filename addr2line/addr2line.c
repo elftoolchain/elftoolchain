@@ -57,7 +57,7 @@ static int demangle, func, base;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] hexaddress...\n\
   Map program addresses to source file names and line numbers.\n\n\
   Options:\n\
@@ -68,13 +68,12 @@ Usage: %s [options] hexaddress...\n\
   -s      | --basename        Only show the base name for each file name.\n\
   -C      | --demangle        Demangle C++ names.\n\
   -H      | --help            Print a help message.\n\
-  -V      | --version         Print a version identifier and exit.\n\
-";
+  -V      | --version         Print a version identifier and exit.\n"
 
 static void
 usage(void)
 {
-	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(1);
 }
 

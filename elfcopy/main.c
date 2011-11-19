@@ -1259,7 +1259,7 @@ set_osabi(struct elfcopy *ecp, const char *abi)
 		errx(EXIT_FAILURE, "unrecognized OSABI %s", abi);
 }
 
-static const char *elfcopy_usagemsg = "\
+#define	ELFCOPY_USAGE_MESSAGE	"\
 Usage: %s [options] infile [outfile]\n\
   Transform an ELF object.\n\n\
   Options:\n\
@@ -1328,17 +1328,16 @@ Usage: %s [options] infile [outfile]\n\
   --set-start=ADDRESS          Set the start address of the ELF object.\n\
   --srec-forceS3               Only generate S3 S-Records.\n\
   --srec-len=LEN               Set the maximum length of a S-Record line.\n\
-  --strip-unneeded             Do not copy relocation information.\n\
-";
+  --strip-unneeded             Do not copy relocation information.\n"
 
 static void
 elfcopy_usage(void)
 {
-	(void) fprintf(stderr, elfcopy_usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, ELFCOPY_USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 
-static const char *mcs_usagemsg = "\
+#define	MCS_USAGE_MESSAGE	"\
 Usage: %s [options] file...\n\
   Manipulate the comment section in an ELF object.\n\n\
   Options:\n\
@@ -1347,17 +1346,16 @@ Usage: %s [options] file...\n\
   -d           Delete the comment section.\n\
   -n NAME      Operate on the ELF section with name 'NAME'.\n\
   -p           Print the contents of the comment section.\n\
-  -V           Print a version identifier and exit.\n\
-";
+  -V           Print a version identifier and exit.\n"
 
 static void
 mcs_usage(void)
 {
-	(void) fprintf(stderr, mcs_usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, MCS_USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 
-static const char *strip_usagemsg = "\
+#define	STRIP_USAGE_MESSAGE	"\
 Usage: %s [options] file...\n\
   Discard information from ELF objects.\n\n\
   Options:\n\
@@ -1376,13 +1374,12 @@ Usage: %s [options] file...\n\
   -O TGT | --output-target=TGT    Set the output file format to 'TGT'.\n\
   -R SEC | --remove-section=SEC   Remove the section named 'SEC'.\n\
   -V | --version                  Print a version identifier and exit.\n\
-  -X | --discard-locals           Remove compiler-generated local symbols.\n\
-";
+  -X | --discard-locals           Remove compiler-generated local symbols.\n"
 
 static void
 strip_usage(void)
 {
-	(void) fprintf(stderr, strip_usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, STRIP_USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 

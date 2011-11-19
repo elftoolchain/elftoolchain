@@ -6580,7 +6580,7 @@ readelf_version(void)
 	exit(EXIT_SUCCESS);
 }
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] file...\n\
   Display information about ELF objects and ar(1) archives.\n\n\
   Options:\n\
@@ -6610,14 +6610,13 @@ Usage: %s [options] file...\n\
   -S | --sections | --section-headers\n\
                            Print information about section headers.\n\
   -V | --version-info      Print symbol versoning information.\n\
-  -W | --wide              Print information without wrapping long lines.\n\
-";
+  -W | --wide              Print information without wrapping long lines.\n"
 
 
 static void
 readelf_usage(void)
 {
-	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 

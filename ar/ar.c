@@ -370,7 +370,7 @@ only_mode(struct bsdar *bsdar, const char *opt, const char *valid_modes)
 		    opt, bsdar->mode);
 }
 
-static const char *ar_usagemsg = "\
+#define	AR_USAGE_MESSAGE	"\
 Usage: %s <command> [options] archive file...\n\
   Manage archives.\n\n\
   Where <command> is one of:\n\
@@ -400,29 +400,27 @@ Usage: %s <command> [options] archive file...\n\
   -D            Use fixed metadata, for consistent archive checksums.\n\
   -F FORMAT | --flavor=FORMAT\n\
                 Create archives with the specified format.\n\
-  -S            Do not generate an archive symbol table.\n\
-";
+  -S            Do not generate an archive symbol table.\n"
 
 static void
 bsdar_usage(void)
 {
-	(void) fprintf(stderr, ar_usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, AR_USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 
-static const char *ranlib_usagemsg = "\
+#define	RANLIB_USAGE_MESSAGE	"\
 Usage: %s [options] archive...\n\
   Update or create archive symbol tables.\n\n\
   Options:\n\
   -t              (This option is accepted, but ignored).\n\
   -D              Use fixed metadata, for consistent archive checksums.\n\
-  -V              Print a version identifier and exit.\n\
-";
+  -V              Print a version identifier and exit.\n"
 
 static void
 ranlib_usage(void)
 {
-	(void)fprintf(stderr, ranlib_usagemsg, ELFTC_GETPROGNAME());
+	(void)fprintf(stderr, RANLIB_USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 

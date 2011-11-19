@@ -878,8 +878,8 @@ tbl_flush(void)
 	tb = NULL;
 }
 
-static const char *usagemsg = "\
-Usage: size [options] file ...\n\
+#define	USAGE_MESSAGE	"\
+Usage: %s [options] file ...\n\
   Display sizes of ELF sections.\n\n\
   Options:\n\
   --format=format    Display output in specified format.  Supported\n\
@@ -896,12 +896,12 @@ Usage: size [options] file ...\n\
   -h                 Same as option --help.\n\
   -o                 Equivalent to `--radix=8'.\n\
   -t                 Equivalent to option --totals.\n\
-  -x                 Equivalent to `--radix=16'.\n";
+  -x                 Equivalent to `--radix=16'.\n"
 
 static void
 usage(void)
 {
-	(void) fprintf(stderr, "%s", usagemsg);
+	(void) fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }
 

@@ -71,7 +71,7 @@ static struct {
 	{"gnu-v3", ELFTC_DEM_GNU3}
 };
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] [encoded-names...]\n\
   Translate C++ symbol names to human-readable form.\n\n\
   Options:\n\
@@ -82,14 +82,13 @@ Usage: %s [options] [encoded-names...]\n\
                                Valid schemes are: 'arm', 'auto', 'gnu' and\n\
                                'gnu-v3'.\n\
   --help                       Print a help message.\n\
-  --version                    Print a version identifier and exit.\n\
-";
+  --version                    Print a version identifier and exit.\n"
 
 static void
 usage(void)
 {
 
-	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(1);
 }
 

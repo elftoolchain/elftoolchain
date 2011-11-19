@@ -2736,7 +2736,7 @@ elf_print_checksum(struct elfdump *ed)
 	PRT("\nelf checksum: %#lx\n", gelf_checksum(ed->elf));
 }
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] file...\n\
   Display information about ELF objects and ar(1) archives.\n\n\
   Options:\n\
@@ -2756,12 +2756,11 @@ Usage: %s [options] file...\n\
   -S                        Use the Solaris elfdump format.\n\
   -v                        Show symbol-versioning information.\n\
   -V                        Print a version identifier and exit.\n\
-  -w FILE                   Write output to \"FILE\".\n\
-";
+  -w FILE                   Write output to \"FILE\".\n"
 
 static void
 usage(void)
 {
-	fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(EXIT_FAILURE);
 }

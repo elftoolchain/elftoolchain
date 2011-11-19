@@ -219,7 +219,7 @@ fail:
 	return (retval);
 }
 
-static const char *usagemsg = "\
+#define	USAGE_MESSAGE	"\
 Usage: %s [options] file...\n\
   Set or display the ABI field for an ELF object.\n\n\
   Supported options are:\n\
@@ -227,13 +227,12 @@ Usage: %s [options] file...\n\
   -l                        List known ELF ABI names.\n\
   -t ABI                    Set the ELF ABI to the value named by \"ABI\".\n\
   -v                        Be verbose.\n\
-  -V                        Print a version identifier and exit.\n\
-";
+  -V                        Print a version identifier and exit.\n"
 
 static void
 usage(void)
 {
-	(void) fprintf(stderr, usagemsg, ELFTC_GETPROGNAME());
+	(void) fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
 	exit(1);
 }
 
