@@ -46,9 +46,10 @@ typedef enum {
  */
 
 /* Name mangling style. */
-#define	ELFTC_DEM_ARM	0x00000001U
-#define ELFTC_DEM_GNU2	0x00000002U
-#define	ELFTC_DEM_GNU3	0x00000004U
+#define	ELFTC_DEM_UNKNOWN	0x00000000U /* Not specified. */
+#define	ELFTC_DEM_ARM		0x00000001U /* C++ Ann. Ref. Manual. */
+#define	ELFTC_DEM_GNU2		0x00000002U /* GNU version 2. */
+#define	ELFTC_DEM_GNU3		0x00000004U /* GNU version 3. */
 
 /* Demangling behaviour control. */
 #define ELFTC_DEM_NOPARAM	0x00010000U
