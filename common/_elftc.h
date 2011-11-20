@@ -163,6 +163,7 @@ extern const char *program_invocation_short_name;
 
 #if defined(__NetBSD__)
 
+#include <sys/param.h>
 #include <sys/endian.h>
 
 #define	ELFTC_BYTE_ORDER			_BYTE_ORDER
@@ -170,7 +171,11 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
 #define	ELFTC_HAVE_STRMODE			1
-#define	ELFTC_BROKEN_YY_NO_INPUT		1
+#if __NetBSD_Version__ <= 599002100
+/* from src/doc/CHANGES: flex(1): Import flex-2.5.35 [christos 20091025] */
+/* and 5.99.21 was from Wed Oct 21 21:28:36 2009 UTC */
+#  define ELFTC_BROKEN_YY_NO_INPUT		1
+#endif
 #endif	/* __NetBSD __ */
 
 #endif	/* _ELFTC_H */
