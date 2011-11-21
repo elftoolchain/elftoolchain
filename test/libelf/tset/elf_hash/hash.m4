@@ -28,6 +28,7 @@
 
 #include <sys/types.h>
 
+#include <ctype.h>
 #include <libelf.h>
 #include <limits.h>
 #include <stdio.h>

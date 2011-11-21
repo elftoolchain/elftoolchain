@@ -29,6 +29,7 @@
 include(`elfts.m4')
 
 #include <libelf.h>
+#include <string.h>
 
 #include "tet_api.h"
 

@@ -31,6 +31,8 @@ include(`elfts.m4')
 #include <errno.h>
 #include <fcntl.h>
 #include <libelf.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "tet_api.h"
 
