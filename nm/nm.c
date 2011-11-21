@@ -193,7 +193,6 @@ static bool		is_sec_nobits(GElf_Shdr *);
 static bool		is_sec_readonly(GElf_Shdr *);
 static bool		is_sec_text(GElf_Shdr *);
 static void		print_ar_index(int, Elf *);
-static void		print_demangle_name(const char *, const char *);
 static void		print_header(const char *, const char *);
 static void		print_version(void);
 static int		read_elf(Elf *, const char *, Elf_Kind);
@@ -845,20 +844,16 @@ print_ar_index(int fd, Elf *arf)
 	elf_rand(arf, start);
 }
 
-static void
-print_demangle_name(const char *format, const char *name)
-{
-	char dem[8192];
-
-	if (format == NULL || name == NULL)
-		return;
-
-	if (nm_opts.demangle_type < 0 ||
-	    elftc_demangle(name, dem, sizeof(dem), nm_opts.demangle_type) < 0)
-		printf(format, name);
-	else
-		printf(format, dem);
-}
+#define	DEMANGLED_BUFFER_SIZE	(8 * 1024)
+#define	PRINT_DEMANGLED_NAME(FORMAT, NAME) do {				\
+	char _demangled[DEMANGLED_BUFFER_SIZE];				\
+	if (nm_opts.demangle_type < 0 ||				\
+	    elftc_demangle((NAME), _demangled, sizeof(_demangled),	\
+		nm_opts.demangle_type) < 0)				\
+		printf((FORMAT), (NAME));				\
+	else								\
+		printf((FORMAT), _demangled);				\
+	} while (0)
 
 static void
 print_header(const char *file, const char *obj)
@@ -1608,7 +1603,7 @@ sym_elem_print_all(char type, const char *sec, const GElf_Sym *sym,
 	}
 
 	printf(" %c ", type);
-	print_demangle_name("%s", name);
+	PRINT_DEMANGLED_NAME("%s", name);
 }
 
 static void
@@ -1620,7 +1615,7 @@ sym_elem_print_all_portable(char type, const char *sec, const GElf_Sym *sym,
 	    nm_opts.value_print_fn == NULL)
 		return;
 
-	print_demangle_name("%s", name);
+	PRINT_DEMANGLED_NAME("%s", name);
 	printf(" %c ", type);
 	if (!IS_UNDEF_SYM_TYPE(type)) {
 		nm_opts.value_print_fn(sym);
@@ -1640,7 +1635,7 @@ sym_elem_print_all_sysv(char type, const char *sec, const GElf_Sym *sym,
 	    nm_opts.value_print_fn == NULL)
 		return;
 
-	print_demangle_name("%-20s|", name);
+	PRINT_DEMANGLED_NAME("%-20s|", name);
 	if (IS_UNDEF_SYM_TYPE(type))
 		printf("                ");
 	else
