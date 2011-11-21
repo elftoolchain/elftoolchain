@@ -1350,7 +1350,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 process_sym:
 
 	p_data.list_num = get_sym(elf, &list_head, shnum, dynndx, strndx,
-	    type_table, (const char **)sec_table, shnum);
+	    type_table, (void *) sec_table, shnum);
 
 	if (p_data.list_num == 0)
 		goto next_cmd;
@@ -1358,7 +1358,7 @@ process_sym:
 	p_data.headp = &list_head;
 	p_data.sh_num = shnum;
 	p_data.t_table = type_table;
-	p_data.s_table = (const char **)sec_table;
+	p_data.s_table = (void *) sec_table;
 	p_data.filename = filename;
 	p_data.objname = objname;
 
