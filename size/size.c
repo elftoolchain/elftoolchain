@@ -194,7 +194,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	files = (argc == 0) ? default_args : (const char **) argv;
+	files = (argc == 0) ? default_args : (void *) argv;
 
 	while ((fn = *files) != NULL) {
 		rc = handle_elf(fn);
