@@ -73,6 +73,10 @@
 
 #ifndef	ELFTC_VCSID
 
+#if defined(__DragonFly__)
+#define	ELFTC_VCSID(ID)		__RCSID(ID)
+#endif
+
 #if defined(__FreeBSD__)
 #define	ELFTC_VCSID(ID)		__FBSDID(ID)
 #endif
@@ -97,7 +101,7 @@
 
 #ifndef	ELFTC_GETPROGNAME
 
-#if defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
 
 #include <stdlib.h>
 
@@ -120,9 +124,21 @@ extern const char *program_invocation_short_name;
 
 #endif	/* ELFTC_GETPROGNAME */
 
+
 /**
  ** Per-OS configuration.
  **/
+
+#if defined(__DragonFly__)
+
+#include <osreldate.h>
+#include <sys/endian.h>
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#endif
 
 #if defined(__linux__)
 

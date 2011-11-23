@@ -26,6 +26,22 @@
  * $Id$
  */
 
+#ifdef	__DragonFly__
+
+#define	LIBELF_VCSID(ID)	__RCSID(ID)
+
+#if	defined(__amd64__)
+#define	LIBELF_ARCH		EM_X86_64
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS64
+#elif	defined(__i386__)
+#define	LIBELF_ARCH		EM_386
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS32
+#endif
+
+#endif	/* __DragonFly__ */
+
 #ifdef __FreeBSD__
 
 #define	LIBELF_VCSID(ID)	__FBSDID(ID)
