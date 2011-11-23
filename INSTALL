@@ -13,15 +13,16 @@ operating systems.
   =================   ========   =======================
   Operating System    Version    Supported Architectures
   -----------------   --------   -----------------------
+  `DragonFly BSD`_    2.10.1     i386
   FreeBSD_            v8.2       amd64 & i386
   NetBSD_             v5.0.2     i386
   Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
   =================   ========   =======================
 
+.. _DragonFly BSD: http://www.dragonflybsd.org/
 .. _FreeBSD: http://www.freebsd.org/
 .. _NetBSD:  http://www.netbsd.org/
 .. _Ubuntu:  http://www.ubuntu.com/
-
 
 Building the Source Tree
 ========================
@@ -34,6 +35,22 @@ if these directories are present.
 
 Prerequisites
 -------------
+
+:DragonFly BSD 2.10.1:
+    - The core libraries and utilities should build out of the box on
+      a stock install of DragonFly BSD.
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_ needs to
+         be downloaded and unpacked into the ``test/tet/`` directory.
+
+      #. The ``py26-yaml`` package needs to be installed::
+
+            % sudo pkgin install py26-yaml
+
+    - Building additional documentation is not currently supported
+      under DragonFly BSD.
 
 :FreeBSD 8.2:
     - The core libraries and utilities should build out of the box on
@@ -159,7 +176,7 @@ Building the software
 
 The software may be built by running **make**.
 
-On FreeBSD_ and NetBSD_, use::
+On `DragonFly BSD`_,  FreeBSD_ and NetBSD_, use::
 
   % make
 
@@ -187,7 +204,7 @@ Installing the Software
 
 The software may be installed using the ``install`` target.
 
-On FreeBSD_ and NetBSD_, use::
+On `DragonFly BSD`_, FreeBSD_ and NetBSD_, use::
 
     % make install
 
