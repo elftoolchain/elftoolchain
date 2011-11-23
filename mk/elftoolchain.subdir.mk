@@ -6,9 +6,11 @@
 
 .include "$(TOP)/mk/elftoolchain.os.mk"
 
-.if ${OS_HOST} == FreeBSD
+.if ${OS_HOST} == DragonFly
+clobber test:: _SUBDIR
+.elif ${OS_HOST} == FreeBSD
 SUBDIR_TARGETS+=	clobber test
-.else
+.else		# NetBSD
 TARGETS+=	clobber test
 .endif
 
