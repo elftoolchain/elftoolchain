@@ -1,4 +1,4 @@
-# $id$
+# $Id$
 
 BEGIN {
     printf "const char *ldscript_default = ";
