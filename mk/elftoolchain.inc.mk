@@ -11,7 +11,7 @@
 
 .include <bsd.own.mk>
 
-.if ${OS_HOST} == "FreeBSD"
+.if ${OS_HOST} == "DragonFly" || ${OS_HOST} == "FreeBSD"
 # Simulate <bsd.inc.mk>.
 .PHONY:		incinstall
 includes:	${INCS}	incinstall
