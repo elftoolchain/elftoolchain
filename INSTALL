@@ -54,10 +54,9 @@ Prerequisites
 
 :FreeBSD 8.2:
     - The core libraries and utilities should build out of the box on
-      stock FreeBSD.
+      a stock install of FreeBSD.
 
-    - To build and run the test suite the following pre-requisite
-      steps need to be performed:
+    - To build and run the test suite:
 
       #. The current release of the `Test Execution Toolkit`_ needs to
          be downloaded and unpacked into the ``test/tet/`` directory.
@@ -73,7 +72,7 @@ Prerequisites
 
 :NetBSD 5.0.2:
     - The core libraries and utilities should build out of the box
-      on stock NetBSD.
+      on a stock install of NetBSD.
 
     - To build and run the test suite:
 
@@ -86,8 +85,8 @@ Prerequisites
 
             % sudo pkg_add py26-yaml
 
-    - Building additional documentation under NetBSD is not currently
-      supported.
+    - Building additional documentation is not currently supported
+      under NetBSD.
 
 :Ubuntu GNU/Linux 10.04:
     - The following packages are pre-requisites for building the
