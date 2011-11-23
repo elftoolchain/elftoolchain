@@ -60,5 +60,5 @@ main(int argc, char **argv)
 
 	ld_symbols_resolve(ld);
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }

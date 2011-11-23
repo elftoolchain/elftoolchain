@@ -42,7 +42,7 @@ ld_fatal(struct ld *ld, const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 	fputc('\n', stderr);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 void
@@ -55,7 +55,7 @@ ld_fatal_std(struct ld *ld, const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 	fprintf(stderr, ": %s\n", strerror(errno));
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 void
