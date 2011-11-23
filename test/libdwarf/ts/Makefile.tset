@@ -19,7 +19,7 @@ LDADD+=		-lelf
 .if ${OS_HOST} == FreeBSD
 LDADD+=		-lbsdxml
 .else
-.if ${OS_HOST} == NetBSD
+.if ${OS_HOST} == DragonFly || ${OS_HOST} == NetBSD
 CFLAGS+=	-I/usr/pkg/include
 LDADD+=		-L/usr/pkg/lib
 .endif
