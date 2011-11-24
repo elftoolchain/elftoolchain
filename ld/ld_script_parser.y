@@ -44,6 +44,9 @@ extern int lineno;
 extern FILE *yyin;
 extern struct ld *ld;
 
+static void yyerror(const char *s);
+static struct _list *_make_list(struct _list *list, char *str);
+
 %}
 
 %token T_ABSOLUTE
