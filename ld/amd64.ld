@@ -1,6 +1,6 @@
 /* $Id$ */
 
-OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64",)
+OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 ENTRY(_start)
 SEARCH_DIR("/lib"); SEARCH_DIR("/usr/lib");
 SECTIONS {
