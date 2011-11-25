@@ -49,9 +49,15 @@ struct ld_file {
 	TAILQ_ENTRY(ld_file) lf_next;	/* next input file */
 };
 
+struct ld_archive_member {
+	char *lam_name;			/* archive member name */
+	size_t lam_off;			/* archive member offset */
+	STAILQ_ENTRY(ld_archive_member) lam_next; /* next member */
+};
+
 struct ld_archive {
 	Elf *la_elf;			 /* archive handle. */ 
-	TAILQ_HEAD(, ld_file) la_lflist; /* archive member list. */
+	STAILQ_HEAD(, ld_archive_member) la_mlist; /* archive member list. */
 };
 
 struct ld_path {

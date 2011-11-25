@@ -132,9 +132,26 @@ ld_file_add_library_path(struct ld *ld, char *path)
 static void
 ld_file_load_archive(struct ld *ld, struct ld_file *lf)
 {
+	struct ld_archive *la;
+	Elf_Kind k;
 
-	(void) ld;
-	(void) lf;
+	if (lf->lf_ar == NULL) {
+		if ((la = calloc(1, sizeof(*la))) == NULL)
+			ld_fatal_std(ld, "calloc");
+		STAILQ_INIT(&la->la_mlist);
+		lf->lf_ar = la;
+	} else
+		la = lf->lf_ar;
+
+	if (la->la_elf == NULL) {
+		la->la_elf = elf_memory(lf->lf_mmap, lf->lf_size);
+		if (la->la_elf == NULL)
+			ld_fatal(ld, "%s: elf_memory failed: %s", lf->lf_name,
+			    elf_errmsg(-1));
+	}
+
+	k = elf_kind(lf->lf_elf);
+	assert(k == ELF_K_AR);
 }
 
 static void
@@ -170,7 +187,7 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 
 	if ((lf->lf_elf = elf_memory(lf->lf_mmap, lf->lf_size)) == NULL)
 		ld_fatal(ld, "%s: elf_memory failed: %s", lf->lf_name,
-		    elf_errmsg(elf_errno()));
+		    elf_errmsg(-1));
 
 	k = elf_kind(lf->lf_elf);
 	assert(k != ELF_K_AR);
@@ -179,7 +196,7 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 
 	if (gelf_getehdr(lf->lf_elf, &ehdr) == NULL)
 		ld_fatal(ld, "%s: gelf_getehdr failed: %s", lf->lf_name,
-		    elf_errmsg(elf_errno()));
+		    elf_errmsg(-1));
 	switch (ehdr.e_type) {
 	case ET_NONE:
 		ld_fatal(ld, "%s: ELF type ET_NONE not supported", lf->lf_name);
