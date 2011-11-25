@@ -30,8 +30,6 @@
 
 #include <sys/cdefs.h>
 
-#include <sys/errno.h>
-
 #include <assert.h>
 #include <errno.h>
 #include <libelf.h>

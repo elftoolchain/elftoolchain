@@ -26,7 +26,6 @@
  * $Id$
  */
 
-#include <sys/errno.h>
 #include <sys/stat.h>
 
 #include <errno.h>

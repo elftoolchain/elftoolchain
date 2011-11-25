@@ -26,9 +26,9 @@
  * $Id$
  */
 
-#include <sys/errno.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <libelf.h>
 #include <stdlib.h>
