@@ -30,6 +30,9 @@
 
 ELFTC_VCSID("$Id$");
 
+struct yy_buffer_state;
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+
 /*
  * Name list.
  */
@@ -40,9 +43,12 @@ struct _list {
 
 extern int yylex(void);
 extern int yyparse(void);
+extern YY_BUFFER_STATE yy_scan_string(char *yy_str);
+extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern int lineno;
 extern FILE *yyin;
 extern struct ld *ld;
+extern char *ldscript_default;
 
 static void yyerror(const char *s);
 static struct _list *_make_list(struct _list *list, char *str);
@@ -808,4 +814,15 @@ ld_script_parse(const char *name)
 		ld_fatal_std(ld, "fopen %s name failed", name);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse linker script %s", name);
+}
+
+void
+ld_script_parse_internal(void)
+{
+	YY_BUFFER_STATE b;
+
+	b = yy_scan_string(ldscript_default);
+	if (yyparse() < 0)
+		ld_fatal(ld, "unable to parse internal linker script");
+	yy_delete_buffer(b);
 }

@@ -54,6 +54,8 @@ main(int argc, char **argv)
 
 	ld->ld_progname = basename(argv[0]);
 
+	ld_script_parse_internal();
+
 	ld_options_parse(ld, argc, argv);
 
 	ld_file_load_all(ld);

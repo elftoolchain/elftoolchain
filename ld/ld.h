@@ -80,3 +80,4 @@ void	ld_fatal_std(struct ld *, const char *, ...);
 void	ld_err(struct ld *, const char *, ...);
 void	ld_warn(struct ld *, const char *, ...);
 void	ld_script_parse(const char *);
+void	ld_script_parse_internal(void);
