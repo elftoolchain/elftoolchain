@@ -150,7 +150,7 @@ ld_file_load_archive(struct ld *ld, struct ld_file *lf)
 			    elf_errmsg(-1));
 	}
 
-	k = elf_kind(lf->lf_elf);
+	k = elf_kind(la->la_elf);
 	assert(k == ELF_K_AR);
 }
 
