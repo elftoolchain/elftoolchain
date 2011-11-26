@@ -31,7 +31,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 static int
 _libelf_getphdrnum(Elf *e, size_t *phnum)

@@ -30,7 +30,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 unsigned int
 elf_version(unsigned int v)

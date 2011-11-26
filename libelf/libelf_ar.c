@@ -35,7 +35,7 @@
 #include "_libelf.h"
 #include "_libelf_ar.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 #define	LIBELF_NALLOC_SIZE	16
 

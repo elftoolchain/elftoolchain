@@ -31,7 +31,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 off_t
 elf_rand(Elf *ar, off_t offset)

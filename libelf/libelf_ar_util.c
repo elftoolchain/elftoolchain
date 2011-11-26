@@ -34,7 +34,7 @@
 #include "_libelf.h"
 #include "_libelf_ar.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 /*
  * Convert a string bounded by `start' and `start+sz' (exclusive) to a

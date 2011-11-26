@@ -31,7 +31,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 GElf_Cap *
 gelf_getcap(Elf_Data *d, int ndx, GElf_Cap *dst)

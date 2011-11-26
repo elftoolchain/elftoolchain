@@ -28,8 +28,6 @@
 
 #ifdef	__DragonFly__
 
-#define	LIBELF_VCSID(ID)	__RCSID(ID)
-
 #if	defined(__amd64__)
 #define	LIBELF_ARCH		EM_X86_64
 #define	LIBELF_BYTEORDER	ELFDATA2LSB
@@ -43,8 +41,6 @@
 #endif	/* __DragonFly__ */
 
 #ifdef __FreeBSD__
-
-#define	LIBELF_VCSID(ID)	__FBSDID(ID)
 
 /*
  * Define LIBELF_{ARCH,BYTEORDER,CLASS} based on the machine architecture.
@@ -110,7 +106,6 @@
  * Definitions for Minix3.
  */
 #ifdef __minix
-#define	LIBELF_VCSID(ID)	ELFTC_VCSID(ID)
 
 #define	LIBELF_ARCH		EM_386
 #define	LIBELF_BYTEORDER	ELFDATA2LSB
@@ -121,8 +116,6 @@
 #ifdef __NetBSD__
 
 #include <machine/elf_machdep.h>
-
-#define	LIBELF_VCSID(ID)	__RCSID(ID)
 
 #if	!defined(ARCH_ELFSIZE)
 #error	ARCH_ELFSIZE is not defined.
@@ -162,8 +155,6 @@
 #define	LIBELF_BYTEORDER	ELFTC_BYTEORDER
 
 #endif	/* defined(__linux__) */
-
-#define	LIBELF_VCSID(ID)
 
 #if	LIBELF_CLASS == ELFCLASS32
 #define	Elf_Note		Elf32_Nhdr

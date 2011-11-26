@@ -40,7 +40,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 #define	_LIBELF_INITSIZE	(64*1024)
 

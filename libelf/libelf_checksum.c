@@ -30,7 +30,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 static unsigned long
 _libelf_sum(unsigned long c, const unsigned char *s, size_t size)

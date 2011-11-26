@@ -28,7 +28,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 /* WARNING: GENERATED FROM __file__. */
 

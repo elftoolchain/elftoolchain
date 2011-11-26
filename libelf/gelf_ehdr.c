@@ -33,7 +33,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 Elf32_Ehdr *
 elf32_getehdr(Elf *e)

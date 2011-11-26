@@ -33,7 +33,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 /*
  * Retrieve counts for sections, phdrs and the section string table index

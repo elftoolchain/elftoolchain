@@ -36,7 +36,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 /*
  * Load an ELF section table and create a list of Elf_Scn structures.

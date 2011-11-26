@@ -30,7 +30,7 @@
 
 #include "_libelf.h"
 
-LIBELF_VCSID("$Id$");
+ELFTC_VCSID("$Id$");
 
 unsigned int
 elf_flagarhdr(Elf_Arhdr *a, Elf_Cmd c, unsigned int flags)
