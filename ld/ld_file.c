@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,7 +146,6 @@ ld_file_load_archive(struct ld *ld, struct ld_file *lf)
 	if (lf->lf_ar == NULL) {
 		if ((la = calloc(1, sizeof(*la))) == NULL)
 			ld_fatal_std(ld, "calloc");
-		STAILQ_INIT(&la->la_mlist);
 		lf->lf_ar = la;
 	} else
 		la = lf->lf_ar;

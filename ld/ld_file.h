@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,13 +51,13 @@ struct ld_file {
 
 struct ld_archive_member {
 	char *lam_name;			/* archive member name */
-	size_t lam_off;			/* archive member offset */
-	STAILQ_ENTRY(ld_archive_member) lam_next; /* next member */
+	off_t lam_off;			/* archive member offset */
+	UT_hash_handle hh;		/* hash handle */
 };
 
 struct ld_archive {
-	Elf *la_elf;			 /* archive handle. */ 
-	STAILQ_HEAD(, ld_archive_member) la_mlist; /* archive member list. */
+	Elf *la_elf;			/* archive handle. */ 
+	struct ld_archive_member *la_m;	/* extracted member list. */
 };
 
 struct ld_path {
