@@ -205,15 +205,15 @@ ldscript_assignment
 	;
 
 simple_assignment
-	: ident assign_op expression %prec '='
+	: variable assign_op expression %prec '='
 	;
 
 provide_assignment
-	: T_PROVIDE '(' ident '=' expression ')'
+	: T_PROVIDE '(' variable '=' expression ')'
 	;
 
 provide_hidden_assignment
-	: T_PROVIDE_HIDDEN '(' ident '=' expression ')'
+	: T_PROVIDE_HIDDEN '(' variable '=' expression ')'
 	;
 
 assign_op
@@ -254,6 +254,7 @@ expression
 	| function
 	| constant
 	| variable
+	| '(' expression ')'
 	;
 
 function
@@ -286,7 +287,7 @@ addr_function
 	;
 
 align_function
-	: T_ALIGN '(' T_NUM ')'
+	: T_ALIGN '(' expression ')'
 	| T_ALIGN '(' expression ',' T_NUM ')'
 	;
 
