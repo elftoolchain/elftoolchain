@@ -68,7 +68,7 @@ ld_file_add_library(struct ld *ld, const char *name)
 	struct ld_path *lp;
 	struct dirent *dp;
 	DIR *dirp;
-	char fpath[PATH_MAX + 1];
+	char fp[PATH_MAX + 1], sfp[PATH_MAX + 1];
 	size_t len;
 	int found;
 
@@ -84,6 +84,7 @@ ld_file_add_library(struct ld *ld, const char *name)
 			continue;
 		}
 
+		fp[0] = sfp[0] = '\0';
 		while ((dp = readdir(dirp)) != NULL) {
 			if (strncmp(dp->d_name, "lib", 3))
 				continue;
@@ -91,26 +92,33 @@ ld_file_add_library(struct ld *ld, const char *name)
 				continue;
 			if (ls->ls_static == 0 &&
 			    !strcmp(&dp->d_name[len + 3], ".so")) {
-				snprintf(fpath, sizeof(fpath), "%s/%s",
-				    lp->lp_path, dp->d_name);
-				ld_file_add(ld, fpath, LFT_DSO);
+				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
+				    dp->d_name);
+				ld_file_add(ld, fp, LFT_DSO);
 				(void) closedir(dirp);
 				found = 1;
 				goto done;
-			} else if (!strcmp(&dp->d_name[len + 3], ".a")) {
-				snprintf(fpath, sizeof(fpath), "%s/%s",
-				    lp->lp_path, dp->d_name);
-				ld_file_add(ld, fpath, LFT_ARCHIVE);
-				(void) closedir(dirp);
-				found = 1;
-				goto done;
+			} else if (*sfp == '\0' &&
+			    !strcmp(&dp->d_name[len + 3], ".a")) {
+				snprintf(sfp, sizeof(sfp), "%s/%s", lp->lp_path,
+				    dp->d_name);
+				if (ls->ls_static == 1) {
+					ld_file_add(ld, sfp, LFT_ARCHIVE);
+					(void) closedir(dirp);
+					found = 1;
+					goto done;
+				}
 			}
 		}
 		(void) closedir(dirp);
 	}
 done:
-	if (!found)
-		ld_fatal(ld, "cannot find -l%s", name);
+	if (!found) {
+		if (ls->ls_static == 0 && *sfp != '\0') {
+			ld_file_add(ld, sfp, LFT_ARCHIVE);
+		} else
+			ld_fatal(ld, "cannot find -l%s", name);
+	}
 }
 
 void
