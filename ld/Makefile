@@ -20,13 +20,13 @@ LD_SCRIPT=	amd64.ld
 ld_script.c:	${LD_SCRIPT}
 	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
 
-CLEANFILES+=	ld_script.c
+CLEANFILES+=	ld_script.c y.tab.h
 
 DPADD=	${LIBELFTC} ${LIBELF}
 LDADD=	-lelftc -lelf
 
 CFLAGS+= -I. -I${.CURDIR}
 
-NO_MAN=
+NOMAN=
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
