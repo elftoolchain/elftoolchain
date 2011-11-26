@@ -212,7 +212,7 @@ Testing the software
 The ``run-tests`` target in the top-level Makefile will build and
 execute the test suites that are part of this software.
 
-On FreeBSD_ and NetBSD_, use::
+On `DragonFly BSD`_, FreeBSD_ and NetBSD_, use::
 
     % make run-tests
 
