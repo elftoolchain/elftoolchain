@@ -67,11 +67,13 @@ BYTE				{ return (T_BYTE); }
 COMMONPAGESIZE			{ return (T_COMMONPAGESIZE); }
 CONSTANT			{ return (T_CONSTANT); }
 CONSTRUCTORS			{ return (T_CONSTRUCTORS); }
+COPY				{ return (T_COPY); }
 CREATE_OBJECT_SYMBOLS		{ return (T_CREATE_OBJECT_SYMBOLS); }
 DATA_SEGMENT_ALIGN		{ return (T_DATA_SEGMENT_ALIGN); }
 DATA_SEGMENT_END		{ return (T_DATA_SEGMENT_END); }
 DATA_SEGMENT_RELRO_END		{ return (T_DATA_SEGMENT_RELRO_END); }
 DEFINED				{ return (T_DEFINED); }
+DSECT				{ return (T_DSECT); }
 ENTRY				{ return (T_ENTRY); }
 EXCLUDE_FILE			{ return (T_EXCLUDE_FILE); }
 EXTERN				{ return (T_EXTERN); }
@@ -83,6 +85,7 @@ FORCE_COMMON_ALLOCATION		{ return (T_FORCE_COMMON_ALLOCATION); }
 GROUP				{ return (T_GROUP); }
 HLL				{ return (T_HLL); }
 INCLUDE				{ return (T_INCLUDE); }
+INFO				{ return (T_INFO); }
 INHIBIT_COMMON_ALLOCATION	{ return (T_INHIBIT_COMMON_ALLOCATION); }
 INPUT				{ return (T_INPUT); }
 KEEP				{ return (T_KEEP); }
@@ -97,6 +100,7 @@ MIN				{ return (T_MIN); }
 NEXT				{ return (T_NEXT); }
 NOCROSSREFS			{ return (T_NOCROSSREFS); }
 NOFLOAT				{ return (T_NOFLOAT); }
+NOLOAD				{ return (T_NOLOAD); }
 ONLY_IF_RO			{ return (T_ONLY_IF_RO); }
 ONLY_IF_RW			{ return (T_ONLY_IF_RW); }
 OPTION				{ return (T_OPTION); }

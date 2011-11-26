@@ -68,11 +68,13 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token T_COMMONPAGESIZE
 %token T_CONSTANT
 %token T_CONSTRUCTORS
+%token T_COPY
 %token T_CREATE_OBJECT_SYMBOLS
 %token T_DATA_SEGMENT_ALIGN
 %token T_DATA_SEGMENT_END
 %token T_DATA_SEGMENT_RELRO_END
 %token T_DEFINED
+%token T_DSECT
 %token T_ENTRY
 %token T_EXCLUDE_FILE
 %token T_EXTERN
@@ -84,6 +86,7 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token T_GROUP
 %token T_HLL
 %token T_INCLUDE
+%token T_INFO
 %token T_INHIBIT_COMMON_ALLOCATION
 %token T_INPUT
 %token T_KEEP
@@ -98,6 +101,7 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token T_NEXT
 %token T_NOCROSSREFS
 %token T_NOFLOAT
+%token T_NOLOAD
 %token T_ONLY_IF_RO
 %token T_ONLY_IF_RW
 %token T_OPTION
@@ -528,8 +532,16 @@ output_section_addr
 	;
 
 output_section_type
-	: '(' ident_unquoted ')'
+	: '(' output_section_type_keyword ')'
 	|
+	;
+
+output_section_type_keyword
+	: T_COPY
+	| T_DSECT
+	| T_INFO
+	| T_NOLOAD
+	| T_OVERLAY
 	;
 
 output_section_lma
@@ -722,10 +734,6 @@ version_dependency
 ident
 	: T_IDENT
 	| T_STRING
-	;
-
-ident_unquoted
-	: T_IDENT
 	;
 
 variable
