@@ -181,7 +181,7 @@ sizeof_headers			{ return (T_SIZEOF_HEADERS); }
 {IDENT}				{ _get_ident(); return (T_IDENT); }
 {WILDCARD}			{ _get_ident(); return (T_WILDCARD); }
 "\n"				{ lineno++; }
-[[:space:]]+			/* Ignore whitespaces. */
+[ \t]				/* Ignore whitespaces. */
 
 %%
 
