@@ -4,5 +4,9 @@
 # $Id$
 #
 
-MKLINT?=	no		# lint dies with a sigbus
 LDSTATIC?=	-static		# link programs statically
+
+MKLINT?=	no		# lint dies with a sigbus
+
+# Enable the test suites.
+MKTESTS?=	yes

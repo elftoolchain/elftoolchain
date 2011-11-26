@@ -2,6 +2,8 @@
 
 TOP=	.
 
+.include "${TOP}/mk/elftoolchain.os.mk"
+
 # Build configuration information first.
 SUBDIR += common
 
@@ -26,7 +28,7 @@ SUBDIR += size
 SUBDIR += strings
 
 # Build the test suites.
-.if exists(${.CURDIR}/test)
+.if exists(${.CURDIR}/test) && ${MKTESTS} == "yes"
 SUBDIR += test
 .endif
 

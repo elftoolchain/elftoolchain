@@ -7,6 +7,9 @@ MKLINT?=	no
 MKPIC?=		no
 MKTEX?=		no
 
+# Enable the test suites.
+MKTESTS?=	yes
+
 OBJECT_FORMAT=	ELF	# work around a bug in the pmake package
 
 YFLAGS+=	-d		# force bison to write y.tab.h
