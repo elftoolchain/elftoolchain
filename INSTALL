@@ -15,12 +15,14 @@ operating systems.
   -----------------   --------   -----------------------
   `DragonFly BSD`_    2.10.1     i386
   FreeBSD_            v8.2       amd64 & i386
+  Minix_              3.0.2      i386
   NetBSD_             v5.0.2     i386
   Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
   =================   ========   =======================
 
 .. _DragonFly BSD: http://www.dragonflybsd.org/
 .. _FreeBSD: http://www.freebsd.org/
+.. _Minix:   http://www.minix3.org/
 .. _NetBSD:  http://www.netbsd.org/
 .. _Ubuntu:  http://www.ubuntu.com/
 
@@ -69,6 +71,26 @@ Prerequisites
       needed::
 
             % sudo pkg_add -r teTeX
+
+:Minix 3.2.0:
+    - The following packages are pre-requisites for building the
+      sources on Minix 3.2.0:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``gcc44``               The GNU C compiler.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+          # pkgin install gcc44
+
+    - The test suites cannot currently be built under Minix.
+
+    - Building additional documentation is not currently supported
+      under Minix.
 
 :NetBSD 5.0.2:
     - The core libraries and utilities should build out of the box
@@ -175,7 +197,7 @@ Building the software
 
 The software may be built by running **make**.
 
-On `DragonFly BSD`_,  FreeBSD_ and NetBSD_, use::
+On `DragonFly BSD`_,  FreeBSD_, Minix_ and NetBSD_, use::
 
   % make
 
@@ -203,7 +225,7 @@ Installing the Software
 
 The software may be installed using the ``install`` target.
 
-On `DragonFly BSD`_, FreeBSD_ and NetBSD_, use::
+On `DragonFly BSD`_, FreeBSD_, Minix_ and NetBSD_, use::
 
     % make install
 
