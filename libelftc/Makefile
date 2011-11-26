@@ -32,8 +32,10 @@ MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 	elftc_bfd_find_target.3 elftc_bfd_target_class.3 \
 	elftc_bfd_find_target.3 elftc_bfd_target_flavor.3
 
+.if	!make(clean) && !make(clobber)
 .BEGIN:	.SILENT
 	${.CURDIR}/make-toolchain-version -t ${TOP} -b ${BRANCH} \
 	    -h ${OS_HOST}
+.endif
 
 .include "${TOP}/mk/elftoolchain.lib.mk"
