@@ -514,7 +514,7 @@ sections_sub_command
 	;
 
 output_sections_desc
-	: ident output_section_addr output_section_type ':'
+	: ident output_section_addr_and_type ':'
 	output_section_lma
 	output_section_align
 	output_section_subalign
@@ -526,13 +526,18 @@ output_sections_desc
 	output_section_fillexp
 	;
 
+output_section_addr_and_type
+	: output_section_addr output_section_type
+	| output_section_type
+	;
+
 output_section_addr
 	: expression
-	|
 	;
 
 output_section_type
 	: '(' output_section_type_keyword ')'
+	| '(' ')'
 	|
 	;
 
