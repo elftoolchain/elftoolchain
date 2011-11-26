@@ -5,9 +5,9 @@ BEGIN {
 }
 
 {
-    printf "\n\"";
+    printf "\"";
     gsub("\"", "\\\"");
-    printf "%s\"", $0;
+    printf "%s\\n\"\n", $0;
 }
 
 END {
