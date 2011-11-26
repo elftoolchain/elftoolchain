@@ -28,7 +28,7 @@
 
 #include <libelf.h>
 
-#include "_libelf_config.h"
+#include "_libelf.h"
 
 LIBELF_VCSID("$Id$");
 
