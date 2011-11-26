@@ -106,6 +106,17 @@
 #endif
 #endif  /* __FreeBSD__ */
 
+/*
+ * Definitions for Minix3.
+ */
+#ifdef __minix
+#define	LIBELF_VCSID(ID)	ELFTC_VCSID(ID)
+
+#define	LIBELF_ARCH		EM_386
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS32
+
+#endif	/* __minix */
 
 #ifdef __NetBSD__
 

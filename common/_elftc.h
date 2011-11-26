@@ -89,6 +89,14 @@
 #endif
 #endif
 
+#if defined(__minix)
+#if defined(__GNUC__)
+#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
+#else
+#define	ELFTC_VCSID(ID)		/**/
+#endif	/* __GNU__ */
+#endif
+
 #if defined(__NetBSD__)
 #define	ELFTC_VCSID(ID)		__RCSID(ID)
 #endif
