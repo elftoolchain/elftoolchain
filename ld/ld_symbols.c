@@ -49,7 +49,9 @@ ld_symbols_resolve(struct ld *ld)
 	struct ld_symbol *lsb;
 
 	TAILQ_FOREACH(lf, &ld->ld_lflist, lf_next){
+		ld_file_load(ld, lf);
 		ld_symbols_load(ld, lf);
+		ld_file_unload(ld, lf);
 	}
 
 	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
@@ -140,13 +142,11 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 	Elf_Arhdr *arhdr;
 	struct ld_archive_member *lam;
 
-	assert(la->la_elf != NULL);
-
-	if (elf_rand(la->la_elf, off) == 0)
+	if (elf_rand(lf->lf_elf, off) == 0)
 		ld_fatal(ld, "%s: elf_rand failed: %s", lf->lf_name,
 		    elf_errmsg(-1));
 
-	if ((e = elf_begin(-1, ELF_C_READ, la->la_elf)) == NULL)
+	if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
 		ld_fatal(ld, "%s: elf_begin failed: %s", lf->lf_name,
 		    elf_errmsg(-1));
 
@@ -181,7 +181,7 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 	assert(lf->lf_ar != NULL);
 
 	la = lf->lf_ar;
-	if ((as = elf_getarsym(la->la_elf, &c)) == NULL)
+	if ((as = elf_getarsym(lf->lf_elf, &c)) == NULL)
 		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
 		    elf_errmsg(-1));
 	do {

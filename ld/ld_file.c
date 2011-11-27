@@ -137,33 +137,10 @@ ld_file_add_library_path(struct ld *ld, char *path)
 	STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
 }
 
-static void
-ld_file_load_archive(struct ld *ld, struct ld_file *lf)
-{
-	struct ld_archive *la;
-	Elf_Kind k;
-
-	if (lf->lf_ar == NULL) {
-		if ((la = calloc(1, sizeof(*la))) == NULL)
-			ld_fatal_std(ld, "calloc");
-		lf->lf_ar = la;
-	} else
-		la = lf->lf_ar;
-
-	if (la->la_elf == NULL) {
-		la->la_elf = elf_memory(lf->lf_mmap, lf->lf_size);
-		if (la->la_elf == NULL)
-			ld_fatal(ld, "%s: elf_memory failed: %s", lf->lf_name,
-			    elf_errmsg(-1));
-	}
-
-	k = elf_kind(la->la_elf);
-	assert(k == ELF_K_AR);
-}
-
-static void
+void
 ld_file_load(struct ld *ld, struct ld_file *lf)
 {
+	struct ld_archive *la;
 	struct stat sb;
 	Elf_Kind k;
 	GElf_Ehdr ehdr;
@@ -185,11 +162,7 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 		ld_fatal_std(ld, "%s: mmap", lf->lf_name);
 	close(fd);
 
-	if (lf->lf_type == LFT_ARCHIVE || (lf->lf_type == LFT_UNKNOWN &&
-	    !strncmp(lf->lf_mmap, ARMAG, SARMAG))) {
-		ld_file_load_archive(ld, lf);
-		return;
-	} else if (lf->lf_type == LFT_BINARY)
+	if (lf->lf_type == LFT_BINARY)
 		return;
 
 	if ((lf->lf_elf = elf_memory(lf->lf_mmap, lf->lf_size)) == NULL)
@@ -197,6 +170,17 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 		    elf_errmsg(-1));
 
 	k = elf_kind(lf->lf_elf);
+
+	if (k == ELF_K_AR) {
+		lf->lf_type = LFT_ARCHIVE;
+		if (lf->lf_ar == NULL) {
+			if ((la = calloc(1, sizeof(*la))) == NULL)
+				ld_fatal_std(ld, "calloc");
+			lf->lf_ar = la;
+		}
+		return;
+	}
+
 	assert(k != ELF_K_AR);
 	if (k == ELF_K_NONE)
 		ld_fatal(ld, "%s: File format not recognized", lf->lf_name);
@@ -224,11 +208,14 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 }
 
 void
-ld_file_load_all(struct ld *ld)
+ld_file_unload(struct ld *ld, struct ld_file *lf)
 {
-	struct ld_file *lf;
 
-	TAILQ_FOREACH(lf, &ld->ld_lflist, lf_next) {
-		ld_file_load(ld, lf);
+	if (lf->lf_type != LFT_BINARY)
+		elf_end(lf->lf_elf);
+
+	if (lf->lf_mmap != NULL) {
+		if (munmap(lf->lf_mmap, lf->lf_size) < 0)
+			ld_fatal_std(ld, "%s: munmap", lf->lf_name);
 	}
 }

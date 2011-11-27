@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,6 @@ main(int argc, char **argv)
 	ld_script_parse_internal();
 
 	ld_options_parse(ld, argc, argv);
-
-	ld_file_load_all(ld);
 
 	ld_symbols_resolve(ld);
 

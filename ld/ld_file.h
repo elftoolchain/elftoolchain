@@ -56,7 +56,6 @@ struct ld_archive_member {
 };
 
 struct ld_archive {
-	Elf *la_elf;			/* archive handle. */ 
 	struct ld_archive_member *la_m;	/* extracted member list. */
 };
 
@@ -68,4 +67,5 @@ struct ld_path {
 void	ld_file_add(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_library(struct ld *, const char *);
 void	ld_file_add_library_path(struct ld *, char *);
-void	ld_file_load_all(struct ld *);
+void	ld_file_load(struct ld *, struct ld_file *);
+void	ld_file_unload(struct ld *, struct ld_file *);
