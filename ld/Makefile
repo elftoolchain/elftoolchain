@@ -7,6 +7,7 @@ WARNS?=	6
 
 SRCS=	ld_error.c 		\
 	ld_file.c		\
+	ld_layout.c		\
 	ld_main.c 		\
 	ld_options.c		\
 	ld_script_lexer.l	\

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,10 +74,11 @@ struct ld {
 	TAILQ_HEAD(, ld_file) ld_lflist; /* input file list */
 };
 
-void	ld_options_parse(struct ld*, int, char **);
+void	ld_err(struct ld *, const char *, ...);
 void	ld_fatal(struct ld *, const char *, ...);
 void	ld_fatal_std(struct ld *, const char *, ...);
-void	ld_err(struct ld *, const char *, ...);
-void	ld_warn(struct ld *, const char *, ...);
+void	ld_layout_sections(struct ld *);
+void	ld_options_parse(struct ld*, int, char **);
 void	ld_script_parse(const char *);
 void	ld_script_parse_internal(void);
+void	ld_warn(struct ld *, const char *, ...);
