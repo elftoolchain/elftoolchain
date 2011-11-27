@@ -34,7 +34,15 @@ enum ld_file_type {
 	LFT_BINARY
 };
 
-struct ld_archive;
+struct ld_archive_member {
+	char *lam_name;			/* archive member name */
+	off_t lam_off;			/* archive member offset */
+	UT_hash_handle hh;		/* hash handle */
+};
+
+struct ld_archive {
+	struct ld_archive_member *la_m;	/* extracted member list. */
+};
 
 struct ld_file {
 	const char *lf_name;		/* input file name */
@@ -47,16 +55,6 @@ struct ld_file {
 	int lf_as_needed;		/* DT_NEEDED */
 	int lf_group_level;		/* archive group level */
 	TAILQ_ENTRY(ld_file) lf_next;	/* next input file */
-};
-
-struct ld_archive_member {
-	char *lam_name;			/* archive member name */
-	off_t lam_off;			/* archive member offset */
-	UT_hash_handle hh;		/* hash handle */
-};
-
-struct ld_archive {
-	struct ld_archive_member *la_m;	/* extracted member list. */
 };
 
 struct ld_path {
