@@ -135,17 +135,10 @@ struct bsdar {
 	TAILQ_HEAD(, ar_obj) v_obj;	/* object(member) list */
 };
 
+void	ar_mode_script(struct bsdar *ar);
+void	ar_read_archive(struct bsdar *_ar, int _mode);
+void	ar_write_archive(struct bsdar *_ar, int _mode);
 void	bsdar_errc(struct bsdar *, int _code, const char *fmt, ...);
 int	bsdar_is_pseudomember(struct bsdar *_ar, const char *_name);
-void	bsdar_warnc(struct bsdar *, int _code, const char *fmt, ...);
 const char *bsdar_strmode(mode_t m);
-void	ar_mode_d(struct bsdar *bsdar);
-void	ar_mode_m(struct bsdar *bsdar);
-void	ar_mode_p(struct bsdar *bsdar);
-void	ar_mode_q(struct bsdar *bsdar);
-void	ar_mode_r(struct bsdar *bsdar);
-void	ar_mode_s(struct bsdar *bsdar);
-void	ar_mode_t(struct bsdar *bsdar);
-void	ar_mode_x(struct bsdar *bsdar);
-void	ar_mode_A(struct bsdar *bsdar);
-void	ar_mode_script(struct bsdar *ar);
+void	bsdar_warnc(struct bsdar *, int _code, const char *fmt, ...);

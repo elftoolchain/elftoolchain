@@ -143,7 +143,7 @@ main(int argc, char **argv)
 
 		bsdar->options |= AR_S;
 		for (;(bsdar->filename = *argv++) != NULL;)
-			ar_mode_s(bsdar);
+			ar_write_archive(bsdar, 's');
 
 		exit(EXIT_SUCCESS);
 	} else {
@@ -311,32 +311,18 @@ main(int argc, char **argv)
 
 	if ((!bsdar->mode || strchr("ptx", bsdar->mode)) &&
 	    bsdar->options & AR_S) {
-		ar_mode_s(bsdar);
+		ar_write_archive(bsdar, 's');
 		if (!bsdar->mode)
 			exit(EXIT_SUCCESS);
 	}
 
 	switch(bsdar->mode) {
-	case 'd':
-		ar_mode_d(bsdar);
+	case 'd': case 'm': case 'q': case 'r':
+		ar_write_archive(bsdar, bsdar->mode);
 		break;
-	case 'm':
-		ar_mode_m(bsdar);
-		break;
-	case 'p':
-		ar_mode_p(bsdar);
-		break;
-	case 'q':
-		ar_mode_q(bsdar);
-		break;
-	case 'r':
-		ar_mode_r(bsdar);
-		break;
-	case 't':
-		ar_mode_t(bsdar);
-		break;
-	case 'x':
-		ar_mode_x(bsdar);
+
+	case 'p': case 't': case 'x':
+		ar_read_archive(bsdar, bsdar->mode);
 		break;
 	default:
 		bsdar_usage();

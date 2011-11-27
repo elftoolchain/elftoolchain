@@ -28,8 +28,10 @@
 #include <sys/mman.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
+
 #include <archive.h>
 #include <archive_entry.h>
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <gelf.h>
@@ -62,53 +64,10 @@ static void	insert_obj(struct bsdar *bsdar, struct ar_obj *obj,
 		    struct ar_obj *pos);
 static void	read_objs(struct bsdar *bsdar, const char *archive,
 		    int checkargv);
-static void	write_archive(struct bsdar *bsdar, char mode);
 static void	write_cleanup(struct bsdar *bsdar);
 static void	write_data(struct bsdar *bsdar, struct archive *a,
 		    const void *buf, size_t s);
 static void	write_objs(struct bsdar *bsdar);
-
-void
-ar_mode_d(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 'd');
-}
-
-void
-ar_mode_m(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 'm');
-}
-
-void
-ar_mode_q(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 'q');
-}
-
-void
-ar_mode_r(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 'r');
-}
-
-void
-ar_mode_s(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 's');
-}
-
-void
-ar_mode_A(struct bsdar *bsdar)
-{
-
-	write_archive(bsdar, 'A');
-}
 
 /*
  * Create object from file, return created obj upon success, or NULL
@@ -375,8 +334,8 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 /*
  * Determine the constitution of resulting archive.
  */
-static void
-write_archive(struct bsdar *bsdar, char mode)
+void
+ar_write_archive(struct bsdar *bsdar, int mode)
 {
 	struct ar_obj		 *nobj, *obj, *obj_temp, *pos;
 	struct stat		  sb;
@@ -388,6 +347,9 @@ write_archive(struct bsdar *bsdar, char mode)
 	nobj = NULL;
 	pos = NULL;
 	memset(&sb, 0, sizeof(sb));
+
+	assert(mode == 'A' || mode == 'd' || mode == 'm' || mode == 'q' ||
+	    mode == 'r' || mode == 's');
 
 	/*
 	 * Test if the specified archive exists, to figure out

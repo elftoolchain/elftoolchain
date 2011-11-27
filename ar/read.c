@@ -26,11 +26,12 @@
  */
 
 #include <sys/cdefs.h>
-
 #include <sys/queue.h>
 #include <sys/stat.h>
+
 #include <archive.h>
 #include <archive_entry.h>
+#include <assert.h>
 #include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -40,34 +41,11 @@
 
 ELFTC_VCSID("$Id$");
 
-static void read_archive(struct bsdar *bsdar, char mode);
-
-void
-ar_mode_p(struct bsdar *bsdar)
-{
-
-	read_archive(bsdar, 'p');
-}
-
-void
-ar_mode_t(struct bsdar *bsdar)
-{
-
-	read_archive(bsdar, 't');
-}
-
-void
-ar_mode_x(struct bsdar *bsdar)
-{
-
-	read_archive(bsdar, 'x');
-}
-
 /*
  * Handle read modes: 'x', 't' and 'p'.
  */
-static void
-read_archive(struct bsdar *bsdar, char mode)
+void
+ar_read_archive(struct bsdar *bsdar, int mode)
 {
 	FILE			 *out;
 	struct archive		 *a;
@@ -84,7 +62,9 @@ read_archive(struct bsdar *bsdar, char mode)
 	char			**av;
 	char			  buf[25];
 	char			  find;
-	int			  flags, r, i;
+	int			  i, flags, r;
+
+	assert(mode == 'p' || mode == 't' || mode == 'x');
 
 	if ((a = archive_read_new()) == NULL)
 		bsdar_errc(bsdar, 0, "archive_read_new failed");
