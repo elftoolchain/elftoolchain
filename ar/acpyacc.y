@@ -238,9 +238,9 @@ yyerror(const char *s)
 }
 
 /*
- * arscp_open first open an archive and check its validity. If the archive
- * format is valid, it calls arscp_create to create a temporary copy of
- * the archive.
+ * The arscp_open() function will first open an archive and check its
+ * validity. If the archive format is valid, it will call
+ * arscp_create() to create a temporary copy of the archive.
  */
 static void
 arscp_open(char *fname)
@@ -264,9 +264,12 @@ arscp_open(char *fname)
 }
 
 /*
- * Create archive. in != NULL indicate it's a OPEN cmd, and resulting
- * archive is based on modification of an existing one. If in == NULL,
- * we are in CREATE cmd and a new empty archive will be created.
+ * Create an archive.
+ *
+ * If the parameter 'in' is NULL (the 'CREATE' command), a new empty
+ * archive will be created.  If the parameter 'in' is not NULL (the
+ * 'OPEN' command), the resulting archive will be a modified version
+ * of the existing archive.
  */
 static void
 arscp_create(char *in, char *out)
@@ -274,7 +277,7 @@ arscp_create(char *in, char *out)
 	struct archive		*a;
 	int			 ifd, ofd;
 
-	/* Delete previously created temporary archive, if any. */
+	/* Delete the previously created temporary archive, if any. */
 	if (tmpac) {
 		if (unlink(tmpac) < 0)
 			bsdar_errc(bsdar, errno, "unlink failed");
@@ -289,7 +292,7 @@ arscp_create(char *in, char *out)
 
 	if (in) {
 		/*
-		 * Command OPEN creates a temporary copy of the
+		 * The 'OPEN' command creates a temporary copy of the
 		 * input archive.
 		 */
 		if ((ifd = open(in, O_RDONLY)) < 0) {
@@ -304,8 +307,8 @@ arscp_create(char *in, char *out)
 		close(ofd);
 	} else {
 		/*
-		 * Command CREATE creates an "empty" archive.
-		 * (archive with only global header)
+		 * The 'CREATE' command creates an "empty" archive (an
+		 * archive consisting only of the archive header).
 		 */
 		if ((a = archive_write_new()) == NULL)
 			bsdar_errc(bsdar, 0, "archive_write_new failed");
@@ -315,7 +318,7 @@ arscp_create(char *in, char *out)
 		ACV(archive_write_finish(a));
 	}
 
-	/* Override previous target, if any. */
+	/* Override the previous target, if any. */
 	if (target)
 		free(target);
 
@@ -323,7 +326,9 @@ arscp_create(char *in, char *out)
 	bsdar->filename = tmpac;
 }
 
-/* A file copying implementation using mmap. */
+/*
+ * A file copying implementation using mmap().
+ */
 static int
 arscp_copy(int ifd, int ofd)
 {
@@ -357,8 +362,9 @@ arscp_copy(int ifd, int ofd)
 }
 
 /*
- * Add all modules of archive to current archive, if list != NULL,
- * only those modules speicifed in 'list' will be added.
+ * Add all modules of an archive to the current archive.  If the
+ * parameter 'list' is not NULL, only those modules specified by
+ * 'list' will be added.
  */
 static void
 arscp_addlib(char *archive, struct list *list)
@@ -373,7 +379,9 @@ arscp_addlib(char *archive, struct list *list)
 	arscp_free_mlist(list);
 }
 
-/* Add modules into current archive. */
+/*
+ * Add modules to the current archive.
+ */
 static void
 arscp_addmod(struct list *list)
 {
@@ -386,7 +394,9 @@ arscp_addmod(struct list *list)
 	arscp_free_mlist(list);
 }
 
-/* Delete modules from current archive. */
+/*
+ * Delete modules from the current archive.
+ */
 static void
 arscp_delete(struct list *list)
 {
@@ -399,7 +409,9 @@ arscp_delete(struct list *list)
 	arscp_free_mlist(list);
 }
 
-/* Extract modules from current archive. */
+/*
+ * Extract modules from the current archive.
+ */
 static void
 arscp_extract(struct list *list)
 {
@@ -412,7 +424,9 @@ arscp_extract(struct list *list)
 	arscp_free_mlist(list);
 }
 
-/* List modules of archive. (Simple Mode) */
+/*
+ * List the contents of an archive (simple mode).
+ */
 static void
 arscp_list(void)
 {
@@ -427,13 +441,15 @@ arscp_list(void)
 	bsdar->options &= ~AR_V;
 }
 
-/* List modules of archive. (Advance Mode) */
+/*
+ * List the contents of an archive (advanced mode).
+ */
 static void
 arscp_dir(char *archive, struct list *list, char *rlt)
 {
 	FILE	*out;
 
-	/* If rlt != NULL, redirect output to it */
+	/* If rlt != NULL, redirect the output to it. */
 	out = NULL;
 	if (rlt) {
 		out = bsdar->output;
@@ -466,7 +482,9 @@ arscp_dir(char *archive, struct list *list, char *rlt)
 }
 
 
-/* Replace modules of current archive. */
+/*
+ * Replace modules in the current archive.
+ */
 static void
 arscp_replace(struct list *list)
 {
@@ -479,7 +497,9 @@ arscp_replace(struct list *list)
 	arscp_free_mlist(list);
 }
 
-/* Rename the temporary archive to the target archive. */
+/*
+ * Rename the temporary archive to the target archive.
+ */
 static void
 arscp_save(void)
 {
@@ -489,8 +509,9 @@ arscp_save(void)
 		if (rename(tmpac, target) < 0)
 			bsdar_errc(bsdar, errno, "rename failed");
 		/*
-		 * mkstemp creates temp files with mode 0600, here we
-		 * set target archive mode per process umask.
+		 * Because mkstemp() creates temporary files with mode
+		 * 0600, we set target archive's mode as per the
+		 * process umask.
 		 */
 		mask = umask(0);
 		umask(mask);
@@ -506,8 +527,8 @@ arscp_save(void)
 }
 
 /*
- * Discard all the contents of current archive. This is achieved by
- * invoking CREATE cmd on current archive.
+ * Discard the contents of the current archive. This is achieved by
+ * invoking the 'CREATE' cmd on the current archive.
  */
 static void
 arscp_clear(void)
@@ -523,8 +544,8 @@ arscp_clear(void)
 }
 
 /*
- * Quit ar(1). Note that END cmd will not SAVE current archive
- * before exit.
+ * Quit ar(1). Note that the 'END' cmd will not 'SAVE' the current
+ * archive before exiting.
  */
 static void
 arscp_end(int eval)
@@ -542,8 +563,8 @@ arscp_end(int eval)
 }
 
 /*
- * Check if target spcified, i.e, whether OPEN or CREATE has been
- * issued by user.
+ * Check if a target was specified, i.e, whether an 'OPEN' or 'CREATE'
+ * had been issued by the user.
  */
 static int
 arscp_target_exist(void)
@@ -556,7 +577,9 @@ arscp_target_exist(void)
 	return (0);
 }
 
-/* Construct module list. */
+/*
+ * Construct the list of modules.
+ */
 static struct list *
 arscp_mlist(struct list *list, char *str)
 {
@@ -571,7 +594,9 @@ arscp_mlist(struct list *list, char *str)
 	return (l);
 }
 
-/* Calculate the length of a mlist. */
+/*
+ * Calculate the length of an mlist.
+ */
 static int
 arscp_mlist_len(struct list *list)
 {
@@ -583,20 +608,24 @@ arscp_mlist_len(struct list *list)
 	return (len);
 }
 
-/* Free the space allocated for mod_list. */
+/*
+ * Free the space allocated for a module list.
+ */
 static void
 arscp_free_mlist(struct list *list)
 {
 	struct list *l;
 
-	/* Note that list->str was freed in arscp_free_argv. */
+	/* Note: list->str was freed in arscp_free_argv(). */
 	for(; list; list = l) {
 		l = list->next;
 		free(list);
 	}
 }
 
-/* Convert mlist to argv array. */
+/*
+ * Convert a module list to an 'argv' array.
+ */
 static void
 arscp_mlist2argv(struct list *list)
 {
@@ -608,7 +637,7 @@ arscp_mlist2argv(struct list *list)
 	if (argv == NULL)
 		bsdar_errc(bsdar, errno, "malloc failed");
 
-	/* Note that module names are stored in reverse order in mlist. */
+	/* Note that module names are stored in reverse order. */
 	for(i = n - 1; i >= 0; i--, list = list->next) {
 		if (list == NULL)
 			bsdar_errc(bsdar, errno, "invalid mlist");
@@ -619,7 +648,9 @@ arscp_mlist2argv(struct list *list)
 	bsdar->argv = argv;
 }
 
-/* Free space allocated for argv array and its elements. */
+/*
+ * Free the space allocated for an argv array and its elements.
+ */
 static void
 arscp_free_argv(void)
 {
@@ -631,7 +662,9 @@ arscp_free_argv(void)
 	free(bsdar->argv);
 }
 
-/* Show a prompt if we are in interactive mode */
+/*
+ * Show a prompt if we are in interactive mode.
+ */
 static void
 arscp_prompt(void)
 {
@@ -642,7 +675,9 @@ arscp_prompt(void)
 	}
 }
 
-/* Main function for ar script mode. */
+/*
+ * The main function implementing script mode.
+ */
 void
 ar_mode_script(struct bsdar *ar)
 {

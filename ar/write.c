@@ -44,8 +44,8 @@
 
 ELFTC_VCSID("$Id$");
 
-#define _ARMAG_LEN 8		/* length of ar magic string */
-#define _ARHDR_LEN 60		/* length of ar header */
+#define _ARMAG_LEN 8		/* length of the magic string */
+#define _ARHDR_LEN 60		/* length of the archive header */
 #define _INIT_AS_CAP 128	/* initial archive string table size */
 #define _INIT_SYMOFF_CAP (256*(sizeof(uint32_t))) /* initial so table size */
 #define _INIT_SYMNAME_CAP 1024			  /* initial sn table size */
@@ -70,9 +70,10 @@ static void	write_data(struct bsdar *bsdar, struct archive *a,
 static void	write_objs(struct bsdar *bsdar);
 
 /*
- * Create object from file, return created obj upon success, or NULL
- * when an error occurs or the member is not newer than existing
- * one while -u is specifed.
+ * Create an object from a file, and return the created object
+ * descriptor.  Return NULL if either an error occurs, or if the '-u'
+ * option was specifed and the member is not newer than the existing
+ * one in the archive.
  */
 static struct ar_obj *
 create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
@@ -123,19 +124,19 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	}
 
 	/*
-	 * When option '-u' is specified and member is not newer than the
-	 * existing one, the replace will not happen. While if mtime == 0,
-	 * which indicates that this is to "replace a none exist member",
-	 * the replace will proceed regardless of '-u'.
+	 * If the '-u' option is specified and member is not newer
+	 * than the existing one, we should not replace the member.
+	 * However, if mtime == 0, i.e., if nonexistent members are to
+	 * be forcibly replaced, then the '-u' option is to be ignored.
 	 */
 	if (mtime != 0 && bsdar->options & AR_U && sb.st_mtime <= mtime)
 		goto giveup;
 
 	/*
-	 * When option '-D' is specified, mtime and UID / GID from the file
-	 * will be replaced with 0, and file mode with 644. This ensures that 
-	 * checksums will match for two archives containing the exact same
-	 * files.
+	 * When the '-D' option is specified, the mtime and UID/GID of
+	 * the member will be set to 0, and the file mode will be set
+	 * to 644. This ensures that checksums will match for two
+	 * archives containing identical content.
 	 */
 	if (bsdar->options & AR_D) {
 		obj->uid = 0;
@@ -178,7 +179,7 @@ giveup:
 }
 
 /*
- * Free object itself and its associated allocations.
+ * Free an object and its associated allocations.
  */
 static void
 free_obj(struct bsdar *bsdar, struct ar_obj *obj)
@@ -194,7 +195,8 @@ free_obj(struct bsdar *bsdar, struct ar_obj *obj)
 }
 
 /*
- * Insert obj to the tail, or before/after the pos obj.
+ * Insert an object into a list, either before/after the 'pos' obj or
+ * at the end of the list.
  */
 static void
 insert_obj(struct bsdar *bsdar, struct ar_obj *obj, struct ar_obj *pos)
@@ -204,8 +206,9 @@ insert_obj(struct bsdar *bsdar, struct ar_obj *obj, struct ar_obj *pos)
 
 	if (pos == NULL || obj == pos)
 		/*
-		 * If the object to move happens to be the posistion obj,
-		 * or if there is not a pos obj, move it to tail.
+		 * If the object to move happens to be the position
+		 * obj, or if there is no position obj, move the
+		 * object to the end.
 		 */
 		goto tail;
 
@@ -224,10 +227,10 @@ tail:
 }
 
 /*
- * Read objects from archive into v_obj list. Note that checkargv is
- * set when read_objs is used to read objects from the target of
- * ADDLIB command (ar script mode), in this case argv array possibly
- * specifies the members ADDLIB want.
+ * Read objects from archive into the 'v_obj' list. Note that
+ * 'checkargv' is set when read_objs() is used to read objects from
+ * the target of 'ADDLIB' command in ar script mode; in this case the
+ * 'argv' array specifies the members that 'ADDLIB' is to operate on.
  */
 static void
 read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
@@ -263,14 +266,14 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 		name = archive_entry_pathname(entry);
 
 		/*
-		 * skip pseudo members.
+		 * Skip pseudo members.
 		 */
 		if (bsdar_is_pseudomember(bsdar, name))
 			continue;
 
 		/*
-		 * If checkargv is set, only read those members specified
-		 * in argv.
+		 * If 'checkargv' is set, only read those members
+		 * specified in argv.
 		 */
 		if (checkargv && bsdar->argc > 0) {
 			find = 0;
@@ -332,7 +335,7 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 }
 
 /*
- * Determine the constitution of resulting archive.
+ * Write an archive.
  */
 void
 ar_write_archive(struct bsdar *bsdar, int mode)
@@ -352,8 +355,8 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 	    mode == 'r' || mode == 's');
 
 	/*
-	 * Test if the specified archive exists, to figure out
-	 * whether we are creating one here.
+	 * Test if the specified archive exists, to determine
+	 * whether we are creating a new archive.
 	 */
 	if (stat(bsdar->filename, &sb) != 0) {
 		if (errno != ENOENT) {
@@ -369,7 +372,7 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 			return;
 		}
 
-		/* Issue a warning if -c is not specified when creating. */
+		/* Issue a message if the '-c' option was not specified. */
 		if (!(bsdar->options & AR_C))
 			bsdar_warnc(bsdar, 0, "creating %s", bsdar->filename);
 		goto new_archive;
@@ -379,7 +382,7 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 	bsdar->ar_ino = sb.st_ino;
 
 	/*
-	 * First read members from existing archive.
+	 * First read members from the existing archive.
 	 */
 	read_objs(bsdar, bsdar->filename, 0);
 
@@ -398,16 +401,18 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 		goto new_archive;
 
 	/*
-	 * Mode 'A' adds the contents of another archive to the tail of
-	 * current archive. Note that mode 'A' is a special mode for the
-	 * ADDLIB command of the ar script mode. Currently there is no
-	 * access to this function from the ar command line mode.
+	 * Mode 'A' adds the contents of another archive to the tail
+	 * of current archive. Note that mode 'A' is a special mode
+	 * for the 'ADDLIB' command in ar's script mode. Currently
+	 * there is no option that invokes this function from ar's
+	 * command line.
 	 */
 	if (mode == 'A') {
 		/*
-		 * Read objects from the target archive of ADDLIB command.
-		 * If there are members spcified in argv, read those members
-		 * only, otherwise the entire archive will be read.
+		 * Read objects from the target archive of the
+		 * 'ADDLIB' command.  If there are members spcified in
+		 * 'argv', read those members only, otherwise the
+		 * entire archive will be read.
 		 */
 		read_objs(bsdar, bsdar->addlib, 1);
 		goto write_objs;
@@ -425,8 +430,9 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 		}
 
 		/*
-		 * If can't find `pos' specified by user,
-		 * sliently insert objects at tail.
+		 * If we cannot find the position specified by the
+		 * user, sliently insert objects at the tail of the
+		 * list.
 		 */
 		if (pos == NULL)
 			bsdar->options &= ~(AR_A | AR_B);
@@ -447,8 +453,8 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 
 			if (mode == 'r') {
 				/*
-				 * if the new member is not qualified
-				 * to replace the old one, skip it.
+				 * If the new member should not
+				 * replace the old one, skip it.
 				 */
 				nobj = create_obj_from_file(bsdar, *av,
 				    obj->mtime);
@@ -478,10 +484,11 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 
 new_archive:
 	/*
-	 * When operating in mode 'r', directly add those user specified
-	 * objects which do not exist in current archive. When operating
-	 * in mode 'q', all objects specified in command line args are
-	 * appended to the archive, without comparing with existing ones.
+	 * When operating in mode 'r', directly add the specified
+	 * objects which do not exist in current archive. When
+	 * operating in mode 'q', all objects specified by the command
+	 * line args are appended to the archive, without checking
+	 * existing members in the archive.
 	 */
 	for (i = 0; i < bsdar->argc; i++) {
 		av = &bsdar->argv[i];
@@ -501,7 +508,7 @@ write_objs:
 }
 
 /*
- * Memory cleaning up.
+ * Release memory.
  */
 static void
 write_cleanup(struct bsdar *bsdar)
@@ -644,7 +651,10 @@ write_objs(struct bsdar *bsdar)
 
 	bsdar->rela_off = 0;
 
-	/* Create archive symbol table and archive string table, if need. */
+	/*
+	 * Create the archive symbol table and the archive string
+	 * table, if needed.
+	 */
 	TAILQ_FOREACH(obj, &bsdar->v_obj, objs) {
 		if (!(bsdar->options & AR_SS) && obj->maddr != NULL)
 			create_symtab_entry(bsdar, obj->maddr, obj->size);
@@ -666,24 +676,27 @@ write_objs(struct bsdar *bsdar)
 	}
 
 	/*
-	 * Pad the symbol name string table. It is treated specially because
-	 * symbol name table should be padded by a '\0', not the common '\n'
-	 * for other members. The size of sn table includes the pad bit.
+	 * Pad the symbol name string table. It is treated specially
+	 * because symbol name table should be padded by a '\0', and
+	 * not '\n' as for normal members. The size of the 'sn' table
+	 * includes the pad byte.
 	 */
 	if (bsdar->s_cnt != 0 && bsdar->s_sn_sz % 2 != 0)
 		bsdar->s_sn[bsdar->s_sn_sz++] = '\0';
 
 	/*
-	 * Archive string table is padded by a "\n" as the normal members.
-	 * The difference is that the size of archive string table counts
-	 * in the pad bit, while normal members' size fileds do not.
+	 * The archive string table is padded by a "\n" like a normal
+	 * member.  The difference is that the size of archive string
+	 * table includes the pad byte, while normal members' size
+	 * fields do not.
 	 */
 	if (bsdar->as != NULL && bsdar->as_sz % 2 != 0)
 		bsdar->as[bsdar->as_sz++] = '\n';
 
 	/*
-	 * If there is a symbol table, calculate the size of pseudo members,
-	 * convert previously stored relative offsets to absolute ones.
+	 * If there is a symbol table, calculate the size of pseudo
+	 * members, and convert previously stored relative offsets to
+	 * absolute ones.
 	 *
 	 * absolute_offset = relative_offset + size_of_pseudo_members)
 	 */
@@ -709,9 +722,9 @@ write_objs(struct bsdar *bsdar)
 	AC(archive_write_open_filename(a, bsdar->filename));
 
 	/*
-	 * write the archive symbol table, if there is one.
-	 * If options -s is explicitly specified or we are invoked
-	 * as ranlib, write the symbol table even if it is empty.
+	 * Write the archive symbol table, if there is one.  If
+	 * options '-s' was explicitly specified or if we were invoked
+	 * as 'ranlib', write the symbol table even if it is empty.
 	 */
 	if ((bsdar->s_cnt != 0 && !(bsdar->options & AR_SS)) ||
 	    bsdar->options & AR_S) {
@@ -733,7 +746,7 @@ write_objs(struct bsdar *bsdar)
 		archive_entry_free(entry);
 	}
 
-	/* write the archive string table, if any. */
+	/* Write the archive string table, if any. */
 	if (bsdar->as != NULL) {
 		entry = archive_entry_new();
 		archive_entry_copy_pathname(entry, AR_STRINGTAB_NAME_SVR4);
@@ -743,7 +756,7 @@ write_objs(struct bsdar *bsdar)
 		archive_entry_free(entry);
 	}
 
-	/* write normal members. */
+	/* Write normal members. */
 	TAILQ_FOREACH(obj, &bsdar->v_obj, objs) {
 		entry = archive_entry_new();
 		archive_entry_copy_pathname(entry, obj->name);
@@ -785,7 +798,7 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 		return;
 	}
 	if (elf_kind(e) != ELF_K_ELF) {
-		/* Sliently ignore non-elf member. */
+		/* Silently a ignore non-ELF member. */
 		elf_end(e);
 		return;
 	}
@@ -847,12 +860,12 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 					continue;
 				}
 
-				/* keep only global or weak symbols */
+				/* Keep only global and weak symbols. */
 				if (GELF_ST_BIND(sym.st_info) != STB_GLOBAL &&
 				    GELF_ST_BIND(sym.st_info) != STB_WEAK)
 					continue;
 
-				/* keep only defined symbols */
+				/* Keep only defined symbols. */
 				if (sym.st_shndx == SHN_UNDEF)
 					continue;
 
@@ -891,8 +904,9 @@ add_to_ar_str_table(struct bsdar *bsdar, const char *name)
 	}
 
 	/*
-	 * The space required for holding one member name in as table includes:
-	 * strlen(name) + (1 for '/') + (1 for '\n') + (possibly 1 for padding).
+	 * The space required for holding one member name in the 'as'
+	 * table includes: strlen(name) + (1 for '/') + (1 for '\n') +
+	 * (possibly 1 for padding).
 	 */
 	while (bsdar->as_sz + strlen(name) + 3 > bsdar->as_cap) {
 		bsdar->as_cap *= 2;
@@ -938,8 +952,9 @@ add_to_ar_sym_table(struct bsdar *bsdar, const char *name)
 	bsdar->s_cnt++;
 
 	/*
-	 * The space required for holding one symbol name in sn table includes:
-	 * strlen(name) + (1 for '\n') + (possibly 1 for padding).
+	 * The space required for holding one symbol name in the 'sn'
+	 * table includes: strlen(name) + (1 for '\n') + (possibly 1
+	 * for padding).
 	 */
 	while (bsdar->s_sn_sz + strlen(name) + 2 > bsdar->s_sn_cap) {
 		bsdar->s_sn_cap *= 2;
