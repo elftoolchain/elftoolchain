@@ -89,8 +89,6 @@ ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
 	if (GELF_ST_BIND(sym->st_info) == STB_LOCAL)
 		return;
 
-	printf("process symbol: %s\n", name);
-
 	if (sym->st_shndx == SHN_UNDEF) {
 		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
 			return;
@@ -103,7 +101,6 @@ ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
 		}
 		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL) {
 			_symbol_remove(ld->ld_symtab_undef, _lsb);
-			printf("resolved symbol: %s\n", _lsb->lsb_name);
 			_symbol_add(ld->ld_symtab_def, _lsb);
 			return;
 		}
@@ -165,8 +162,6 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 		ld_fatal_std(ld, "strdup");
 	lam->lam_off = off;
 	HASH_ADD(hh, la->la_m, lam_off, sizeof(lam->lam_off), lam);
-	printf("extracted member %s from archive %s\n", lam->lam_name,
-	    lf->lf_name);
 
 	/* Load the symbols of this member. */
 	ld_symbols_load_elf(ld, lf, e);
@@ -185,7 +180,6 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 	assert(lf != NULL && lf->lf_type == LFT_ARCHIVE);
 	assert(lf->lf_ar != NULL);
 
-	printf("load_archive: %s\n", lf->lf_name);
 	la = lf->lf_ar;
 	if ((as = elf_getarsym(la->la_elf, &c)) == NULL)
 		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
