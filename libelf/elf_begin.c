@@ -27,7 +27,6 @@
 #include <sys/cdefs.h>
 
 #include <sys/types.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 
 #include <ar.h>
@@ -39,6 +38,10 @@
 #include <unistd.h>
 
 #include "_libelf.h"
+
+#if	ELFTC_HAVE_MMAP
+#include <sys/mman.h>
+#endif
 
 ELFTC_VCSID("$Id$");
 
@@ -169,6 +172,7 @@ _libelf_open_object(int fd, Elf_Cmd c)
 	m = NULL;
 	flags = 0;
 	if (S_ISREG(mode)) {
+#if	ELFTC_HAVE_MMAP
 		/*
 		 * Always map regular files in with 'PROT_READ'
 		 * permissions.
@@ -178,13 +182,32 @@ _libelf_open_object(int fd, Elf_Cmd c)
 		 * write file data out using write(2), and map the new
 		 * contents back.
 		 */
-		if ((m = mmap(NULL, fsize, PROT_READ, MAP_PRIVATE, fd,
-		    (off_t) 0)) == MAP_FAILED) {
-			LIBELF_SET_ERROR(IO, errno);
-			return (NULL);
-		}
+		m = mmap(NULL, fsize, PROT_READ, MAP_PRIVATE, fd, (off_t) 0);
 
-		flags = LIBELF_F_RAWFILE_MMAP;
+		if (m == MAP_FAILED)
+			m = NULL;
+		else
+			flags = LIBELF_F_RAWFILE_MMAP;
+#endif
+
+		/*
+		 * Fallback to a read() if the call to mmap() failed,
+		 * or if mmap() is not available.
+		 */
+		if (m == NULL) {
+			if ((m = malloc(fsize)) == NULL) {
+				LIBELF_SET_ERROR(RESOURCE, 0);
+				return (NULL);
+			}
+
+			if (read(fd, m, fsize) != fsize) {
+				LIBELF_SET_ERROR(IO, errno);
+				free(m);
+				return (NULL);
+			}
+
+			flags = LIBELF_F_RAWFILE_MALLOC;
+		}
 	} else if ((m = _libelf_read_special_file(fd, &fsize)) != NULL)
 		flags = LIBELF_F_RAWFILE_MALLOC | LIBELF_F_SPECIAL_FILE;
 	else
@@ -193,10 +216,12 @@ _libelf_open_object(int fd, Elf_Cmd c)
 	if ((e = elf_memory(m, fsize)) == NULL) {
 		assert((flags & LIBELF_F_RAWFILE_MALLOC) ||
 		    (flags & LIBELF_F_RAWFILE_MMAP));
-		if (flags & LIBELF_F_RAWFILE_MMAP)
-			(void) munmap(m, fsize);
-		else
+		if (flags & LIBELF_F_RAWFILE_MALLOC)
 			free(m);
+#if	ELFTC_HAVE_MMAP
+		else
+			(void) munmap(m, fsize);
+#endif
 		return (NULL);
 	}
 

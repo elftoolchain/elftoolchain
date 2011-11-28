@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/mman.h>
 #include <sys/stat.h>
 
 #include <assert.h>
@@ -36,6 +35,10 @@
 #include <unistd.h>
 
 #include "_libelf.h"
+
+#if	ELFTC_HAVE_MMAP
+#include <sys/mman.h>
+#endif
 
 ELFTC_VCSID("$Id$");
 
@@ -1047,6 +1050,7 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 			LIBELF_SET_ERROR(IO, errno);
 			goto error;
 		}
+#if	ELFTC_HAVE_MMAP
 		if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
 			assert(e->e_rawfile != NULL);
 			assert(e->e_cmd == ELF_C_RDWR);
@@ -1055,6 +1059,7 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 				goto error;
 			}
 		}
+#endif
 	}
 
 	/*
@@ -1071,18 +1076,23 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 	 */
 	if (e->e_cmd == ELF_C_RDWR) {
 		assert(e->e_rawfile != NULL);
-		if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
+		assert((e->e_flags & LIBELF_F_RAWFILE_MALLOC) ||
+		    (e->e_flags & LIBELF_F_RAWFILE_MMAP));
+		if (e->e_flags & LIBELF_F_RAWFILE_MALLOC) {
+			free(e->e_rawfile);
+			e->e_rawfile = newfile;
+			newfile = NULL;
+		}
+#if	ELFTC_HAVE_MMAP
+		else if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
 			if ((e->e_rawfile = mmap(NULL, (size_t) newsize,
 			    PROT_READ, MAP_PRIVATE, e->e_fd, (off_t) 0)) ==
 			    MAP_FAILED) {
 				LIBELF_SET_ERROR(IO, errno);
 				goto error;
 			}
-		} else if (e->e_flags & LIBELF_F_RAWFILE_MALLOC) {
-			free(e->e_rawfile);
-			e->e_rawfile = newfile;
-			newfile = NULL;
 		}
+#endif	/* ELFTC_HAVE_MMAP */
 
 		/* Record the new size of the file. */
 		e->e_rawsize = newsize;

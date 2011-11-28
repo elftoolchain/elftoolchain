@@ -26,13 +26,15 @@
 
 #include <sys/cdefs.h>
 
-#include <sys/mman.h>
-
 #include <assert.h>
 #include <libelf.h>
 #include <stdlib.h>
 
 #include "_libelf.h"
+
+#if	ELFTC_HAVE_MMAP
+#include <sys/mman.h>
+#endif
 
 ELFTC_VCSID("$Id$");
 
@@ -77,10 +79,12 @@ elf_end(Elf *e)
 		}
 
 		if (e->e_rawfile) {
-			if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
-				(void) munmap(e->e_rawfile, e->e_rawsize);
-			else if (e->e_flags & LIBELF_F_RAWFILE_MALLOC)
+			if (e->e_flags & LIBELF_F_RAWFILE_MALLOC)
 				free(e->e_rawfile);
+#if	ELFTC_HAVE_MMAP
+			else if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
+				(void) munmap(e->e_rawfile, e->e_rawsize);
+#endif
 		}
 
 		sv = e;
