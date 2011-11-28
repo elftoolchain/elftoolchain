@@ -6,6 +6,7 @@ PROG=	ld
 WARNS?=	6
 
 SRCS=	ld_error.c 		\
+	ld_exp.c		\
 	ld_file.c		\
 	ld_layout.c		\
 	ld_main.c 		\
