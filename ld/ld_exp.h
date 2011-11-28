@@ -66,9 +66,10 @@ enum ld_exp_op {
 	LEOP_SEGMENT_START,
 	LEOP_SIZEOF,
 	LEOP_SIZEOF_HEADERS,
+	LEOP_SECTION_NAME,
 	LEOP_SUBSTRACT,
+	LEOP_SYMBOL,
 	LEOP_TRINARY,
-	LEOP_VAR
 };
 
 struct ld_exp {
@@ -80,4 +81,12 @@ struct ld_exp {
 	int64_t le_val;		/* constant value */
 };
 
-int64_t		ld_exp_eval(struct ld *ld, struct ld_exp *le);
+struct ld_exp *ld_exp_binary(struct ld *, enum ld_exp_op, struct ld_exp *,
+    struct ld_exp *);
+struct ld_exp *ld_exp_constant(struct ld *, int64_t);
+int64_t ld_exp_eval(struct ld *, struct ld_exp *);
+struct ld_exp *ld_exp_sec_name(struct ld *, const char *);
+struct ld_exp *ld_exp_symbol(struct ld *, const char *);
+struct ld_exp *ld_exp_trinary(struct ld *, struct ld_exp *, struct ld_exp *,
+    struct ld_exp *);
+struct ld_exp *ld_exp_unary(struct ld *, enum ld_exp_op, struct ld_exp *);

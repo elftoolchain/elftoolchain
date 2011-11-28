@@ -33,6 +33,7 @@ ELFTC_VCSID("$Id$");
  * Support routines for ldscript expression.
  */
 
+static struct ld_exp *_alloc_exp(struct ld *ld);
 static int64_t _assignment(struct ld *ld, struct ld_exp *le);
 static int64_t _func_addr(struct ld *ld, struct ld_exp *le);
 static int64_t _func_align(struct ld *ld, struct ld_exp *le);
@@ -50,9 +51,90 @@ static int64_t _func_origin(struct ld *ld, struct ld_exp *le);
 static int64_t _func_segment_start(struct ld *ld, struct ld_exp *le);
 static int64_t _func_sizeof(struct ld *ld, struct ld_exp *le);
 static int64_t _func_sizeof_headers(struct ld *ld, struct ld_exp *le);
-static int64_t _variable(struct ld *ld, const char *name);
+static int64_t _symbol_val(struct ld *ld, const char *name);
 
 #define	_EXP_EVAL(x) ld_exp_eval(ld, (x))
+
+struct ld_exp *
+ld_exp_unary(struct ld *ld, enum ld_exp_op op, struct ld_exp *e1)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = op;
+	le->le_e1 = e1;
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_binary(struct ld *ld, enum ld_exp_op op, struct ld_exp *e1,
+    struct ld_exp *e2)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = op;
+	le->le_e1 = e1;
+	le->le_e2 = e2;
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_trinary(struct ld *ld, struct ld_exp *e1, struct ld_exp *e2,
+    struct ld_exp *e3)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_TRINARY;
+	le->le_e1 = e1;
+	le->le_e2 = e2;
+	le->le_e3 = e3;
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_constant(struct ld *ld, int64_t val)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_CONSTANT;
+	le->le_val = val;
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_symbol(struct ld *ld, const char *name)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_SYMBOL;
+	le->le_name = strdup(name);
+	if (le->le_name == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_sec_name(struct ld *ld, const char *name)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_SECTION_NAME;
+	le->le_name = strdup(name);
+	if (le->le_name == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (le);
+}
 
 int64_t
 ld_exp_eval(struct ld* ld, struct ld_exp *le)
@@ -135,16 +217,27 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 		return (_func_sizeof_headers(ld, le));
 	case LEOP_SUBSTRACT:
 		return (_EXP_EVAL(le->le_e1) - _EXP_EVAL(le->le_e2));
+	case LEOP_SYMBOL:
+		return (_symbol_val(ld, le->le_name));
 	case LEOP_TRINARY:
 		return (_EXP_EVAL(le->le_e1) ? _EXP_EVAL(le->le_e2) :
 		    _EXP_EVAL(le->le_e3));
-	case LEOP_VAR:
-		return (_variable(ld, le->le_name));
 	default:
 		ld_fatal(ld, "internal: unknown ldscript expression op");
 	}
 
 	return (0);
+}
+
+static struct ld_exp *
+_alloc_exp(struct ld *ld)
+{
+	struct ld_exp *le;
+
+	if ((le = calloc(1, sizeof(*le))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (le);
 }
 
 static int64_t
@@ -172,7 +265,7 @@ _func_align(struct ld *ld, struct ld_exp *le)
 	if (le->le_e2 != NULL)
 		return (roundup(_EXP_EVAL(le->le_e1), _EXP_EVAL(le->le_e2)));
 	else
-		return (roundup(_variable(ld, "."), _EXP_EVAL(le->le_e2)));
+		return (roundup(_symbol_val(ld, "."), _EXP_EVAL(le->le_e2)));
 }
 
 static int64_t
@@ -306,7 +399,7 @@ _func_sizeof_headers(struct ld *ld, struct ld_exp *le)
 }
 
 static int64_t
-_variable(struct ld *ld, const char *name)
+_symbol_val(struct ld *ld, const char *name)
 {
 
 	/* TODO */
