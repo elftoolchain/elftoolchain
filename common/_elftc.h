@@ -147,6 +147,8 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
+#define	ELFTC_HAVE_MMAP				1
+
 #endif
 
 #if defined(__linux__)
@@ -156,6 +158,8 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER			__BYTE_ORDER
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		__LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		__BIG_ENDIAN
+
+#define	ELFTC_HAVE_MMAP				1
 
 /*
  * Debian GNU/Linux is missing strmode(3).
@@ -179,11 +183,17 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
+#define	ELFTC_HAVE_MMAP				1
 #define	ELFTC_HAVE_STRMODE			1
 #if __FreeBSD_version <= 900000
 #define	ELFTC_BROKEN_YY_NO_INPUT		1
 #endif
 #endif	/* __FreeBSD__ */
+
+
+#if defined(__minix)
+#define	ELFTC_HAVE_MMAP				0
+#endif	/* __minix */
 
 
 #if defined(__NetBSD__)
@@ -195,6 +205,7 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
 
+#define	ELFTC_HAVE_MMAP				1
 #define	ELFTC_HAVE_STRMODE			1
 #if __NetBSD_Version__ <= 599002100
 /* from src/doc/CHANGES: flex(1): Import flex-2.5.35 [christos 20091025] */
