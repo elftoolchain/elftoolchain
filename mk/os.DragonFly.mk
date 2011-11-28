@@ -2,8 +2,7 @@
 #
 # Build definitions for DragonFly
 
-# Link programs statically by default.
-NOSHARED=	yes
+MKTESTS?=	yes	# Enable the test suites.
+MKDOC?=		yes	# Build documentation.
 
-# Enable the test suites.
-MKTESTS?=	yes
+NOSHARED=	yes	# Link programs statically by default.

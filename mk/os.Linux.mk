@@ -1,14 +1,12 @@
+# $Id$
 #
 # Build recipes for Debian GNU/Linux based operating systems.
-#
-# $Id$
 
+MKDOC?=		yes	# Build documentation.
 MKLINT?=	no
 MKPIC?=		no
+MKTESTS?=	yes	# Enable the test suites.
 MKTEX?=		no
-
-# Enable the test suites.
-MKTESTS?=	yes
 
 OBJECT_FORMAT=	ELF	# work around a bug in the pmake package
 

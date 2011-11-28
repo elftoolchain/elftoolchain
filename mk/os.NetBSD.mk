@@ -1,12 +1,9 @@
-#
-# Build recipes for NetBSD.
-#
 # $Id$
 #
+# Build recipes for NetBSD.
 
 LDSTATIC?=	-static		# link programs statically
 
+MKDOC?=		yes		# Build documentation.
 MKLINT?=	no		# lint dies with a sigbus
-
-# Enable the test suites.
-MKTESTS?=	yes
+MKTESTS?=	yes		# Enable the test suites.
