@@ -36,20 +36,16 @@ usage()
 #
 # Parse options.
 #
-TEMP=`getopt ${options} "$@"`
 
-[ ${?} -eq 0 ] || usage
-
-eval set -- "${TEMP}"
-
-for option in ${*}; do
+while getopts ${options} option
+do
     case ${option} in
-	-b) branch="${2}";	shift 2;;
-	-e) elftcname="${2}";	shift 2;;
-	-h) buildhost="${2}";	shift 2;;
-	-o) versionfile="${2}";	shift 2;;
-	-t) top="${2}";		shift 2;;
-	--) shift; break;;
+	'b') branch="${OPTARG}"      ;;
+	'e') elftcname="${OPTARG}"   ;;
+	'h') buildhost="${OPTARG}"   ;;
+	'o') versionfile="${OPTARG}" ;;
+	't') top="${OPTARG}"         ;;
+	'?') usage                   ;;
     esac
 done
 
