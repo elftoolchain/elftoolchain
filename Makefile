@@ -28,12 +28,12 @@ SUBDIR += size
 SUBDIR += strings
 
 # Build the test suites.
-.if exists(${.CURDIR}/test) && ${MKTESTS} == "yes"
+.if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
 SUBDIR += test
 .endif
 
 # Build documentation at the end.
-.if exists(${.CURDIR}/documentation)
+.if exists(${.CURDIR}/documentation) && defined(MKDOC) && ${MKDOC} == "yes"
 SUBDIR += documentation
 .endif
 
@@ -44,7 +44,7 @@ SUBDIR += documentation
 #
 
 # Run the test suites.
-.if exists(${.CURDIR}/test)
+.if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
 run-tests:	all .PHONY
 	(cd ${.CURDIR}/test; ${MAKE} test)
 .endif
