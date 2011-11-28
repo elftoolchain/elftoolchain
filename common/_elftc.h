@@ -109,13 +109,14 @@
 
 #ifndef	ELFTC_GETPROGNAME
 
-#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__minix) || \
+    defined(__NetBSD__)
 
 #include <stdlib.h>
 
 #define	ELFTC_GETPROGNAME()	getprogname()
 
-#endif	/* defined(__FreeBSD__) || defined(__NetBSD__) */
+#endif	/* __DragonFly__ || __FreeBSD__ || __minix || __NetBSD__ */
 
 
 #if defined(__linux__)
