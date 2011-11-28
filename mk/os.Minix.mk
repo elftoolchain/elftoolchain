@@ -8,5 +8,8 @@ CC=/usr/pkg/bin/gcc
 # Use the correct compiler type (override <sys.mk>).
 COMPILER_TYPE=gnu
 
+# Also choose GNU 'ar'.
+AR=ar
+
 # Enable the test suites.
-MKTESTS?=	yes
+MKTESTS?=	no
