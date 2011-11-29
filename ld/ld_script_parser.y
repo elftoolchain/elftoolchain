@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
 
 #include "ld.h"
 #include "ld_file.h"
+#include "ld_exp.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -65,7 +66,6 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token T_BIND
 %token T_BLOCK
 %token T_BYTE
-%token T_COMMONPAGESIZE
 %token T_CONSTANT
 %token T_CONSTRUCTORS
 %token T_COPY
@@ -95,7 +95,6 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token T_LONG
 %token T_MAP
 %token T_MAX
-%token T_MAXPAGESIZE
 %token T_MEMORY
 %token T_MIN
 %token T_NEXT
@@ -169,17 +168,44 @@ static struct _list *_make_list(struct _list *list, char *str);
 %token <str> T_IDENT
 %token <str> T_WILDCARD
 %token <str> T_STRING
+%token <str> T_COMMONPAGESIZE
+%token <str> T_MAXPAGESIZE
 
 %type <str> ident
+%type <str> symbolic_constant
 %type <str> wildcard
 %type <str> wildcard_sort
-%type <str> variable
 %type <list> ident_list
 %type <list> ident_list_nosep
 %type <list> wildcard_list
+%type <exp> expression
+%type <exp> simple_assignment
+%type <exp> function
+%type <exp> constant
+%type <exp> variable
+%type <exp> absolute_function
+%type <exp> addr_function
+%type <exp> align_function
+%type <exp> alignof_function
+%type <exp> block_function
+%type <exp> data_segment_align_function
+%type <exp> data_segment_end_function
+%type <exp> data_segment_relro_end_function
+%type <exp> defined_function
+%type <exp> length_function
+%type <exp> loadaddr_function
+%type <exp> max_function
+%type <exp> min_function
+%type <exp> next_function
+%type <exp> origin_function
+%type <exp> segment_start_function
+%type <exp> sizeof_function
+%type <exp> sizeof_headers_function
+%type <exp> constant
 
 %union {
 	struct _list *list;
+	struct ld_exp *exp;
 	char *str;
 	intmax_t num;
 }
@@ -209,7 +235,9 @@ ldscript_assignment
 	;
 
 simple_assignment
-	: variable assign_op expression %prec '='
+	: variable assign_op expression %prec '=' {
+		$$ = ld_exp_binary(ld, LEOP_ASSIGN, $1, $3);
+	}
 	;
 
 provide_assignment
@@ -233,32 +261,74 @@ assign_op
 	;
 
 expression
-	: expression '+' expression
-	| expression '-' expression
-	| expression '*' expression
-	| expression '/' expression
-	| expression '%' expression
-	| expression '&' expression
-	| expression '|' expression
-	| expression '>' expression
-	| expression '<' expression
-	| expression T_EQ expression
-	| expression T_NE expression
-	| expression T_GE expression
-	| expression T_LE expression
-	| expression T_LSHIFT expression
-	| expression T_RSHIFT expression 
-	| expression T_LOGICAL_AND expression
-	| expression T_LOGICAL_OR expression
-	| '!' expression %prec UNARY
-	| '-' expression %prec UNARY
-	| '~' expression %prec UNARY
-	| expression '?' expression ':' expression
+	: expression '+' expression {
+		$$ = ld_exp_binary(ld, LEOP_ADD, $1, $3);
+	}
+	| expression '-' expression {
+		$$ = ld_exp_binary(ld, LEOP_SUBSTRACT, $1, $3);
+	}
+	| expression '*' expression {
+		$$ = ld_exp_binary(ld, LEOP_MUL, $1, $3);
+	}
+	| expression '/' expression {
+		$$ = ld_exp_binary(ld, LEOP_DIV, $1, $3);
+	}
+	| expression '%' expression {
+		$$ = ld_exp_binary(ld, LEOP_MOD, $1, $3);
+	}
+	| expression '&' expression {
+		$$ = ld_exp_binary(ld, LEOP_AND, $1, $3);
+	}
+	| expression '|' expression {
+		$$ = ld_exp_binary(ld, LEOP_OR, $1, $3);
+	}
+	| expression '>' expression {
+		$$ = ld_exp_binary(ld, LEOP_GREATER, $1, $3);
+	}
+	| expression '<' expression {
+		$$ = ld_exp_binary(ld, LEOP_LESSER, $1, $3);
+	}
+	| expression T_EQ expression {
+		$$ = ld_exp_binary(ld, LEOP_EQUAL, $1, $3);
+	}
+	| expression T_NE expression {
+		$$ = ld_exp_binary(ld, LEOP_NE, $1, $3);
+	}
+	| expression T_GE expression {
+		$$ = ld_exp_binary(ld, LEOP_GE, $1, $3);
+	}
+	| expression T_LE expression {
+		$$ = ld_exp_binary(ld, LEOP_LE, $1, $3);
+	}
+	| expression T_LSHIFT expression {
+		$$ = ld_exp_binary(ld, LEOP_LSHIFT, $1, $3);
+	}
+	| expression T_RSHIFT expression {
+		$$ = ld_exp_binary(ld, LEOP_RSHIFT, $1, $3);
+	}
+	| expression T_LOGICAL_AND expression {
+		$$ = ld_exp_binary(ld, LEOP_LOGICAL_AND, $1, $3);
+	}
+	| expression T_LOGICAL_OR expression {
+		$$ = ld_exp_binary(ld, LEOP_LOGICAL_OR, $1, $3);
+	}
+	| '!' expression %prec UNARY {
+		$$ = ld_exp_unary(ld, LEOP_NOT, $2);
+	}
+	| '-' expression %prec UNARY {
+		$$ = ld_exp_unary(ld, LEOP_MINUS, $2);
+	}
+	| '~' expression %prec UNARY {
+		$$ = ld_exp_unary(ld, LEOP_NEGATION, $2);
+	}
+	| expression '?' expression ':' expression {
+		$$ = ld_exp_trinary(ld, $1, $3, $5);
+	}
 	| simple_assignment
 	| function
 	| constant
 	| variable
-	| '(' expression ')'
+	| '(' expression ')' { $$ = $2;	}
 	;
 
 function
@@ -283,86 +353,128 @@ function
 	;
 
 absolute_function
-	: T_ABSOLUTE '(' expression ')'
+	: T_ABSOLUTE '(' expression ')' {
+		$$ = ld_exp_unary(ld, LEOP_ABS, $3);
+	}
 	;
 
 addr_function
-	: T_ADDR '(' ident ')'
+	: T_ADDR '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_ADDR, ld_exp_name(ld, $3));
+	}
 	;
 
 align_function
-	: T_ALIGN '(' expression ')'
-	| T_ALIGN '(' expression ',' T_NUM ')'
+	: T_ALIGN '(' expression ')' {
+		$$ = ld_exp_unary(ld, LEOP_ALIGN, $3);
+	}
+	| T_ALIGN '(' expression ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_ALIGN, $3, $5);
+	}
 	;
 
 alignof_function
-	: T_ALIGNOF '(' ident ')'
+	: T_ALIGNOF '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_ALIGNOF, ld_exp_name(ld, $3));
+	}
 	;
 
 block_function
-	: T_BLOCK '(' expression ')'
+	: T_BLOCK '(' expression ')' {
+		$$ = ld_exp_unary(ld, LEOP_BLOCK, $3);
+	}
 	;
 
 data_segment_align_function
-	: T_DATA_SEGMENT_ALIGN '(' T_NUM ',' T_NUM ')'
+	: T_DATA_SEGMENT_ALIGN '(' expression ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_DSA, $3, $5);
+	}
 	;
 
 data_segment_end_function
-	: T_DATA_SEGMENT_END '(' expression ')'
+	: T_DATA_SEGMENT_END '(' expression ')' {
+		$$ = ld_exp_unary(ld, LEOP_DSE, $3);
+	}
 	;
 
 data_segment_relro_end_function
-	: T_DATA_SEGMENT_RELRO_END '(' T_NUM ',' ident ')'
+	: T_DATA_SEGMENT_RELRO_END '(' expression ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_DSRE, $3, $5);
+	}
 	;
 
 defined_function
-	: T_DEFINED '(' ident ')'
+	: T_DEFINED '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_DEFINED, ld_exp_symbol(ld, $3));
+	}
 	;
 
 length_function
-	: T_LENGTH '(' ident ')'
+	: T_LENGTH '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_LENGTH, ld_exp_name(ld, $3));
+	}
 	;
 
 loadaddr_function
-	: T_LOADADDR '(' ident ')'
+	: T_LOADADDR '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_LOADADDR, ld_exp_name(ld, $3));
+	}
 	;
 
 max_function
-	: T_MAX '(' expression ',' expression ')'
+	: T_MAX '(' expression ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_MAX, $3, $5);
+	}
 	;
 
 min_function
-	: T_MIN '(' expression ',' expression ')'
+	: T_MIN '(' expression ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_MIN, $3, $5);
+	}
 	;
 
 next_function
-	: T_NEXT '(' expression ')'
+	: T_NEXT '(' expression ')' {
+		$$ = ld_exp_unary(ld, LEOP_NEXT, $3);
+	}
 	;
 
 origin_function
-	: T_ORIGIN '(' ident ')'
+	: T_ORIGIN '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_ORIGIN, ld_exp_name(ld, $3));
+	}
 	;
 
 segment_start_function
-	: T_SEGMENT_START '(' ident ',' T_NUM ')'
+	: T_SEGMENT_START '(' ident ',' expression ')' {
+		$$ = ld_exp_binary(ld, LEOP_MIN, ld_exp_name(ld, $3), $5);
+	}
 	;
 
 sizeof_function
-	: T_SIZEOF '(' ident ')'
+	: T_SIZEOF '(' ident ')' {
+		$$ = ld_exp_unary(ld, LEOP_SIZEOF, ld_exp_name(ld, $3));
+	}
 	;
 
 sizeof_headers_function
-	: T_SIZEOF_HEADERS
+	: T_SIZEOF_HEADERS {
+		$$ = ld_exp_sizeof_headers(ld);
+	}
 	;
 
 constant
-	: T_NUM
-	| symbolic_constant
+	: T_NUM {
+		$$ = ld_exp_constant(ld, $1);
+	}
+	| symbolic_constant {
+		$$ = ld_exp_symbolic_constant(ld, $1);
+	}
 	;
 
 symbolic_constant
-	: T_CONSTANT '(' T_COMMONPAGESIZE ')'
-	| T_CONSTANT '(' T_MAXPAGESIZE ')'
+	: T_CONSTANT '(' T_COMMONPAGESIZE ')' { $$ = $3; }
+	| T_CONSTANT '(' T_MAXPAGESIZE ')' { $$ = $3; }
 	;
 
 ldscript_command
@@ -742,8 +854,8 @@ ident
 	;
 
 variable
-	: ident
-	| '.'  { $$ = strdup("."); }
+	: ident { $$ = ld_exp_symbol(ld, $1); }
+	| '.'  { $$ = ld_exp_symbol(ld, "."); }
 	;
 
 wildcard
