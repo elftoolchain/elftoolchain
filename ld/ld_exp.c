@@ -50,8 +50,9 @@ static int64_t _func_next(struct ld *ld, struct ld_exp *le);
 static int64_t _func_origin(struct ld *ld, struct ld_exp *le);
 static int64_t _func_segment_start(struct ld *ld, struct ld_exp *le);
 static int64_t _func_sizeof(struct ld *ld, struct ld_exp *le);
-static int64_t _func_sizeof_headers(struct ld *ld, struct ld_exp *le);
+static int64_t _func_sizeof_headers(struct ld *ld);
 static int64_t _symbol_val(struct ld *ld, const char *name);
+static int64_t _symbolic_constant(struct ld *ld, const char *name);
 
 #define	_EXP_EVAL(x) ld_exp_eval(ld, (x))
 
@@ -97,6 +98,17 @@ ld_exp_trinary(struct ld *ld, struct ld_exp *e1, struct ld_exp *e2,
 }
 
 struct ld_exp *
+ld_exp_sizeof_headers(struct ld *ld)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_SIZEOF_HEADERS;
+
+	return (le);
+}
+
+struct ld_exp *
 ld_exp_constant(struct ld *ld, int64_t val)
 {
 	struct ld_exp *le;
@@ -104,6 +116,20 @@ ld_exp_constant(struct ld *ld, int64_t val)
 	le = _alloc_exp(ld);
 	le->le_op = LEOP_CONSTANT;
 	le->le_val = val;
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_symbolic_constant(struct ld *ld, const char *name)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_SYMBOLIC_CONSTANT;
+	le->le_name = strdup(name);
+	if (le->le_name == NULL)
+		ld_fatal_std(ld, "calloc");
 
 	return (le);
 }
@@ -123,7 +149,7 @@ ld_exp_symbol(struct ld *ld, const char *name)
 }
 
 struct ld_exp *
-ld_exp_sec_name(struct ld *ld, const char *name)
+ld_exp_name(struct ld *ld, const char *name)
 {
 	struct ld_exp *le;
 
@@ -214,11 +240,13 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 	case LEOP_SIZEOF:
 		return (_func_sizeof(ld, le));
 	case LEOP_SIZEOF_HEADERS:
-		return (_func_sizeof_headers(ld, le));
+		return (_func_sizeof_headers(ld));
 	case LEOP_SUBSTRACT:
 		return (_EXP_EVAL(le->le_e1) - _EXP_EVAL(le->le_e2));
 	case LEOP_SYMBOL:
 		return (_symbol_val(ld, le->le_name));
+	case LEOP_SYMBOLIC_CONSTANT:
+		return (_symbolic_constant(ld, le->le_name));
 	case LEOP_TRINARY:
 		return (_EXP_EVAL(le->le_e1) ? _EXP_EVAL(le->le_e2) :
 		    _EXP_EVAL(le->le_e3));
@@ -390,16 +418,25 @@ _func_sizeof(struct ld *ld, struct ld_exp *le)
 }
 
 static int64_t
-_func_sizeof_headers(struct ld *ld, struct ld_exp *le)
+_func_sizeof_headers(struct ld *ld)
 {
 
 	/* TODO */
-	(void) ld; (void) le;
+	(void) ld;
 	return (0);
 }
 
 static int64_t
 _symbol_val(struct ld *ld, const char *name)
+{
+
+	/* TODO */
+	(void) ld; (void) name;
+	return (0);
+}
+
+static int64_t
+_symbolic_constant(struct ld *ld, const char *name)
 {
 
 	/* TODO */
