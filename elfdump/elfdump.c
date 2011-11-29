@@ -33,6 +33,7 @@
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
+#include <getopt.h>
 #include <libelftc.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -823,6 +824,13 @@ static void	ac_print_ar(struct elfdump *ed, int fd);
 static void	elf_print_ar(struct elfdump *ed, int fd);
 #endif	/* USE_LIBARCHIVE_AR */
 
+static struct option elfdump_longopts[] =
+{
+	{ "help",	no_argument,	NULL,	'H' },
+	{ "version",	no_argument,	NULL,	'V' },
+	{ NULL,		0,		NULL,	0   }
+};
+
 int
 main(int ac, char **av)
 {
@@ -834,7 +842,8 @@ main(int ac, char **av)
 	memset(ed, 0, sizeof(*ed));
 	STAILQ_INIT(&ed->snl);
 	ed->out = stdout;
-	while ((ch = getopt(ac, av, "acdeiGhknN:prsSvVw:")) != -1)
+	while ((ch = getopt_long(ac, av, "acdeiGHhknN:prsSvVw:",
+		elfdump_longopts, NULL)) != -1)
 		switch (ch) {
 		case 'a':
 			ed->options = ED_ALL;
@@ -891,6 +900,7 @@ main(int ac, char **av)
 				err(EXIT_FAILURE, "%s", optarg);
 			break;
 		case '?':
+		case 'H':
 		default:
 			usage();
 		}
@@ -2745,6 +2755,7 @@ Usage: %s [options] file...\n\
   -d                        Show dynamic symbols.\n\
   -e                        Show the ELF header.\n\
   -G                        Show the GOT.\n\
+  -H | --help               Show a usage message and exit.\n\
   -h                        Show hash values.\n\
   -i                        Show the dynamic interpreter.\n\
   -k                        Show the ELF checksum.\n\
@@ -2755,7 +2766,7 @@ Usage: %s [options] file...\n\
   -s                        Show the symbol table.\n\
   -S                        Use the Solaris elfdump format.\n\
   -v                        Show symbol-versioning information.\n\
-  -V                        Print a version identifier and exit.\n\
+  -V | --version            Print a version identifier and exit.\n\
   -w FILE                   Write output to \"FILE\".\n"
 
 static void
