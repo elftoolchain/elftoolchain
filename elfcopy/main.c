@@ -1002,7 +1002,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 	int			 i;
 
 	outfile = NULL;
-	while ((opt = getopt_long(argc, argv, "I:K:N:o:O:pR:sSdgVxXw",
+	while ((opt = getopt_long(argc, argv, "hI:K:N:o:O:pR:sSdgVxXw",
 	    strip_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'R':
@@ -1052,6 +1052,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_STRIP_UNNEEDED:
 			ecp->strip = STRIP_UNNEEDED;
 			break;
+		case 'h':
 		default:
 			strip_usage();
 		}
