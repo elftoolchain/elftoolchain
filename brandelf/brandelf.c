@@ -234,10 +234,11 @@ Usage: %s [options] file...\n\
   Set or display the ABI field for an ELF object.\n\n\
   Supported options are:\n\
   -f NUM                    Set the ELF ABI to the number 'NUM'.\n\
+  -h | --help               Print a usage message and exit.\n\
   -l                        List known ELF ABI names.\n\
   -t ABI                    Set the ELF ABI to the value named by \"ABI\".\n\
   -v                        Be verbose.\n\
-  -V                        Print a version identifier and exit.\n"
+  -V | --version            Print a version identifier and exit.\n"
 
 static void
 usage(void)
