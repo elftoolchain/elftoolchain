@@ -28,7 +28,7 @@
 .\" $FreeBSD: src/usr.bin/brandelf/brandelf.1,v 1.17 2007/03/09 14:36:18 ru Exp $
 .\" $Id$
 .\"
-.Dd September 14, 2011
+.Dd November 29, 2011
 .Dt BRANDELF 1
 .Os
 .Sh NAME
@@ -36,10 +36,12 @@
 .Nd mark an ELF binary for a specific ABI
 .Sh SYNOPSIS
 .Nm
-.Op Fl V
-.Op Fl lv
+.Op Fl V | Fl -version
 .Op Fl f Ar ELF_ABI_number
+.Op Fl h | Fl -help
+.Op Fl l
 .Op Fl t Ar brand
+.Op Fl v
 .Ar
 .Sh DESCRIPTION
 The
@@ -54,6 +56,8 @@ Incompatible with the
 .Fl t
 option.
 These values are assigned by SCO/USL.
+.It Fl h | Fl -help
+Print a usage message and exit.
 .It Fl l
 Writes the list of all known ELF types to standard output.
 .It Fl t Ar brand
@@ -87,7 +91,7 @@ and
 .Dq Li Tru64 .
 .It Fl v
 Turns on verbose output.
-.It Fl V
+.It Fl V | Fl -version
 Print a version identifier and exit.
 .El
 .Pp

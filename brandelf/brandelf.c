@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <gelf.h>
+#include <getopt.h>
 #include <libelf.h>
 #include <libelftc.h>
 #include <stdio.h>
@@ -82,6 +83,12 @@ static struct ELFtypes elftypes[] = {
 	{ "Tru64",	ELFOSABI_TRU64 }
 };
 
+static struct option brandelf_longopts[] = {
+	{ "help",	no_argument,	NULL,   'h' },
+	{ "version",	no_argument,	NULL, 	'V' },
+	{ NULL,		0,		NULL,	0   }
+};
+
 int
 main(int argc, char **argv)
 {
@@ -95,7 +102,8 @@ main(int argc, char **argv)
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		errx(EXIT_FAILURE, "elf_version error");
 
-	while ((ch = getopt(argc, argv, "Vf:lt:v")) != -1)
+	while ((ch = getopt_long(argc, argv, "Vf:hlt:v", brandelf_longopts,
+		NULL)) != -1)
 		switch (ch) {
 		case 'f':
 			if (change)
@@ -108,6 +116,9 @@ main(int argc, char **argv)
 				    "-f: %s", optarg);
 				usage();
 			}
+			break;
+		case 'h':
+			usage();
 			break;
 		case 'l':
 			printelftypes();
