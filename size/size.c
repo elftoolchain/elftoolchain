@@ -88,7 +88,7 @@ static struct option size_longopts[] = {
 	{ "help",	no_argument,	NULL,	'h' },
 	{ "radix",	required_argument, &size_option, OPT_RADIX },
 	{ "totals",	no_argument,	NULL,	't' },
-	{ "version",	no_argument,	NULL,	'v' },
+	{ "version",	no_argument,	NULL,	'V' },
 	{ NULL, 0, NULL, 0 }  
 };
 
