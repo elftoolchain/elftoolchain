@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 16, 2011
+.Dd November 29, 2011
 .Os
 .Dt MCS 1
 .Sh NAME
@@ -41,7 +41,9 @@
 .Op Fl n Ar name
 .Ar
 .Nm
-.Fl V
+.Fl h | Fl -help
+.Nm
+.Fl V | Fl -version
 .Sh DESCRIPTION
 The
 .Nm
@@ -75,6 +77,8 @@ This option may be specified multiple times.
 Compress the comment section by removing duplicate entries.
 .It Fl d
 Delete the comment section from the ELF object.
+.It Fl h | Fl -help
+Display a usage message and exit.
 .It Fl n Ar name
 Operate on the section named
 .Ar name .
@@ -85,7 +89,7 @@ This step is taken after actions specified by the
 and
 .Fl c
 options (if any) are completed.
-.It Fl V
+.It Fl V | Fl -version
 Print a version identifier and exit.
 .El
 .Sh COMPATIBILITY

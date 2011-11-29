@@ -78,6 +78,13 @@ enum options
 	ECP_WEAKEN_SYMBOLS
 };
 
+static struct option mcs_longopts[] =
+{
+	{ "help", no_argument, NULL, 'h' },
+	{ "version", no_argument, NULL, 'V' },
+	{ NULL, 0, NULL, 0 }
+};
+
 static struct option strip_longopts[] =
 {
 	{"discard-all", no_argument, NULL, 'x'},
@@ -911,7 +918,8 @@ mcs_main(struct elfcopy *ecp, int argc, char **argv)
 
 	append = delete = compress = name = print = 0;
 	string = NULL;
-	while ((opt = getopt(argc, argv, "a:cdn:pV")) != -1) {
+	while ((opt = getopt_long(argc, argv, "a:cdhn:pV", mcs_longopts,
+		NULL)) != -1) {
 		switch(opt) {
 		case 'a':
 			append = 1;
@@ -933,6 +941,7 @@ mcs_main(struct elfcopy *ecp, int argc, char **argv)
 		case 'V':
 			print_version();
 			break;
+		case 'h':
 		default:
 			mcs_usage();
 		}
@@ -1341,12 +1350,13 @@ elfcopy_usage(void)
 Usage: %s [options] file...\n\
   Manipulate the comment section in an ELF object.\n\n\
   Options:\n\
-  -a STRING    Append 'STRING' to the comment section.\n\
-  -c           Remove duplicate entries from the comment section.\n\
-  -d           Delete the comment section.\n\
-  -n NAME      Operate on the ELF section with name 'NAME'.\n\
-  -p           Print the contents of the comment section.\n\
-  -V           Print a version identifier and exit.\n"
+  -a STRING        Append 'STRING' to the comment section.\n\
+  -c               Remove duplicate entries from the comment section.\n\
+  -d               Delete the comment section.\n\
+  -h | --help      Print a help message and exit.\n\
+  -n NAME          Operate on the ELF section with name 'NAME'.\n\
+  -p               Print the contents of the comment section.\n\
+  -V | --version   Print a version identifier and exit.\n"
 
 static void
 mcs_usage(void)
