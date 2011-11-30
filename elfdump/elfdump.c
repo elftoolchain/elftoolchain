@@ -908,7 +908,7 @@ main(int ac, char **av)
 	ac -= optind;
 	av += optind;
 
-	if (ed->flags & SOLARIS_FMT && ed->options == 0)
+	if (ed->options == 0)
 		ed->options = ED_ALL;
 	sn = NULL;
 	if (ed->options & ED_SYMTAB &&
@@ -920,7 +920,7 @@ main(int ac, char **av)
 				ed->flags |= ONLY_ARSYM;
 		}
 	}
-	if (ac == 0 || ed->options == 0)
+	if (ac == 0)
 		usage();
 	if (ac > 1)
 		ed->flags |= PRINT_FILENAME;
