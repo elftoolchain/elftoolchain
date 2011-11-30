@@ -200,7 +200,7 @@ _libelf_open_object(int fd, Elf_Cmd c)
 				return (NULL);
 			}
 
-			if (read(fd, m, fsize) != fsize) {
+			if (read(fd, m, fsize) != (ssize_t) fsize) {
 				LIBELF_SET_ERROR(IO, errno);
 				free(m);
 				return (NULL);
