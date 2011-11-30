@@ -1230,7 +1230,7 @@ process_symfile:
 static void
 set_input_target(struct elfcopy *ecp, const char *target_name)
 {
-	Bfd_Target *tgt;
+	Elftc_Bfd_Target *tgt;
 
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
 		errx(EXIT_FAILURE, "%s: invalid target name", target_name);
@@ -1240,7 +1240,7 @@ set_input_target(struct elfcopy *ecp, const char *target_name)
 static void
 set_output_target(struct elfcopy *ecp, const char *target_name)
 {
-	Bfd_Target *tgt;
+	Elftc_Bfd_Target *tgt;
 
 	if ((tgt = elftc_bfd_find_target(target_name)) == NULL)
 		errx(EXIT_FAILURE, "%s: invalid target name", target_name);

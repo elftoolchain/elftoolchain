@@ -34,10 +34,10 @@
 
 ELFTC_VCSID("$Id$");
 
-Bfd_Target *
+Elftc_Bfd_Target *
 elftc_bfd_find_target(const char *tgt_name)
 {
-	Bfd_Target *tgt;
+	Elftc_Bfd_Target *tgt;
 
 	for (tgt = _libelftc_targets; tgt->bt_name; tgt++)
 		if (!strcmp(tgt_name, tgt->bt_name))
@@ -46,29 +46,29 @@ elftc_bfd_find_target(const char *tgt_name)
 	return (NULL);		/* not found */
 }
 
-Bfd_Target_Flavor
-elftc_bfd_target_flavor(Bfd_Target *tgt)
+Elftc_Bfd_Target_Flavor
+elftc_bfd_target_flavor(Elftc_Bfd_Target *tgt)
 {
 
 	return (tgt->bt_type);
 }
 
 unsigned int
-elftc_bfd_target_byteorder(Bfd_Target *tgt)
+elftc_bfd_target_byteorder(Elftc_Bfd_Target *tgt)
 {
 
 	return (tgt->bt_byteorder);
 }
 
 unsigned int
-elftc_bfd_target_class(Bfd_Target *tgt)
+elftc_bfd_target_class(Elftc_Bfd_Target *tgt)
 {
 
 	return (tgt->bt_elfclass);
 }
 
 unsigned int
-elftc_bfd_target_machine(Bfd_Target *tgt)
+elftc_bfd_target_machine(Elftc_Bfd_Target *tgt)
 {
 
 	return (tgt->bt_machine);

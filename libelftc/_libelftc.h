@@ -34,7 +34,7 @@
 
 #include "_elftc.h"
 
-struct _Bfd_Target {
+struct _Elftc_Bfd_Target {
 	const char	*bt_name;	/* target name. */
 	unsigned int	 bt_type;	/* target type. */
 	unsigned int	 bt_byteorder;	/* elf target byteorder. */
@@ -43,7 +43,7 @@ struct _Bfd_Target {
 	unsigned int	 bt_osabi;	/* elf target abi. */
 };
 
-extern struct _Bfd_Target _libelftc_targets[];
+extern struct _Elftc_Bfd_Target _libelftc_targets[];
 
 /** @brief Dynamic vector data for string. */
 struct vector_str {

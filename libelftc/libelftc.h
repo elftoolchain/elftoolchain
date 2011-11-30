@@ -30,7 +30,7 @@
 #ifndef	_LIBELFTC_H_
 #define	_LIBELFTC_H_
 
-typedef struct _Bfd_Target Bfd_Target;
+typedef struct _Elftc_Bfd_Target Elftc_Bfd_Target;
 
 /* Target types. */
 typedef enum {
@@ -39,7 +39,7 @@ typedef enum {
 	ETF_BINARY,
 	ETF_SREC,
 	ETF_IHEX
-} Bfd_Target_Flavor;
+} Elftc_Bfd_Target_Flavor;
 
 /*
  * Demangler flags.
@@ -55,14 +55,14 @@ typedef enum {
 #define ELFTC_DEM_NOPARAM	0x00010000U
 
 __BEGIN_DECLS
-Bfd_Target		*elftc_bfd_find_target(const char *tgt_name);
-Bfd_Target_Flavor	 elftc_bfd_target_flavor(Bfd_Target *tgt);
-unsigned int		 elftc_bfd_target_byteorder(Bfd_Target *tgt);
-unsigned int		 elftc_bfd_target_class(Bfd_Target *tgt);
-unsigned int		 elftc_bfd_target_machine(Bfd_Target *tgt);
-int		 	 elftc_demangle(const char *mangledname, char *buffer,
-			     size_t bufsize, unsigned int flags);
-const char		*elftc_version(void);
+Elftc_Bfd_Target	*elftc_bfd_find_target(const char *_tgt_name);
+Elftc_Bfd_Target_Flavor	 elftc_bfd_target_flavor(Elftc_Bfd_Target *_tgt);
+unsigned int	elftc_bfd_target_byteorder(Elftc_Bfd_Target *_tgt);
+unsigned int	elftc_bfd_target_class(Elftc_Bfd_Target *_tgt);
+unsigned int	elftc_bfd_target_machine(Elftc_Bfd_Target *_tgt);
+int		elftc_demangle(const char *_mangledname, char *_buffer,
+    size_t _bufsize, unsigned int _flags);
+const char	*elftc_version(void);
 __END_DECLS
 
 #endif	/* _LIBELFTC_H_ */
