@@ -1457,6 +1457,10 @@ get_string(struct elfdump *ed, int strtab, size_t off)
 static void
 elf_print_ehdr(struct elfdump *ed)
 {
+
+	if (!STAILQ_EMPTY(&ed->snl))
+		return;
+
 	if (ed->flags & SOLARIS_FMT) {
 		PRT("\nELF Header\n");
 		PRT("  ei_magic:   { %#x, %c, %c, %c }\n",
@@ -1557,6 +1561,9 @@ elf_print_shdr(struct elfdump *ed)
 {
 	struct section *s;
 	int i;
+
+	if (!STAILQ_EMPTY(&ed->snl))
+		return;
 
 	if ((ed->flags & SOLARIS_FMT) == 0)
 		PRT("\nsection header:\n");
@@ -2049,6 +2056,9 @@ elf_print_got(struct elfdump *ed)
 	struct rel_entry	*got;
 	Elf_Data		*data, dst;
 	int			 elferr, i, len;
+
+	if (!STAILQ_EMPTY(&ed->snl))
+		return;
 
 	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
@@ -2742,6 +2752,9 @@ elf_print_symver(struct elfdump *ed)
 static void
 elf_print_checksum(struct elfdump *ed)
 {
+
+	if (!STAILQ_EMPTY(&ed->snl))
+		return;
 
 	PRT("\nelf checksum: %#lx\n", gelf_checksum(ed->elf));
 }
