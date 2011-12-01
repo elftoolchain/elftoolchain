@@ -58,7 +58,7 @@ struct ld_state {
 	/*
 	 * State variables for command line options parsing stage.
 	 */
-	Bfd_Target *ls_itgt;		/* input bfd target set by -b */
+	Elftc_Bfd_Target *ls_itgt;	/* input bfd target set by -b */
 	int ls_static;			/* use static library */
 	int ls_whole_archive;		/* include whole archive */
 	int ls_as_needed;		/* DT_NEEDED */
