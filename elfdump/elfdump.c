@@ -1978,6 +1978,9 @@ elf_print_interp(struct elfdump *ed)
 	size_t phnum;
 	int i;
 
+	if (!STAILQ_EMPTY(&ed->snl) && find_name(ed, "PT_INTERP") == NULL)
+		return;
+
 	if ((s = elf_rawfile(ed->elf, NULL)) == NULL) {
 		warnx("elf_rawfile failed: %s", elf_errmsg(-1));
 		return;
