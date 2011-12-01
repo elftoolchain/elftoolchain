@@ -1513,19 +1513,21 @@ elf_print_phdr(struct elfdump *ed)
 {
 	GElf_Phdr	 ph;
 	size_t		 phnum;
-	int		 i;
+	int		 header, i;
 
 	if (elf_getphnum(ed->elf, &phnum) == 0) {
 		warnx("elf_getphnum failed: %s", elf_errmsg(-1));
 		return;
 	}
-	if ((ed->flags & SOLARIS_FMT) == 0)
-		PRT("\nprogram header:\n");
+	header = 0;
 	for (i = 0; (u_int64_t) i < phnum; i++) {
 		if (gelf_getphdr(ed->elf, i, &ph) != &ph) {
 			warnx("elf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
 		}
+		if (!STAILQ_EMPTY(&ed->snl) &&
+		    find_name(ed, p_types[ph.p_type & 0x7]) == NULL)
+			continue;
 		if (ed->flags & SOLARIS_FMT) {
 			PRT("\nProgram Header[%d]:\n", i);
 			PRT("    p_vaddr:      %#-14jx", (uintmax_t)ph.p_vaddr);
@@ -1539,6 +1541,10 @@ elf_print_phdr(struct elfdump *ed)
 			    (uintmax_t)ph.p_offset);
 			PRT("  p_align:    %#jx\n", (uintmax_t)ph.p_align);
 		} else {
+			if (!header) {
+				PRT("\nprogram header:\n");
+				header = 1;
+			}
 			PRT("\n");
 			PRT("entry: %d\n", i);
 			PRT("\tp_type: %s\n", p_types[ph.p_type & 0x7]);
