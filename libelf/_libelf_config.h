@@ -164,6 +164,4 @@
 #error  LIBELF_CLASS needs to be one of ELFCLASS32 or ELFCLASS64
 #endif
 
-#define	roundup2	roundup
-
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
