@@ -45,13 +45,34 @@ static struct ld_symbol *_symbol_find(struct ld_symbol *tbl, char *name);
 void
 ld_symbols_resolve(struct ld *ld)
 {
+	struct ld_state *ls;
 	struct ld_file *lf;
 	struct ld_symbol *lsb;
 
-	TAILQ_FOREACH(lf, &ld->ld_lflist, lf_next){
+	if (TAILQ_EMPTY(&ld->ld_lflist))
+		ld_fatal(ld, "no input files");
+
+	ls = &ld->ld_ls;
+	lf = TAILQ_FIRST(&ld->ld_lflist);
+	ls->ls_group_level = lf->lf_group_level;
+
+	while (lf != NULL) {
+		/* Process archive groups. */
+		if (lf->lf_group_level < ls->ls_group_level &&
+		    ls->ls_extracted[ls->ls_group_level]) {
+			do {
+				lf = TAILQ_PREV(lf, ld_file_head, lf_next);
+			} while (lf->lf_group_level >= ls->ls_group_level);
+			lf = TAILQ_NEXT(lf, lf_next);
+			ls->ls_extracted[ls->ls_group_level] = 0;
+		}
+		ls->ls_group_level = lf->lf_group_level;
+
+		/* Load symbols. */
 		ld_file_load(ld, lf);
 		ld_symbols_load(ld, lf);
 		ld_file_unload(ld, lf);
+		lf = TAILQ_NEXT(lf, lf_next);
 	}
 
 	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
@@ -172,6 +193,7 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 static void
 ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 {
+	struct ld_state *ls;
 	struct ld_archive *la;
 	Elf_Arsym *as;
 	size_t c;
@@ -180,6 +202,7 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 	assert(lf != NULL && lf->lf_type == LFT_ARCHIVE);
 	assert(lf->lf_ar != NULL);
 
+	ls = &ld->ld_ls;
 	la = lf->lf_ar;
 	if ((as = elf_getarsym(lf->lf_elf, &c)) == NULL)
 		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
@@ -191,12 +214,12 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 				break;
 			if (_archive_member_extracted(la, as[i].as_off))
 				continue;
-			/* printf("as_name=%s\n", as[i].as_name); */
 			if (_symbol_find(ld->ld_symtab_undef, as[i].as_name) !=
 			    NULL) {
 				_extract_archive_member(ld, lf, la,
 				    as[i].as_off);
 				extracted = 1;
+				ls->ls_extracted[ls->ls_group_level] = 1;
 			}
 		}
 	} while (extracted);

@@ -62,6 +62,8 @@ ld_script_group(struct ld *ld, struct ld_script_list *list)
 	struct ld_script_list *ldl;
 
 	ld->ld_ls.ls_group_level++;
+	if (ld->ld_ls.ls_group_level > LD_MAX_NESTED_GROUP)
+		ld_fatal(ld, "too many nested archive groups");
 	ldl = list;
 	while (ldl != NULL) {
 		ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);

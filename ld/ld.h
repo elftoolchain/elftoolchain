@@ -54,6 +54,8 @@ struct ld_file;
 struct ld_path;
 struct ld_symbol;
 
+#define	LD_MAX_NESTED_GROUP	16
+
 struct ld_state {
 	/*
 	 * State variables for command line options parsing stage.
@@ -63,6 +65,8 @@ struct ld_state {
 	unsigned ls_whole_archive;	/* include whole archive */
 	unsigned ls_as_needed;		/* DT_NEEDED */
 	unsigned ls_group_level;	/* archive group level */
+	unsigned ls_extracted[LD_MAX_NESTED_GROUP + 1];
+					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 };
@@ -73,7 +77,7 @@ struct ld {
 	struct ld_state ld_ls;		/* linker state */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */
 	struct ld_symbol *ld_symtab_undef; /* undefined symbols */
-	TAILQ_HEAD(, ld_file) ld_lflist; /* input file list */
+	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
 
 void	ld_err(struct ld *, const char *, ...);

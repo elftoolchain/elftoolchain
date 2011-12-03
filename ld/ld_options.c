@@ -337,6 +337,14 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	case 'T':
 		ld_script_parse(arg);
 		break;
+	case '(':
+		ls->ls_group_level++;
+		if (ls->ls_group_level > LD_MAX_NESTED_GROUP)
+			ld_fatal(ld, "too many nested archive groups");
+		break;
+	case ')':
+		ls->ls_group_level--;
+		break;
 	case KEY_AS_NEEDED:
 		ls->ls_as_needed = 1;
 		break;
