@@ -27,8 +27,34 @@
 #include "ld.h"
 #include "ld_options.h"
 #include "ld_script.h"
+#include "ld_file.h"
 
 ELFTC_VCSID("$Id$");
+
+void
+ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
+{
+	struct ld_script_assert *a;
+
+	if ((a = calloc(1, sizeof(*a))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	a->lda_exp = exp;
+	a->lda_msg = msg;
+
+	ld_script_cmd(ld, LSS_ASSERT, a);
+}
+
+void
+ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
+{
+	struct ld_script_cmd *c;
+
+	if ((c = calloc(1, sizeof(*c))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	c->ldc_type = type;
+	c->ldc_cmd = cmd;
+	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_c, c, ldc_next);
+}
 
 void
 ld_script_init(struct ld *ld)
@@ -46,54 +72,58 @@ ld_script_init(struct ld *ld)
 }
 
 void
-ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
+ld_script_input(struct ld *ld, struct ld_script_list *list)
 {
-	struct ld_script_cmd *c;
+	struct ld_script_list *ldl;
 
-	if ((c = calloc(1, sizeof(*c))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	c->ldc_type = type;
-	c->ldc_cmd = cmd;
-	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_c, c, ldc_next);
-}
-
-void
-ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
-{
-	struct ld_script_assert *a;
-
-	if ((a = calloc(1, sizeof(*a))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	a->lda_exp = exp;
-	a->lda_msg = msg;
-
-	ld_script_cmd(ld, LSS_ASSERT, a);
+	ld->ld_ls.ls_search_dir = 1;
+	ldl = list;
+	while (ldl != NULL) {
+		ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);
+		ldl = ldl->ldl_next;
+	}
+	ld->ld_ls.ls_search_dir = 0;
+	ld_script_list_free(list);
 }
 
 struct ld_script_list *
 ld_script_list(struct ld *ld, struct ld_script_list *list, void *entry)
 {
-	struct ld_script_list *l;
+	struct ld_script_list *ldl;
 
-	if ((l = malloc(sizeof(*l))) == NULL)
+	if ((ldl = malloc(sizeof(*ldl))) == NULL)
 		ld_fatal_std(ld, "malloc");
-	l->ldl_entry = entry;
-	l->ldl_next = list;
+	ldl->ldl_entry = entry;
+	ldl->ldl_next = list;
 
-	return (l);
+	return (ldl);
+}
+
+void
+ld_script_list_free(struct ld_script_list *list)
+{
+	struct ld_script_list *ldl;
+
+	do {
+		ldl = list;
+		list = ldl->ldl_next;
+		if (ldl->ldl_entry)
+			free(ldl->ldl_entry);
+		free(ldl);
+	} while (list != NULL);
 }
 
 struct ld_script_list *
-ld_script_list_reverse(struct ld_script_list *l)
+ld_script_list_reverse(struct ld_script_list *list)
 {
 	struct ld_script_list *root, *next;
 
 	root = NULL;
-	while (l != NULL) {
-		next = l->ldl_next;
-		l->ldl_next = root;
-		root = l;
-		l = next;
+	while (list != NULL) {
+		next = list->ldl_next;
+		list->ldl_next = root;
+		root = list;
+		list = next;
 	}
 
 	return (root);

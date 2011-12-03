@@ -48,10 +48,11 @@ ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 	if ((lf->lf_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
-	lf->lf_type	     = type;
+	lf->lf_type = type;
 	lf->lf_whole_archive = ls->ls_whole_archive;
-	lf->lf_as_needed     = ls->ls_as_needed;
-	lf->lf_group_level   = ls->ls_group_level;
+	lf->lf_as_needed = ls->ls_as_needed;
+	lf->lf_group_level = ls->ls_group_level;
+	lf->lf_search_dir = ls->ls_search_dir;
 
 	if (lf->lf_type == LFT_UNKNOWN && ls->ls_itgt != NULL) {
 		if (elftc_bfd_target_flavor(ls->ls_itgt) == ETF_BINARY)

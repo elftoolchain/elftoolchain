@@ -524,7 +524,9 @@ inhibit_common_allocation_command
 	;
 
 input_command
-	: T_INPUT '(' ident_list ')'
+	: T_INPUT '(' ident_list ')' {
+		ld_script_input(ld, ld_script_list_reverse($3));
+	}
 	;
 
 memory_command

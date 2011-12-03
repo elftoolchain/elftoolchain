@@ -51,9 +51,10 @@ struct ld_file {
 	size_t lf_size;			/* input file size */
 	Elf *lf_elf;			/* input file ELF descriptor */
 	struct ld_archive *lf_ar;	/* input archive */
-	int lf_whole_archive;		/* include whole archive */
-	int lf_as_needed;		/* DT_NEEDED */
-	int lf_group_level;		/* archive group level */
+	unsigned lf_whole_archive;	/* include whole archive */
+	unsigned lf_as_needed;		/* DT_NEEDED */
+	unsigned lf_group_level;	/* archive group level */
+	unsigned lf_search_dir;		/* search library directories */
 	TAILQ_ENTRY(ld_file) lf_next;	/* next input file */
 };
 

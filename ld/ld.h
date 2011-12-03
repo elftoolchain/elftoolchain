@@ -59,10 +59,11 @@ struct ld_state {
 	 * State variables for command line options parsing stage.
 	 */
 	Elftc_Bfd_Target *ls_itgt;	/* input bfd target set by -b */
-	int ls_static;			/* use static library */
-	int ls_whole_archive;		/* include whole archive */
-	int ls_as_needed;		/* DT_NEEDED */
-	int ls_group_level;		/* archive group level */
+	unsigned ls_static;		/* use static library */
+	unsigned ls_whole_archive;	/* include whole archive */
+	unsigned ls_as_needed;		/* DT_NEEDED */
+	unsigned ls_group_level;	/* archive group level */
+	unsigned ls_search_dir;		/* search library directories */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 };
 
