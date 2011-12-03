@@ -17,8 +17,6 @@ SRCS=	amd64.c			\
 	ld_symbols.c		\
 	y.tab.h
 
-LD_SCRIPT=	amd64.ld
-
 amd64.c:	amd64.ld
 	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
 
