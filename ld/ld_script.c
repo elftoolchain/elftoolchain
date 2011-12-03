@@ -44,3 +44,28 @@ ld_script_init(struct ld *ld)
 	STAILQ_INIT(&ld->ld_scp->lds_p);
 	STAILQ_INIT(&ld->ld_scp->lds_r);
 }
+
+void
+ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
+{
+	struct ld_script_cmd *c;
+
+	if ((c = calloc(1, sizeof(*c))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	c->ldc_type = type;
+	c->ldc_cmd = cmd;
+	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_c, c, ldc_next);
+}
+
+void
+ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
+{
+	struct ld_script_assert *a;
+
+	if ((a = calloc(1, sizeof(*a))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	a->lda_exp = exp;
+	a->lda_msg = msg;
+
+	ld_script_cmd(ld, LSS_ASSERT, a);
+}

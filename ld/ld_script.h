@@ -168,4 +168,6 @@ struct ld_script {
 	STAILQ_HEAD(, ld_script_cmd) lds_c; /* other ldscript cmd list */
 };
 
+void	ld_script_assert(struct ld *, struct ld_exp *, char *);
+void	ld_script_cmd(struct ld *, enum ld_script_cmd_type, void *);
 void	ld_script_init(struct ld *);

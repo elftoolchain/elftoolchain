@@ -503,7 +503,9 @@ ldscript_command
 	;
 
 assert_command
-	: T_ASSERT '(' expression ',' T_STRING ')'
+	: T_ASSERT '(' expression ',' T_STRING ')' {
+		ld_script_assert(ld, $3, $5);
+	}
 	;
 
 as_needed_command
