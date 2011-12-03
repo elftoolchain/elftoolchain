@@ -43,6 +43,10 @@ ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 	int fd;
 
 	assert(ld != NULL && name != NULL);
+
+	if (!strncmp(name, "-l", 2))
+		ld_file_add_library(ld, &name[2]);
+
 	ls = &ld->ld_ls;
 
 	if ((lf = calloc(1, sizeof(*lf))) == NULL)
