@@ -28,7 +28,9 @@
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
+#include <sys/queue.h>
 #include <sys/stat.h>
+
 #include <ar.h>
 #include <err.h>
 #include <fcntl.h>
