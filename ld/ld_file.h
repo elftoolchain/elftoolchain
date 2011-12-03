@@ -45,7 +45,7 @@ struct ld_archive {
 };
 
 struct ld_file {
-	const char *lf_name;		/* input file name */
+	char *lf_name;			/* input file name */
 	enum ld_file_type lf_type;	/* input file type */
 	void *lf_mmap;			/* input file image */
 	size_t lf_size;			/* input file size */

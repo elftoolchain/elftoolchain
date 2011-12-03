@@ -33,11 +33,14 @@ ELFTC_VCSID("$Id$");
  * Support routines for input file handling.
  */
 
+static void _file_search(struct ld *ld, struct ld_file *lf);
+
 void
 ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 {
 	struct ld_state *ls;
 	struct ld_file *lf;
+	int fd;
 
 	assert(ld != NULL && name != NULL);
 	ls = &ld->ld_ls;
@@ -54,12 +57,59 @@ ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 	lf->lf_group_level = ls->ls_group_level;
 	lf->lf_search_dir = ls->ls_search_dir;
 
+	if ((fd = open(lf->lf_name, O_RDONLY)) < 0) {
+		if (!lf->lf_search_dir)
+			ld_fatal_std(ld, "%s: open", lf->lf_name);
+		/* Search library path for this file. */
+		_file_search(ld, lf);
+	} else
+		(void) close(fd);
+
 	if (lf->lf_type == LFT_UNKNOWN && ls->ls_itgt != NULL) {
 		if (elftc_bfd_target_flavor(ls->ls_itgt) == ETF_BINARY)
 			lf->lf_type = LFT_BINARY;
 	}
 
 	TAILQ_INSERT_TAIL(&ld->ld_lflist, lf, lf_next);
+}
+
+static void
+_file_search(struct ld *ld, struct ld_file *lf)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	struct dirent *dp;
+	char fp[PATH_MAX + 1];
+	DIR *dirp;
+	int found;
+
+	ls = &ld->ld_ls;
+
+	fp[0] = '\0';
+	found = 0;
+	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
+		assert(lp->lp_path != NULL);
+		if ((dirp = opendir(lp->lp_path)) == NULL) {
+			ld_warn(ld, "opendir failed: %s", strerror(errno));
+			continue;
+		}
+
+		while ((dp = readdir(dirp)) != NULL) {
+			if (!strcmp(dp->d_name, lf->lf_name)) {
+				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
+				    dp->d_name);
+				free(lf->lf_name);
+				if ((lf->lf_name = strdup(fp)) == NULL)
+					ld_fatal_std(ld, "strdup");
+				found = 1;
+				goto done;
+			}
+		}
+		(void) closedir(dirp);
+	}
+done:
+	if (!found)
+		ld_fatal(ld, "cannot find %s", lf->lf_name);
 }
 
 void
