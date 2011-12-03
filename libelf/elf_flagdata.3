@@ -1,4 +1,4 @@
-.\" Copyright (c) 2006-2008 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2006-2008,2011 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd October 22, 2007
+.Dd December 3, 2011
 .Os
 .Dt ELF_FLAGDATA 3
 .Sh NAME
@@ -64,6 +64,38 @@ Arguments
 and
 .Ar scn
 denote the data structures whose flags need to be changed.
+These values should have been returned by prior calls to
+functions in the ELF(3) API set:
+.Bl -bullet -compact
+.It
+Argument
+.Ar arhdr
+should have been returned by a prior call to
+.Xr elf_getarhdr 3 .
+.It
+Argument
+.Ar data
+should have been returned by a prior call to one of
+.Xr elf_newdata 3 ,
+.Xr elf_getdata 3
+or
+.Xr elf_rawdata 3 .
+.It
+Argument
+.Ar elf
+should have been allocated by a prior call to one of
+.Xr elf_begin 3
+or
+.Xr elf_memory 3 .
+.It
+Argument
+.Ar scn
+should have been returned by a prior call to one of
+.Xr elf_getscn 3 ,
+.Xr elf_newscn 3
+or
+.Xr elf_nextscn 3 .
+.El
 These values are allowed to be NULL to simplify error handling in
 application code.
 .Pp
