@@ -54,7 +54,6 @@ extern struct ld *ld;
 extern char *ldscript_default;
 
 static void yyerror(const char *s);
-static struct _list *_make_list(struct _list *list, char *str);
 
 %}
 
@@ -206,7 +205,7 @@ static struct _list *_make_list(struct _list *list, char *str);
 %type <exp> constant
 
 %union {
-	struct _list *list;
+	struct ld_script_list *list;
 	struct ld_exp *exp;
 	char *str;
 	intmax_t num;
@@ -893,18 +892,18 @@ wildcard_sort
 	;
 
 ident_list
-	: ident { $$ = _make_list(NULL, $1); }
-	| ident_list separator ident { $$ = _make_list($1, $3); }
+	: ident { $$ = ld_script_list(ld, NULL, $1); }
+	| ident_list separator ident { $$ = ld_script_list(ld, $1, $3); }
 	;
 
 ident_list_nosep
-	: ident { $$ = _make_list(NULL, $1); }
-	| ident_list_nosep ident { $$ = _make_list($1, $2); }
+	: ident { $$ = ld_script_list(ld, NULL, $1); }
+	| ident_list_nosep ident { $$ = ld_script_list(ld, $1, $2); }
 	;
 
 wildcard_list
-	: wildcard_sort { $$ = _make_list(NULL, $1); }
-	| wildcard_list wildcard_sort { $$ = _make_list($1, $2); }
+	: wildcard_sort { $$ = ld_script_list(ld, NULL, $1); }
+	| wildcard_list wildcard_sort { $$ = ld_script_list(ld, $1, $2); }
 	;
 
 separator
@@ -921,20 +920,6 @@ yyerror(const char *s)
 
 	(void) s;
 	errx(1, "Syntax error in ld script, line %d\n", lineno);
-}
-
-static struct _list *
-_make_list(struct _list *list, char *str)
-{
-	struct _list *l;
-
-	l = malloc(sizeof(*l));
-	if (l == NULL)
-		err(1, "malloc");
-	l->str = str;
-	l->next = list;
-
-	return (l);
 }
 
 void

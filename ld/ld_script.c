@@ -69,3 +69,32 @@ ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 
 	ld_script_cmd(ld, LSS_ASSERT, a);
 }
+
+struct ld_script_list *
+ld_script_list(struct ld *ld, struct ld_script_list *list, void *entry)
+{
+	struct ld_script_list *l;
+
+	if ((l = malloc(sizeof(*l))) == NULL)
+		ld_fatal_std(ld, "malloc");
+	l->ldl_entry = entry;
+	l->ldl_next = list;
+
+	return (l);
+}
+
+struct ld_script_list *
+ld_script_list_reverse(struct ld_script_list *l)
+{
+	struct ld_script_list *root, *next;
+
+	root = NULL;
+	while (l != NULL) {
+		next = l->ldl_next;
+		l->ldl_next = root;
+		root = l;
+		l = next;
+	}
+
+	return (root);
+}
