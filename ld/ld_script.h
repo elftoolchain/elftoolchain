@@ -84,6 +84,14 @@ struct ld_script_assign {
 	unsigned lda_hidden;		/* hidden provide */
 };
 
+struct ld_script_input_file {
+	unsigned ldif_as_needed;	/* as_needed list */
+	union {
+		char *ldif_name;	/* input file name */
+		struct ld_script_list *ldif_ldl; /* input file list */
+	} ldif_u;
+};
+
 struct ld_script_nocrossref {
 	struct ld_script_list *ldn_l;	/* nocrossref sections */
 	STAILQ_ENTRY(ld_script_nocrossref) *ldn_next; /* next nocrossref */
@@ -173,6 +181,8 @@ void	ld_script_cmd(struct ld *, enum ld_script_cmd_type, void *);
 void	ld_script_group(struct ld *, struct ld_script_list *);
 void	ld_script_init(struct ld *);
 void	ld_script_input(struct ld *, struct ld_script_list *);
+struct ld_script_input_file *ld_script_input_file(struct ld *, unsigned,
+    void *);
 struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
     void *);
 void	ld_script_list_free(struct ld_script_list *);

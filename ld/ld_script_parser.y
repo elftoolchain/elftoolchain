@@ -164,13 +164,6 @@ static void yyerror(const char *s);
 %token <str> T_COMMONPAGESIZE
 %token <str> T_MAXPAGESIZE
 
-%type <str> ident
-%type <str> symbolic_constant
-%type <str> wildcard
-%type <str> wildcard_sort
-%type <list> ident_list
-%type <list> ident_list_nosep
-%type <list> wildcard_list
 %type <exp> expression
 %type <exp> simple_assignment
 %type <exp> function
@@ -195,9 +188,20 @@ static void yyerror(const char *s);
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
 %type <exp> constant
+%type <input_file> input_file
+%type <list> as_needed_list
+%type <list> ident_list
+%type <list> ident_list_nosep
+%type <list> input_file_list
+%type <list> wildcard_list
+%type <str> ident
+%type <str> symbolic_constant
+%type <str> wildcard
+%type <str> wildcard_sort
 
 %union {
 	struct ld_script_list *list;
+	struct ld_script_input_file *input_file;
 	struct ld_exp *exp;
 	char *str;
 	intmax_t num;
@@ -472,7 +476,6 @@ symbolic_constant
 
 ldscript_command
 	: assert_command
-	| as_needed_command
 	| entry_command
 	| extern_command
 	| force_common_allocation_command
@@ -499,10 +502,6 @@ assert_command
 	}
 	;
 
-as_needed_command
-	: T_AS_NEEDED '(' ident_list ')'
-	;
-
 entry_command
 	: T_ENTRY '(' ident ')'
 	;
@@ -516,7 +515,7 @@ force_common_allocation_command
 	;
 
 group_command
-	: T_GROUP '(' ident_list ')' {
+	: T_GROUP '(' input_file_list ')' {
 		 ld_script_group(ld, ld_script_list_reverse($3));
 	}
 	;
@@ -526,7 +525,7 @@ inhibit_common_allocation_command
 	;
 
 input_command
-	: T_INPUT '(' ident_list ')' {
+	: T_INPUT '(' input_file_list ')' {
 		ld_script_input(ld, ld_script_list_reverse($3));
 	}
 	;
@@ -895,6 +894,20 @@ ident_list
 ident_list_nosep
 	: ident { $$ = ld_script_list(ld, NULL, $1); }
 	| ident_list_nosep ident { $$ = ld_script_list(ld, $1, $2); }
+	;
+
+input_file_list
+	: input_file { $$ = ld_script_list(ld, NULL, $1); }
+	| input_file_list separator input_file { $$ = ld_script_list(ld, $1, $3); }
+	;
+
+input_file
+	: ident { $$ = ld_script_input_file(ld, 0, $1); }
+	| as_needed_list { $$ = ld_script_input_file(ld, 1, $1); }
+	;
+
+as_needed_list
+	: T_AS_NEEDED '(' ident_list ')' { $$ = $3; }
 	;
 
 wildcard_list

@@ -31,6 +31,8 @@
 
 ELFTC_VCSID("$Id$");
 
+static void _input_file_add(struct ld *ld, struct ld_script_input_file *ldif);
+
 void
 ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 {
@@ -66,7 +68,7 @@ ld_script_group(struct ld *ld, struct ld_script_list *list)
 		ld_fatal(ld, "too many nested archive groups");
 	ldl = list;
 	while (ldl != NULL) {
-		ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);
+		_input_file_add(ld, ldl->ldl_entry);
 		ldl = ldl->ldl_next;
 	}
 	ld->ld_ls.ls_group_level--;
@@ -96,11 +98,27 @@ ld_script_input(struct ld *ld, struct ld_script_list *list)
 	ld->ld_ls.ls_search_dir = 1;
 	ldl = list;
 	while (ldl != NULL) {
-		ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);
+		_input_file_add(ld, ldl->ldl_entry);
 		ldl = ldl->ldl_next;
 	}
 	ld->ld_ls.ls_search_dir = 0;
 	ld_script_list_free(list);
+}
+
+struct ld_script_input_file *
+ld_script_input_file(struct ld *ld, unsigned as_needed, void *in)
+{
+	struct ld_script_input_file *ldif;
+
+	if ((ldif = calloc(1, sizeof(*ldif))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	ldif->ldif_as_needed = as_needed;
+	if (as_needed)
+		ldif->ldif_u.ldif_ldl = in;
+	else
+		ldif->ldif_u.ldif_name = in;
+
+	return (ldif);
 }
 
 struct ld_script_list *
@@ -144,4 +162,29 @@ ld_script_list_reverse(struct ld_script_list *list)
 	}
 
 	return (root);
+}
+
+static void
+_input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
+{
+	struct ld_state *ls;
+	struct ld_script_list *ldl;
+	unsigned old_as_needed;
+
+	ls = &ld->ld_ls;
+
+	if (!ldif->ldif_as_needed) {
+		ld_file_add(ld, ldif->ldif_u.ldif_name, LFT_UNKNOWN);
+		free(ldif->ldif_u.ldif_name);
+	} else {
+		old_as_needed = ls->ls_as_needed;
+		ls->ls_as_needed = 1;
+		ldl = ldif->ldif_u.ldif_ldl;
+		while (ldl != NULL) {
+			ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);
+			ldl = ldl->ldl_next;
+		}
+		ls->ls_as_needed = old_as_needed;
+		ld_script_list_free(ldif->ldif_u.ldif_ldl);
+	}
 }
