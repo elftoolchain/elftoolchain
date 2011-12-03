@@ -26,6 +26,8 @@
  */
 
 #include "ld.h"
+#include "ld_options.h"
+#include "ld_script.h"
 #include "ld_file.h"
 #include "ld_exp.h"
 
@@ -542,7 +544,8 @@ memory_region_list
 	;
 
 memory_region
-	: ident memory_attr ':' T_ORIGIN '=' T_NUM ',' T_LENGTH '=' T_NUM
+	: ident memory_attr ':' T_ORIGIN '=' expression ',' T_LENGTH '='
+	expression
 	;
 
 memory_attr
@@ -590,7 +593,7 @@ phdr_phdrs
 	;
 
 phdr_at
-	: T_AT '(' T_NUM ')'
+	: T_AT '(' expression ')'
 	|
 	;
 
