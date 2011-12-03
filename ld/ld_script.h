@@ -167,3 +167,5 @@ struct ld_script {
 	STAILQ_HEAD(, ld_script_nocrossref) lds_n; /* nocrossref list */
 	STAILQ_HEAD(, ld_script_cmd) lds_c; /* other ldscript cmd list */
 };
+
+void	ld_script_init(struct ld *);

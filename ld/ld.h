@@ -68,6 +68,7 @@ struct ld_state {
 
 struct ld {
 	const char *ld_progname;	/* ld(1) program name */
+	struct ld_script *ld_scp;	/* ld(1) script */
 	struct ld_state ld_ls;		/* linker state */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */
 	struct ld_symbol *ld_symtab_undef; /* undefined symbols */
