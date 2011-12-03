@@ -36,14 +36,6 @@ ELFTC_VCSID("$Id$");
 struct yy_buffer_state;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
-/*
- * Name list.
- */
-struct _list {
-	char		*str;
-	struct _list	*next;
-};
-
 extern int yylex(void);
 extern int yyparse(void);
 extern YY_BUFFER_STATE yy_scan_string(char *yy_str);
