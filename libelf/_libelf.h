@@ -128,13 +128,23 @@ struct _Elf {
 	} e_u;
 };
 
+/*
+ * The internal descriptor wrapping the "Elf_Data" type.
+ */
+struct _Libelf_Data {
+	Elf_Data	d_data;		/* The exported descriptor. */
+	Elf_Scn		*d_scn;		/* The containing section */
+	unsigned int	d_flags;
+	STAILQ_ENTRY(_Libelf_Data) d_next;
+};
+
 struct _Elf_Scn {
 	union {
 		Elf32_Shdr	s_shdr32;
 		Elf64_Shdr	s_shdr64;
 	} s_shdr;
-	STAILQ_HEAD(, _Elf_Data) s_data;	/* list of Elf_Data descriptors */
-	STAILQ_HEAD(, _Elf_Data) s_rawdata;	/* raw data for this section */
+	STAILQ_HEAD(, _Libelf_Data) s_data;	/* translated data */
+	STAILQ_HEAD(, _Libelf_Data) s_rawdata;	/* raw data */
 	STAILQ_ENTRY(_Elf_Scn) s_next;
 	struct _Elf	*s_elf;		/* parent ELF descriptor */
 	unsigned int	s_flags;	/* flags for the section as a whole */
@@ -173,7 +183,7 @@ enum {
  */
 
 __BEGIN_DECLS
-Elf_Data *_libelf_allocate_data(Elf_Scn *_s);
+struct _Libelf_Data *_libelf_allocate_data(Elf_Scn *_s);
 Elf	*_libelf_allocate_elf(void);
 Elf_Scn	*_libelf_allocate_scn(Elf *_e, size_t _ndx);
 Elf_Arhdr *_libelf_ar_gethdr(Elf *_e);
@@ -196,7 +206,7 @@ int	_libelf_load_section_headers(Elf *e, void *ehdr);
 int	_libelf_malign(Elf_Type _t, int _elfclass);
 size_t	_libelf_msize(Elf_Type _t, int _elfclass, unsigned int _version);
 void	*_libelf_newphdr(Elf *_e, int _elfclass, size_t _count);
-Elf_Data *_libelf_release_data(Elf_Data *_d);
+struct _Libelf_Data *_libelf_release_data(struct _Libelf_Data *_d);
 Elf	*_libelf_release_elf(Elf *_e);
 Elf_Scn	*_libelf_release_scn(Elf_Scn *_s);
 int	_libelf_setphnum(Elf *_e, void *_eh, int _elfclass, size_t _phnum);

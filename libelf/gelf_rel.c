@@ -35,15 +35,18 @@
 ELFTC_VCSID("$Id$");
 
 GElf_Rel *
-gelf_getrel(Elf_Data *d, int ndx, GElf_Rel *dst)
+gelf_getrel(Elf_Data *ed, int ndx, GElf_Rel *dst)
 {
 	int ec;
 	Elf *e;
+	size_t msz;
 	Elf_Scn *scn;
+	uint32_t sh_type;
 	Elf32_Rel *rel32;
 	Elf64_Rel *rel64;
-	size_t msz;
-	uint32_t sh_type;
+	struct _Libelf_Data *d;
+
+	d = (struct _Libelf_Data *) ed;
 
 	if (d == NULL || ndx < 0 || dst == NULL ||
 	    (scn = d->d_scn) == NULL ||
@@ -69,13 +72,13 @@ gelf_getrel(Elf_Data *d, int ndx, GElf_Rel *dst)
 
 	assert(msz > 0);
 
-	if (msz * ndx >= d->d_size) {
+	if (msz * ndx >= d->d_data.d_size) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
 	}
 
 	if (ec == ELFCLASS32) {
-		rel32 = (Elf32_Rel *) d->d_buf + ndx;
+		rel32 = (Elf32_Rel *) d->d_data.d_buf + ndx;
 
 		dst->r_offset = (Elf64_Addr) rel32->r_offset;
 		dst->r_info   = ELF64_R_INFO(
@@ -84,7 +87,7 @@ gelf_getrel(Elf_Data *d, int ndx, GElf_Rel *dst)
 
 	} else {
 
-		rel64 = (Elf64_Rel *) d->d_buf + ndx;
+		rel64 = (Elf64_Rel *) d->d_data.d_buf + ndx;
 
 		*dst = *rel64;
 	}
@@ -93,15 +96,18 @@ gelf_getrel(Elf_Data *d, int ndx, GElf_Rel *dst)
 }
 
 int
-gelf_update_rel(Elf_Data *d, int ndx, GElf_Rel *dr)
+gelf_update_rel(Elf_Data *ed, int ndx, GElf_Rel *dr)
 {
 	int ec;
 	Elf *e;
+	size_t msz;
 	Elf_Scn *scn;
+	uint32_t sh_type;
 	Elf32_Rel *rel32;
 	Elf64_Rel *rel64;
-	size_t msz;
-	uint32_t sh_type;
+	struct _Libelf_Data *d;
+
+	d = (struct _Libelf_Data *) ed;
 
 	if (d == NULL || ndx < 0 || dr == NULL ||
 	    (scn = d->d_scn) == NULL ||
@@ -126,13 +132,13 @@ gelf_update_rel(Elf_Data *d, int ndx, GElf_Rel *dr)
 	msz = _libelf_msize(ELF_T_REL, ec, e->e_version);
 	assert(msz > 0);
 
-	if (msz * ndx >= d->d_size) {
+	if (msz * ndx >= d->d_data.d_size) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (0);
 	}
 
 	if (ec == ELFCLASS32) {
-		rel32 = (Elf32_Rel *) d->d_buf + ndx;
+		rel32 = (Elf32_Rel *) d->d_data.d_buf + ndx;
 
 		LIBELF_COPY_U32(rel32, dr, r_offset);
 
@@ -144,7 +150,7 @@ gelf_update_rel(Elf_Data *d, int ndx, GElf_Rel *dr)
 		rel32->r_info = ELF32_R_INFO(ELF64_R_SYM(dr->r_info),
 		    ELF64_R_TYPE(dr->r_info));
 	} else {
-		rel64 = (Elf64_Rel *) d->d_buf + ndx;
+		rel64 = (Elf64_Rel *) d->d_data.d_buf + ndx;
 
 		*rel64 = *dr;
 	}

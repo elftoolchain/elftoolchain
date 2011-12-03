@@ -34,14 +34,17 @@
 ELFTC_VCSID("$Id$");
 
 Elf_Data *
-elf_getdata(Elf_Scn *s, Elf_Data *d)
+elf_getdata(Elf_Scn *s, Elf_Data *ed)
 {
 	Elf *e;
-	size_t fsz, msz, count;
-	int elfclass, elftype;
 	unsigned int sh_type;
+	int elfclass, elftype;
+	size_t fsz, msz, count;
+	struct _Libelf_Data *d;
 	uint64_t sh_align, sh_offset, sh_size;
 	int (*xlate)(char *_d, size_t _dsz, char *_s, size_t _c, int _swap);
+
+	d = (struct _Libelf_Data *) ed;
 
 	if (s == NULL || (e = s->s_elf) == NULL ||
 	    (d != NULL && s != d->d_scn)) {
@@ -52,10 +55,10 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 	assert(e->e_kind == ELF_K_ELF);
 
 	if (d == NULL && (d = STAILQ_FIRST(&s->s_data)) != NULL)
-		return (d);
+		return (&d->d_data);
 
 	if (d != NULL)
-		return (STAILQ_NEXT(d, d_next));
+		return (&STAILQ_NEXT(d, d_next)->d_data);
 
 	if (e->e_rawfile == NULL) {
 		/*
@@ -114,19 +117,19 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 	if ((d = _libelf_allocate_data(s)) == NULL)
 		return (NULL);
 
-	d->d_buf     = NULL;
-	d->d_off     = 0;
-	d->d_align   = sh_align;
-	d->d_size    = msz * count;
-	d->d_type    = elftype;
-	d->d_version = e->e_version;
+	d->d_data.d_buf     = NULL;
+	d->d_data.d_off     = 0;
+	d->d_data.d_align   = sh_align;
+	d->d_data.d_size    = msz * count;
+	d->d_data.d_type    = elftype;
+	d->d_data.d_version = e->e_version;
 
 	if (sh_type == SHT_NOBITS || sh_size == 0) {
 	        STAILQ_INSERT_TAIL(&s->s_data, d, d_next);
-		return (d);
+		return (&d->d_data);
         }
 
-	if ((d->d_buf = malloc(msz*count)) == NULL) {
+	if ((d->d_data.d_buf = malloc(msz*count)) == NULL) {
 		(void) _libelf_release_data(d);
 		LIBELF_SET_ERROR(RESOURCE, 0);
 		return (NULL);
@@ -135,7 +138,8 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 	d->d_flags  |= LIBELF_F_DATA_MALLOCED;
 
 	xlate = _libelf_get_translator(elftype, ELF_TOMEMORY, elfclass);
-	if (!(*xlate)(d->d_buf, d->d_size, e->e_rawfile + sh_offset, count,
+	if (!(*xlate)(d->d_data.d_buf, d->d_data.d_size,
+	    e->e_rawfile + sh_offset, count,
 	    e->e_byteorder != LIBELF_PRIVATE(byteorder))) {
 		_libelf_release_data(d);
 		LIBELF_SET_ERROR(DATA, 0);
@@ -144,14 +148,14 @@ elf_getdata(Elf_Scn *s, Elf_Data *d)
 
 	STAILQ_INSERT_TAIL(&s->s_data, d, d_next);
 
-	return (d);
+	return (&d->d_data);
 }
 
 Elf_Data *
 elf_newdata(Elf_Scn *s)
 {
 	Elf *e;
-	Elf_Data *d;
+	struct _Libelf_Data *d;
 
 	if (s == NULL || (e = s->s_elf) == NULL) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
@@ -173,16 +177,16 @@ elf_newdata(Elf_Scn *s)
 
 	STAILQ_INSERT_TAIL(&s->s_data, d, d_next);
 
-	d->d_align = 1;
-	d->d_buf = NULL;
-	d->d_off = (uint64_t) ~0;
-	d->d_size = 0;
-	d->d_type = ELF_T_BYTE;
-	d->d_version = LIBELF_PRIVATE(version);
+	d->d_data.d_align = 1;
+	d->d_data.d_buf = NULL;
+	d->d_data.d_off = (uint64_t) ~0;
+	d->d_data.d_size = 0;
+	d->d_data.d_type = ELF_T_BYTE;
+	d->d_data.d_version = LIBELF_PRIVATE(version);
 
 	(void) elf_flagscn(s, ELF_C_SET, ELF_F_DIRTY);
 
-	return (d);
+	return (&d->d_data);
 }
 
 /*
@@ -191,11 +195,12 @@ elf_newdata(Elf_Scn *s)
  */
 
 Elf_Data *
-elf_rawdata(Elf_Scn *s, Elf_Data *d)
+elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 {
 	Elf *e;
 	int elf_class;
 	uint32_t sh_type;
+	struct _Libelf_Data *d;
 	uint64_t sh_align, sh_offset, sh_size;
 
 	if (s == NULL || (e = s->s_elf) == NULL || e->e_rawfile == NULL) {
@@ -205,11 +210,13 @@ elf_rawdata(Elf_Scn *s, Elf_Data *d)
 
 	assert(e->e_kind == ELF_K_ELF);
 
+	d = (struct _Libelf_Data *) ed;
+
 	if (d == NULL && (d = STAILQ_FIRST(&s->s_rawdata)) != NULL)
-		return (d);
+		return (&d->d_data);
 
 	if (d != NULL)
-		return (STAILQ_NEXT(d, d_next));
+		return (&STAILQ_NEXT(d, d_next)->d_data);
 
 	elf_class = e->e_class;
 
@@ -233,15 +240,15 @@ elf_rawdata(Elf_Scn *s, Elf_Data *d)
 	if ((d = _libelf_allocate_data(s)) == NULL)
 		return (NULL);
 
-	d->d_buf     = (sh_type == SHT_NOBITS || sh_size == 0) ? NULL :
+	d->d_data.d_buf = (sh_type == SHT_NOBITS || sh_size == 0) ? NULL :
 	    e->e_rawfile + sh_offset;
-	d->d_off     = 0;
-	d->d_align   = sh_align;
-	d->d_size    = sh_size;
-	d->d_type    = ELF_T_BYTE;
-	d->d_version = e->e_version;
+	d->d_data.d_off     = 0;
+	d->d_data.d_align   = sh_align;
+	d->d_data.d_size    = sh_size;
+	d->d_data.d_type    = ELF_T_BYTE;
+	d->d_data.d_version = e->e_version;
 
 	STAILQ_INSERT_TAIL(&s->s_rawdata, d, d_next);
 
-	return (d);
+	return (&d->d_data);
 }

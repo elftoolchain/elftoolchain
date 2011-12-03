@@ -29,8 +29,7 @@
 #ifndef	_LIBELF_H_
 #define	_LIBELF_H_
 
-#include <sys/param.h>
-#include <sys/queue.h>
+#include <sys/types.h>
 
 #include <elfdefinitions.h>
 
@@ -112,13 +111,6 @@ typedef struct _Elf_Data {
 	uint64_t	d_size;
 	Elf_Type	d_type;
 	unsigned int	d_version;
-
-	/*
-	 * Members that are not part of the public API.
-	 */
-	Elf_Scn		*d_scn;		/* containing section */
-	unsigned int	d_flags;
-	STAILQ_ENTRY(_Elf_Data)	d_next;
 } Elf_Data;
 
 /*

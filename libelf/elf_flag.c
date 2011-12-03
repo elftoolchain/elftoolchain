@@ -58,6 +58,7 @@ unsigned int
 elf_flagdata(Elf_Data *d, Elf_Cmd c, unsigned int flags)
 {
 	unsigned int r;
+	struct _Libelf_Data *ld;
 
 	if (d == NULL)
 		return (0);
@@ -68,10 +69,12 @@ elf_flagdata(Elf_Data *d, Elf_Cmd c, unsigned int flags)
 		return (0);
 	}
 
+	ld = (struct _Libelf_Data *) d;
+
 	if (c == ELF_C_SET)
-		r = d->d_flags |= flags;
+		r = ld->d_flags |= flags;
 	else
-		r = d->d_flags &= ~flags;
+		r = ld->d_flags &= ~flags;
 
 	return (r & LIBELF_F_API_MASK);
 }

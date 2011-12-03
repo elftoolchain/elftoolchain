@@ -111,13 +111,14 @@ static int
 _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t rc)
 {
 	int ec;
-	size_t fsz, msz;
 	Elf_Data *d;
-	Elf32_Shdr *shdr32;
-	Elf64_Shdr *shdr64;
+	size_t fsz, msz;
 	uint32_t sh_type;
 	uint64_t d_align;
+	Elf32_Shdr *shdr32;
+	Elf64_Shdr *shdr64;
 	unsigned int elftype;
+	struct _Libelf_Data *ld;
 	uint64_t scn_size, scn_alignment;
 	uint64_t sh_align, sh_entsize, sh_offset, sh_size;
 
@@ -191,7 +192,9 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t rc)
 	 */
 	scn_size = 0L;
 	scn_alignment = 0;
-	STAILQ_FOREACH(d, &s->s_data, d_next)  {
+	STAILQ_FOREACH(ld, &s->s_data, d_next)  {
+
+		d = &ld->d_data;
 
 		/*
 		 * The data buffer's type is known.
@@ -703,12 +706,13 @@ static size_t
 _libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
-	size_t fsz, msz, nobjects, rc;
-	uint32_t sh_type;
-	uint64_t sh_off, sh_size;
-	int elftype;
 	Elf_Scn *s;
+	int elftype;
 	Elf_Data *d, dst;
+	uint32_t sh_type;
+	struct _Libelf_Data *ld;
+	uint64_t sh_off, sh_size;
+	size_t fsz, msz, nobjects, rc;
 
 	assert(ex->ex_type == ELF_EXTENT_SECTION);
 
@@ -748,7 +752,10 @@ _libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
 		if ((d = elf_rawdata(s, NULL)) == NULL)
 			return ((off_t) -1);
 
-		STAILQ_FOREACH(d, &s->s_rawdata, d_next) {
+		STAILQ_FOREACH(ld, &s->s_rawdata, d_next) {
+
+			d = &ld->d_data;
+
 			if ((uint64_t) rc < sh_off + d->d_off)
 				(void) memset(nf + rc,
 				    LIBELF_PRIVATE(fillchar), sh_off +
@@ -776,7 +783,9 @@ _libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
 
 	dst.d_version = e->e_version;
 
-	STAILQ_FOREACH(d, &s->s_data, d_next) {
+	STAILQ_FOREACH(ld, &s->s_data, d_next) {
+
+		d = &ld->d_data;
 
 		msz = _libelf_msize(d->d_type, ec, e->e_version);
 

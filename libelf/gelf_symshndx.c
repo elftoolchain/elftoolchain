@@ -39,15 +39,19 @@ gelf_getsymshndx(Elf_Data *d, Elf_Data *id, int ndx, GElf_Sym *dst,
 {
 	int ec;
 	Elf *e;
-	Elf_Scn *scn;
 	size_t msz;
+	Elf_Scn *scn;
 	uint32_t sh_type;
+	struct _Libelf_Data *ld, *lid;
+
+	ld = (struct _Libelf_Data *) d;
+	lid = (struct _Libelf_Data *) id;
 
 	if (gelf_getsym(d, ndx, dst) == 0)
 		return (NULL);
 
-	if (id == NULL || (scn = id->d_scn) == NULL ||
-	    (e = scn->s_elf) == NULL || (e != d->d_scn->s_elf) ||
+	if (lid == NULL || (scn = lid->d_scn) == NULL ||
+	    (e = scn->s_elf) == NULL || (e != ld->d_scn->s_elf) ||
 	    shindex == NULL) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (NULL);
@@ -87,15 +91,18 @@ gelf_update_symshndx(Elf_Data *d, Elf_Data *id, int ndx, GElf_Sym *gs,
 {
 	int ec;
 	Elf *e;
-	Elf_Scn *scn;
 	size_t msz;
+	Elf_Scn *scn;
 	uint32_t sh_type;
+	struct _Libelf_Data *ld, *lid;
+
+	lid = (struct _Libelf_Data *) id;
 
 	if (gelf_update_sym(d, ndx, gs) == 0)
 		return (0);
 
-	if (id == NULL || (scn = id->d_scn) == NULL ||
-	    (e = scn->s_elf) == NULL || (e != d->d_scn->s_elf)) {
+	if (lid == NULL || (scn = lid->d_scn) == NULL ||
+	    (e = scn->s_elf) == NULL || (e != ld->d_scn->s_elf)) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return (0);
 	}
