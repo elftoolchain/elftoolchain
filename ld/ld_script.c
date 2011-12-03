@@ -57,6 +57,21 @@ ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
 }
 
 void
+ld_script_group(struct ld *ld, struct ld_script_list *list)
+{
+	struct ld_script_list *ldl;
+
+	ld->ld_ls.ls_group_level++;
+	ldl = list;
+	while (ldl != NULL) {
+		ld_file_add(ld, ldl->ldl_entry, LFT_UNKNOWN);
+		ldl = ldl->ldl_next;
+	}
+	ld->ld_ls.ls_group_level--;
+	ld_script_list_free(list);
+}
+
+void
 ld_script_init(struct ld *ld)
 {
 

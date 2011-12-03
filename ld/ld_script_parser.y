@@ -516,7 +516,9 @@ force_common_allocation_command
 	;
 
 group_command
-	: T_GROUP '(' ident_list ')'
+	: T_GROUP '(' ident_list ')' {
+		 ld_script_group(ld, ld_script_list_reverse($3));
+	}
 	;
 
 inhibit_common_allocation_command
