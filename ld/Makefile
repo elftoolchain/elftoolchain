@@ -5,7 +5,8 @@ TOP=	..
 PROG=	ld
 WARNS?=	6
 
-SRCS=	ld_error.c 		\
+SRCS=	amd64.c			\
+	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
 	ld_layout.c		\
@@ -14,15 +15,16 @@ SRCS=	ld_error.c 		\
 	ld_script_lexer.l	\
 	ld_script_parser.y	\
 	ld_symbols.c		\
-	ld_script.c		\
 	y.tab.h
 
 LD_SCRIPT=	amd64.ld
 
-ld_script.c:	${LD_SCRIPT}
+amd64.c:	amd64.ld
 	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
 
-CLEANFILES+=	ld_script.c y.tab.h
+GENSRCS=	amd64.c
+
+CLEANFILES+=	y.tab.h ${GENSRCS}
 
 DPADD=	${LIBELFTC} ${LIBELF}
 LDADD=	-lelftc -lelf
