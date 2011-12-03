@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,19 +26,19 @@
  * $Id$
  */
 
-enum _ld_dash {
+enum ld_dash {
         ONE_DASH,
 	TWO_DASH,
 	ANY_DASH
 };
 
-enum _ld_arg {
+enum ld_arg {
 	NO_ARG,
 	REQ_ARG,
 	OPT_ARG
 };
 
-enum _ld_key {
+enum ld_key {
 	KEY_ACCPET_UNKNOWN = 0x10000,
 	KEY_ALLOW_SHLIB_UNDEF,
 	KEY_ASSERT,
@@ -130,9 +130,14 @@ enum _ld_key {
 	KEY_FILE = 0x10000000,
 };
 
-struct _ld_option {
+struct ld_wildcard {
+	char *lw_name;			/* wildcard */
+	unsigned lw_sort;		/* sort mode */
+};
+
+struct ld_option {
 	const char *lo_long;
 	int lo_key;
-	enum _ld_dash lo_dash;
-	enum _ld_arg lo_arg;
+	enum ld_dash lo_dash;
+	enum ld_arg lo_arg;
 };

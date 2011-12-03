@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@ ELFTC_VCSID("$Id$");
  * Support routines for parsing command line options.
  */
 
-static const char *_ld_short_opts =
+static const char *ld_short_opts =
     "b:c:e:Ef:Fgh:iIl:L:m:M:nNo:O::qrR:sStT:xXyY:u:v()";
 
-static struct _ld_option _ld_opts[] = {
+static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"adefault", KEY_DYNAMIC, ONE_DASH, NO_ARG},
 	{"ashared", KEY_DYNAMIC, ONE_DASH, NO_ARG},
@@ -150,7 +150,7 @@ static struct _ld_option _ld_opts[] = {
 	{NULL, 0, 0, 0},
 };
 
-static struct _ld_option _ld_opts_B[] = {
+static struct ld_option ld_opts_B[] = {
 	{"shareable", KEY_SHARED, ONE_DASH, NO_ARG},
 	{"static", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"dynamic", KEY_DYNAMIC, ONE_DASH, NO_ARG},
@@ -159,7 +159,7 @@ static struct _ld_option _ld_opts_B[] = {
 	{"symbolic_functions", KEY_SYMBOLIC_FUNC, ONE_DASH, NO_ARG},
 };
 
-static struct _ld_option _ld_opts_z[] = {
+static struct ld_option ld_opts_z[] = {
 	{"nodefaultlib", KEY_Z_NO_DEFAULT_LIB, ONE_DASH, NO_ARG},
 	{"allextract", KEY_WHOLE_ARCHIVE, ONE_DASH, NO_ARG},
 	{"defaultextract", KEY_Z_DEFAULT_EXTRACT, ONE_DASH, NO_ARG},
@@ -180,12 +180,12 @@ static struct _ld_option _ld_opts_z[] = {
 };
 
 static void	ld_options_process(struct ld *ld, int key, char *arg);
-static int	ld_options_parse_long(struct ld *, struct _ld_option *, int,
-		    int, char **, char *, enum _ld_dash);
+static int	ld_options_parse_long(struct ld *, struct ld_option *, int,
+		    int, char **, char *, enum ld_dash);
 void
 ld_options_parse(struct ld* ld, int argc, char **argv)
 {
-	enum _ld_dash d;
+	enum ld_dash d;
 	char *p, *p0, *oli;
 	int ac, ac0;
 
@@ -213,7 +213,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 				if (*(p0 = p + 1) == '\0')
 					p0 = argv[++ac0];
 				ac = ld_options_parse_long(ld,
-				    *p == 'B' ? _ld_opts_B : _ld_opts_z,
+				    *p == 'B' ? ld_opts_B : ld_opts_z,
 				    ac0, argc, argv, p0, d);
 				if (ac > 0)
 					continue;
@@ -222,7 +222,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 			}
 		}
 
-		ac0 = ld_options_parse_long(ld, _ld_opts, ac, argc, argv, p, d);
+		ac0 = ld_options_parse_long(ld, ld_opts, ac, argc, argv, p, d);
 		if (ac0 > 0) {
 			ac = ac0;
 			continue;
@@ -235,7 +235,7 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 		 * Search short options.
 		 */
 		while (*p != '\0') {
-			if ((oli = strchr(_ld_short_opts, *p)) == NULL)
+			if ((oli = strchr(ld_short_opts, *p)) == NULL)
 				ld_fatal(ld, "unrecognized option -%c", *p);
 			if (*++oli != ':') {
 				ld_options_process(ld, *p++, NULL);
@@ -257,8 +257,8 @@ ld_options_parse(struct ld* ld, int argc, char **argv)
 }
 
 static int
-ld_options_parse_long(struct ld *ld, struct _ld_option *opts, int ac,
-    int argc, char **argv, char *opt, enum _ld_dash dash)
+ld_options_parse_long(struct ld *ld, struct ld_option *opts, int ac,
+    int argc, char **argv, char *opt, enum ld_dash dash)
 {
 	char *equal;
 	size_t av_len;

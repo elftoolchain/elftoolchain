@@ -26,11 +26,6 @@
  * $Id$
  */
 
-struct ld_wildcard {
-	char *lw_name;			/* wildcard */
-	unsigned lw_sort;		/* sort mode */
-};
-
 struct ld_input_section {
 	char *is_name;			/* section name */
 	struct ld_file *is_file;	/* containing file */
