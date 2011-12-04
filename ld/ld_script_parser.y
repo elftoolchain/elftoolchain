@@ -554,7 +554,7 @@ nocrossrefs_command
 	;
 
 output_command
-	: T_OUTPUT '(' ident ')'
+	: T_OUTPUT '(' ident ')' { ld_script_output(ld, $3); }
 	;
 
 output_arch_command

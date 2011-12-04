@@ -178,6 +178,17 @@ ld_script_list_reverse(struct ld_script_list *list)
 	return (root);
 }
 
+void
+ld_script_output(struct ld *ld, char *name)
+{
+
+	if (ld->ld_output != NULL) {
+		free(name);
+		return;
+	}
+	ld->ld_output = name;
+}
+
 static void
 _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 {
