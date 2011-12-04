@@ -44,20 +44,28 @@ ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 	a->lda_exp = exp;
 	a->lda_msg = msg;
 
-	ld_script_cmd(ld, &ld->ld_scp->lds_c, LSS_ASSERT, a);
+	ld_script_cmd_insert(&ld->ld_scp->lds_c,
+	    ld_script_cmd(ld, LSS_ASSERT, a));
+}
+
+struct ld_script_cmd *
+ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
+{
+	struct ld_script_cmd *ldc;
+
+	if ((ldc = calloc(1, sizeof(*ldc))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	ldc->ldc_type = type;
+	ldc->ldc_cmd = cmd;
+
+	return (ldc);
 }
 
 void
-ld_script_cmd(struct ld *ld, struct ld_script_cmd_head *head,
-    enum ld_script_cmd_type type, void *cmd)
+ld_script_cmd_insert(struct ld_script_cmd_head *head, struct ld_script_cmd *ldc)
 {
-	struct ld_script_cmd *c;
 
-	if ((c = calloc(1, sizeof(*c))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	c->ldc_type = type;
-	c->ldc_cmd = cmd;
-	STAILQ_INSERT_TAIL(head, c, ldc_next);
+	STAILQ_INSERT_TAIL(head, ldc, ldc_next);
 }
 
 void
@@ -191,10 +199,10 @@ ld_script_nocrossrefs(struct ld *ld, struct ld_script_list *list)
 }
 
 void
-ld_script_sections_output(struct ld *ld, struct ld_script_sections *ldss,
+ld_script_sections_output(struct ld *ld, struct ld_script_cmd_head *head,
     char *name, struct ld_script_list *addr_and_type, struct ld_exp *lma,
     struct ld_exp *align, struct ld_exp *subalign, char *constraint,
-    struct ld_script_cmd_head *cmd, char *region, char *lma_region,
+    struct ld_script_cmd_head *ldso_c, char *region, char *lma_region,
     struct ld_script_list *phdr, struct ld_exp *fill)
 {
 	struct ld_script_sections_output *ldso;
@@ -209,13 +217,55 @@ ld_script_sections_output(struct ld *ld, struct ld_script_sections *ldss,
 	ldso->ldso_align = align;
 	ldso->ldso_subalign = subalign;
 	ldso->ldso_constraint = constraint;
-	memcpy(&ldso->ldso_c, cmd, sizeof(*cmd));
+	memcpy(&ldso->ldso_c, ldso_c, sizeof(*ldso_c));
 	ldso->ldso_region = region;
 	ldso->ldso_lma_region = lma_region;
 	ldso->ldso_phdr = phdr;
 	ldso->ldso_fill = fill;
 
-	ld_script_cmd(ld, &ldss->ldss_c, LSS_SECTIONS_OUTPUT, ldso);
+	ld_script_cmd_insert(head,
+	    ld_script_cmd(ld, LSS_SECTIONS_OUTPUT, ldso));
+}
+
+void
+ld_script_section_overlay(struct ld *ld, struct ld_script_cmd_head *head,
+    struct ld_exp *addr, int64_t nocrossref, struct ld_exp *lma,
+    struct ld_script_list *ldl, char *region, struct ld_script_list *phdr,
+    struct ld_exp *fill)
+{
+	struct ld_script_sections_overlay *ldso;
+
+	if ((ldso = malloc(sizeof(*ldso))) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	ldso->ldso_vma = addr;
+	ldso->ldso_nocrossref = !!nocrossref;
+	ldso->ldso_lma = lma;
+	ldso->ldso_s = ldl;
+	ldso->ldso_region = region;
+	ldso->ldso_phdr = phdr;
+	ldso->ldso_fill = fill;
+
+	ld_script_cmd_insert(head,
+	    ld_script_cmd(ld, LSS_SECTIONS_OVERLAY, ldso));
+}
+
+struct ld_script_sections_overlay_section *
+ld_script_sections_overlay_section(struct ld *ld, char *name,
+    struct ld_script_cmd_head *ldos_c, struct ld_script_list *phdr,
+    struct ld_exp *fill)
+{
+	struct ld_script_sections_overlay_section *ldos;
+
+	if ((ldos = malloc(sizeof(*ldos))) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	ldos->ldos_name = name;
+	memcpy(&ldos->ldos_c, ldos_c, sizeof(*ldos_c));
+	ldos->ldos_phdr = phdr;
+	ldos->ldos_fill = fill;
+
+	return (ldos);
 }
 
 static void

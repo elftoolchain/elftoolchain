@@ -149,21 +149,19 @@ struct ld_script_sections_output {
 
 struct ld_script_sections_overlay_section {
 	char *ldos_name;		/* overlay section name */
-	char *ldos_phdr;		/* overlay section segment */
+	struct ld_script_list *ldos_phdr; /* overlay section segment */
 	struct ld_exp *ldos_fill;	/* overlay section fill exp */
-	STAILQ_ENTRY(ld_script_sections_overlay_section) ldos_next;
-					/* next section */
+	struct ld_script_cmd_head ldos_c; /* output section cmd list */
 };
 
 struct ld_script_sections_overlay {
-	uint64_t ldso_vma;		/* overlay vma */
-	uint64_t ldso_lma;		/* overlay lma */
-	unsigned nocrossref;		/* no corss-ref between sections */
-	struct ld_script_region *ldso_region; /* overlay region */
-	char *ldso_phdr;		/* overlay segment */
+	struct ld_exp *ldso_vma;	/* overlay vma */
+	struct ld_exp *ldso_lma;	/* overlay lma */
+	unsigned ldso_nocrossref;	/* no corss-ref between sections */
+	char *ldso_region; 		/* overlay region */
+	struct ld_script_list *ldso_phdr; /* overlay segment */
 	struct ld_exp *ldso_fill;	/* overlay fill exp */
-	STAILQ_HEAD(, ld_script_setions_overlay_section) ldso_s;
-					/* overlay section list */
+	struct ld_script_list *ldso_s;	/* overlay section list */
 };
 
 struct ld_script_sections {
@@ -179,8 +177,10 @@ struct ld_script {
 };
 
 void	ld_script_assert(struct ld *, struct ld_exp *, char *);
-void	ld_script_cmd(struct ld *, struct ld_script_cmd_head *,
-    enum ld_script_cmd_type, void *);
+struct ld_script_cmd *ld_script_cmd(struct ld *, enum ld_script_cmd_type,
+    void *);
+void	ld_script_cmd_insert(struct ld_script_cmd_head *,
+    struct ld_script_cmd *);
 void	ld_script_extern(struct ld *, struct ld_script_list *);
 void	ld_script_group(struct ld *, struct ld_script_list *);
 void	ld_script_init(struct ld *);
@@ -192,7 +192,13 @@ struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
 void	ld_script_list_free(struct ld_script_list *);
 struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
-void	ld_script_sections_output(struct ld *, struct ld_script_sections *,
+void	ld_script_sections_output(struct ld *, struct ld_script_cmd_head *,
     char *, struct ld_script_list *, struct ld_exp *, struct ld_exp *,
     struct ld_exp *, char *, struct ld_script_cmd_head *, char *, char *,
     struct ld_script_list *, struct ld_exp *);
+void ld_script_section_overlay(struct ld *, struct ld_script_cmd_head *,
+    struct ld_exp *, int64_t, struct ld_exp *, struct ld_script_list *,
+    char *, struct ld_script_list *, struct ld_exp *);
+struct ld_script_sections_overlay_section *ld_script_sections_overlay_section(
+    struct ld *, char *, struct ld_script_cmd_head *, struct ld_script_list *,
+    struct ld_exp *);

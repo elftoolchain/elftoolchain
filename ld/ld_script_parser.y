@@ -47,8 +47,7 @@ extern char *ldscript_default;
 
 static void yyerror(const char *s);
 static void _init_script(void);
-static struct ld_script_sections ldss;
-static struct ld_script_cmd_head ldso_c;
+static struct ld_script_cmd_head ldss_c, ldso_c;
 
 %}
 
@@ -192,6 +191,7 @@ static struct ld_script_cmd_head ldso_c;
 %type <exp> output_section_fillexp
 %type <exp> output_section_lma
 %type <exp> output_section_subalign
+%type <exp> overlay_vma
 %type <exp> segment_start_function
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
@@ -203,7 +203,10 @@ static struct ld_script_cmd_head ldso_c;
 %type <list> input_file_list
 %type <list> output_section_addr_and_type
 %type <list> output_section_phdr
+%type <list> overlay_section_list
 %type <list> wildcard_list
+%type <num> overlay_nocref
+%type <overlay_section> overlay_section
 %type <str> ident
 %type <str> output_section_constraint
 %type <str> output_section_lma_region
@@ -217,9 +220,10 @@ static struct ld_script_cmd_head ldso_c;
 %union {
 	struct ld_script_list *list;
 	struct ld_script_input_file *input_file;
+	struct ld_script_sections_overlay_section *overlay_section;
 	struct ld_exp *exp;
 	char *str;
-	intmax_t num;
+	int64_t num;
 }
 
 %%
@@ -663,7 +667,7 @@ output_sections_desc
 	output_section_lma_region
 	output_section_phdr
 	output_section_fillexp {
-		ld_script_sections_output(ld, &ldss, $1, $2, $4, $5, $6, $7,
+		ld_script_sections_output(ld, &ldss_c, $1, $2, $4, $5, $6, $7,
 		    &ldso_c, $11, $12, ld_script_list_reverse($13), $14);
 		STAILQ_INIT(&ldso_c);
 	}
@@ -792,63 +796,44 @@ overlay_desc
 	: T_OVERLAY
 	overlay_vma ':'
 	overlay_nocref
-	overlay_lma
+	output_section_lma
 	'{' overlay_section_list '}'
-	overlay_region
-	overlay_phdr
-	overlay_fill
+	output_section_region
+	output_section_phdr
+	output_section_fillexp {
+		ld_script_section_overlay(ld, &ldss_c, $2, $4, $5, $7, $9,
+		    $10, $11);
+	}
 	;
 
 overlay_vma
 	: expression
-	|
+	| { $$ = NULL; }
 	;
 
 overlay_nocref
-	: T_NOCROSSREFS
-	|
-	;
-
-overlay_lma
-	: T_AT '(' expression ')'
-	|
+	: T_NOCROSSREFS { $$ = 1; }
+	| { $$ = 0; }
 	;
 
 overlay_section_list
-	: overlay_section
-	| overlay_section_list overlay_section
+	: overlay_section {
+		$$ = ld_script_list(ld, NULL, $1);
+	}
+	| overlay_section_list overlay_section {
+		$$ = ld_script_list(ld, $1, $2);
+	}
 	;
 
 overlay_section
 	: ident
 	'{' output_section_command_list '}'
-	overlay_section_phdr
-	overlay_section_fill
-	;
-
-overlay_section_phdr
-	: overlay_section_phdr ':' ident
-	|
-	;
-
-overlay_section_fill
-	: '=' expression
-	|
-	;
-
-overlay_region
-	: '>' ident
-	|
-	;
-
-overlay_phdr
-	: overlay_phdr ':' ident
-	|
-	;
-
-overlay_fill
-	: '=' expression
-	|
+	output_section_phdr
+	output_section_fillexp {
+		$$ = ld_script_sections_overlay_section(ld, $1, &ldso_c, $5,
+		    $6);
+		STAILQ_INIT(&ldso_c);
+	}
 	;
 
 startup_command
@@ -979,7 +964,7 @@ static void
 _init_script(void)
 {
 
-	STAILQ_INIT(&ldss.ldss_c);
+	STAILQ_INIT(&ldss_c);
 	STAILQ_INIT(&ldso_c);
 }
 
