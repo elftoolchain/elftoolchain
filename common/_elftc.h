@@ -86,11 +86,19 @@
 } while (/*CONSTCOND*/0)
 #endif
 
+#ifndef	STAILQ_EMPTY
+#define	STAILQ_EMPTY(head)	((head)->stqh_first == NULL)
+#endif
+
 #ifndef	STAILQ_ENTRY
 #define	STAILQ_ENTRY(type)					\
 struct {							\
 	struct type *stqe_next;	/* next element */		\
 }
+#endif
+
+#ifndef	STAILQ_FIRST
+#define	STAILQ_FIRST(head)	((head)->stqh_first)
 #endif
 
 #ifndef	STAILQ_HEAD
@@ -156,6 +164,10 @@ struct name {							\
 	(STAILQ_EMPTY((head)) ?					\
 	    NULL : ((struct type *)(void *)				\
 	    ((char *)((head)->stqh_last) - offsetof(struct type, field))))
+#endif
+
+#ifndef	STAILQ_NEXT
+#define	STAILQ_NEXT(elm, field)	((elm)->field.stqe_next)
 #endif
 
 #ifndef	STAILQ_REMOVE
@@ -224,6 +236,14 @@ struct name {							\
 #define	ELFTC_VCSID(ID)		__RCSID(ID)
 #endif
 
+#if defined(__OpenBSD__)
+#if defined(__GNUC__)
+#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
+#else
+#define	ELFTC_VCSID(ID)		/**/
+#endif	/* __GNUC__ */
+#endif
+
 #endif	/* ELFTC_VCSID */
 
 /*
@@ -253,6 +273,15 @@ extern const char *program_invocation_short_name;
 #define	ELFTC_GETPROGNAME()	program_invocation_short_name
 
 #endif	/* __linux__ */
+
+
+#if defined(__OpenBSD__)
+
+extern const char *__progname;
+
+#define	ELFTC_GETPROGNAME()	__progname
+
+#endif	/* __OpenBSD__ */
 
 #endif	/* ELFTC_GETPROGNAME */
 
@@ -336,5 +365,23 @@ extern const char *program_invocation_short_name;
 #  define ELFTC_BROKEN_YY_NO_INPUT		1
 #endif
 #endif	/* __NetBSD __ */
+
+
+#if defined(__OpenBSD__)
+
+#include <sys/param.h>
+#include <sys/endian.h>
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#define	ELFTC_HAVE_MMAP				1
+#define	ELFTC_HAVE_STRMODE			1
+
+#define	ELFTC_NEED_BYTEORDER_EXTENSIONS		1
+#define	roundup2	roundup
+
+#endif	/* __OpenBSD__ */
 
 #endif	/* _ELFTC_H */
