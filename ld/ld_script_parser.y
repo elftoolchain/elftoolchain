@@ -507,7 +507,7 @@ entry_command
 	;
 
 extern_command
-	: T_EXTERN '(' ident_list_nosep ')'
+	: T_EXTERN '(' ident_list_nosep ')' { ld_script_extern(ld, $3); }
 	;
 
 force_common_allocation_command
@@ -603,8 +603,10 @@ region_alias_command
 	;
 
 search_dir_command
-	: T_SEARCH_DIR '(' ident ')'
-	{ ld_file_add_library_path(ld, $3); }
+	: T_SEARCH_DIR '(' ident ')' {
+		ld_file_add_library_path(ld, $3);
+		free($3);
+	}
 	;
 
 sections_command

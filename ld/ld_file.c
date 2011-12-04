@@ -188,7 +188,9 @@ ld_file_add_library_path(struct ld *ld, char *path)
 	if ((lp = calloc(1, sizeof(*lp))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	lp->lp_path = path;
+	if ((lp->lp_path = strdup(path)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
 	STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
 }
 

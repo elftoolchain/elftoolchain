@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,4 +32,5 @@ struct ld_symbol {
 	UT_hash_handle hh;		/* hash handle */
 };
 
+void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_resolve(struct ld *);

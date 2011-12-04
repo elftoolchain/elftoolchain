@@ -28,6 +28,7 @@
 #include "ld_options.h"
 #include "ld_script.h"
 #include "ld_file.h"
+#include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -56,6 +57,19 @@ ld_script_cmd(struct ld *ld, enum ld_script_cmd_type type, void *cmd)
 	c->ldc_type = type;
 	c->ldc_cmd = cmd;
 	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_c, c, ldc_next);
+}
+
+void
+ld_script_extern(struct ld *ld, struct ld_script_list *list)
+{
+	struct ld_script_list *ldl;
+
+	ldl = list;
+	while (ldl != NULL) {
+		ld_symbols_add_extern(ld, ldl->ldl_entry);
+		ldl = ldl->ldl_next;
+	}
+	ld_script_list_free(list);
 }
 
 void

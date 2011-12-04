@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_file.h"
+#include "ld_symbols.h"
 #include "ld_options.h"
 
 ELFTC_VCSID("$Id$");
@@ -332,10 +333,13 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		ld_file_add_library(ld, arg);
 		break;
 	case 'L':
-		ld_file_add_library_path(ld, strdup(arg));
+		ld_file_add_library_path(ld, arg);
 		break;
 	case 'T':
 		ld_script_parse(arg);
+		break;
+	case 'u':
+		ld_symbols_add_extern(ld, arg);
 		break;
 	case '(':
 		ls->ls_group_level++;

@@ -178,6 +178,7 @@ struct ld_script {
 
 void	ld_script_assert(struct ld *, struct ld_exp *, char *);
 void	ld_script_cmd(struct ld *, enum ld_script_cmd_type, void *);
+void	ld_script_extern(struct ld *, struct ld_script_list *);
 void	ld_script_group(struct ld *, struct ld_script_list *);
 void	ld_script_init(struct ld *);
 void	ld_script_input(struct ld *, struct ld_script_list *);

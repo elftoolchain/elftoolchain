@@ -132,8 +132,7 @@ ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
 	if ((lsb = calloc(1, sizeof(*lsb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	lsb->lsb_name = strdup(name);
-	if (lsb->lsb_name == NULL)
+	if ((lsb->lsb_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 	lsb->lsb_size = sym->st_size;
 
@@ -294,4 +293,21 @@ ld_symbols_warn_muldef(struct ld *ld, struct ld_symbol *lsb, GElf_Sym *sym)
 	(void) sym;
 
 	ld_warn(ld, "multiple definition of symbol %s", lsb->lsb_name);
+}
+
+void
+ld_symbols_add_extern(struct ld *ld, char *name)
+{
+	struct ld_symbol *lsb;
+
+	if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
+		return;
+
+	if ((lsb = calloc(1, sizeof(*lsb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((lsb->lsb_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	_symbol_add(ld->ld_symtab_undef, lsb);
 }
