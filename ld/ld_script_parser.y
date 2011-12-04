@@ -503,7 +503,11 @@ assert_command
 	;
 
 entry_command
-	: T_ENTRY '(' ident ')'
+	: T_ENTRY '(' ident ')' {
+		if (ld->ld_scp_entry != NULL)
+			free(ld->ld_scp_entry);
+		ld->ld_scp_entry = $3;
+	}
 	;
 
 extern_command
@@ -554,7 +558,12 @@ nocrossrefs_command
 	;
 
 output_command
-	: T_OUTPUT '(' ident ')' { ld_script_output(ld, $3); }
+	: T_OUTPUT '(' ident ')' {
+		if (ld->ld_output == NULL)
+			ld->ld_output = $3;
+		else
+			free($3);
+	}
 	;
 
 output_arch_command

@@ -74,6 +74,8 @@ struct ld_state {
 struct ld {
 	const char *ld_progname;	/* ld(1) program name */
 	char *ld_output;		/* output file name */
+	char *ld_entry;			/* entry point set by -e */
+	char *ld_scp_entry;		/* entry point set by linker script */
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_ls;		/* linker state */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */

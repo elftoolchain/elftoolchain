@@ -329,6 +329,12 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		if (ls->ls_itgt == NULL)
 			ld_fatal(ld, "invalid BFD target `%s'", arg);
 		break;
+	case 'e':
+		if (ld->ld_entry != NULL)
+			free(ld->ld_entry);
+		if ((ld->ld_entry = strdup(arg)) == NULL)
+			ld_fatal_std(ld, "strdup");
+		break;
 	case 'l':
 		ld_file_add_library(ld, arg);
 		break;
