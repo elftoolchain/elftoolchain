@@ -96,6 +96,7 @@ gelf_update_symshndx(Elf_Data *d, Elf_Data *id, int ndx, GElf_Sym *gs,
 	uint32_t sh_type;
 	struct _Libelf_Data *ld, *lid;
 
+	ld = (struct _Libelf_Data *) d;
 	lid = (struct _Libelf_Data *) id;
 
 	if (gelf_update_sym(d, ndx, gs) == 0)
