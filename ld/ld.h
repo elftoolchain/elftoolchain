@@ -80,6 +80,8 @@ struct ld {
 	struct ld_state ld_ls;		/* linker state */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */
 	struct ld_symbol *ld_symtab_undef; /* undefined symbols */
+	unsigned ld_common_alloc;	/* always alloc space for common sym */
+	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
 

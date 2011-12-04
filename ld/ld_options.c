@@ -329,6 +329,9 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		if (ls->ls_itgt == NULL)
 			ld_fatal(ld, "invalid BFD target `%s'", arg);
 		break;
+	case 'd':
+		ld->ld_common_alloc = 1;
+		break;
 	case 'e':
 		if (ld->ld_entry != NULL)
 			free(ld->ld_entry);
@@ -367,6 +370,9 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_NO_AS_NEEDED:
 		ls->ls_as_needed = 0;
+		break;
+	case KEY_NO_DEFINE_COMMON:
+		ld->ld_common_no_alloc = 1;
 		break;
 	case KEY_NO_WHOLE_ARCHIVE:
 		ls->ls_whole_archive = 0;

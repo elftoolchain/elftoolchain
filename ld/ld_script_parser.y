@@ -515,7 +515,7 @@ extern_command
 	;
 
 force_common_allocation_command
-	: T_FORCE_COMMON_ALLOCATION
+	: T_FORCE_COMMON_ALLOCATION { ld->ld_common_alloc = 1; }
 	;
 
 group_command
@@ -525,7 +525,7 @@ group_command
 	;
 
 inhibit_common_allocation_command
-	: T_INHIBIT_COMMON_ALLOCATION
+	: T_INHIBIT_COMMON_ALLOCATION { ld->ld_common_no_alloc = 1; }
 	;
 
 input_command
