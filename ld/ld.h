@@ -57,9 +57,6 @@ struct ld_symbol;
 #define	LD_MAX_NESTED_GROUP	16
 
 struct ld_state {
-	/*
-	 * State variables for command line options parsing stage.
-	 */
 	Elftc_Bfd_Target *ls_itgt;	/* input bfd target set by -b */
 	unsigned ls_static;		/* use static library */
 	unsigned ls_whole_archive;	/* include whole archive */

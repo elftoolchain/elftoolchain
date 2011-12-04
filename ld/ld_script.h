@@ -94,7 +94,7 @@ struct ld_script_input_file {
 
 struct ld_script_nocrossref {
 	struct ld_script_list *ldn_l;	/* nocrossref sections */
-	STAILQ_ENTRY(ld_script_nocrossref) *ldn_next; /* next nocrossref */
+	STAILQ_ENTRY(ld_script_nocrossref) ldn_next; /* next nocrossref */
 };
 
 struct ld_script_region {
@@ -188,4 +188,4 @@ struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
     void *);
 void	ld_script_list_free(struct ld_script_list *);
 struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
-void	ld_script_output(struct ld *, char *);
+void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);

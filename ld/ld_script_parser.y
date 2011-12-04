@@ -554,7 +554,9 @@ memory_attr
 	;
 
 nocrossrefs_command
-	: T_NOCROSSREFS '(' ident_list_nosep ')'
+	: T_NOCROSSREFS '(' ident_list_nosep ')' {
+		ld_script_nocrossrefs(ld, $3);
+	}
 	;
 
 output_command

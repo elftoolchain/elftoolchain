@@ -178,6 +178,17 @@ ld_script_list_reverse(struct ld_script_list *list)
 	return (root);
 }
 
+void
+ld_script_nocrossrefs(struct ld *ld, struct ld_script_list *list)
+{
+	struct ld_script_nocrossref *ldn;
+
+	if ((ldn = calloc(1, sizeof(*ldn))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	ldn->ldn_l = list;
+	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_n, ldn, ldn_next);
+}
+
 static void
 _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 {
