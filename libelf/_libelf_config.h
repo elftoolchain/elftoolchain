@@ -135,6 +135,16 @@
 
 #endif	/* __NetBSD__ */
 
+#if defined(__OpenBSD__)
+
+#include <machine/exec.h>
+
+#define	LIBELF_ARCH		ELF_TARG_MACH
+#define	LIBELF_BYTEORDER	ELF_TARG_DATA
+#define	LIBELF_CLASS		ELF_TARG_CLASS
+
+#endif
+
 /*
  * GNU & Linux compatibility.
  *
