@@ -64,6 +64,7 @@ struct ld_path {
 };
 
 void	ld_file_add(struct ld *, const char *, enum ld_file_type);
+void	ld_file_add_first(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_library(struct ld *, const char *);
 void	ld_file_add_library_path(struct ld *, char *);
 void	ld_file_load(struct ld *, struct ld_file *);

@@ -813,7 +813,10 @@ overlay_fill
 	;
 
 startup_command
-	: T_STARTUP '(' ident ')'
+	: T_STARTUP '(' ident ')' {
+		ld_file_add_first(ld, $3, LFT_UNKNOWN);
+		free($3);
+	}
 	;
 
 target_command

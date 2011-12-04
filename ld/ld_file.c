@@ -33,87 +33,22 @@ ELFTC_VCSID("$Id$");
  * Support routines for input file handling.
  */
 
-static void _file_search(struct ld *ld, struct ld_file *lf);
+static void _add_file(struct ld *ld, const char *name, enum ld_file_type type,
+    int first);
+static void _search_file(struct ld *ld, struct ld_file *lf);
 
 void
 ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 {
-	struct ld_state *ls;
-	struct ld_file *lf;
-	int fd;
 
-	assert(ld != NULL && name != NULL);
-
-	if (!strncmp(name, "-l", 2))
-		ld_file_add_library(ld, &name[2]);
-
-	ls = &ld->ld_ls;
-
-	if ((lf = calloc(1, sizeof(*lf))) == NULL)
-		ld_fatal_std(ld, "calloc");
-
-	if ((lf->lf_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "strdup");
-
-	lf->lf_type = type;
-	lf->lf_whole_archive = ls->ls_whole_archive;
-	lf->lf_as_needed = ls->ls_as_needed;
-	lf->lf_group_level = ls->ls_group_level;
-	lf->lf_search_dir = ls->ls_search_dir;
-
-	if ((fd = open(lf->lf_name, O_RDONLY)) < 0) {
-		if (!lf->lf_search_dir)
-			ld_fatal_std(ld, "%s: open", lf->lf_name);
-		/* Search library path for this file. */
-		_file_search(ld, lf);
-	} else
-		(void) close(fd);
-
-	if (lf->lf_type == LFT_UNKNOWN && ls->ls_itgt != NULL) {
-		if (elftc_bfd_target_flavor(ls->ls_itgt) == ETF_BINARY)
-			lf->lf_type = LFT_BINARY;
-	}
-
-	TAILQ_INSERT_TAIL(&ld->ld_lflist, lf, lf_next);
+	_add_file(ld, name, type, 0);
 }
 
-static void
-_file_search(struct ld *ld, struct ld_file *lf)
+void
+ld_file_add_first(struct ld *ld, const char *name, enum ld_file_type type)
 {
-	struct ld_state *ls;
-	struct ld_path *lp;
-	struct dirent *dp;
-	char fp[PATH_MAX + 1];
-	DIR *dirp;
-	int found;
 
-	ls = &ld->ld_ls;
-
-	fp[0] = '\0';
-	found = 0;
-	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
-		assert(lp->lp_path != NULL);
-		if ((dirp = opendir(lp->lp_path)) == NULL) {
-			ld_warn(ld, "opendir failed: %s", strerror(errno));
-			continue;
-		}
-
-		while ((dp = readdir(dirp)) != NULL) {
-			if (!strcmp(dp->d_name, lf->lf_name)) {
-				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
-				    dp->d_name);
-				free(lf->lf_name);
-				if ((lf->lf_name = strdup(fp)) == NULL)
-					ld_fatal_std(ld, "strdup");
-				found = 1;
-				goto done;
-			}
-		}
-		(void) closedir(dirp);
-	}
-done:
-	if (!found)
-		ld_fatal(ld, "cannot find %s", lf->lf_name);
+	_add_file(ld, name, type, 1);
 }
 
 void
@@ -275,4 +210,89 @@ ld_file_unload(struct ld *ld, struct ld_file *lf)
 		if (munmap(lf->lf_mmap, lf->lf_size) < 0)
 			ld_fatal_std(ld, "%s: munmap", lf->lf_name);
 	}
+}
+
+static void
+_add_file(struct ld *ld, const char *name, enum ld_file_type type,
+    int first)
+{
+	struct ld_state *ls;
+	struct ld_file *lf;
+	int fd;
+
+	assert(ld != NULL && name != NULL);
+
+	if (!strncmp(name, "-l", 2))
+		ld_file_add_library(ld, &name[2]);
+
+	ls = &ld->ld_ls;
+
+	if ((lf = calloc(1, sizeof(*lf))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((lf->lf_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	lf->lf_type = type;
+	lf->lf_whole_archive = ls->ls_whole_archive;
+	lf->lf_as_needed = ls->ls_as_needed;
+	lf->lf_group_level = ls->ls_group_level;
+	lf->lf_search_dir = ls->ls_search_dir;
+
+	if ((fd = open(lf->lf_name, O_RDONLY)) < 0) {
+		if (!lf->lf_search_dir)
+			ld_fatal_std(ld, "%s: open", lf->lf_name);
+		/* Search library path for this file. */
+		_search_file(ld, lf);
+	} else
+		(void) close(fd);
+
+	if (lf->lf_type == LFT_UNKNOWN && ls->ls_itgt != NULL) {
+		if (elftc_bfd_target_flavor(ls->ls_itgt) == ETF_BINARY)
+			lf->lf_type = LFT_BINARY;
+	}
+
+	if (first)
+		TAILQ_INSERT_HEAD(&ld->ld_lflist, lf, lf_next);
+	else
+		TAILQ_INSERT_TAIL(&ld->ld_lflist, lf, lf_next);
+}
+
+static void
+_search_file(struct ld *ld, struct ld_file *lf)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	struct dirent *dp;
+	char fp[PATH_MAX + 1];
+	DIR *dirp;
+	int found;
+
+	ls = &ld->ld_ls;
+
+	fp[0] = '\0';
+	found = 0;
+	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
+		assert(lp->lp_path != NULL);
+		if ((dirp = opendir(lp->lp_path)) == NULL) {
+			ld_warn(ld, "opendir failed: %s", strerror(errno));
+			continue;
+		}
+
+		while ((dp = readdir(dirp)) != NULL) {
+			if (!strcmp(dp->d_name, lf->lf_name)) {
+				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
+				    dp->d_name);
+				free(lf->lf_name);
+				if ((lf->lf_name = strdup(fp)) == NULL)
+					ld_fatal_std(ld, "strdup");
+				found = 1;
+				goto done;
+			}
+		}
+		(void) closedir(dirp);
+	}
+done:
+	if (!found)
+		ld_fatal(ld, "cannot find %s", lf->lf_name);
 }
