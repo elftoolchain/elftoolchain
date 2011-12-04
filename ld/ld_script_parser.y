@@ -46,6 +46,7 @@ extern struct ld *ld;
 extern char *ldscript_default;
 
 static void yyerror(const char *s);
+static void _init_script(void);
 static struct ld_script_sections ldss;
 static struct ld_script_cmd_head ldso_c;
 
@@ -974,12 +975,19 @@ yyerror(const char *s)
 	errx(1, "Syntax error in ld script, line %d\n", lineno);
 }
 
-void
-ld_script_parse(const char *name)
+static void
+_init_script(void)
 {
 
 	STAILQ_INIT(&ldss.ldss_c);
 	STAILQ_INIT(&ldso_c);
+}
+
+void
+ld_script_parse(const char *name)
+{
+
+	_init_script();
 
 	if ((yyin = fopen(name, "r")) == NULL)
 		ld_fatal_std(ld, "fopen %s name failed", name);
@@ -991,6 +999,8 @@ void
 ld_script_parse_internal(void)
 {
 	YY_BUFFER_STATE b;
+
+	_init_script();
 
 	b = yy_scan_string(ldscript_default);
 	if (yyparse() < 0)
