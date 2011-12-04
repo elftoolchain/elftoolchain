@@ -10,6 +10,8 @@
 clobber test:: _SUBDIR
 .elif ${OS_HOST} == FreeBSD
 SUBDIR_TARGETS+=	clobber test
+.elif ${OS_HOST} == OpenBSD
+clobber test:: _SUBDIRUSE
 .else		# NetBSD
 TARGETS+=	clobber test
 .endif
