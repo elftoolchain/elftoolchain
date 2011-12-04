@@ -17,6 +17,7 @@ operating systems.
   FreeBSD_            v8.2       amd64 & i386
   Minix_              3.0.2      i386
   NetBSD_             v5.0.2     i386
+  OpenBSD_            v5.0       i386
   Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
   =================   ========   =======================
 
@@ -24,6 +25,7 @@ operating systems.
 .. _FreeBSD: http://www.freebsd.org/
 .. _Minix:   http://www.minix3.org/
 .. _NetBSD:  http://www.netbsd.org/
+.. _OpenBSD: http://www.openbsd.org/
 .. _Ubuntu:  http://www.ubuntu.com/
 
 Building the Source Tree
@@ -91,6 +93,26 @@ Prerequisites
 
     - Building additional documentation is not currently supported
       under Minix.
+
+:OpenBSD 5.0:
+    - The following packages are pre-requisites for building the
+      sources on OpenBSD 5.0:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``libarchive``          An archive access library.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+          # pkg_add libarchive-2.8.4p0
+
+    - The test suites cannot currently be built under OpenBSD.
+
+    - Building additional documentation is not currently supported
+      under OpenBSD.
 
 :NetBSD 5.0.2:
     - The core libraries and utilities should build out of the box
@@ -197,7 +219,7 @@ Building the software
 
 The software may be built by running **make**.
 
-On `DragonFly BSD`_,  FreeBSD_, Minix_ and NetBSD_, use::
+On `DragonFly BSD`_,  FreeBSD_, Minix_, NetBSD_ and OpenBSD_, use::
 
   % make
 
@@ -225,7 +247,7 @@ Installing the Software
 
 The software may be installed using the ``install`` target.
 
-On `DragonFly BSD`_, FreeBSD_, Minix_ and NetBSD_, use::
+On `DragonFly BSD`_, FreeBSD_, Minix_, NetBSD_ and OpenBSD_ use::
 
     % make install
 
