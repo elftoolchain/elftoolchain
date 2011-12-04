@@ -67,6 +67,8 @@ struct ld_script_cmd {
 	STAILQ_ENTRY(ld_script_cmd) ldc_next; /* next cmd */
 };
 
+STAILQ_HEAD(ld_script_cmd_head, ld_script_cmd);
+
 struct ld_script_list {
 	void *ldl_entry;		/* list entry */
 	struct ld_script_list *ldl_next; /* next entry */
@@ -132,17 +134,17 @@ struct ld_script_sections_output_input {
 
 struct ld_script_sections_output {
 	char *ldso_name;		/* output section name */
-	unsigned ldso_type;		/* output section type */
-	uint64_t ldso_vma;		/* output section vma */
-	uint64_t ldso_lma;		/* output section lma */
-	uint64_t ldso_align;		/* output section align */
-	uint64_t ldso_subalign;		/* output sectino subalign */
-	unsigned ldso_constraint;	/* output section constraint */
-	struct ld_script_region *ldso_region; /* output section region */
-	struct ld_script_region *ldso_lma_region; /* output section lma region */
-	char *ldso_phdr;		/* output section segment */
+	char *ldso_type;		/* output section type */
+	struct ld_exp *ldso_vma;	/* output section vma */
+	struct ld_exp *ldso_lma;	/* output section lma */
+	struct ld_exp *ldso_align;	/* output section align */
+	struct ld_exp *ldso_subalign;	/* output sectino subalign */
+	char *ldso_constraint;		/* output section constraint */
+	char *ldso_region; 		/* output section region */
+	char *ldso_lma_region;		/* output section lma region */
+	struct ld_script_list *ldso_phdr; /* output section segment list */
 	struct ld_exp *ldso_fill;	/* output section fill exp */
-	STAILQ_HEAD(, ld_script_cmd) ldso_c; /* output section cmd list */
+	struct ld_script_cmd_head ldso_c; /* output section cmd list */
 };
 
 struct ld_script_sections_overlay_section {
@@ -165,7 +167,7 @@ struct ld_script_sections_overlay {
 };
 
 struct ld_script_sections {
-	STAILQ_HEAD(, ld_script_cmd) ldss_c; /* section cmd list */
+	struct ld_script_cmd_head ldss_c; /* section cmd list */
 };
 
 struct ld_script {
@@ -173,11 +175,12 @@ struct ld_script {
 	STAILQ_HEAD(, ld_script_region_alias) lds_a; /* region aliases list */
 	STAILQ_HEAD(, ld_script_region) lds_r; /* memory region list */
 	STAILQ_HEAD(, ld_script_nocrossref) lds_n; /* nocrossref list */
-	STAILQ_HEAD(, ld_script_cmd) lds_c; /* other ldscript cmd list */
+	struct ld_script_cmd_head lds_c; /* other ldscript cmd list */
 };
 
 void	ld_script_assert(struct ld *, struct ld_exp *, char *);
-void	ld_script_cmd(struct ld *, enum ld_script_cmd_type, void *);
+void	ld_script_cmd(struct ld *, struct ld_script_cmd_head *,
+    enum ld_script_cmd_type, void *);
 void	ld_script_extern(struct ld *, struct ld_script_list *);
 void	ld_script_group(struct ld *, struct ld_script_list *);
 void	ld_script_init(struct ld *);
@@ -189,3 +192,7 @@ struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
 void	ld_script_list_free(struct ld_script_list *);
 struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
+void	ld_script_sections_output(struct ld *, struct ld_script_sections *,
+    char *, struct ld_script_list *, struct ld_exp *, struct ld_exp *,
+    struct ld_exp *, char *, struct ld_script_cmd_head *, char *, char *,
+    struct ld_script_list *, struct ld_exp *);

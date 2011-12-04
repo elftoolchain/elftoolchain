@@ -46,6 +46,8 @@ extern struct ld *ld;
 extern char *ldscript_default;
 
 static void yyerror(const char *s);
+static struct ld_script_sections ldss;
+static struct ld_script_cmd_head ldso_c;
 
 %}
 
@@ -61,13 +63,11 @@ static void yyerror(const char *s);
 %token T_BYTE
 %token T_CONSTANT
 %token T_CONSTRUCTORS
-%token T_COPY
 %token T_CREATE_OBJECT_SYMBOLS
 %token T_DATA_SEGMENT_ALIGN
 %token T_DATA_SEGMENT_END
 %token T_DATA_SEGMENT_RELRO_END
 %token T_DEFINED
-%token T_DSECT
 %token T_ENTRY
 %token T_EXCLUDE_FILE
 %token T_EXTERN
@@ -79,7 +79,6 @@ static void yyerror(const char *s);
 %token T_GROUP
 %token T_HLL
 %token T_INCLUDE
-%token T_INFO
 %token T_INHIBIT_COMMON_ALLOCATION
 %token T_INPUT
 %token T_KEEP
@@ -93,15 +92,11 @@ static void yyerror(const char *s);
 %token T_NEXT
 %token T_NOCROSSREFS
 %token T_NOFLOAT
-%token T_NOLOAD
-%token T_ONLY_IF_RO
-%token T_ONLY_IF_RW
 %token T_OPTION
 %token T_ORIGIN
 %token T_OUTPUT
 %token T_OUTPUT_ARCH
 %token T_OUTPUT_FORMAT
-%token T_OVERLAY
 %token T_PHDRS
 %token T_PROVIDE
 %token T_PROVIDE_HIDDEN
@@ -157,12 +152,19 @@ static void yyerror(const char *s);
 %left UNARY
 
 %token <num> T_NUM
-%token <str> T_MEMORY_ATTR
-%token <str> T_IDENT
-%token <str> T_WILDCARD
-%token <str> T_STRING
 %token <str> T_COMMONPAGESIZE
+%token <str> T_COPY
+%token <str> T_DSECT
+%token <str> T_IDENT
+%token <str> T_INFO
 %token <str> T_MAXPAGESIZE
+%token <str> T_MEMORY_ATTR
+%token <str> T_NOLOAD
+%token <str> T_ONLY_IF_RO
+%token <str> T_ONLY_IF_RW
+%token <str> T_OVERLAY
+%token <str> T_STRING
+%token <str> T_WILDCARD
 
 %type <exp> expression
 %type <exp> simple_assignment
@@ -184,6 +186,11 @@ static void yyerror(const char *s);
 %type <exp> min_function
 %type <exp> next_function
 %type <exp> origin_function
+%type <exp> output_section_addr
+%type <exp> output_section_align
+%type <exp> output_section_fillexp
+%type <exp> output_section_lma
+%type <exp> output_section_subalign
 %type <exp> segment_start_function
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
@@ -193,8 +200,15 @@ static void yyerror(const char *s);
 %type <list> ident_list
 %type <list> ident_list_nosep
 %type <list> input_file_list
+%type <list> output_section_addr_and_type
+%type <list> output_section_phdr
 %type <list> wildcard_list
 %type <str> ident
+%type <str> output_section_constraint
+%type <str> output_section_lma_region
+%type <str> output_section_region
+%type <str> output_section_type
+%type <str> output_section_type_keyword
 %type <str> symbolic_constant
 %type <str> wildcard
 %type <str> wildcard_sort
@@ -647,12 +661,22 @@ output_sections_desc
 	output_section_region
 	output_section_lma_region
 	output_section_phdr
-	output_section_fillexp
+	output_section_fillexp {
+		ld_script_sections_output(ld, &ldss, $1, $2, $4, $5, $6, $7,
+		    &ldso_c, $11, $12, ld_script_list_reverse($13), $14);
+		STAILQ_INIT(&ldso_c);
+	}
 	;
 
 output_section_addr_and_type
-	: output_section_addr output_section_type
-	| output_section_type
+	: output_section_addr output_section_type {
+		$$ = ld_script_list(ld, NULL, $2);
+		$$ = ld_script_list(ld, $$, $1);
+	}
+	| output_section_type {
+		$$ = ld_script_list(ld, NULL, NULL);
+		$$ = ld_script_list(ld, $$, $1);
+	}
 	;
 
 output_section_addr
@@ -660,9 +684,9 @@ output_section_addr
 	;
 
 output_section_type
-	: '(' output_section_type_keyword ')'
-	| '(' ')'
-	|
+	: '(' output_section_type_keyword ')' { $$ = $2; }
+	| '(' ')' { $$ = NULL; }
+	| { $$ = NULL; }
 	;
 
 output_section_type_keyword
@@ -674,24 +698,24 @@ output_section_type_keyword
 	;
 
 output_section_lma
-	: T_AT '(' expression ')'
-	|
+	: T_AT '(' expression ')' { $$ = $3; }
+	| { $$ = NULL; }
 	;
 
 output_section_align
-	: T_ALIGN '(' expression ')'
-	|
+	: T_ALIGN '(' expression ')' { $$ = $3; }
+	| { $$ = NULL; }
 	;
 
 output_section_subalign
-	: T_SUBALIGN '(' expression ')'
-	|
+	: T_SUBALIGN '(' expression ')' { $$ = $3; }
+	| { $$ = NULL; }
 	;
 
 output_section_constraint
 	: T_ONLY_IF_RO
 	| T_ONLY_IF_RW
-	|
+	| { $$ = NULL; }
 	;
 
 output_section_command_list
@@ -741,23 +765,26 @@ output_section_keywords
 	;
 
 output_section_region
-	: '>' ident
-	|
+	: '>' ident { $$ = $2; }
+	| { $$ = NULL; }
 	;
 
 output_section_lma_region
-	: T_AT '>' ident
-	|
+	: T_AT '>' ident { $$ = $3; }
+	| { $$ = NULL; }
 	;
 
 output_section_phdr
-	: output_section_phdr ':' ident
-	|
+	: output_section_phdr ':' ident {
+		$$ = ld_script_list(ld, $$, $3);
+	}
+	| { $$ = NULL; }
 	;
 
+
 output_section_fillexp
-	: '=' expression
-	|
+	: '=' expression { $$ = $2; }
+	| { $$ = NULL; }
 	;
 
 overlay_desc
@@ -950,6 +977,9 @@ yyerror(const char *s)
 void
 ld_script_parse(const char *name)
 {
+
+	STAILQ_INIT(&ldss.ldss_c);
+	STAILQ_INIT(&ldso_c);
 
 	if ((yyin = fopen(name, "r")) == NULL)
 		ld_fatal_std(ld, "fopen %s name failed", name);
