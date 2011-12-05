@@ -195,7 +195,6 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <exp> segment_start_function
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
-%type <exp> constant
 %type <input_file> input_file
 %type <list> as_needed_list
 %type <list> ident_list
