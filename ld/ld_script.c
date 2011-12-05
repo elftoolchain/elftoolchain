@@ -206,6 +206,7 @@ ld_script_phdr(struct ld *ld, char *name, char *type, unsigned filehdr,
 
 	if ((ldsp = calloc(1, sizeof(*ldsp))) == NULL)
 		ld_fatal_std(ld, "calloc");
+
 	ldsp->ldsp_name = name;
 	ldsp->ldsp_type = type;
 	ldsp->ldsp_filehdr = filehdr;
@@ -214,6 +215,37 @@ ld_script_phdr(struct ld *ld, char *name, char *type, unsigned filehdr,
 	ldsp->ldsp_flags = flags;
 
 	return (ldsp);
+}
+
+struct ld_script_region *
+ld_script_region(struct ld *ld, char *name, char *attr, struct ld_exp *origin,
+    struct ld_exp *len)
+{
+	struct ld_script_region *ldsr;
+
+	if ((ldsr = malloc(sizeof(*ldsr))) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	ldsr->ldsr_name = name;
+	ldsr->ldsr_attr = attr;
+	ldsr->ldsr_origin = origin;
+	ldsr->ldsr_len = len;
+
+	return (ldsr);
+}
+
+void
+ld_script_region_alias(struct ld *ld, char *alias, char *region)
+{
+	struct ld_script_region_alias *ldra;
+
+	if ((ldra = calloc(1, sizeof(*ldra))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	ldra->ldra_alias = alias;
+	ldra->ldra_region = region;
+
+	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_a, ldra, ldra_next);
 }
 
 void

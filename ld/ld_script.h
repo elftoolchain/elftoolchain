@@ -101,7 +101,7 @@ struct ld_script_nocrossref {
 
 struct ld_script_region {
 	char *ldsr_name;		/* memory region name */
-	unsigned ldsr_attr;		/* memory region attribute */
+	char *ldsr_attr;		/* memory region attribute */
 	struct ld_exp *ldsr_origin;	/* memroy region start address */
 	struct ld_exp *ldsr_len;	/* memroy region length */
 	STAILQ_ENTRY(ld_script_region) ldsr_next; /* next memory region */
@@ -109,8 +109,8 @@ struct ld_script_region {
 
 struct ld_script_region_alias {
 	char *ldra_alias;		/* memory region alias name */
-	struct ld_script_region *ldra_region; /* memory region */
-	STAILQ_ENTRY(ld_script_region_alias); /* next region alias */
+	char *ldra_region; 		/* memory region */
+	STAILQ_ENTRY(ld_script_region_alias) ldra_next; /* next region alias */
 };
 
 struct ld_script_phdr {
@@ -194,6 +194,9 @@ struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
 struct ld_script_phdr *ld_script_phdr(struct ld *, char *, char *, unsigned,
     unsigned, struct ld_exp *, unsigned);
+struct ld_script_region *ld_script_region(struct ld *, char *, char *,
+    struct ld_exp *, struct ld_exp *);
+void	ld_script_region_alias(struct ld *, char *, char *);
 void	ld_script_sections_output(struct ld *, struct ld_script_cmd_head *,
     char *, struct ld_script_list *, struct ld_exp *, struct ld_exp *,
     struct ld_exp *, char *, struct ld_script_cmd_head *, char *, char *,

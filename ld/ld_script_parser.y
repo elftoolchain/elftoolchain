@@ -211,7 +211,9 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <num> phdr_phdrs
 %type <overlay_section> overlay_section
 %type <phdr> phdr
+%type <region> memory_region
 %type <str> ident
+%type <str> memory_attr
 %type <str> output_section_constraint
 %type <str> output_section_lma_region
 %type <str> output_section_region
@@ -225,6 +227,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 	struct ld_script_list *list;
 	struct ld_script_input_file *input_file;
 	struct ld_script_phdr *phdr;
+	struct ld_script_region *region;
 	struct ld_script_sections_overlay_section *overlay_section;
 	struct ld_exp *exp;
 	char *str;
@@ -563,18 +566,24 @@ memory_command
 	;
 
 memory_region_list
-	: memory_region
-	| memory_region_list memory_region
+	: memory_region {
+		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_r, $1, ldsr_next);
+	}
+	| memory_region_list memory_region {
+		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_r, $2, ldsr_next);
+	}
 	;
 
 memory_region
 	: ident memory_attr ':' T_ORIGIN '=' expression ',' T_LENGTH '='
-	expression
+	expression {
+		ld_script_region(ld, $1, $2, $6, $10);
+	}
 	;
 
 memory_attr
 	: T_MEMORY_ATTR
-	|
+	| { $$ = NULL; }
 	;
 
 nocrossrefs_command
@@ -609,8 +618,8 @@ phdr_list
 	: phdr {
 		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_p, $1, ldsp_next);
 	}
-	| phdr phdr_list {
-		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_p, $1, ldsp_next);
+	| phdr_list phdr {
+		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_p, $2, ldsp_next);
 	}
 
 phdr
@@ -640,7 +649,9 @@ phdr_flags
 	;
 
 region_alias_command
-	: T_REGION_ALIAS '(' ident ',' ident ')'
+	: T_REGION_ALIAS '(' ident ',' ident ')' {
+		ld_script_region_alias(ld, $3, $5);
+	}
 	;
 
 search_dir_command
