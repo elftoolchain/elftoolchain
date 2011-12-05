@@ -198,6 +198,24 @@ ld_script_nocrossrefs(struct ld *ld, struct ld_script_list *list)
 	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_n, ldn, ldn_next);
 }
 
+struct ld_script_phdr *
+ld_script_phdr(struct ld *ld, char *name, char *type, unsigned filehdr,
+    unsigned phdrs, struct ld_exp *addr, unsigned flags)
+{
+	struct ld_script_phdr *ldsp;
+
+	if ((ldsp = calloc(1, sizeof(*ldsp))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	ldsp->ldsp_name = name;
+	ldsp->ldsp_type = type;
+	ldsp->ldsp_filehdr = filehdr;
+	ldsp->ldsp_phdrs = phdrs;
+	ldsp->ldsp_addr = addr;
+	ldsp->ldsp_flags = flags;
+
+	return (ldsp);
+}
+
 void
 ld_script_sections_output(struct ld *ld, struct ld_script_cmd_head *head,
     char *name, struct ld_script_list *addr_and_type, struct ld_exp *lma,

@@ -192,6 +192,8 @@ struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
 void	ld_script_list_free(struct ld_script_list *);
 struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
+struct ld_script_phdr *ld_script_phdr(struct ld *, char *, char *, unsigned,
+    unsigned, struct ld_exp *, unsigned);
 void	ld_script_sections_output(struct ld *, struct ld_script_cmd_head *,
     char *, struct ld_script_list *, struct ld_exp *, struct ld_exp *,
     struct ld_exp *, char *, struct ld_script_cmd_head *, char *, char *,

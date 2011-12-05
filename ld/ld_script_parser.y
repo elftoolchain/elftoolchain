@@ -192,6 +192,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <exp> output_section_lma
 %type <exp> output_section_subalign
 %type <exp> overlay_vma
+%type <exp> phdr_at
 %type <exp> segment_start_function
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
@@ -205,7 +206,11 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <list> overlay_section_list
 %type <list> wildcard_list
 %type <num> overlay_nocref
+%type <num> phdr_filehdr
+%type <num> phdr_flags
+%type <num> phdr_phdrs
 %type <overlay_section> overlay_section
+%type <phdr> phdr
 %type <str> ident
 %type <str> output_section_constraint
 %type <str> output_section_lma_region
@@ -219,6 +224,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %union {
 	struct ld_script_list *list;
 	struct ld_script_input_file *input_file;
+	struct ld_script_phdr *phdr;
 	struct ld_script_sections_overlay_section *overlay_section;
 	struct ld_exp *exp;
 	char *str;
@@ -600,31 +606,37 @@ phdrs_command
 	;
 
 phdr_list
-	: phdr
-	| phdr phdr_list
+	: phdr {
+		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_p, $1, ldsp_next);
+	}
+	| phdr phdr_list {
+		STAILQ_INSERT_TAIL(&ld->ld_scp->lds_p, $1, ldsp_next);
+	}
 
 phdr
-	: ident ident phdr_filehdr phdr_phdrs phdr_at phdr_flags ';'
+	: ident ident phdr_filehdr phdr_phdrs phdr_at phdr_flags ';' {
+		$$ = ld_script_phdr(ld, $1, $2, $3, $4, $5, $6);
+	}
 	;
 
 phdr_filehdr
-	: T_FILEHDR
-	|
+	: T_FILEHDR { $$ = 1; }
+	| { $$ = 0; }
 	;
 
 phdr_phdrs
-	: T_PHDRS
-	|
+	: T_PHDRS { $$ = 1; }
+	| { $$ = 0; }
 	;
 
 phdr_at
-	: T_AT '(' expression ')'
-	|
+	: T_AT '(' expression ')' { $$ = $3; }
+	| { $$ = NULL; }
 	;
 
 phdr_flags
-	: T_FLAGS '(' T_NUM ')'
-	|
+	: T_FLAGS '(' T_NUM ')' { $$ = $3; }
+	| { $$ = 0; }
 	;
 
 region_alias_command
