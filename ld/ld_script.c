@@ -45,7 +45,25 @@ ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 	a->lda_msg = msg;
 
 	ld_script_cmd_insert(&ld->ld_scp->lds_c,
-	    ld_script_cmd(ld, LSS_ASSERT, a));
+	    ld_script_cmd(ld, LSC_ASSERT, a));
+}
+
+struct ld_script_assign *
+ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
+    struct ld_exp *val, unsigned provide, unsigned hidden)
+{
+	struct ld_script_assign *lda;
+
+	if ((lda = calloc(1, sizeof(*lda))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	lda->lda_var = var;
+	lda->lda_op = op;
+	lda->lda_val = val;
+	lda->lda_provide = provide;
+	lda->lda_hidden = hidden;
+
+	return (lda);
 }
 
 struct ld_script_cmd *
@@ -274,7 +292,7 @@ ld_script_sections_output(struct ld *ld, struct ld_script_cmd_head *head,
 	ldso->ldso_fill = fill;
 
 	ld_script_cmd_insert(head,
-	    ld_script_cmd(ld, LSS_SECTIONS_OUTPUT, ldso));
+	    ld_script_cmd(ld, LSC_SECTIONS_OUTPUT, ldso));
 }
 
 void
@@ -297,7 +315,7 @@ ld_script_section_overlay(struct ld *ld, struct ld_script_cmd_head *head,
 	ldso->ldso_fill = fill;
 
 	ld_script_cmd_insert(head,
-	    ld_script_cmd(ld, LSS_SECTIONS_OVERLAY, ldso));
+	    ld_script_cmd(ld, LSC_SECTIONS_OVERLAY, ldso));
 }
 
 struct ld_script_sections_overlay_section *

@@ -78,10 +78,12 @@ struct ld_exp {
 	struct ld_exp *le_e1;	/* fisrt operand */
 	struct ld_exp *le_e2;	/* second operand */
 	struct ld_exp *le_e3;	/* third operand */
-	char *le_name;		/* symbol/section name */
+	struct ld_script_assign *le_assign; /* assignment */
+	char *le_name;		/* section name */
 	int64_t le_val;		/* constant value */
 };
 
+struct ld_exp *ld_exp_assign(struct ld *, struct ld_script_assign *);
 struct ld_exp *ld_exp_binary(struct ld *, enum ld_exp_op, struct ld_exp *,
     struct ld_exp *);
 struct ld_exp *ld_exp_constant(struct ld *, int64_t);

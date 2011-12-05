@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_script.h"
 #include "ld_exp.h"
 
 ELFTC_VCSID("$Id$");
@@ -158,6 +159,18 @@ ld_exp_name(struct ld *ld, const char *name)
 	le->le_name = strdup(name);
 	if (le->le_name == NULL)
 		ld_fatal_std(ld, "calloc");
+
+	return (le);
+}
+
+struct ld_exp *
+ld_exp_assign(struct ld *ld, struct ld_script_assign *assign)
+{
+	struct ld_exp *le;
+
+	le = _alloc_exp(ld);
+	le->le_op = LEOP_ASSIGN;
+	le->le_assign = assign;
 
 	return (le);
 }

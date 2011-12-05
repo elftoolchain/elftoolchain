@@ -166,8 +166,11 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %token <str> T_STRING
 %token <str> T_WILDCARD
 
+%type <assign> ldscript_assignment
+%type <assign> provide_assignment
+%type <assign> provide_hidden_assignment
+%type <assign> simple_assignment
 %type <exp> expression
-%type <exp> simple_assignment
 %type <exp> function
 %type <exp> constant
 %type <exp> variable
@@ -205,6 +208,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <list> output_section_phdr
 %type <list> overlay_section_list
 %type <list> wildcard_list
+%type <num> assign_op
 %type <num> overlay_nocref
 %type <num> phdr_filehdr
 %type <num> phdr_flags
@@ -224,6 +228,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <str> wildcard_sort
 
 %union {
+	struct ld_script_assign *assign;
 	struct ld_script_list *list;
 	struct ld_script_input_file *input_file;
 	struct ld_script_phdr *phdr;
@@ -260,28 +265,32 @@ ldscript_assignment
 
 simple_assignment
 	: variable assign_op expression %prec '=' {
-		$$ = ld_exp_binary(ld, LEOP_ASSIGN, $1, $3);
+		$$ = ld_script_assign(ld, $1, $2, $3, 0, 0);
 	}
 	;
 
 provide_assignment
-	: T_PROVIDE '(' variable '=' expression ')'
+	: T_PROVIDE '(' variable '=' expression ')' {
+		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 0);
+	}
 	;
 
 provide_hidden_assignment
-	: T_PROVIDE_HIDDEN '(' variable '=' expression ')'
+	: T_PROVIDE_HIDDEN '(' variable '=' expression ')' {
+		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 1);
+	}
 	;
 
 assign_op
-	: T_LSHIFT_E
-	| T_RSHIFT_E
-	| T_ADD_E
-	| T_SUB_E
-	| T_MUL_E
-	| T_DIV_E
-	| T_AND_E
-	| T_OR_E
-	| '='
+	: T_LSHIFT_E { $$ = LSAOP_LSHIFT_E; }
+	| T_RSHIFT_E { $$ = LSAOP_RSHIFT_E; }
+	| T_ADD_E { $$ = LSAOP_ADD_E; }
+	| T_SUB_E { $$ = LSAOP_SUB_E; }
+	| T_MUL_E { $$ = LSAOP_MUL_E; }
+	| T_DIV_E { $$ = LSAOP_DIV_E; }
+	| T_AND_E { $$ = LSAOP_AND_E; }
+	| T_OR_E { $$ = LSAOP_OR_E; }
+	| '=' { $$ = LSAOP_E; }
 	;
 
 expression
@@ -348,7 +357,9 @@ expression
 	| expression '?' expression ':' expression {
 		$$ = ld_exp_trinary(ld, $1, $3, $5);
 	}
-	| simple_assignment
+	| simple_assignment {
+		$$ = ld_exp_assign(ld, $1);
+	}
 	| function
 	| constant
 	| variable

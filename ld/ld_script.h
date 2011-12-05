@@ -26,39 +26,51 @@
  * $Id$
  */
 
+enum ld_script_assign_op {
+	LSAOP_ADD_E,
+	LSAOP_AND_E,
+	LSAOP_DIV_E,
+	LSAOP_E,
+	LSAOP_LSHIFT_E,
+	LSAOP_MUL_E,
+	LSAOP_OR_E,
+	LSAOP_RSHIFT_E,
+	LSAOP_SUB_E,
+};
+
 enum ld_script_cmd_type {
-	LSS_ASSERT,
-	LSS_ASSIGN,
-	LSS_AS_NEEDED,
-	LSS_ENTRY,
-	LSS_EXTERN,
-	LSS_FCA,
-	LSS_HIDDEN_ASSIGN,
-	LSS_ICA,
-	LSS_INPUT,
-	LSS_MEMORY,
-	LSS_NOCROSSREFS,
-	LSS_OUTPUT,
-	LSS_OUTPUT_ARCH,
-	LSS_OUTPUT_FORMAT,
-	LSS_PHDRS,
-	LSS_PROVIDE_ASSIGN,
-	LSS_REGION_ALIAS,
-	LSS_SEARCH_DIR,
-	LSS_SECTIONS,
-	LSS_SECTIONS_OUTPUT,
-	LSS_SECTIONS_OUTPUT_DATA_BYTE,
-	LSS_SECTIONS_OUTPUT_DATA_FILL,
-	LSS_SECTIONS_OUTPUT_DATA_LONG,
-	LSS_SECTIONS_OUTPUT_DATA_QUAD,
-	LSS_SECTIONS_OUTPUT_DATA_SHORT,
-	LSS_SECTIONS_OUTPUT_DATA_SQUAD,
-	LSS_SECTIONS_OUTPUT_INPUT,
-	LSS_SECTIONS_OUTPUT_KEYWORD,
-	LSS_SECTIONS_OVERLAY,
-	LSS_STARTUP,
-	LSS_TARGET,
-	LSS_VERSION,
+	LSC_ASSERT,
+	LSC_ASSIGN,
+	LSC_AS_NEEDED,
+	LSC_ENTRY,
+	LSC_EXTERN,
+	LSC_FCA,
+	LSC_HIDDEN_ASSIGN,
+	LSC_ICA,
+	LSC_INPUT,
+	LSC_MEMORY,
+	LSC_NOCROSSREFS,
+	LSC_OUTPUT,
+	LSC_OUTPUT_ARCH,
+	LSC_OUTPUT_FORMAT,
+	LSC_PHDRS,
+	LSC_PROVIDE_ASSIGN,
+	LSC_REGION_ALIAS,
+	LSC_SEARCH_DIR,
+	LSC_SECTIONS,
+	LSC_SECTIONS_OUTPUT,
+	LSC_SECTIONS_OUTPUT_DATA_BYTE,
+	LSC_SECTIONS_OUTPUT_DATA_FILL,
+	LSC_SECTIONS_OUTPUT_DATA_LONG,
+	LSC_SECTIONS_OUTPUT_DATA_QUAD,
+	LSC_SECTIONS_OUTPUT_DATA_SHORT,
+	LSC_SECTIONS_OUTPUT_DATA_SQUAD,
+	LSC_SECTIONS_OUTPUT_INPUT,
+	LSC_SECTIONS_OUTPUT_KEYWORD,
+	LSC_SECTIONS_OVERLAY,
+	LSC_STARTUP,
+	LSC_TARGET,
+	LSC_VERSION,
 };
 
 struct ld_script_cmd {
@@ -80,8 +92,9 @@ struct ld_script_assert {
 };
 
 struct ld_script_assign {
-	char *lda_name;			/* symbol name */
-	struct ld_exp *lda_exp;		/* expression */
+	struct ld_exp *lda_var;		/* symbol */
+	struct ld_exp *lda_val;		/* value */
+	enum ld_script_assign_op lda_op; /* assign op */
 	unsigned lda_provide;		/* provide */
 	unsigned lda_hidden;		/* hidden provide */
 };
@@ -177,6 +190,8 @@ struct ld_script {
 };
 
 void	ld_script_assert(struct ld *, struct ld_exp *, char *);
+struct ld_script_assign *ld_script_assign(struct ld *, struct ld_exp *,
+    enum ld_script_assign_op, struct ld_exp *, unsigned, unsigned);
 struct ld_script_cmd *ld_script_cmd(struct ld *, enum ld_script_cmd_type,
     void *);
 void	ld_script_cmd_insert(struct ld_script_cmd_head *,
