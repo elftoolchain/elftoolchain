@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_exp.h"
 #include "ld_options.h"
 #include "ld_script.h"
 #include "ld_file.h"
@@ -34,7 +35,7 @@ ELFTC_VCSID("$Id$");
 
 static void _input_file_add(struct ld *ld, struct ld_script_input_file *ldif);
 
-void
+struct ld_script_cmd *
 ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 {
 	struct ld_script_assert *a;
@@ -44,8 +45,7 @@ ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
 	a->lda_exp = exp;
 	a->lda_msg = msg;
 
-	ld_script_cmd_insert(&ld->ld_scp->lds_c,
-	    ld_script_cmd(ld, LSC_ASSERT, a));
+	return (ld_script_cmd(ld, LSC_ASSERT, a));
 }
 
 struct ld_script_assign *
@@ -264,58 +264,6 @@ ld_script_region_alias(struct ld *ld, char *alias, char *region)
 	ldra->ldra_region = region;
 
 	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_a, ldra, ldra_next);
-}
-
-void
-ld_script_sections_output(struct ld *ld, struct ld_script_cmd_head *head,
-    char *name, struct ld_script_list *addr_and_type, struct ld_exp *lma,
-    struct ld_exp *align, struct ld_exp *subalign, char *constraint,
-    struct ld_script_cmd_head *ldso_c, char *region, char *lma_region,
-    struct ld_script_list *phdr, struct ld_exp *fill)
-{
-	struct ld_script_sections_output *ldso;
-
-	if ((ldso = malloc(sizeof(*ldso))) == NULL)
-		ld_fatal_std(ld, "malloc");
-
-	ldso->ldso_name = name;
-	ldso->ldso_vma = addr_and_type->ldl_entry;
-	ldso->ldso_type = addr_and_type->ldl_next->ldl_entry;
-	ldso->ldso_lma = lma;
-	ldso->ldso_align = align;
-	ldso->ldso_subalign = subalign;
-	ldso->ldso_constraint = constraint;
-	memcpy(&ldso->ldso_c, ldso_c, sizeof(*ldso_c));
-	ldso->ldso_region = region;
-	ldso->ldso_lma_region = lma_region;
-	ldso->ldso_phdr = phdr;
-	ldso->ldso_fill = fill;
-
-	ld_script_cmd_insert(head,
-	    ld_script_cmd(ld, LSC_SECTIONS_OUTPUT, ldso));
-}
-
-void
-ld_script_section_overlay(struct ld *ld, struct ld_script_cmd_head *head,
-    struct ld_exp *addr, int64_t nocrossref, struct ld_exp *lma,
-    struct ld_script_list *ldl, char *region, struct ld_script_list *phdr,
-    struct ld_exp *fill)
-{
-	struct ld_script_sections_overlay *ldso;
-
-	if ((ldso = malloc(sizeof(*ldso))) == NULL)
-		ld_fatal_std(ld, "malloc");
-
-	ldso->ldso_vma = addr;
-	ldso->ldso_nocrossref = !!nocrossref;
-	ldso->ldso_lma = lma;
-	ldso->ldso_s = ldl;
-	ldso->ldso_region = region;
-	ldso->ldso_phdr = phdr;
-	ldso->ldso_fill = fill;
-
-	ld_script_cmd_insert(head,
-	    ld_script_cmd(ld, LSC_SECTIONS_OVERLAY, ldso));
 }
 
 static void

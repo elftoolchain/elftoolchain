@@ -170,7 +170,12 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <assign> provide_assignment
 %type <assign> provide_hidden_assignment
 %type <assign> simple_assignment
+%type <cmd> assert_command
+%type <cmd> entry_command
+%type <cmd> ldscript_command
 %type <cmd> output_section_command
+%type <cmd> sections_command
+%type <cmd> sections_sub_command
 %type <exp> expression
 %type <exp> function
 %type <exp> constant
@@ -220,6 +225,8 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <num> phdr_flags
 %type <num> phdr_phdrs
 %type <output_data> output_section_data
+%type <output_desc> output_sections_desc
+%type <overlay_desc> overlay_desc
 %type <overlay_section> overlay_section
 %type <phdr> phdr
 %type <region> memory_region
@@ -242,8 +249,10 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 	struct ld_script_input_file *input_file;
 	struct ld_script_phdr *phdr;
 	struct ld_script_region *region;
+	struct ld_script_sections_output *output_desc;
 	struct ld_script_sections_output_data *output_data;
 	struct ld_script_sections_output_input *input_section;
+	struct ld_script_sections_overlay *overlay_desc;
 	struct ld_script_sections_overlay_section *overlay_section;
 	struct ld_wildcard *wildcard;
 	char *str;
@@ -258,8 +267,14 @@ script
 	;
 
 ldscript
-	: ldscript_command
-	| ldscript ldscript_command
+	: ldscript_command {
+		if ($1 != NULL)
+			ld_script_cmd_insert(&ld->ld_scp->lds_c, $1);
+	}
+	| ldscript ldscript_command {
+		if ($2 != NULL)
+			ld_script_cmd_insert(&ld->ld_scp->lds_c, $2);
+	}
 	;
 
 expression
@@ -483,26 +498,26 @@ symbolic_constant
 
 ldscript_command
 	: assert_command
-	| assignment
+	| assignment { $$ = ld_script_cmd(ld, LSC_ASSIGN, $1); }
 	| entry_command
-	| extern_command
-	| force_common_allocation_command
-	| group_command
-	| inhibit_common_allocation_command
-	| input_command
-	| memory_command
-	| nocrossrefs_command
-	| output_command
-	| output_arch_command
-	| output_format_command
-	| phdrs_command
-	| region_alias_command
-	| search_dir_command
+	| extern_command { $$ = NULL; }
+	| force_common_allocation_command { $$ = NULL; }
+	| group_command { $$ = NULL; }
+	| inhibit_common_allocation_command { $$ = NULL; }
+	| input_command { $$ = NULL; }
+	| memory_command { $$ = NULL; }
+	| nocrossrefs_command { $$ = NULL; }
+	| output_command { $$ = NULL; }
+	| output_arch_command { $$ = NULL; }
+	| output_format_command { $$ = NULL; }
+	| phdrs_command { $$ = NULL; }
+	| region_alias_command { $$ = NULL; }
+	| search_dir_command { $$ = NULL; }
 	| sections_command
-	| startup_command
-	| target_command
-	| version_script_node ';'
-	| ';'
+	| startup_command { $$ = NULL; }
+	| target_command { $$ = NULL; }
+	| version_script_node ';' { $$ = NULL; }
+	| ';' { $$ = NULL; }
 	;
 
 assignment
@@ -543,15 +558,13 @@ assign_op
 
 assert_command
 	: T_ASSERT '(' expression ',' T_STRING ')' {
-		ld_script_assert(ld, $3, $5);
+		$$ = ld_script_assert(ld, $3, $5);
 	}
 	;
 
 entry_command
 	: T_ENTRY '(' ident ')' {
-		if (ld->ld_scp_entry != NULL)
-			free(ld->ld_scp_entry);
-		ld->ld_scp_entry = $3;
+		$$ = ld_script_cmd(ld, LSC_ENTRY, $3);
 	}
 	;
 
@@ -680,20 +693,40 @@ search_dir_command
 	;
 
 sections_command
-	: T_SECTIONS '{' sections_command_list '}'
+	: T_SECTIONS '{' sections_command_list '}' {
+		struct ld_script_sections *ldss;
+		ldss = malloc(sizeof(struct ld_script_sections));
+		if (ldss == NULL)
+			ld_fatal_std(ld, "malloc");
+		memcpy(&ldss->ldss_c, &ldss_c, sizeof(ldss_c));
+		$$ = ld_script_cmd(ld, LSC_SECTIONS, ldss);
+		STAILQ_INIT(&ldss_c);
+	}
 	;
 
 sections_command_list
-	: sections_sub_command
-	| sections_command_list sections_sub_command
+	: sections_sub_command {
+		if ($1 != NULL)
+			ld_script_cmd_insert(&ldss_c, $1);
+	}
+	| sections_command_list sections_sub_command {
+		if ($2 != NULL)
+			ld_script_cmd_insert(&ldss_c, $2);
+	}
 	;
 
 sections_sub_command
 	: entry_command
-	| assignment
-	| output_sections_desc
-	| overlay_desc
-	| ';'
+	| assignment {
+		$$ = ld_script_cmd(ld, LSC_ASSIGN, $1);
+	}
+	| output_sections_desc {
+		$$ = ld_script_cmd(ld, LSC_SECTIONS_OUTPUT, $1);
+	}
+	| overlay_desc {
+		$$ = ld_script_cmd(ld, LSC_SECTIONS_OVERLAY, $1);
+	}
+	| ';' { $$ = NULL; }
 	;
 
 output_sections_desc
@@ -707,8 +740,21 @@ output_sections_desc
 	output_section_lma_region
 	output_section_phdr
 	output_section_fillexp {
-		ld_script_sections_output(ld, &ldss_c, $1, $2, $4, $5, $6, $7,
-		    &ldso_c, $11, $12, ld_script_list_reverse($13), $14);
+		$$ = calloc(1, sizeof(struct ld_script_sections_output));
+		if ($$ == NULL)
+			ld_fatal_std(ld, "calloc");
+		$$->ldso_name = $1;
+		$$->ldso_vma = $2->ldl_entry;
+		$$->ldso_type = $2->ldl_next->ldl_entry;
+		$$->ldso_lma = $4;
+		$$->ldso_align = $5;
+		$$->ldso_subalign = $6;
+		$$->ldso_constraint = $7;
+		memcpy(&$$->ldso_c, &ldso_c, sizeof(ldso_c));
+		$$->ldso_region = $11;
+		$$->ldso_lma_region = $12;
+		$$->ldso_phdr = ld_script_list_reverse($13);
+		$$->ldso_fill = $14;
 		STAILQ_INIT(&ldso_c);
 	}
 	;
@@ -895,8 +941,16 @@ overlay_desc
 	output_section_region
 	output_section_phdr
 	output_section_fillexp {
-		ld_script_section_overlay(ld, &ldss_c, $2, $4, $5, $7, $9,
-		    $10, $11);
+		$$ = calloc(1, sizeof(struct ld_script_sections_overlay));
+		if ($$ == NULL)
+			ld_fatal_std(ld, "calloc");
+		$$->ldso_vma = $2;
+		$$->ldso_nocrossref = !!$4;
+		$$->ldso_lma = $5;
+		$$->ldso_s = $7;
+		$$->ldso_region = $9;
+		$$->ldso_phdr = $10;
+		$$->ldso_fill = $11;
 	}
 	;
 

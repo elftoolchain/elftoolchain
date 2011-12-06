@@ -204,7 +204,7 @@ struct ld_script {
 	struct ld_script_cmd_head lds_c; /* other ldscript cmd list */
 };
 
-void	ld_script_assert(struct ld *, struct ld_exp *, char *);
+struct ld_script_cmd *ld_script_assert(struct ld *, struct ld_exp *, char *);
 struct ld_script_assign *ld_script_assign(struct ld *, struct ld_exp *,
     enum ld_script_assign_op, struct ld_exp *, unsigned, unsigned);
 struct ld_script_cmd *ld_script_cmd(struct ld *, enum ld_script_cmd_type,
@@ -229,10 +229,3 @@ void	ld_script_parse_internal(void);
 struct ld_script_region *ld_script_region(struct ld *, char *, char *,
     struct ld_exp *, struct ld_exp *);
 void	ld_script_region_alias(struct ld *, char *, char *);
-void	ld_script_sections_output(struct ld *, struct ld_script_cmd_head *,
-    char *, struct ld_script_list *, struct ld_exp *, struct ld_exp *,
-    struct ld_exp *, char *, struct ld_script_cmd_head *, char *, char *,
-    struct ld_script_list *, struct ld_exp *);
-void ld_script_section_overlay(struct ld *, struct ld_script_cmd_head *,
-    struct ld_exp *, int64_t, struct ld_exp *, struct ld_script_list *,
-    char *, struct ld_script_list *, struct ld_exp *);

@@ -29,6 +29,9 @@
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
 	uint64_t lsb_size;		/* symbol size */
+	uint64_t lsb_value;		/* symbol value */
+	struct ld_exp *lsb_exp;		/* associated value expression */
+	unsigned char lsb_other;	/* symbol visibility */
 	UT_hash_handle hh;		/* hash handle */
 };
 

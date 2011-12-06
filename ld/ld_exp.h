@@ -79,7 +79,7 @@ struct ld_exp {
 	struct ld_exp *le_e2;	/* second operand */
 	struct ld_exp *le_e3;	/* third operand */
 	struct ld_script_assign *le_assign; /* assignment */
-	char *le_name;		/* section name */
+	char *le_name;		/* symbol/section name */
 	int64_t le_val;		/* constant value */
 };
 
