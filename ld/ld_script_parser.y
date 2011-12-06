@@ -166,7 +166,7 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %token <str> T_STRING
 %token <str> T_WILDCARD
 
-%type <assign> ldscript_assignment
+%type <assign> assignment
 %type <assign> provide_assignment
 %type <assign> provide_hidden_assignment
 %type <assign> simple_assignment
@@ -200,6 +200,9 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <exp> sizeof_function
 %type <exp> sizeof_headers_function
 %type <input_file> input_file
+%type <input_section> input_section
+%type <input_section> input_section_desc
+%type <input_section> input_section_desc_no_keep
 %type <list> as_needed_list
 %type <list> ident_list
 %type <list> ident_list_nosep
@@ -225,16 +228,18 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <str> output_section_type_keyword
 %type <str> symbolic_constant
 %type <str> wildcard
-%type <str> wildcard_sort
+%type <wildcard> wildcard_sort
 
 %union {
+	struct ld_exp *exp;
 	struct ld_script_assign *assign;
 	struct ld_script_list *list;
 	struct ld_script_input_file *input_file;
 	struct ld_script_phdr *phdr;
 	struct ld_script_region *region;
+	struct ld_script_sections_output_input *input_section;
 	struct ld_script_sections_overlay_section *overlay_section;
-	struct ld_exp *exp;
+	struct ld_wildcard *wildcard;
 	char *str;
 	int64_t num;
 }
@@ -247,50 +252,8 @@ script
 	;
 
 ldscript
-	: ldscript_statement
-	| ldscript ldscript_statement
-	;
-
-ldscript_statement
-	: ldscript_assignment
-	| ldscript_command
-	| ';'
-	;
-
-ldscript_assignment
-	: simple_assignment
-	| provide_assignment
-	| provide_hidden_assignment
-	;
-
-simple_assignment
-	: variable assign_op expression %prec '=' {
-		$$ = ld_script_assign(ld, $1, $2, $3, 0, 0);
-	}
-	;
-
-provide_assignment
-	: T_PROVIDE '(' variable '=' expression ')' {
-		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 0);
-	}
-	;
-
-provide_hidden_assignment
-	: T_PROVIDE_HIDDEN '(' variable '=' expression ')' {
-		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 1);
-	}
-	;
-
-assign_op
-	: T_LSHIFT_E { $$ = LSAOP_LSHIFT_E; }
-	| T_RSHIFT_E { $$ = LSAOP_RSHIFT_E; }
-	| T_ADD_E { $$ = LSAOP_ADD_E; }
-	| T_SUB_E { $$ = LSAOP_SUB_E; }
-	| T_MUL_E { $$ = LSAOP_MUL_E; }
-	| T_DIV_E { $$ = LSAOP_DIV_E; }
-	| T_AND_E { $$ = LSAOP_AND_E; }
-	| T_OR_E { $$ = LSAOP_OR_E; }
-	| '=' { $$ = LSAOP_E; }
+	: ldscript_command
+	| ldscript ldscript_command
 	;
 
 expression
@@ -514,6 +477,7 @@ symbolic_constant
 
 ldscript_command
 	: assert_command
+	| assignment
 	| entry_command
 	| extern_command
 	| force_common_allocation_command
@@ -532,6 +496,42 @@ ldscript_command
 	| startup_command
 	| target_command
 	| version_script_node ';'
+	;
+
+assignment
+	: simple_assignment
+	| provide_assignment
+	| provide_hidden_assignment
+	;
+
+simple_assignment
+	: variable assign_op expression %prec '=' {
+		$$ = ld_script_assign(ld, $1, $2, $3, 0, 0);
+	}
+	;
+
+provide_assignment
+	: T_PROVIDE '(' variable '=' expression ')' {
+		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 0);
+	}
+	;
+
+provide_hidden_assignment
+	: T_PROVIDE_HIDDEN '(' variable '=' expression ')' {
+		$$ = ld_script_assign(ld, $3, LSAOP_E, $5, 1, 1);
+	}
+	;
+
+assign_op
+	: T_LSHIFT_E { $$ = LSAOP_LSHIFT_E; }
+	| T_RSHIFT_E { $$ = LSAOP_RSHIFT_E; }
+	| T_ADD_E { $$ = LSAOP_ADD_E; }
+	| T_SUB_E { $$ = LSAOP_SUB_E; }
+	| T_MUL_E { $$ = LSAOP_MUL_E; }
+	| T_DIV_E { $$ = LSAOP_DIV_E; }
+	| T_AND_E { $$ = LSAOP_AND_E; }
+	| T_OR_E { $$ = LSAOP_OR_E; }
+	| '=' { $$ = LSAOP_E; }
 	;
 
 assert_command
@@ -683,7 +683,7 @@ sections_command_list
 
 sections_sub_command
 	: entry_command
-	| ldscript_assignment
+	| assignment
 	| output_sections_desc
 	| overlay_desc
 	| ';'
@@ -762,7 +762,7 @@ output_section_command_list
 	;
 
 output_section_command
-	: ldscript_assignment
+	: assignment
 	| input_section_desc
 	| output_section_data
 	| output_section_keywords
@@ -770,18 +770,44 @@ output_section_command
 	;
 
 input_section_desc
-	: wildcard_sort input_section
-	| T_KEEP '(' wildcard_sort input_section ')'
+	: input_section_desc_no_keep {
+		$1->ldoi_keep = 0;
+		$$ = $1;
+	}
+	| T_KEEP '(' input_section_desc_no_keep ')' {
+		$3->ldoi_keep = 0;
+		$$ = $3;
+	}
+	;
+
+input_section_desc_no_keep
+	: wildcard_sort input_section {
+		$2->ldoi_ar = NULL;
+		$2->ldoi_file = $1;
+		$$ = $2;
+	}
+	| wildcard_sort ':' wildcard_sort input_section {
+		$4->ldoi_ar = $1;
+		$4->ldoi_ar = $3;
+		$$ = $4;
+	}
 	;
 
 input_section
-	: '(' input_file_exclude_list wildcard_list ')'
-	|
-	;
-
-input_file_exclude_list
-	: T_EXCLUDE_FILE '(' wildcard_list ')'
-	|
+	: '(' T_EXCLUDE_FILE '(' wildcard_list ')' wildcard_list ')' {
+		$$ = calloc(1, sizeof(struct ld_script_sections_output_input));
+		if ($$ == NULL)
+			ld_fatal_std(ld, "calloc");
+		$$->ldoi_exclude = $4;
+		$$->ldoi_sec = $6;
+	}
+	| '(' wildcard_list ')' {
+		$$ = calloc(1, sizeof(struct ld_script_sections_output_input));
+		if ($$ == NULL)
+			ld_fatal_std(ld, "calloc");
+		$$->ldoi_exclude = NULL;
+		$$->ldoi_sec = $2;
+	}
 	;
 
 output_section_data
@@ -920,31 +946,47 @@ variable
 	;
 
 wildcard
-	: ident
+	: ident 
 	| T_WILDCARD
 	| '*' { $$ = strdup("*"); }
 	| '?' { $$ = strdup("?"); }
 	;
 
 wildcard_sort
-	: wildcard
+	: wildcard {
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $1;
+		$$->lw_sort = LWS_NONE;
+	}
 	| T_SORT_BY_NAME '(' wildcard ')' {
-		$$ = $3;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $3;
+		$$->lw_sort = LWS_NAME;
 	}
 	| T_SORT_BY_NAME '(' T_SORT_BY_NAME '(' wildcard ')' ')' {
-		$$ = $5;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $5;
+		$$->lw_sort = LWS_NAME;
 	}
 	| T_SORT_BY_NAME '(' T_SORT_BY_ALIGNMENT '(' wildcard ')' ')' {
-		$$ = $5;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $5;
+		$$->lw_sort = LWS_NAME_ALIGN;
 	}
 	| T_SORT_BY_ALIGNMENT '(' wildcard ')' {
-		$$ = $3;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $3;
+		$$->lw_sort = LWS_ALIGN;
 	}
 	| T_SORT_BY_ALIGNMENT '(' T_SORT_BY_NAME '(' wildcard ')' ')' {
-		$$ = $5;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $5;
+		$$->lw_sort = LWS_ALIGN_NAME;
 	}
 	| T_SORT_BY_ALIGNMENT '(' T_SORT_BY_ALIGNMENT '(' wildcard ')' ')' {
-		$$ = $5;
+		$$ = ld_wildcard_alloc(ld);
+		$$->lw_name = $5;
+		$$->lw_sort = LWS_ALIGN;
 	}
 	;
 

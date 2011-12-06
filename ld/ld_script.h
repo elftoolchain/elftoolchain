@@ -138,9 +138,9 @@ struct ld_script_phdr {
 
 struct ld_script_sections_output_input {
 	struct ld_wildcard *ldoi_ar;	/* archive name */
-	struct ld_wildcard *ldio_file;	/* file/member name */
-	struct ld_script_list *ldio_exclude; /* exclude file list */
-	struct ld_script_list *ldio_sec; /* section name list */
+	struct ld_wildcard *ldoi_file;	/* file/member name */
+	struct ld_script_list *ldoi_exclude; /* exclude file list */
+	struct ld_script_list *ldoi_sec; /* section name list */
 	unsigned ldoi_flags;		/* input section flags */
 	unsigned ldoi_keep;		/* keep input section */
 };
@@ -209,6 +209,8 @@ struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
 struct ld_script_phdr *ld_script_phdr(struct ld *, char *, char *, unsigned,
     unsigned, struct ld_exp *, unsigned);
+void	ld_script_parse(const char *);
+void	ld_script_parse_internal(void);
 struct ld_script_region *ld_script_region(struct ld *, char *, char *,
     struct ld_exp *, struct ld_exp *);
 void	ld_script_region_alias(struct ld *, char *, char *);

@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_file.h"
+#include "ld_script.h"
 #include "ld_symbols.h"
 #include "ld_options.h"
 
@@ -183,6 +184,7 @@ static struct ld_option ld_opts_z[] = {
 static void	ld_options_process(struct ld *ld, int key, char *arg);
 static int	ld_options_parse_long(struct ld *, struct ld_option *, int,
 		    int, char **, char *, enum ld_dash);
+
 void
 ld_options_parse(struct ld* ld, int argc, char **argv)
 {
@@ -389,4 +391,15 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	default:
 		break;
 	}
+}
+
+struct ld_wildcard *
+ld_wildcard_alloc(struct ld *ld)
+{
+	struct ld_wildcard *lw;
+
+	if ((lw = calloc(1, sizeof(*lw))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (lw);
 }

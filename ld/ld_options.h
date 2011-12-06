@@ -130,14 +130,25 @@ enum ld_key {
 	KEY_FILE = 0x10000000,
 };
 
-struct ld_wildcard {
-	char *lw_name;			/* wildcard */
-	unsigned lw_sort;		/* sort mode */
-};
-
 struct ld_option {
 	const char *lo_long;
 	int lo_key;
 	enum ld_dash lo_dash;
 	enum ld_arg lo_arg;
 };
+
+enum ld_wildcard_sort {
+	LWS_NONE,
+	LWS_NAME,
+	LWS_ALIGN,
+	LWS_NAME_ALIGN,
+	LWS_ALIGN_NAME,
+};
+
+struct ld_wildcard {
+	char *lw_name;			/* wildcard */
+	enum ld_wildcard_sort lw_sort;	/* sort mode */
+};
+
+void	ld_options_parse(struct ld*, int, char **);
+struct ld_wildcard *ld_wildcard_alloc(struct ld *);
