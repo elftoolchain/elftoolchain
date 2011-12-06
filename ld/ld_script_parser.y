@@ -496,6 +496,7 @@ ldscript_command
 	| startup_command
 	| target_command
 	| version_script_node ';'
+	| ';'
 	;
 
 assignment
