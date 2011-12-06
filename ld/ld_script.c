@@ -318,24 +318,6 @@ ld_script_section_overlay(struct ld *ld, struct ld_script_cmd_head *head,
 	    ld_script_cmd(ld, LSC_SECTIONS_OVERLAY, ldso));
 }
 
-struct ld_script_sections_overlay_section *
-ld_script_sections_overlay_section(struct ld *ld, char *name,
-    struct ld_script_cmd_head *ldos_c, struct ld_script_list *phdr,
-    struct ld_exp *fill)
-{
-	struct ld_script_sections_overlay_section *ldos;
-
-	if ((ldos = malloc(sizeof(*ldos))) == NULL)
-		ld_fatal_std(ld, "malloc");
-
-	ldos->ldos_name = name;
-	memcpy(&ldos->ldos_c, ldos_c, sizeof(*ldos_c));
-	ldos->ldos_phdr = phdr;
-	ldos->ldos_fill = fill;
-
-	return (ldos);
-}
-
 static void
 _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 {

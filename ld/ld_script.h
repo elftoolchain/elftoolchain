@@ -26,18 +26,6 @@
  * $Id$
  */
 
-enum ld_script_assign_op {
-	LSAOP_ADD_E,
-	LSAOP_AND_E,
-	LSAOP_DIV_E,
-	LSAOP_E,
-	LSAOP_LSHIFT_E,
-	LSAOP_MUL_E,
-	LSAOP_OR_E,
-	LSAOP_RSHIFT_E,
-	LSAOP_SUB_E,
-};
-
 enum ld_script_cmd_type {
 	LSC_ASSERT,
 	LSC_ASSIGN,
@@ -59,12 +47,7 @@ enum ld_script_cmd_type {
 	LSC_SEARCH_DIR,
 	LSC_SECTIONS,
 	LSC_SECTIONS_OUTPUT,
-	LSC_SECTIONS_OUTPUT_DATA_BYTE,
-	LSC_SECTIONS_OUTPUT_DATA_FILL,
-	LSC_SECTIONS_OUTPUT_DATA_LONG,
-	LSC_SECTIONS_OUTPUT_DATA_QUAD,
-	LSC_SECTIONS_OUTPUT_DATA_SHORT,
-	LSC_SECTIONS_OUTPUT_DATA_SQUAD,
+	LSC_SECTIONS_OUTPUT_DATA,
 	LSC_SECTIONS_OUTPUT_INPUT,
 	LSC_SECTIONS_OUTPUT_KEYWORD,
 	LSC_SECTIONS_OVERLAY,
@@ -89,6 +72,18 @@ struct ld_script_list {
 struct ld_script_assert {
 	struct ld_exp *lda_exp;		/* expression to assert */
 	char *lda_msg;			/* assertion message */
+};
+
+enum ld_script_assign_op {
+	LSAOP_ADD_E,
+	LSAOP_AND_E,
+	LSAOP_DIV_E,
+	LSAOP_E,
+	LSAOP_LSHIFT_E,
+	LSAOP_MUL_E,
+	LSAOP_OR_E,
+	LSAOP_RSHIFT_E,
+	LSAOP_SUB_E,
 };
 
 struct ld_script_assign {
@@ -136,6 +131,20 @@ struct ld_script_phdr {
 	STAILQ_ENTRY(ld_script_phdr) ldsp_next; /* next phdr */
 };
 
+enum ld_script_sections_output_data_type {
+	LSODT_BYTE,
+	LSODT_SHORT,
+	LSODT_LONG,
+	LSODT_QUAD,
+	LSODT_SQUAD,
+	LSODT_FILL,
+};
+
+struct ld_script_sections_output_data {
+	enum ld_script_sections_output_data_type ldod_type; /* data type */
+	struct ld_exp *ldod_exp;	/* data expression */
+};
+
 struct ld_script_sections_output_input {
 	struct ld_wildcard *ldoi_ar;	/* archive name */
 	struct ld_wildcard *ldoi_file;	/* file/member name */
@@ -143,6 +152,12 @@ struct ld_script_sections_output_input {
 	struct ld_script_list *ldoi_sec; /* section name list */
 	unsigned ldoi_flags;		/* input section flags */
 	unsigned ldoi_keep;		/* keep input section */
+};
+
+enum ld_script_sections_output_keywords {
+	LSOK_CONSTRUCTORS,
+	LSOK_CONSTRUCTORS_SORT_BY_NAME,
+	LSOK_CREATE_OBJECT_SYMBOLS,
 };
 
 struct ld_script_sections_output {
@@ -221,6 +236,3 @@ void	ld_script_sections_output(struct ld *, struct ld_script_cmd_head *,
 void ld_script_section_overlay(struct ld *, struct ld_script_cmd_head *,
     struct ld_exp *, int64_t, struct ld_exp *, struct ld_script_list *,
     char *, struct ld_script_list *, struct ld_exp *);
-struct ld_script_sections_overlay_section *ld_script_sections_overlay_section(
-    struct ld *, char *, struct ld_script_cmd_head *, struct ld_script_list *,
-    struct ld_exp *);
