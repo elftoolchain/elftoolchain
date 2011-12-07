@@ -30,10 +30,16 @@ struct ld_symbol {
 	char *lsb_name;			/* symbol name */
 	uint64_t lsb_size;		/* symbol size */
 	uint64_t lsb_value;		/* symbol value */
-	struct ld_exp *lsb_exp;		/* associated value expression */
+	uint16_t lsb_shndx;		/* symbol index */
+	struct ld_script_variable *lsb_var; /* associated ldscript variable */
+	unsigned char lsb_bind;		/* symbol binding */
+	unsigned char lsb_type;		/* symbol type */
 	unsigned char lsb_other;	/* symbol visibility */
+	unsigned char lsb_provide;	/* provide symbol */
 	UT_hash_handle hh;		/* hash handle */
 };
 
 void	ld_symbols_add_extern(struct ld *, char *);
+void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
+    unsigned, unsigned);
 void	ld_symbols_resolve(struct ld *);

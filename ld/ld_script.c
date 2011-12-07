@@ -34,6 +34,11 @@
 ELFTC_VCSID("$Id$");
 
 static void _input_file_add(struct ld *ld, struct ld_script_input_file *ldif);
+static struct ld_script_variable *_variable_find(struct ld *ld, char *name);
+
+#define _variable_add(v) \
+	HASH_ADD_KEYPTR(hh, ld->ld_scp->lds_v, (v)->ldv_name, \
+	    strlen((v)->ldv_name), (v))
 
 struct ld_script_cmd *
 ld_script_assert(struct ld *ld, struct ld_exp *exp, char *msg)
@@ -53,6 +58,7 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
     struct ld_exp *val, unsigned provide, unsigned hidden)
 {
 	struct ld_script_assign *lda;
+	struct ld_script_variable *ldv;
 
 	if ((lda = calloc(1, sizeof(*lda))) == NULL)
 		ld_fatal_std(ld, "calloc");
@@ -60,8 +66,14 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 	lda->lda_var = var;
 	lda->lda_op = op;
 	lda->lda_val = val;
-	lda->lda_provide = provide;
-	lda->lda_hidden = hidden;
+
+	if ((ldv = _variable_find(ld, var->le_name)) == NULL) {
+		ldv = calloc(1, sizeof(*ldv));
+		if ((ldv->ldv_name = strdup(var->le_name)) == NULL)
+			ld_fatal_std(ld, "strdup");
+		_variable_add(ldv);
+		ld_symbols_add_variable(ld, ldv, provide, hidden);
+	}
 
 	return (lda);
 }
@@ -289,4 +301,14 @@ _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 		ls->ls_as_needed = old_as_needed;
 		ld_script_list_free(ldif->ldif_u.ldif_ldl);
 	}
+}
+
+static struct ld_script_variable *
+_variable_find(struct ld *ld, char *name)
+{
+	struct ld_script_variable *ldv;
+
+	HASH_FIND_STR(ld->ld_scp->lds_v, name, ldv);
+
+	return (ldv);
 }

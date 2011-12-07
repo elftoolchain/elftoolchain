@@ -90,8 +90,6 @@ struct ld_script_assign {
 	struct ld_exp *lda_var;		/* symbol */
 	struct ld_exp *lda_val;		/* value */
 	enum ld_script_assign_op lda_op; /* assign op */
-	unsigned lda_provide;		/* provide */
-	unsigned lda_hidden;		/* hidden provide */
 };
 
 struct ld_script_input_file {
@@ -196,12 +194,20 @@ struct ld_script_sections {
 	struct ld_script_cmd_head ldss_c; /* section cmd list */
 };
 
+struct ld_script_variable {
+	char *ldv_name;			/* variable name */
+	struct ld_symbol *ldv_symbol;	/* assoicated symbol */
+	int64_t ldv_val;		/* variable value */
+	UT_hash_handle hh;		/* hash handle */
+};
+
 struct ld_script {
 	STAILQ_HEAD(, ld_script_phdr) lds_p; /* phdr table */
 	STAILQ_HEAD(, ld_script_region_alias) lds_a; /* region aliases list */
 	STAILQ_HEAD(, ld_script_region) lds_r; /* memory region list */
 	STAILQ_HEAD(, ld_script_nocrossref) lds_n; /* nocrossref list */
 	struct ld_script_cmd_head lds_c; /* other ldscript cmd list */
+	struct ld_script_variable *lds_v; /* variable table */
 };
 
 struct ld_script_cmd *ld_script_assert(struct ld *, struct ld_exp *, char *);

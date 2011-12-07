@@ -27,19 +27,20 @@
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_symbols.h"
+#include "ld_script.h"
 
 ELFTC_VCSID("$Id$");
 
-static void ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf,
-    Elf *e, GElf_Sym *sym, size_t strndx);
 static void ld_symbols_load(struct ld *ld, struct ld_file *lf);
 static void ld_symbols_load_archive(struct ld *ld, struct ld_file *lf);
 static void ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e);
-static void ld_symbols_warn_muldef(struct ld *ld, struct ld_symbol *lsb,
-    GElf_Sym *sym);
+static void _add_elf_symbol(struct ld *ld, struct ld_file *lf, Elf *e,
+    GElf_Sym *sym, size_t strndx);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
 static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
     struct ld_archive *la, off_t off);
+static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
+static struct ld_symbol *_symbol_alloc(struct ld *ld);
 static struct ld_symbol *_symbol_find(struct ld_symbol *tbl, char *name);
 
 void
@@ -85,6 +86,17 @@ ld_symbols_resolve(struct ld *ld)
 }
 
 static struct ld_symbol *
+_symbol_alloc(struct ld *ld)
+{
+	struct ld_symbol *s;
+
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (s);
+}
+
+static struct ld_symbol *
 _symbol_find(struct ld_symbol *tbl, char *name)
 {
 	struct ld_symbol *s;
@@ -98,10 +110,39 @@ _symbol_find(struct ld_symbol *tbl, char *name)
 #define _symbol_remove(tbl, s) HASH_DEL((tbl), (s));
 
 static void
-ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
+_resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+	char *name;
+
+	name = lsb->lsb_name;
+	if (lsb->lsb_shndx == SHN_UNDEF) {
+		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
+			return;
+		if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
+			return;
+		_symbol_add(ld->ld_symtab_undef, lsb);
+	} else {
+		if ((_lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL) {
+			if (!lsb->lsb_provide)
+				ld_fatal(ld, "multiple definition of symbol "
+				    "%s", name);
+			else if (_lsb->lsb_provide) {
+				_symbol_remove(ld->ld_symtab_def, _lsb);
+			}
+		}
+		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL) {
+			_symbol_remove(ld->ld_symtab_undef, _lsb);
+		}
+		_symbol_add(ld->ld_symtab_def, lsb);
+	}
+}
+
+static void
+_add_elf_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
     size_t strndx)
 {
-	struct ld_symbol *lsb, *_lsb;
+	struct ld_symbol *lsb;
 	char *name;
 
 	(void) lf;
@@ -112,34 +153,13 @@ ld_symbols_add_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
 	if (GELF_ST_BIND(sym->st_info) == STB_LOCAL)
 		return;
 
-	if (sym->st_shndx == SHN_UNDEF) {
-		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
-			return;
-		if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
-			return;
-	} else {
-		if ((_lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL) {
-			ld_symbols_warn_muldef(ld, _lsb, sym);
-			return;
-		}
-		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL) {
-			_symbol_remove(ld->ld_symtab_undef, _lsb);
-			_symbol_add(ld->ld_symtab_def, _lsb);
-			return;
-		}
-	}
-
-	if ((lsb = calloc(1, sizeof(*lsb))) == NULL)
-		ld_fatal_std(ld, "calloc");
-
+	lsb = _symbol_alloc(ld);
 	if ((lsb->lsb_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 	lsb->lsb_size = sym->st_size;
-
-	if (sym->st_shndx == SHN_UNDEF) {
-		_symbol_add(ld->ld_symtab_undef, lsb);
-	} else
-		_symbol_add(ld->ld_symtab_def, lsb);
+	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
+	lsb->lsb_shndx = sym->st_shndx;
+	_resolve_and_add_symbol(ld, lsb);
 }
 
 static int
@@ -272,7 +292,7 @@ ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e)
 		if (gelf_getsym(d, i, &sym) != &sym)
 			ld_fatal(ld, "%s: gelf_getsym failed: %s", lf->lf_name,
 			    elf_errmsg(-1));
-		ld_symbols_add_symbol(ld, lf, e, &sym, strndx);
+		_add_elf_symbol(ld, lf, e, &sym, strndx);
 	}
 }
 
@@ -286,15 +306,6 @@ ld_symbols_load(struct ld *ld, struct ld_file *lf)
 		ld_symbols_load_elf(ld, lf, lf->lf_elf);
 }
 
-static void
-ld_symbols_warn_muldef(struct ld *ld, struct ld_symbol *lsb, GElf_Sym *sym)
-{
-
-	(void) sym;
-
-	ld_warn(ld, "multiple definition of symbol %s", lsb->lsb_name);
-}
-
 void
 ld_symbols_add_extern(struct ld *ld, char *name)
 {
@@ -303,11 +314,27 @@ ld_symbols_add_extern(struct ld *ld, char *name)
 	if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
 		return;
 
-	if ((lsb = calloc(1, sizeof(*lsb))) == NULL)
-		ld_fatal_std(ld, "calloc");
-
+	lsb = _symbol_alloc(ld);
 	if ((lsb->lsb_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
 	_symbol_add(ld->ld_symtab_undef, lsb);
+}
+
+void
+ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
+    unsigned provide, unsigned hidden)
+{
+	struct ld_symbol *lsb;
+
+	lsb = _symbol_alloc(ld);
+	if ((lsb->lsb_name = strdup(ldv->ldv_name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lsb->lsb_var = ldv;
+	lsb->lsb_bind = STB_GLOBAL;
+	lsb->lsb_shndx = SHN_ABS;
+	lsb->lsb_provide = provide;
+	if (hidden)
+		lsb->lsb_other = STV_HIDDEN;
+	_resolve_and_add_symbol(ld, lsb);
 }
