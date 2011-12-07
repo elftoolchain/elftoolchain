@@ -48,7 +48,7 @@ ld_symbols_resolve(struct ld *ld)
 {
 	struct ld_state *ls;
 	struct ld_file *lf;
-	struct ld_symbol *lsb;
+	struct ld_symbol *lsb, *_lsb;
 
 	if (TAILQ_EMPTY(&ld->ld_lflist))
 		ld_fatal(ld, "no input files");
@@ -77,9 +77,9 @@ ld_symbols_resolve(struct ld *ld)
 	}
 
 	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
-		for (lsb = ld->ld_symtab_undef; lsb != NULL;
-		     lsb = lsb->hh.next) {
-			ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
+		HASH_ITER(hh, ld->ld_symtab_undef, lsb, _lsb) {
+			if (lsb->lsb_bind != STB_WEAK)
+				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
 		}
 		exit(1);
 	}
