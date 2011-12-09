@@ -14,7 +14,7 @@
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -25,28 +25,20 @@
  */
 
 #include "ld.h"
-#include "ld_file.h"
-#include "ld_layout.h"
+#include "ld_output.h"
 
 ELFTC_VCSID("$Id$");
 
-/*
- * Support routines for output section layout.
- */
-
-static off_t _calc_header_size(struct ld *ld);
-
 void
-ld_layout_sections(struct ld *ld)
+ld_output_format(struct ld *ld, char *def, char *be, char *le)
 {
-	off_t header_size;
 
-	header_size = _calc_header_size(ld);
-}
+	if ((ld->ld_otgt = elftc_bfd_find_target(def)) == NULL)
+		ld_fatal(ld, "invalid BFD format %s", def);
 
-static off_t
-_calc_header_size(struct ld *ld)
-{
-	(void) ld;
-	return (0);
+	if ((ld->ld_otgt_be = elftc_bfd_find_target(be)) == NULL)
+		ld_fatal(ld, "invalid BFD format %s", be);
+
+	if ((ld->ld_otgt_le = elftc_bfd_find_target(le)) == NULL)
+		ld_fatal(ld, "invalid BFD format %s", le);
 }

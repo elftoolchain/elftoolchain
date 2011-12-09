@@ -27,6 +27,7 @@
 
 #include "ld.h"
 #include "ld_options.h"
+#include "ld_output.h"
 #include "ld_script.h"
 #include "ld_file.h"
 #include "ld_exp.h"
@@ -637,8 +638,12 @@ output_arch_command
 	;
 
 output_format_command
-	: T_OUTPUT_FORMAT '(' ident ')'
-	| T_OUTPUT_FORMAT '(' ident ',' ident ',' ident ')'
+	: T_OUTPUT_FORMAT '(' ident ')' {
+		ld_output_format(ld, $3, $3, $3);
+	}
+	| T_OUTPUT_FORMAT '(' ident ',' ident ',' ident ')' {
+		ld_output_format(ld, $3, $5, $7);
+	}
 	;
 
 phdrs_command

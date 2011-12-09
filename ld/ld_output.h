@@ -22,31 +22,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Id$
  */
 
-#include "ld.h"
-#include "ld_file.h"
-#include "ld_layout.h"
-
-ELFTC_VCSID("$Id$");
-
-/*
- * Support routines for output section layout.
- */
-
-static off_t _calc_header_size(struct ld *ld);
-
-void
-ld_layout_sections(struct ld *ld)
-{
-	off_t header_size;
-
-	header_size = _calc_header_size(ld);
-}
-
-static off_t
-_calc_header_size(struct ld *ld)
-{
-	(void) ld;
-	return (0);
-}
+void	ld_output_format(struct ld *, char *, char *, char *);

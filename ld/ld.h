@@ -70,6 +70,9 @@ struct ld_state {
 
 struct ld {
 	const char *ld_progname;	/* ld(1) program name */
+	Elftc_Bfd_Target *ld_otgt;	/* default output format */
+	Elftc_Bfd_Target *ld_otgt_be;	/* big-endian output format */
+	Elftc_Bfd_Target *ld_otgt_le;	/* little-endian output format */
 	char *ld_output;		/* output file name */
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */

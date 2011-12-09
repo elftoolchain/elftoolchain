@@ -12,6 +12,7 @@ SRCS=	amd64.c			\
 	ld_layout.c		\
 	ld_main.c 		\
 	ld_options.c		\
+	ld_output.c		\
 	ld_script.c		\
 	ld_script_lexer.l	\
 	ld_script_parser.y	\
