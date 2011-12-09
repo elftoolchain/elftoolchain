@@ -29,6 +29,7 @@
 #include "ld_script.h"
 #include "ld_symbols.h"
 #include "ld_options.h"
+#include "ld_output.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -379,6 +380,8 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	case KEY_NO_WHOLE_ARCHIVE:
 		ls->ls_whole_archive = 0;
 		break;
+	case KEY_OFORMAT:
+		ld_output_format(ld, arg, arg, arg);
 	case KEY_STATIC:
 		ls->ls_static = 1;
 		break;
