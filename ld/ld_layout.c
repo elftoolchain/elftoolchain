@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_layout.h"
+#include "ld_script.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -47,6 +48,35 @@ ld_layout_sections(struct ld *ld)
 static off_t
 _calc_header_size(struct ld *ld)
 {
-	(void) ld;
-	return (0);
+	struct ld_script_phdr *ldsp;
+	off_t header_size;
+	unsigned ec;
+	size_t num_phdrs;
+
+	header_size = 0;
+
+	ec = elftc_bfd_target_class(ld->ld_otgt);
+	if (ec == ELFCLASS32)
+		header_size += sizeof(Elf32_Ehdr);
+	else
+		header_size += sizeof(Elf64_Ehdr);
+
+	if (!STAILQ_EMPTY(&ld->ld_scp->lds_p)) {
+		num_phdrs = 0;
+		STAILQ_FOREACH(ldsp, &ld->ld_scp->lds_p, ldsp_next)
+			num_phdrs++;
+	} else {
+		/*
+		 * TODO: depending on different output file type, ld(1)
+		 * generate different number of segements.
+		 */
+		num_phdrs = 4;
+	}
+
+	if (ec == ELFCLASS32)
+		header_size += num_phdrs * sizeof(Elf32_Phdr);
+	else
+		header_size += num_phdrs * sizeof(Elf64_Phdr);
+
+	return (header_size);
 }

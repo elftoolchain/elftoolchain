@@ -81,7 +81,6 @@ ld_symbols_resolve(struct ld *ld)
 			if (lsb->lsb_bind != STB_WEAK)
 				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
 		}
-		exit(1);
 	}
 }
 

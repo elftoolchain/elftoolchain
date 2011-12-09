@@ -28,6 +28,7 @@
 #include "ld_options.h"
 #include "ld_script.h"
 #include "ld_file.h"
+#include "ld_layout.h"
 #include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
@@ -63,6 +64,8 @@ main(int argc, char **argv)
 	ld_options_parse(ld, argc, argv);
 
 	ld_symbols_resolve(ld);
+
+	ld_layout_sections(ld);
 
 	exit(EXIT_SUCCESS);
 }
