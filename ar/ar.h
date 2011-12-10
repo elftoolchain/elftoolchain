@@ -28,8 +28,6 @@
 
 #include "_elftc.h"
 
-#define	BSDAR_VERSION	"1.1.0"
-
 /*
  * ar(1) options.
  */
