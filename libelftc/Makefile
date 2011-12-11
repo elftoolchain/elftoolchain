@@ -5,6 +5,7 @@ TOP=	${.CURDIR}/..
 LIB=	elftc
 
 SRCS=	elftc_bfdtarget.c			\
+	elftc_copyfile.c			\
 	elftc_demangle.c			\
 	elftc_version.c				\
 	libelftc_bfdtarget.c			\
@@ -25,6 +26,7 @@ CLEANFILES+=	elftc_version.c
 LDADD+=	-lelf
 
 MAN=	elftc_bfd_find_target.3 \
+	elftc_copyfile.3 \
 	elftc_demangle.3 \
 	elftc_version.3
 
