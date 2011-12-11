@@ -49,7 +49,7 @@ elftc_copyfile(int ifd, int ofd)
 {
 	int buf_mmapped;
 	struct stat sb;
-	void *b, *buf;
+	char *b, *buf;
 	ssize_t nw;
 	size_t n;
 
