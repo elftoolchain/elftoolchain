@@ -35,12 +35,40 @@ ELFTC_VCSID("$Id$");
  * Support routines for output section layout.
  */
 
+static void _layout_output_section(struct ld *ld, struct ld_file *lf,
+    struct ld_script_sections_output *ldso);
+static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static off_t _calc_header_size(struct ld *ld);
 
 void
 ld_layout_sections(struct ld *ld)
 {
+	struct ld_script *lds;
+	struct ld_script_cmd *ldc;
 	off_t header_size;
+	int sections_cmd_exist;
+
+	lds = ld->ld_scp;
+
+	sections_cmd_exist = 0;
+	STAILQ_FOREACH(ldc, &lds->lds_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSERT:
+			break;
+		case LSC_ENTRY:
+			break;
+		case LSC_SECTIONS:
+			if (sections_cmd_exist)
+				ld_fatal(ld, "found multiple SECTIONS commands"
+				    " in the linker script");
+			_layout_sections(ld, ldc->ldc_cmd);
+			break;
+		default:
+			break;
+		}
+	}
+	if (!sections_cmd_exist)
+		_layout_sections(ld, NULL);
 
 	header_size = _calc_header_size(ld);
 }
@@ -79,4 +107,40 @@ _calc_header_size(struct ld *ld)
 		header_size += num_phdrs * sizeof(Elf64_Phdr);
 
 	return (header_size);
+}
+
+static void
+_layout_sections(struct ld *ld, struct ld_script_sections *ldss)
+{
+	struct ld_file *lf;
+	struct ld_script_cmd *ldc;
+
+	TAILQ_FOREACH(lf, &ld->ld_lflist, lf_next) {
+		ld_file_load(ld, lf);
+		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
+			switch (ldc->ldc_type) {
+			case LSC_ENTRY:
+				break;
+			case LSC_ASSIGN:
+				break;
+			case LSC_SECTIONS_OUTPUT:
+				_layout_output_section(ld, lf, ldc->ldc_cmd);
+			case LSC_SECTIONS_OVERLAY:
+				break;
+			default:
+				break;
+			}
+		}
+		ld_file_unload(ld, lf);
+	}
+}
+
+static void
+_layout_output_section(struct ld *ld, struct ld_file *lf,
+    struct ld_script_sections_output *ldso)
+{
+
+	(void) ld;
+	(void) lf;
+	(void) ldso;
 }

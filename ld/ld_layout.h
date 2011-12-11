@@ -30,7 +30,10 @@ struct ld_input_section {
 	char *is_name;			/* section name */
 	struct ld_file *is_file;	/* containing file */
 	uint64_t is_off;		/* section file offset */
+	uint64_t is_size;		/* seciton file size */
 	uint64_t is_align;		/* section align */
+	uint64_t is_type;		/* section type */
+	uint64_t is_flags;		/* section flags */
 };
 
 struct ld_output_section_command {
