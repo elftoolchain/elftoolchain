@@ -23,7 +23,7 @@
 .\"
 .\" $Id$ 
 .\"
-.Dd September 23, 2011
+.Dd December 11, 2011
 .Os
 .Dt ELF_BEGIN 3
 .Sh NAME
@@ -299,6 +299,10 @@ Function
 .Fn elf_begin
 was called before a working version was established with
 .Xr elf_version 3 .
+.It Bq Er ELF_E_VERSION
+The ELF object referenced by argument
+.Ar fd
+was of an unsupported ELF version.
 .El
 .Sh SEE ALSO
 .Xr elf 3 ,
