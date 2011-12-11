@@ -32,7 +32,7 @@ LDFLAGS+=	-L${TOP}/libelf
 	m4 -D SRCDIR=${.CURDIR} ${.IMPSRC} > ${.TARGET}
 
 .if defined(DEBUG)
-CFLAGS:=	${CFLAGS:N-O2} -g
+CFLAGS:=	${CFLAGS:N-O*} -g
 .endif
 
 # Bring in rules related to test code.

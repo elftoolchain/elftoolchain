@@ -74,7 +74,7 @@ ${_L:R}.o:	${_Y:R}.h
 clobber:	clean	.PHONY
 
 .if defined(DEBUG)
-CFLAGS:=	${CFLAGS:N-O2} -g
+CFLAGS:=	${CFLAGS:N-O*} -g
 .endif
 
 # Bring in rules related to test code.
