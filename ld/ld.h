@@ -37,6 +37,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fnmatch.h>
 #include <gelf.h>
 #include <inttypes.h>
 #include <libelftc.h>

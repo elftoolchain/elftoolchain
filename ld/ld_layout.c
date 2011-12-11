@@ -28,6 +28,7 @@
 #include "ld_file.h"
 #include "ld_layout.h"
 #include "ld_script.h"
+#include "ld_options.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -43,6 +44,9 @@ static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _load_input_sections(struct ld *ld, struct ld_input *li);
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
+static int _wildcard_match(struct ld_wildcard *lw, const char *string);
+static int _wildcard_list_match(struct ld_script_list *list,
+    const char *string);
 
 void
 ld_layout_sections(struct ld *ld)
@@ -265,12 +269,58 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 		ld_file_unload(ld, lf);
 }
 
+static int
+_wildcard_match(struct ld_wildcard *lw, const char *string)
+{
+
+	return (fnmatch(lw->lw_name, string, FNM_PATHNAME));
+}
+
+static int
+_wildcard_list_match(struct ld_script_list *list, const char *string)
+{
+	struct ld_script_list *ldl;
+
+	for (ldl = list; ldl != NULL; ldl = ldl->ldl_next)
+		if (_wildcard_match(ldl->ldl_entry, string) == 0)
+			return (0);
+
+	return (FNM_NOMATCH);
+}
+
 static void
 _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso)
 {
+	struct ld_file *lf;
+	struct ld_script_cmd *ldc;
+	struct ld_script_sections_output_input *ldoi;
+	struct ld_input_section *is;
+	int i;
 
 	(void) ld;
-	(void) li;
-	(void) ldso;
+
+	lf = li->li_file;
+	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
+		if (ldc->ldc_type != LSC_SECTIONS_OUTPUT_INPUT)
+			continue;
+		ldoi = ldc->ldc_cmd;
+		if (ldoi->ldoi_ar != NULL && li->li_moff != 0 &&
+		    _wildcard_match(ldoi->ldoi_ar, lf->lf_name) == FNM_NOMATCH)
+				continue;
+		assert(ldoi->ldoi_file != NULL);
+		if (_wildcard_match(ldoi->ldoi_file, li->li_name) ==
+		    FNM_NOMATCH)
+			continue;
+		if (ldoi->ldoi_exclude != NULL &&
+		    _wildcard_list_match(ldoi->ldoi_exclude, li->li_name) == 0)
+			continue;
+		assert(ldoi->ldoi_sec != NULL);
+		for (i = 1; (size_t) i < li->li_shnum; i++) {
+			is = &li->li_is[i];
+			if (_wildcard_list_match(ldoi->ldoi_sec, is->is_name) ==
+			    FNM_NOMATCH)
+				continue;
+		}
+	}
 }
