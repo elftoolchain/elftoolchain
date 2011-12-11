@@ -84,6 +84,7 @@ struct ld {
 	struct ld_symbol *ld_symtab_undef; /* undefined symbols */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
+	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
 

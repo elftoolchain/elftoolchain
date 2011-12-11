@@ -25,7 +25,6 @@
  */
 
 #include "ld.h"
-#include "ld_layout.h"
 #include "ld_file.h"
 
 ELFTC_VCSID("$Id$");
@@ -211,65 +210,6 @@ ld_file_unload(struct ld *ld, struct ld_file *lf)
 		if (munmap(lf->lf_mmap, lf->lf_size) < 0)
 			ld_fatal_std(ld, "%s: munmap", lf->lf_name);
 	}
-}
-
-void
-ld_file_load_sections(struct ld *ld, struct ld_file *lf)
-{
-	struct ld_input_section *is;
-	Elf_Scn *scn;
-	const char *name;
-	GElf_Shdr sh;
-	size_t shstrndx, ndx;
-	int elferr;
-
-	assert(lf->lf_elf != NULL);
-
-	if (elf_getshdrnum(lf->lf_elf, &lf->lf_shnum) < 0)
-		ld_fatal(ld, "%s: elf_getshdrnum: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	assert(lf->lf_is == NULL);
-	if ((lf->lf_is = calloc(lf->lf_shnum, sizeof(*is))) == NULL)
-		ld_fatal_std(ld, "%s: calloc: %s", lf->lf_name);
-
-	if (elf_getshdrstrndx(lf->lf_elf, &shstrndx) < 0)
-		ld_fatal(ld, "%s: elf_getshdrstrndx: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	scn = NULL;
-	while ((scn = elf_nextscn(lf->lf_elf, scn)) != NULL) {
-		if (gelf_getshdr(scn, &sh) != &sh)
-			ld_fatal(ld, "%s: gelf_getshdr: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if ((name = elf_strptr(lf->lf_elf, shstrndx, sh.sh_name)) == NULL)
-			ld_fatal(ld, "%s: elf_strptr: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if ((ndx = elf_ndxscn(scn)) == SHN_UNDEF)
-			ld_fatal(ld, "%s: elf_ndxscn: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if (ndx >= lf->lf_shnum)
-			ld_fatal(ld, "%s: section index of '%s' section is"
-			    " invalid", lf->lf_name, name);
-
-		is = &lf->lf_is[ndx];
-		if ((is->is_name = strdup(name)) == NULL)
-			ld_fatal_std(ld, "%s: calloc", lf->lf_name);
-		is->is_off = sh.sh_offset;
-		is->is_size = sh.sh_size;
-		is->is_align = sh.sh_addralign;
-		is->is_type = sh.sh_type;
-		is->is_flags = sh.sh_flags;
-		is->is_file = lf;
-	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", lf->lf_name,
-		    elf_errmsg(elferr));
 }
 
 static void

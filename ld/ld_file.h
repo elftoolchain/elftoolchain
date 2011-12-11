@@ -51,8 +51,6 @@ struct ld_file {
 	size_t lf_size;			/* input file size */
 	Elf *lf_elf;			/* input file ELF descriptor */
 	struct ld_archive *lf_ar;	/* input archive */
-	size_t lf_shnum;		/* num of sections in ELF object */
-	struct ld_input_section *lf_is;	/* input section list */
 	unsigned lf_whole_archive;	/* include whole archive */
 	unsigned lf_as_needed;		/* DT_NEEDED */
 	unsigned lf_group_level;	/* archive group level */
@@ -70,5 +68,4 @@ void	ld_file_add_first(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_library(struct ld *, const char *);
 void	ld_file_add_library_path(struct ld *, char *);
 void	ld_file_load(struct ld *, struct ld_file *);
-void	ld_file_load_sections(struct ld *, struct ld_file *);
 void	ld_file_unload(struct ld *, struct ld_file *);

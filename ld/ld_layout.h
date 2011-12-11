@@ -28,12 +28,21 @@
 
 struct ld_input_section {
 	char *is_name;			/* section name */
-	struct ld_file *is_file;	/* containing file */
+	struct ld_input *is_input;	/* containing input object */
 	uint64_t is_off;		/* section file offset */
 	uint64_t is_size;		/* seciton file size */
 	uint64_t is_align;		/* section align */
 	uint64_t is_type;		/* section type */
 	uint64_t is_flags;		/* section flags */
+};
+
+struct ld_input {
+	char *li_name;			/* input object name */
+	struct ld_file *li_file;	/* containing file */
+	size_t li_shnum;		/* num of sections in ELF object */
+	struct ld_input_section *li_is;	/* input section list */
+	off_t li_moff;			/* archive member offset */
+	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
 struct ld_output_section_command {
