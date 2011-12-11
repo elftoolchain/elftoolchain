@@ -42,6 +42,7 @@ _ld_init(void)
 
 	TAILQ_INIT(&ld->ld_lflist);
 	STAILQ_INIT(&ld->ld_lilist);
+	STAILQ_INIT(&ld->ld_oslist);
 	STAILQ_INIT(&ld->ld_ls.ls_lplist);
 
 	/* Initialise libelf. */

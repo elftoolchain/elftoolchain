@@ -26,8 +26,8 @@
 
 #include "ld.h"
 #include "ld_file.h"
-#include "ld_layout.h"
 #include "ld_script.h"
+#include "ld_layout.h"
 #include "ld_options.h"
 
 ELFTC_VCSID("$Id$");
@@ -273,7 +273,7 @@ static int
 _wildcard_match(struct ld_wildcard *lw, const char *string)
 {
 
-	return (fnmatch(lw->lw_name, string, FNM_PATHNAME));
+	return (fnmatch(lw->lw_name, string, FNM_PATHNAME) == 0);
 }
 
 static int
@@ -282,10 +282,26 @@ _wildcard_list_match(struct ld_script_list *list, const char *string)
 	struct ld_script_list *ldl;
 
 	for (ldl = list; ldl != NULL; ldl = ldl->ldl_next)
-		if (_wildcard_match(ldl->ldl_entry, string) == 0)
-			return (0);
+		if (_wildcard_match(ldl->ldl_entry, string))
+			return (1);
 
-	return (FNM_NOMATCH);
+	return (0);
+}
+
+static struct ld_output_section *
+_alloc_output_section(struct ld *ld, const char *name)
+{
+	struct ld_output_section *os;
+
+	if ((os = calloc(1, sizeof(*os))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	if ((os->os_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	STAILQ_INIT(&os->os_p);
+	HASH_ADD_KEYPTR(hh, ld->ld_ostbl, os->os_name, strlen(os->os_name), os);
+	STAILQ_INSERT_TAIL(&ld->ld_oslist, os, os_next);
+
+	return (os);
 }
 
 static void
@@ -296,31 +312,107 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	struct ld_script_cmd *ldc;
 	struct ld_script_sections_output_input *ldoi;
 	struct ld_input_section *is;
-	int i;
-
-	(void) ld;
+	struct ld_output_section *os;
+	struct ld_output_section_part *osp;
+	int i, new_section;
 
 	lf = li->li_file;
+
+	if (ldso == NULL)
+		goto process_orphan_sections;
+
+	new_section = 0;
+	osp = NULL;
+	HASH_FIND_STR(ld->ld_ostbl, ldso->ldso_name, os);
+	if (os == NULL) {
+		os = _alloc_output_section(ld, ldso->ldso_name);
+		new_section = 1;
+	} else
+		osp = STAILQ_FIRST(&os->os_p);
+
 	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSIGN:
+			if (new_section) {
+				if ((osp = calloc(1, sizeof(*osp))) == NULL)
+					ld_fatal_std(ld, "calloc");
+				osp->osp_type = OSPT_ASSIGN;
+				osp->osp_u.osp_a = ldc->ldc_cmd;
+			}
+		case LSC_SECTIONS_OUTPUT_DATA:
+			if (new_section) {
+				if ((osp = calloc(1, sizeof(*osp))) == NULL)
+					ld_fatal_std(ld, "calloc");
+				osp->osp_type = OSPT_DATA;
+				osp->osp_u.osp_d = ldc->ldc_cmd;
+			}
+			break;
+		case LSC_SECTIONS_OUTPUT_INPUT:
+			if (new_section) {
+				if ((osp = calloc(1, sizeof(*osp))) == NULL)
+					ld_fatal_std(ld, "calloc");
+				osp->osp_type = OSPT_INPUT;
+				STAILQ_INIT(&osp->osp_u.osp_i);
+			}
+			break;
+		case LSC_SECTIONS_OUTPUT_KEYWORD:
+			if (new_section) {
+				if ((osp = calloc(1, sizeof(*osp))) == NULL)
+					ld_fatal_std(ld, "calloc");
+				osp->osp_type = OSPT_KEYWORD;
+				osp->osp_u.osp_k = (uintptr_t) ldc->ldc_cmd;
+			}
+			break;
+		default:
+			ld_fatal(ld, "internal: invalid output section "
+			    "command: %d", ldc->ldc_type);
+		}
 		if (ldc->ldc_type != LSC_SECTIONS_OUTPUT_INPUT)
-			continue;
+			goto next_output_cmd;
+
 		ldoi = ldc->ldc_cmd;
+
 		if (ldoi->ldoi_ar != NULL && li->li_moff != 0 &&
-		    _wildcard_match(ldoi->ldoi_ar, lf->lf_name) == FNM_NOMATCH)
-				continue;
+		    !_wildcard_match(ldoi->ldoi_ar, lf->lf_name))
+			goto next_output_cmd;
+
 		assert(ldoi->ldoi_file != NULL);
-		if (_wildcard_match(ldoi->ldoi_file, li->li_name) ==
-		    FNM_NOMATCH)
-			continue;
+		if (!_wildcard_match(ldoi->ldoi_file, li->li_name))
+			goto next_output_cmd;
+
 		if (ldoi->ldoi_exclude != NULL &&
-		    _wildcard_list_match(ldoi->ldoi_exclude, li->li_name) == 0)
-			continue;
+		    _wildcard_list_match(ldoi->ldoi_exclude, li->li_name))
+			goto next_output_cmd;
+
 		assert(ldoi->ldoi_sec != NULL);
 		for (i = 1; (size_t) i < li->li_shnum; i++) {
 			is = &li->li_is[i];
+			if (!is->is_orphan)
+				continue;
 			if (_wildcard_list_match(ldoi->ldoi_sec, is->is_name) ==
 			    FNM_NOMATCH)
 				continue;
+			is->is_orphan = 0;
+			assert(osp != NULL && osp->osp_type == OSPT_INPUT);
+			STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
 		}
+
+	next_output_cmd:
+		assert(osp != NULL);
+		if (new_section)
+			STAILQ_INSERT_TAIL(&os->os_p, osp, osp_next);
+		else
+			osp = STAILQ_NEXT(osp, osp_next);			
+	}
+
+process_orphan_sections:
+
+	/*
+	 * Layout the input sections that are not listed in the output
+	 * section descriptor in the linker script.
+	 */
+
+	for (i = 1; (size_t) i < li->li_shnum; i++) {
+
 	}
 }

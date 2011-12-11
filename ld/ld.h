@@ -86,6 +86,9 @@ struct ld {
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
+	STAILQ_HEAD(ld_output_section_head, ld_output_section) ld_oslist;
+					/* output section list */
+	struct ld_output_section *ld_ostbl; /* output section hash table */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
 
