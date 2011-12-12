@@ -50,7 +50,6 @@ ELFTC_VCSID("$Id$");
 
 static int elftype(const char *);
 static const char *iselftype(int);
-static Elf *openelf(int, const char *);
 static void printelftypes(void);
 static void printversion(void);
 static void usage(void);
@@ -94,10 +93,10 @@ main(int argc, char **argv)
 {
 	GElf_Ehdr ehdr;
 	Elf *elf;
-	const char *strtype = "FreeBSD";
-	int type = ELFOSABI_FREEBSD;
+	Elf_Kind kind;
+	int type = ELFOSABI_NONE;
 	int retval = 0;
-	int ch, change = 0, verbose = 0, force = 0, listed = 0, e_err = 0;
+	int ch, change = 0, verbose = 0, force = 0, listed = 0;
 
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		errx(EXIT_FAILURE, "elf_version error");
@@ -131,8 +130,12 @@ main(int argc, char **argv)
 			if (force)
 				errx(EXIT_FAILURE, "the -t option is "
 				    "incompatible with the -f option.");
+			if ((type = elftype(optarg)) == -1) {
+				warnx("ERROR: invalid ELF type '%s'", optarg);
+				usage();
+			}
+
 			change = 1;
-			strtype = optarg;
 			break;
 		case 'V':
 			printversion();
@@ -151,36 +154,41 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (!force && (type = elftype(strtype)) == -1) {
-		warnx("ERROR: invalid ELF type '%s'", strtype);
-		printelftypes();
-		usage();
-	}
-
 	while (argc) {
 		int fd;
 
-		if ((fd = open(argv[0], change || force ? O_RDWR : O_RDONLY, 0))
-		    < 0) {
+		elf = NULL;
+
+		if ((fd = open(argv[0], (change || force) ? O_RDWR :
+		    O_RDONLY, 0)) < 0) {
 			warn("error opening file %s", argv[0]);
 			retval = 1;
 			goto fail;
 		}
-		if ((elf = openelf(fd, argv[0])) == NULL) {
+
+		if ((elf = elf_begin(fd, (change || force) ? ELF_C_RDWR :
+		    ELF_C_READ, NULL)) == NULL) {
+			warnx("elf_begin failed: %s", elf_errmsg(-1));
 			retval = 1;
-			elf_end(elf);
 			goto fail;
 		}
-		if (gelf_getehdr(elf, &ehdr) == NULL) {
-			if ((e_err = elf_errno()) != 0)
-				warnx("gelf_getehdr : %s",
-				    elf_errmsg(e_err));
+
+		if ((kind = elf_kind(elf)) != ELF_K_ELF) {
+			if (kind == ELF_K_AR)
+				warnx("file '%s' is an archive.", argv[0]);
 			else
-				warnx("gelf_getehdr error");
+				warnx("file '%s' is not an ELF file.",
+				    argv[0]);
 			retval = 1;
-			elf_end(elf);
 			goto fail;
 		}
+
+		if (gelf_getehdr(elf, &ehdr) == NULL) {
+			warnx("gelf_getehdr: %s", elf_errmsg(-1));
+			retval = 1;
+			goto fail;
+		}
+
 		if (!change && !force) {
 			fprintf(stdout,
 			    "File '%s' is of brand '%s' (%u).\n",
@@ -191,37 +199,31 @@ main(int argc, char **argv)
 				      type);
 				printelftypes();
 			}
-		}
-		else {
+		} else {
 			ehdr.e_ident[EI_OSABI] = type;
 			if (gelf_update_ehdr(elf, &ehdr) == 0) {
-				if ((e_err = elf_errno()) != 0)
-					warnx("gelf_update_ehdr error : %s",
-					    elf_errmsg(e_err));
-				else
-					warnx("gelf_update_ehdr error");
+				warnx("gelf_update_ehdr error: %s",
+				    elf_errmsg(-1));
 				retval = 1;
-				elf_end(elf);
 				goto fail;
 			}
 
 			if (elf_update(elf, ELF_C_WRITE) == -1) {
-				if ((e_err = elf_errno()) != 0)
-					warnx("elf_update error : %s",
-					    elf_errmsg(e_err));
-				else
-					warnx("elf_update error");
+				warnx("elf_update error: %s", elf_errmsg(-1));
 				retval = 1;
-				elf_end(elf);
 				goto fail;
 			}
 		}
 fail:
 
-		if (close(fd) == -1) {
+		if (elf)
+			elf_end(elf);
+
+		if (fd >= 0 && close(fd) == -1) {
 			warnx("%s: close error", argv[0]);
 			retval = 1;
 		}
+
 		argc--;
 		argv++;
 	}
@@ -278,49 +280,6 @@ elftype(const char *elfstrtype)
 		if (strcasecmp(elfstrtype, elftypes[elfwalk].str) == 0)
 			return (elftypes[elfwalk].value);
 	return (-1);
-}
-
-static Elf *
-openelf(int fd, const char *name)
-{
-	Elf *elf;
-	Elf_Cmd cmd;
-	Elf_Kind kind;
-	int e_err = 0;
-
-	if (fd < 0)
-		return (NULL);
-
-	/* Archive does not support write mode. So try ar type by read cmd. */
-	cmd = ELF_C_READ;
-begin:
-	if ((elf = elf_begin(fd, cmd, (Elf *) NULL)) == NULL) {
-		if ((e_err = elf_errno()) != 0)
-			warnx("elf_begin error : %s",
-			    elf_errmsg(e_err));
-		else
-			warnx("elf_begin error");
-
-		return (NULL);
-	}
-
-	if ((kind = elf_kind(elf)) != ELF_K_ELF) {
-		if (kind == ELF_K_AR)
-			warnx("file '%s' is an archive.", name);
-		else
-			warnx("file '%s' is not ELF format", name);
-
-		return (NULL);
-	}
-
-	if (cmd == ELF_C_RDWR)
-		return (elf);
-
-	elf_end(elf);
-
-	cmd = ELF_C_RDWR;
-
-	goto begin;
 }
 
 static void
