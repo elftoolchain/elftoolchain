@@ -200,6 +200,20 @@ main(int argc, char **argv)
 				printelftypes();
 			}
 		} else {
+
+			/*
+			 * Keep the existing layout of the ELF object.
+			 */
+			if (elf_flagelf(elf, ELF_C_SET, ELF_F_LAYOUT) == 0) {
+				warnx("elf_flagelf failed: %s",
+				    elf_errmsg(-1));
+				retval = 1;
+				goto fail;
+			}
+
+			/*
+			 * Update the ABI type.
+			 */
 			ehdr.e_ident[EI_OSABI] = type;
 			if (gelf_update_ehdr(elf, &ehdr) == 0) {
 				warnx("gelf_update_ehdr error: %s",
@@ -208,6 +222,9 @@ main(int argc, char **argv)
 				goto fail;
 			}
 
+			/*
+			 * Write back changes.
+			 */
 			if (elf_update(elf, ELF_C_WRITE) == -1) {
 				warnx("elf_update error: %s", elf_errmsg(-1));
 				retval = 1;
