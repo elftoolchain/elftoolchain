@@ -421,6 +421,10 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		is = &li->li_is[i];
 		if (!is->is_orphan)
 			continue;
+		if (strcmp(is->is_name, ".shstrtab") == 0 ||
+		    strcmp(is->is_name, ".symtab") == 0 ||
+		    strcmp(is->is_name, ".strtab") == 0)
+			continue;
 		printf("orphan: %s:%s\n", li->li_name, is->is_name);
 	}
 }
