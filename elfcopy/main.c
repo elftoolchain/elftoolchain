@@ -209,7 +209,8 @@ static struct {
 	{NULL, 0}
 };
 
-static int	copy_tempfile(int fd, const char *out);
+static int	copy_from_tempfile(const char *src, const char *dst,
+    int infd, int *outfd);
 static void	create_file(struct elfcopy *ecp, const char *src,
     const char *dst);
 static void	elfcopy_main(struct elfcopy *ecp, int argc, char **argv);
@@ -492,38 +493,52 @@ create_tempfile(char **fn, int *fd)
 }
 
 static int
-copy_tempfile(int fd, const char *out)
+copy_from_tempfile(const char *src, const char *dst, int infd, int *outfd)
 {
-	struct stat sb;
-	char *buf;
-	int out_fd, bytes;
+	int tmpfd;
 
-	if (fstat(fd, &sb) == -1)
-		err(EXIT_FAILURE, "fstat tmpfile failed");
-	if ((buf = malloc((size_t) sb.st_blksize)) == NULL)
-		err(EXIT_FAILURE, "malloc failed");
-	if (unlink(out) < 0)
-		err(EXIT_FAILURE, "unlink %s failed", out);
-	if ((out_fd = open(out, O_CREAT | O_WRONLY, 0755)) == -1)
-		err(EXIT_FAILURE, "create %s failed", out);
+	/*
+	 * First, check if we can use rename().
+	 */
+	if (rename(src, dst) >= 0) {
+		*outfd = infd;
+		return (0);
+	} else if (errno != EXDEV)
+		return (-1);
 
-	if (lseek(fd, 0, SEEK_SET) < 0)
-		err(EXIT_FAILURE, "lseek tmpfile failed");
-	while ((bytes = read(fd, buf, sb.st_blksize)) > 0) {
-		if (write(out_fd, buf, (size_t) bytes) != bytes) {
-			(void) unlink(out);
-			err(EXIT_FAILURE, "write %s failed", out);
-		}
-	}
-	if (bytes < 0) {
-		(void) unlink(out);
-		err(EXIT_FAILURE, "read failed");
-	}
+	/*
+	 * If the rename() failed due to 'src' and 'dst' residing in
+	 * two different file systems, invoke a helper function in
+	 * libelftc to do the copy.
+	 */
 
-	free(buf);
-	close(fd);
+	if (unlink(dst) < 0)
+		return (-1);
 
-	return (out_fd);
+	if ((tmpfd = open(dst, O_CREAT | O_WRONLY, 0755)) < 0)
+		return (-1);
+
+	if (lseek(infd, 0, SEEK_SET) < 0)
+		return (-1);
+
+	if (elftc_copyfile(infd, tmpfd) < 0)
+		return (-1);
+
+	/*
+	 * Remove the temporary file from the file system
+	 * namespace, and close its file descriptor.
+	 */
+	if (unlink(src) < 0)
+		return (-1);
+
+	(void) close(infd);
+
+	/*
+	 * Return the file descriptor for the destination.
+	 */
+	*outfd = tmpfd;
+
+	return (0);
 }
 
 static void
@@ -532,7 +547,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 	struct stat	 sb;
 	struct timeval	 tv[2];
 	char		*tempfile, *elftemp;
-	int		 ifd, ofd, ofd0, efd;
+	int		 efd, ifd, ofd, ofd0, tfd;
 
 	tempfile = NULL;
 
@@ -667,17 +682,14 @@ copy_done:
 	if (tempfile != NULL) {
 		if (dst == NULL)
 			dst = src;
-		if (rename(tempfile, dst) == -1) {
-			if (errno == EXDEV) {
-				ofd = copy_tempfile(ofd, dst);
-				if (unlink(tempfile) < 0)
-					err(EXIT_FAILURE, "unlink %s failed",
-					    tempfile);
-			} else
-				err(EXIT_FAILURE, "rename %s to %s failed",
-				    tempfile, dst);
-		}
+
+		if (copy_from_tempfile(tempfile, dst, ofd, &tfd) < 0)
+			err(EXIT_FAILURE, "creation of %s failed", dst);
+
 		free(tempfile);
+		tempfile = NULL;
+
+		ofd = tfd;
 	}
 
 	if (strcmp(dst, "/dev/null") && fchmod(ofd, sb.st_mode) == -1)
