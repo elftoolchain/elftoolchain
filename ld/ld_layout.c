@@ -38,6 +38,7 @@ ELFTC_VCSID("$Id$");
 
 static off_t _calc_header_size(struct ld *ld);
 static void _create_input_objects(struct ld *ld);
+static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
@@ -221,6 +222,7 @@ _load_input_sections(struct ld *ld, struct ld_input *li)
 		is->is_type = sh.sh_type;
 		is->is_flags = sh.sh_flags;
 		is->is_input = li;
+		is->is_orphan = 1;
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -263,7 +265,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 				break;
 			}
 		}
-		
+		_layout_orphan_section(ld, li);
 	}
 	if (lf != NULL)
 		ld_file_unload(ld, lf);
@@ -273,7 +275,7 @@ static int
 _wildcard_match(struct ld_wildcard *lw, const char *string)
 {
 
-	return (fnmatch(lw->lw_name, string, FNM_PATHNAME) == 0);
+	return (fnmatch(lw->lw_name, string, 0) == 0);
 }
 
 static int
@@ -317,9 +319,6 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	int i, new_section;
 
 	lf = li->li_file;
-
-	if (ldso == NULL)
-		goto process_orphan_sections;
 
 	new_section = 0;
 	osp = NULL;
@@ -389,12 +388,12 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 			is = &li->li_is[i];
 			if (!is->is_orphan)
 				continue;
-			if (_wildcard_list_match(ldoi->ldoi_sec, is->is_name) ==
-			    FNM_NOMATCH)
+			if (!_wildcard_list_match(ldoi->ldoi_sec, is->is_name))
 				continue;
 			is->is_orphan = 0;
 			assert(osp != NULL && osp->osp_type == OSPT_INPUT);
 			STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
+			printf("match %s to %s\n", is->is_name, os->os_name);
 		}
 
 	next_output_cmd:
@@ -404,15 +403,25 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 		else
 			osp = STAILQ_NEXT(osp, osp_next);			
 	}
+}
 
-process_orphan_sections:
+static void
+_layout_orphan_section(struct ld *ld, struct ld_input *li)
+{
+	struct ld_input_section *is;
+	int i;
 
 	/*
 	 * Layout the input sections that are not listed in the output
 	 * section descriptor in the linker script.
 	 */
+	(void) ld;
 
 	for (i = 1; (size_t) i < li->li_shnum; i++) {
-
+		is = &li->li_is[i];
+		if (!is->is_orphan)
+			continue;
+		printf("orphan: %s:%s\n", li->li_name, is->is_name);
 	}
 }
+
