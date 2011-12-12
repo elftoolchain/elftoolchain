@@ -390,6 +390,10 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 				continue;
 			if (!_wildcard_list_match(ldoi->ldoi_sec, is->is_name))
 				continue;
+			if (strcmp(os->os_name, "/DISCARD/") == 0) {
+				is->is_discard = 1;
+				continue;
+			}
 			is->is_orphan = 0;
 			assert(osp != NULL && osp->osp_type == OSPT_INPUT);
 			STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
@@ -419,7 +423,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 
 	for (i = 1; (size_t) i < li->li_shnum; i++) {
 		is = &li->li_is[i];
-		if (!is->is_orphan)
+		if (!is->is_orphan || is->is_discard)
 			continue;
 		if (strcmp(is->is_name, ".shstrtab") == 0 ||
 		    strcmp(is->is_name, ".symtab") == 0 ||

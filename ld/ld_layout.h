@@ -35,6 +35,7 @@ struct ld_input_section {
 	uint64_t is_type;		/* section type */
 	uint64_t is_flags;		/* section flags */
 	unsigned is_orphan;		/* orphan section */
+	unsigned is_discard;		/* dicard section */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 };
 
