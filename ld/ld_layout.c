@@ -291,7 +291,8 @@ _wildcard_list_match(struct ld_script_list *list, const char *string)
 }
 
 static struct ld_output_section *
-_alloc_output_section(struct ld *ld, const char *name)
+_alloc_output_section(struct ld *ld, const char *name,
+    struct ld_output_section *after)
 {
 	struct ld_output_section *os;
 
@@ -301,7 +302,10 @@ _alloc_output_section(struct ld *ld, const char *name)
 		ld_fatal_std(ld, "strdup");
 	STAILQ_INIT(&os->os_p);
 	HASH_ADD_KEYPTR(hh, ld->ld_ostbl, os->os_name, strlen(os->os_name), os);
-	STAILQ_INSERT_TAIL(&ld->ld_oslist, os, os_next);
+	if (after == NULL)
+		STAILQ_INSERT_TAIL(&ld->ld_oslist, os, os_next);
+	else
+		STAILQ_INSERT_AFTER(&ld->ld_oslist, os, after, os_next);
 
 	return (os);
 }
@@ -324,7 +328,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	osp = NULL;
 	HASH_FIND_STR(ld->ld_ostbl, ldso->ldso_name, os);
 	if (os == NULL) {
-		os = _alloc_output_section(ld, ldso->ldso_name);
+		os = _alloc_output_section(ld, ldso->ldso_name, NULL);
 		new_section = 1;
 	} else
 		osp = STAILQ_FIRST(&os->os_p);
@@ -395,9 +399,9 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 				continue;
 			}
 			is->is_orphan = 0;
+			os->os_flags |= is->is_flags;
 			assert(osp != NULL && osp->osp_type == OSPT_INPUT);
 			STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
-			printf("match %s to %s\n", is->is_name, os->os_name);
 		}
 
 	next_output_cmd:
@@ -413,23 +417,60 @@ static void
 _layout_orphan_section(struct ld *ld, struct ld_input *li)
 {
 	struct ld_input_section *is;
+	struct ld_output_section *os, *_os;
+	struct ld_output_section_part *osp;
 	int i;
 
 	/*
 	 * Layout the input sections that are not listed in the output
 	 * section descriptor in the linker script.
 	 */
-	(void) ld;
 
 	for (i = 1; (size_t) i < li->li_shnum; i++) {
 		is = &li->li_is[i];
+
 		if (!is->is_orphan || is->is_discard)
 			continue;
+
 		if (strcmp(is->is_name, ".shstrtab") == 0 ||
 		    strcmp(is->is_name, ".symtab") == 0 ||
 		    strcmp(is->is_name, ".strtab") == 0)
 			continue;
-		printf("orphan: %s:%s\n", li->li_name, is->is_name);
+
+		HASH_FIND_STR(ld->ld_ostbl, is->is_name, os);
+		if (os != NULL) {
+			osp = STAILQ_FIRST(&os->os_p);
+			assert(osp != NULL && osp->osp_type == OSPT_INPUT);
+			STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
+			continue;
+		}
+
+		STAILQ_FOREACH(os, &ld->ld_oslist, os_next) {
+			if ((os->os_flags & SHF_ALLOC) !=
+			    (is->is_flags & SHF_ALLOC))
+				continue;
+			if (os->os_flags == is->is_flags) {
+				_os = STAILQ_NEXT(os, os_next);
+				if (_os == NULL ||
+				    _os->os_flags != is->is_flags)
+					break;
+			}
+			_os = STAILQ_NEXT(os, os_next);
+			if (_os == NULL &&
+			    (_os->os_flags & SHF_ALLOC) !=
+			    (is->is_flags & SHF_ALLOC))
+				break;
+		}
+
+		_os = _alloc_output_section(ld, is->is_name, os);
+		_os->os_flags = is->is_flags;
+
+		if ((osp = calloc(1, sizeof(*osp))) == NULL)
+			ld_fatal_std(ld, "calloc");
+		osp->osp_type = OSPT_INPUT;
+		STAILQ_INIT(&osp->osp_u.osp_i);
+		STAILQ_INSERT_TAIL(&_os->os_p, osp, osp_next);
+		STAILQ_INSERT_TAIL(&osp->osp_u.osp_i, is, is_next);
 	}
 }
 

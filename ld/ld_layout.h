@@ -77,6 +77,7 @@ struct ld_output_section {
 	uint64_t os_off;		/* output section offset */
 	uint64_t os_size;		/* output section size */
 	uint64_t os_align;		/* output section alignment */
+	uint64_t os_flags;		/* output section flags */
 	struct ld_output_section_part_head os_p; /* output section parts */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
