@@ -31,6 +31,7 @@
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
+
 #include <archive.h>
 #include <archive_entry.h>
 #include <dirent.h>
@@ -40,6 +41,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "libelftc.h"
 
 #include "ar.h"
 
@@ -61,7 +64,6 @@ static void	yyerror(const char *);
 static void	arscp_addlib(char *archive, struct list *list);
 static void	arscp_addmod(struct list *list);
 static void	arscp_clear(void);
-static int	arscp_copy(int ifd, int ofd);
 static void	arscp_create(char *in, char *out);
 static void	arscp_delete(struct list *list);
 static void	arscp_dir(char *archive, struct list *list, char *rlt);
@@ -295,16 +297,16 @@ arscp_create(char *in, char *out)
 		 * The 'OPEN' command creates a temporary copy of the
 		 * input archive.
 		 */
-		if ((ifd = open(in, O_RDONLY)) < 0) {
-			bsdar_warnc(bsdar, errno, "open failed");
+		if ((ifd = open(in, O_RDONLY)) < 0 ||
+		    elftc_copyfile(ifd, ofd) < 0) {
+			bsdar_warnc(bsdar, errno, "'OPEN' failed");
+			(void) close(ofd);
+			if (ifd != -1)
+				(void) close(ifd);
 			return;
 		}
-		if (arscp_copy(ifd, ofd)) {
-			bsdar_warnc(bsdar, 0, "arscp_copy failed");
-			return;
-		}
-		close(ifd);
-		close(ofd);
+		(void) close(ifd);
+		(void) close(ofd);
 	} else {
 		/*
 		 * The 'CREATE' command creates an "empty" archive (an
@@ -324,41 +326,6 @@ arscp_create(char *in, char *out)
 
 	target = out;
 	bsdar->filename = tmpac;
-}
-
-/*
- * A file copying implementation using mmap().
- */
-static int
-arscp_copy(int ifd, int ofd)
-{
-	struct stat		 sb;
-	char			*buf, *p;
-	ssize_t			 w;
-	size_t			 bytes;
-
-	if (fstat(ifd, &sb) < 0) {
-		bsdar_warnc(bsdar, errno, "fstate failed");
-		return (1);
-	}
-	if ((p = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, ifd,
-	    (off_t)0)) == MAP_FAILED) {
-		bsdar_warnc(bsdar, errno, "mmap failed");
-		return (1);
-	}
-	for (buf = p, bytes = sb.st_size; bytes > 0; bytes -= w) {
-		w = write(ofd, buf, bytes);
-		if (w <= 0) {
-			bsdar_warnc(bsdar, errno, "write failed");
-			break;
-		}
-	}
-	if (munmap(p, sb.st_size) < 0)
-		bsdar_errc(bsdar, errno, "munmap failed");
-	if (bytes > 0)
-		return (1);
-
-	return (0);
 }
 
 /*
