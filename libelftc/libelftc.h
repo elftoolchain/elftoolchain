@@ -30,6 +30,8 @@
 #ifndef	_LIBELFTC_H_
 #define	_LIBELFTC_H_
 
+#include <sys/stat.h>
+
 typedef struct _Elftc_Bfd_Target Elftc_Bfd_Target;
 
 /* Target types. */
@@ -63,6 +65,7 @@ unsigned int	elftc_bfd_target_machine(Elftc_Bfd_Target *_tgt);
 int		elftc_copyfile(int _srcfd,  int _dstfd);
 int		elftc_demangle(const char *_mangledname, char *_buffer,
     size_t _bufsize, unsigned int _flags);
+int		elftc_set_timestamps(const char *_filename, struct stat *_sb);
 const char	*elftc_version(void);
 __END_DECLS
 
