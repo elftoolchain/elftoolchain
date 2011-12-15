@@ -180,6 +180,7 @@ int64_t
 ld_exp_eval(struct ld* ld, struct ld_exp *le)
 {
 
+	assert(le != NULL);
 	switch (le->le_op) {
 	case LEOP_ABS:
 		return (abs(_EXP_EVAL(le)));
@@ -311,7 +312,7 @@ _func_align(struct ld *ld, struct ld_exp *le)
 	if (le->le_e2 != NULL)
 		return (roundup(_EXP_EVAL(le->le_e1), _EXP_EVAL(le->le_e2)));
 	else
-		return (roundup(ls->ls_loc_counter, _EXP_EVAL(le->le_e2)));
+		return (roundup(ls->ls_loc_counter, _EXP_EVAL(le->le_e1)));
 }
 
 static int64_t
