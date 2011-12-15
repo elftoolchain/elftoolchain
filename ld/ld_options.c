@@ -324,7 +324,7 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	struct ld_state *ls;
 
 	assert(ld != NULL);
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	switch (key) {
 	case 'b':

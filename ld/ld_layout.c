@@ -36,7 +36,9 @@ ELFTC_VCSID("$Id$");
  * Support routines for output section layout.
  */
 
-static off_t _calc_header_size(struct ld *ld);
+static void _calc_offset(struct ld *ld);
+static void _calc_sections_offset(struct ld *ld,
+    struct ld_script_sections *ldss);
 static void _create_input_objects(struct ld *ld);
 static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
@@ -54,7 +56,6 @@ ld_layout_sections(struct ld *ld)
 {
 	struct ld_script *lds;
 	struct ld_script_cmd *ldc;
-	off_t header_size;
 	int sections_cmd_exist;
 
 	lds = ld->ld_scp;
@@ -80,11 +81,11 @@ ld_layout_sections(struct ld *ld)
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
-	header_size = _calc_header_size(ld);
+	_calc_offset(ld);
 }
 
-static off_t
-_calc_header_size(struct ld *ld)
+off_t
+ld_layout_calc_header_size(struct ld *ld)
 {
 	struct ld_script_phdr *ldsp;
 	off_t header_size;
@@ -474,3 +475,56 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 	}
 }
 
+static void
+_calc_offset(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_script *lds;
+	struct ld_script_cmd *ldc;
+	int sections_cmd_exist;
+
+	ls = &ld->ld_state;
+	lds = ld->ld_scp;
+
+	ls->ls_inside_sections = 0;
+	ls->ls_loc_counter = 0;
+	sections_cmd_exist = 0;
+	STAILQ_FOREACH(ldc, &lds->lds_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSIGN:
+			ld_script_process_assign(ld, ldc->ldc_cmd);
+			break;
+		case LSC_SECTIONS:
+			sections_cmd_exist = 1;
+			ls->ls_inside_sections = 1;
+			_calc_sections_offset(ld, ldc->ldc_cmd);
+			ls->ls_inside_sections = 0;
+		default:
+			break;
+		}
+	}
+	if (!sections_cmd_exist)
+		_calc_sections_offset(ld, NULL);
+}
+
+static void
+_calc_sections_offset(struct ld *ld, struct ld_script_sections *ldss)
+{
+	struct ld_script_cmd *ldc;
+
+	STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ENTRY:
+			break;
+		case LSC_ASSIGN:
+			ld_script_process_assign(ld, ldc->ldc_cmd);
+			break;
+		case LSC_SECTIONS_OUTPUT:
+			break;
+		case LSC_SECTIONS_OVERLAY:
+			break;
+		default:
+			break;
+		}
+	}
+}

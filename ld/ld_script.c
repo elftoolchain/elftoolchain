@@ -72,10 +72,44 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 		if ((ldv->ldv_name = strdup(var->le_name)) == NULL)
 			ld_fatal_std(ld, "strdup");
 		_variable_add(ldv);
-		ld_symbols_add_variable(ld, ldv, provide, hidden);
+		if (*var->le_name != '.')
+			ld_symbols_add_variable(ld, ldv, provide, hidden);
 	}
 
 	return (lda);
+}
+
+void
+ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
+{
+	struct ld_state *ls;
+	struct ld_exp *var;
+	struct ld_script_variable *ldv;
+
+	ls = &ld->ld_state;
+	var = lda->lda_var;
+	if (*var->le_name == '.' && !ls->ls_inside_sections)
+		ld_fatal(ld, "variable . can only be used inside SECTIONS"
+		    " command");
+
+	ldv = _variable_find(ld, var->le_name);
+	assert(ldv != NULL);
+
+	ldv->ldv_val = ld_exp_eval(ld, lda->lda_val);
+	if (*var->le_name == '.')
+		ls->ls_loc_counter = (uint64_t) ldv->ldv_val;
+	printf("%s = %#jx\n", var->le_name, (uint64_t) ldv->ldv_val);
+}
+
+int64_t
+ld_script_variable_value(struct ld *ld, char *name)
+{
+	struct ld_script_variable *ldv;
+
+	ldv = _variable_find(ld, name);
+	assert(ldv != NULL);
+
+	return (ldv->ldv_val);
 }
 
 struct ld_script_cmd *
@@ -116,15 +150,15 @@ ld_script_group(struct ld *ld, struct ld_script_list *list)
 {
 	struct ld_script_list *ldl;
 
-	ld->ld_ls.ls_group_level++;
-	if (ld->ld_ls.ls_group_level > LD_MAX_NESTED_GROUP)
+	ld->ld_state.ls_group_level++;
+	if (ld->ld_state.ls_group_level > LD_MAX_NESTED_GROUP)
 		ld_fatal(ld, "too many nested archive groups");
 	ldl = list;
 	while (ldl != NULL) {
 		_input_file_add(ld, ldl->ldl_entry);
 		ldl = ldl->ldl_next;
 	}
-	ld->ld_ls.ls_group_level--;
+	ld->ld_state.ls_group_level--;
 	ld_script_list_free(list);
 }
 
@@ -148,13 +182,13 @@ ld_script_input(struct ld *ld, struct ld_script_list *list)
 {
 	struct ld_script_list *ldl;
 
-	ld->ld_ls.ls_search_dir = 1;
+	ld->ld_state.ls_search_dir = 1;
 	ldl = list;
 	while (ldl != NULL) {
 		_input_file_add(ld, ldl->ldl_entry);
 		ldl = ldl->ldl_next;
 	}
-	ld->ld_ls.ls_search_dir = 0;
+	ld->ld_state.ls_search_dir = 0;
 	ld_script_list_free(list);
 }
 
@@ -285,7 +319,7 @@ _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 	struct ld_script_list *ldl;
 	unsigned old_as_needed;
 
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	if (!ldif->ldif_as_needed) {
 		ld_file_add(ld, ldif->ldif_u.ldif_name, LFT_UNKNOWN);

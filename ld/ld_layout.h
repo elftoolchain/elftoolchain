@@ -82,3 +82,5 @@ struct ld_output_section {
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
 };
+
+off_t	ld_layout_calc_header_size(struct ld *);

@@ -63,7 +63,7 @@ ld_file_add_library(struct ld *ld, const char *name)
 	int found;
 
 	assert(ld != NULL && name != NULL);
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	len = strlen(name);
 	found = 0;
@@ -118,7 +118,7 @@ ld_file_add_library_path(struct ld *ld, char *path)
 	struct ld_path *lp;
 
 	assert(ld != NULL && path != NULL);
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	if ((lp = calloc(1, sizeof(*lp))) == NULL)
 		ld_fatal_std(ld, "calloc");
@@ -225,7 +225,7 @@ _add_file(struct ld *ld, const char *name, enum ld_file_type type,
 	if (!strncmp(name, "-l", 2))
 		ld_file_add_library(ld, &name[2]);
 
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	if ((lf = calloc(1, sizeof(*lf))) == NULL)
 		ld_fatal_std(ld, "calloc");
@@ -268,7 +268,7 @@ _search_file(struct ld *ld, struct ld_file *lf)
 	DIR *dirp;
 	int found;
 
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 
 	fp[0] = '\0';
 	found = 0;

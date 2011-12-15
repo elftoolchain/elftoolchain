@@ -66,6 +66,8 @@ struct ld_state {
 	unsigned ls_extracted[LD_MAX_NESTED_GROUP + 1];
 					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
+	unsigned ls_inside_sections;	/* inside SECTIONS command */
+	uint64_t ls_loc_counter;	/* location counter */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 };
 
@@ -78,7 +80,7 @@ struct ld {
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */
 	struct ld_script *ld_scp;	/* linker script */
-	struct ld_state ld_ls;		/* linker state */
+	struct ld_state ld_state;	/* linker state */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */
 	struct ld_symbol *ld_symtab_def_scp; /* defined symbols in ldscript */
 	struct ld_symbol *ld_symtab_provide; /* provide symbols */

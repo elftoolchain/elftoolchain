@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_script.h"
 #include "ld_exp.h"
+#include "ld_layout.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -52,7 +53,7 @@ static int64_t _func_origin(struct ld *ld, struct ld_exp *le);
 static int64_t _func_segment_start(struct ld *ld, struct ld_exp *le);
 static int64_t _func_sizeof(struct ld *ld, struct ld_exp *le);
 static int64_t _func_sizeof_headers(struct ld *ld);
-static int64_t _symbol_val(struct ld *ld, const char *name);
+static int64_t _symbol_val(struct ld *ld, char *name);
 static int64_t _symbolic_constant(struct ld *ld, const char *name);
 
 #define	_EXP_EVAL(x) ld_exp_eval(ld, (x))
@@ -284,10 +285,12 @@ _alloc_exp(struct ld *ld)
 static int64_t
 _assignment(struct ld *ld, struct ld_exp *le)
 {
+	struct ld_exp *var;
 
-	/* TODO */
-	(void) ld; (void) le;
-	return (0);
+	assert(le->le_assign != NULL);
+	ld_script_process_assign(ld, le->le_assign);
+	var = le->le_assign->lda_var;
+	return (ld_script_variable_value(ld, var->le_name));
 }
 
 static int64_t
@@ -302,11 +305,13 @@ _func_addr(struct ld *ld, struct ld_exp *le)
 static int64_t
 _func_align(struct ld *ld, struct ld_exp *le)
 {
+	struct ld_state *ls;
 
+	ls = &ld->ld_state;
 	if (le->le_e2 != NULL)
 		return (roundup(_EXP_EVAL(le->le_e1), _EXP_EVAL(le->le_e2)));
 	else
-		return (roundup(_symbol_val(ld, "."), _EXP_EVAL(le->le_e2)));
+		return (roundup(ls->ls_loc_counter, _EXP_EVAL(le->le_e2)));
 }
 
 static int64_t
@@ -434,18 +439,14 @@ static int64_t
 _func_sizeof_headers(struct ld *ld)
 {
 
-	/* TODO */
-	(void) ld;
-	return (0);
+	return (ld_layout_calc_header_size(ld));
 }
 
 static int64_t
-_symbol_val(struct ld *ld, const char *name)
+_symbol_val(struct ld *ld, char *name)
 {
 
-	/* TODO */
-	(void) ld; (void) name;
-	return (0);
+	return (ld_script_variable_value(ld, name));
 }
 
 static int64_t

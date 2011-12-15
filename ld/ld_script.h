@@ -234,4 +234,6 @@ void	ld_script_parse(const char *);
 void	ld_script_parse_internal(void);
 struct ld_script_region *ld_script_region(struct ld *, char *, char *,
     struct ld_exp *, struct ld_exp *);
+void	ld_script_process_assign(struct ld *, struct ld_script_assign *);
 void	ld_script_region_alias(struct ld *, char *, char *);
+int64_t ld_script_variable_value(struct ld *, char *);

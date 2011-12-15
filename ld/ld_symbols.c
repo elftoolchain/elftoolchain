@@ -53,7 +53,7 @@ ld_symbols_resolve(struct ld *ld)
 	if (TAILQ_EMPTY(&ld->ld_lflist))
 		ld_fatal(ld, "no input files");
 
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 	lf = TAILQ_FIRST(&ld->ld_lflist);
 	ls->ls_group_level = lf->lf_group_level;
 
@@ -220,7 +220,7 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 	assert(lf != NULL && lf->lf_type == LFT_ARCHIVE);
 	assert(lf->lf_ar != NULL);
 
-	ls = &ld->ld_ls;
+	ls = &ld->ld_state;
 	la = lf->lf_ar;
 	if ((as = elf_getarsym(lf->lf_elf, &c)) == NULL)
 		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
