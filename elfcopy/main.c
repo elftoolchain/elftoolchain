@@ -27,7 +27,7 @@
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/stat.h>
-#include <sys/time.h>
+
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -545,7 +545,6 @@ static void
 create_file(struct elfcopy *ecp, const char *src, const char *dst)
 {
 	struct stat	 sb;
-	struct timeval	 tv[2];
 	char		*tempfile, *elftemp;
 	int		 efd, ifd, ofd, ofd0, tfd;
 
@@ -695,14 +694,9 @@ copy_done:
 	if (strcmp(dst, "/dev/null") && fchmod(ofd, sb.st_mode) == -1)
 		err(EXIT_FAILURE, "fchmod %s failed", dst);
 
-	if (ecp->flags & PRESERVE_DATE) {
-		tv[0].tv_sec = sb.st_atime;
-		tv[0].tv_usec = 0;
-		tv[1].tv_sec = sb.st_mtime;
-		tv[1].tv_usec = 0;
-		if (futimes(ofd, tv) == -1)
-			err(EXIT_FAILURE, "futimes failed");
-	}
+	if ((ecp->flags & PRESERVE_DATE) &&
+	    elftc_set_timestamps(dst, &sb) < 0)
+		err(EXIT_FAILURE, "setting timestamps failed");
 
 	close(ifd);
 	close(ofd);
