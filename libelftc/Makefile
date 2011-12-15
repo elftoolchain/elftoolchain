@@ -29,6 +29,7 @@ LDADD+=	-lelf
 MAN=	elftc_bfd_find_target.3 \
 	elftc_copyfile.3 \
 	elftc_demangle.3 \
+	elftc_set_timestamps.3 \
 	elftc_version.3
 
 MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
