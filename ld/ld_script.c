@@ -92,8 +92,16 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 	assert(ldv != NULL);
 
 	ldv->ldv_val = ld_exp_eval(ld, lda->lda_val);
-	if (*var->le_name == '.')
+	if (*var->le_name == '.') {
+		/*
+		 * TODO: location counter is allowed to move backwards
+		 * outside output section descriptor, as long as the
+		 * move will not cause overlapping LMA's.
+		 */
+		if ((uint64_t) ldv->ldv_val < ls->ls_loc_counter)
+			ld_fatal(ld, "cannot move location counter backwards");
 		ls->ls_loc_counter = (uint64_t) ldv->ldv_val;
+	}
 	printf("%s = %#jx\n", var->le_name, (uint64_t) ldv->ldv_val);
 }
 

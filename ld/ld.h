@@ -67,6 +67,7 @@ struct ld_state {
 					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
 	uint64_t ls_loc_counter;	/* location counter */
+	uint64_t ls_offset;		/* current output section file offset */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 };
 

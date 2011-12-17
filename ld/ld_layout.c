@@ -39,6 +39,10 @@ ELFTC_VCSID("$Id$");
  */
 
 static void _calc_offset(struct ld *ld);
+static void _calc_output_section_offset(struct ld *ld,
+    struct ld_output_section *os);
+static void _insert_input_to_output(struct ld_output_section *os,
+    struct ld_input_section *is, struct ld_input_section_head *islist);
 static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
@@ -290,12 +294,9 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 				is->is_discard = 1;
 				continue;
 			}
-			is->is_orphan = 0;
-			os->os_flags |= is->is_flags;
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			islist = oe->oe_entry;
-			STAILQ_INSERT_TAIL(islist, is, is_next);
+			_insert_input_to_output(os, is, oe->oe_entry);
 		}
 
 	next_output_cmd:
@@ -337,8 +338,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			oe = STAILQ_FIRST(&os->os_e);
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			islist = oe->oe_entry;
-			STAILQ_INSERT_TAIL(islist, is, is_next);
+			_insert_input_to_output(os, is, oe->oe_entry);
 			continue;
 		}
 
@@ -360,16 +360,29 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		}
 
 		_os = ld_output_alloc_section(ld, is->is_name, os);
-		_os->os_flags = is->is_flags;
-
 		if ((islist = calloc(1, sizeof(*islist))) == NULL)
 			ld_fatal_std(ld, "calloc");
 		STAILQ_INIT(islist);
 		oe = ld_output_create_element(ld, &_os->os_e,
 		    OET_INPUT_SECTION_LIST, islist);
-		STAILQ_INSERT_TAIL(islist, is, is_next);
+		_insert_input_to_output(_os, is, oe->oe_entry);
 	}
 }
+
+static void
+_insert_input_to_output(struct ld_output_section *os,
+    struct ld_input_section *is, struct ld_input_section_head *islist)
+{
+
+	is->is_orphan = 0;
+	os->os_flags |= is->is_flags;
+	if (is->is_align > os->os_align) {
+		os->os_align = is->is_align;
+		printf("os->os_align=%ju\n", os->os_align);
+	}
+	STAILQ_INSERT_TAIL(islist, is, is_next);
+}
+    
 
 static void
 _calc_offset(struct ld *ld)
@@ -380,8 +393,58 @@ _calc_offset(struct ld *ld)
 
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
+	ls->ls_loc_counter = 0;
+	ls->ls_offset = ld_layout_calc_header_size(ld);
 
 	STAILQ_FOREACH(oe, &lo->lo_oelist, oe_next) {
+		switch (oe->oe_type) {
+		case OET_ASSERT:
+			/* TODO */
+			break;
+		case OET_ASSIGN:
+			ld_script_process_assign(ld, oe->oe_entry);
+			break;
+		case OET_OUTPUT_SECTION:
+			_calc_output_section_offset(ld, oe->oe_entry);
+			break;
+		default:
+			break;
+		}
+	}
+
+}
+
+static void
+_calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
+{
+	struct ld_state *ls;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+
+	ls = &ld->ld_state;
+
+	/* FIXME */
+	if (os->os_align == 0)
+		os->os_align = 1;
+
+	/*
+	 * Properly align section vma and offset to the required section
+	 * alignment.
+	 */
+	os->os_off = ls->ls_offset;
+	os->os_addr = roundup(ls->ls_loc_counter, os->os_align);
+	os->os_off += ls->ls_loc_counter - os->os_addr;
+	printf("layout output section %s: (off:%#jx) vma:%#jx\n", os->os_name,
+	    os->os_off, os->os_addr);
+
+	/*
+	 * Location counter is an offset relative to the start of the
+	 * section, when it's refered inside an output section descriptor.
+	 */
+	ls->ls_loc_counter = 0;
+
+	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
 		switch (oe->oe_type) {
 		case OET_ASSERT:
 			/* TODO */
@@ -393,12 +456,18 @@ _calc_offset(struct ld *ld)
 			/* TODO */
 			break;
 		case OET_INPUT_SECTION_LIST:
-			/* TODO */
+			islist = oe->oe_entry;
+			STAILQ_FOREACH(is, islist, is_next) {
+				is->is_reloff = roundup(ls->ls_loc_counter,
+				    is->is_align);
+				printf("\t%s(%s): %#jx\n",
+				    is->is_input->li_name,
+				    is->is_name, ls->ls_loc_counter);
+				ls->ls_loc_counter = is->is_reloff +
+				    is->is_size;
+			}
 			break;
 		case OET_KEYWORD:
-			/* TODO */
-			break;
-		case OET_OUTPUT_SECTION:
 			/* TODO */
 			break;
 		default:
@@ -406,4 +475,9 @@ _calc_offset(struct ld *ld)
 		}
 	}
 
+	os->os_size = ls->ls_loc_counter;
+	ls->ls_offset += os->os_size;
+
+	/* Reset location counter to the current VMA. */
+	ls->ls_loc_counter = os->os_addr + os->os_size;
 }

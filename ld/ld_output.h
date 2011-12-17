@@ -48,6 +48,7 @@ STAILQ_HEAD(ld_output_element_head, ld_output_element);
 
 struct ld_output_section {
 	char *os_name;			/* output section name */
+	uint64_t os_addr;		/* output section vma */
 	uint64_t os_off;		/* output section offset */
 	uint64_t os_size;		/* output section size */
 	uint64_t os_align;		/* output section alignment */
