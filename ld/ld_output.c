@@ -55,3 +55,41 @@ ld_output_format(struct ld *ld, char *def, char *be, char *le)
 	if ((ld->ld_otgt_le = elftc_bfd_find_target(le)) == NULL)
 		ld_fatal(ld, "invalid BFD format %s", le);
 }
+
+struct ld_output_element *
+ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
+    enum ld_output_element_type type, void *entry)
+{
+	struct ld_output_element *oe;
+
+	if ((oe = calloc(1, sizeof(*oe))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	oe->oe_type = type;
+	oe->oe_entry = entry;
+	STAILQ_INSERT_TAIL(head, oe, oe_next);
+
+	return (oe);
+}
+
+struct ld_output_section *
+ld_output_alloc_section(struct ld *ld, const char *name,
+    struct ld_output_section *after)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+
+	lo = ld->ld_output;
+	if ((os = calloc(1, sizeof(*os))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	if ((os->os_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	STAILQ_INIT(&os->os_e);
+	HASH_ADD_KEYPTR(hh, lo->lo_ostbl, os->os_name, strlen(os->os_name), os);
+	if (after == NULL)
+		STAILQ_INSERT_TAIL(&lo->lo_oslist, os, os_next);
+	else
+		STAILQ_INSERT_AFTER(&lo->lo_oslist, os, after, os_next);
+	ld_output_create_element(ld, &lo->lo_oelist, OET_OUTPUT_SECTION, os);
+
+	return (os);
+}

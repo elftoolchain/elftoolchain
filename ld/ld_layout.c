@@ -28,6 +28,7 @@
 #include "ld_file.h"
 #include "ld_script.h"
 #include "ld_input.h"
+#include "ld_output.h"
 #include "ld_layout.h"
 #include "ld_options.h"
 
@@ -38,9 +39,6 @@ ELFTC_VCSID("$Id$");
  */
 
 static void _calc_offset(struct ld *ld);
-static struct ld_output_element *_create_output_element(struct ld *ld,
-    struct ld_output_element_head *head, enum ld_output_element_type type,
-    void *entry);
 static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
@@ -66,11 +64,11 @@ ld_layout_sections(struct ld *ld)
 	STAILQ_FOREACH(ldc, &lds->lds_c, ldc_next) {
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
-			_create_output_element(ld, &lo->lo_oelist, OET_ASSERT,
+			ld_output_create_element(ld, &lo->lo_oelist, OET_ASSERT,
 			    ldc->ldc_cmd);
 			break;
 		case LSC_ASSIGN:
-			_create_output_element(ld, &lo->lo_oelist, OET_ASSIGN,
+			ld_output_create_element(ld, &lo->lo_oelist, OET_ASSIGN,
 			    ldc->ldc_cmd);
 			break;
 		case LSC_ENTRY:
@@ -129,21 +127,6 @@ ld_layout_calc_header_size(struct ld *ld)
 	return (header_size);
 }
 
-static struct ld_output_element *
-_create_output_element(struct ld *ld, struct ld_output_element_head *head,
-    enum ld_output_element_type type, void *entry)
-{
-	struct ld_output_element *oe;
-
-	if ((oe = calloc(1, sizeof(*oe))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	oe->oe_type = type;
-	oe->oe_entry = entry;
-	STAILQ_INSERT_TAIL(head, oe, oe_next);
-
-	return (oe);
-}
-
 static void
 _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 {
@@ -154,6 +137,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	int first;
 
 	ld_input_create_objects(ld);
+	ld_output_init(ld);
 
 	first = 1;
 	lo = ld->ld_output;
@@ -171,12 +155,12 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 			case LSC_ASSERT:
 				if (!first)
 					break;
-				_create_output_element(ld, &lo->lo_oelist,
+				ld_output_create_element(ld, &lo->lo_oelist,
 				    OET_ASSIGN, ldc->ldc_cmd);
 			case LSC_ASSIGN:
 				if (!first)
 					break;
-				_create_output_element(ld, &lo->lo_oelist,
+				ld_output_create_element(ld, &lo->lo_oelist,
 				    OET_ASSIGN, ldc->ldc_cmd);
 				break;
 			case LSC_ENTRY:
@@ -217,29 +201,6 @@ _wildcard_list_match(struct ld_script_list *list, const char *string)
 	return (0);
 }
 
-static struct ld_output_section *
-_alloc_output_section(struct ld *ld, const char *name,
-    struct ld_output_section *after)
-{
-	struct ld_output *lo;
-	struct ld_output_section *os;
-
-	lo = ld->ld_output;
-	if ((os = calloc(1, sizeof(*os))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	if ((os->os_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "strdup");
-	STAILQ_INIT(&os->os_e);
-	HASH_ADD_KEYPTR(hh, lo->lo_ostbl, os->os_name, strlen(os->os_name), os);
-	if (after == NULL)
-		STAILQ_INSERT_TAIL(&lo->lo_oslist, os, os_next);
-	else
-		STAILQ_INSERT_AFTER(&lo->lo_oslist, os, after, os_next);
-	_create_output_element(ld, &lo->lo_oelist, OET_OUTPUT_SECTION, os);
-
-	return (os);
-}
-
 static void
 _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso)
@@ -260,7 +221,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	oe = NULL;
 	HASH_FIND_STR(lo->lo_ostbl, ldso->ldso_name, os);
 	if (os == NULL) {
-		os = _alloc_output_section(ld, ldso->ldso_name, NULL);
+		os = ld_output_alloc_section(ld, ldso->ldso_name, NULL);
 		new_section = 1;
 	} else
 		oe = STAILQ_FIRST(&os->os_e);
@@ -269,17 +230,17 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
 			if (new_section)
-				oe = _create_output_element(ld, &os->os_e,
+				oe = ld_output_create_element(ld, &os->os_e,
 				    OET_ASSERT, ldc->ldc_cmd);
 			break;
 		case LSC_ASSIGN:
 			if (new_section)
-				oe = _create_output_element(ld, &os->os_e,
+				oe = ld_output_create_element(ld, &os->os_e,
 				    OET_ASSIGN, ldc->ldc_cmd);
 			break;
 		case LSC_SECTIONS_OUTPUT_DATA:
 			if (new_section)
-				oe = _create_output_element(ld, &os->os_e,
+				oe = ld_output_create_element(ld, &os->os_e,
 				    OET_DATA, ldc->ldc_cmd);
 			break;
 		case LSC_SECTIONS_OUTPUT_INPUT:
@@ -288,13 +249,13 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 				if (islist == NULL)
 					ld_fatal_std(ld, "calloc");
 				STAILQ_INIT(islist);
-				oe = _create_output_element(ld, &os->os_e,
+				oe = ld_output_create_element(ld, &os->os_e,
 				    OET_INPUT_SECTION_LIST, islist);
 			}
 			break;
 		case LSC_SECTIONS_OUTPUT_KEYWORD:
 			if (new_section)
-				_create_output_element(ld, &os->os_e,
+				ld_output_create_element(ld, &os->os_e,
 				    OET_KEYWORD, ldc->ldc_cmd);
 			break;
 		default:
@@ -398,13 +359,13 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 				break;
 		}
 
-		_os = _alloc_output_section(ld, is->is_name, os);
+		_os = ld_output_alloc_section(ld, is->is_name, os);
 		_os->os_flags = is->is_flags;
 
 		if ((islist = calloc(1, sizeof(*islist))) == NULL)
 			ld_fatal_std(ld, "calloc");
 		STAILQ_INIT(islist);
-		oe = _create_output_element(ld, &_os->os_e,
+		oe = ld_output_create_element(ld, &_os->os_e,
 		    OET_INPUT_SECTION_LIST, islist);
 		STAILQ_INSERT_TAIL(islist, is, is_next);
 	}

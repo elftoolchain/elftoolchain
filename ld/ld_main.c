@@ -67,8 +67,6 @@ main(int argc, char **argv)
 
 	ld_symbols_resolve(ld);
 
-	ld_output_init(ld);
-
 	ld_layout_sections(ld);
 
 	exit(EXIT_SUCCESS);
