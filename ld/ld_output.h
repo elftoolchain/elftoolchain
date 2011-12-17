@@ -26,4 +26,5 @@
  * $Id$
  */
 
+void	ld_output_init(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);

@@ -29,6 +29,7 @@
 #include "ld_script.h"
 #include "ld_file.h"
 #include "ld_layout.h"
+#include "ld_output.h"
 #include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
@@ -42,7 +43,6 @@ _ld_init(void)
 
 	TAILQ_INIT(&ld->ld_lflist);
 	STAILQ_INIT(&ld->ld_lilist);
-	STAILQ_INIT(&ld->ld_oslist);
 	STAILQ_INIT(&ld->ld_state.ls_lplist);
 
 	/* Initialise libelf. */
@@ -66,6 +66,8 @@ main(int argc, char **argv)
 	ld_options_parse(ld, argc, argv);
 
 	ld_symbols_resolve(ld);
+
+	ld_output_init(ld);
 
 	ld_layout_sections(ld);
 

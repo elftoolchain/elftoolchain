@@ -348,7 +348,7 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		ld_file_add_library_path(ld, arg);
 		break;
 	case 'o':
-		if ((ld->ld_output = strdup(arg)) == NULL)
+		if ((ld->ld_output_file = strdup(arg)) == NULL)
 			ld_fatal_std(ld, "strdup");
 		break;
 	case 'T':

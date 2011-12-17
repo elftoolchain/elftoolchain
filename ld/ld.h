@@ -76,7 +76,8 @@ struct ld {
 	Elftc_Bfd_Target *ld_otgt;	/* default output format */
 	Elftc_Bfd_Target *ld_otgt_be;	/* big-endian output format */
 	Elftc_Bfd_Target *ld_otgt_le;	/* little-endian output format */
-	char *ld_output;		/* output file name */
+	struct ld_output *ld_output;	/* output object */
+	char *ld_output_file;		/* output file name */
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */
 	struct ld_script *ld_scp;	/* linker script */
@@ -88,9 +89,6 @@ struct ld {
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
-	STAILQ_HEAD(ld_output_section_head, ld_output_section) ld_oslist;
-					/* output section list */
-	struct ld_output_section *ld_ostbl; /* output section hash table */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
 

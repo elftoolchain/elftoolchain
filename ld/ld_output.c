@@ -26,8 +26,21 @@
 
 #include "ld.h"
 #include "ld_output.h"
+#include "ld_layout.h"
 
 ELFTC_VCSID("$Id$");
+
+void
+ld_output_init(struct ld *ld)
+{
+	struct ld_output *lo;
+
+	if ((lo = calloc(1, sizeof(*lo))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	STAILQ_INIT(&lo->lo_oelist);
+	STAILQ_INIT(&lo->lo_oslist);
+	ld->ld_output = lo;
+}
 
 void
 ld_output_format(struct ld *ld, char *def, char *be, char *le)

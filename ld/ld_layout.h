@@ -50,27 +50,25 @@ struct ld_input {
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
-enum ld_output_section_part_type {
-	OSPT_ASSIGN,
-	OSPT_DATA,
-	OSPT_INPUT,
-	OSPT_KEYWORD,
+enum ld_output_element_type {
+	OET_ASSERT,
+	OET_ASSIGN,
+	OET_DATA,
+	OET_INPUT_SECTION_LIST,
+	OET_KEYWORD,
+	OET_OUTPUT_SECTION,
+	OET_OVERLAY,
 };
 
-struct ld_output_section_part {
-	enum ld_output_section_part_type osp_type; /* section part type */
-	union {
-		struct ld_script_assign *osp_a; /* symbol assignment */
-		struct ld_input_section_head osp_i; /* input section list */
-		struct ld_script_sections_output_data *osp_d;
-					/* output section data */
-		enum ld_script_sections_output_keywords osp_k;
-					/* output section keywords */
-	} osp_u;
-	STAILQ_ENTRY(ld_output_section_part) osp_next; /* next part */
+struct ld_output_element {
+	enum ld_output_element_type oe_type; /* output element type */
+	uint64_t oe_off;		/* output element offset */
+	void *oe_entry;			/* output element */
+	unsigned char oe_insec;		/* element inside SECTIONS */
+	STAILQ_ENTRY(ld_output_element) oe_next; /* next element */
 };
 
-STAILQ_HEAD(ld_output_section_part_head, ld_output_section_part);
+STAILQ_HEAD(ld_output_element_head, ld_output_element);
 
 struct ld_output_section {
 	char *os_name;			/* output section name */
@@ -78,9 +76,17 @@ struct ld_output_section {
 	uint64_t os_size;		/* output section size */
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
-	struct ld_output_section_part_head os_p; /* output section parts */
+	struct ld_output_element_head os_e; /* output section elements */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
+};
+
+STAILQ_HEAD(ld_output_section_head, ld_output_section);
+
+struct ld_output {
+	struct ld_output_element_head lo_oelist; /* output element list */
+	struct ld_output_section_head lo_oslist; /* output section list */
+	struct ld_output_section *lo_ostbl; /* output section hash table */
 };
 
 off_t	ld_layout_calc_header_size(struct ld *);

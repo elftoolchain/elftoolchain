@@ -627,7 +627,7 @@ nocrossrefs_command
 output_command
 	: T_OUTPUT '(' ident ')' {
 		if (ld->ld_output == NULL)
-			ld->ld_output = $3;
+			ld->ld_output_file = $3;
 		else
 			free($3);
 	}
