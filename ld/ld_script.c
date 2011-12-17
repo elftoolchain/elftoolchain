@@ -99,7 +99,10 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 		 * move will not cause overlapping LMA's.
 		 */
 		if ((uint64_t) ldv->ldv_val < ls->ls_loc_counter)
-			ld_fatal(ld, "cannot move location counter backwards");
+			ld_fatal(ld, "cannot move location counter backwards"
+			    " from %#jx to %#jx",
+			    (uintmax_t) ls->ls_loc_counter,
+			    (uintmax_t) ldv->ldv_val);
 		ls->ls_loc_counter = (uint64_t) ldv->ldv_val;
 	}
 	printf("%s = %#jx\n", var->le_name, (uint64_t) ldv->ldv_val);
@@ -109,6 +112,11 @@ int64_t
 ld_script_variable_value(struct ld *ld, char *name)
 {
 	struct ld_script_variable *ldv;
+	struct ld_state *ls;
+
+	ls = &ld->ld_state;
+	if (*name == '.')
+		return (ls->ls_loc_counter);
 
 	ldv = _variable_find(ld, name);
 	assert(ldv != NULL);
