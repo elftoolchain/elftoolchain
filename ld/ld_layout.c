@@ -75,6 +75,7 @@ ld_layout_sections(struct ld *ld)
 		case LSC_ASSIGN:
 			_create_output_element(ld, &lo->lo_oelist, OET_ASSIGN,
 			    ldc->ldc_cmd);
+			break;
 		case LSC_ENTRY:
 			/* TODO */
 			break;
@@ -267,9 +268,11 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	struct ld_input *li;
 	struct ld_output *lo;
 	struct ld_script_cmd *ldc;
+	int first;
 
 	_create_input_objects(ld);
 
+	first = 1;
 	lo = ld->ld_output;
 	lf = NULL;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
@@ -283,9 +286,13 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
 			switch (ldc->ldc_type) {
 			case LSC_ASSERT:
+				if (!first)
+					break;
 				_create_output_element(ld, &lo->lo_oelist,
 				    OET_ASSIGN, ldc->ldc_cmd);
 			case LSC_ASSIGN:
+				if (!first)
+					break;
 				_create_output_element(ld, &lo->lo_oelist,
 				    OET_ASSIGN, ldc->ldc_cmd);
 				break;
@@ -302,6 +309,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 			}
 		}
 		_layout_orphan_section(ld, li);
+		first = 0;
 	}
 	if (lf != NULL)
 		ld_file_unload(ld, lf);
