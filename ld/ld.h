@@ -66,7 +66,6 @@ struct ld_state {
 	unsigned ls_extracted[LD_MAX_NESTED_GROUP + 1];
 					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
-	unsigned ls_inside_sections;	/* inside SECTIONS command */
 	uint64_t ls_loc_counter;	/* location counter */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 };

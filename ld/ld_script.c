@@ -88,10 +88,6 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 
 	ls = &ld->ld_state;
 	var = lda->lda_var;
-	if (*var->le_name == '.' && !ls->ls_inside_sections)
-		ld_fatal(ld, "variable . can only be used inside SECTIONS"
-		    " command");
-
 	ldv = _variable_find(ld, var->le_name);
 	assert(ldv != NULL);
 

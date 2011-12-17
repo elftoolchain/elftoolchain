@@ -83,9 +83,7 @@ ld_layout_sections(struct ld *ld)
 				ld_fatal(ld, "found multiple SECTIONS commands"
 				    " in the linker script");
 			sections_cmd_exist = 1;
-			ls->ls_inside_sections = 1;
 			_layout_sections(ld, ldc->ldc_cmd);
-			ls->ls_inside_sections = 0;
 			break;
 		default:
 			break;

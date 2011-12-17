@@ -499,7 +499,12 @@ symbolic_constant
 
 ldscript_command
 	: assert_command
-	| assignment { $$ = ld_script_cmd(ld, LSC_ASSIGN, $1); }
+	| assignment {
+		if (*$1->lda_var->le_name == '.')
+			ld_fatal(ld, "variable . can only be used inside"
+			    " SECTIONS command");
+		$$ = ld_script_cmd(ld, LSC_ASSIGN, $1);
+	}
 	| entry_command
 	| extern_command { $$ = NULL; }
 	| force_common_allocation_command { $$ = NULL; }
