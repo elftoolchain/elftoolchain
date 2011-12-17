@@ -26,43 +26,29 @@
  * $Id$
  */
 
-enum ld_output_element_type {
-	OET_ASSERT,
-	OET_ASSIGN,
-	OET_DATA,
-	OET_INPUT_SECTION_LIST,
-	OET_KEYWORD,
-	OET_OUTPUT_SECTION,
-	OET_OVERLAY,
+struct ld_input_section {
+	char *is_name;			/* section name */
+	struct ld_input *is_input;	/* containing input object */
+	uint64_t is_off;		/* section file offset */
+	uint64_t is_size;		/* section file size */
+	uint64_t is_align;		/* section align */
+	uint64_t is_type;		/* section type */
+	uint64_t is_flags;		/* section flags */
+	unsigned is_orphan;		/* orphan section */
+	unsigned is_discard;		/* dicard section */
+	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 };
 
-struct ld_output_element {
-	enum ld_output_element_type oe_type; /* output element type */
-	uint64_t oe_off;		/* output element offset */
-	void *oe_entry;			/* output element */
-	unsigned char oe_insec;		/* element inside SECTIONS */
-	STAILQ_ENTRY(ld_output_element) oe_next; /* next element */
+STAILQ_HEAD(ld_input_section_head, ld_input_section);
+
+struct ld_input {
+	char *li_name;			/* input object name */
+	struct ld_file *li_file;	/* containing file */
+	size_t li_shnum;		/* num of sections in ELF object */
+	struct ld_input_section *li_is;	/* input section list */
+	off_t li_moff;			/* archive member offset */
+	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
-STAILQ_HEAD(ld_output_element_head, ld_output_element);
-
-struct ld_output_section {
-	char *os_name;			/* output section name */
-	uint64_t os_off;		/* output section offset */
-	uint64_t os_size;		/* output section size */
-	uint64_t os_align;		/* output section alignment */
-	uint64_t os_flags;		/* output section flags */
-	struct ld_output_element_head os_e; /* output section elements */
-	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
-	UT_hash_handle hh;		/* hash handle */
-};
-
-STAILQ_HEAD(ld_output_section_head, ld_output_section);
-
-struct ld_output {
-	struct ld_output_element_head lo_oelist; /* output element list */
-	struct ld_output_section_head lo_oslist; /* output section list */
-	struct ld_output_section *lo_ostbl; /* output section hash table */
-};
-
-off_t	ld_layout_calc_header_size(struct ld *);
+void	ld_input_create_objects(struct ld *);
+void	ld_input_load_sections(struct ld *, struct ld_input *);

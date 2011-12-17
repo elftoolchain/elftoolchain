@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_script.h"
+#include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_options.h"
 
@@ -37,7 +38,6 @@ ELFTC_VCSID("$Id$");
  */
 
 static void _calc_offset(struct ld *ld);
-static void _create_input_objects(struct ld *ld);
 static struct ld_output_element *_create_output_element(struct ld *ld,
     struct ld_output_element_head *head, enum ld_output_element_type type,
     void *entry);
@@ -45,9 +45,6 @@ static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
-static void _load_input_sections(struct ld *ld, struct ld_input *li);
-static off_t _offset_sort(struct ld_archive_member *a,
-    struct ld_archive_member *b);
 static int _wildcard_match(struct ld_wildcard *lw, const char *string);
 static int _wildcard_list_match(struct ld_script_list *list,
     const char *string);
@@ -132,120 +129,6 @@ ld_layout_calc_header_size(struct ld *ld)
 	return (header_size);
 }
 
-static off_t
-_offset_sort(struct ld_archive_member *a, struct ld_archive_member *b)
-{
-
-	return (a->lam_off - b->lam_off);
-}
-
-static void
-_create_input_objects(struct ld *ld)
-{
-	struct ld_file *lf;
-	struct ld_archive_member *lam, *tmp;
-	struct ld_input *li;
-
-	TAILQ_FOREACH(lf, &ld->ld_lflist, lf_next) {
-		if (lf->lf_ar != NULL) {
-			HASH_SORT(lf->lf_ar->la_m, _offset_sort);
-			HASH_ITER(hh, lf->lf_ar->la_m, lam, tmp) {
-				li = calloc(1, sizeof(*li));
-				if (li == NULL)
-					ld_fatal_std(ld, "calloc");
-				li->li_name = strdup(lam->lam_name);
-				if (li->li_name == NULL)
-					ld_fatal_std(ld, "strdup");
-				li->li_moff = lam->lam_off;
-				li->li_file = lf;
-				STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
-			}
-		} else {
-			if ((li = calloc(1, sizeof(*li))) == NULL)
-				ld_fatal_std(ld, "calloc");
-			if ((li->li_name = strdup(lf->lf_name)) == NULL)
-				ld_fatal_std(ld, "strdup");
-			li->li_file = lf;
-			STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
-		}
-	}
-}
-
-static void
-_load_input_sections(struct ld *ld, struct ld_input *li)
-{
-	struct ld_input_section *is;
-	struct ld_file *lf;
-	Elf *e;
-	Elf_Scn *scn;
-	const char *name;
-	GElf_Shdr sh;
-	size_t shstrndx, ndx;
-	int elferr;
-
-	lf = li->li_file;
-	if (lf->lf_ar != NULL) {
-		assert(li->li_moff != 0);
-		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
-			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
-			    elf_errmsg(-1));
-		if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
-			ld_fatal(ld, "%s: elf_begin: %s", lf->lf_name,
-			    elf_errmsg(-1));
-	} else
-		e = lf->lf_elf;
-
-	if (elf_getshdrnum(e, &li->li_shnum) < 0)
-		ld_fatal(ld, "%s: elf_getshdrnum: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	assert(li->li_is == NULL);
-	if ((li->li_is = calloc(li->li_shnum, sizeof(*is))) == NULL)
-		ld_fatal_std(ld, "%s: calloc: %s", lf->lf_name);
-
-	if (elf_getshdrstrndx(e, &shstrndx) < 0)
-		ld_fatal(ld, "%s: elf_getshdrstrndx: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	scn = NULL;
-	while ((scn = elf_nextscn(e, scn)) != NULL) {
-		if (gelf_getshdr(scn, &sh) != &sh)
-			ld_fatal(ld, "%s: gelf_getshdr: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if ((name = elf_strptr(e, shstrndx, sh.sh_name)) == NULL)
-			ld_fatal(ld, "%s: elf_strptr: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if ((ndx = elf_ndxscn(scn)) == SHN_UNDEF)
-			ld_fatal(ld, "%s: elf_ndxscn: %s", lf->lf_name,
-			    elf_errmsg(-1));
-
-		if (ndx >= li->li_shnum)
-			ld_fatal(ld, "%s: section index of '%s' section is"
-			    " invalid", lf->lf_name, name);
-
-		is = &li->li_is[ndx];
-		if ((is->is_name = strdup(name)) == NULL)
-			ld_fatal_std(ld, "%s: calloc", lf->lf_name);
-		is->is_off = sh.sh_offset;
-		is->is_size = sh.sh_size;
-		is->is_align = sh.sh_addralign;
-		is->is_type = sh.sh_type;
-		is->is_flags = sh.sh_flags;
-		is->is_input = li;
-		is->is_orphan = 1;
-	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", lf->lf_name,
-		    elf_errmsg(elferr));
-
-	if (lf->lf_ar != NULL)
-		(void) elf_end(e);
-}
-
 static struct ld_output_element *
 _create_output_element(struct ld *ld, struct ld_output_element_head *head,
     enum ld_output_element_type type, void *entry)
@@ -270,7 +153,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	struct ld_script_cmd *ldc;
 	int first;
 
-	_create_input_objects(ld);
+	ld_input_create_objects(ld);
 
 	first = 1;
 	lo = ld->ld_output;
@@ -282,7 +165,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 			ld_file_load(ld, li->li_file);
 			lf = li->li_file;
 		}
-		_load_input_sections(ld, li);
+		ld_input_load_sections(ld, li);
 		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
 			switch (ldc->ldc_type) {
 			case LSC_ASSERT:
