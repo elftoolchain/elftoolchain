@@ -26,7 +26,6 @@
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <err.h>
 #include <gelf.h>
@@ -153,10 +152,11 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	if (fstat(ifd, &sb) == -1)
 		err(EXIT_FAILURE, "fstat failed");
 
-	if ((content = mmap(NULL, (size_t) sb.st_size, PROT_READ, MAP_PRIVATE,
-	    ifd, (off_t) 0)) == MAP_FAILED) {
-		err(EXIT_FAILURE, "mmap failed");
-	}
+	/* Read the input binary file to a internal buffer. */
+	if ((content = malloc(sb.st_size)) == NULL)
+		err(EXIT_FAILURE, "malloc failed");
+	if (read(ifd, content, sb.st_size) != sb.st_size)
+		err(EXIT_FAILURE, "read failed");
 
 	/*
 	 * TODO: copy the input binary to output binary verbatim if -O is not
@@ -279,8 +279,4 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
 		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
-
-	/* Release the resource allocated for input object. */
-	if (munmap(content, sb.st_size) < 0)
-		warn("munmap failed");
 }
