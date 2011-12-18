@@ -52,8 +52,9 @@ ELFTC_VCSID("$Id$");
 
 #ifndef LIBELF_AR
 static void ac_read_objs(struct elfcopy *ecp, int ifd);
-static void ac_write_objs(struct elfcopy *ecp, int ofd);
+static void ac_write_cleanup(struct elfcopy *ecp);
 static void ac_write_data(struct archive *a, const void *buf, size_t s);
+static void ac_write_objs(struct elfcopy *ecp, int ofd);
 #endif	/* ! LIBELF_AR */
 static void add_to_ar_str_table(struct elfcopy *elfcopy, const char *name);
 static void add_to_ar_sym_table(struct elfcopy *ecp, const char *name);
@@ -78,6 +79,8 @@ process_ar_obj(struct elfcopy *ecp, struct ar_obj *obj)
 	create_elf(ecp);
 	elf_end(ecp->ein);
 	elf_end(ecp->eout);
+	free(obj->buf);
+	obj->buf = NULL;
 
 	/* Extract archive symbols. */
 	if ((ecp->eout = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
@@ -359,6 +362,7 @@ ac_create_ar(struct elfcopy *ecp, int ifd, int ofd)
 	ac_read_objs(ecp, ifd);
 	sync_ar(ecp);
 	ac_write_objs(ecp, ofd);
+	ac_write_cleanup(ecp);
 }
 
 static void
@@ -411,6 +415,7 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 				err(EXIT_FAILURE, "malloc failed");
 			if ((obj->name = strdup(name)) == NULL)
 				err(EXIT_FAILURE, "strdup failed");
+			obj->buf = buff;
 			obj->uid = archive_entry_uid(entry);
 			obj->gid = archive_entry_gid(entry);
 			obj->md = archive_entry_mode(entry);
@@ -482,6 +487,27 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 
 	AC(archive_write_close(a));
 	ACV(archive_write_finish(a));
+}
+
+static void
+ac_write_cleanup(struct elfcopy *ecp)
+{
+	struct ar_obj		*obj, *obj_temp;
+
+	STAILQ_FOREACH_SAFE(obj, &ecp->v_arobj, objs, obj_temp) {
+		STAILQ_REMOVE(&ecp->v_arobj, obj, ar_obj, objs);
+		if (obj->maddr != NULL && munmap(obj->maddr, obj->size) < 0)
+			warnx("can't munmap file: %s", obj->name);
+		free(obj->name);
+		free(obj);
+	}
+
+	free(ecp->as);
+	free(ecp->s_so);
+	free(ecp->s_sn);
+	ecp->as = NULL;
+	ecp->s_so = NULL;
+	ecp->s_sn = NULL;
 }
 
 /*

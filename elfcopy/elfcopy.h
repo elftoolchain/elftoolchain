@@ -154,6 +154,7 @@ struct segment {
  */
 struct ar_obj {
 	char	*name;		/* member name */
+	char	*buf;		/* member content */
 	void	*maddr;		/* mmap start address */
 	uid_t	 uid;		/* user id */
 	gid_t	 gid;		/* group id */
