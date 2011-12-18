@@ -137,15 +137,11 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 {
 	char name[_SYMBOL_NAMSZ];
 	struct section *sec, *sec_temp, *shtab;
-	/* struct symbuf sy_buf; */
-	/* struct strbuf st_buf; */
 	struct stat sb;
 	GElf_Ehdr oeh;
 	GElf_Shdr sh;
 	void *content;
 	uint64_t off, data_start, data_end, data_size;
-	/* size_t gst_cap, slen; */
-	/* char dummy; */
 
 	/* Reset internal section list. */
 	if (!TAILQ_EMPTY(&ecp->v_sec))
