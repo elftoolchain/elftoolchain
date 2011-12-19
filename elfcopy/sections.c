@@ -166,7 +166,6 @@ static void
 check_section_rename(struct elfcopy *ecp, struct section *s)
 {
 	struct sec_action *sac;
-	char *newname;
 	char *prefix;
 	size_t namelen;
 
@@ -190,10 +189,10 @@ check_section_rename(struct elfcopy *ecp, struct section *s)
 
 	if (prefix != NULL) {
 		namelen = strlen(s->name) + strlen(prefix) + 1;
-		if ((newname = malloc(namelen)) == NULL)
+		if ((s->newname = malloc(namelen)) == NULL)
 			err(EXIT_FAILURE, "malloc failed");
-		snprintf(newname, namelen, "%s%s", prefix, s->name);
-		s->name = newname;
+		snprintf(s->newname, namelen, "%s%s", prefix, s->name);
+		s->name = s->newname;
 	}
 }
 

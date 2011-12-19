@@ -279,4 +279,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
 		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
+
+	/* Release allocated resource. */
+	free_elf(ecp);
 }

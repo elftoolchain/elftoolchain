@@ -200,7 +200,7 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	char line[_LINE_BUFSZ], name[_LINE_BUFSZ];
 	uint8_t data[_DATA_BUFSZ];
 	GElf_Ehdr oeh;
-	struct section *s, *sec, *sec_temp, *shtab;
+	struct section *s, *shtab;
 	FILE *ifp;
 	uint64_t addr, entry, off, sec_addr;
 	uintmax_t st_value;
@@ -208,13 +208,6 @@ create_elf_from_srec(struct elfcopy *ecp, int ifd)
 	int _ifd, first, sec_index, in_symtab, symtab_created;
 	char *rlt;
 	char type;
-
-	/* Reset internal section list. */
-	if (!TAILQ_EMPTY(&ecp->v_sec))
-		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
-			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
-			free(sec);
-		}
 
 	if ((_ifd = dup(ifd)) < 0)
 		err(EXIT_FAILURE, "dup failed");
@@ -410,6 +403,9 @@ done:
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
 		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
+
+	/* Release allocated resource. */
+	free_elf(ecp);
 }
 
 void
@@ -477,19 +473,12 @@ create_elf_from_ihex(struct elfcopy *ecp, int ifd)
 	char line[_LINE_BUFSZ];
 	uint8_t data[_DATA_BUFSZ];
 	GElf_Ehdr oeh;
-	struct section *s, *sec, *sec_temp, *shtab;
+	struct section *s, *shtab;
 	FILE *ifp;
 	uint64_t addr, addr_base, entry, num, off, rec_addr, sec_addr;
 	size_t sz;
 	int _ifd, first, sec_index;
 	char type;
-
-	/* Reset internal section list. */
-	if (!TAILQ_EMPTY(&ecp->v_sec))
-		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
-			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
-			free(sec);
-		}
 
 	if ((_ifd = dup(ifd)) < 0)
 		err(EXIT_FAILURE, "dup failed");
@@ -641,6 +630,9 @@ done:
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
 		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
+
+	/* Release allocated resource. */
+	free_elf(ecp);
 }
 
 #define	_SEC_NAMESZ	64

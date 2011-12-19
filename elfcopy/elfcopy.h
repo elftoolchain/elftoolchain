@@ -116,6 +116,7 @@ struct segment;
 struct section {
 	struct segment	*seg;	/* containing segment */
 	const char	*name;	/* section name */
+	char		*newname;	/* new section name */
 	Elf_Scn		*is;	/* input scn */
 	Elf_Scn		*os;	/* output scn */
 	void		*buf;	/* section content */
@@ -285,6 +286,7 @@ void	create_symtab(struct elfcopy *_ecp);
 void	create_symtab_data(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
 void	finalize_external_symtab(struct elfcopy *_ecp);
+void	free_elf(struct elfcopy *_ecp);
 void	free_sec_act(struct elfcopy *_ecp);
 void	free_sec_add(struct elfcopy *_ecp);
 void	init_shstrtab(struct elfcopy *_ecp);

@@ -273,20 +273,12 @@ static void	strip_usage(void);
 void
 create_elf(struct elfcopy *ecp)
 {
-	struct section	*sec, *sec_temp;
 	struct section	*shtab;
 	GElf_Ehdr	 ieh;
 	GElf_Ehdr	 oeh;
 	size_t		 ishnum;
 
 	ecp->flags |= SYMTAB_INTACT;
-
-	/* Reset internal section list. */
-	if (!TAILQ_EMPTY(&ecp->v_sec))
-		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
-			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
-			free(sec);
-		}
 
 	/* Create EHDR. */
 	if (gelf_getehdr(ecp->ein, &ieh) == NULL)
@@ -448,6 +440,29 @@ create_elf(struct elfcopy *ecp)
 	if (elf_update(ecp->eout, ELF_C_WRITE) < 0)
 		errx(EXIT_FAILURE, "elf_update() failed: %s",
 		    elf_errmsg(-1));
+
+	/* Release allocated resource. */
+	free_elf(ecp);
+}
+
+void
+free_elf(struct elfcopy *ecp)
+{
+	struct section	*sec, *sec_temp;
+
+	/* Free internal section list. */
+	if (!TAILQ_EMPTY(&ecp->v_sec)) {
+		TAILQ_FOREACH_SAFE(sec, &ecp->v_sec, sec_list, sec_temp) {
+			TAILQ_REMOVE(&ecp->v_sec, sec, sec_list);
+			if (sec->buf != NULL)
+				free(sec->buf);
+			if (sec->newname != NULL)
+				free(sec->newname);
+			if (sec->pad != NULL)
+				free(sec->pad);
+			free(sec);
+		}
+	}
 }
 
 /* Create a temporary file. */
