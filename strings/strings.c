@@ -436,7 +436,7 @@ Usage: %s [options] [file...]\n\
   -h     | --help              Print a help message and exit.\n\
   -n N   | --bytes=N | -N      Print sequences with 'N' or more characters.\n\
   -o                           Print offsets in octal.\n\
-  --radix=RADIX                Print offsets using the specified radix.\n\
+  -t R   | --radix=R           Print offsets using the radix named by 'R'.\n\
   -v     | --version           Print a version identifier and exit.\n"
 
 void
