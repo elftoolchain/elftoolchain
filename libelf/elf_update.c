@@ -1196,7 +1196,7 @@ elf_update(Elf *e, Elf_Cmd c)
 		goto done;
 	}
 
-	return (_libelf_write_elf(e, rc, &extents));
+	rc = _libelf_write_elf(e, rc, &extents);
 
 done:
 	_libelf_release_extents(&extents);
