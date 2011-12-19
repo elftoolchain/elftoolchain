@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 
 #include <ar.h>
+#include <assert.h>
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
@@ -818,6 +819,7 @@ static const char *get_symbol_name(struct elfdump *ed, int symtab, int i);
 static const char *get_string(struct elfdump *ed, int strtab, size_t off);
 static void	get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs);
 static void	load_sections(struct elfdump *ed);
+static void	unload_sections(struct elfdump *ed);
 static void	usage(void);
 #ifdef	USE_LIBARCHIVE_AR
 static int	ac_detect_ar(int fd);
@@ -1290,6 +1292,8 @@ elf_print_elf(struct elfdump *ed)
 		elf_print_hash(ed);
 	if (ed->options & ED_CHECKSUM)
 		elf_print_checksum(ed);
+
+	unload_sections(ed);
 }
 
 /*
@@ -1306,13 +1310,11 @@ load_sections(struct elfdump *ed)
 	size_t		 shstrndx, ndx;
 	int		 elferr;
 
+	assert(ed->sl == NULL);
+
 	if (!elf_getshnum(ed->elf, &ed->shnum)) {
 		warnx("elf_getshnum failed: %s", elf_errmsg(-1));
 		return;
-	}
-	if (ed->sl != NULL) {
-		free(ed->sl);
-		ed->sl = NULL;
 	}
 	if (ed->shnum == 0)
 		return;
@@ -1363,6 +1365,18 @@ load_sections(struct elfdump *ed)
 	elferr = elf_errno();
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
+}
+
+/*
+ * Release section related resources.
+ */
+static void
+unload_sections(struct elfdump *ed)
+{
+	if (ed->sl != NULL) {
+		free(ed->sl);
+		ed->sl = NULL;
+	}
 }
 
 /*
