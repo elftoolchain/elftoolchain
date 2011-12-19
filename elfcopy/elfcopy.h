@@ -276,8 +276,9 @@ void	create_elf_from_binary(struct elfcopy *_ecp, int _ifd, const char *ifn);
 void	create_elf_from_ihex(struct elfcopy *_ecp, int _ifd);
 void	create_elf_from_srec(struct elfcopy *_ecp, int _ifd);
 struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
-    void *_buf, uint64_t _size, uint64_t _off, uint64_t _stype, Elf_Type _dtype,
-    uint64_t flags, uint64_t _align, uint64_t _vma, int _loadable);
+    char *_newname, void *_buf, uint64_t _size, uint64_t _off, uint64_t _stype,
+    Elf_Type _dtype, uint64_t flags, uint64_t _align, uint64_t _vma,
+    int _loadable);
 void	create_external_symtab(struct elfcopy *_ecp);
 void	create_ihex(int _ifd, int _ofd);
 void	create_scn(struct elfcopy *_ecp);
@@ -289,6 +290,7 @@ void	finalize_external_symtab(struct elfcopy *_ecp);
 void	free_elf(struct elfcopy *_ecp);
 void	free_sec_act(struct elfcopy *_ecp);
 void	free_sec_add(struct elfcopy *_ecp);
+void	free_symtab(struct elfcopy *_ecp);
 void	init_shstrtab(struct elfcopy *_ecp);
 void	insert_to_sec_list(struct elfcopy *_ecp, struct section *_sec,
     int _tail);

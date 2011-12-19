@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010 Kai Wang
+ * Copyright (c) 2007-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -548,7 +548,7 @@ create_symtab(struct elfcopy *ecp)
 	/*
 	 * Set section index map for .symtab and .strtab. We need to set
 	 * these map because otherwise symbols which refer to .symtab and
-	 * .strtab will be removed by symbol filtering unconditionally. 
+	 * .strtab will be removed by symbol filtering unconditionally.
 	 * And we have to figure out scn index this way (instead of calling
 	 * elf_ndxscn) because we can not create Elf_Scn before we're certain
 	 * that .symtab and .strtab will exist in the output object.
@@ -577,6 +577,8 @@ create_symtab(struct elfcopy *ecp)
 		TAILQ_REMOVE(&ecp->v_sec, ecp->strtab, sec_list);
 		free(ecp->symtab);
 		free(ecp->strtab);
+		ecp->symtab = NULL;
+		ecp->strtab = NULL;
 		ecp->flags &= ~SYMTAB_EXIST;
 		return;
 	}
@@ -608,6 +610,33 @@ create_symtab(struct elfcopy *ecp)
 }
 
 void
+free_symtab(struct elfcopy *ecp)
+{
+	struct symbuf	*sy_buf;
+	struct strbuf	*st_buf;
+
+	if (ecp->symtab != NULL && ecp->symtab->buf != NULL) {
+		sy_buf = ecp->symtab->buf;
+		if (sy_buf->l32 != NULL)
+			free(sy_buf->l32);
+		if (sy_buf->g32 != NULL)
+			free(sy_buf->g32);
+		if (sy_buf->l64 != NULL)
+			free(sy_buf->l64);
+		if (sy_buf->g64 != NULL)
+			free(sy_buf->g64);
+	}
+
+	if (ecp->strtab != NULL && ecp->strtab->buf != NULL) {
+		st_buf = ecp->strtab->buf;
+		if (st_buf->l != NULL)
+			free(st_buf->l);
+		if (st_buf->g != NULL)
+			free(st_buf->g);
+	}
+}
+
+void
 create_external_symtab(struct elfcopy *ecp)
 {
 	struct section *s;
@@ -617,18 +646,18 @@ create_external_symtab(struct elfcopy *ecp)
 	size_t ndx;
 
 	if (ecp->oec == ELFCLASS32)
-		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
-		    0, SHT_SYMTAB, ELF_T_SYM, 0, 4, 0, 0);
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL,
+		    NULL, 0, 0, SHT_SYMTAB, ELF_T_SYM, 0, 4, 0, 0);
 	else
-		ecp->symtab = create_external_section(ecp, ".symtab", NULL, 0,
-		    0, SHT_SYMTAB, ELF_T_SYM, 0, 8, 0, 0);
+		ecp->symtab = create_external_section(ecp, ".symtab", NULL,
+		    NULL, 0, 0, SHT_SYMTAB, ELF_T_SYM, 0, 8, 0, 0);
 
-	ecp->strtab = create_external_section(ecp, ".strtab", NULL, 0, 0,
+	ecp->strtab = create_external_section(ecp, ".strtab", NULL, NULL, 0, 0,
 	    SHT_STRTAB, ELF_T_BYTE, 0, 1, 0, 0);
 
 	/* Let sh_link field of .symtab section point to .strtab section. */
 	if (gelf_getshdr(ecp->symtab->os, &sh) == NULL)
-		errx(EXIT_FAILURE, "692 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	sh.sh_link = elf_ndxscn(ecp->strtab->os);
 	if (!gelf_update_shdr(ecp->symtab->os, &sh))

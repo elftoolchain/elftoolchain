@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010 Kai Wang
+ * Copyright (c) 2007-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -448,7 +448,19 @@ create_elf(struct elfcopy *ecp)
 void
 free_elf(struct elfcopy *ecp)
 {
+	struct segment	*seg, *seg_temp;
 	struct section	*sec, *sec_temp;
+
+	/* Free internal segment list. */
+	if (!STAILQ_EMPTY(&ecp->v_seg)) {
+		STAILQ_FOREACH_SAFE(seg, &ecp->v_seg, seg_list, seg_temp) {
+			STAILQ_REMOVE(&ecp->v_seg, seg, segment, seg_list);
+			free(seg);
+		}
+	}
+
+	/* Free symbol table buffers. */
+	free_symtab(ecp);
 
 	/* Free internal section list. */
 	if (!TAILQ_EMPTY(&ecp->v_sec)) {
@@ -1431,9 +1443,9 @@ main(int argc, char **argv)
 		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	ecp = malloc(sizeof(*ecp));
+	ecp = calloc(1, sizeof(*ecp));
 	if (ecp == NULL)
-		err(EXIT_FAILURE, "malloc failed");
+		err(EXIT_FAILURE, "calloc failed");
 	memset(ecp, 0, sizeof(*ecp));
 
 	ecp->itf = ecp->otf = ETF_ELF;

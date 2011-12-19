@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -648,8 +648,8 @@ new_data_section(struct elfcopy *ecp, int sec_index, uint64_t off,
 		errx(EXIT_FAILURE, "malloc failed");
 	snprintf(name, _SEC_NAMESZ, ".sec%d", sec_index);
 
-	return (create_external_section(ecp, name, NULL, 0, off, SHT_PROGBITS,
-	    ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, addr, 0));
+	return (create_external_section(ecp, name, name, NULL, 0, off,
+		SHT_PROGBITS, ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, addr, 0));
 }
 
 static void

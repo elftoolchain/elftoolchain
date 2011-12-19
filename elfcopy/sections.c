@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010 Kai Wang
+ * Copyright (c) 2007-2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,8 +97,8 @@ is_remove_section(struct elfcopy *ecp, const char *name)
 }
 
 /*
- * Relocation section need to be remove if the section it applies will
- * be removed.
+ * Relocation section needs to be removed if the section it applies to
+ * will be removed.
  */
 int
 is_remove_reloc_sec(struct elfcopy *ecp, uint32_t sh_info)
@@ -1045,9 +1045,9 @@ copy_data(struct section *s)
 }
 
 struct section *
-create_external_section(struct elfcopy *ecp, const char *name, void *buf,
-    uint64_t size, uint64_t off, uint64_t stype, Elf_Type dtype, uint64_t flags,
-    uint64_t align, uint64_t vma, int loadable)
+create_external_section(struct elfcopy *ecp, const char *name, char *newname,
+    void *buf, uint64_t size, uint64_t off, uint64_t stype, Elf_Type dtype,
+    uint64_t flags, uint64_t align, uint64_t vma, int loadable)
 {
 	struct section	*s;
 	Elf_Scn		*os;
@@ -1060,6 +1060,7 @@ create_external_section(struct elfcopy *ecp, const char *name, void *buf,
 	if ((s = calloc(1, sizeof(*s))) == NULL)
 		err(EXIT_FAILURE, "calloc failed");
 	s->name = name;
+	s->newname = newname;	/* needs to be free()'ed */
 	s->off = off;
 	s->sz = size;
 	s->vma = vma;
@@ -1127,7 +1128,7 @@ insert_sections(struct elfcopy *ecp)
 
 		/* TODO: Add section header vma/lma, flag changes here */
 
-		(void) create_external_section(ecp, sa->name, sa->content,
+		(void) create_external_section(ecp, sa->name, NULL, sa->content,
 		    sa->size, off, SHT_PROGBITS, ELF_T_BYTE, 0, 1, 0, 0);
 	}
 }

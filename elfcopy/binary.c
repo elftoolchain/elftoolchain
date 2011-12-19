@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010,2011 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ create_binary(int ifd, int ofd)
 			continue;
 		if (base == -1 || (off_t) sh.sh_offset < base)
 			base = sh.sh_offset;
-	}	
+	}
 	elferr = elf_errno();
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
@@ -182,7 +182,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	oeh.e_machine = ecp->oem;
 	oeh.e_type = ET_REL;
 	oeh.e_entry = 0;
-	
+
 	ecp->flags |= RELOCATABLE;
 
 	/* Create .shstrtab section */
@@ -196,8 +196,8 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	off = gelf_fsize(ecp->eout, ELF_T_EHDR, 1, EV_CURRENT);
 	if (off == 0)
 		errx(EXIT_FAILURE, "gelf_fsize() failed: %s", elf_errmsg(-1));
-	(void) create_external_section(ecp, ".data", content, sb.st_size, off,
-	    SHT_PROGBITS, ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, 0, 1);
+	(void) create_external_section(ecp, ".data", NULL, content, sb.st_size,
+	    off, SHT_PROGBITS, ELF_T_BYTE, SHF_ALLOC | SHF_WRITE, 1, 0, 1);
 
 	/* Insert .shstrtab after .data section. */
 	if ((ecp->shstrtab->os = elf_newscn(ecp->eout)) == NULL)
