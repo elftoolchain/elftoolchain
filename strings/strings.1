@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 25, 2011
+.Dd December 19, 2011
 .Dt STRINGS 1
 .Os
 .Sh NAME
@@ -32,18 +32,14 @@
 .Nd "print the strings of printable characters in files"
 .Sh SYNOPSIS
 .Nm
-.Op Fl -all
-.Op Fl -bytes= Ns Ar number
-.Op Fl -encoding= Ns Ar encoding
-.Op Fl -help
-.Op Fl -print-file-name
-.Op Fl -radix= Ns Ar radix
-.Op Fl -version
-.Op Fl afhov
-.Op Fl Ar number
-.Op Fl e Ar encoding
-.Op Fl n Ar number
-.Op Fl t Ar radix
+.Op Fl a | Fl -all
+.Op Fl e Ar encoding | Fl -encoding= Ns Ar encoding
+.Op Fl f | Fl -print-file-name
+.Op Fl h | Fl -help
+.Op Fl n Ar number | Fl -bytes= Ns Ar number | Fl Ar number
+.Op Fl o
+.Op Fl t Ar radix | Fl -radix= Ns Ar radix
+.Op Fl v | Fl -version
 .Op Ar
 .Sh DESCRIPTION
 For each
@@ -69,9 +65,9 @@ If no file name is specified as an argument, standard input is read.
 .Pp
 The following options are available:
 .Bl -tag -width indent
-.It Fl -all
+.It Fl a | Fl -all
 For ELF objects, scan the entire file for printable strings.
-.It Fl -encoding= Ns Ar encoding
+.It Fl e Ar encoding | Fl -encoding= Ns Ar encoding
 Select the character encoding to be used while searching for strings.
 Valid values for argument
 .Ar encoding
@@ -92,9 +88,22 @@ for 32-bit big-endian.
 .El
 The default is to assume that characters are encoded using a single
 7-bit byte.
-.It Fl -print-file-name
+.It Fl f | Fl -print-file-name
 Print the name of the file before each string.
-.It Fl -radix= Ns Ar radix
+.It Fl h | Fl -help
+Print a usage summary and exit.
+.It Xo
+.Fl n Ar number |
+.Fl -bytes= Ns Ar number |
+.Fl Ar number
+.Xc
+Print the contiguous character sequence of at least
+.Ar number
+characters long, instead of the default of 4 characters.
+.It Fl o
+Equivalent to specifying
+.Fl t Ar o .
+.It Fl t Ar radix | Fl -radix= Ns Ar radix
 Print the offset from the start of the file before each string
 using the specified radix.
 Valid values for argument
@@ -108,41 +117,8 @@ for octal
 .It Ar x
 for hexadecimal
 .El
-.It Xo
-.Fl -bytes= Ns Ar number |
-.Fl Ar number
-.Xc
-Print the contiguous character sequence of at least
-.Ar number
-characters long, instead of default of 4 characters.
-.It Fl -help
-This prints a usage summary and exits.
-.It Fl -version
+.It Fl v | Fl -version
 Display a version identifier and exit.
-.It Fl a
-Equivalent to specifying option
-.Fl -all .
-.It Fl e Ar encoding
-Equivalent to specifying option
-.Fl -encoding= Ns Ar encoding .
-.It Fl f
-Equivalent to specifying option
-.Fl -print-file-name .
-.It Fl h
-Equivalent to specifying option
-.Fl -help .
-.It Fl n Ar number
-Equivalent to specifying option
-.Fl -bytes= Ns Ar number .
-.It Fl o
-Equivalent to specifying option
-.Fl -radix= Ns Ar o .
-.It Fl t Ar radix
-Equivalent to specifying option
-.Fl -radix= Ns Ar radix .
-.It Fl v
-Equivalent to specifying option
-.Fl -version .
 .El
 .Sh EXIT STATUS
 .Ex -std
