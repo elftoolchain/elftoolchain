@@ -1298,6 +1298,19 @@ add_section(struct elfcopy *ecp, const char *arg)
 	ecp->flags |= SEC_ADD;
 }
 
+void
+free_sec_add(struct elfcopy *ecp)
+{
+	struct sec_add *sa, *sa_temp;
+
+	STAILQ_FOREACH_SAFE(sa, &ecp->v_sadd, sadd_list, sa_temp) {
+		STAILQ_REMOVE(&ecp->v_sadd, sa, sec_add, sadd_list);
+		free(sa->name);
+		free(sa->content);
+		free(sa);
+	}
+}
+
 static void
 add_gnu_debuglink(struct elfcopy *ecp)
 {

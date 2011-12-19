@@ -1447,6 +1447,7 @@ main(int argc, char **argv)
 	else
 		elfcopy_main(ecp, argc, argv);
 
+	free_sec_add(ecp);
 	free_sec_act(ecp);
 	free(ecp);
 
