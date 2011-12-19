@@ -281,5 +281,6 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 		    elf_errmsg(-1));
 
 	/* Release allocated resource. */
+	free(content);
 	free_elf(ecp);
 }
