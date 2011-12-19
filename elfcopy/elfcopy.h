@@ -285,6 +285,7 @@ void	create_symtab(struct elfcopy *_ecp);
 void	create_symtab_data(struct elfcopy *_ecp);
 void	create_tempfile(char **_fn, int *_fd);
 void	finalize_external_symtab(struct elfcopy *_ecp);
+void	free_sec_act(struct elfcopy *_ecp);
 void	init_shstrtab(struct elfcopy *_ecp);
 void	insert_to_sec_list(struct elfcopy *_ecp, struct section *_sec,
     int _tail);

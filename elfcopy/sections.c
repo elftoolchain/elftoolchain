@@ -283,6 +283,17 @@ lookup_sec_act(struct elfcopy *ecp, const char *name, int add)
 }
 
 void
+free_sec_act(struct elfcopy *ecp)
+{
+	struct sec_action *sac, *sac_temp;
+
+	STAILQ_FOREACH_SAFE(sac, &ecp->v_sac, sac_list, sac_temp) {
+		STAILQ_REMOVE(&ecp->v_sac, sac, sec_action, sac_list);
+		free(sac);
+	}
+}
+
+void
 insert_to_sec_list(struct elfcopy *ecp, struct section *sec, int tail)
 {
 	struct section *s;
