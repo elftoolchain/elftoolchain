@@ -100,13 +100,14 @@ int
 main(int argc, char **argv)
 {
 	struct bsdar	*bsdar, bsdar_storage;
-	char		*p;
+	char		*arcmd, *argv1_saved;
 	size_t		 len;
 	int		 i, opt;
 
 	bsdar = &bsdar_storage;
 	memset(bsdar, 0, sizeof(*bsdar));
 
+	arcmd = argv1_saved = NULL;
 	bsdar->output = stdout;
 
 	if ((bsdar->progname = ELFTC_GETPROGNAME()) == NULL)
@@ -157,11 +158,12 @@ main(int argc, char **argv)
 		 * Tack on a leading '-', for old-style usage.
 		 */
 		if (*argv[1] != '-') {
+			argv1_saved = argv[1];
 			len = strlen(argv[1]) + 2;
-			if ((p = malloc(len)) == NULL)
+			if ((arcmd = malloc(len)) == NULL)
 				bsdar_errc(bsdar, errno, "malloc failed");
-			(void) snprintf(p, len, "-%s", argv[1]);
-			argv[1] = p;
+			(void) snprintf(arcmd, len, "-%s", argv[1]);
+			argv[1] = arcmd;
 		}
 	}
 
@@ -253,6 +255,13 @@ main(int argc, char **argv)
 		default:
 			bsdar_usage();
 		}
+	}
+
+	/* Restore argv[1] if we had modified it. */
+	if (arcmd != NULL) {
+		argv[1] = argv1_saved;
+		free(arcmd);
+		arcmd = argv1_saved = NULL;
 	}
 
 	argv += optind;
