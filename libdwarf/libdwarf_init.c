@@ -301,6 +301,8 @@ _dwarf_consumer_deinit(Dwarf_Debug dbg)
 	_dwarf_nametbl_cleanup(&dbg->dbg_funcs);
 	_dwarf_nametbl_cleanup(&dbg->dbg_vars);
 	_dwarf_nametbl_cleanup(&dbg->dbg_types);
+
+	free(dbg->dbg_section);
 }
 
 void
