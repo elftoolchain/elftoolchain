@@ -1374,6 +1374,8 @@ next_cmd:
 				free(func->name);
 				free(func);
 			}
+			free(func_info);
+			func_info = NULL;
 		}
 		if (var_info != NULL) {
 			while (!SLIST_EMPTY(var_info)) {
@@ -1383,6 +1385,8 @@ next_cmd:
 				free(var->name);
 				free(var);
 			}
+			free(var_info);
+			var_info = NULL;
 		}
 		if (line_info != NULL) {
 			while (!SLIST_EMPTY(line_info)) {
