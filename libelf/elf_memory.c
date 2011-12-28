@@ -24,9 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
-#include <ar.h>
 #include <libelf.h>
 #include <string.h>
 
@@ -49,44 +46,5 @@ elf_memory(char *image, size_t sz)
 		return (NULL);
 	}
 
-	if ((e = _libelf_allocate_elf()) == NULL)
-		return (NULL);
-
-	e->e_cmd = ELF_C_READ;
-	e->e_rawfile = image;
-	e->e_rawsize = sz;
-
-#undef	LIBELF_IS_ELF
-#define	LIBELF_IS_ELF(P) ((P)[EI_MAG0] == ELFMAG0 && 		\
-	(P)[EI_MAG1] == ELFMAG1 && (P)[EI_MAG2] == ELFMAG2 &&	\
-	(P)[EI_MAG3] == ELFMAG3)
-
-	if (sz > EI_NIDENT && LIBELF_IS_ELF(image)) {
-		_libelf_init_elf(e, ELF_K_ELF);
-		e->e_class = image[EI_CLASS];
-		e->e_byteorder = image[EI_DATA];
-		e->e_version = image[EI_VERSION];
-
-		if (e->e_version > EV_CURRENT) {
-			e = _libelf_release_elf(e);
-			LIBELF_SET_ERROR(VERSION, 0);
-			return (NULL);
-		}
-
-		if ((e->e_byteorder != ELFDATA2LSB && e->e_byteorder !=
- 		    ELFDATA2MSB) || (e->e_class != ELFCLASS32 && e->e_class !=
-		    ELFCLASS64)) {
-			e = _libelf_release_elf(e);
-			LIBELF_SET_ERROR(HEADER, 0);
-			return (NULL);
-		}
-
-	} else if (sz >= SARMAG &&
-	    strncmp(image, ARMAG, (size_t) SARMAG) == 0) {
-		_libelf_init_elf(e, ELF_K_AR);
-		e = _libelf_ar_open(e);
-	} else
-		_libelf_init_elf(e, ELF_K_NONE);
-
-	return (e);
+	return (_libelf_memory(image, sz, 1));
 }
