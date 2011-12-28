@@ -58,9 +58,11 @@ extern struct _libelf_globals _libelf;
 #define	LIBELF_ELF_ERROR_MASK			0xFF
 #define	LIBELF_OS_ERROR_SHIFT			8
 
+#define	LIBELF_ERROR(E, O) (((E) & LIBELF_ELF_ERROR_MASK) |	\
+	((O) << LIBELF_OS_ERROR_SHIFT))
+
 #define	LIBELF_SET_ERROR(E, O) do {					\
-	LIBELF_PRIVATE(error) = ((ELF_E_##E & LIBELF_ELF_ERROR_MASK)|	\
-	    ((O) << LIBELF_OS_ERROR_SHIFT));				\
+		LIBELF_PRIVATE(error) = LIBELF_ERROR(ELF_E_##E, (O));	\
 	} while (0)
 
 #define	LIBELF_ADJUST_AR_SIZE(S)	(((S) + 1U) & ~1U)
