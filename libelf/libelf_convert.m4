@@ -143,7 +143,7 @@ define(`SIZEDEP_OFF',	1)
 # Generates a pair of conversion functions.
 define(`MAKEPRIMFUNCS',`
 static int
-libelf_cvt_$1$4_tof(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$4_tof(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$3_$2 t, *s = (Elf$3_$2 *) (uintptr_t) src;
@@ -166,7 +166,7 @@ libelf_cvt_$1$4_tof(char *dst, size_t dsz, char *src, size_t count,
 }
 
 static int
-libelf_cvt_$1$4_tom(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$4_tom(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$3_$2 t, *d = (Elf$3_$2 *) (uintptr_t) dst;
@@ -267,7 +267,7 @@ define(`READ_STRUCT',
 # `$3': ELF class specifier, one of [`', `32', `64']
 define(`MAKECOMPFUNCS', `ifdef(`NOFUNC_'$1$3,`',`
 static int
-libelf_cvt_$1$3_tof(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$3_tof(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$3_$2	t, *s;
@@ -288,7 +288,7 @@ libelf_cvt_$1$3_tof(char *dst, size_t dsz, char *src, size_t count,
 }
 
 static int
-libelf_cvt_$1$3_tom(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$3_tom(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$3_$2	 t, *d;
@@ -349,9 +349,9 @@ define(`CONV',
     `.$3$2 = NULL',
     `ifdef(`PRIM_'$1,
       `ifdef(`SIZEDEP_'$1,
-	`.$3$2 = libelf_cvt_$1$2_$3',
-	`.$3$2 = libelf_cvt_$1_$3')',
-      `.$3$2 = libelf_cvt_$1$2_$3')')')
+	`.$3$2 = _libelf_cvt_$1$2_$3',
+	`.$3$2 = _libelf_cvt_$1_$3')',
+      `.$3$2 = _libelf_cvt_$1$2_$3')')')
 
 # CONVERTER_NAME(ELFTYPE)
 #
@@ -398,7 +398,7 @@ define(`MAKE_VERSION_CONVERTERS',
 # conversion function.
 define(`MAKE_VERSION_CONVERTER',`
 static int
-libelf_cvt_$1$5_tof(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$5_tof(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$5_$2	t;
@@ -462,7 +462,7 @@ libelf_cvt_$1$5_tof(char *dst, size_t dsz, char *src, size_t count,
 }
 
 static int
-libelf_cvt_$1$5_tom(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_$1$5_tom(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	Elf$5_$2	t, *dp;
@@ -707,7 +707,7 @@ MAKE_VERSION_CONVERTERS(VNEED,Verneed,Vernaux,vn)
  */
 
 static int
-libelf_cvt_BYTE_tox(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_BYTE_tox(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	(void) byteswap;
@@ -732,23 +732,23 @@ libelf_cvt_BYTE_tox(char *dst, size_t dsz, char *src, size_t count,
  */
 
 static int
-libelf_cvt_GNUHASH32_tom(char *dst, size_t dsz, char *src, size_t srcsz,
+_libelf_cvt_GNUHASH32_tom(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
-	return (libelf_cvt_WORD_tom(dst, dsz, src, srcsz / sizeof(uint32_t),
+	return (_libelf_cvt_WORD_tom(dst, dsz, src, srcsz / sizeof(uint32_t),
 		byteswap));
 }
 
 static int
-libelf_cvt_GNUHASH32_tof(char *dst, size_t dsz, char *src, size_t srcsz,
+_libelf_cvt_GNUHASH32_tof(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
-	return (libelf_cvt_WORD_tof(dst, dsz, src, srcsz / sizeof(uint32_t),
+	return (_libelf_cvt_WORD_tof(dst, dsz, src, srcsz / sizeof(uint32_t),
 		byteswap));
 }
 
 static int
-libelf_cvt_GNUHASH64_tom(char *dst, size_t dsz, char *src, size_t srcsz,
+_libelf_cvt_GNUHASH64_tom(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
 	size_t sz;
@@ -834,7 +834,7 @@ libelf_cvt_GNUHASH64_tom(char *dst, size_t dsz, char *src, size_t srcsz,
 }
 
 static int
-libelf_cvt_GNUHASH64_tof(char *dst, size_t dsz, char *src, size_t srcsz,
+_libelf_cvt_GNUHASH64_tof(char *dst, size_t dsz, char *src, size_t srcsz,
     int byteswap)
 {
 	uint32_t *s32;
@@ -921,7 +921,7 @@ libelf_cvt_GNUHASH64_tof(char *dst, size_t dsz, char *src, size_t srcsz,
  * The destination buffer needs to be at least `count' bytes in size.
  */
 static int
-libelf_cvt_NOTE_tom(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_NOTE_tom(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	uint32_t namesz, descsz, type;
@@ -983,7 +983,7 @@ libelf_cvt_NOTE_tom(char *dst, size_t dsz, char *src, size_t count,
 }
 
 static int
-libelf_cvt_NOTE_tof(char *dst, size_t dsz, char *src, size_t count,
+_libelf_cvt_NOTE_tof(char *dst, size_t dsz, char *src, size_t count,
     int byteswap)
 {
 	uint32_t namesz, descsz, type;
@@ -1055,17 +1055,17 @@ CONVERTER_NAMES(ELF_TYPE_LIST)
 	 */
 
 	[ELF_T_BYTE] = {
-		.tof32 = libelf_cvt_BYTE_tox,
-		.tom32 = libelf_cvt_BYTE_tox,
-		.tof64 = libelf_cvt_BYTE_tox,
-		.tom64 = libelf_cvt_BYTE_tox
+		.tof32 = _libelf_cvt_BYTE_tox,
+		.tom32 = _libelf_cvt_BYTE_tox,
+		.tof64 = _libelf_cvt_BYTE_tox,
+		.tom64 = _libelf_cvt_BYTE_tox
 	},
 
 	[ELF_T_NOTE] = {
-		.tof32 = libelf_cvt_NOTE_tof,
-		.tom32 = libelf_cvt_NOTE_tom,
-		.tof64 = libelf_cvt_NOTE_tof,
-		.tom64 = libelf_cvt_NOTE_tom
+		.tof32 = _libelf_cvt_NOTE_tof,
+		.tom32 = _libelf_cvt_NOTE_tom,
+		.tof64 = _libelf_cvt_NOTE_tof,
+		.tom64 = _libelf_cvt_NOTE_tom
 	}
 };
 
