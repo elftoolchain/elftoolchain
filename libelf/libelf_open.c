@@ -121,7 +121,7 @@ error:
  */
 
 Elf *
-_libelf_open_object(int fd, Elf_Cmd c)
+_libelf_open_object(int fd, Elf_Cmd c, int reporterror)
 {
 	Elf *e;
 	void *m;
@@ -213,7 +213,7 @@ _libelf_open_object(int fd, Elf_Cmd c)
 	else
 		return (NULL);
 
-	if ((e = elf_memory(m, fsize)) == NULL) {
+	if ((e = _libelf_memory(m, fsize, reporterror)) == NULL) {
 		assert((flags & LIBELF_F_RAWFILE_MALLOC) ||
 		    (flags & LIBELF_F_RAWFILE_MMAP));
 		if (flags & LIBELF_F_RAWFILE_MALLOC)

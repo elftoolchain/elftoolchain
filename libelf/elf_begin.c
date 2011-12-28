@@ -81,7 +81,7 @@ elf_begin(int fd, Elf_Cmd c, Elf *a)
 	}
 
 	if (a == NULL)
-		e = _libelf_open_object(fd, c);
+		e = _libelf_open_object(fd, c, 1);
 	else if (a->e_kind == ELF_K_AR)
 		e = _libelf_ar_open_member(a->e_fd, c, a);
 	else
