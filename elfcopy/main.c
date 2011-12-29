@@ -667,6 +667,14 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			}
 			create_tempfile(&tempfile, &ofd0);
 
+
+			/*
+			 * Rewind the file descriptor being processed.
+			 */
+			if (lseek(ofd, 0, SEEK_SET) < 0)
+				err(EXIT_FAILURE,
+				    "lseek failed for the output object");
+
 			/*
 			 * Call flavour-specific conversion routine.
 			 */

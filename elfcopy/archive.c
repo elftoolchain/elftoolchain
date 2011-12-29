@@ -83,6 +83,8 @@ process_ar_obj(struct elfcopy *ecp, struct ar_obj *obj)
 	obj->buf = NULL;
 
 	/* Extract archive symbols. */
+	if (lseek(fd, 0, SEEK_SET) < 0)
+		err(EXIT_FAILURE, "lseek failed for '%s'", tempfile);
 	if ((ecp->eout = elf_begin(fd, ELF_C_READ, NULL)) == NULL)
 		errx(EXIT_FAILURE, "elf_begin() failed: %s",
 		    elf_errmsg(-1));
