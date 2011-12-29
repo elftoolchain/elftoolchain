@@ -19,6 +19,7 @@ SRCS=	elf.c							\
 	elf_kind.c						\
 	elf_memory.c						\
 	elf_next.c						\
+	elf_open.c						\
 	elf_rand.c						\
 	elf_rawfile.c						\
 	elf_phnum.c						\
