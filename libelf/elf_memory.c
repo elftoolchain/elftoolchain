@@ -25,7 +25,6 @@
  */
 
 #include <libelf.h>
-#include <string.h>
 
 #include "_libelf.h"
 
@@ -34,8 +33,6 @@ ELFTC_VCSID("$Id$");
 Elf *
 elf_memory(char *image, size_t sz)
 {
-	Elf *e;
-
 	if (LIBELF_PRIVATE(version) == EV_NONE) {
 		LIBELF_SET_ERROR(SEQUENCE, 0);
 		return (NULL);
