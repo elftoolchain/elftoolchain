@@ -113,6 +113,10 @@ main(int argc, char **argv)
 	if ((bsdar->progname = ELFTC_GETPROGNAME()) == NULL)
 		bsdar->progname = "ar";
 
+	if (elf_version(EV_CURRENT) == EV_NONE)
+		bsdar_errc(bsdar, 0, "ELF library initialization failed: %s",
+		    elf_errmsg(-1));
+
 	/*
 	 * Act like ranlib if our name ends in "ranlib"; this
 	 * accomodates names like "arm-freebsd7.1-ranlib",

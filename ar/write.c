@@ -25,7 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-#include <sys/mman.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
 
@@ -57,9 +56,8 @@ static void	add_to_ar_str_table(struct bsdar *bsdar, const char *name);
 static void	add_to_ar_sym_table(struct bsdar *bsdar, const char *name);
 static struct ar_obj	*create_obj_from_file(struct bsdar *bsdar,
 		    const char *name, time_t mtime);
-static void	create_symtab_entry(struct bsdar *bsdar, void *maddr,
-		    size_t size);
-static void	free_obj(struct bsdar *bsdar, struct ar_obj *obj);
+static void	create_symtab_entry(struct bsdar *bsdar, Elf *e);
+static void	free_obj(struct ar_obj *obj);
 static void	insert_obj(struct bsdar *bsdar, struct ar_obj *obj,
 		    struct ar_obj *pos);
 static void	read_objs(struct bsdar *bsdar, const char *archive,
@@ -89,6 +87,8 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	obj = malloc(sizeof(struct ar_obj));
 	if (obj == NULL)
 		bsdar_errc(bsdar, errno, "malloc failed");
+
+	obj->elf = NULL;
 	if ((obj->fd = open(name, O_RDONLY, 0)) < 0) {
 		bsdar_warnc(bsdar, errno, "can't open file: %s", name);
 		free(obj);
@@ -154,18 +154,14 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	obj->ino = sb.st_ino;
 
 	if (obj->size == 0) {
-		obj->maddr = NULL;
 		return (obj);
 	}
 
-	if ((obj->maddr = mmap(NULL, obj->size, PROT_READ,
-	    MAP_PRIVATE, obj->fd, (off_t)0)) == MAP_FAILED) {
-		bsdar_warnc(bsdar, errno, "can't mmap file: %s", obj->name);
+	if ((obj->elf = elf_open(obj->fd)) == NULL) {
+		bsdar_warnc(bsdar, 0, "file initialization failed for %s: %s",
+		    obj->name, elf_errmsg(-1));
 		goto giveup;
 	}
-	if (close(obj->fd) < 0)
-		bsdar_errc(bsdar, errno, "close failed: %s",
-		    obj->name);
 
 	return (obj);
 
@@ -182,14 +178,14 @@ giveup:
  * Free an object and its associated allocations.
  */
 static void
-free_obj(struct bsdar *bsdar, struct ar_obj *obj)
+free_obj(struct ar_obj *obj)
 {
-	if (obj->fd == -1)
-		free(obj->maddr);
-	else
-		if (obj->maddr != NULL && munmap(obj->maddr, obj->size))
-			bsdar_warnc(bsdar, errno,
-			    "can't munmap file: %s", obj->name);
+	if (obj->elf)
+		elf_end(obj->elf);
+
+	if (obj->fd != -1)
+		(void) close(obj->fd);
+
 	free(obj->name);
 	free(obj);
 }
@@ -312,7 +308,18 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 		obj = malloc(sizeof(struct ar_obj));
 		if (obj == NULL)
 			bsdar_errc(bsdar, errno, "malloc failed");
-		obj->maddr = buff;
+		obj->elf = NULL;
+		if (buff) {
+			obj->elf = elf_openmemory(buff, size);
+			if (obj->elf == NULL) {
+				bsdar_warnc(bsdar, 0, "elf_openmemory() "
+				    "failed for %s: %s", name,
+				    elf_errmsg(-1));
+				free(buff);
+				free(obj);
+				continue;
+			}
+		}
 		if ((obj->name = strdup(name)) == NULL)
 			bsdar_errc(bsdar, errno, "strdup failed");
 		obj->size = size;
@@ -468,7 +475,7 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 
 			TAILQ_REMOVE(&bsdar->v_obj, obj, objs);
 			if (mode == 'd' || mode == 'r')
-				free_obj(bsdar, obj);
+				free_obj(obj);
 
 			if (mode == 'm')
 				insert_obj(bsdar, obj, pos);
@@ -517,7 +524,7 @@ write_cleanup(struct bsdar *bsdar)
 
 	TAILQ_FOREACH_SAFE(obj, &bsdar->v_obj, objs, obj_temp) {
 		TAILQ_REMOVE(&bsdar->v_obj, obj, objs);
-		free_obj(bsdar, obj);
+		free_obj(obj);
 	}
 
 	free(bsdar->as);
@@ -643,11 +650,8 @@ write_objs(struct bsdar *bsdar)
 	size_t namelen;		/* size of member name. */
 	size_t obj_sz;		/* size of object + extended header. */
 	int			 i;
+	char			*buf;
 	const char		*entry_name;
-
-	if (elf_version(EV_CURRENT) == EV_NONE)
-		bsdar_errc(bsdar, 0, "ELF library initialization failed: %s",
-		    elf_errmsg(-1));
 
 	bsdar->rela_off = 0;
 
@@ -656,8 +660,8 @@ write_objs(struct bsdar *bsdar)
 	 * table, if needed.
 	 */
 	TAILQ_FOREACH(obj, &bsdar->v_obj, objs) {
-		if (!(bsdar->options & AR_SS) && obj->maddr != NULL)
-			create_symtab_entry(bsdar, obj->maddr, obj->size);
+		if (!(bsdar->options & AR_SS) && obj->elf != NULL)
+			create_symtab_entry(bsdar, obj->elf);
 
 		obj_sz = 0;
 		namelen = strlen(obj->name);
@@ -758,6 +762,12 @@ write_objs(struct bsdar *bsdar)
 
 	/* Write normal members. */
 	TAILQ_FOREACH(obj, &bsdar->v_obj, objs) {
+		if ((buf = elf_rawfile(obj->elf, NULL)) == NULL) {
+			bsdar_warnc(bsdar, 0, "elf_rawfile() failed: %s",
+			    elf_errmsg(-1));
+			continue;
+		}
+
 		entry = archive_entry_new();
 		archive_entry_copy_pathname(entry, obj->name);
 		archive_entry_set_uid(entry, obj->uid);
@@ -769,7 +779,7 @@ write_objs(struct bsdar *bsdar)
 		archive_entry_set_ino(entry, obj->ino);
 		archive_entry_set_filetype(entry, AE_IFREG);
 		AC(archive_write_header(a, entry));
-		write_data(bsdar, a, obj->maddr, obj->size);
+		write_data(bsdar, a, buf, obj->size);
 		archive_entry_free(entry);
 	}
 
@@ -781,9 +791,8 @@ write_objs(struct bsdar *bsdar)
  * Extract global symbols from ELF binary members.
  */
 static void
-create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
+create_symtab_entry(struct bsdar *bsdar, Elf *e)
 {
-	Elf		*e;
 	Elf_Scn		*scn;
 	GElf_Shdr	 shdr;
 	GElf_Sym	 sym;
@@ -792,20 +801,13 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 	size_t		 n, shstrndx;
 	int		 elferr, tabndx, len, i;
 
-	if ((e = elf_memory(maddr, size)) == NULL) {
-		bsdar_warnc(bsdar, 0, "elf_memory() failed: %s",
-		     elf_errmsg(-1));
-		return;
-	}
 	if (elf_kind(e) != ELF_K_ELF) {
 		/* Silently a ignore non-ELF member. */
-		elf_end(e);
 		return;
 	}
 	if (elf_getshstrndx(e, &shstrndx) == 0) {
 		bsdar_warnc(bsdar, 0, "elf_getshstrndx failed: %s",
 		     elf_errmsg(-1));
-		elf_end(e);
 		return;
 	}
 
@@ -833,7 +835,6 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 		     elf_errmsg(elferr));
 	if (tabndx == -1) {
 		bsdar_warnc(bsdar, 0, "can't find .strtab section");
-		elf_end(e);
 		return;
 	}
 
@@ -885,8 +886,6 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 	if (elferr != 0)
 		bsdar_warnc(bsdar, 0, "elf_nextscn failed: %s",
 		     elf_errmsg(elferr));
-
-	elf_end(e);
 }
 
 /*

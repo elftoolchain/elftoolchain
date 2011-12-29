@@ -26,6 +26,8 @@
  * $Id$
  */
 
+#include <libelf.h>
+
 #include "_elftc.h"
 
 /*
@@ -79,8 +81,8 @@
  * In-memory representation of archive member(object).
  */
 struct ar_obj {
+	Elf		 *elf;		/* object file descriptor */
 	char		 *name;		/* member name */
-	void		 *maddr;	/* mmap start address */
 	uid_t		  uid;		/* user id */
 	gid_t		  gid;		/* group id */
 	mode_t		  md;		/* octal file permissions */
