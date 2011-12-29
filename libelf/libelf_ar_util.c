@@ -225,14 +225,15 @@ _libelf_ar_get_raw_name(const struct ar_hdr *arh)
  * Open an 'ar' archive.
  */
 Elf *
-_libelf_ar_open(Elf *e)
+_libelf_ar_open(Elf *e, int reporterror)
 {
+	size_t sz;
 	int scanahead;
 	char *s, *end;
-	size_t sz;
 	struct ar_hdr arh;
 
-	e->e_kind = ELF_K_AR;
+	_libelf_init_elf(e, ELF_K_AR);
+
 	e->e_u.e_ar.e_nchildren = 0;
 	e->e_u.e_ar.e_next = (off_t) -1;
 
@@ -348,7 +349,11 @@ _libelf_ar_open(Elf *e)
 	return (e);
 
 error:
+	if (!reporterror) {
+		e->e_kind = ELF_K_NONE;
+		return (e);
+	}
+
 	LIBELF_SET_ERROR(ARCHIVE, 0);
 	return (NULL);
-
 }
