@@ -26,7 +26,6 @@
 
 #include <sys/cdefs.h>
 
-#include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <err.h>
@@ -93,10 +92,14 @@ process_ar_obj(struct elfcopy *ecp, struct ar_obj *obj)
 
 	if (fstat(fd, &sb) == -1)
 		err(EXIT_FAILURE, "fstat %s failed", tempfile);
+	if (lseek(fd, 0, SEEK_SET) < 0)
+		err(EXIT_FAILURE, "lseek %s failed", tempfile);
 	obj->size = sb.st_size;
-	if ((obj->maddr = mmap(NULL, obj->size, PROT_READ,
-	    MAP_PRIVATE, fd, (off_t)0)) == MAP_FAILED)
-		err(EXIT_FAILURE, "can't mmap file: %s", tempfile);
+	if ((obj->maddr = malloc(obj->size)) == NULL)
+		err(EXIT_FAILURE, "memory allocation failed for '%s'",
+		    tempfile);
+	if ((size_t) read(fd, obj->maddr, obj->size) != obj->size)
+		err(EXIT_FAILURE, "read failed for '%s'", tempfile);
 	if (unlink(tempfile))
 		err(EXIT_FAILURE, "unlink %s failed", tempfile);
 	free(tempfile);
@@ -498,8 +501,8 @@ ac_write_cleanup(struct elfcopy *ecp)
 
 	STAILQ_FOREACH_SAFE(obj, &ecp->v_arobj, objs, obj_temp) {
 		STAILQ_REMOVE(&ecp->v_arobj, obj, ar_obj, objs);
-		if (obj->maddr != NULL && munmap(obj->maddr, obj->size) < 0)
-			warnx("can't munmap file: %s", obj->name);
+		if (obj->maddr != NULL)
+			free(obj->maddr);
 		free(obj->name);
 		free(obj);
 	}
