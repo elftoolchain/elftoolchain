@@ -93,7 +93,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	for (i = 0; i < cnt; i++) {
 		if (m->get_section_info(obj, i, &sec, &ret) != DW_DLV_OK) {
-			free(dbg->dbg_section);
 			DWARF_SET_ERROR(dbg, error, ret);
 			return (ret);
 		}
@@ -104,7 +103,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 		if (m->load_section(obj, i, &dbg->dbg_section[i].ds_data, &ret)
 		    != DW_DLV_OK) {
-			free(dbg->dbg_section);
 			DWARF_SET_ERROR(dbg, error, ret);
 			return (ret);
 		}
@@ -113,7 +111,6 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
 	    ((dbg->dbg_info_sec = _dwarf_find_section(dbg, ".debug_info")) ==
 	     NULL)) {
-		free(dbg->dbg_section);
 		DWARF_SET_ERROR(dbg, error, DW_DLE_DEBUG_INFO_NULL);
 		return (DW_DLE_DEBUG_INFO_NULL);
 	}
