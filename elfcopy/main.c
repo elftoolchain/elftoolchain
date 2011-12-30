@@ -745,7 +745,7 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 	char			*fn, *s;
 	int			 opt;
 
-	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:sSwW:xXV",
+	while ((opt = getopt_long(argc, argv, "dB:gG:I:j:K:L:N:O:pR:s:SwW:xXV",
 	    elfcopy_longopts, NULL)) != -1) {
 		switch(opt) {
 		case 'B':
