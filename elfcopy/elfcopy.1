@@ -31,7 +31,7 @@
 .Nd copy and translate object files
 .Sh SYNOPSIS
 .Nm
-.Op Fl I Ar objformat | Fl -input-target= Ns Ar objformat
+.Op Fl I Ar objformat | Fl s Ar objformat | Fl -input-target= Ns Ar objformat
 .Op Fl K Ar symbolname | Fl -keep-symbol= Ns Ar symbolname
 .Op Fl L Ar symbolname | Fl -localize-symbol= Ns Ar symbolname
 .Op Fl N Ar symbolname | Fl -strip-symbol= Ns Ar symbolname
@@ -97,10 +97,11 @@ The
 .Nm
 utility supports the following options:
 .Bl -tag -width indent
-.It Fl I Ar objformat | Fl -input-target= Ns Ar objformat
-This option is accepted for compatibility with GNU
-.Xr objcopy 1 ,
-but is ignored.
+.It Fl I Ar objformat | Fl s Ar objformat | Fl -input-target= Ns Ar objformat
+Specify that the input file named by the argument
+.Ar infile
+is in the object format specified by the argument
+.Ar objformat .
 .It Fl K Ar symbolname | Fl -keep-symbol= Ns Ar symbolname
 Copy the symbol named by argument
 .Ar symbolname
