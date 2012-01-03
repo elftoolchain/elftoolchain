@@ -448,7 +448,7 @@ get_opt(int argc, char **argv)
 		return;
 
 	nm_opts.t = RADIX_HEX;
-	while ((ch = getopt_long(argc, argv, "ABCDSVPaefghlnoprst:uvx",
+	while ((ch = getopt_long(argc, argv, "ABCDF:PSVaefghlnoprst:uvx",
 		    nm_longopts, NULL)) != -1) {
 		switch (ch) {
 		case 'A':
@@ -459,6 +459,9 @@ get_opt(int argc, char **argv)
 			break;
 		case 'C':
 			nm_opts.demangle_type = parse_demangle_option(optarg);
+			break;
+		case 'D':
+			nm_opts.print_symbol = PRINT_SYM_DYN;
 			break;
 		case 'F':
 			/* sysv, bsd, posix */
@@ -483,8 +486,8 @@ get_opt(int argc, char **argv)
 			}
 
 			break;
-		case 'D':
-			nm_opts.print_symbol = PRINT_SYM_DYN;
+		case 'P':
+			nm_opts.elem_print_fn = &sym_elem_print_all_portable;
 			break;
 		case 'S':
 			nm_opts.print_size = 1;
@@ -492,19 +495,26 @@ get_opt(int argc, char **argv)
 		case 'V':
 			print_version();
 			/* NOTREACHED */
-		case 'P':
-			nm_opts.elem_print_fn = &sym_elem_print_all_portable;
-			break;
 		case 'a':
 			nm_opts.print_debug = true;
-			break;
-		case 'f':
 			break;
 		case 'e':
 			filter_insert(sym_elem_global_static);
 			break;
+		case 'f':
+			break;
 		case 'g':
 			filter_insert(sym_elem_global);
+			break;
+		case 'h':
+			usage(0);
+			break;
+		case 'l':
+			nm_opts.debug_line = true;
+			break;
+		case 'n':
+		case 'v':
+			nm_opts.sort_fn = &cmp_value;
 			break;
 		case 'o':
 			nm_opts.t = RADIX_OCT;
@@ -539,13 +549,7 @@ get_opt(int argc, char **argv)
 			filter_insert(sym_elem_undef);
 			nm_opts.undef_only = true;
 			break;
-		case 'l':
-			nm_opts.debug_line = true;
-			break;
-		case 'n':
-		case 'v':
-			nm_opts.sort_fn = &cmp_value;
-			break;
+		/* case 'v': see case 'n' above. */
 		case 'x':
 			nm_opts.t = RADIX_HEX;
 			break;
@@ -560,8 +564,6 @@ get_opt(int argc, char **argv)
 			if (nm_opts.no_demangle != 0)
 				nm_opts.demangle_type = -1;
 			break;
-		case 'h':
-			usage(0);
 		default :
 			usage(1);
 		}
