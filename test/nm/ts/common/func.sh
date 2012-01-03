@@ -98,14 +98,6 @@ test_num_sort2()
     run "-t d --numeric-sort" $1 $2
 }
 
-test_octal1()
-{
-    # $1 test file
-    # $2 oracle file
-
-    run "-o" $1 $2
-}
-
 test_octal2()
 {
     # $1 test file

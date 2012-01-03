@@ -62,11 +62,6 @@ tp12()
     test_num_sort2 $TEST_FILE "$TEST_FILE-sort-num.txt"
 }
 
-tp13()
-{
-    test_octal1 $TEST_FILE "$TEST_FILE-radix-octal.txt"
-}
-
 tp14()
 {
     test_octal2 $TEST_FILE "$TEST_FILE-radix-octal.txt"
@@ -167,7 +162,7 @@ TEST_FILE="test_ar"
 tet_startup="startup"
 tet_cleanup="cleanup"
 
-iclist="ic1 ic2 ic3 ic4 ic5 ic6 ic7 ic8 ic9 ic10 ic11 ic12 ic13 ic14 ic15 ic16 ic17 ic18 ic19 ic20 ic21 ic22 ic23 ic24 ic25 ic26 ic27 ic28 ic29 ic30"
+iclist="ic1 ic2 ic3 ic4 ic5 ic6 ic7 ic8 ic9 ic10 ic11 ic12 ic14 ic15 ic16 ic17 ic18 ic19 ic20 ic21 ic22 ic23 ic24 ic25 ic26 ic27 ic28 ic29 ic30"
 
 ic1="tp1"
 ic2="tp2"
@@ -181,7 +176,6 @@ ic9="tp9"
 ic10="tp10"
 ic11="tp11"
 ic12="tp12"
-ic13="tp13"
 ic14="tp14"
 ic15="tp15"
 ic16="tp16"

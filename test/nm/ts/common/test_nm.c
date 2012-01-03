@@ -241,9 +241,8 @@ test_octal()
 {
 	bool rtn = true;
 
-	tet_infoline("OPTION -o, -t o");
+	tet_infoline("OPTION --radix=o, -t o");
 
-	rtn |= test_nm_out("-o", "-o");
 	rtn |= test_nm_out("-t o", "-o");
 	rtn |= test_nm_out("--radix=o", "-o");
 
