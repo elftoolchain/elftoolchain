@@ -443,10 +443,12 @@ static void
 get_opt(int argc, char **argv)
 {
 	int ch;
+	bool is_posix, oflag;
 
 	if (argc <= 0 || argv == NULL)
 		return;
 
+	oflag = is_posix = false;
 	nm_opts.t = RADIX_HEX;
 	while ((ch = getopt_long(argc, argv, "ABCDF:PSVaefghlnoprst:uvx",
 		    nm_longopts, NULL)) != -1) {
@@ -472,6 +474,7 @@ get_opt(int argc, char **argv)
 				break;
 			case 'P':
 			case 'p':
+				is_posix = true;
 				nm_opts.elem_print_fn =
 				    &sym_elem_print_all_portable;
 				break;
@@ -517,7 +520,7 @@ get_opt(int argc, char **argv)
 			nm_opts.sort_fn = &cmp_value;
 			break;
 		case 'o':
-			nm_opts.t = RADIX_OCT;
+			oflag = true;
 			break;
 		case 'p':
 			nm_opts.sort_fn = &cmp_none;
@@ -568,6 +571,17 @@ get_opt(int argc, char **argv)
 			usage(1);
 		}
 	}
+
+	/*
+	 * In POSIX mode, the '-o' option controls the output radix.
+	 * In non-POSIX mode, the option is a synonym for the '-A' and
+	 * '--print-file-name' options.
+	 */
+	if (oflag)
+		if (is_posix)
+			nm_opts.t = RADIX_OCT;
+		else
+			nm_opts.print_name = PRINT_NAME_FULL;
 
 	assert(nm_opts.sort_fn != NULL && "nm_opts.sort_fn is null");
 	assert(nm_opts.elem_print_fn != NULL &&
