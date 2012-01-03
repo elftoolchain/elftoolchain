@@ -490,6 +490,7 @@ get_opt(int argc, char **argv)
 
 			break;
 		case 'P':
+			is_posix = true;
 			nm_opts.elem_print_fn = &sym_elem_print_all_portable;
 			break;
 		case 'S':
