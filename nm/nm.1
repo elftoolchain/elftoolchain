@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 25, 2011
+.Dd January 3, 2012
 .Os
 .Dt NM 1
 .Sh NAME
@@ -211,8 +211,16 @@ Equivalent to specifying option
 Equivalent to specifying option
 .Fl -numeric-sort .
 .It Fl o
-Equivalent to specifying option
-.Fl t Ar o .
+If POSIX output was specified using the
+.Fl F Ar posix
+or
+.Fl P
+options, this option is equivalent to specifying
+.Fl -radix Ns = Ns Sq Ar o .
+If POSIX output was not specified, this option
+acts as a synonym for the
+.Fl -print-file-name
+option.
 .It Fl p
 Equivalent to specifying option
 .Fl -no-sort .
