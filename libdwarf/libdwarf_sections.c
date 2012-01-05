@@ -206,6 +206,23 @@ _dwarf_generate_sections(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	return (DW_DLE_NONE);
 }
 
+Dwarf_Section *
+_dwarf_find_section(Dwarf_Debug dbg, const char *name)
+{
+	Dwarf_Section *ds;
+	Dwarf_Half i;
+
+	assert(name != NULL);
+
+	for (i = 0; i < dbg->dbg_seccnt; i++) {
+		ds = &dbg->dbg_section[i];
+		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
+			return (ds);
+	}
+
+	return (NULL);
+}
+
 Dwarf_P_Section
 _dwarf_pro_find_section(Dwarf_P_Debug dbg, const char *name)
 {

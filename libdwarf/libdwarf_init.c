@@ -28,23 +28,6 @@
 
 ELFTC_VCSID("$Id$");
 
-Dwarf_Section *
-_dwarf_find_section(Dwarf_Debug dbg, const char *name)
-{
-	Dwarf_Section *ds;
-	Dwarf_Half i;
-
-	assert(name != NULL);
-
-	for (i = 0; i < dbg->dbg_seccnt; i++) {
-		ds = &dbg->dbg_section[i];
-		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
-			return (ds);
-	}
-
-	return (NULL);
-}
-
 static int
 _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 {
