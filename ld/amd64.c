@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,51 +26,39 @@
 
 #include "ld.h"
 #include "ld_arch.h"
-#include "ld_options.h"
-#include "ld_script.h"
-#include "ld_file.h"
-#include "ld_layout.h"
-#include "ld_output.h"
-#include "ld_symbols.h"
+#include "amd64.h"
 
 ELFTC_VCSID("$Id$");
 
-static struct ld _ld;
-struct ld* ld = &_ld;
+static uint64_t _get_max_page_size(struct ld *ld);
+static uint64_t _get_common_page_size(struct ld *ld);
 
-static void
-_ld_init(void)
+static struct ld_arch amd64 = {
+	.arch_name = "amd64",
+	.get_max_page_size = _get_max_page_size,
+	.get_common_page_size = _get_common_page_size,
+};
+
+static uint64_t
+_get_max_page_size(struct ld *ld)
 {
 
-	TAILQ_INIT(&ld->ld_lflist);
-	STAILQ_INIT(&ld->ld_lilist);
-	STAILQ_INIT(&ld->ld_state.ls_lplist);
-
-	/* Initialise libelf. */
-	if (elf_version(EV_CURRENT) == EV_NONE)
-		ld_fatal(ld, "ELF library initialization failed: %s",
-		    elf_errmsg(-1));
-
-	ld_script_init(ld);
+	(void) ld;
+	return (0x100000);
 }
 
-int
-main(int argc, char **argv)
+static uint64_t
+_get_common_page_size(struct ld *ld)
 {
 
-	_ld_init();
+	(void) ld;
+	return (0x1000);
+}
 
-	ld->ld_progname = basename(argv[0]);
+void
+amd64_register(struct ld *ld)
+{
 
-	ld_arch_init(ld);
-
-	ld_script_parse_internal();
-
-	ld_options_parse(ld, argc, argv);
-
-	ld_symbols_resolve(ld);
-
-	ld_layout_sections(ld);
-
-	exit(EXIT_SUCCESS);
+	HASH_ADD_KEYPTR(hh, ld->ld_arch, amd64.arch_name,
+	    strlen(amd64.arch_name), &amd64);
 }

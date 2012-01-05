@@ -6,6 +6,8 @@ PROG=	ld
 WARNS?=	6
 
 SRCS=	amd64.c			\
+	amd64_script.c		\
+	ld_arch.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
@@ -20,10 +22,10 @@ SRCS=	amd64.c			\
 	ld_symbols.c		\
 	y.tab.h
 
-amd64.c:	amd64.ld
+amd64_script.c:	amd64_script.ld
 	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
 
-GENSRCS=	amd64.c
+GENSRCS=	amd64_script.c
 
 CLEANFILES+=	y.tab.h ${GENSRCS}
 
