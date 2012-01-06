@@ -327,19 +327,26 @@ _func_alignof(struct ld *ld, struct ld_exp *le)
 static int64_t
 _func_data_segment_align(struct ld *ld, struct ld_exp *le)
 {
+	struct ld_state *ls; 
+	uint64_t maxpagesize, commonpagesize;
 
-	/* TODO */
-	(void) ld; (void) le;
-	return (0);
+	/*
+	 * TODO: test if align to common page size use less number
+	 * of pages.
+	 */
+	ls = &ld->ld_state;
+	maxpagesize = _EXP_EVAL(le->le_e1);
+	commonpagesize = _EXP_EVAL(le->le_e2);
+
+	return (roundup(ls->ls_loc_counter, maxpagesize) +
+	    (ls->ls_loc_counter & (maxpagesize - 1)));
 }
 
 static int64_t
 _func_data_segment_end(struct ld *ld, struct ld_exp *le)
 {
 
-	/* TODO */
-	(void) ld; (void) le;
-	return (0);
+	return (_EXP_EVAL(le->le_e1));
 }
 
 static int64_t
