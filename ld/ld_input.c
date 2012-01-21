@@ -69,6 +69,40 @@ ld_input_create_objects(struct ld *ld)
 	}
 }
 
+Elf *
+ld_input_get_elf(struct ld *ld, struct ld_input *li)
+{
+	Elf *e;
+	struct ld_file *lf;
+
+	lf = li->li_file;
+	assert(lf->lf_elf != NULL);
+	if (lf->lf_ar != NULL) {
+		assert(li->li_moff != 0);
+		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
+			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
+			    elf_errmsg(-1));
+		if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
+			ld_fatal(ld, "%s: elf_begin: %s", lf->lf_name,
+			    elf_errmsg(-1));
+	} else
+		e = lf->lf_elf;
+
+	return (e);
+}
+
+void
+ld_input_end_elf(struct ld *ld, struct ld_input *li, Elf *e)
+{
+	struct ld_file *lf;
+
+	(void) ld;
+	lf = li->li_file;
+	assert(lf->lf_elf != NULL);
+	if (lf->lf_ar != NULL)
+		(void) elf_end(e);
+}
+
 void
 ld_input_load_sections(struct ld *ld, struct ld_input *li)
 {

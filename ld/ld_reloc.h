@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,34 +26,4 @@
  * $Id$
  */
 
-struct ld_input_section {
-	char *is_name;			/* section name */
-	struct ld_input *is_input;	/* containing input object */
-	uint64_t is_off;		/* section file offset */
-	uint64_t is_reloff;		/* relative offset in output section */
-	uint64_t is_size;		/* section file size */
-	uint64_t is_align;		/* section align */
-	uint64_t is_type;		/* section type */
-	uint64_t is_flags;		/* section flags */
-	uint64_t is_index;		/* section index */
-	unsigned is_orphan;		/* orphan section */
-	unsigned is_discard;		/* dicard section */
-	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
-};
-
-STAILQ_HEAD(ld_input_section_head, ld_input_section);
-
-struct ld_input {
-	char *li_name;			/* input object name */
-	struct ld_file *li_file;	/* containing file */
-	size_t li_shnum;		/* num of sections in ELF object */
-	struct ld_input_section *li_is;	/* input section list */
-	off_t li_moff;			/* archive member offset */
-	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
-};
-
-void	ld_input_create_objects(struct ld *);
-void	ld_input_end_elf(struct ld *, struct ld_input *, Elf *);
-Elf	*ld_input_get_elf(struct ld *, struct ld_input *);
-void	ld_input_load_sections(struct ld *, struct ld_input *);
-
+void	ld_reloc_read(struct ld *);
