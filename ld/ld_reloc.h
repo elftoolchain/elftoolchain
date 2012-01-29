@@ -26,4 +26,14 @@
  * $Id$
  */
 
+struct ld_reloc_entry {
+	uint64_t lre_sym;		/* reloc symbol */
+	uint64_t lre_type;		/* reloc type */
+	uint64_t lre_offset;		/* reloc offset */
+	uint64_t lre_addend;		/* reloc addend */
+	STAILQ_ENTRY(ld_reloc_entry) lre_next; /* next reloc */
+};
+
+STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
+
 void	ld_reloc_read(struct ld *);

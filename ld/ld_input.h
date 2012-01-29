@@ -32,12 +32,14 @@ struct ld_input_section {
 	uint64_t is_off;		/* section file offset */
 	uint64_t is_reloff;		/* relative offset in output section */
 	uint64_t is_size;		/* section file size */
+	uint64_t is_entsize;		/* seciton entry size */
 	uint64_t is_align;		/* section align */
 	uint64_t is_type;		/* section type */
 	uint64_t is_flags;		/* section flags */
 	uint64_t is_index;		/* section index */
 	unsigned is_orphan;		/* orphan section */
 	unsigned is_discard;		/* dicard section */
+	struct ld_reloc_entry_head *is_reloc;	/* reloc list */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 };
 

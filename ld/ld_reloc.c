@@ -35,8 +35,8 @@ ELFTC_VCSID("$Id$");
  * Support routines for relocation handling.
  */
 
-static void _read_rel(struct ld *ld, struct ld_input_section *is);
-static void _read_rela(struct ld *ld, struct ld_input_section *is);
+static void _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d);
+static void _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d);
 
 void
 ld_reloc_read(struct ld *ld)
@@ -78,9 +78,9 @@ ld_reloc_read(struct ld *ld)
 				continue;
 			}
 			if (is->is_type == SHT_REL)
-				_read_rel(ld, is);
+				_read_rel(ld, is, d);
 			else
-				_read_rela(ld, is);
+				_read_rela(ld, is, d);
 		}
 		if (e != NULL)
 			ld_input_end_elf(ld, li, e);
@@ -88,17 +88,54 @@ ld_reloc_read(struct ld *ld)
 }
 
 static void
-_read_rel(struct ld *ld, struct ld_input_section *is)
+_read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
+	struct ld_reloc_entry *lre;
+	GElf_Rel r;
+	int i, len;
 
-	(void) ld;
-	(void) is;
+	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
+		ld_fatal(ld, "malloc");
+	STAILQ_INIT(is->is_reloc);
+
+	len = d->d_size / is->is_entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getrel(d, i, &r) != &r) {
+			ld_warn(ld, "gelf_getrel failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if ((lre = calloc(1, sizeof(*lre))) == NULL)
+			ld_fatal(ld, "calloc");
+		lre->lre_offset = r.r_offset;
+		lre->lre_sym = GELF_R_SYM(r.r_info);
+		lre->lre_type = GELF_R_TYPE(r.r_info);
+		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
+	}
 }
 
 static void
-_read_rela(struct ld *ld, struct ld_input_section *is)
+_read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
+	struct ld_reloc_entry *lre;
+	GElf_Rela r;
+	int i, len;
 
-	(void) ld;
-	(void) is;
+	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
+		ld_fatal(ld, "malloc");
+	STAILQ_INIT(is->is_reloc);
+
+	len = d->d_size / is->is_entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getrela(d, i, &r) != &r) {
+			ld_warn(ld, "gelf_getrel failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if ((lre = calloc(1, sizeof(*lre))) == NULL)
+			ld_fatal(ld, "calloc");
+		lre->lre_offset = r.r_offset;
+		lre->lre_sym = GELF_R_SYM(r.r_info);
+		lre->lre_type = GELF_R_TYPE(r.r_info);
+		lre->lre_addend = r.r_addend;
+		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
+	}
 }
