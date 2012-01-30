@@ -42,6 +42,9 @@ static void
 _ld_init(void)
 {
 
+	if ((ld->ld_progname = ELFTC_GETPROGNAME()) == NULL)
+		ld->ld_progname = "ld";
+
 	TAILQ_INIT(&ld->ld_lflist);
 	STAILQ_INIT(&ld->ld_lilist);
 	STAILQ_INIT(&ld->ld_state.ls_lplist);
