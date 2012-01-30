@@ -29,10 +29,13 @@
 #define	MAX_ARCH_NAME_LEN	64
 #define	MAX_TARGET_NAME_LEN	128
 
+struct ld_input_section;
+
 struct ld_arch {
 	char arch_name[MAX_ARCH_NAME_LEN + 1]; /* arch name */
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
+	void (*process_reloc)(struct ld *ld, struct ld_input_section *is);
 	UT_hash_handle hh;		/* hash handle */
 };
 

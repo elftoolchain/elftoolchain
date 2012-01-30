@@ -26,17 +26,21 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_input.h"
+#include "ld_reloc.h"
 #include "amd64.h"
 
 ELFTC_VCSID("$Id$");
 
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
+static void _process_reloc(struct ld *ld, struct ld_input_section *is);
 
 static struct ld_arch amd64 = {
 	.arch_name = "amd64",
 	.get_max_page_size = _get_max_page_size,
 	.get_common_page_size = _get_common_page_size,
+	.process_reloc = _process_reloc,
 };
 
 static uint64_t
@@ -53,6 +57,20 @@ _get_common_page_size(struct ld *ld)
 
 	(void) ld;
 	return (0x1000);
+}
+
+static void
+_process_reloc(struct ld *ld, struct ld_input_section *is)
+{
+	struct ld_reloc_entry *lre;
+
+	assert(is->is_type == SHT_REL || is->is_type == SHT_RELA);
+	assert(is->is_reloc != NULL);
+
+	(void) ld;
+	STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
+		printf("process reloc: %#jx", (uintmax_t) lre->lre_type);
+	}
 }
 
 void
