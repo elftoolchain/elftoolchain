@@ -74,6 +74,8 @@ struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
     struct ld_output_section *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *);
+void	ld_output_determine_arch(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);
+void	ld_output_verify_arch(struct ld *, struct ld_input *);
 void	ld_output_write(struct ld *);

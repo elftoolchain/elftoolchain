@@ -77,6 +77,9 @@ struct ld {
 	Elftc_Bfd_Target *ld_otgt;	/* default output format */
 	Elftc_Bfd_Target *ld_otgt_be;	/* big-endian output format */
 	Elftc_Bfd_Target *ld_otgt_le;	/* little-endian output format */
+	const char *ld_otgt_name;	/* output format name */
+	const char *ld_otgt_be_name;	/* big-endian output format name */
+	const char *ld_otgt_le_name;	/* little-endian output format name */
 	struct ld_output *ld_output;	/* output object */
 	char *ld_output_file;		/* output file name */
 	char *ld_entry;			/* entry point set by -e */

@@ -62,3 +62,5 @@ amd64_register(struct ld *ld)
 	HASH_ADD_KEYPTR(hh, ld->ld_arch, amd64.arch_name,
 	    strlen(amd64.arch_name), &amd64);
 }
+
+
