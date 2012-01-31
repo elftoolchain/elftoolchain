@@ -36,6 +36,9 @@ static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is);
 
+static char _amd64_name1[] = "amd64";
+static char _amd64_name2[] = "x86-64";
+
 static struct ld_arch amd64 = {
 	.get_max_page_size = _get_max_page_size,
 	.get_common_page_size = _get_common_page_size,
@@ -75,9 +78,9 @@ _process_reloc(struct ld *ld, struct ld_input_section *is)
 void
 amd64_register(struct ld *ld)
 {
-	char name1[] = "amd64";
-	char name2[] = "x86-64";
 
-	HASH_ADD_KEYPTR(hh, ld->ld_arch, name1, strlen(name1), &amd64);
-	HASH_ADD_KEYPTR(hh, ld->ld_arch, name2, strlen(name2), &amd64);
+	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name1, strlen(_amd64_name1),
+	    &amd64);
+	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name2, strlen(_amd64_name2),
+	    &amd64);
 }

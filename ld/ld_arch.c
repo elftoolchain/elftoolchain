@@ -77,26 +77,26 @@ struct ld_arch *
 ld_arch_get_arch_from_target(struct ld *ld, char *target)
 {
 	struct ld_arch *la;
-	char *begin, *end, name[MAX_ARCH_NAME_LEN + 1];
-	size_t len;
+	char *begin, *end, name[MAX_TARGET_NAME_LEN + 1];
 
-	if ((begin = strchr(target, '-')) == NULL)
-		return (NULL);
-	if ((end = strrchr(target, '-')) == NULL)
-		return (NULL);
+	if ((begin = strchr(target, '-')) == NULL) {
+		la = ld_arch_find(ld, target);
+		return (la);
+	}
+	la = ld_arch_find(ld, begin + 1);
+	if (la != NULL)
+		return (la);
 
-	if (begin == end)
-		la = ld_arch_find(ld, begin);
-	else {
-		len = end - begin + 1;
-		if (len > MAX_ARCH_NAME_LEN)
-			return (NULL);
-		strncpy(name, begin, len);
-		name[len] = '\0';
+	strncpy(name, begin + 1, sizeof(name) - 1);
+	name[sizeof(name) - 1] = '\0';
+	while ((end = strrchr(name, '-')) != NULL) {
+		*end = '\0';
 		la = ld_arch_find(ld, name);
+		if (la != NULL)
+			return (la);
 	}
 
-	return (la);
+	return (NULL);
 }
 
 struct ld_arch *
