@@ -142,6 +142,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 
 	ld_input_create_objects(ld);
 	ld_output_init(ld);
+	ld_output_determine_arch(ld);
 
 	first = 1;
 	lo = ld->ld_output;

@@ -40,41 +40,41 @@ ld_arch_init(struct ld *ld)
 struct ld_arch *
 ld_arch_guess_arch_name(struct ld *ld, int mach)
 {
-	const char *arch;
+	char arch[MAX_ARCH_NAME_LEN + 1];
 
 	/* TODO: we should also consider elf class and endianess. */
 
 	switch (mach) {
 	case EM_386:
-		arch = "i386";
+		snprintf(arch, sizeof(arch), "%s", "i386");
 		break;
 	case EM_ARM:
-		arch = "arm";
+		snprintf(arch, sizeof(arch), "%s", "arm");
 		break;
 	case EM_MIPS:
 	case EM_MIPS_RS3_LE:
-		arch = "mips";
+		snprintf(arch, sizeof(arch), "%s", "mips");
 		break;
 	case EM_PPC:
 	case EM_PPC64:
-		arch = "ppc";
+		snprintf(arch, sizeof(arch), "%s", "ppc");
 		break;
 	case EM_SPARC:
 	case EM_SPARCV9:
-		arch = "sparc";
+		snprintf(arch, sizeof(arch), "%s", "sparc");
 		break;
 	case EM_X86_64:
-		arch = "amd64";
+		snprintf(arch, sizeof(arch), "%s", "amd64");
 		break;
 	default:
 		return (NULL);
 	}
 
-	return (ld_arch_find(ld ,arch));
+	return (ld_arch_find(ld, arch));
 }
 
 struct ld_arch *
-ld_arch_get_arch_from_target(struct ld *ld, const char *target)
+ld_arch_get_arch_from_target(struct ld *ld, char *target)
 {
 	struct ld_arch *la;
 	char *begin, *end, name[MAX_ARCH_NAME_LEN + 1];
@@ -100,13 +100,10 @@ ld_arch_get_arch_from_target(struct ld *ld, const char *target)
 }
 
 struct ld_arch *
-ld_arch_find(struct ld *ld, const char *str)
+ld_arch_find(struct ld *ld, char *arch)
 {
 	struct ld_arch *la;
-	char arch[MAX_ARCH_NAME_LEN + 1];
 
-	strncpy(arch, str, sizeof(arch) - 1);
-	arch[sizeof(arch) - 1] = '\0';
 	HASH_FIND_STR(ld->ld_arch, arch, la);
 
 	return (la);

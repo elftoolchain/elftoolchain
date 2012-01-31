@@ -32,7 +32,6 @@
 struct ld_input_section;
 
 struct ld_arch {
-	char arch_name[MAX_ARCH_NAME_LEN + 1]; /* arch name */
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
 	void (*process_reloc)(struct ld *ld, struct ld_input_section *is);
@@ -40,8 +39,8 @@ struct ld_arch {
 };
 
 void	ld_arch_init(struct ld *);
-struct ld_arch *ld_arch_find(struct ld *, const char *);
-struct ld_arch *ld_arch_get_arch_from_target(struct ld *, const char *);
+struct ld_arch *ld_arch_find(struct ld *, char *);
+struct ld_arch *ld_arch_get_arch_from_target(struct ld *, char *);
 struct ld_arch *ld_arch_guess_arch_name(struct ld *, int);
 
 
