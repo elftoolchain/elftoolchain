@@ -645,13 +645,9 @@ output_arch_command
 output_format_command
 	: T_OUTPUT_FORMAT '(' ident ')' {
 		ld_output_format(ld, $3, $3, $3);
-		free($3);
 	}
 	| T_OUTPUT_FORMAT '(' ident ',' ident ',' ident ')' {
 		ld_output_format(ld, $3, $5, $7);
-		free($3);
-		free($5);
-		free($7);
 	}
 	;
 
