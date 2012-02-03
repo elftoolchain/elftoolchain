@@ -62,6 +62,7 @@ STAILQ_HEAD(ld_output_section_head, ld_output_section);
 
 struct ld_output {
 	int lo_fd;			 /* output file descriptor */
+	Elf *lo_elf;			 /* output ELF descriptor */
 	int lo_ec;			 /* output object elf class */
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
@@ -72,6 +73,7 @@ struct ld_output {
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
     struct ld_output_section *);
+void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *);
 void	ld_output_determine_arch(struct ld *);

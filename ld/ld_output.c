@@ -202,6 +202,37 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 }
 
 void
+ld_output_create(struct ld *ld)
+{
+	struct ld_output *lo;
+	const char *fn;
+	GElf_Ehdr eh;
+
+	if (ld->ld_output_file == NULL)
+		fn = "a.out";
+	else
+		fn = ld->ld_output_file;
+
+	lo = ld->ld_output;
+
+	if ((lo->lo_fd = open(fn, O_WRONLY)) < 0)
+		ld_fatal_std(ld, "can not create output file: open %s", fn);
+	if ((lo->lo_elf = elf_begin(lo->lo_fd, ELF_C_WRITE, NULL)) == NULL)
+		ld_fatal(ld, "elf_begin failed: %s", elf_errmsg(-1));
+
+	elf_flagelf(lo->lo_elf, ELF_C_SET, ELF_F_LAYOUT);
+
+	assert(ld->ld_otgt != NULL);
+	lo->lo_ec = elftc_bfd_target_class(ld->ld_otgt);
+	lo->lo_endian = elftc_bfd_target_byteorder(ld->ld_otgt);
+
+	if (gelf_newehdr(lo->lo_elf, lo->lo_ec) == NULL)
+		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));
+	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
+		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
+}
+
+void
 ld_output_write(struct ld *ld)
 {
 
