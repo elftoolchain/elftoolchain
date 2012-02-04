@@ -230,6 +230,13 @@ ld_output_create(struct ld *ld)
 		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));
 	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
 		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
+	eh.e_flags = 0;		/* TODO */
+	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
+	eh.e_type = ET_EXEC;	/* TODO */
+	eh.e_version = EV_CURRENT;
+
+	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
+		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 }
 
 void
