@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
 
@@ -93,6 +94,10 @@ ELFTC_VCSID("$Id$");
 		WRITE_32LE((P), (V) >> 32);		\
 	} while (0)
 
+static void _add_input_section_data(struct ld *ld, Elf_Scn *scn,
+    struct ld_input_section *is);
+static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
+static void _create_elf_sections(struct ld *ld);
 static void _write_elf_header(struct ld *ld);
 
 void
@@ -201,6 +206,93 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 	return (os);
 }
 
+static void
+_create_elf_section(struct ld *ld, struct ld_output_section *os)
+{
+	struct ld_output *lo;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+	Elf_Scn *scn;
+	GElf_Shdr sh;
+
+	lo = ld->ld_output;
+	assert(lo->lo_elf != NULL);
+
+	if ((scn = elf_newscn(lo->lo_elf)) == NULL)
+		ld_fatal(ld, "elf_newscn failed: %s", elf_errmsg(-1));
+
+	/* Create section data. */
+	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+		switch (oe->oe_type) {
+		case OET_DATA:
+			/* TODO */
+			break;
+		case OET_INPUT_SECTION_LIST:
+			islist = oe->oe_entry;
+			STAILQ_FOREACH(is, islist, is_next) {
+				_add_input_section_data(ld, scn, is);
+			}
+			break;
+		case OET_KEYWORD:
+			/* TODO */
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (gelf_getshdr(scn, &sh) == NULL)
+		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
+	sh.sh_flags = os->os_flags;
+	/* sh.sh_type = os->os_type; */
+	sh.sh_addr = os->os_addr;
+	sh.sh_addralign = os->os_align;
+	/* _add_to_shstrtab(ld, os->os_name); */
+	if (!gelf_update_shdr(scn, &sh))
+		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+}
+
+static void
+_add_input_section_data(struct ld *ld, Elf_Scn *scn,
+    struct ld_input_section *is)
+{
+	Elf_Data *d;
+
+	if (is->is_size == 0)
+		return;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+	d->d_align = is->is_align;
+	d->d_off = is->is_reloff;
+	d->d_type = ELF_T_BYTE;
+	d->d_size = is->is_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = ld_input_get_section_rawdata(ld, is);
+}
+
+
+static void
+_create_elf_sections(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_element *oe;
+
+	lo = ld->ld_output;
+	assert(lo->lo_elf != NULL);
+
+	STAILQ_FOREACH(oe, &lo->lo_oelist, oe_next) {
+		switch (oe->oe_type) {
+		case OET_OUTPUT_SECTION:
+			_create_elf_section(ld, oe->oe_entry);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 void
 ld_output_create(struct ld *ld)
 {
@@ -237,6 +329,8 @@ ld_output_create(struct ld *ld)
 
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
+
+	_create_elf_sections(ld);
 }
 
 void
