@@ -69,40 +69,6 @@ ld_input_create_objects(struct ld *ld)
 	}
 }
 
-Elf *
-ld_input_get_elf(struct ld *ld, struct ld_input *li)
-{
-	Elf *e;
-	struct ld_file *lf;
-
-	lf = li->li_file;
-	assert(lf->lf_elf != NULL);
-	if (lf->lf_ar != NULL) {
-		assert(li->li_moff != 0);
-		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
-			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
-			    elf_errmsg(-1));
-		if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
-			ld_fatal(ld, "%s: elf_begin: %s", lf->lf_name,
-			    elf_errmsg(-1));
-	} else
-		e = lf->lf_elf;
-
-	return (e);
-}
-
-void
-ld_input_end_elf(struct ld *ld, struct ld_input *li, Elf *e)
-{
-	struct ld_file *lf;
-
-	(void) ld;
-	lf = li->li_file;
-	assert(lf->lf_elf != NULL);
-	if (lf->lf_ar != NULL)
-		(void) elf_end(e);
-}
-
 void *
 ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 {
@@ -114,7 +80,8 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	int elferr;
 
 	li = is->is_input;
-	e = ld_input_get_elf(ld, li);
+	ld_input_load(ld, li);
+	e = li->li_elf;
 
 	if ((scn = elf_getscn(e, is->is_index)) == NULL)
 		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
@@ -131,14 +98,55 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 		ld_fatal_std(ld, "malloc");
 	memcpy(buf, d->d_buf, d->d_size);
 
+	ld_input_unload(ld, li);
+
 	return (buf);
 }
 
 void
-ld_input_load_sections(struct ld *ld, struct ld_input *li)
+ld_input_load(struct ld *ld, struct ld_input *li)
+{
+	struct ld_state *ls;
+	struct ld_file *lf;
+
+	assert(li->li_elf == NULL);
+	ls = &ld->ld_state;
+	if (li->li_file != ls->ls_file) {
+		if (ls->ls_file != NULL)
+			ld_file_unload(ld, ls->ls_file);
+		ld_file_load(ld, li->li_file);
+	}
+	lf = li->li_file;
+	if (lf->lf_ar != NULL) {
+		assert(li->li_moff != 0);
+		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
+			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
+			    elf_errmsg(-1));
+		if ((li->li_elf = elf_begin(-1, ELF_C_READ, lf->lf_elf)) ==
+		    NULL)
+			ld_fatal(ld, "%s: elf_begin: %s", lf->lf_name,
+			    elf_errmsg(-1));
+	} else
+		li->li_elf = lf->lf_elf;
+}
+
+void
+ld_input_unload(struct ld *ld, struct ld_input *li)
+{
+	struct ld_file *lf;
+
+	(void) ld;
+	assert(li->li_elf != NULL);
+	lf = li->li_file;
+	if (lf->lf_ar != NULL)
+		(void) elf_end(li->li_elf);
+	li->li_elf = NULL;
+}
+
+void
+ld_input_init_sections(struct ld *ld, struct ld_input *li)
 {
 	struct ld_input_section *is;
-	struct ld_file *lf;
 	Elf *e;
 	Elf_Scn *scn;
 	const char *name;
@@ -146,52 +154,42 @@ ld_input_load_sections(struct ld *ld, struct ld_input *li)
 	size_t shstrndx, ndx;
 	int elferr;
 
-	lf = li->li_file;
-	if (lf->lf_ar != NULL) {
-		assert(li->li_moff != 0);
-		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
-			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
-			    elf_errmsg(-1));
-		if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
-			ld_fatal(ld, "%s: elf_begin: %s", lf->lf_name,
-			    elf_errmsg(-1));
-	} else
-		e = lf->lf_elf;
-
+	ld_input_load(ld, li);
+	e = li->li_elf;
 	if (elf_getshdrnum(e, &li->li_shnum) < 0)
-		ld_fatal(ld, "%s: elf_getshdrnum: %s", lf->lf_name,
+		ld_fatal(ld, "%s: elf_getshdrnum: %s", li->li_name,
 		    elf_errmsg(-1));
 
 	assert(li->li_is == NULL);
 	if ((li->li_is = calloc(li->li_shnum, sizeof(*is))) == NULL)
-		ld_fatal_std(ld, "%s: calloc: %s", lf->lf_name);
+		ld_fatal_std(ld, "%s: calloc: %s", li->li_name);
 
 	if (elf_getshdrstrndx(e, &shstrndx) < 0)
-		ld_fatal(ld, "%s: elf_getshdrstrndx: %s", lf->lf_name,
+		ld_fatal(ld, "%s: elf_getshdrstrndx: %s", li->li_name,
 		    elf_errmsg(-1));
 
 	(void) elf_errno();
 	scn = NULL;
 	while ((scn = elf_nextscn(e, scn)) != NULL) {
 		if (gelf_getshdr(scn, &sh) != &sh)
-			ld_fatal(ld, "%s: gelf_getshdr: %s", lf->lf_name,
+			ld_fatal(ld, "%s: gelf_getshdr: %s", li->li_name,
 			    elf_errmsg(-1));
 
 		if ((name = elf_strptr(e, shstrndx, sh.sh_name)) == NULL)
-			ld_fatal(ld, "%s: elf_strptr: %s", lf->lf_name,
+			ld_fatal(ld, "%s: elf_strptr: %s", li->li_name,
 			    elf_errmsg(-1));
 
 		if ((ndx = elf_ndxscn(scn)) == SHN_UNDEF)
-			ld_fatal(ld, "%s: elf_ndxscn: %s", lf->lf_name,
+			ld_fatal(ld, "%s: elf_ndxscn: %s", li->li_name,
 			    elf_errmsg(-1));
 
 		if (ndx >= li->li_shnum)
 			ld_fatal(ld, "%s: section index of '%s' section is"
-			    " invalid", lf->lf_name, name);
+			    " invalid", li->li_name, name);
 
 		is = &li->li_is[ndx];
 		if ((is->is_name = strdup(name)) == NULL)
-			ld_fatal_std(ld, "%s: calloc", lf->lf_name);
+			ld_fatal_std(ld, "%s: calloc", li->li_name);
 		is->is_off = sh.sh_offset;
 		is->is_size = sh.sh_size;
 		is->is_align = sh.sh_addralign;
@@ -202,11 +200,10 @@ ld_input_load_sections(struct ld *ld, struct ld_input *li)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", lf->lf_name,
+		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
 
-	if (lf->lf_ar != NULL)
-		(void) elf_end(e);
+	ld_input_unload(ld, li);
 }
 
 static off_t

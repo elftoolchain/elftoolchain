@@ -134,7 +134,6 @@ ld_layout_calc_header_size(struct ld *ld)
 static void
 _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 {
-	struct ld_file *lf;
 	struct ld_input *li;
 	struct ld_output *lo;
 	struct ld_script_cmd *ldc;
@@ -146,15 +145,8 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 
 	first = 1;
 	lo = ld->ld_output;
-	lf = NULL;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		if (lf == NULL || li->li_file != lf) {
-			if (lf != NULL)
-				ld_file_unload(ld, lf);
-			ld_file_load(ld, li->li_file);
-			lf = li->li_file;
-		}
-		ld_input_load_sections(ld, li);
+		ld_input_init_sections(ld, li);
 		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
 			switch (ldc->ldc_type) {
 			case LSC_ASSERT:
@@ -183,8 +175,6 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 		_layout_orphan_section(ld, li);
 		first = 0;
 	}
-	if (lf != NULL)
-		ld_file_unload(ld, lf);
 }
 
 static int

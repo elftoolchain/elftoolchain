@@ -59,6 +59,7 @@ struct ld_symbol;
 
 struct ld_state {
 	Elftc_Bfd_Target *ls_itgt;	/* input bfd target set by -b */
+	struct ld_file *ls_file;	/* current open file */
 	unsigned ls_static;		/* use static library */
 	unsigned ls_whole_archive;	/* include whole archive */
 	unsigned ls_as_needed;		/* DT_NEEDED */

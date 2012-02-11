@@ -47,6 +47,7 @@ STAILQ_HEAD(ld_input_section_head, ld_input_section);
 
 struct ld_input {
 	char *li_name;			/* input object name */
+	Elf *li_elf;			/* input object ELF descriptor */
 	struct ld_file *li_file;	/* containing file */
 	size_t li_shnum;		/* num of sections in ELF object */
 	struct ld_input_section *li_is;	/* input section list */
@@ -55,7 +56,7 @@ struct ld_input {
 };
 
 void	ld_input_create_objects(struct ld *);
-void	ld_input_end_elf(struct ld *, struct ld_input *, Elf *);
-Elf	*ld_input_get_elf(struct ld *, struct ld_input *);
-void	ld_input_load_sections(struct ld *, struct ld_input *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
+void	ld_input_init_sections(struct ld *, struct ld_input *);
+void	ld_input_load(struct ld *, struct ld_input *);
+void	ld_input_unload(struct ld *, struct ld_input *);

@@ -25,7 +25,6 @@
  */
 
 #include "ld.h"
-#include "ld_file.h"
 #include "ld_input.h"
 #include "ld_reloc.h"
 
@@ -41,7 +40,6 @@ static void _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d);
 void
 ld_reloc_read(struct ld *ld)
 {
-	struct ld_file *lf;
 	struct ld_input *li;
 	struct ld_input_section *is;
 	Elf *e;
@@ -49,7 +47,6 @@ ld_reloc_read(struct ld *ld)
 	Elf_Scn *scn;
 	int i, elferr;
 
-	lf = NULL;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		e = NULL;
 		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
@@ -57,14 +54,10 @@ ld_reloc_read(struct ld *ld)
 			(void) elf_errno();
 			if (is->is_type != SHT_REL && is->is_type != SHT_RELA)
 				continue;
-			if (lf == NULL || li->li_file != lf) {
-				if (lf != NULL)
-					ld_file_unload(ld, lf);
-				ld_file_load(ld, li->li_file);
-				lf = li->li_file;
+			if (e == NULL) {
+				ld_input_load(ld, li);
+				e = li->li_elf;
 			}
-			if (e == NULL)
-				e = ld_input_get_elf(ld, li);
 			if ((scn = elf_getscn(e, is->is_index)) == NULL) {
 				ld_warn(ld, "elf_getscn failed: %s",
 				    elf_errmsg(-1));
@@ -84,7 +77,7 @@ ld_reloc_read(struct ld *ld)
 				_read_rela(ld, is, d);
 		}
 		if (e != NULL)
-			ld_input_end_elf(ld, li, e);
+			ld_input_unload(ld, li);
 	}
 }
 

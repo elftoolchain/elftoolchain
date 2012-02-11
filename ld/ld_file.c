@@ -133,12 +133,17 @@ void
 ld_file_load(struct ld *ld, struct ld_file *lf)
 {
 	struct ld_archive *la;
+	struct ld_state *ls;
 	struct stat sb;
 	Elf_Kind k;
 	GElf_Ehdr ehdr;
 	int fd;
 
 	assert(lf != NULL && lf->lf_name != NULL);
+
+	ls = &ld->ld_state;
+	if (ls->ls_file == lf)
+		return;
 
 	if ((fd = open(lf->lf_name, O_RDONLY)) < 0)
 		ld_fatal_std(ld, "%s: open", lf->lf_name);
@@ -202,6 +207,9 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 void
 ld_file_unload(struct ld *ld, struct ld_file *lf)
 {
+	struct ld_state *ls;
+
+	ls = &ld->ld_state;
 
 	if (lf->lf_type != LFT_BINARY)
 		elf_end(lf->lf_elf);
@@ -210,6 +218,9 @@ ld_file_unload(struct ld *ld, struct ld_file *lf)
 		if (munmap(lf->lf_mmap, lf->lf_size) < 0)
 			ld_fatal_std(ld, "%s: munmap", lf->lf_name);
 	}
+
+	if (ls->ls_file == lf)
+		ls->ls_file = NULL;
 }
 
 static void
