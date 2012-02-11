@@ -383,7 +383,6 @@ _insert_input_to_output(struct ld_output_section *os,
 	}
 	STAILQ_INSERT_TAIL(islist, is, is_next);
 }
-    
 
 static void
 _calc_offset(struct ld *ld)
@@ -412,7 +411,6 @@ _calc_offset(struct ld *ld)
 			break;
 		}
 	}
-
 }
 
 static void
