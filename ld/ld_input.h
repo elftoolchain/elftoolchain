@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,4 +58,4 @@ void	ld_input_create_objects(struct ld *);
 void	ld_input_end_elf(struct ld *, struct ld_input *, Elf *);
 Elf	*ld_input_get_elf(struct ld *, struct ld_input *);
 void	ld_input_load_sections(struct ld *, struct ld_input *);
-
+void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);

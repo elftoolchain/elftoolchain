@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,37 @@ ld_input_end_elf(struct ld *ld, struct ld_input *li, Elf *e)
 	assert(lf->lf_elf != NULL);
 	if (lf->lf_ar != NULL)
 		(void) elf_end(e);
+}
+
+void *
+ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
+{
+	Elf *e;
+	Elf_Scn *scn;
+	Elf_Data *d;
+	struct ld_input *li;
+	char *buf;
+	int elferr;
+
+	li = is->is_input;
+	e = ld_input_get_elf(ld, li);
+
+	if ((scn = elf_getscn(e, is->is_index)) == NULL)
+		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
+	if ((d = elf_rawdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_fatal(ld, "elf_getdata failed: %s",
+			    elf_errmsg(elferr));
+		return (NULL);
+	}
+	if (d->d_buf == NULL && d->d_size == 0)
+		return (NULL);
+	if ((buf = malloc(d->d_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
+	memcpy(buf, d->d_buf, d->d_size);
+
+	return (buf);
 }
 
 void
