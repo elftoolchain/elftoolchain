@@ -70,6 +70,7 @@ ld_reloc_read(struct ld *ld)
 				    elf_errmsg(-1));
 				continue;
 			}
+			(void) elf_errno();
 			if ((d = elf_getdata(scn, NULL)) == NULL) {
 				elferr = elf_errno();
 				if (elferr != 0)
