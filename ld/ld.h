@@ -87,6 +87,7 @@ struct ld {
 	char *ld_scp_entry;		/* entry point set by linker script */
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
+	struct ld_strtab *ld_shstrtab;	/* section name table */
 	struct ld_symbol *ld_symtab_def;/* defined symbols */
 	struct ld_symbol *ld_symtab_def_scp; /* defined symbols in ldscript */
 	struct ld_symbol *ld_symtab_provide; /* provide symbols */

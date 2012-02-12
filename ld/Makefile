@@ -20,6 +20,7 @@ SRCS=	amd64.c			\
 	ld_script.c		\
 	ld_script_lexer.l	\
 	ld_script_parser.y	\
+	ld_strtab.c		\
 	ld_symbols.c		\
 	y.tab.h
 

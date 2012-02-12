@@ -29,6 +29,7 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
+#include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -96,9 +97,9 @@ ELFTC_VCSID("$Id$");
 
 static void _add_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
+static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
-static void _write_elf_header(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -248,7 +249,9 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	/* sh.sh_type = os->os_type; */
 	sh.sh_addr = os->os_addr;
 	sh.sh_addralign = os->os_align;
-	/* _add_to_shstrtab(ld, os->os_name); */
+	sh.sh_offset = os->os_off;
+	sh.sh_size = os->os_size;
+	_add_to_shstrtab(ld, os->os_name);
 	if (!gelf_update_shdr(scn, &sh))
 		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
 }
@@ -327,49 +330,42 @@ ld_output_create(struct ld *ld)
 	eh.e_type = ET_EXEC;	/* TODO */
 	eh.e_version = EV_CURRENT;
 
+	/* Set program header table offset. */
+	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
+	if (eh.e_phoff == 0)
+		ld_fatal(ld, "gelf_fsize failed: %s", elf_errmsg(-1));
+
+	/* Create output ELF sections. */
+	_create_elf_sections(ld);
+
+	/* Insert section headers table and point e_shoff to it. */
+	/* eh.e_shoff = _insert_shdr_table(ld); */
+
+	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
-	_create_elf_sections(ld);
-}
+	/* Generate section name string table (.shstrtab). */
+	/* _set_shstrtab(ld); */
 
-void
-ld_output_write(struct ld *ld)
-{
+	/* TODO: Add symbol table. */
 
-	_write_elf_header(ld);
+	/* Finally write out output ELF object. */
+	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
+		ld_fatal(ld, "elf_update failed: %s", elf_errmsg(-1));
 }
 
 static void
-_write_elf_header(struct ld *ld)
+_add_to_shstrtab(struct ld *ld, const char *name)
 {
-	struct ld_output *lo;
-	uint8_t *p;
-	int i;
 
-	lo = ld->ld_output;
-	assert(lo != NULL);
-
-	p = NULL;		/* TODO */
-
-	WRITE_8(p, 0x7f);
-	WRITE_8(p, 'E');
-	WRITE_8(p, 'L');
-	WRITE_8(p, 'F');
-	WRITE_8(p, lo->lo_ec);
-	WRITE_8(p, lo->lo_endian);
-	WRITE_8(p, EV_CURRENT);
-	WRITE_8(p, lo->lo_osabi);
-	WRITE_8(p, 0);
-	/* Padding */
-	for (i = 0; i < 7; i++)
-		WRITE_8(p, 0);
-	
-	if (lo->lo_ec == ELFCLASS32) {
-		WRITE_16(p, ELF_K_ELF);
-		/* TODO */
-	} else {
-		WRITE_16(p, ELF_K_ELF);
-		/* TODO */
+	if (ld->ld_shstrtab == NULL) {
+		ld->ld_shstrtab = ld_strtab_alloc(ld);
+		ld_strtab_insert(ld, ld->ld_shstrtab, "");
+		ld_strtab_insert(ld, ld->ld_shstrtab, ".symtab");
+		ld_strtab_insert(ld, ld->ld_shstrtab, ".strtab");
+		ld_strtab_insert(ld, ld->ld_shstrtab, ".shstrtab");
 	}
+
+	ld_strtab_insert(ld, ld->ld_shstrtab, name);
 }
