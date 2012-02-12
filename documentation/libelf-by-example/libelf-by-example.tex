@@ -35,6 +35,8 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{makeidx}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes.multipart,positioning}
 \usepackage{varioref}
 \usepackage{xspace}
 
@@ -358,10 +360,27 @@ library, how to report errors, and how to wind up.
     \end{itemize}
 
     \begin{figure}
-      \begin{center}
-        \includegraphics[scale=.85]{fig-versions}
-      \end{center}
-      \caption{ELF versions}\label{fig.versions}
+      \begin{tikzpicture}[
+        >=latex',
+        version/.style={
+          rectangle split,
+          rounded corners,
+          minimum width=5em,
+          text centered,
+          fill=black!15,
+          draw,
+          rectangle split parts=2,
+          node distance=8.5em
+        }]
+      \node[version] (application) {Application \nodepart{second} $v_1$};
+      \node[version] (library) [right=of application] { %
+        Library \nodepart{second} $v_1$, $v_2$}
+        edge [thick,<->] node[auto,swap] {$v_1$} (application);
+      \node[version] (object) [right=of library] { %
+        ELF Object \nodepart{second} $v_2$}
+        edge [thick,<->] node[auto,swap] {$v_2$} (library);
+      \end{tikzpicture}
+      \caption{Handling ELF versioning.}\label{fig.versions}
     \end{figure}
 
     In figure~\vref{fig.versions} the application expects to work with
