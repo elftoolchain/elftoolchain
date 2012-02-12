@@ -350,13 +350,14 @@ library, how to report errors, and how to wind up.
     application is manipulating an ELF object.
 
     \begin{itemize}
-    \item First, there is the version of the ELF specification ($v_1$)
-      that the application understands.
-    \item Second, we have the ELF version associated with the ELF
-      object being processed ($v_2$).
-    \item Third, we have the versions recognized by the
-      \library{libelf} library: $v_1$ and $v_2$.  The library may know
-      how to translate between versions $v_1$ and $v_2$.
+    \item The version of the ELF specification that the application
+      expects to use is $v_1$.
+    \item The ELF version associated with the ELF object being
+      processed is $v_2$.  Versions $v_1$ and $v_2$ could possibly be
+      different.
+    \item The ELF versions supported by the \library{libelf} library:
+      $v_1$ and $v_2$.  The library could, in theory, translate
+      between versions $v_1$ and $v_2$.
     \end{itemize}
 
     \begin{figure}
@@ -384,8 +385,8 @@ library, how to report errors, and how to wind up.
     \end{figure}
 
     In figure~\vref{fig.versions} the application expects to work with
-    ELF specification version ($v_1$). The ELF object file conforms to
-    ELF specification version ($v_2$).  The library understands both
+    ELF specification version $v_1$. The ELF object file conforms to
+    ELF specification version $v_2$.  The library understands both
     version $v_1$ and $v_2$ of ELF semantics and so is able to mediate
     between the application and the ELF object.
 
