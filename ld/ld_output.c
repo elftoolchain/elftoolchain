@@ -100,6 +100,7 @@ static void _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
+static uint64_t _insert_shdr_offset(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -339,7 +340,7 @@ ld_output_create(struct ld *ld)
 	_create_elf_sections(ld);
 
 	/* Insert section headers table and point e_shoff to it. */
-	/* eh.e_shoff = _insert_shdr_table(ld); */
+	eh.e_shoff = _insert_shdr_offset(ld);
 
 	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
@@ -353,6 +354,40 @@ ld_output_create(struct ld *ld)
 	/* Finally write out output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
 		ld_fatal(ld, "elf_update failed: %s", elf_errmsg(-1));
+}
+
+static uint64_t
+_insert_shdr_offset(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	uint64_t shoff;
+	int n;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	/* Align section headers table properly. */
+	if (lo->lo_ec == ELFCLASS32)
+		shoff = roundup(ls->ls_offset, 4);
+	else
+		shoff = roundup(ls->ls_offset, 8);
+	ls->ls_offset = shoff;
+
+	/* Count the number of output sections. */
+	n = 0;
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		n++;
+	}
+
+	/*
+	 * Remember there is always a null section, so we +1 here.
+	 * TODO: handle symbol table.
+	 */
+	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 1, EV_CURRENT);
+
+	return (shoff);
 }
 
 static void
