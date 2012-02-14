@@ -90,10 +90,13 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 		if (elferr != 0)
 			ld_fatal(ld, "elf_getdata failed: %s",
 			    elf_errmsg(elferr));
+		ld_input_unload(ld, li);
 		return (NULL);
 	}
-	if (d->d_buf == NULL && d->d_size == 0)
+	if (d->d_buf == NULL && d->d_size == 0) {
+		ld_input_unload(ld, li);
 		return (NULL);
+	}
 	if ((buf = malloc(d->d_size)) == NULL)
 		ld_fatal_std(ld, "malloc");
 	memcpy(buf, d->d_buf, d->d_size);
