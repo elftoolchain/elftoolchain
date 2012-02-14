@@ -100,6 +100,7 @@ static void _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
+static void _create_shstrtab(struct ld *ld);
 static uint64_t _insert_shdr_offset(struct ld *ld);
 
 void
@@ -109,6 +110,7 @@ ld_output_init(struct ld *ld)
 
 	if ((lo = calloc(1, sizeof(*lo))) == NULL)
 		ld_fatal_std(ld, "calloc");
+
 	STAILQ_INIT(&lo->lo_oelist);
 	STAILQ_INIT(&lo->lo_oslist);
 	ld->ld_output = lo;
@@ -178,8 +180,10 @@ ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
 
 	if ((oe = calloc(1, sizeof(*oe))) == NULL)
 		ld_fatal_std(ld, "calloc");
+
 	oe->oe_type = type;
 	oe->oe_entry = entry;
+
 	STAILQ_INSERT_TAIL(head, oe, oe_next);
 
 	return (oe);
@@ -193,16 +197,22 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 	struct ld_output_section *os;
 
 	lo = ld->ld_output;
+
 	if ((os = calloc(1, sizeof(*os))) == NULL)
 		ld_fatal_std(ld, "calloc");
+
 	if ((os->os_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
+
 	STAILQ_INIT(&os->os_e);
+
 	HASH_ADD_KEYPTR(hh, lo->lo_ostbl, os->os_name, strlen(os->os_name), os);
+
 	if (after == NULL)
 		STAILQ_INSERT_TAIL(&lo->lo_oslist, os, os_next);
 	else
 		STAILQ_INSERT_AFTER(&lo->lo_oslist, os, after, os_next);
+
 	ld_output_create_element(ld, &lo->lo_oelist, OET_OUTPUT_SECTION, os);
 
 	return (os);
@@ -223,6 +233,8 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 
 	if ((scn = elf_newscn(lo->lo_elf)) == NULL)
 		ld_fatal(ld, "elf_newscn failed: %s", elf_errmsg(-1));
+
+	os->os_scn = scn;
 
 	/* Create section data. */
 	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
@@ -246,13 +258,16 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 
 	if (gelf_getshdr(scn, &sh) == NULL)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
+
 	sh.sh_flags = os->os_flags;
 	/* sh.sh_type = os->os_type; */
 	sh.sh_addr = os->os_addr;
 	sh.sh_addralign = os->os_align;
 	sh.sh_offset = os->os_off;
 	sh.sh_size = os->os_size;
+
 	_add_to_shstrtab(ld, os->os_name);
+
 	if (!gelf_update_shdr(scn, &sh))
 		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
 }
@@ -268,6 +283,7 @@ _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 
 	if ((d = elf_newdata(scn)) == NULL)
 		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
 	d->d_align = is->is_align;
 	d->d_off = is->is_reloff;
 	d->d_type = ELF_T_BYTE;
@@ -313,6 +329,7 @@ ld_output_create(struct ld *ld)
 
 	if ((lo->lo_fd = open(fn, O_WRONLY)) < 0)
 		ld_fatal_std(ld, "can not create output file: open %s", fn);
+
 	if ((lo->lo_elf = elf_begin(lo->lo_fd, ELF_C_WRITE, NULL)) == NULL)
 		ld_fatal(ld, "elf_begin failed: %s", elf_errmsg(-1));
 
@@ -324,8 +341,10 @@ ld_output_create(struct ld *ld)
 
 	if (gelf_newehdr(lo->lo_elf, lo->lo_ec) == NULL)
 		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));
+
 	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
 		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
+
 	eh.e_flags = 0;		/* TODO */
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	eh.e_type = ET_EXEC;	/* TODO */
@@ -346,8 +365,8 @@ ld_output_create(struct ld *ld)
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
-	/* Generate section name string table (.shstrtab). */
-	/* _set_shstrtab(ld); */
+	/* Generate section name string table section (.shstrtab). */
+	_create_shstrtab(ld);
 
 	/* TODO: Add symbol table. */
 
@@ -368,24 +387,19 @@ _insert_shdr_offset(struct ld *ld)
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
 
-	/* Align section headers table properly. */
 	if (lo->lo_ec == ELFCLASS32)
 		shoff = roundup(ls->ls_offset, 4);
 	else
 		shoff = roundup(ls->ls_offset, 8);
+
 	ls->ls_offset = shoff;
 
-	/* Count the number of output sections. */
 	n = 0;
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		n++;
 	}
 
-	/*
-	 * Remember there is always a null section, so we +1 here.
-	 * TODO: handle symbol table.
-	 */
-	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 1, EV_CURRENT);
+	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 2, EV_CURRENT);
 
 	return (shoff);
 }
@@ -403,4 +417,65 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 	}
 
 	ld_strtab_insert(ld, ld->ld_shstrtab, name);
+}
+
+static void
+_create_shstrtab(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_strtab *st;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	Elf_Scn *scn;
+	Elf_Data *d;
+	GElf_Shdr sh;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+	st = ld->ld_shstrtab;
+	assert(st != NULL && st->st_buf != NULL);
+
+	if ((scn = elf_newscn(lo->lo_elf)) == NULL)
+		ld_fatal(ld, "elf_newscn failed: %s", elf_errmsg(-1));
+
+	if (gelf_getshdr(scn, &sh) == NULL)
+		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
+
+	sh.sh_flags = 0;
+	sh.sh_addr = 0;
+	sh.sh_addralign = 1;
+	sh.sh_offset = ls->ls_offset;
+	sh.sh_size = st->st_size;
+
+	if (!gelf_update_shdr(scn, &sh))
+		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = 1;
+	d->d_off = 0;
+	d->d_type = ELF_T_BYTE;
+	d->d_size = st->st_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = st->st_buf;
+
+	ls->ls_offset += st->st_size;
+
+	/*
+	 * Set "sh_name" fields of each section headers to point
+	 * to the string table.
+	 */
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (gelf_getshdr(os->os_scn, &sh) == NULL)
+			ld_fatal(ld, "gelf_getshdr failed: %s",
+			    elf_errmsg(-1));
+
+		sh.sh_name = ld_strtab_lookup(st, os->os_name);
+
+		if (!gelf_update_shdr(os->os_scn, &sh))
+			ld_fatal(ld, "gelf_update_shdr failed: %s",
+			    elf_errmsg(-1));
+	}
 }

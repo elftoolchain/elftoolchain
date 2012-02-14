@@ -47,6 +47,7 @@ struct ld_output_element {
 STAILQ_HEAD(ld_output_element_head, ld_output_element);
 
 struct ld_output_section {
+	Elf_Scn *os_scn;		/* output section descriptor */
 	char *os_name;			/* output section name */
 	uint64_t os_addr;		/* output section vma */
 	uint64_t os_off;		/* output section offset */
