@@ -498,7 +498,7 @@ content in the form of ELF \firstterm{program header table}
   sections}\index{sections} (see figure \vref{fig.elf.layout}).
 
 \begin{figure}
-  \caption{The layout of a typical ELF File}\label{fig.elf.layout}
+  \caption{The layout of a typical ELF File.}\label{fig.elf.layout}
   \begin{center}
     \includegraphics[scale=.75]{fig-elflayout}
   \end{center}
@@ -552,7 +552,7 @@ header using a ``C-like'' notation.%
 
 \begin{callout}{ehdr}
   \begin{table}
-    \caption{The ELF Executable Header}\label{src.elf.ehdr}
+    \caption{The ELF Executable Header.}\label{src.elf.ehdr}
     \begin{tabular}{rl|l}
       \mbox{} & \tableheader{32 bit Executable Header} &
       \tableheader{64 bit Executable Header} \\ \hline
@@ -597,7 +597,7 @@ header using a ``C-like'' notation.%
     \index{executable~header!e_ident@\parameter{e\_ident}!definition}
 
     \begin{figure}[H]
-      \caption{The \parameter{e\_ident} array}\label{fig.elf.eident}
+      \caption{The \parameter{e\_ident} array.}\label{fig.elf.eident}
       \index{executable~header!e_ident@\parameter{e\_ident} field}
       \begin{center}
         \includegraphics[scale=.9]{fig-eident}
@@ -625,7 +625,7 @@ header using a ``C-like'' notation.%
     \index{executable~header!executable architecture}
 
   \begin{figure}
-    \caption{The ELF Executable Header and Object Layout}
+    \caption{The ELF Executable Header and Object Layout.}
     \label{fig.elf.ehdr-layout}
     \begin{center}
       \includegraphics[scale=.85]{fig-elfhdrlayout}
@@ -708,7 +708,7 @@ different set of rules for alignment.  The endianness of the data
 in-file could be different from that of the in-memory representation.
 
 \begin{figure}
-  \caption{File and Memory Representations}\label{fig.representations}
+  \caption{File and Memory Representations.}\label{fig.representations}
   \begin{center}
     \includegraphics{fig-filemem}
   \end{center}
@@ -949,7 +949,7 @@ a program header table entry specify the segment's placement in file
 and in memory.
 
 \begin{figure}
-  \caption{ELF Segment Placement}\label{fig.elf.phdr.layout}
+  \caption{ELF Segment Placement.}\label{fig.elf.phdr.layout}
   \index{program~header!table!layout}
   \begin{center}
     \includegraphics[scale=.85]{fig-phdrlayout}
@@ -961,7 +961,7 @@ table~\vref{src.elf.phdr}.\index{program~header!table!entry}
 
 \begin{callout}{phdr}
   \begin{table}[H]
-    \caption{ELF Program Header Table Entries}\label{src.elf.phdr}
+    \caption{ELF Program Header Table Entries.}\label{src.elf.phdr}
     \begin{tabular}{rl|ll}
       \mbox{} & \tableheader{32 bit PHDR Table Entry} &
       \tableheader{64 bit PHDR Table Entry}\\ \hline
@@ -1205,7 +1205,7 @@ an ELF section header specify the section's placement.%
 
 \begin{callout}{shdr}
   \begin{table}[H]
-    \caption{ELF Section Header Table Entries}\label{src.elf.shdr}
+    \caption{ELF Section Header Table Entries.}\label{src.elf.shdr}
     \begin{tabular}{rl|l}
       \mbox{} & \tableheader{32 bit SHDR Table Entry} &
       \tableheader{64 bit SHDR Table Entry} \\ \hline
@@ -1297,7 +1297,7 @@ an ELF section header specify the section's placement.%
   \begin{center}
     \includegraphics[scale=.85]{fig-shdrlayout}
   \end{center}
-  \caption{Section layout}\label{fig.elf.shdrlayout}
+  \caption{Section layout.}\label{fig.elf.shdrlayout}
 \end{figure}
 
 There are a couple of other quirks associated with ELF sections. Valid
@@ -1364,7 +1364,7 @@ descriptor could conceptually cover the content of a section with
   \begin{center}
     \includegraphics{fig-scn}
   \end{center}
-  \caption{Managing data in an Elf Section}\label{fig.elf.scn}
+  \caption{Managing data in an Elf Section.}\label{fig.elf.scn}
 \end{figure}
 
 Figure~\vref{fig.elf.data} depicts how an \type{Elf\_Data} structure
@@ -1378,7 +1378,7 @@ representation.%
   \begin{center}
     \includegraphics{fig-data}
   \end{center}
-  \caption{\type{Elf\_Data} descriptors}\label{fig.elf.data}
+  \caption{\type{Elf\_Data} descriptors.}\label{fig.elf.data}
 \end{figure}
 
 Figure~\vref{fig.elf.scn-data.decl} shows the C definition of the
@@ -1451,7 +1451,7 @@ table.  Sections containing string tables have type
   \begin{center}
     \includegraphics[scale=.9]{fig-strtab}
   \end{center}
-  \caption{String Table Layout}\label{fig.elf.strtab}
+  \caption{String Table Layout.}\label{fig.elf.strtab}
 \end{figure}
 
 Figure~\vref{fig.elf.strtab} shows the layout of a string table
@@ -1869,7 +1869,7 @@ ar(1) archive pictorially.
   \begin{center}
     \includegraphics[scale=.9]{fig-arstr}
   \end{center}
-  \caption{The structure of ar(1) archives}\label{fig.arstr}
+  \caption{The structure of ar(1) archives.}\label{fig.arstr}
 \end{figure}
 
 Each archive header is a collection of fixed size ASCII
