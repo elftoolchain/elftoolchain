@@ -440,6 +440,9 @@ _create_shstrtab(struct ld *ld)
 	if ((scn = elf_newscn(lo->lo_elf)) == NULL)
 		ld_fatal(ld, "elf_newscn failed: %s", elf_errmsg(-1));
 
+	if (!elf_setshstrndx(lo->lo_elf, elf_ndxscn(scn)))
+		ld_fatal(ld, "elf_setshstrndx failed: %s", elf_errmsg(-1));
+
 	if (gelf_getshdr(scn, &sh) == NULL)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
 
