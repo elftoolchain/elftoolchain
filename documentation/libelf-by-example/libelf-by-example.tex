@@ -1866,9 +1866,75 @@ with the member.  Figure~\vref{fig.arstr} depicts the structure of an
 ar(1) archive pictorially.
 
 \begin{figure}
-  \begin{center}
-    \includegraphics[scale=.9]{fig-arstr}
-  \end{center}
+  \begin{tikzpicture}[
+    >=latex',
+    file/.style={
+      rectangle,
+      draw,
+      text centered,
+      text width=8em,
+      node distance=0pt,
+      minimum height=2em
+    },
+    header/.style={
+      rectangle,
+      draw,
+      fill=black!25,
+      node distance=0pt,
+      minimum width=0.8ex,
+      minimum height=2em
+    },
+    lbl/.style={
+      text height=1em
+    },
+    hdr/.style={
+      text width=4.2em,
+      draw,
+      fill=black!15,
+      node distance=0pt
+    }]
+
+    \node[header,fill=black!50] (magic) {};
+    \node[header] (s0) [right=of magic] {};
+    \node[file,text width=1em]   (symtab) [right=of s0] {\texttt{/}};
+    \node[header] (s1) [right=of symtab] {};
+    \node[file, text width=1em]   (strtab) [right=of s1] {\texttt{//}};
+    \node[header] (h0) [right=of strtab] {};
+    \node[file]   (f0) [right=of h0] {File 0};
+    \node[header] (h1) [right=of f0] {};
+    \node[file]   (f1) [right=of h1] {File 1};
+    \node[header] (h2) [right=of f1] {};
+    \node[file]   (f2) [right=of h2] {File 2};
+
+    % Label the elements of the archive.
+    \node[lbl] (lmagic) [below=of magic,text height=1em] {archive ``magic''}
+      edge [->] (magic);
+    \node[lbl] (lheader) [below=of f0.south,text height=1em] {archive headers}
+      edge [->] (s0.south)
+      edge [->] (s1.south)
+      edge [->] (h0.south)
+      edge [->] (h1.south)
+      edge [->] (h2.south);
+    \node[lbl] (lsymtab) at (symtab.north) [above=5em]
+      {archive symbol table}
+      edge [->] (symtab.north);
+    \node[lbl] (lstrtab) [above=of f0.north,node distance=8em]
+      {archive string table}
+      edge [->] (strtab.north);
+
+    % Show the internal structure of an archive header.
+    \node[hdr,node distance=1.8em] (arfmag) [above=of h2.north]
+        {\texttt{ar\_fmag}};
+    \node[hdr] (arsize) [above=of arfmag.north] {\texttt{ar\_size}};
+    \node[hdr] (armode) [above=of arsize.north] {\texttt{ar\_mode}};
+    \node[hdr] (argid) [above=of armode.north] {\texttt{ar\_gid}};
+    \node[hdr] (aruid) [above=of argid.north] {\texttt{ar\_uid}};
+    \node[hdr] (ardate) [above=of aruid.north] {\texttt{ar\_date}};
+    \node[hdr] (arname) [above=of ardate.north] {\texttt{ar\_name}};
+
+    \draw (h1.north east) to (arfmag.south west);
+    \draw (h1.north west) to (arname.north west);
+  \end{tikzpicture}
   \caption{The structure of ar(1) archives.}\label{fig.arstr}
 \end{figure}
 
