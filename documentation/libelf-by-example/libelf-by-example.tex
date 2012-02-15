@@ -1934,10 +1934,58 @@ through an ar(1) archive.%
 \index{ar~archive!sequential~access!elf_begin@\function{elf\_begin}}
 \index{ar~archive!sequential~access!elf_next@\function{elf\_next}}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics{fig-ariter}
-  \end{center}
+\begin{figure}[h]
+  \begin{tikzpicture}[
+    >=latex',
+    file/.style={
+      rectangle,
+      draw,
+      text centered,
+      text width=8em,
+      node distance=0pt,
+      minimum height=2em
+    },
+    header/.style={
+      rectangle,
+      draw,
+      fill=black!25,
+      node distance=0pt,
+      minimum width=0.8ex,
+      minimum height=2em
+    },
+    lbl/.style={
+      text height=1em
+    }]
+
+    \node[header,fill=black!50] (magic) {};
+    \node[header] (h0) [right=of magic] {};
+    \node[file]   (f0) [right=of h0] {File 0};
+    \node[header] (h1) [right=of f0] {};
+    \node[file]   (f1) [right=of h1] {File 1};
+    \node[header] (h2) [right=of f1] {};
+    \node[file]   (f2) [right=of h2] {File 2};
+
+    \node[lbl] (lmagic) [below=of magic,text height=1em] {archive ``magic''}
+      edge [->] (magic);
+    \node[lbl] (lheader) [below=of f1.south,text height=1em] {archive headers}
+      edge [->] (h0.south)
+      edge [->] (h1.south)
+      edge [->] (h2.south);
+
+    \node[lbl] (eb0) [above=of f0.north west] {$\texttt{elf\_begin}_{(0)}$}
+      edge[->] (f0.north west);
+    \node[lbl] (eb1) [above=of f1.north west] {$\texttt{elf\_begin}_{(1)}$}
+      edge [->] (f1.north west);
+    \node[lbl] (eb2) [above=of f2.north west] {$\texttt{elf\_begin}_{(2)}$}
+      edge [->] (f2.north west);
+
+    \draw[->,bend left] (h0.north east) to
+      node[auto] {$\texttt{elf\_next}_{(0)}$} (h1.north west);
+    \draw[->,bend left] (h1.north east) to
+      node[auto] {$\texttt{elf\_next}_{(1)}$} (h2.north west);
+    \draw[->,bend left] (h2.north east) to
+      node[auto] {$\texttt{elf\_next}_{(2)}$} (f2.north east);
+  \end{tikzpicture}
   \caption{Iterating through ar(1) archives with
     \function{elf\_begin} and \function{elf\_next}.}\label{fig.ariter}
 \end{figure}
