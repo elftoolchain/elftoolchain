@@ -1872,7 +1872,7 @@ ar(1) archive pictorially.
       rectangle,
       draw,
       text centered,
-      text width=8em,
+      text width=7em,
       node distance=0pt,
       minimum height=2em
     },
@@ -1881,7 +1881,6 @@ ar(1) archive pictorially.
       draw,
       fill=black!25,
       node distance=0pt,
-      minimum width=0.8ex,
       minimum height=2em
     },
     lbl/.style={
@@ -2007,7 +2006,7 @@ through an ar(1) archive.%
       rectangle,
       draw,
       text centered,
-      text width=8em,
+      text width=7em,
       node distance=0pt,
       minimum height=2em
     },
@@ -2016,7 +2015,6 @@ through an ar(1) archive.%
       draw,
       fill=black!25,
       node distance=0pt,
-      minimum width=0.8ex,
       minimum height=2em
     },
     lbl/.style={
@@ -2024,7 +2022,11 @@ through an ar(1) archive.%
     }]
 
     \node[header,fill=black!50] (magic) {};
-    \node[header] (h0) [right=of magic] {};
+    \node[header] (s0) [right=of magic] {};
+    \node[file,text width=1em]   (symtab) [right=of s0] {\texttt{/}};
+    \node[header] (s1) [right=of symtab] {};
+    \node[file, text width=1em]   (strtab) [right=of s1] {\texttt{//}};
+    \node[header] (h0) [right=of strtab] {};
     \node[file]   (f0) [right=of h0] {File 0};
     \node[header] (h1) [right=of f0] {};
     \node[file]   (f1) [right=of h1] {File 1};
@@ -2033,7 +2035,9 @@ through an ar(1) archive.%
 
     \node[lbl] (lmagic) [below=of magic,text height=1em] {archive ``magic''}
       edge [->] (magic);
-    \node[lbl] (lheader) [below=of f1.south,text height=1em] {archive headers}
+    \node[lbl] (lheader) [below=of f0.south,text height=1em] {archive headers}
+      edge [->] (s0.south)
+      edge [->] (s1.south)
       edge [->] (h0.south)
       edge [->] (h1.south)
       edge [->] (h2.south);
