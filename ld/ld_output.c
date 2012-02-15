@@ -345,6 +345,8 @@ ld_output_create(struct ld *ld)
 	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
 		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
 
+	eh.e_ident[EI_CLASS] = lo->lo_ec;
+	eh.e_ident[EI_DATA] = lo->lo_endian;
 	eh.e_flags = 0;		/* TODO */
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	eh.e_type = ET_EXEC;	/* TODO */
