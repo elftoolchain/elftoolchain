@@ -2001,26 +2001,29 @@ through an ar(1) archive.%
 
 \begin{figure}[h]
   \begin{tikzpicture}[
-    >=latex',
-    file/.style={
+    >=latex',                   % LaTeX style arrows.
+    file/.style={               % Boxes denoting file content.
       rectangle,
       draw,
       text centered,
-      text width=7em,
+      text width=6.5em,
       node distance=0pt,
       minimum height=2em
     },
-    header/.style={
+    header/.style={             % Boxes denoting archive headers.
       rectangle,
       draw,
       fill=black!25,
       node distance=0pt,
-      minimum height=2em
+      minimum height=2em,
+      minimum width=1ex,
+      inner sep=0pt,
     },
-    lbl/.style={
+    lbl/.style={                % Styling of label text.
       text height=1em
     }]
 
+    % Depict the structure of the archive pictorially.
     \node[header,fill=black!50] (magic) {};
     \node[header] (s0) [right=of magic] {};
     \node[file,text width=1em]   (symtab) [right=of s0] {\texttt{/}};
@@ -2032,29 +2035,35 @@ through an ar(1) archive.%
     \node[file]   (f1) [right=of h1] {File 1};
     \node[header] (h2) [right=of f1] {};
     \node[file]   (f2) [right=of h2] {File 2};
+    \node[header] (h3) [right=of f2] {};
+    \node[file,text width=1em] (f3) [right=of h3] {$\ldots$};
 
+    % Label the parts of the archive.
     \node[lbl] (lmagic) [below=of magic,text height=1em] {archive ``magic''}
-      edge [->] (magic);
+      edge [->] ([yshift=-1pt] magic.south);
     \node[lbl] (lheader) [below=of f0.south,text height=1em] {archive headers}
-      edge [->] (s0.south)
-      edge [->] (s1.south)
-      edge [->] (h0.south)
-      edge [->] (h1.south)
-      edge [->] (h2.south);
+      edge [->] ([yshift=-1pt] s0.south)
+      edge [->] ([yshift=-1pt] s1.south)
+      edge [->] ([yshift=-1pt] h0.south)
+      edge [->] ([yshift=-1pt] h1.south)
+      edge [->] ([yshift=-1.2pt] h2.south)
+      edge [->] ([yshift=-1.2pt] h3.south);
 
+    % Label the contents retrieved by calls to elf_begin().
     \node[lbl] (eb0) [above=of f0.north west] {$\texttt{elf\_begin}_{(0)}$}
-      edge[->] (f0.north west);
+      edge[->] ([yshift=1pt] f0.north west);
     \node[lbl] (eb1) [above=of f1.north west] {$\texttt{elf\_begin}_{(1)}$}
-      edge [->] (f1.north west);
+      edge [->] ([yshift=1pt] f1.north west);
     \node[lbl] (eb2) [above=of f2.north west] {$\texttt{elf\_begin}_{(2)}$}
-      edge [->] (f2.north west);
+      edge [->] ([yshift=1pt] f2.north west);
 
-    \draw[->,bend left] (h0.north east) to
-      node[auto] {$\texttt{elf\_next}_{(0)}$} (h1.north west);
-    \draw[->,bend left] (h1.north east) to
-      node[auto] {$\texttt{elf\_next}_{(1)}$} (h2.north west);
-    \draw[->,bend left] (h2.north east) to
-      node[auto] {$\texttt{elf\_next}_{(2)}$} (f2.north east);
+    % Show the traversal of the archive by elf_next().
+    \draw[->,shorten >=1pt,shorten <=1pt,bend left] (h0.north east) to
+      node[auto] {$\texttt{elf\_next}_{(0)}$} (h1.north east);
+    \draw[->,shorten >=1pt,shorten <=1pt,bend left] (h1.north east) to
+      node[auto] {$\texttt{elf\_next}_{(1)}$} (h2.north east);
+    \draw[->,shorten >=1pt,shorten <=1pt,bend left] (h2.north east) to
+      node[auto] {$\texttt{elf\_next}_{(2)}$} (h3.north east);
   \end{tikzpicture}
   \caption{Iterating through ar(1) archives with
     \function{elf\_begin} and \function{elf\_next}.}\label{fig.ariter}
