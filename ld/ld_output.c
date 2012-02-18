@@ -260,11 +260,11 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
 
 	sh.sh_flags = os->os_flags;
-	/* sh.sh_type = os->os_type; */
 	sh.sh_addr = os->os_addr;
 	sh.sh_addralign = os->os_align;
 	sh.sh_offset = os->os_off;
 	sh.sh_size = os->os_size;
+	sh.sh_type = os->os_type;
 
 	_add_to_shstrtab(ld, os->os_name);
 

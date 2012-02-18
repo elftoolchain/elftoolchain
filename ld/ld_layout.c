@@ -371,6 +371,8 @@ _insert_input_to_output(struct ld_output_section *os,
 		os->os_align = is->is_align;
 		printf("os->os_align=%ju\n", os->os_align);
 	}
+	if (os->os_type == SHT_NULL)
+		os->os_type = is->is_type;
 	STAILQ_INSERT_TAIL(islist, is, is_next);
 }
 
@@ -410,27 +412,16 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	struct ld_output_element *oe;
 	struct ld_input_section *is;
 	struct ld_input_section_head *islist;
+	uint64_t addr;
 
 	ls = &ld->ld_state;
-
-	/* FIXME */
-	if (os->os_align == 0)
-		os->os_align = 1;
-
-	/*
-	 * Properly align section vma and offset to the required section
-	 * alignment.
-	 */
-	os->os_off = ls->ls_offset;
-	os->os_addr = roundup(ls->ls_loc_counter, os->os_align);
-	os->os_off += ls->ls_loc_counter - os->os_addr;
-	printf("layout output section %s: (off:%#jx) vma:%#jx\n", os->os_name,
-	    os->os_off, os->os_addr);
+	os->os_align = 1;
 
 	/*
 	 * Location counter is an offset relative to the start of the
 	 * section, when it's refered inside an output section descriptor.
 	 */
+	addr = ls->ls_loc_counter;
 	ls->ls_loc_counter = 0;
 
 	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
@@ -464,7 +455,16 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 		}
 	}
 
+	/*
+	 * Properly align section vma and offset to the required section
+	 * alignment.
+	 */
+	os->os_off = ls->ls_offset;
+	os->os_addr = roundup(addr, os->os_align);
+	os->os_off += addr - os->os_addr;
 	os->os_size = ls->ls_loc_counter;
+	printf("layout output section %s: (off:%#jx,size:%#jx) vma:%#jx\n",
+	    os->os_name, os->os_off, os->os_size, os->os_addr);
 	ls->ls_offset += os->os_size;
 
 	/* Reset location counter to the current VMA. */

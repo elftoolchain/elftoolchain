@@ -54,6 +54,7 @@ struct ld_output_section {
 	uint64_t os_size;		/* output section size */
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
+	uint64_t os_type;		/* output section type */
 	struct ld_output_element_head os_e; /* output section elements */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
