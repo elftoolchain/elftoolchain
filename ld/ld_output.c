@@ -246,13 +246,12 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	struct ld_output_element *oe;
 	struct ld_input_section *is;
 	struct ld_input_section_head *islist;
+	Elf_Data *d;
 	Elf_Scn *scn;
 	GElf_Shdr sh;
 
 	lo = ld->ld_output;
 	assert(lo->lo_elf != NULL);
-
-	printf("_create_elf_section: %s\n", os->os_name);
 
 	/* Create section data. */
 	scn = NULL;
@@ -268,7 +267,8 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			STAILQ_FOREACH(is, islist, is_next) {
 				if (scn == NULL)
 					scn = _create_elf_scn(ld, lo, os);
-				_add_input_section_data(ld, scn, is);
+				if (os->os_type != SHT_NOBITS)
+					_add_input_section_data(ld, scn, is);
 			}
 			break;
 		case OET_KEYWORD:
@@ -283,6 +283,18 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 
 	if (scn == NULL)
 		return;
+
+	if (os->os_type == SHT_NOBITS) {
+		if ((d = elf_newdata(scn)) == NULL)
+			ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+		d->d_align = os->os_align;
+		d->d_off = 0;
+		d->d_type = ELF_T_BYTE;
+		d->d_size = os->os_size;
+		d->d_version = EV_CURRENT;
+		d->d_buf = NULL;
+	}
 
 	if (gelf_getshdr(scn, &sh) == NULL)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
@@ -306,7 +318,7 @@ _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 {
 	Elf_Data *d;
 
-	if (is->is_size == 0)
+	if (is->is_type == SHT_NOBITS || is->is_size == 0)
 		return;
 
 	if ((d = elf_newdata(scn)) == NULL)
@@ -512,8 +524,9 @@ _create_shstrtab(struct ld *ld)
 			ld_fatal(ld, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
-		printf("name=%s, offset=%#jx, size=%#jx\n", os->os_name,
-		    (uint64_t) sh.sh_offset, (uint64_t) sh.sh_size);
+		printf("name=%s, offset=%#jx, size=%#jx, type=%#jx\n",
+		    os->os_name, (uint64_t) sh.sh_offset,
+		    (uint64_t) sh.sh_size, (uint64_t) sh.sh_type);
 
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
 
