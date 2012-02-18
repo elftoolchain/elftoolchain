@@ -415,7 +415,6 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	uint64_t addr;
 
 	ls = &ld->ld_state;
-	os->os_align = 1;
 
 	/*
 	 * Location counter is an offset relative to the start of the
@@ -459,13 +458,13 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * Properly align section vma and offset to the required section
 	 * alignment.
 	 */
-	os->os_off = ls->ls_offset;
 	os->os_addr = roundup(addr, os->os_align);
-	os->os_off += addr - os->os_addr;
+	os->os_off += ls->ls_offset + (addr - os->os_addr);
 	os->os_size = ls->ls_loc_counter;
-	printf("layout output section %s: (off:%#jx,size:%#jx) vma:%#jx\n",
-	    os->os_name, os->os_off, os->os_size, os->os_addr);
-	ls->ls_offset += os->os_size;
+	printf("layout output section %s: (off:%#jx,size:%#jx) "
+	    "vma:%#jx,align:%#jx\n", os->os_name, os->os_off, os->os_size,
+	    os->os_addr, os->os_align);
+	ls->ls_offset = os->os_off + os->os_size;
 
 	/* Reset location counter to the current VMA. */
 	ls->ls_loc_counter = os->os_addr + os->os_size;

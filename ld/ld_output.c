@@ -206,6 +206,8 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 	if ((os->os_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
+	os->os_align = 1;
+
 	STAILQ_INIT(&os->os_e);
 
 	HASH_ADD_KEYPTR(hh, lo->lo_ostbl, os->os_name, strlen(os->os_name), os);
