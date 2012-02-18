@@ -439,9 +439,10 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 			STAILQ_FOREACH(is, islist, is_next) {
 				is->is_reloff = roundup(ls->ls_loc_counter,
 				    is->is_align);
-				printf("\t%s(%s): %#jx\n",
+				printf("\t%s(%s): %#jx,%#jx(%#jx)\n",
 				    is->is_input->li_name,
-				    is->is_name, ls->ls_loc_counter);
+				    is->is_name, is->is_reloff,
+				    is->is_size, is->is_align);
 				ls->ls_loc_counter = is->is_reloff +
 				    is->is_size;
 			}
@@ -459,7 +460,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * alignment.
 	 */
 	os->os_addr = roundup(addr, os->os_align);
-	os->os_off += ls->ls_offset + (addr - os->os_addr);
+	os->os_off = ls->ls_offset + (os->os_addr - addr);
 	os->os_size = ls->ls_loc_counter;
 	printf("layout output section %s: (off:%#jx,size:%#jx) "
 	    "vma:%#jx,align:%#jx\n", os->os_name, os->os_off, os->os_size,
