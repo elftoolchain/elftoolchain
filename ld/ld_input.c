@@ -85,6 +85,8 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 
 	if ((scn = elf_getscn(e, is->is_index)) == NULL)
 		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
+
+	(void) elf_errno();
 	if ((d = elf_rawdata(scn, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
@@ -93,12 +95,15 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 		ld_input_unload(ld, li);
 		return (NULL);
 	}
-	if (d->d_buf == NULL && d->d_size == 0) {
+
+	if (d->d_buf == NULL || d->d_size == 0) {
 		ld_input_unload(ld, li);
 		return (NULL);
 	}
+
 	if ((buf = malloc(d->d_size)) == NULL)
 		ld_fatal_std(ld, "malloc");
+
 	memcpy(buf, d->d_buf, d->d_size);
 
 	ld_input_unload(ld, li);
@@ -198,6 +203,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		is->is_align = sh.sh_addralign;
 		is->is_type = sh.sh_type;
 		is->is_flags = sh.sh_flags;
+		is->is_index = elf_ndxscn(scn);
 		is->is_input = li;
 		is->is_orphan = 1;
 	}
