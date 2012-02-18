@@ -446,11 +446,13 @@ _create_shstrtab(struct ld *ld)
 	if (gelf_getshdr(scn, &sh) == NULL)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
 
+	sh.sh_name = ld_strtab_lookup(st, ".shstrtab");
 	sh.sh_flags = 0;
 	sh.sh_addr = 0;
 	sh.sh_addralign = 1;
 	sh.sh_offset = ls->ls_offset;
 	sh.sh_size = st->st_size;
+	sh.sh_type = SHT_STRTAB;
 
 	if (!gelf_update_shdr(scn, &sh))
 		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
