@@ -437,6 +437,8 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 		case OET_INPUT_SECTION_LIST:
 			islist = oe->oe_entry;
 			STAILQ_FOREACH(is, islist, is_next) {
+				if (is->is_size == 0)
+					continue;
 				is->is_reloff = roundup(ls->ls_loc_counter,
 				    is->is_align);
 				printf("\t%s(%s): %#jx,%#jx(%#jx)\n",
