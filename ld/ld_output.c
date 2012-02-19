@@ -176,7 +176,8 @@ ld_output_format(struct ld *ld, char *def, char *be, char *le)
 
 struct ld_output_element *
 ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
-    enum ld_output_element_type type, void *entry)
+    enum ld_output_element_type type, void *entry,
+    struct ld_output_element *after)
 {
 	struct ld_output_element *oe;
 
@@ -186,7 +187,10 @@ ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
 	oe->oe_type = type;
 	oe->oe_entry = entry;
 
-	STAILQ_INSERT_TAIL(head, oe, oe_next);
+	if (after == NULL)
+		STAILQ_INSERT_TAIL(head, oe, oe_next);
+	else
+		STAILQ_INSERT_AFTER(head, after, oe, oe_next);
 
 	return (oe);
 }
@@ -212,12 +216,15 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 
 	HASH_ADD_KEYPTR(hh, lo->lo_ostbl, os->os_name, strlen(os->os_name), os);
 
-	if (after == NULL)
+	if (after == NULL) {
 		STAILQ_INSERT_TAIL(&lo->lo_oslist, os, os_next);
-	else
+		os->os_pe = ld_output_create_element(ld, &lo->lo_oelist,
+		    OET_OUTPUT_SECTION, os, NULL);
+	} else {
 		STAILQ_INSERT_AFTER(&lo->lo_oslist, after, os, os_next);
-
-	ld_output_create_element(ld, &lo->lo_oelist, OET_OUTPUT_SECTION, os);
+		os->os_pe = ld_output_create_element(ld, &lo->lo_oelist,
+		    OET_OUTPUT_SECTION, os, after->os_pe);
+	}
 
 	return (os);
 }

@@ -55,7 +55,8 @@ struct ld_output_section {
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
-	struct ld_output_element_head os_e; /* output section elements */
+	struct ld_output_element *os_pe;    /* parent element */
+	struct ld_output_element_head os_e; /* list of child elements */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
 };
@@ -77,7 +78,8 @@ struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
     struct ld_output_section *);
 void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
-    struct ld_output_element_head *, enum ld_output_element_type, void *);
+    struct ld_output_element_head *, enum ld_output_element_type, void *,
+    struct ld_output_element *);
 void	ld_output_determine_arch(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);

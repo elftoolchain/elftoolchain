@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,11 +69,11 @@ ld_layout_sections(struct ld *ld)
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
 			ld_output_create_element(ld, &lo->lo_oelist, OET_ASSERT,
-			    ldc->ldc_cmd);
+			    ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ASSIGN:
 			ld_output_create_element(ld, &lo->lo_oelist, OET_ASSIGN,
-			    ldc->ldc_cmd);
+			    ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ENTRY:
 			/* TODO */
@@ -153,12 +153,12 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 				if (!first)
 					break;
 				ld_output_create_element(ld, &lo->lo_oelist,
-				    OET_ASSIGN, ldc->ldc_cmd);
+				    OET_ASSIGN, ldc->ldc_cmd, NULL);
 			case LSC_ASSIGN:
 				if (!first)
 					break;
 				ld_output_create_element(ld, &lo->lo_oelist,
-				    OET_ASSIGN, ldc->ldc_cmd);
+				    OET_ASSIGN, ldc->ldc_cmd, NULL);
 				break;
 			case LSC_ENTRY:
 				/* TODO */
@@ -226,17 +226,17 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 		case LSC_ASSERT:
 			if (new_section)
 				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_ASSERT, ldc->ldc_cmd);
+				    OET_ASSERT, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ASSIGN:
 			if (new_section)
 				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_ASSIGN, ldc->ldc_cmd);
+				    OET_ASSIGN, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_DATA:
 			if (new_section)
 				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_DATA, ldc->ldc_cmd);
+				    OET_DATA, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_INPUT:
 			if (new_section) {
@@ -245,13 +245,13 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 					ld_fatal_std(ld, "calloc");
 				STAILQ_INIT(islist);
 				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_INPUT_SECTION_LIST, islist);
+				    OET_INPUT_SECTION_LIST, islist, NULL);
 			}
 			break;
 		case LSC_SECTIONS_OUTPUT_KEYWORD:
 			if (new_section)
 				ld_output_create_element(ld, &os->os_e,
-				    OET_KEYWORD, ldc->ldc_cmd);
+				    OET_KEYWORD, ldc->ldc_cmd, NULL);
 			break;
 		default:
 			ld_fatal(ld, "internal: invalid output section "
@@ -355,7 +355,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			ld_fatal_std(ld, "calloc");
 		STAILQ_INIT(islist);
 		oe = ld_output_create_element(ld, &_os->os_e,
-		    OET_INPUT_SECTION_LIST, islist);
+		    OET_INPUT_SECTION_LIST, islist, NULL);
 		_insert_input_to_output(_os, is, oe->oe_entry);
 	}
 }
