@@ -462,7 +462,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * alignment.
 	 */
 	os->os_addr = roundup(addr, os->os_align);
-	os->os_off = ls->ls_offset + (os->os_addr - addr);
+	os->os_off = roundup(ls->ls_offset, os->os_align);
 	os->os_size = ls->ls_loc_counter;
 	printf("layout output section %s: (off:%#jx,size:%#jx) "
 	    "vma:%#jx,align:%#jx\n", os->os_name, os->os_off, os->os_size,
