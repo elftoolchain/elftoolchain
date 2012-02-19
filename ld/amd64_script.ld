@@ -61,9 +61,13 @@ SECTIONS {
 	.rodata		: { *(.rodata .rodata.* .gnu.linkonce.r.*) }
 	.rodata1	: { *(.rodata1) }
 	.eh_frame_hdr	: { *(.eh_frame_hdr) }
+	.eh_frame	: { KEEP(*(.eh_frame)) }
+	.gcc_except_table   : { *(.gcc_except_table) }
 	. = ALIGN (0x100000) - ((0x100000 - .) & (0x100000 - 1));
 	. = DATA_SEGMENT_ALIGN (0x100000, 0x1000);
 	. = ALIGN(64 / 8);
+	.tdata		: { *(.tdata .tdata.* .gnu.linkonce.td.*) }
+	.tbss		: { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
 	PROVIDE(__preinit_array_start = .);
 	.preinit_array	: { *(.preinit_array) }
 	PROVIDE(__preinit_array_end = .);
@@ -73,16 +77,6 @@ SECTIONS {
 	PROVIDE(__fini_array_start = .);
 	.fini_array	: { *(.fini_array) }
 	PROVIDE(__fini_array_end = .);
-	.data		:
-	{
-		*(.data .data.* .gnu.linkonce.d.*)
-		SORT(CONSTRUCTORS)
-	}
-	.data1		: { *(.data1) }
-	.tdata		: { *(.tdata .tdata.* .gnu.linkonce.td.*) }
-	.tbss		: { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
-	.eh_frame	: { KEEP(*(.eh_frame)) }
-	.gcc_except_table   : { *(.gcc_except_table) }
 	.dynamic	: { *(.dynamic) }
 	.ctors		:
 	{
@@ -100,6 +94,12 @@ SECTIONS {
 	}
 	.jcr		: { KEEP(*(.jcr)) }
 	.got		: { *(.got.plt) *(.got) }
+	.data		:
+	{
+		*(.data .data.* .gnu.linkonce.d.*)
+		SORT(CONSTRUCTORS)
+	}
+	.data1		: { *(.data1) }
 	_edata = .;
 	PROVIDE(edata = .);
 	__bss_start = .;
