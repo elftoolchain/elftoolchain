@@ -1872,11 +1872,11 @@ ar(1) archive pictorially.
       rectangle,
       draw,
       text centered,
-      text width=6.5em,
+      text width=6.45em,
       node distance=0pt,
       minimum height=2em
     },
-    header/.style={             % Boxes denoting archive headers.
+    arhdr/.style={             % Boxes denoting archive headers.
       rectangle,
       draw,
       fill=black!25,
@@ -1892,22 +1892,23 @@ ar(1) archive pictorially.
       text width=4.2em,
       draw,
       fill=black!15,
-      node distance=0pt
+      node distance=0pt,
+      font=\ttfamily
     }]
 
     % Depict the structure of the archive.
-    \node[header,fill=black!50] (magic) {};
-    \node[header] (s0) [right=of magic] {};
-    \node[file,text width=1em]   (symtab) [right=of s0] {\texttt{/}};
-    \node[header] (s1) [right=of symtab] {};
-    \node[file, text width=1em]   (strtab) [right=of s1] {\texttt{//}};
-    \node[header] (h0) [right=of strtab] {};
-    \node[file]   (f0) [right=of h0] {File 0};
-    \node[header] (h1) [right=of f0] {};
-    \node[file]   (f1) [right=of h1] {File 1};
-    \node[header] (h2) [right=of f1] {};
-    \node[file]   (f2) [right=of h2] {File 2};
-    \node[header] (h3) [right=of f2] {};
+    \node[arhdr,fill=black!50] (magic) {};
+    \node[arhdr] (s0) [right=of magic] {};
+    \node[file,text width=1.2em]   (symtab) [right=of s0] {``/''};
+    \node[arhdr] (s1) [right=of symtab] {};
+    \node[file, text width=1.6em]  (strtab) [right=of s1] {``$/\!/$''};
+    \node[arhdr] (h0) [right=of strtab] {};
+    \node[file]  (f0) [right=of h0] {File 0};
+    \node[arhdr] (h1) [right=of f0] {};
+    \node[file]  (f1) [right=of h1] {File 1};
+    \node[arhdr] (h2) [right=of f1] {};
+    \node[file]  (f2) [right=of h2] {File 2};
+    \node[arhdr] (h3) [right=of f2] {};
     \node[file,text width=1em] (f3) [right=of h3] {$\ldots$};
 
     % Label the elements of the archive.
@@ -1930,12 +1931,12 @@ ar(1) archive pictorially.
     % Show the internal structure of an archive header.
     \node[hdr] (arfmag) [above=2.2em of h2.north]
         {\texttt{ar\_fmag}};
-    \node[hdr] (arsize) [above=of arfmag.north] {\texttt{ar\_size}};
-    \node[hdr] (armode) [above=of arsize.north] {\texttt{ar\_mode}};
-    \node[hdr] (argid) [above=of armode.north] {\texttt{ar\_gid}};
-    \node[hdr] (aruid) [above=of argid.north] {\texttt{ar\_uid}};
-    \node[hdr] (ardate) [above=of aruid.north] {\texttt{ar\_date}};
-    \node[hdr] (arname) [above=of ardate.north] {\texttt{ar\_name}};
+    \node[hdr] (arsize) [above=of arfmag.north] {ar\_size};
+    \node[hdr] (armode) [above=of arsize.north] {ar\_mode};
+    \node[hdr] (argid)  [above=of armode.north] {ar\_gid};
+    \node[hdr] (aruid)  [above=of argid.north]  {ar\_uid};
+    \node[hdr] (ardate) [above=of aruid.north]  {ar\_date};
+    \node[hdr] (arname) [above=of ardate.north] {ar\_name};
 
     % Draw "expansion" lines.
     \draw[shorten >=1pt, shorten <=1pt] ([yshift=1.2pt] h1.north east)
@@ -2015,7 +2016,7 @@ through an ar(1) archive.%
       rectangle,
       draw,
       text centered,
-      text width=6.5em,
+      text width=6.45em,
       node distance=0pt,
       minimum height=2em
     },
@@ -2035,9 +2036,9 @@ through an ar(1) archive.%
     % Depict the structure of the archive pictorially.
     \node[header,fill=black!50] (magic) {};
     \node[header] (s0) [right=of magic] {};
-    \node[file,text width=1em]   (symtab) [right=of s0] {\texttt{/}};
+    \node[file,text width=1.2em] (symtab) [right=of s0] {``/''};
     \node[header] (s1) [right=of symtab] {};
-    \node[file, text width=1em]   (strtab) [right=of s1] {\texttt{//}};
+    \node[file,text width=1.6em] (strtab) [right=of s1] {``$/\!/$''};
     \node[header] (h0) [right=of strtab] {};
     \node[file]   (f0) [right=of h0] {File 0};
     \node[header] (h1) [right=of f0] {};
