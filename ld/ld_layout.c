@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_exp.h"
 #include "ld_file.h"
 #include "ld_script.h"
 #include "ld_input.h"
@@ -47,6 +48,9 @@ static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
+static void _parse_output_section_descriptor(struct ld *ld,
+    struct ld_output_section *os);
+static void _set_output_section_loadable_flag(struct ld_output_section *os);
 static int _wildcard_match(struct ld_wildcard *lw, const char *string);
 static int _wildcard_list_match(struct ld_script_list *list,
     const char *string);
@@ -197,6 +201,27 @@ _wildcard_list_match(struct ld_script_list *list, const char *string)
 }
 
 static void
+_set_output_section_loadable_flag(struct ld_output_section *os)
+{
+	struct ld_script_sections_output *ldso;
+	struct ld_exp *le;
+
+	if ((ldso = os->os_ldso) == NULL)
+		return;
+
+	if (ldso->ldso_vma == NULL)
+		os->os_flags |= SHF_ALLOC;
+	else {
+		le = ldso->ldso_vma;
+		if (le->le_op != LEOP_CONSTANT || le->le_val != 0)
+			os->os_flags |= SHF_ALLOC;
+	}
+
+	if (ldso->ldso_type != NULL && strcmp(ldso->ldso_type, "NOLOAD") == 0)
+		os->os_flags &= ~SHF_ALLOC;
+}
+
+static void
 _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso)
 {
@@ -217,6 +242,8 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	HASH_FIND_STR(lo->lo_ostbl, ldso->ldso_name, os);
 	if (os == NULL) {
 		os = ld_output_alloc_section(ld, ldso->ldso_name, NULL);
+		os->os_ldso = ldso;
+		_set_output_section_loadable_flag(os);
 		new_section = 1;
 	} else
 		oe = STAILQ_FIRST(&os->os_e);
@@ -351,9 +378,12 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		}
 
 		_os = ld_output_alloc_section(ld, is->is_name, os);
+		_os->os_flags |= is->is_flags & SHF_ALLOC;
+
 		if ((islist = calloc(1, sizeof(*islist))) == NULL)
 			ld_fatal_std(ld, "calloc");
 		STAILQ_INIT(islist);
+
 		oe = ld_output_create_element(ld, &_os->os_e,
 		    OET_INPUT_SECTION_LIST, islist, NULL);
 		_insert_input_to_output(_os, is, oe->oe_entry);
@@ -366,7 +396,8 @@ _insert_input_to_output(struct ld_output_section *os,
 {
 
 	is->is_orphan = 0;
-	os->os_flags |= is->is_flags;
+
+	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
 	if (is->is_align > os->os_align) {
 		os->os_align = is->is_align;
 		printf("os->os_align=%ju\n", os->os_align);
@@ -374,6 +405,26 @@ _insert_input_to_output(struct ld_output_section *os,
 	if (os->os_type == SHT_NULL)
 		os->os_type = is->is_type;
 	STAILQ_INSERT_TAIL(islist, is, is_next);
+}
+
+static void
+_parse_output_section_descriptor(struct ld *ld, struct ld_output_section *os)
+{
+	struct ld_script_sections_output *ldso;
+
+	if ((ldso = os->os_ldso) == NULL)
+		return;
+
+	if (ldso->ldso_vma != NULL)
+		os->os_addr = ld_exp_eval(ld, ldso->ldso_vma);
+
+	if (ldso->ldso_lma != NULL)
+		os->os_lma = ld_exp_eval(ld, ldso->ldso_lma);
+
+	if (ldso->ldso_align != NULL)
+		os->os_align = ld_exp_eval(ld, ldso->ldso_align);
+
+	/* TODO: handle other output section parameters. */
 }
 
 static void
@@ -397,6 +448,7 @@ _calc_offset(struct ld *ld)
 			ld_script_process_assign(ld, oe->oe_entry);
 			break;
 		case OET_OUTPUT_SECTION:
+			_parse_output_section_descriptor(ld, oe->oe_entry);
 			_calc_output_section_offset(ld, oe->oe_entry);
 			break;
 		default:
@@ -461,14 +513,23 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * Properly align section vma and offset to the required section
 	 * alignment.
 	 */
-	os->os_addr = roundup(addr, os->os_align);
+
+	if (os->os_flags & SHF_ALLOC) {
+		if (os->os_ldso == NULL || os->os_ldso->ldso_vma == NULL)
+			os->os_addr = roundup(addr, os->os_align);
+	} else
+		os->os_addr = 0;
+
 	os->os_off = roundup(ls->ls_offset, os->os_align);
 	os->os_size = ls->ls_loc_counter;
+
 	printf("layout output section %s: (off:%#jx,size:%#jx) "
 	    "vma:%#jx,align:%#jx\n", os->os_name, os->os_off, os->os_size,
 	    os->os_addr, os->os_align);
+
 	ls->ls_offset = os->os_off + os->os_size;
 
 	/* Reset location counter to the current VMA. */
-	ls->ls_loc_counter = os->os_addr + os->os_size;
+	if (os->os_flags & SHF_ALLOC)
+		ls->ls_loc_counter = os->os_addr + os->os_size;
 }

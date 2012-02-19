@@ -50,11 +50,14 @@ struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */
 	char *os_name;			/* output section name */
 	uint64_t os_addr;		/* output section vma */
+	uint64_t os_lma;		/* output section lma */
 	uint64_t os_off;		/* output section offset */
 	uint64_t os_size;		/* output section size */
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
+	struct ld_script_sections_output *os_ldso;
+					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
 	struct ld_output_element_head os_e; /* list of child elements */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
