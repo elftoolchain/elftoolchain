@@ -169,6 +169,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 				break;
 			case LSC_SECTIONS_OUTPUT:
 				_layout_output_section(ld, li, ldc->ldc_cmd);
+				break;
 			case LSC_SECTIONS_OVERLAY:
 				/* TODO */
 				break;
@@ -176,9 +177,11 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 				break;
 			}
 		}
-		_layout_orphan_section(ld, li);
 		first = 0;
 	}
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next)
+		_layout_orphan_section(ld, li);
 }
 
 static int
@@ -364,12 +367,14 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			if ((os->os_flags & SHF_ALLOC) !=
 			    (is->is_flags & SHF_ALLOC))
 				continue;
+
 			if (os->os_flags == is->is_flags) {
 				_os = STAILQ_NEXT(os, os_next);
 				if (_os == NULL ||
 				    _os->os_flags != is->is_flags)
 					break;
 			}
+
 			_os = STAILQ_NEXT(os, os_next);
 			if (_os == NULL &&
 			    (_os->os_flags & SHF_ALLOC) !=
@@ -398,12 +403,13 @@ _insert_input_to_output(struct ld_output_section *os,
 	is->is_orphan = 0;
 
 	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
-	if (is->is_align > os->os_align) {
+
+	if (is->is_align > os->os_align)
 		os->os_align = is->is_align;
-		printf("os->os_align=%ju\n", os->os_align);
-	}
+
 	if (os->os_type == SHT_NULL)
 		os->os_type = is->is_type;
+
 	STAILQ_INSERT_TAIL(islist, is, is_next);
 }
 
