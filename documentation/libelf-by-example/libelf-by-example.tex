@@ -42,7 +42,7 @@
 \usepackage[colorlinks=true,linkcolor=blue]{hyperref}
 
 % TikZ configuration.
-\usetikzlibrary{arrows,positioning,shapes.multipart}
+\usetikzlibrary{arrows,chains,positioning,shapes.multipart}
 \tikzset{every picture/.style={
   >=latex'                      % LaTeX style arrows.
   }
@@ -504,10 +504,47 @@ content in the form of ELF \firstterm{program header table}
   sections}\index{sections} (see figure \vref{fig.elf.layout}).
 
 \begin{figure}
+  \begin{tikzpicture}[
+    start chain,
+    node distance=0pt,
+    elfpart/.style={
+      rectangle,
+      draw,
+      minimum height=3\baselineskip,
+      font=\small,
+      text width=3.5em
+    },
+    gap/.style={
+      draw,
+      minimum height=3\baselineskip,
+      minimum width=0.5ex
+    }]
+
+    % Depict the structure of an ELF object.
+    \node[on chain,elfpart,text width=4.4em,fill=black!15] (ehdr)
+      {Executable Header};
+    \node[on chain,gap]     (g0) {};
+    \node[on chain,elfpart,fill=black!5] (phdr) {Program Header Table};
+    \node[on chain,gap]     (g1) {};
+    \node[on chain,elfpart,fill=black!5]   (s0) {Section Data$_{(1)}$};
+    \node[on chain,gap]       (gl0) {};
+    \node[on chain,elfpart,text centered,fill=black!5] (sdots) {\ldots};
+    \node[on chain,gap]    (gl1) {};
+    \node[on chain,elfpart,fill=black!5] (sn) {Section Data$_{(n)}$};
+    \node[on chain,gap]       (g3) {};
+    \node[on chain,elfpart,fill=black!15,fill=black!5] (shdr)
+      {Section Header Table};
+
+    % Label the gaps needed for alignments.
+    \node[below=2em of sdots,text width=10em]
+      {Possible gaps due to alignment constraints.}
+      edge [->] ([yshift=-1pt] g0.south)
+      edge [->] ([yshift=-1pt] g1.south)
+      edge [->] ([yshift=-1pt] gl0.south)
+      edge [->] ([yshift=-1pt] gl1.south)
+      edge [->] ([yshift=-1pt] g3.south);
+  \end{tikzpicture}
   \caption{The layout of a typical ELF File.}\label{fig.elf.layout}
-  \begin{center}
-    \includegraphics[scale=.75]{fig-elflayout}
-  \end{center}
 \end{figure}
 
 \begin{itemize}
