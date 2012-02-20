@@ -11,7 +11,6 @@ SRCS=			libelf-by-example.tex prog1.txt prog2.txt prog3.txt \
 			prog4.txt prog5.txt prog6.txt
 
 IMAGES_MP=		fig-data.mp \
-			fig-filemem.mp \
 			fig-phdrlayout.mp \
 			fig-scn.mp fig-shdrlayout.mp fig-strtab.mp
 

@@ -835,10 +835,80 @@ different set of rules for alignment.  The endianness of the data
 in-file could be different from that of the in-memory representation.
 
 \begin{figure}
-  \caption{File and Memory Representations.}\label{fig.representations}
-  \begin{center}
-    \includegraphics{fig-filemem}
-  \end{center}
+  \begin{tikzpicture}[
+    start chain,
+    node distance=0pt,
+    ef/.style={
+      on chain,
+      draw,
+      minimum height=1.2\baselineskip,
+      text centered
+    }]
+
+    % Helper macros.
+    \def\l#1#2#3{ \draw[-] ([yshift=#2] #1) -- +(90:#3) }
+    \def\sz#1#2#3#4{
+        \draw[<->] ([yshift=#3] #1) -- node [auto] {\small #4 }
+          ([yshift=#3] #2)
+      }
+
+    % Draw a skeletal ELF object.
+    \node[ef,text width=3em] (ehdr) {};
+    \node[ef,text width=8em] (g0) {};
+    \node[ef,text width=2em,fill=black!15] (file) {};
+    \node[ef,text width=8em] (g1) {};
+    \node[ef,text width=3em] (shdr) {};
+
+    % Label the ELF object as a whole.
+    \node[left=3em of ehdr.west,text width=3em] { ELF object }
+      edge [->,shorten >=1pt] (ehdr.west);
+
+    % Label the box denoting the file representation of data.
+    \node[above=2em of ehdr.north east] {In-file representation}
+      edge [->,shorten >=1pt] (file.center);
+
+    % Place tick marks around the file representation box.
+    \l{file.north west}{1pt}{0.3cm};
+    \l{file.north east}{1pt}{0.3cm};
+    \l{file.south west}{-1pt}{-0.5cm};
+
+    % Show the size of the file representation and its alignment.
+    \draw[<->,shorten >=1pt,shorten <=1pt]
+      ([yshift=0.25cm] file.north west) --
+      node [above=0.75ex,text centered,text width=5em] {file size}
+      ([yshift=0.25cm] file.north east);
+    \node[below right=0.2cm and 0cm of file.south west] {\%falign};
+
+    % Draw and label the memory representation of the data.
+    \node[below=2cm of file.south,minimum width=6em,
+       minimum height=1.2\baselineskip,draw,fill=black!5]
+      (mem) { };
+    \node[left=1.8cm of mem]
+      {In-memory representation}
+      edge [->,semithick,shorten >=1pt] (mem.center);
+
+    % Show the memory alignment.
+    \l{mem.north west}{1pt}{0.5cm};
+    \node[above right=0.15cm and 0cm of mem.north west] {\%malign};
+
+    % Indicate the memory size.
+    \l{mem.south west}{-1pt}{-0.3cm};
+    \l{mem.south east}{-1pt}{-0.3cm};
+    \draw[<->,shorten >=1pt,shorten <=1pt]
+      ([yshift=-0.25cm] mem.south west) --
+      node [below=0.75ex] {memory size}
+      ([yshift=-0.25cm] mem.south east);
+
+    % Draw the arrows denoting translation between file and memory.
+    \draw[->,semithick,shorten >=1pt,shorten <=1pt] (file.south east) ..
+      controls ++(1,-.5) and ++(2,0.5) ..
+      (mem.north east) node[midway,right=1ex] {xlatetom()} ;
+    \draw[<-,semithick,shorten >=1pt,shorten <=1pt] (file.south west) ..
+      controls ++(-1,-.5) and ++(-2,0.5) ..
+      (mem.north west) node[midway,left=1ex] {xlatetof()} ;
+  \end{tikzpicture}
+  \caption{The relationship between the file and memory representation
+    of an ELF data structure.}\label{fig.representations}
 \end{figure}
 
 Figure \vref{fig.representations} depicts the relationship between the
