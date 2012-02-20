@@ -1771,10 +1771,77 @@ representation.%
 \index{Elf_Data@\type{Elf\_Data}!describing application memory}
 
 \begin{figure}
-  \begin{center}
-    \includegraphics{fig-data}
-  \end{center}
-  \caption{\type{Elf\_Data} descriptors.}\label{fig.elf.data}
+  \begin{tikzpicture}[
+    eh/.style={
+      text width=1.25cm,
+      text height=1.2cm,
+      draw
+    }]
+
+    \node[text width=2cm,minimum height=1.5\baselineskip,font=\ttfamily,
+      draw,rounded corners,fill=black!10,text centered]
+      (data) {Elf\_Data};
+    \node[node distance=0pt,right=of data] {An \texttt{Elf\_Data} descriptor};
+
+    % Draw the memory representation of the data.
+    \node[below right=2.3cm of data.south,text width=1.25cm,text height=2.5cm,
+      draw,fill=black!15] (mem) {};
+    % .. and label it.
+    \node[below=1ex of mem.south] {Memory buffer};
+
+    % Place tick marks.
+    \coordinate (a0) at ([xshift=-0.3cm] mem.north west);
+    \coordinate (a1) at ([xshift=-0.3cm] mem.south west);
+
+    \draw[-,shorten >=1pt] (a0) -- (mem.north west);
+    \draw[-,shorten >=1pt] (a1) -- (mem.south west);
+    \draw[<->,shorten >=1pt,shorten <=1pt] ([xshift=0.15cm] a0) --
+      ([xshift=0.15cm] a1) node [midway,left] {d\_size};
+
+    % Link the Elf_Data descriptor to the memory buffer.
+    \draw[->,bend right=45,shorten >=1pt] (data) .. controls +(0,-2)
+      and +(-.5,0) .. (a0) node[left=1ex,midway] {d\_buf};
+
+    % Draw the ELF object.
+    \begin{scope}[
+      node distance=0pt
+      ]
+      \node[eh,right=1.8cm of mem,fill=black!15] (e1) {};
+      \node[eh,above=of e1] (e0) {};
+      \node[eh,below=of e1] (e2) {};
+    \end{scope}
+
+    % Label the ELF object.
+    \node[below=1.5ex of e2.south] {A section in an ELF object.};
+
+    % Place tick marks and the d_align label.
+    \foreach \c in {0,1,2} {
+      \coordinate (b\c) at ([xshift=-.3cm] e\c.north west);
+      \draw[-,shorten >=1pt] (b\c) -- (e\c.north west);
+    };
+
+    \draw[-,shorten <=1pt] (e0.north east) -- +(.3cm,0);
+    \draw[-,shorten <=1pt] (e1.north east) -- +(.3cm,0)
+      node[right] {\%d\_align};
+
+    % Place other labels.
+    \node[right=2em of e0.east] {Start of the section.}
+      edge [->,shorten >=1pt] ([xshift=.3cm] e0.north east);
+
+    \draw[<->,shorten >=1pt,shorten <=1pt] ([xshift=.15cm] b0) --
+      ([xshift=.15cm] b1) node [midway,left] {d\_off};
+
+    \node[right=2em of e2.east,text width=8em]
+      {The file representation of the data in memory.}
+      edge [->] (e1.center);
+
+    % Link the memory and file representations.
+    \draw[->,shorten >=1pt,shorten <=1pt] (mem.north east) .. controls +(1,0)
+      and +(-1,0) .. (b1);
+    \draw[->,shorten >=1pt,shorten <=1pt] (mem.south east) .. controls +(1,0)
+      and +(-1,0) .. (b2);
+  \end{tikzpicture}
+  \caption{How \type{Elf\_Data} descriptors work.}\label{fig.elf.data}
 \end{figure}
 
 Listing~\vref{fig.elf.scn-data.decl} shows the C definition of the
