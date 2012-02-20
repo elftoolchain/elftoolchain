@@ -705,11 +705,58 @@ header using a ``C-like'' notation.%
     \index{executable~header!executable architecture}
 
   \begin{figure}
-    \caption{The ELF Executable Header and Object Layout.}
+    \begin{tikzpicture}[
+      start chain,
+      node distance=0pt,
+      ei/.style={
+        on chain,
+        draw,
+        fill=black!#1,
+        minimum height=1.2\baselineskip,
+        text centered
+      }]
+
+      % Draw the major parts of the ELF object.
+      \node[ei=15,text width=2cm] (ehdr) { Ehdr };
+      \node[ei=0,text width=1.5em] (gap0) {};
+      \node[ei=5,text width=3.2cm] (phdr) { Phdr };
+      \node[ei=0,text width=5em] (gap1) {};
+      \node[ei=5,text width=3.2cm] (shdr) { Shdr };
+
+      % Draw the marks.
+      \def\l#1#2#3{ \draw[-] ([yshift=#2] #1) -- +(90:#3) }; % Helper.
+
+      \l{ehdr.north west}{1pt}{0.5cm};
+      \l{ehdr.south west}{-1pt}{-1.2cm};
+      \l{ehdr.north east}{1pt}{0.5cm};
+
+      \l{phdr.south west}{-1pt}{-0.67cm};
+      \l{phdr.north west}{1pt}{0.5cm};
+      \l{phdr.north east}{1pt}{0.5cm};
+
+      \l{shdr.north west}{1pt}{0.5cm};
+      \l{shdr.north east}{1pt}{0.5cm};
+      \l{shdr.south west}{-1pt}{-1.2cm};
+
+      % Render the labels.
+      \def\sz#1#2#3#4{          % Helper macro.
+        \draw[<->] ([yshift=#3] #1) -- node [auto] {\small #4 }
+          ([yshift=#3] #2)
+      }
+
+      \sz{ehdr.north west}{ehdr.north east}{0.44cm}{e\_ehsize};
+      \sz{phdr.north west}{phdr.north east}{0.44cm}%
+        {N\raisebox{-1ex}{phdr} $\times$ e\_phentsize};
+      \sz{shdr.north west}{shdr.north east}{0.44cm}%
+        {N\raisebox{-1ex}{shdr} $\times$ e\_shentsize};
+
+      \sz{ehdr.south west}{phdr.south west}{-0.6cm}{e\_phoff};
+      \sz{ehdr.south west}{shdr.south west}{-1.1cm}{e\_shoff};
+
+    \end{tikzpicture}
+    \caption{The ELF Executable Header describes the layout of the
+      rest of the ELF object.}
     \label{fig.elf.ehdr-layout}
-    \begin{center}
-      \includegraphics[scale=.85]{fig-elfhdrlayout}
-    \end{center}
   \end{figure}
 
   \item[\coref{4} \coref{5}] The ELF executable header also describes
