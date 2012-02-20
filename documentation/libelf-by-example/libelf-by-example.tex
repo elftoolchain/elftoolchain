@@ -1564,9 +1564,67 @@ an ELF section header specify the section's placement.%
 \end{callout}
 
 \begin{figure}
-  \begin{center}
-    \includegraphics[scale=.85]{fig-shdrlayout}
-  \end{center}
+  \begin{tikzpicture}[
+    start chain=1 going right,
+    start chain=2 going below,
+    node distance=0pt,
+    ef/.style={
+      on chain=1,
+      draw,
+      minimum height=1.4\baselineskip,
+      text centered
+    },
+    sh/.style={
+      on chain=2,
+      draw,
+      text width=6.2em,
+      fill=black!15,
+      font=\ttfamily
+    }]
+
+    % Helper macros.
+    \def\l#1#2#3{ \draw[-] ([yshift=#2] #1) -- +(90:#3) }
+    \def\sz#1#2#3#4{
+        \draw[<->] ([yshift=#3] #1) -- node [auto] {\small #4 }
+          ([yshift=#3] #2)
+        }
+
+    % Draw a ELF object with a highlighted SHDR entry.
+    \node[on chain=1,text width=5 em] {ELF object};
+    \node[ef,text width=4em,fill=black!10] (ehdr) {Ehdr};
+    \node[ef,text width=4em] (g0) {};
+    \node[ef,text width=5em,fill=black!10] (sec)
+      {Section${}_n$};
+    \node[ef,text width=4em] (g1) {};
+    \node[ef,text width=4em,fill=black!10] (shdr) {Shdr};
+    \node[ef,text width=0.1ex,fill=black!25] (sh0) { };
+    \node[ef,text width=1ex,fill=black!10] {};
+
+    % Draw the marks and label sizes and offsets.
+    \l{ehdr.south west}{-1pt}{-0.6cm};
+    \l{sec.south west}{-1pt}{-0.6cm};
+    \l{sec.north west}{1pt}{0.5cm};
+    \l{sec.south east}{-1pt}{-0.6cm};
+
+    \node[above right=0.2cm and 0.4cm of sec.north west] {\%sh\_addralign}
+      edge [->,shorten >=1pt] ([yshift=0.25cm] sec.north west);
+    \sz{ehdr.south west}{sec.south west}{-0.55cm}{sh\_offset};
+    \sz{sec.south west}{sec.south east}{-0.55cm}{sh\_size};
+
+    % Draw the expanded section header entry.
+    \node[sh,below=1cm of g1.south east] (shtop) {sh\_type};
+    \node[sh] {sh\_size};
+    \node[sh] {sh\_addralign};
+    \node[sh] {sh\_offset};
+    \node[sh,text centered] (shbot) {\dots};
+    \node[below=1ex of shbot.south] {Section Header Table Entry};
+
+    % Draw the expansion lines.
+    \draw [-,shorten <=2pt] (shtop.north west) --
+      ([yshift=-1.2pt] sh0.south west);
+    \draw [-,shorten <=2pt] (shbot.south east) --
+      ([yshift=-1pt] sh0.south east);
+  \end{tikzpicture}
   \caption{Section layout.}\label{fig.elf.shdrlayout}
 \end{figure}
 
