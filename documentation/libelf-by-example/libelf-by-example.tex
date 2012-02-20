@@ -1777,7 +1777,7 @@ representation.%
   \caption{\type{Elf\_Data} descriptors.}\label{fig.elf.data}
 \end{figure}
 
-Figure~\vref{fig.elf.scn-data.decl} shows the C definition of the
+Listing~\vref{fig.elf.scn-data.decl} shows the C definition of the
 \type{Elf\_Scn} \index{Elf_Scn@\type{Elf\_Scn}!definition~of} and
 \type{Elf\_Data} \index{Elf_Data@\type{Elf\_Data}!definition~of}
 descriptors.
@@ -1785,7 +1785,7 @@ descriptors.
 \begin{callout}{data}
   \begin{lstlisting}[caption=Definition of Elf\_Data and Elf\_Scn,
       label=fig.elf.scn-data.decl, basicstyle=\small\ttfamily]
-typedef struct _Elf_Scn Elf_Scn;   @\co{1}@ 
+typedef struct _Elf_Scn Elf_Scn;   @\co{1}@
 typedef struct _Elf_Data {
         /*
          * `Public' members that are part of the ELF(3) API.
