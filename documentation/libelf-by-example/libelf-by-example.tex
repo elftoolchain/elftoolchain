@@ -1146,11 +1146,84 @@ a program header table entry specify the segment's placement in file
 and in memory.
 
 \begin{figure}
-  \caption{ELF Segment Placement.}\label{fig.elf.phdr.layout}
   \index{program~header!table!layout}
-  \begin{center}
-    \includegraphics[scale=.85]{fig-phdrlayout}
-  \end{center}
+  \begin{tikzpicture}[
+    start chain=1 going right,
+    start chain=2 going above,
+    node distance=0pt,
+    ef/.style={
+      on chain=1,
+      draw,
+      minimum height=1.4\baselineskip,
+      text centered
+    },
+    ph/.style={
+      on chain=2,
+      draw,
+      text width=4.2em,
+      fill=black!15,
+      font=\ttfamily
+    }]
+
+    % Helper macros.
+    \def\l#1#2#3{ \draw[-] ([yshift=#2] #1) -- +(90:#3) }
+    \def\sz#1#2#3#4{
+        \draw[<->] ([yshift=#3] #1) -- node [auto] {\small #4 }
+          ([yshift=#3] #2)
+        }
+
+    % Draw a ELF object with a highlighted PHDR entry.
+    \node[on chain=1,text width=5 em] {ELF object};
+    \node[ef,text width=4em,fill=black!10] (ehdr) {Ehdr};
+    \node[ef,text width=1.5ex] (g0) {};
+    \node[ef,text width=4em,fill=black!10] (Phdr) {Phdr};
+    \node[ef,text width=0.5ex,fill=black!25] (p0) { };
+    \node[ef,text width=1ex,fill=black!10] (p1) { };
+    \node[ef,text width=4em] (g1) {};
+    \node[ef,text width=5em,fill=black!10] (seg)
+      {Segment${}_n$};
+    \node[ef,text width=4em] (shdr) {};
+
+    % Draw the marks and label sizes and offsets.
+    \l{ehdr.south west}{-1pt}{-0.6cm};
+    \l{seg.south west}{-1pt}{-0.6cm};
+    \l{seg.south east}{-1pt}{-0.6cm};
+    \l{seg.north west}{1pt}{0.5cm};
+    \node[above right=0.2cm and .5cm of seg.north west] {\%p\_align}
+      edge[->,shorten >=1pt] ([yshift=0.25cm] seg.north west);
+
+    \sz{ehdr.south west}{seg.south west}{-0.55cm}{p\_offset};
+    \sz{seg.south west}{seg.south east}{-0.55cm}{p\_filesz};
+
+    % Draw the segment in memory.
+    \node[above right=2cm and 0cm of seg.north west,draw,fill=black!10]
+      (segmem) {Segment${}_n$ in memory};
+    \l{segmem.north west}{1pt}{0.3cm};
+    \node[above=2em of segmem.north] {p\_vaddr}
+      edge [->,shorten >=1pt] ([yshift=0.15cm] segmem.north west);
+    \l{segmem.south west}{-1pt}{-0.6cm};
+    \l{segmem.south east}{-1pt}{-0.6cm};
+    \sz{segmem.south west}{segmem.south east}{-0.55cm}{p\_memsz};
+
+    % Draw the expanded segment.
+    \node[ph,above=1cm of g0.north,text centered] (phbot) {\dots};
+    \node[ph] {p\_align};
+    \node[ph] {p\_memsiz};
+    \node[ph] {p\_filesz};
+    \node[ph] {p\_vaddr};
+    \node[ph] {p\_offset};
+    \node[ph] (phtop) {p\_type};
+
+    \node[above=1ex of phtop.north] {Program Header Table Entry};
+
+    % Draw the expansion lines.
+    \draw [-,shorten >=1pt,shorten <=2pt] (phbot.south west) --
+      ([yshift=1pt] p0.north west);
+    \draw [-,shorten >=1pt,shorten <=2pt] (phtop.north east) --
+      ([yshift=1pt] p0.north east);
+
+  \end{tikzpicture}
+  \caption{ELF Segment Placement.}\label{fig.elf.phdr.layout}
 \end{figure}
 
 The structure of each program header table entry is shown in
