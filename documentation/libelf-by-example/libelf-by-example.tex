@@ -42,7 +42,7 @@
 \usepackage[colorlinks=true,linkcolor=blue]{hyperref}
 
 % TikZ configuration.
-\usetikzlibrary{arrows,chains,positioning,shapes.multipart}
+\usetikzlibrary{arrows,calc,chains,positioning,shapes.multipart}
 \tikzset{every picture/.style={
   >=latex'                      % LaTeX style arrows.
   }
@@ -640,11 +640,48 @@ header using a ``C-like'' notation.%
     \index{executable~header!e_ident@\parameter{e\_ident}!definition}
 
     \begin{figure}[H]
-      \caption{The \parameter{e\_ident} array.}\label{fig.elf.eident}
       \index{executable~header!e_ident@\parameter{e\_ident} field}
-      \begin{center}
-        \includegraphics[scale=.9]{fig-eident}
-      \end{center}
+      \begin{tikzpicture}[
+        start chain,
+        node distance=0pt,
+        ei/.style={
+          on chain,
+          draw,
+          fill=black!#1,
+          minimum width=3em,
+          minimum height=1.5\baselineskip
+        }]
+
+        % Helper macro.
+        \def\e#1{\draw[-,rotate=-45]
+          ([yshift=-1pt] \tikzchaincurrent.south) -- +(0:0.5cm)
+          node[rotate=-45,base right] {\footnotesize EI\_#1}}
+
+        % Draw the e_ident[] array.
+        \node[ei=10] (e0) {0x7F};  \e{MAG0};
+        \node[ei=5]  (e1) {'E'};   \e{MAG1};
+        \node[ei=10] (e2) {'L'};   \e{MAG2};
+        \node[ei=5]  (e3) {'F'};   \e{MAG3};
+        \node[ei=10] (e4) { };     \e{CLASS};
+        \node[ei=5]  (e5) { };     \e{DATA};
+        \node[ei=10] (e6) { };     \e{VERSION};
+        \node[ei=5]  (e7) { };     \e{OSABI};
+        \node[ei=10] (e8) { };     \e{OSABIVERSION};
+        \node[ei=0]  (e9) {$\ldots$};
+
+        % Add Labels.
+        \node[above=1.5em of e2.north] {ELF class: 32/64}
+          edge [->] ([yshift=1pt] e4.north);
+        \node[above=3.5em of e3.north east] {Byte order: LSB/MSB}
+          edge [->] ([yshift=1pt] e5.north);
+        \node[above=2.8em of e7.north] {ELF version}
+          edge [->] ([yshift=1pt] e6.north);
+        \node[above=1.5em of e8.north east,text width=4em] {OS ABI}
+          edge [->] ([yshift=1pt] e7.north)
+          edge [->] ([yshift=1pt] e8.north);
+      \end{tikzpicture}
+      \caption{The layout of the \parameter{e\_ident} array.}%
+        \label{fig.elf.eident}
     \end{figure}
 
     The first 4 bytes of an ELF object are always 0x7F, `E', `L' and
