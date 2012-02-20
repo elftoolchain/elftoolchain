@@ -1689,10 +1689,78 @@ descriptor could conceptually cover the content of a section with
 \index{sections!coverage by data descriptors}
 
 \begin{figure}
-  \begin{center}
-    \includegraphics{fig-scn}
-  \end{center}
-  \caption{Managing data in an Elf Section.}\label{fig.elf.scn}
+  \begin{tikzpicture}[
+    start chain=1 going right,
+    start chain=2 going right,
+    ed/.style={
+      on chain=2,
+      rectangle,
+      rounded corners,
+      minimum height=1.2\baselineskip,
+      draw,
+      node distance=0.5cm,
+      fill=black!#1,
+      text centered
+    },
+    eh/.style={
+      on chain=1,
+      minimum width=4ex,
+      text height=\baselineskip,
+      draw
+    }]
+
+    % Draw the ELF structure.
+    \begin{scope}[
+      node distance=0pt
+      ]
+      \node[on chain=1] {ELF object};
+      \node[eh,text width=10em] (s0) {};
+      \node[eh,fill=black!10] (f0) {};
+      \node[eh,fill=black!20] (f1) {};
+      \node[eh,fill=black!10] (f2) {};
+      \node[eh,fill=black!20] (f3) {};
+      \node[eh,text width=10em] {};
+
+      % Highlight the border of the section.
+      \draw[-,thick] (f0.north west) -- (f3.north east) --
+        (f3.south east) -- (f0.south west) -- cycle;
+
+      % Label the section.
+      \node[below=.8cm of f0.south]
+        {Section contents.} edge [->] ([yshift=-2pt] f1.south east);
+    \end{scope}
+
+    % Draw a linked list of descriptors.
+    \begin{scope}[
+      node distance=1.3cm,
+      every join/.style={->,dashed},
+      every on chain/.style={join}
+      ]
+      \node[ed=10,above=1cm and -1cm of s0.north] (d0) {D1};
+      \node[ed=20] (d1) {D2};
+      \node[ed=10] (d2) {D3};
+      \node[ed=20] (d3) {D4};
+
+      \node[right=1ex of d3,text width=6em]
+        {List of \texttt{Elf\_Data} descriptors.};
+    \end{scope}
+
+    % Depict an Elf_Scn descriptor referencing the list of descriptors.
+    \node[above=0.7cm and -1cm of d0.north west,draw,rounded corners,
+      fill=black!20,text width=4em,text centered]
+      (scn) {\texttt{Elf\_Scn}};
+    \node[right=1ex of scn] {An \texttt{Elf\_Scn} descriptor.};
+    \draw[->,dashed,bend right] (scn) .. controls +(-0.75,-0.5) and
+      +(-0.75,0) .. (d0.west);
+
+    % Link the Elf_Data descriptors to their section contents.
+    \foreach \s in {0,1,2,3} {
+      \draw[->] (d\s.south) .. controls +(0,-0.5) and +(0,0.5)
+        .. (f\s.north);
+    }
+  \end{tikzpicture}
+  \caption{Coverage of an ELF section by \texttt{Elf\_Scn} and
+    \texttt{Elf\_Data} descriptors.}\label{fig.elf.scn}
 \end{figure}
 
 Figure~\vref{fig.elf.data} depicts how an \type{Elf\_Data} structure

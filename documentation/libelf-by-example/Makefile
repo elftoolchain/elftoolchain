@@ -11,7 +11,7 @@ SRCS=			libelf-by-example.tex prog1.txt prog2.txt prog3.txt \
 			prog4.txt prog5.txt prog6.txt
 
 IMAGES_MP=		fig-data.mp \
-			fig-scn.mp fig-strtab.mp
+			fig-strtab.mp
 
 .include "${TOP}/mk/elftoolchain.tex.mk"
 
