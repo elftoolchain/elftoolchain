@@ -1911,9 +1911,48 @@ table.  Sections containing string tables have type
 \index{sections!string~table}
 
 \begin{figure}
-  \begin{center}
-    \includegraphics[scale=.9]{fig-strtab}
-  \end{center}
+  \begin{tikzpicture}[
+    rectangle,
+    node distance=0pt,
+    minimum size=3em,
+    inner sep=0pt,
+    se/.style={
+      draw,
+      fill=black!5
+    },
+    so/.style={
+      draw,
+      fill=black!10
+    }]
+
+    % Draw the string table.
+    \matrix [row sep=0pt, column sep=0pt] {
+        \node[se] (n0) {'\textbackslash 0'}; & \node[so] {'S'}; &
+        \node[se] {'t'}; &                \node[so] {'r'}; &
+        \node[se] {'i'}; &                \node[so] {'n'}; &
+        \node[se] {'g'}; &                \node[so] {'1'}; &
+        \node[se] (n1) {'\textbackslash 0'}; & \node[so] {'S'}; \\
+        \node[se] {'t'}; & \node[so] {'r'}; &
+        \node[se] {'i'}; & \node[so] {'n'}; &
+        \node[se] {'g' }; & \node[so] {'2'}; &
+        \node[se] (n2) {'\textbackslash 0'}; & \node[so] {$\cdots$}; &
+        \node[se] {$\cdots$}; & \node[so] (n3) {'\textbackslash 0' };\\
+      };
+
+    % Add labels.
+    \def\N{\texttt{NUL}\xspace}
+    \node[above right=0.5cm of n0.north] {The initial \N byte}
+      edge [->,shorten >=1pt] (n0.north);
+
+    \node[above right=0.5cm of n1.north]
+      {\N terminator} edge [->,shorten >=1pt] (n1.north);
+
+    \node[below left=0.4cm of n2.south] {\N terminator}
+      edge [->,shorten >=1pt] (n2.south);
+
+    \node[below left=1.5cm of n3.south] {The final \N byte}
+      edge [->,shorten >=1pt] (n3.south);
+  \end{tikzpicture}
   \caption{String Table Layout.}\label{fig.elf.strtab}
 \end{figure}
 
