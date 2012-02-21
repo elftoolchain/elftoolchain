@@ -169,8 +169,10 @@ Prerequisites
 
             % sudo apt-get install libexpat1-dev python-yaml sharutils
 
-    - Builds of additional documentation are not currently supported
-      under Ubuntu GNU/Linux 10.04.
+    - To build additional documentation, the ``pgf`` package is
+      needed::
+
+          % sudo apt-get install pgf
 
 :Ubuntu GNU/Linux 11.10:
     - The following packages are pre-requisites for building the
