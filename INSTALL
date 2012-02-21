@@ -167,7 +167,7 @@ Prerequisites
       #. The following additional packages need to be installed, as
          listed in the example command line below::
 
-            % sudo pkg_add libexpat1-dev python-yaml sharutils
+            % sudo apt-get install libexpat1-dev python-yaml sharutils
 
     - Builds of additional documentation are not currently supported
       under Ubuntu GNU/Linux 10.04.
@@ -205,7 +205,7 @@ Prerequisites
       #. The following additional packages need to be installed, as
          listed in the example command line below::
 
-            % sudo pkg_add libexpat1-dev python-yaml sharutils
+            % sudo apt-get install libexpat1-dev python-yaml sharutils
 
     - Builds of additional documentation are not currently supported
       under Ubuntu GNU/Linux 11.10.
