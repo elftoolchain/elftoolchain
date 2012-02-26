@@ -109,13 +109,10 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 }
 
 void
-ld_script_process_entry(struct ld *ld, struct ld_script_cmd *ldc)
+ld_script_process_entry(struct ld *ld, char *name)
 {
 
-	assert(ldc->ldc_type == LSC_ENTRY);
-
-	if (ld_symbols_get_value(ld, ldc->ldc_cmd,
-	    &ld->ld_scp->lds_entry_point) < 0)
+	if (ld_symbols_get_value(ld, name, &ld->ld_scp->lds_entry_point) < 0)
 		ld->ld_scp->lds_entry_set = 0;
 	else
 		ld->ld_scp->lds_entry_set = 1;

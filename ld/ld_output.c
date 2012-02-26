@@ -29,7 +29,9 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
+#include "ld_script.h"
 #include "ld_strtab.h"
+#include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -104,7 +106,8 @@ static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
 static void _create_phdr(struct ld *ld);
 static void _create_shstrtab(struct ld *ld);
-static uint64_t _insert_shdr_offset(struct ld *ld);
+static uint64_t _find_entry_point(struct ld *ld);
+static uint64_t _insert_shdr(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -362,6 +365,38 @@ _create_elf_sections(struct ld *ld)
 	}
 }
 
+static uint64_t
+_find_entry_point(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	char entry_symbol[] = "start";
+	uint64_t entry;
+
+	lo = ld->ld_output;
+
+	if (ld->ld_entry != NULL) {
+		if (ld_symbols_get_value(ld, ld->ld_entry, &entry) < 0)
+			ld_fatal(ld, "symbol %s is undefined", ld->ld_entry);
+		return (entry);
+	} 
+
+	if (ld->ld_scp->lds_entry_set)
+		return (ld->ld_scp->lds_entry_point);
+
+	if (ld_symbols_get_value(ld, entry_symbol, &entry) == 0)
+		return (entry);
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_empty)
+			continue;
+		if (strcmp(os->os_name, ".text") == 0)
+			return (os->os_addr);
+	}
+
+	return (0);
+}
+
 static void
 _create_phdr(struct ld *ld)
 {
@@ -525,6 +560,7 @@ ld_output_create(struct ld *ld)
 
 	eh.e_ident[EI_CLASS] = lo->lo_ec;
 	eh.e_ident[EI_DATA] = lo->lo_endian;
+	eh.e_entry = _find_entry_point(ld);
 	eh.e_flags = 0;		/* TODO */
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	eh.e_type = ET_EXEC;	/* TODO */
@@ -542,7 +578,7 @@ ld_output_create(struct ld *ld)
 	_create_elf_sections(ld);
 
 	/* Insert section headers table and point e_shoff to it. */
-	eh.e_shoff = _insert_shdr_offset(ld);
+	eh.e_shoff = _insert_shdr(ld);
 
 	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
@@ -559,7 +595,7 @@ ld_output_create(struct ld *ld)
 }
 
 static uint64_t
-_insert_shdr_offset(struct ld *ld)
+_insert_shdr(struct ld *ld)
 {
 	struct ld_state *ls;
 	struct ld_output *lo;
