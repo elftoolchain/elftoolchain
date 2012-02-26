@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,4 +42,5 @@ struct ld_symbol {
 void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
+int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);

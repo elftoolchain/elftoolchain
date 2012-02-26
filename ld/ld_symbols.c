@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -336,4 +336,17 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 	if (hidden)
 		lsb->lsb_other = STV_HIDDEN;
 	_resolve_and_add_symbol(ld, lsb);
+}
+
+int
+ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
+{
+	struct ld_symbol *lsb;
+
+	if ((lsb = _symbol_find(ld->ld_symtab_def, name)) == NULL)
+		return (-1);
+
+	*val = lsb->lsb_value;
+
+	return (0);
 }

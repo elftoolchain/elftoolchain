@@ -81,7 +81,8 @@ ld_layout_sections(struct ld *ld)
 			    ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ENTRY:
-			/* TODO */
+			ld_output_create_element(ld, &lo->lo_oelist, OET_ENTRY,
+			    ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS:
 			if (sections_cmd_exist)
@@ -204,7 +205,8 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 				    OET_ASSIGN, ldc->ldc_cmd, NULL);
 				break;
 			case LSC_ENTRY:
-				/* TODO */
+				ld_output_create_element(ld, &lo->lo_oelist,
+				    OET_ENTRY, ldc->ldc_cmd, NULL);
 				break;
 			case LSC_SECTIONS_OUTPUT:
 				_layout_output_section(ld, li, ldc->ldc_cmd);
@@ -495,6 +497,9 @@ _calc_offset(struct ld *ld)
 		case OET_ASSIGN:
 			ld_script_process_assign(ld, oe->oe_entry);
 			break;
+		case OET_ENTRY:
+			ld_script_process_entry(ld, oe->oe_entry);
+			break;
 		case OET_OUTPUT_SECTION:
 			_parse_output_section_descriptor(ld, oe->oe_entry);
 			_calc_output_section_offset(ld, oe->oe_entry);
@@ -533,6 +538,9 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 			break;
 		case OET_DATA:
 			/* TODO */
+			break;
+		case OET_ENTRY:
+			ld_script_process_entry(ld, oe->oe_entry);
 			break;
 		case OET_INPUT_SECTION_LIST:
 			islist = oe->oe_entry;
