@@ -56,6 +56,7 @@ struct ld_output_section {
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
+	unsigned os_empty;		/* output section is empty */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
@@ -72,6 +73,9 @@ struct ld_output {
 	int lo_ec;			 /* output object elf class */
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
+	unsigned lo_phdr_num;		 /* num of phdrs */
+	unsigned lo_phdr_note;		 /* create PT_NOTE */
+	unsigned lo_phdr_gnustack;	 /* careate PT_GNU_STACK */
 	struct ld_output_element_head lo_oelist; /* output element list */
 	struct ld_output_section_head lo_oslist; /* output section list */
 	struct ld_output_section *lo_ostbl; /* output section hash table */

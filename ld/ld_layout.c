@@ -42,8 +42,9 @@ ELFTC_VCSID("$Id$");
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
-static void _insert_input_to_output(struct ld_output_section *os,
-    struct ld_input_section *is, struct ld_input_section_head *islist);
+static void _insert_input_to_output(struct ld_output *lo,
+    struct ld_output_section *os, struct ld_input_section *is,
+    struct ld_input_section_head *islist);
 static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
 static void _layout_output_section(struct ld *ld, struct ld_input *li,
     struct ld_script_sections_output *ldso);
@@ -103,13 +104,19 @@ off_t
 ld_layout_calc_header_size(struct ld *ld)
 {
 	struct ld_script_phdr *ldsp;
+	struct ld_output *lo;
+	struct ld_output_section *os;
 	off_t header_size;
-	unsigned ec;
-	size_t num_phdrs;
+	unsigned ec, w, num_phdrs;
+	int new;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
 
 	header_size = 0;
 
 	ec = elftc_bfd_target_class(ld->ld_otgt);
+
 	if (ec == ELFCLASS32)
 		header_size += sizeof(Elf32_Ehdr);
 	else
@@ -120,17 +127,49 @@ ld_layout_calc_header_size(struct ld *ld)
 		STAILQ_FOREACH(ldsp, &ld->ld_scp->lds_p, ldsp_next)
 			num_phdrs++;
 	} else {
-		/*
-		 * TODO: depending on different output file type, ld(1)
-		 * generate different number of segements.
-		 */
-		num_phdrs = 4;
+		if (lo->lo_phdr_num > 0)
+			num_phdrs = lo->lo_phdr_num;
+		else {
+			num_phdrs = 0;
+			new = 1;
+			w = 0;
+			STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+				if (os->os_empty)
+					continue;
+
+				if ((os->os_flags & SHF_ALLOC) == 0) {
+					new = 1;
+					continue;
+				}
+
+				if ((os->os_flags & SHF_WRITE) != w || new) {
+					new = 0;
+					num_phdrs++;
+					w = os->os_flags & SHF_WRITE;
+				}
+			}
+
+			if (lo->lo_phdr_note)
+				num_phdrs++;
+
+			if (lo->lo_phdr_gnustack)
+				num_phdrs++;
+
+			if (lo->lo_phdr_num != 0 &&
+			    lo->lo_phdr_num != num_phdrs)
+				ld_fatal(ld, "not enough room for program"
+				    " headers");
+			printf("num_phdrs=%u\n", (unsigned)num_phdrs);
+		}
 	}
 
 	if (ec == ELFCLASS32)
 		header_size += num_phdrs * sizeof(Elf32_Phdr);
 	else
 		header_size += num_phdrs * sizeof(Elf64_Phdr);
+
+	lo->lo_phdr_num = num_phdrs;
+	printf("lo->lo_phdr_num=%u\n", lo->lo_phdr_num);
 
 	return (header_size);
 }
@@ -317,7 +356,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 			}
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(os, is, oe->oe_entry);
+			_insert_input_to_output(lo, os, is, oe->oe_entry);
 		}
 
 	next_output_cmd:
@@ -359,7 +398,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			oe = STAILQ_FIRST(&os->os_e);
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(os, is, oe->oe_entry);
+			_insert_input_to_output(lo, os, is, oe->oe_entry);
 			continue;
 		}
 
@@ -391,16 +430,17 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 
 		oe = ld_output_create_element(ld, &_os->os_e,
 		    OET_INPUT_SECTION_LIST, islist, NULL);
-		_insert_input_to_output(_os, is, oe->oe_entry);
+		_insert_input_to_output(lo, _os, is, oe->oe_entry);
 	}
 }
 
 static void
-_insert_input_to_output(struct ld_output_section *os,
+_insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
     struct ld_input_section *is, struct ld_input_section_head *islist)
 {
 
 	is->is_orphan = 0;
+	os->os_empty = 0;
 
 	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
 
@@ -409,6 +449,8 @@ _insert_input_to_output(struct ld_output_section *os,
 
 	if (os->os_type == SHT_NULL)
 		os->os_type = is->is_type;
+	if (is->is_type == SHT_NOTE)
+		lo->lo_phdr_note = 1;
 
 	STAILQ_INSERT_TAIL(islist, is, is_next);
 }

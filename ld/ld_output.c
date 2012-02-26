@@ -102,6 +102,7 @@ static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
+static void _create_phdr(struct ld *ld);
 static void _create_shstrtab(struct ld *ld);
 static uint64_t _insert_shdr_offset(struct ld *ld);
 
@@ -211,6 +212,7 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 		ld_fatal_std(ld, "strdup");
 
 	os->os_align = 1;
+	os->os_empty = 1;
 
 	STAILQ_INIT(&os->os_e);
 
@@ -360,6 +362,135 @@ _create_elf_sections(struct ld *ld)
 	}
 }
 
+static void
+_create_phdr(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	Elf32_Phdr *p32;
+	Elf64_Phdr *p64;
+	void *phdrs;
+	uint64_t addr, off, align, flags, filesz, memsz;
+	unsigned w;
+	int i, new;
+
+	/* TODO: support segments created by linker script command PHDR. */
+
+#define	_WRITE_PHDR(T,O,A,FSZ,MSZ,FL,AL)		\
+	do {						\
+		if (lo->lo_ec == ELFCLASS32) {		\
+			p32[i].p_type = (T);		\
+			p32[i].p_offset = (O);		\
+			p32[i].p_vaddr = (A);		\
+			p32[i].p_paddr = (A);		\
+			p32[i].p_filesz = (FSZ);	\
+			p32[i].p_memsz = (MSZ);		\
+			p32[i].p_flags = (FL);		\
+			p32[i].p_align = (AL);		\
+		} else {				\
+			p64[i].p_type = (T);		\
+			p64[i].p_offset = (O);		\
+			p64[i].p_vaddr = (A);		\
+			p64[i].p_paddr = (A);		\
+			p64[i].p_filesz = (FSZ);	\
+			p64[i].p_memsz = (MSZ);		\
+			p64[i].p_flags = (FL);		\
+			p64[i].p_align = (AL);		\
+		}					\
+	} while(0)
+
+	lo = ld->ld_output;
+	assert(lo->lo_elf != NULL);
+	assert(lo->lo_phdr_num != 0);
+	assert(ld->ld_arch != NULL);
+
+	if ((phdrs = gelf_newphdr(lo->lo_elf, lo->lo_phdr_num)) == NULL)
+		ld_fatal(ld, "gelf_newphdr failed: %s", elf_errmsg(-1));
+
+	p32 = NULL;
+	p64 = NULL;
+	if (lo->lo_ec == ELFCLASS32)
+		p32 = phdrs;
+	else
+		p64 = phdrs;
+
+	/* Create PT_LOAD segments. */
+
+	align = ld->ld_arch->get_max_page_size(ld);
+	new = 1;
+	i = -1;
+	w = 0;
+	filesz = 0;
+	memsz = 0;
+	flags = PF_R;
+	off = 0;
+
+	/* Calculate the start vma of output object. */
+	os = STAILQ_FIRST(&lo->lo_oslist);
+	addr = os->os_addr - os->os_off;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_empty)
+			continue;
+
+		if ((os->os_flags & SHF_ALLOC) == 0) {
+			new = 1;
+			continue;
+		}
+
+		if ((os->os_flags & SHF_WRITE) != w || new) {
+			new = 0;
+			w = os->os_flags & SHF_WRITE;
+
+			if (i >= 0)
+				_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz,
+				    flags, align);
+
+			i++;
+			if ((unsigned) i >= lo->lo_phdr_num)
+				ld_fatal(ld, "not enough room for program"
+				    " headers");
+			if (i > 0) {
+				addr = os->os_addr;
+				off = os->os_off;
+			}
+			flags = PF_R;
+			filesz = 0;
+			memsz = 0;
+		}
+
+		memsz = os->os_addr + os->os_size - addr;
+		if (os->os_type != SHT_NOBITS)
+			filesz = memsz;
+
+		if (os->os_flags & SHF_WRITE)
+			flags |= PF_W;
+
+		if (os->os_flags & SHF_EXECINSTR)
+			flags |= PF_X;
+	}
+	if (i >= 0)
+		_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz, flags, align);
+
+	/* Create PT_NOTE segment. */
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_type == SHT_NOTE) {
+			i++;
+			if ((unsigned) i >= lo->lo_phdr_num)
+				ld_fatal(ld, "not enough room for program"
+				    " headers");
+			_WRITE_PHDR(PT_NOTE, os->os_off, os->os_addr,
+			    os->os_size, os->os_size, PF_R, os->os_align);
+			break;
+		}
+	}
+
+	assert((unsigned) i + 1 == lo->lo_phdr_num);
+
+#undef	_WRITE_PHDR
+}
+
 void
 ld_output_create(struct ld *ld)
 {
@@ -398,6 +529,9 @@ ld_output_create(struct ld *ld)
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	eh.e_type = ET_EXEC;	/* TODO */
 	eh.e_version = EV_CURRENT;
+
+	/* Create program headers. */
+	_create_phdr(ld);
 
 	/* Set program header table offset. */
 	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
