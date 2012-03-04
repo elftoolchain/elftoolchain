@@ -927,7 +927,7 @@ in-file could be different from that of the in-memory representation.
       edge [->,shorten >=1pt] (ehdr.west);
 
     % Label the box denoting the file representation of data.
-    \node[above=2em of ehdr.north east] {In-file representation}
+    \node[above=2em of ehdr.north east] {The file representation}
       edge [->,shorten >=1pt] (file.center);
 
     % Place tick marks around the file representation box.
@@ -946,8 +946,8 @@ in-file could be different from that of the in-memory representation.
     \node[below=2cm of file.south,minimum width=6em,
        minimum height=1.2\baselineskip,draw,fill=black!5]
       (mem) { };
-    \node[left=1.8cm of mem]
-      {In-memory representation}
+    \node[left=1.6cm of mem]
+      {The memory representation}
       edge [->,semithick,shorten >=1pt] (mem.center);
 
     % Show the memory alignment.
