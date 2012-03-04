@@ -42,7 +42,7 @@
 \usepackage[colorlinks=true,linkcolor=blue]{hyperref}
 
 % TikZ configuration.
-\usetikzlibrary{arrows,calc,chains,positioning,shapes.multipart}
+\usetikzlibrary{arrows,calc,chains,mindmap,positioning,shapes.multipart}
 \tikzset{every picture/.style={
   >=latex'                      % LaTeX style arrows.
   }
@@ -261,6 +261,66 @@ The tutorial covers the following:
 \item How to process \tool{ar} archives using the facilities provided
   by the library.
 \end{itemize}
+
+Figure~\vref{fig.concept.map} shows a graphical overview of the
+concepts covered in this tutorial.
+
+\begin{figure}
+\begin{tikzpicture}[mindmap,concept color=orange!25]
+  \node[concept] {Programming with \texttt{libelf}}
+    [clockwise from=60]
+    child {
+      node[concept] {The ELF(3) \& GELF(3) APIs}
+      [clockwise from=180]
+      child { node[concept] { library data types } }
+      child { node[concept] { memory \& file representations } }
+      child { node[concept] { ordering of calls } }
+      child { node[concept] { memory management } }
+      child { node[concept] { extended numbering } }
+    }
+    child[level distance=5.5cm]  {
+      node[concept] {Basic concepts}
+      [clockwise from=60]
+      child { node[concept] { ELF version, class, byte order } }
+      child[grow=-60] {
+        node[concept] {object layout}
+        [clockwise from=-90]
+        child { node[concept] { Executable header } }
+        child { node[concept] (shdr) { Section Headers } }
+        child { node[concept] (phdr) { Program Headers } }
+      }
+    }
+    child {
+      node[concept] (elfseg) {ELF Segments}
+      [clockwise from=-45]
+      child { node[concept] { type, flags \& alignment } }
+      child { node[concept] { program headers } }
+    }
+    child[level distance=5.5cm] {
+      node[concept] (elfsec) {ELF Sections}
+      [clockwise from=0]
+      child { node[concept] { section header contents } }
+      child { node[concept] { layout constraints } }
+      child { node[concept] { iterating over sections } }
+      child { node[concept] { reading \& writing data } }
+      child { node[concept] { ELF string tables } }
+    }
+    child {
+      node[concept] { ar(1) archives }
+      [clockwise from=-150]
+      child { node[concept] { archive structure } }
+      child { node[concept] { symbol \& string tables } }
+      child { node[concept] { access APIs }
+        [clockwise from=90]
+        child { node[concept] { sequential access } }
+        child { node[concept] { random access } }
+        child { node[concept] { header information } }
+      }
+    };
+\end{tikzpicture}
+\caption{An overview of the concepts covered in this
+  tutorial.}\label{fig.concept.map}
+\end{figure}
 
 \section{Tutorial Structure}
 
