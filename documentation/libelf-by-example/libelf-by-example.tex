@@ -2416,6 +2416,15 @@ the differences being:%
 The rest of the program flow would be similar to the object creation
 case.
 
+An important point to note when modifying an existing ELF object is
+that it is the application's responsibility to ensure that the changed
+object remains compliant to the ELF standard and internally
+consistent.  For example, if the sections in an ELF executable are
+moved around, then the information in the executable's Program Header
+Table would also need to be updated appropriately.  An in-depth
+discussion of this topic is, however, out of scope for this
+introductory tutorial.
+
 \chapter{Processing ar(1) archives}\label{chap.ar}
 
 The \library{libelf} library also offers support for reading archives
