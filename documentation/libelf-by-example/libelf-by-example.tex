@@ -568,6 +568,7 @@ content in the form of ELF \firstterm{program header table}
   sections}\index{sections} (see figure \vref{fig.elf.layout}).
 
 \begin{figure}
+  \begin{center}
   \begin{tikzpicture}[
     start chain,
     node distance=0pt,
@@ -576,12 +577,12 @@ content in the form of ELF \firstterm{program header table}
       draw,
       minimum height=3\baselineskip,
       font=\small,
-      text width=3.5em
+      text width=4.2em
     },
     gap/.style={
       draw,
       minimum height=3\baselineskip,
-      minimum width=0.5ex
+      minimum width=2ex
     }]
 
     % Depict the structure of an ELF object.
@@ -608,6 +609,7 @@ content in the form of ELF \firstterm{program header table}
       edge [->] ([yshift=-1pt] gl1.south)
       edge [->] ([yshift=-1pt] g3.south);
   \end{tikzpicture}
+  \end{center}
   \caption{The layout of a typical ELF File.}\label{fig.elf.layout}
 \end{figure}
 
@@ -703,7 +705,7 @@ header using a ``C-like'' notation.%
     \vref{fig.elf.eident}.%
     \index{executable~header!e_ident@\parameter{e\_ident}!definition}
 
-    \begin{figure}[H]
+    \begin{figure}
       \index{executable~header!e_ident@\parameter{e\_ident} field}
       \begin{tikzpicture}[
         start chain,
@@ -712,7 +714,7 @@ header using a ``C-like'' notation.%
           on chain,
           draw,
           fill=black!#1,
-          minimum width=3em,
+          minimum width=3.2em,
           minimum height=1.5\baselineskip
         }]
 
@@ -1978,7 +1980,8 @@ table.  Sections containing string tables have type
   \begin{tikzpicture}[
     rectangle,
     node distance=0pt,
-    minimum size=3em,
+    minimum size=2.7em,
+    minimum width=3.3em,
     inner sep=0pt,
     se/.style={
       draw,
@@ -2008,7 +2011,7 @@ table.  Sections containing string tables have type
     \node[above right=0.5cm of n0.north] {The initial \N byte}
       edge [->,shorten >=1pt] (n0.north);
 
-    \node[above right=0.5cm of n1.north]
+    \node[above right=0.4cm of n1.north]
       {\N terminator} edge [->,shorten >=1pt] (n1.north);
 
     \node[below left=0.4cm of n2.south] {\N terminator}
