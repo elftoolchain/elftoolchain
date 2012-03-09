@@ -1,0 +1,19 @@
+# $Id$
+#
+# Convert a literate program to human-readable documentation.
+
+DOC=		build-automation
+SRCS =		 ${NW_SRCS:S/.nw/.tex/g}
+
+CLEANFILES+=	 ${SRCS}
+
+# Rules to convert from .nw to .tex
+.SUFFIXES: .nw .tex
+.nw.tex:
+	noweave ${.IMPSRC} | cpif ${.TARGET}
+
+# Silently ignore the 'test' target.
+test:	.PHONY
+	@true
+
+.include "${TOP}/mk/elftoolchain.tex.mk"

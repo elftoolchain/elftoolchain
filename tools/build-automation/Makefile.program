@@ -1,0 +1,47 @@
+# $Id$
+#
+# Extract and build the programs from the literate program text.
+
+SLAVE=		build-slave
+MASTER=		build-master
+
+all:		${MASTER} ${SLAVE}
+
+#
+# Add build rules for all the 'roots' in the literate program.
+#
+NW_ROOTS!=	noroots ${NW_SRCS} /dev/null | sed -e 's:<<::' -e 's:>>::'
+.for n in ${NW_ROOTS}
+$n:	${NW_SRCS}
+	notangle -R${.TARGET} ${NW_SRCS} | cpif ${.TARGET}
+CLEANFILES+=	$n
+.endfor
+
+#
+# Build the slave (a C program)
+#
+PROG=		${SLAVE}
+SRCS=		${NW_ROOTS:M*.c}
+
+.include <bsd.prog.mk>
+
+#
+# Build the master controller (a Python script).
+#
+${MASTER}:	${NW_ROOTS:M*.py}
+
+
+# Other special rules.
+clobber:	clean .PHONY
+
+#
+# Rules for tests.
+#
+
+.PHONY:	test test-slave test-master
+test: 	  	 test-master test-slave
+.for t in master slave
+test-${t}:	 .SILENT
+	echo Tests for ${.TARGET} are unimplemented
+	false
+.endfor
