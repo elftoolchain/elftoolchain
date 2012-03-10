@@ -1,3 +1,4 @@
+# $Id$
 # -*- mode: makefile -*-
 #
 # Convert a literate program to human-readable documentation.
