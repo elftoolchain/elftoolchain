@@ -4,4 +4,8 @@
 
 % Stub.
 <<build-master>>=
-@
+def main():
+    print "Hello World\n"
+@ %def main
+
+% End-of-file.

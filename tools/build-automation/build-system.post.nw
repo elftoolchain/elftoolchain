@@ -1,0 +1,18 @@
+% $Id$
+%
+% The last chunk of input presented to noweb(1).
+
+\backmatter
+\appendix
+
+% Typeset the index.
+
+\chapter*{Index}
+\printindex
+
+\chapter*{Index of Identifiers}
+\nowebindex
+
+\chapter*{Index of Code Fragments}
+\nowebchunks
+\end{document}

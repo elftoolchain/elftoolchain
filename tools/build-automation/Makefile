@@ -11,9 +11,13 @@ TOP=		../..
 BUILD_TARGETS=	all clean clobber
 BUILD_RULES=	documentation program
 
-NW_SRCS=	build-automation.nw \
-		master.nw \
-		slave.nw
+# The literate program input, in order of presentation in the
+# generated text.
+NW_SRCS= 	introduction.nw
+NW_SRCS+= 	userguide.nw
+NW_SRCS+=	implementation.nw
+NW_SRCS+=	slave.nw
+NW_SRCS+=	master.nw
 
 .MAIN:		all
 
