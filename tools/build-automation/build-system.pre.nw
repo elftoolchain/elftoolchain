@@ -28,6 +28,7 @@
 %
 
 \documentclass[a4paper,pdftex]{book}
+\usepackage{amsthm}
 \usepackage{hyperref}
 \usepackage{makeidx}
 \usepackage{noweb}
@@ -35,9 +36,13 @@
 \usepackage{varioref}
 \usepackage{xspace}
 
+% Typesetting requirements.
+\theoremstyle{remark}
+\newtheorem{requirement}{Requirement}
+
 % Add meta-data to the PDF file.
 \hypersetup{
-  pdftitle={The Elftoolchain Build Utility},
+  pdftitle={The Elftoolchain Build System},
   pdfauthor={Joseph Koshy},
   pdfsubject={A build automation system},
   pdfkeywords={%
@@ -47,6 +52,15 @@
   }
 }
 
+% Document-specific LaTeX macros.
+\makeatletter
+\newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
+    {ElfToolChain}\xspace}
+\newcommand{\reg}{\textregistered\xspace}
+\newcommand{\tool}[1]{\textbf{#1}}
+\newcommand{\trade}{\texttrademark\xspace}
+\makeatother
+
 % Index related.
 \makeindex
 
@@ -55,7 +69,7 @@
 \begin{document}
 
 % The title page.
-\title{The Elftoolchain Build Utility}
+\title{The Elftoolchain Build System}
 \author{Joseph~Koshy}
 \maketitle
 
@@ -63,6 +77,48 @@
 \tableofcontents
 
 \chapter*{Preface}
+
+This document describes the build system used by the the \elftoolchain
+project on \href{http://sourceforge.net/}{SourceForge.Net}.  This
+build system helps the \elftoolchain project to build and test its
+source tree on a variety of operating systems and machine
+architectures.
+
+The system is designed to use emulators such as
+\href{http://www.qemu.org}{QEMU},
+\href{http://gxemul.sourceforge.net/}{GXemul} and
+\href{http://www.virtualbox.org}{VirtualBox}, permitting the project's
+source tree to be built on a wide variety of target platforms and
+operating systems.
+
+This document itself is a
+\href{http://en.wikipedia.org/wiki/Literate_programming}%
+{literate program}---it is both a human-readable description of the
+system, as well as the source code of the system itself.
+
+\section*{Target Audience}
+
+This document would be useful to two audiences:
+\begin{itemize}
+\item Users of the build system would find part~\ref{part.intro},
+  which contains an overview and a user guide, to be of interest.
+\item For maintainers of the build system,
+  part~\ref{part.implementation} contains the implementation itself.
+\end{itemize}
+
+\section*{Document Overview}
+
+\begin{itemize}
+\item Chapter~\vref{chap.introduction} describes the rationale and
+  formal requirements for the build system.
+\item Chapter~\vref{chap.userguide} contains a user guide.
+\item Chapter~\vref{chap.overview} presents an overview of the
+  implementation.
+\item Chapter~\vref{chap.slave} describes the implementation of the
+  build slave.
+\item Chapter~\vref{chap.master} describes the implementation of the
+  build master.
+\end{itemize}
 
 \section*{Legal Notice}
 Copyright \copyright{} 2012 Joseph Koshy.  All rights reserved.

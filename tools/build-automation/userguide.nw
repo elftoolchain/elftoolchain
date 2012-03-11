@@ -2,4 +2,6 @@
 %
 % A user guide.
 
-\part{User Guide}
+\chapter{Using The Build System}\label{chap.userguide}
+
+% How to use the system--configuring and running a build.

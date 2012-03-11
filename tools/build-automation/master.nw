@@ -2,6 +2,8 @@
 %
 % The build master.
 
+\chapter{The Build Master}\label{chap.master}
+
 % Stub.
 <<build-master>>=
 def main():

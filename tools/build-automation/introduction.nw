@@ -2,10 +2,36 @@
 %
 % The introduction to the build system.
 
-\part{Introduction}
+\part{The Build System}\label{part.intro}
 
-\chapter{Introduction}
+\chapter{Introduction}\label{chap.introduction}
+
 \section{Requirements}
-\section{Target Audience}
-\section{Document Overview}
 
+\begin{requirement}
+  The utility should be able to build of the source tree on a variety
+  of machine architectures and operating systems.
+\end{requirement}
+
+% Builds on non-native machine architectures and operating systems are
+% would involve the use of CPU and virtual machine emulators.  The
+% actual build will be done using \tool{make} or equivalent utility.
+
+\begin{requirement}
+  The utility should be able to work effectively in a resource-%
+  constrained host environment (such as a laptop computer).
+\end{requirement}
+
+\begin{requirement}
+  The utility should work in 'offline' mode, without requiring
+  external network access to function.
+\end{requirement}
+
+\begin{requirement}
+  The utility should be able to work with a source tree with local
+  changes in addition to that on a version control system.
+\end{requirement}
+
+\begin{requirement}
+  The utility should be easy to port to new target OSes.
+\end{requirement}

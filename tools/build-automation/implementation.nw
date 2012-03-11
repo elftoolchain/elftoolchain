@@ -2,5 +2,6 @@
 %
 % The implementation itself.
 
-\part{The Implementation}
-\chapter{The Implementation}
+\part{The Implementation}\label{part.implementation}
+
+\chapter{Overview}\label{chap.overview}
