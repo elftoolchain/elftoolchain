@@ -37,8 +37,24 @@ ELFTC_VCSID("$Id$");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
+struct ld_input *
+ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
+{
+	struct ld_input *li;
+
+	if ((li = calloc(1, sizeof(*li))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((li->li_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	li->li_file = lf;
+
+	return (li);
+}
+
 void
-ld_input_create_objects(struct ld *ld)
+ld_input_link_objects(struct ld *ld)
 {
 	struct ld_file *lf;
 	struct ld_archive_member *lam, *tmp;
@@ -48,23 +64,15 @@ ld_input_create_objects(struct ld *ld)
 		if (lf->lf_ar != NULL) {
 			HASH_SORT(lf->lf_ar->la_m, _offset_sort);
 			HASH_ITER(hh, lf->lf_ar->la_m, lam, tmp) {
-				li = calloc(1, sizeof(*li));
-				if (li == NULL)
-					ld_fatal_std(ld, "calloc");
-				li->li_name = strdup(lam->lam_name);
-				if (li->li_name == NULL)
-					ld_fatal_std(ld, "strdup");
-				li->li_moff = lam->lam_off;
-				li->li_file = lf;
-				STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
+				li = lam->lam_input;
+				if (li != NULL)
+					STAILQ_INSERT_TAIL(&ld->ld_lilist, li,
+					    li_next);
 			}
 		} else {
-			if ((li = calloc(1, sizeof(*li))) == NULL)
-				ld_fatal_std(ld, "calloc");
-			if ((li->li_name = strdup(lf->lf_name)) == NULL)
-				ld_fatal_std(ld, "strdup");
-			li->li_file = lf;
-			STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
+			li = lf->lf_input;
+			if (li != NULL)
+				STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
 		}
 	}
 }

@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_file.h"
+#include "ld_input.h"
 #include "ld_symbols.h"
 #include "ld_script.h"
 
@@ -180,6 +181,7 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 	Elf *e;
 	Elf_Arhdr *arhdr;
 	struct ld_archive_member *lam;
+	struct ld_input *li;
 
 	if (elf_rand(lf->lf_elf, off) == 0)
 		ld_fatal(ld, "%s: elf_rand failed: %s", lf->lf_name,
@@ -201,6 +203,11 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 		ld_fatal_std(ld, "strdup");
 	lam->lam_off = off;
 	HASH_ADD(hh, la->la_m, lam_off, sizeof(lam->lam_off), lam);
+
+	/* Allocate input object for this member. */
+	li = ld_input_alloc(ld, lf, lam->lam_name);
+	li->li_moff = lam->lam_off;
+	lam->lam_input = li;
 
 	/* Load the symbols of this member. */
 	ld_symbols_load_elf(ld, lf, e);
@@ -301,8 +308,10 @@ ld_symbols_load(struct ld *ld, struct ld_file *lf)
 
 	if (lf->lf_type == LFT_ARCHIVE)
 		ld_symbols_load_archive(ld, lf);
-	else
+	else {
+		lf->lf_input = ld_input_alloc(ld, lf, lf->lf_name);
 		ld_symbols_load_elf(ld, lf, lf->lf_elf);
+	}
 }
 
 void

@@ -55,8 +55,9 @@ struct ld_input {
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
-void	ld_input_create_objects(struct ld *);
+struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
 void	ld_input_init_sections(struct ld *, struct ld_input *);
+void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);
 void	ld_input_unload(struct ld *, struct ld_input *);

@@ -37,6 +37,7 @@ enum ld_file_type {
 struct ld_archive_member {
 	char *lam_name;			/* archive member name */
 	off_t lam_off;			/* archive member offset */
+	struct ld_input *lam_input;	/* input object */
 	UT_hash_handle hh;		/* hash handle */
 };
 
@@ -51,6 +52,7 @@ struct ld_file {
 	size_t lf_size;			/* input file size */
 	Elf *lf_elf;			/* input file ELF descriptor */
 	struct ld_archive *lf_ar;	/* input archive */
+	struct ld_input *lf_input;	/* input object */
 	unsigned lf_whole_archive;	/* include whole archive */
 	unsigned lf_as_needed;		/* DT_NEEDED */
 	unsigned lf_group_level;	/* archive group level */
