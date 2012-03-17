@@ -37,3 +37,5 @@ struct ld_reloc_entry {
 STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 
 void	ld_reloc_read(struct ld *);
+void	ld_reloc_process_input_section(struct ld *, struct ld_input_section *,
+    void *);

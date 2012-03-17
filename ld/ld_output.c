@@ -29,6 +29,7 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
+#include "ld_reloc.h"
 #include "ld_script.h"
 #include "ld_strtab.h"
 #include "ld_symbols.h"
@@ -342,6 +343,7 @@ _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 	d->d_size = is->is_size;
 	d->d_version = EV_CURRENT;
 	d->d_buf = ld_input_get_section_rawdata(ld, is);
+	ld_reloc_process_input_section(ld, is, d->d_buf);
 }
 
 
@@ -573,6 +575,9 @@ ld_output_create(struct ld *ld)
 	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
 	if (eh.e_phoff == 0)
 		ld_fatal(ld, "gelf_fsize failed: %s", elf_errmsg(-1));
+
+	/* Read relocation information from input sections. */
+	ld_reloc_read(ld);
 
 	/* Create output ELF sections. */
 	_create_elf_sections(ld);

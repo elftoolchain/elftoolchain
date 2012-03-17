@@ -98,7 +98,7 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	if ((d = elf_rawdata(scn, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "elf_getdata failed: %s",
+			ld_fatal(ld, "elf_rawdata failed: %s",
 			    elf_errmsg(elferr));
 		ld_input_unload(ld, li);
 		return (NULL);
@@ -208,9 +208,12 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 			ld_fatal_std(ld, "%s: calloc", li->li_name);
 		is->is_off = sh.sh_offset;
 		is->is_size = sh.sh_size;
+		is->is_entsize = sh.sh_entsize;
 		is->is_align = sh.sh_addralign;
 		is->is_type = sh.sh_type;
 		is->is_flags = sh.sh_flags;
+		is->is_link = sh.sh_link;
+		is->is_info = sh.sh_info;
 		is->is_index = elf_ndxscn(scn);
 		is->is_input = li;
 		is->is_orphan = 1;

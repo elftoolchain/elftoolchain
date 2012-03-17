@@ -133,3 +133,78 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	}
 }
+
+void
+ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
+    void *buf)
+{
+	struct ld_input *li;
+	struct ld_input_section *ris, *sis;
+	struct ld_reloc_entry *lre;
+	Elf *e;
+	Elf_Scn *scn;
+	Elf_Data *d;
+	GElf_Sym sym;
+	char *name;
+	size_t strndx;
+	int elferr, i;
+
+	/*
+	 * TODO: find out the relocation section for this input section.
+	 * (using sh_info), also find the symtab. (sh_link)
+	 * perform relocation.
+	 */
+
+	(void) buf;
+
+	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
+		return;
+
+	li = is->is_input;
+	ris = NULL;
+	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+		if (li->li_is[i].is_info == is->is_index) {
+			ris = &li->li_is[i];
+			break;
+		}
+	}
+
+	if (ris == NULL)
+		return;
+
+	assert(ris->is_reloc != NULL);
+
+	sis = &li->li_is[ris->is_link];
+	if (sis->is_type != SHT_SYMTAB)
+		return;
+
+	strndx = sis->is_link;
+
+	ld_input_load(ld, li);
+	e = li->li_elf;
+
+	if ((scn = elf_getscn(e, sis->is_index)) == NULL)
+		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_fatal(ld, "elf_getdata failed: %s",
+			    elf_errmsg(elferr));
+		ld_input_unload(ld, li);
+		return;
+	}
+
+	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
+		if (gelf_getsym(d, lre->lre_sym, &sym) != &sym)
+			ld_fatal(ld, "gelf_getsym failed: %s",
+			    elf_errmsg(-1));
+		if (GELF_ST_TYPE(sym.st_info) != STT_SECTION) {
+			name = elf_strptr(e, strndx, sym.st_name);
+			printf("%s: %s\n", is->is_name, name);
+		}
+	}
+
+	ld_input_unload(ld, li);
+}

@@ -36,6 +36,8 @@ struct ld_input_section {
 	uint64_t is_align;		/* section align */
 	uint64_t is_type;		/* section type */
 	uint64_t is_flags;		/* section flags */
+	uint64_t is_link;		/* section link */
+	uint64_t is_info;		/* section info */
 	uint64_t is_index;		/* section index */
 	unsigned is_orphan;		/* orphan section */
 	unsigned is_discard;		/* dicard section */
