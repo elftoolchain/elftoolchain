@@ -25,8 +25,11 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_input.h"
+#include "ld_output.h"
 #include "ld_reloc.h"
+#include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -147,15 +150,8 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 	GElf_Sym sym;
 	char *name;
 	size_t strndx;
+	uint64_t vma, sym_val;
 	int elferr, i;
-
-	/*
-	 * TODO: find out the relocation section for this input section.
-	 * (using sh_info), also find the symtab. (sh_link)
-	 * perform relocation.
-	 */
-
-	(void) buf;
 
 	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
 		return;
@@ -196,14 +192,32 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		return;
 	}
 
+	/*
+	 * Calculate the corresponding output VMA address for
+	 * the input section.
+	 */
+	vma = is->is_output->os_addr + is->is_reloff;
+
 	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
 		if (gelf_getsym(d, lre->lre_sym, &sym) != &sym)
 			ld_fatal(ld, "gelf_getsym failed: %s",
 			    elf_errmsg(-1));
-		if (GELF_ST_TYPE(sym.st_info) != STT_SECTION) {
+
+		/*
+		 * Find out the value for the symbol assoicated
+		 * with the relocation entry.
+		 */
+		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL) {
 			name = elf_strptr(e, strndx, sym.st_name);
-			printf("%s: %s\n", is->is_name, name);
-		}
+			if (ld_symbols_get_value(ld, name, &sym_val) < 0)
+				sym_val = 0;
+		} else if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
+			sym_val = vma;
+		else
+			sym_val = 0;
+
+		/* Arch-specific relocation handling. */
+		ld->ld_arch->process_reloc(ld, is, lre, sym_val, buf);
 	}
 
 	ld_input_unload(ld, li);

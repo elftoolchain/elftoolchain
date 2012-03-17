@@ -30,11 +30,13 @@
 #define	MAX_TARGET_NAME_LEN	128
 
 struct ld_input_section;
+struct ld_reloc_entry;
 
 struct ld_arch {
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
-	void (*process_reloc)(struct ld *ld, struct ld_input_section *is);
+	void (*process_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *, uint64_t, void *);
 	UT_hash_handle hh;		/* hash handle */
 };
 

@@ -29,6 +29,7 @@
 struct ld_input_section {
 	char *is_name;			/* section name */
 	struct ld_input *is_input;	/* containing input object */
+	struct ld_output_section *is_output; /* containing output section */
 	uint64_t is_off;		/* section file offset */
 	uint64_t is_reloff;		/* relative offset in output section */
 	uint64_t is_size;		/* section file size */

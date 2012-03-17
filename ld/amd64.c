@@ -28,13 +28,15 @@
 #include "ld_arch.h"
 #include "ld_input.h"
 #include "ld_reloc.h"
+#include "ld_utils.h"
 #include "amd64.h"
 
 ELFTC_VCSID("$Id$");
 
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
-static void _process_reloc(struct ld *ld, struct ld_input_section *is);
+static void _process_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre, uint64_t sym, void *buf);
 
 static char _amd64_name1[] = "amd64";
 static char _amd64_name2[] = "x86-64";
@@ -62,17 +64,17 @@ _get_common_page_size(struct ld *ld)
 }
 
 static void
-_process_reloc(struct ld *ld, struct ld_input_section *is)
+_process_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre, uint64_t sym, void *buf)
 {
-	struct ld_reloc_entry *lre;
-
-	assert(is->is_type == SHT_REL || is->is_type == SHT_RELA);
-	assert(is->is_reloc != NULL);
 
 	(void) ld;
-	STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
-		printf("process reloc: %#jx", (uintmax_t) lre->lre_type);
-	}
+	(void) is;
+	(void) buf;
+	printf("lre->lre_type=%ju, sym=%#jx\n", lre->lre_type, sym);
+
+	/* switch (lre->lre_type) { */
+	/* } */
 }
 
 void

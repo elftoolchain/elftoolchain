@@ -452,6 +452,7 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 	if (is->is_type == SHT_NOTE)
 		lo->lo_phdr_note = 1;
 
+	is->is_output = os;
 	STAILQ_INSERT_TAIL(islist, is, is_next);
 }
 
