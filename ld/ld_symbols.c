@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_input.h"
+#include "ld_output.h"
 #include "ld_symbols.h"
 #include "ld_script.h"
 
@@ -34,8 +35,8 @@ ELFTC_VCSID("$Id$");
 
 static void ld_symbols_load(struct ld *ld, struct ld_file *lf);
 static void ld_symbols_load_archive(struct ld *ld, struct ld_file *lf);
-static void ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e);
-static void _add_elf_symbol(struct ld *ld, struct ld_file *lf, Elf *e,
+static void ld_symbols_load_elf(struct ld *ld, struct ld_input *li, Elf *e);
+static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
 static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
@@ -139,13 +140,11 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 }
 
 static void
-_add_elf_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
+_add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
     size_t strndx)
 {
 	struct ld_symbol *lsb;
 	char *name;
-
-	(void) lf;
 
 	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
 		return;
@@ -159,6 +158,7 @@ _add_elf_symbol(struct ld *ld, struct ld_file *lf, Elf *e, GElf_Sym *sym,
 	lsb->lsb_size = sym->st_size;
 	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
 	lsb->lsb_shndx = sym->st_shndx;
+	lsb->lsb_input = li;
 	_resolve_and_add_symbol(ld, lsb);
 }
 
@@ -210,7 +210,7 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 	lam->lam_input = li;
 
 	/* Load the symbols of this member. */
-	ld_symbols_load_elf(ld, lf, e);
+	ld_symbols_load_elf(ld, li, e);
 
 	elf_end(e);
 }
@@ -251,7 +251,7 @@ ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
 }
 
 static void
-ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e)
+ld_symbols_load_elf(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	Elf_Scn *scn, *scn_sym;
 	Elf_Data *d;
@@ -265,7 +265,7 @@ ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e)
 	(void) elf_errno();
 	while ((scn = elf_nextscn(e, scn)) != NULL) {
 		if (gelf_getshdr(scn, &shdr) != &shdr)
-			ld_fatal(ld, "%s: gelf_getshdr failed: %s", lf->lf_name,
+			ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
 			    elf_errmsg(-1));
 		if (shdr.sh_type == SHT_SYMTAB)
 			scn_sym = scn;
@@ -274,20 +274,20 @@ ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", lf->lf_name,
+		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
 	if (scn_sym == NULL || strndx == SHN_UNDEF)
 		return;
 
 	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", lf->lf_name,
+		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
 		    elf_errmsg(-1));
 
 	(void) elf_errno();
 	if ((d = elf_getdata(scn_sym, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", lf->lf_name,
+			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
 			    elf_errmsg(elferr));
 		/* Empty .symtab section? */
 		return;
@@ -296,9 +296,9 @@ ld_symbols_load_elf(struct ld *ld, struct ld_file *lf, Elf *e)
 	len = d->d_size / shdr.sh_entsize;
 	for (i = 0; i < len; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym)
-			ld_fatal(ld, "%s: gelf_getsym failed: %s", lf->lf_name,
+			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
 			    elf_errmsg(-1));
-		_add_elf_symbol(ld, lf, e, &sym, strndx);
+		_add_elf_symbol(ld, li, e, &sym, strndx);
 	}
 }
 
@@ -310,7 +310,7 @@ ld_symbols_load(struct ld *ld, struct ld_file *lf)
 		ld_symbols_load_archive(ld, lf);
 	else {
 		lf->lf_input = ld_input_alloc(ld, lf, lf->lf_name);
-		ld_symbols_load_elf(ld, lf, lf->lf_elf);
+		ld_symbols_load_elf(ld, lf->lf_input, lf->lf_elf);
 	}
 }
 
@@ -358,4 +358,26 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 	*val = lsb->lsb_value;
 
 	return (0);
+}
+
+void
+ld_symbols_update_value(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_symbol *lsb, *_lsb;
+	char *name;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
+		if (lsb->lsb_shndx != SHN_ABS && lsb->lsb_shndx != SHN_COMMON) {
+			li = lsb->lsb_input;
+			name = li->li_is[lsb->lsb_shndx].is_name;
+			HASH_FIND_STR(lo->lo_ostbl, name, os);
+			lsb->lsb_value += os->os_addr;
+		}
+	}
 }
