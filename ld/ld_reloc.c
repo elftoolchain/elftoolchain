@@ -207,13 +207,17 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		 * Find out the value for the symbol assoicated
 		 * with the relocation entry.
 		 */
-		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL) {
+		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL ||
+		    GELF_ST_BIND(sym.st_info) == STB_WEAK) {
 			name = elf_strptr(e, strndx, sym.st_name);
 			if (ld_symbols_get_value(ld, name, &sym_val) < 0)
-				sym_val = 0;
-		} else if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
-			sym_val = vma;
-		else
+				sym_val = sym.st_value;
+		} else if (GELF_ST_BIND(sym.st_info) == STB_LOCAL) {
+			if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
+				sym_val = vma;
+			else
+				sym_val = sym.st_value;
+		} else
 			sym_val = 0;
 
 		/* Arch-specific relocation handling. */

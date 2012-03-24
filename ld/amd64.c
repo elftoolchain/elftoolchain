@@ -71,8 +71,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	(void) ld;
 	(void) is;
 	(void) buf;
-	printf("lre->lre_type=%ju, sym=%#jx\n", lre->lre_type, sym);
-
+	(void) lre;
+	(void) sym;
 	/* switch (lre->lre_type) { */
 	/* } */
 }
