@@ -33,29 +33,28 @@
 #define	WRITE_16(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
-			WRITE_16BE(P,V);		\
+			WRITE_16BE(P, V);		\
 		else					\
-			WRITE_16LE(P,V);		\
+			WRITE_16LE(P, V);		\
 	} while (0)
 #define	WRITE_32(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
-			WRITE_32BE(P,V);		\
+			WRITE_32BE(P, V);		\
 		else					\
-			WRITE_32LE(P,V);		\
+			WRITE_32LE(P, V);		\
 	} while (0)
 #define	WRITE_64(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
-			WRITE_64BE(P,V);		\
+			WRITE_64BE(P, V);		\
 		else					\
-			WRITE_64LE(P,V);		\
+			WRITE_64LE(P, V);		\
 	} while (0)
 #define	WRITE_16BE(P,V)					\
 	do {						\
 		(P)[0] = ((V) >> 8) & 0xff;             \
 		(P)[1] = (V) & 0xff;                    \
-		(P) += 2;                               \
 	} while (0)
 #define	WRITE_32BE(P,V)					\
 	do {						\
@@ -63,12 +62,11 @@
 		(P)[1] = ((V) >> 16) & 0xff;            \
 		(P)[2] = ((V) >> 8) & 0xff;             \
 		(P)[3] = (V) & 0xff;                    \
-		(P) += 4;                               \
 	} while (0)
 #define	WRITE_64BE(P,V)					\
 	do {						\
 		WRITE_32BE((P),(V) >> 32);		\
-		WRITE_32BE((P),(V) & 0xffffffffU);	\
+		WRITE_32BE((P) + 4, (V) & 0xffffffffU);	\
 	} while (0)
 #define	WRITE_16LE(P,V)					\
 	do {						\
@@ -85,5 +83,5 @@
 #define	WRITE_64LE(P,V)					\
 	do {						\
 		WRITE_32LE((P), (V) & 0xffffffffU);	\
-		WRITE_32LE((P), (V) >> 32);		\
+		WRITE_32LE((P) + 4, (V) >> 32);		\
 	} while (0)

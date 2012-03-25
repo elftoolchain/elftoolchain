@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_input.h"
+#include "ld_output.h"
 #include "ld_reloc.h"
 #include "ld_utils.h"
 #include "amd64.h"
@@ -36,7 +37,7 @@ ELFTC_VCSID("$Id$");
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t sym, void *buf);
+    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf);
 
 static char _amd64_name1[] = "amd64";
 static char _amd64_name2[] = "x86-64";
@@ -65,16 +66,48 @@ _get_common_page_size(struct ld *ld)
 
 static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t sym, void *buf)
+    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf)
 {
+	struct ld_output *lo;
+	uint64_t u64;
+	int64_t s64;
+	uint32_t u32;
+	int32_t s32;
+	uint64_t p;
 
-	(void) ld;
-	(void) is;
-	(void) buf;
-	(void) lre;
-	(void) sym;
-	/* switch (lre->lre_type) { */
-	/* } */
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	p = lre->lre_offset + is->is_output->os_addr + is->is_reloff;
+
+	switch (lre->lre_type) {
+	case R_X86_64_NONE:
+		break;
+	case R_X86_64_64:
+		WRITE_64(buf + lre->lre_offset, s + lre->lre_addend);
+		break;
+	case R_X86_64_PC32:
+		s32 = s + lre->lre_addend - p;
+		WRITE_32(buf + lre->lre_offset, s32);
+		break;
+	case R_X86_64_32:
+		u64 = s + lre->lre_addend;
+		u32 = u64 & 0xffffffff;
+		if (u64 != u32)
+			ld_fatal(ld, "R_X86_64_32 relocation failed");
+		WRITE_32(buf + lre->lre_offset, u32);
+		break;
+	case R_X86_64_32S:
+		s64 = s + lre->lre_addend;
+		s32 = s64 & 0xffffffff;
+		if (s64 != s32)
+			ld_fatal(ld, "R_X86_64_32S relocation failed");
+		WRITE_32(buf + lre->lre_offset, s32);
+		break;
+	default:
+		ld_fatal(ld, "Relocation %d not supported", lre->lre_type);
+		break;
+	}
 }
 
 void
