@@ -450,7 +450,9 @@ _create_phdr(struct ld *ld)
 	if (i >= 0)
 		_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz, flags, align);
 
-	/* Create PT_NOTE segment. */
+	/*
+	 * Create PT_NOTE segment.
+	 */
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_type == SHT_NOTE) {
@@ -462,6 +464,19 @@ _create_phdr(struct ld *ld)
 			    os->os_size, os->os_size, PF_R, os->os_align);
 			break;
 		}
+	}
+
+	/*
+	 * Create PT_GNU_STACK segment.
+	 */
+
+	if (ld->ld_gen_gnustack) {
+		i++;
+		flags = PF_R | PF_W;
+		if (ld->ld_stack_exec)
+			flags |= PF_X;
+		align = (lo->lo_ec == ELFCLASS32) ? 4 : 8;
+		_WRITE_PHDR(PT_GNU_STACK, 0, 0, 0, 0, flags, align);
 	}
 
 	assert((unsigned) i + 1 == lo->lo_phdr_num);

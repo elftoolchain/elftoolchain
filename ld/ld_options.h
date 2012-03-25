@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,6 +112,7 @@ enum ld_key {
 	KEY_WRAP,
 	KEY_Z_DEFAULT_EXTRACT,
 	KEY_Z_DEFS,
+	KEY_Z_EXEC_STACK,
 	KEY_Z_IGNORE,
 	KEY_Z_INIT_FIRST,
 	KEY_Z_LAZYLOAD,
@@ -121,6 +122,7 @@ enum ld_key {
 	KEY_Z_NO_DEFS,
 	KEY_Z_NO_DELETE,
 	KEY_Z_NO_DLOPEN,
+	KEY_Z_NO_EXEC_STACK,
 	KEY_Z_NO_LAZYLOAD,
 	KEY_Z_ORIGIN,
 	KEY_Z_RECORD,

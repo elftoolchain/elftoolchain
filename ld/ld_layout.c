@@ -153,7 +153,7 @@ ld_layout_calc_header_size(struct ld *ld)
 			if (lo->lo_phdr_note)
 				num_phdrs++;
 
-			if (lo->lo_phdr_gnustack)
+			if (ld->ld_gen_gnustack)
 				num_phdrs++;
 
 			if (lo->lo_phdr_num != 0 &&

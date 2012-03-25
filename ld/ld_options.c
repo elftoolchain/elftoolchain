@@ -169,14 +169,16 @@ static struct ld_option ld_opts_z[] = {
 	{"weakextract", KEY_Z_WEAK_EXTRACT, ONE_DASH, NO_ARG},
 	{"muldefs", KEY_Z_MULDEFS, ONE_DASH, NO_ARG},
 	{"defs", KEY_Z_DEFS, ONE_DASH, NO_ARG},
+	{"execstack", KEY_Z_EXEC_STACK, ONE_DASH, NO_ARG},
 	{"nodefs", KEY_Z_NO_DEFS, ONE_DASH, NO_ARG},
 	{"origin", KEY_Z_ORIGIN, ONE_DASH, NO_ARG},
 	{"now", KEY_Z_NOW, ONE_DASH, NO_ARG},
 	{"nodelete", KEY_Z_NO_DELETE, ONE_DASH, NO_ARG},
 	{"initfirst", KEY_Z_INIT_FIRST, ONE_DASH, NO_ARG},
 	{"lazyload", KEY_Z_LAZYLOAD, ONE_DASH, NO_ARG},
-	{"nolazyload", KEY_Z_NO_LAZYLOAD, ONE_DASH, NO_ARG},
+	{"noexecstack", KEY_Z_NO_EXEC_STACK, ONE_DASH, NO_ARG},
 	{"nodlopen", KEY_Z_NO_DLOPEN, ONE_DASH, NO_ARG},
+	{"nolazyload", KEY_Z_NO_LAZYLOAD, ONE_DASH, NO_ARG},
 	{"ignore", KEY_Z_IGNORE, ONE_DASH, NO_ARG},
 	{"record", KEY_Z_RECORD, ONE_DASH, NO_ARG},
 	{"systemlibrary", KEY_Z_SYSTEM_LIBRARY, ONE_DASH, NO_ARG},
@@ -393,6 +395,16 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_FILE:
 		ld_file_add(ld, arg, LFT_UNKNOWN);
+		break;
+	case KEY_Z_EXEC_STACK:
+		ld->ld_gen_gnustack = 1;
+		ld->ld_stack_exec_set = 1;
+		ld->ld_stack_exec = 1;
+		break;
+	case KEY_Z_NO_EXEC_STACK:
+		ld->ld_gen_gnustack = 1;
+		ld->ld_stack_exec_set = 1;
+		ld->ld_stack_exec = 0;
 		break;
 	default:
 		break;

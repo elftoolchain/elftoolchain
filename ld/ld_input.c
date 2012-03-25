@@ -217,6 +217,19 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		is->is_index = elf_ndxscn(scn);
 		is->is_input = li;
 		is->is_orphan = 1;
+
+		/*
+		 * Check for informational sections which should not
+		 * be included in the output object, process them
+		 * and mark them as discarded if need.
+		 */
+
+		if (strcmp(is->is_name, ".note.GNU-stack") == 0) {
+			ld->ld_gen_gnustack = 1;
+			if (!ld->ld_stack_exec_set)
+				ld->ld_stack_exec |= is->is_size;
+			is->is_discard = 1;
+		}
 	}
 	elferr = elf_errno();
 	if (elferr != 0)

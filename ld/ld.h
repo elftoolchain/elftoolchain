@@ -95,6 +95,9 @@ struct ld {
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */
+	unsigned ld_gen_gnustack;	/* generate PT_GNUSTACK */
+	unsigned ld_stack_exec;		/* stack executable */
+	unsigned ld_stack_exec_set;	/* stack executable override */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */
 };
