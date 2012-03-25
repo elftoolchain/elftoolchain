@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ AT				{ return (T_AT); }
 BIND				{ return (T_BIND); }
 BLOCK				{ return (T_BLOCK); }
 BYTE				{ return (T_BYTE); }
-COMMONPAGESIZE			{ return (T_COMMONPAGESIZE); }
+COMMONPAGESIZE			{ _get_ident(); return (T_COMMONPAGESIZE); }
 CONSTANT			{ return (T_CONSTANT); }
 CONSTRUCTORS			{ return (T_CONSTRUCTORS); }
 COPY				{ return (T_COPY); }
@@ -94,7 +94,7 @@ LOADADDR			{ return (T_LOADADDR); }
 LONG				{ return (T_LONG); }
 MAP				{ return (T_MAP); }
 MAX				{ return (T_MAX); }
-MAXPAGESIZE			{ return (T_MAXPAGESIZE); }
+MAXPAGESIZE			{ _get_ident(); return (T_MAXPAGESIZE); }
 MEMORY				{ return (T_MEMORY); }
 MIN				{ return (T_MIN); }
 NEXT				{ return (T_NEXT); }

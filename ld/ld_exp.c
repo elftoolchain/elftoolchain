@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_script.h"
 #include "ld_exp.h"
 #include "ld_layout.h"
@@ -461,7 +462,13 @@ static int64_t
 _symbolic_constant(struct ld *ld, const char *name)
 {
 
-	/* TODO */
-	(void) ld; (void) name;
+	if (ld->ld_arch == NULL)
+		return (0);
+
+	if (strcmp(name, "COMMONPAGESIZE") == 0)
+		return (ld->ld_arch->get_common_page_size(ld));
+	else if (strcmp(name, "MAXPAGESIZE") == 0)
+		return (ld->ld_arch->get_max_page_size(ld));
+
 	return (0);
 }
