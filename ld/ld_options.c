@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -350,6 +350,9 @@ ld_options_process(struct ld *ld, int key, char *arg)
 	case 'o':
 		if ((ld->ld_output_file = strdup(arg)) == NULL)
 			ld_fatal_std(ld, "strdup");
+		break;
+	case 'q':
+		ld->ld_emit_reloc = 1;
 		break;
 	case 'T':
 		ld_script_parse(arg);

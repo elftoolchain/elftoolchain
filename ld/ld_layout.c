@@ -391,6 +391,10 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		    strcmp(is->is_name, ".strtab") == 0)
 			continue;
 
+		if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
+		    !ld->ld_emit_reloc)
+			continue;
+
 		HASH_FIND_STR(lo->lo_ostbl, is->is_name, os);
 		if (os != NULL) {
 			oe = STAILQ_FIRST(&os->os_e);
