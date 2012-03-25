@@ -441,6 +441,13 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
     struct ld_input_section *is, struct ld_input_section_head *islist)
 {
 
+	/*
+	 * TODO: Since we now only support "-static" linking, assume all
+	 * input relocation sections has been processed and consumed.
+	 */
+	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
+		return;
+
 	is->is_orphan = 0;
 	os->os_empty = 0;
 
