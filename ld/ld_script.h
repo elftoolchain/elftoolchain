@@ -202,8 +202,7 @@ struct ld_script_variable {
 };
 
 struct ld_script {
-	unsigned lds_entry_set;		/* entry point set by ld script */
-	uint64_t lds_entry_point;	/* entry point value */
+	char *lds_entry_point;		/* entry point symbol */
 	STAILQ_HEAD(, ld_script_phdr) lds_p; /* phdr table */
 	STAILQ_HEAD(, ld_script_region_alias) lds_a; /* region aliases list */
 	STAILQ_HEAD(, ld_script_region) lds_r; /* memory region list */

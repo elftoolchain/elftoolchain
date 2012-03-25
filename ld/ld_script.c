@@ -112,10 +112,14 @@ void
 ld_script_process_entry(struct ld *ld, char *name)
 {
 
-	if (ld_symbols_get_value(ld, name, &ld->ld_scp->lds_entry_point) < 0)
-		ld->ld_scp->lds_entry_set = 0;
-	else
-		ld->ld_scp->lds_entry_set = 1;
+	if (ld->ld_scp->lds_entry_point != NULL) {
+		free(ld->ld_scp->lds_entry_point);
+		ld->ld_scp->lds_entry_point = NULL;
+	}
+
+	ld->ld_scp->lds_entry_point = strdup(name);
+	if (ld->ld_scp->lds_entry_point == NULL)
+		ld_fatal_std(ld, "strdup");
 }
 
 int64_t

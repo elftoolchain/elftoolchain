@@ -321,8 +321,11 @@ _find_entry_point(struct ld *ld)
 		return (entry);
 	} 
 
-	if (ld->ld_scp->lds_entry_set)
-		return (ld->ld_scp->lds_entry_point);
+	if (ld->ld_scp->lds_entry_point != NULL) {
+		if (ld_symbols_get_value(ld, ld->ld_scp->lds_entry_point,
+		    &entry) == 0)
+			return (entry);
+	}
 
 	if (ld_symbols_get_value(ld, entry_symbol, &entry) == 0)
 		return (entry);
