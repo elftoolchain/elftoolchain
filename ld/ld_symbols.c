@@ -155,6 +155,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb = _symbol_alloc(ld);
 	if ((lsb->lsb_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
+	lsb->lsb_value = sym->st_value;
 	lsb->lsb_size = sym->st_size;
 	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
 	lsb->lsb_shndx = sym->st_shndx;
@@ -364,6 +365,7 @@ void
 ld_symbols_update_value(struct ld *ld)
 {
 	struct ld_input *li;
+	struct ld_input_section *is;
 	struct ld_output *lo;
 	struct ld_output_section *os;
 	struct ld_symbol *lsb, *_lsb;
@@ -375,9 +377,12 @@ ld_symbols_update_value(struct ld *ld)
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
 		if (lsb->lsb_shndx != SHN_ABS && lsb->lsb_shndx != SHN_COMMON) {
 			li = lsb->lsb_input;
-			name = li->li_is[lsb->lsb_shndx].is_name;
+			is = &li->li_is[lsb->lsb_shndx];
+			name = is->is_name;
 			HASH_FIND_STR(lo->lo_ostbl, name, os);
-			lsb->lsb_value += os->os_addr;
+			lsb->lsb_value += os->os_addr + is->is_reloff;
+			printf("symbol %s: %#jx\n", lsb->lsb_name,
+			    (uintmax_t) lsb->lsb_value);
 		}
 	}
 }

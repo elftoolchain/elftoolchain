@@ -562,8 +562,6 @@ _insert_shdr(struct ld *ld)
 			n++;
 	}
 
-	printf("n=%d\n", n);
-
 	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 2, EV_CURRENT);
 
 	return (shoff);
@@ -644,9 +642,11 @@ _create_shstrtab(struct ld *ld)
 			ld_fatal(ld, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
+#if 0
 		printf("name=%s, offset=%#jx, size=%#jx, type=%#jx\n",
 		    os->os_name, (uint64_t) sh.sh_offset,
 		    (uint64_t) sh.sh_size, (uint64_t) sh.sh_type);
+#endif
 
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
 

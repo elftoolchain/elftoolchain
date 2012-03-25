@@ -160,7 +160,6 @@ ld_layout_calc_header_size(struct ld *ld)
 			    lo->lo_phdr_num != num_phdrs)
 				ld_fatal(ld, "not enough room for program"
 				    " headers");
-			printf("num_phdrs=%u\n", (unsigned)num_phdrs);
 		}
 	}
 
@@ -170,7 +169,6 @@ ld_layout_calc_header_size(struct ld *ld)
 		header_size += num_phdrs * sizeof(Elf64_Phdr);
 
 	lo->lo_phdr_num = num_phdrs;
-	printf("lo->lo_phdr_num=%u\n", lo->lo_phdr_num);
 
 	return (header_size);
 }
@@ -548,10 +546,12 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 					continue;
 				is->is_reloff = roundup(ls->ls_loc_counter,
 				    is->is_align);
+#if 0
 				printf("\t%s(%s): %#jx,%#jx(%#jx)\n",
 				    is->is_input->li_name,
 				    is->is_name, is->is_reloff,
 				    is->is_size, is->is_align);
+#endif
 				ls->ls_loc_counter = is->is_reloff +
 				    is->is_size;
 			}
@@ -578,9 +578,11 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	os->os_off = roundup(ls->ls_offset, os->os_align);
 	os->os_size = ls->ls_loc_counter;
 
+#if 0
 	printf("layout output section %s: (off:%#jx,size:%#jx) "
 	    "vma:%#jx,align:%#jx\n", os->os_name, os->os_off, os->os_size,
 	    os->os_addr, os->os_align);
+#endif
 
 	ls->ls_offset = os->os_off + os->os_size;
 
