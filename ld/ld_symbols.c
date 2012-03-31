@@ -153,13 +153,23 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 		return;
 
 	lsb = _symbol_alloc(ld);
+
 	if ((lsb->lsb_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 	lsb->lsb_value = sym->st_value;
 	lsb->lsb_size = sym->st_size;
 	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
+	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
 	lsb->lsb_shndx = sym->st_shndx;
 	lsb->lsb_input = li;
+
+	/* Insert symbol to input object internal symbol list. */
+	if (lsb->lsb_bind == STB_LOCAL) {
+		if (lsb->lsb_type != STT_SECTION)
+			STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
+	} else
+		STAILQ_INSERT_TAIL(li->li_nonlocal, lsb, lsb_next);
+
 	_resolve_and_add_symbol(ld, lsb);
 }
 

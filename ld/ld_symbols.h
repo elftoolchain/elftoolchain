@@ -36,9 +36,14 @@ struct ld_symbol {
 	unsigned char lsb_type;		/* symbol type */
 	unsigned char lsb_other;	/* symbol visibility */
 	unsigned char lsb_provide;	/* provide symbol */
+	unsigned char lsb_provide_refed; /* provide symbol is referenced */
+	struct ld_symbol *lsb_ref;	/* symbol reference */
 	struct ld_input *lsb_input;	/* containing input object */
 	UT_hash_handle hh;		/* hash handle */
+	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
 };
+
+STAILQ_HEAD(ld_symbol_head, ld_symbol);
 
 void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,

@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_file.h"
 #include "ld_input.h"
+#include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -47,6 +48,20 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 
 	if ((li->li_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
+
+	/*
+	 * TODO: Do not allocate memory for symbo lists if ld(1) is
+	 * going to strip the symbol table.
+	 */
+
+	if ((li->li_local = malloc(sizeof(*li->li_local))) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	if ((li->li_nonlocal = malloc(sizeof(*li->li_nonlocal))) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	STAILQ_INIT(li->li_local);
+	STAILQ_INIT(li->li_nonlocal);
 
 	li->li_file = lf;
 

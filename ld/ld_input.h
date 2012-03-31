@@ -42,7 +42,7 @@ struct ld_input_section {
 	uint64_t is_index;		/* section index */
 	unsigned is_orphan;		/* orphan section */
 	unsigned is_discard;		/* dicard section */
-	struct ld_reloc_entry_head *is_reloc;	/* reloc list */
+	struct ld_reloc_entry_head *is_reloc; /* reloc list */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 };
 
@@ -55,6 +55,8 @@ struct ld_input {
 	size_t li_shnum;		/* num of sections in ELF object */
 	struct ld_input_section *li_is;	/* input section list */
 	off_t li_moff;			/* archive member offset */
+	struct ld_symbol_head *li_local; /* local symbol list */
+	struct ld_symbol_head *li_nonlocal; /* non-local symbol list */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
