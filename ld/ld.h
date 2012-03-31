@@ -88,10 +88,8 @@ struct ld {
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
 	struct ld_strtab *ld_shstrtab;	/* section name table */
-	struct ld_symbol *ld_symtab_def;/* defined symbols */
-	struct ld_symbol *ld_symtab_def_scp; /* defined symbols in ldscript */
-	struct ld_symbol *ld_symtab_provide; /* provide symbols */
-	struct ld_symbol *ld_symtab_undef; /* undefined symbols */
+	struct ld_symbol *ld_symtab_def;/* hash for defined symbols */
+	struct ld_symbol *ld_symtab_undef; /* hash for undefined symbols */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */
