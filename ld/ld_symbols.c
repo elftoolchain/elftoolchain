@@ -30,14 +30,20 @@
 #include "ld_output.h"
 #include "ld_symbols.h"
 #include "ld_script.h"
+#include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
+
+#define	_INIT_SYMTAB_SIZE	128
 
 static void ld_symbols_load(struct ld *ld, struct ld_file *lf);
 static void ld_symbols_load_archive(struct ld *ld, struct ld_file *lf);
 static void ld_symbols_load_elf(struct ld *ld, struct ld_input *li, Elf *e);
 static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx);
+void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
+    struct ld_strtab *strtab, struct ld_symbol *lsb);
+struct ld_symbol_table *_alloc_symbol_table(struct ld *ld);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
 static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
     struct ld_archive *la, off_t off);
@@ -395,4 +401,109 @@ ld_symbols_update_value(struct ld *ld)
 			    (uintmax_t) lsb->lsb_value);
 		}
 	}
+}
+
+void
+ld_symbols_build_symtab(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_input *li;
+	struct ld_symbol _lsb;
+
+	(void) lo;
+	(void) li;
+
+	ld->ld_symtab = _alloc_symbol_table(ld);
+	ld->ld_strtab = ld_strtab_alloc(ld);
+
+	/*
+	 * Always create the special symbol at the beginning of the
+	 * symbol table.
+	 */
+	_lsb.lsb_name = NULL;
+	_lsb.lsb_size = 0;
+	_lsb.lsb_value = 0;
+	_lsb.lsb_shndx = SHN_UNDEF;
+	_lsb.lsb_bind = STB_LOCAL;
+	_lsb.lsb_type = STT_NOTYPE;
+	_lsb.lsb_other = 0;
+	_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+
+	/* TODO: Create STT_SECTION symbols. */
+}
+
+struct ld_symbol_table *
+_alloc_symbol_table(struct ld *ld)
+{
+	struct ld_symbol_table *symtab;
+
+	if ((symtab = calloc(1, sizeof(*ld->ld_symtab))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (symtab);
+}
+
+void
+_add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
+    struct ld_strtab *strtab, struct ld_symbol *lsb)
+{
+	struct ld_output *lo;
+	Elf32_Sym *s32;
+	Elf64_Sym *s64;
+	size_t es;
+
+	assert(symtab != NULL && lsb != NULL);
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	es = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym);
+
+	/*
+	 * Allocate/Reallocate buffer for the symbol table.
+	 */
+	if (symtab->sy_buf == NULL) {
+		symtab->sy_size = 0;
+		symtab->sy_cap = _INIT_SYMTAB_SIZE;
+		symtab->sy_buf = malloc(symtab->sy_cap * es);
+		if (symtab->sy_buf == NULL)
+			ld_fatal_std(ld, "malloc");
+	} else if (symtab->sy_size >= symtab->sy_cap) {
+		symtab->sy_cap *= 2;
+		symtab->sy_buf = realloc(symtab->sy_buf, symtab->sy_cap * es);
+		if (symtab->sy_buf == NULL)
+			ld_fatal_std(ld, "relloc");
+	}
+
+	/*
+	 * Insert the symbol into the symbol table and the symbol name to
+	 * the assoicated name string table.
+	 */
+	if (lo->lo_ec == ELFCLASS32) {
+		s32 = symtab->sy_buf;
+		s32 += symtab->sy_size;
+		s32->st_name = ld_strtab_insert_no_suffix(ld, strtab,
+		    lsb->lsb_name);
+		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s32->st_other = lsb->lsb_other;
+		s32->st_shndx = lsb->lsb_shndx;
+		s32->st_value = lsb->lsb_value;
+		s32->st_size = lsb->lsb_size;
+	} else {
+		s64 = symtab->sy_buf;
+		s64 += symtab->sy_size;
+		s64->st_name = ld_strtab_insert_no_suffix(ld, strtab,
+		    lsb->lsb_name);
+		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s64->st_other = lsb->lsb_other;
+		s64->st_shndx = lsb->lsb_shndx;
+		s64->st_value = lsb->lsb_value;
+		s64->st_size = lsb->lsb_size;
+	}
+
+	/* Remember the index for the first non-local symbol. */
+	if (symtab->sy_first_nonlocal == 0 && lsb->lsb_bind != STB_LOCAL)
+		symtab->sy_first_nonlocal = symtab->sy_size;
+
+	symtab->sy_size++;
 }

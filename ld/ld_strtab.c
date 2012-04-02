@@ -46,6 +46,8 @@ ld_strtab_alloc(struct ld *ld)
 	if ((st->st_buf = calloc(1, st->st_cap)) == NULL)
 		ld_fatal_std(ld, "calloc");
 
+	ld_strtab_insert(ld, st, "");
+
 	return (st);
 }
 
@@ -68,6 +70,9 @@ ld_strtab_insert(struct ld *ld, struct ld_strtab *st, const char *s)
 	int append;
 
 	assert(st != NULL && st->st_buf != NULL);
+
+	if (s == NULL)
+		return;
 
 	slen = strlen(s);
 	append = 0;
@@ -100,10 +105,43 @@ ld_strtab_insert(struct ld *ld, struct ld_strtab *st, const char *s)
 }
 
 int
+ld_strtab_insert_no_suffix(struct ld *ld, struct ld_strtab *st, const char *s)
+{
+	char *b;
+	size_t slen;
+	int p;
+
+	if (s == NULL)
+		return (0);
+
+	slen = strlen(s);
+	for (b = st->st_buf; b < st->st_buf + st->st_size; b += strlen(b) + 1) {
+		if (strlen(b) != slen)
+			continue;
+		if (strcmp(b, s) == 0)
+			return (b - st->st_buf);
+	}
+
+	while (st->st_size + slen + 1 >= st->st_cap)
+		_resize_strtab(ld, st, st->st_cap * 2);
+
+	b = st->st_buf;
+	p = st->st_size;
+	strncpy(&b[p], s, slen);
+	b[p + slen] = '\0';
+	st->st_size += slen + 1;
+
+	return (p);
+}
+
+int
 ld_strtab_lookup(struct ld_strtab *st, const char *s)
 {
-	const char	*b, *c, *r;
-	size_t		 len, slen;
+	const char *b, *c, *r;
+	size_t len, slen;
+
+	if (s == NULL)
+		return (0);
 
 	slen = strlen(s);
 	b = st->st_buf;

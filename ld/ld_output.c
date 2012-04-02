@@ -44,9 +44,12 @@ static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
 static void _create_phdr(struct ld *ld);
-static void _create_shstrtab(struct ld *ld);
+static void _create_string_table_section(struct ld *ld, const char *name,
+    struct ld_strtab *st, Elf_Scn *scn);
+static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
+static void _set_section_name(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -546,11 +549,15 @@ ld_output_create(struct ld *ld)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
 	/* Generate section name string table section (.shstrtab). */
-	_create_shstrtab(ld);
+	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);
 
-	/* TODO: Add symbol table. */
+	/* Generate symbol table. */
+	_create_symbol_table(ld);
 
-	/* Finally write out output ELF object. */
+	/* Update "sh_name" fields of each section headers. */
+	_set_section_name(ld);
+
+	/* Finally write out the output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
 		ld_fatal(ld, "elf_update failed: %s", elf_errmsg(-1));
 }
@@ -580,7 +587,8 @@ _insert_shdr(struct ld *ld)
 			n++;
 	}
 
-	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 2, EV_CURRENT);
+	/* TODO: n + 2 if ld(1) will not create symbol table. */
+	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 4, EV_CURRENT);
 
 	return (shoff);
 }
@@ -591,7 +599,6 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 
 	if (ld->ld_shstrtab == NULL) {
 		ld->ld_shstrtab = ld_strtab_alloc(ld);
-		ld_strtab_insert(ld, ld->ld_shstrtab, "");
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".symtab");
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".strtab");
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".shstrtab");
@@ -601,30 +608,135 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 }
 
 static void
-_create_shstrtab(struct ld *ld)
+_set_section_name(struct ld *ld)
+{
+	struct ld_strtab *st;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	GElf_Shdr sh;
+	
+	lo = ld->ld_output;
+	st = ld->ld_shstrtab;
+	assert(st != NULL && st->st_buf != NULL);
+
+	/*
+	 * Set "sh_name" fields of each section headers to point
+	 * to the string table.
+	 */
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_scn == NULL)
+			continue;
+
+		if (gelf_getshdr(os->os_scn, &sh) == NULL)
+			ld_fatal(ld, "gelf_getshdr failed: %s",
+			    elf_errmsg(-1));
+
+		sh.sh_name = ld_strtab_lookup(st, os->os_name);
+
+#if 0
+		printf("name=%s, shname=%#jx, offset=%#jx, size=%#jx, type=%#jx\n",
+		    os->os_name, (uint64_t) sh.sh_name, (uint64_t) sh.sh_offset,
+		    (uint64_t) sh.sh_size, (uint64_t) sh.sh_type);
+#endif
+
+		if (!gelf_update_shdr(os->os_scn, &sh))
+			ld_fatal(ld, "gelf_update_shdr failed: %s",
+			    elf_errmsg(-1));
+	}
+}
+
+static void
+_create_symbol_table(struct ld *ld)
 {
 	struct ld_state *ls;
 	struct ld_strtab *st;
 	struct ld_output *lo;
-	struct ld_output_section *os;
-	Elf_Scn *scn;
+	Elf_Scn *scn_symtab, *scn_strtab;
 	Elf_Data *d;
 	GElf_Shdr sh;
+	size_t strndx;
+
+	ld_symbols_build_symtab(ld);
 
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
 	assert(st != NULL && st->st_buf != NULL);
 
-	scn = _create_elf_scn(ld, lo, NULL);
+	/*
+	 * Create .symtab section.
+	 */
 
-	if (!elf_setshstrndx(lo->lo_elf, elf_ndxscn(scn)))
-		ld_fatal(ld, "elf_setshstrndx failed: %s", elf_errmsg(-1));
+	scn_symtab = _create_elf_scn(ld, lo, NULL);
+	scn_strtab = _create_elf_scn(ld, lo, NULL);
+	strndx = elf_ndxscn(scn_strtab);
+
+	if (gelf_getshdr(scn_symtab, &sh) == NULL)
+		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
+
+	sh.sh_name = ld_strtab_lookup(st, ".symtab");
+	sh.sh_flags = 0;
+	sh.sh_addr = 0;
+	sh.sh_addralign = (lo->lo_ec == ELFCLASS32) ? 4 : 8;
+	sh.sh_offset = roundup(ls->ls_offset, sh.sh_addralign);
+	sh.sh_entsize = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) :
+	    sizeof(Elf64_Sym);
+	sh.sh_size = ld->ld_symtab->sy_size * sh.sh_entsize;
+	sh.sh_type = SHT_SYMTAB;
+	sh.sh_link = strndx;
+	sh.sh_info = ld->ld_symtab->sy_first_nonlocal;
+
+	if (!gelf_update_shdr(scn_symtab, &sh))
+		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+
+	if ((d = elf_newdata(scn_symtab)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = sh.sh_addralign;
+	d->d_off = 0;
+	d->d_type = ELF_T_SYM;
+	d->d_size = sh.sh_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = ld->ld_symtab->sy_buf;
+
+	ls->ls_offset = sh.sh_offset + sh.sh_size;
+
+	/*
+	 * Create .strtab section.
+	 */
+
+	_create_string_table_section(ld, ".strtab", ld->ld_strtab, scn_strtab);
+}
+
+static void
+_create_string_table_section(struct ld *ld, const char *name,
+    struct ld_strtab *st, Elf_Scn *scn)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	Elf_Data *d;
+	GElf_Shdr sh;
+
+	assert(st != NULL && st->st_buf != NULL);
+	assert(name != NULL);
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	if (scn == NULL)
+		scn = _create_elf_scn(ld, lo, NULL);
+
+	if (strcmp(name, ".shstrtab") == 0) {
+		if (!elf_setshstrndx(lo->lo_elf, elf_ndxscn(scn)))
+			ld_fatal(ld, "elf_setshstrndx failed: %s",
+			    elf_errmsg(-1));
+	}
 
 	if (gelf_getshdr(scn, &sh) == NULL)
 		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
 
-	sh.sh_name = ld_strtab_lookup(st, ".shstrtab");
+	sh.sh_name = ld_strtab_lookup(ld->ld_shstrtab, name);
 	sh.sh_flags = 0;
 	sh.sh_addr = 0;
 	sh.sh_addralign = 1;
@@ -646,30 +758,4 @@ _create_shstrtab(struct ld *ld)
 	d->d_buf = st->st_buf;
 
 	ls->ls_offset += st->st_size;
-
-	/*
-	 * Set "sh_name" fields of each section headers to point
-	 * to the string table.
-	 */
-
-	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
-		if (os->os_scn == NULL)
-			continue;
-
-		if (gelf_getshdr(os->os_scn, &sh) == NULL)
-			ld_fatal(ld, "gelf_getshdr failed: %s",
-			    elf_errmsg(-1));
-
-#if 0
-		printf("name=%s, offset=%#jx, size=%#jx, type=%#jx\n",
-		    os->os_name, (uint64_t) sh.sh_offset,
-		    (uint64_t) sh.sh_size, (uint64_t) sh.sh_type);
-#endif
-
-		sh.sh_name = ld_strtab_lookup(st, os->os_name);
-
-		if (!gelf_update_shdr(os->os_scn, &sh))
-			ld_fatal(ld, "gelf_update_shdr failed: %s",
-			    elf_errmsg(-1));
-	}
 }
