@@ -521,7 +521,6 @@ ld_output_create(struct ld *ld)
 
 	eh.e_ident[EI_CLASS] = lo->lo_ec;
 	eh.e_ident[EI_DATA] = lo->lo_endian;
-	eh.e_entry = _find_entry_point(ld);
 	eh.e_flags = 0;		/* TODO */
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	eh.e_type = ET_EXEC;	/* TODO */
@@ -543,6 +542,12 @@ ld_output_create(struct ld *ld)
 
 	/* Insert section headers table and point e_shoff to it. */
 	eh.e_shoff = _insert_shdr(ld);
+
+	/* Update output symbol value and index. */
+	ld_symbols_update(ld);
+
+	/* Set executable entry point. */
+	eh.e_entry = _find_entry_point(ld);
 
 	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)

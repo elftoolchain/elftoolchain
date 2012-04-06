@@ -79,8 +79,6 @@ main(int argc, char **argv)
 
 	ld_layout_sections(ld);
 
-	ld_symbols_update_value(ld);
-
 	ld_output_create(ld);
 
 	exit(EXIT_SUCCESS);

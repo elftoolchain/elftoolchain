@@ -58,4 +58,4 @@ void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
 void	ld_symbols_build_symtab(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);
-void	ld_symbols_update_value(struct ld *);
+void	ld_symbols_update(struct ld *);

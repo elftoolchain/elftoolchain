@@ -50,6 +50,7 @@ static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
 static struct ld_symbol *_symbol_alloc(struct ld *ld);
 static struct ld_symbol *_symbol_find(struct ld_symbol *tbl, char *name);
+static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
 
 void
 ld_symbols_resolve(struct ld *ld)
@@ -379,29 +380,45 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 	return (0);
 }
 
-void
-ld_symbols_update_value(struct ld *ld)
+static void
+_update_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
 	struct ld_output *lo;
 	struct ld_output_section *os;
-	struct ld_symbol *lsb, *_lsb;
-	char *name;
+
+	if (lsb->lsb_shndx == SHN_ABS || lsb->lsb_shndx == SHN_COMMON)
+		return;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
+	li = lsb->lsb_input;
+	is = &li->li_is[lsb->lsb_shndx];
+	if ((os = is->is_output) == NULL)
+		return;
+	lsb->lsb_value += os->os_addr + is->is_reloff;
+	lsb->lsb_shndx = elf_ndxscn(os->os_scn);
+#if 0
+	printf("symbol %s: %#jx\n", lsb->lsb_name,
+	    (uintmax_t) lsb->lsb_value);
+#endif
+}
+
+void
+ld_symbols_update(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_symbol *lsb, *_lsb;
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
+			_update_symbol(ld, lsb);
+	}	
+
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
-		if (lsb->lsb_shndx != SHN_ABS && lsb->lsb_shndx != SHN_COMMON) {
-			li = lsb->lsb_input;
-			is = &li->li_is[lsb->lsb_shndx];
-			name = is->is_name;
-			HASH_FIND_STR(lo->lo_ostbl, name, os);
-			lsb->lsb_value += os->os_addr + is->is_reloff;
-			printf("symbol %s: %#jx\n", lsb->lsb_name,
-			    (uintmax_t) lsb->lsb_value);
-		}
+		_update_symbol(ld, lsb);
 	}
 }
 
@@ -411,6 +428,9 @@ ld_symbols_build_symtab(struct ld *ld)
 	struct ld_output *lo;
 	struct ld_output_section *os;
 	struct ld_input *li;
+#if 0
+	struct ld_input_section *is;
+#endif
 	struct ld_symbol *lsb, *tmp, _lsb;
 
 	lo = ld->ld_output;
@@ -447,12 +467,21 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy local symbols from each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
+#if 0
+			li = lsb->lsb_input;
+			is = &li->li_is[lsb->lsb_shndx];
+			if (is->is_output == NULL) {
+				printf("discard symbol: %s\n", lsb->lsb_name);
+				continue;
+			}
+#endif
 			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
 			    lsb);
+		}
 	}
 
-	/* Copy global symbols from hash table. */
+	/* Copy resolved global symbols from hash table. */
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
 		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
 	}
