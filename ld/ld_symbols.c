@@ -155,9 +155,6 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
 		return;
 
-	if (GELF_ST_BIND(sym->st_info) == STB_LOCAL)
-		return;
-
 	lsb = _symbol_alloc(ld);
 
 	if ((lsb->lsb_name = strdup(name)) == NULL)
@@ -169,14 +166,19 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_shndx = sym->st_shndx;
 	lsb->lsb_input = li;
 
-	/* Insert symbol to input object internal symbol list. */
+	/*
+	 * Insert symbol to input object internal symbol list and
+	 * perform symbol resolving.
+	 */
 	if (lsb->lsb_bind == STB_LOCAL) {
-		if (lsb->lsb_type != STT_SECTION)
+		if (lsb->lsb_type != STT_SECTION &&
+		    (lsb->lsb_type != STT_NOTYPE ||
+		    lsb->lsb_shndx != SHN_UNDEF))
 			STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
-	} else
+	} else {
 		STAILQ_INSERT_TAIL(li->li_nonlocal, lsb, lsb_next);
-
-	_resolve_and_add_symbol(ld, lsb);
+		_resolve_and_add_symbol(ld, lsb);
+	}
 }
 
 static int
@@ -409,11 +411,9 @@ ld_symbols_build_symtab(struct ld *ld)
 	struct ld_output *lo;
 	struct ld_output_section *os;
 	struct ld_input *li;
-	struct ld_symbol _lsb;
+	struct ld_symbol *lsb, *tmp, _lsb;
 
 	lo = ld->ld_output;
-
-	(void) li;
 
 	ld->ld_symtab = _alloc_symbol_table(ld);
 	ld->ld_strtab = ld_strtab_alloc(ld);
@@ -443,6 +443,23 @@ ld_symbols_build_symtab(struct ld *ld)
 		_lsb.lsb_type = STT_SECTION;
 		_lsb.lsb_other = 0;
 		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+	}
+
+	/* Copy local symbols from each input object. */
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
+			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
+			    lsb);
+	}
+
+	/* Copy global symbols from hash table. */
+	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
+		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+	}
+
+	/* Copy undefined weak symbols. */
+	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
 	}
 }
 
