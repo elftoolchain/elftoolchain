@@ -407,10 +407,12 @@ void
 ld_symbols_build_symtab(struct ld *ld)
 {
 	struct ld_output *lo;
+	struct ld_output_section *os;
 	struct ld_input *li;
 	struct ld_symbol _lsb;
 
-	(void) lo;
+	lo = ld->ld_output;
+
 	(void) li;
 
 	ld->ld_symtab = _alloc_symbol_table(ld);
@@ -429,7 +431,19 @@ ld_symbols_build_symtab(struct ld *ld)
 	_lsb.lsb_other = 0;
 	_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
 
-	/* TODO: Create STT_SECTION symbols. */
+	/* Create STT_SECTION symbols. */
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_empty)
+			continue;
+		_lsb.lsb_name = NULL;
+		_lsb.lsb_size = 0;
+		_lsb.lsb_value = os->os_addr;
+		_lsb.lsb_shndx = elf_ndxscn(os->os_scn);
+		_lsb.lsb_bind = STB_LOCAL;
+		_lsb.lsb_type = STT_SECTION;
+		_lsb.lsb_other = 0;
+		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+	}
 }
 
 struct ld_symbol_table *
