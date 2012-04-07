@@ -36,9 +36,10 @@
 
 ELFTC_VCSID("$Id$");
 
-static void _add_input_section_data(struct ld *ld, Elf_Scn *scn,
+static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
 static void _add_to_shstrtab(struct ld *ld, const char *name);
+static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
@@ -222,7 +223,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 				if (scn == NULL)
 					scn = _create_elf_scn(ld, lo, os);
 				if (os->os_type != SHT_NOBITS)
-					_add_input_section_data(ld, scn, is);
+					_alloc_input_section_data(ld, scn, is);
 			}
 			break;
 		case OET_KEYWORD:
@@ -267,7 +268,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 }
 
 static void
-_add_input_section_data(struct ld *ld, Elf_Scn *scn,
+_alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is)
 {
 	Elf_Data *d;
@@ -278,15 +279,35 @@ _add_input_section_data(struct ld *ld, Elf_Scn *scn,
 	if ((d = elf_newdata(scn)) == NULL)
 		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
 
-	d->d_align = is->is_align;
-	d->d_off = is->is_reloff;
-	d->d_type = ELF_T_BYTE;
-	d->d_size = is->is_size;
-	d->d_version = EV_CURRENT;
-	d->d_buf = ld_input_get_section_rawdata(ld, is);
-	ld_reloc_process_input_section(ld, is, d->d_buf);
+	is->is_data = d;
 }
 
+static void
+_copy_and_reloc_input_sections(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	Elf_Data *d;
+	int i;
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		ld_input_load(ld, li);
+		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+			is = &li->li_is[i];
+			if (is->is_data == NULL)
+				continue;
+			d = is->is_data;
+			d->d_align = is->is_align;
+			d->d_off = is->is_reloff;
+			d->d_type = ELF_T_BYTE;
+			d->d_size = is->is_size;
+			d->d_version = EV_CURRENT;
+			d->d_buf = ld_input_get_section_rawdata(ld, is);
+			ld_reloc_process_input_section(ld, is, d->d_buf);
+		}
+		ld_input_unload(ld, li);
+	}
+}
 
 static void
 _create_elf_sections(struct ld *ld)
@@ -552,6 +573,9 @@ ld_output_create(struct ld *ld)
 	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
+
+	/* Copy and relocate input section data to output section. */
+	_copy_and_reloc_input_sections(ld);
 
 	/* Generate section name string table section (.shstrtab). */
 	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);

@@ -42,6 +42,7 @@ struct ld_input_section {
 	uint64_t is_index;		/* section index */
 	unsigned is_orphan;		/* orphan section */
 	unsigned is_discard;		/* dicard section */
+	void *is_data;			/* output section data descriptor */
 	struct ld_reloc_entry_head *is_reloc; /* reloc list */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 };

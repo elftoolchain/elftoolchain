@@ -54,7 +54,6 @@ ld_reloc_read(struct ld *ld)
 		e = NULL;
 		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
 			is = &li->li_is[i];
-			(void) elf_errno();
 			if (is->is_type != SHT_REL && is->is_type != SHT_RELA)
 				continue;
 			if (e == NULL) {
@@ -176,8 +175,8 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 
 	strndx = sis->is_link;
 
-	ld_input_load(ld, li);
 	e = li->li_elf;
+	assert(e != NULL);
 
 	if ((scn = elf_getscn(e, sis->is_index)) == NULL)
 		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
@@ -188,7 +187,6 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		if (elferr != 0)
 			ld_fatal(ld, "elf_getdata failed: %s",
 			    elf_errmsg(elferr));
-		ld_input_unload(ld, li);
 		return;
 	}
 
@@ -223,6 +221,4 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		/* Arch-specific relocation handling. */
 		ld->ld_arch->process_reloc(ld, is, lre, sym_val, buf);
 	}
-
-	ld_input_unload(ld, li);
 }

@@ -103,8 +103,8 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	int elferr;
 
 	li = is->is_input;
-	ld_input_load(ld, li);
 	e = li->li_elf;
+	assert(e != NULL);
 
 	if ((scn = elf_getscn(e, is->is_index)) == NULL)
 		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
@@ -115,21 +115,16 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 		if (elferr != 0)
 			ld_fatal(ld, "elf_rawdata failed: %s",
 			    elf_errmsg(elferr));
-		ld_input_unload(ld, li);
 		return (NULL);
 	}
 
-	if (d->d_buf == NULL || d->d_size == 0) {
-		ld_input_unload(ld, li);
+	if (d->d_buf == NULL || d->d_size == 0)
 		return (NULL);
-	}
 
 	if ((buf = malloc(d->d_size)) == NULL)
 		ld_fatal_std(ld, "malloc");
 
 	memcpy(buf, d->d_buf, d->d_size);
-
-	ld_input_unload(ld, li);
 
 	return (buf);
 }
