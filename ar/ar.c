@@ -429,7 +429,7 @@ ranlib_usage(void)
 static void
 bsdar_version(void)
 {
-	(void)printf("%s (%s, %s)\n", ELFTC_GETPROGNAME(), archive_version(),
+	(void)printf("%s (%s, %s)\n", ELFTC_GETPROGNAME(), archive_version_string(),
 	    elftc_version());
 	exit(EXIT_SUCCESS);
 }
