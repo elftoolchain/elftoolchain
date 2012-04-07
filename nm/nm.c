@@ -578,11 +578,12 @@ get_opt(int argc, char **argv)
 	 * In non-POSIX mode, the option is a synonym for the '-A' and
 	 * '--print-file-name' options.
 	 */
-	if (oflag)
+	if (oflag) {
 		if (is_posix)
 			nm_opts.t = RADIX_OCT;
 		else
 			nm_opts.print_name = PRINT_NAME_FULL;
+	}
 
 	assert(nm_opts.sort_fn != NULL && "nm_opts.sort_fn is null");
 	assert(nm_opts.elem_print_fn != NULL &&
