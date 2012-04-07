@@ -115,7 +115,7 @@ _symbol_find(struct ld_symbol *tbl, char *name)
 
 #define	_symbol_add(tbl, s) \
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
-#define _symbol_remove(tbl, s) HASH_DEL((tbl), (s));
+#define _symbol_remove(tbl, s) HASH_DEL((tbl), (s))
 
 static void
 _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
@@ -125,11 +125,23 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 
 	name = lsb->lsb_name;
 	if (lsb->lsb_shndx == SHN_UNDEF) {
-		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
-			return;
-		if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
+		if (_symbol_find(ld->ld_symtab_def, name) != NULL ||
+		    _symbol_find(ld->ld_symtab_undef, name) != NULL ||
+		    _symbol_find(ld->ld_symtab_common, name) != NULL)
 			return;
 		_symbol_add(ld->ld_symtab_undef, lsb);
+	} else if (lsb->lsb_shndx == SHN_COMMON) {
+		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
+			return;
+		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL)
+			_symbol_remove(ld->ld_symtab_undef, _lsb);
+		if ((_lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL) {
+			if (lsb->lsb_size > _lsb->lsb_size)
+				_symbol_remove(ld->ld_symtab_common, _lsb);
+			else
+				return;
+		}
+		_symbol_add(ld->ld_symtab_common, lsb);
 	} else {
 		if ((_lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL) {
 			if (!lsb->lsb_provide)
@@ -139,9 +151,10 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 				_symbol_remove(ld->ld_symtab_def, _lsb);
 			}
 		}
-		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL) {
+		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL)
 			_symbol_remove(ld->ld_symtab_undef, _lsb);
-		}
+		if ((_lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL)
+			_symbol_remove(ld->ld_symtab_common, _lsb);
 		_symbol_add(ld->ld_symtab_def, lsb);
 	}
 }
@@ -372,10 +385,12 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 {
 	struct ld_symbol *lsb;
 
-	if ((lsb = _symbol_find(ld->ld_symtab_def, name)) == NULL)
+	if ((lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL)
+		*val = lsb->lsb_value;
+	else if ((lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL)
+		*val = lsb->lsb_value;
+	else
 		return (-1);
-
-	*val = lsb->lsb_value;
 
 	return (0);
 }
@@ -388,14 +403,17 @@ _update_symbol(struct ld *ld, struct ld_symbol *lsb)
 	struct ld_output *lo;
 	struct ld_output_section *os;
 
-	if (lsb->lsb_shndx == SHN_ABS || lsb->lsb_shndx == SHN_COMMON)
+	if (lsb->lsb_shndx == SHN_ABS)
 		return;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
 	li = lsb->lsb_input;
-	is = &li->li_is[lsb->lsb_shndx];
+	if (lsb->lsb_shndx == SHN_COMMON)
+		is = &li->li_is[li->li_shnum - 1];
+	else
+		is = &li->li_is[lsb->lsb_shndx];
 	if ((os = is->is_output) == NULL)
 		return;
 	lsb->lsb_value += os->os_addr + is->is_reloff;
@@ -418,6 +436,10 @@ ld_symbols_update(struct ld *ld)
 	}	
 
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
+		_update_symbol(ld, lsb);
+	}
+
+	HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
 		_update_symbol(ld, lsb);
 	}
 }
@@ -488,6 +510,11 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+	}
+
+	/* Copy common symbols. */
+	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
 		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
 	}
 }

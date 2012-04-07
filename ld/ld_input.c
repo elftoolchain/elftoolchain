@@ -173,6 +173,7 @@ void
 ld_input_init_sections(struct ld *ld, struct ld_input *li)
 {
 	struct ld_input_section *is;
+	struct ld_symbol *lsb, *tmp;
 	Elf *e;
 	Elf_Scn *scn;
 	const char *name;
@@ -185,6 +186,9 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	if (elf_getshdrnum(e, &li->li_shnum) < 0)
 		ld_fatal(ld, "%s: elf_getshdrnum: %s", li->li_name,
 		    elf_errmsg(-1));
+
+	/* Allocate one more pseudo section to hold common symbols */
+	li->li_shnum++;
 
 	assert(li->li_is == NULL);
 	if ((li->li_is = calloc(li->li_shnum, sizeof(*is))) == NULL)
@@ -209,7 +213,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 			ld_fatal(ld, "%s: elf_ndxscn: %s", li->li_name,
 			    elf_errmsg(-1));
 
-		if (ndx >= li->li_shnum)
+		if (ndx >= li->li_shnum - 1)
 			ld_fatal(ld, "%s: section index of '%s' section is"
 			    " invalid", li->li_name, name);
 
@@ -245,6 +249,40 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	if (elferr != 0)
 		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
+
+	/*
+	 * Create a pseudo section named COMMON to keep track of common symbols.
+	 * Go through the common symbols hash table, if there are common symbols
+	 * belonging to this input object, increase the size of the pseudo COMMON
+	 * section accordingly.
+	 */
+
+	is = &li->li_is[li->li_shnum - 1];
+	if ((is->is_name = strdup("COMMON")) == NULL)
+		ld_fatal_std(ld, "%s: calloc", li->li_name);
+	is->is_off = 0;
+	is->is_size = 0;
+	is->is_entsize = 1;
+	is->is_align = 1;
+	is->is_type = SHT_NOBITS;
+	is->is_flags = SHF_ALLOC | SHF_WRITE;
+	is->is_link = 0;
+	is->is_info = 0;
+	is->is_index = SHN_COMMON;
+	is->is_input = li;
+	is->is_orphan = 1;
+	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
+		if (lsb->lsb_input != li)
+			continue;
+#if 0
+		printf("add common symbol %s to %s\n", lsb->lsb_name,
+		    li->li_name);
+#endif
+		if (lsb->lsb_size > is->is_align)
+			is->is_align = lsb->lsb_size;
+		lsb->lsb_value = is->is_size;
+		is->is_size += lsb->lsb_size;
+	}
 
 	ld_input_unload(ld, li);
 }

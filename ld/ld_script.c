@@ -105,7 +105,6 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 			    (uintmax_t) ldv->ldv_val);
 		ls->ls_loc_counter = (uint64_t) ldv->ldv_val;
 	}
-	printf("%s = %#jx\n", var->le_name, (uint64_t) ldv->ldv_val);
 }
 
 void
