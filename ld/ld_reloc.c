@@ -141,7 +141,7 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
     void *buf)
 {
 	struct ld_input *li;
-	struct ld_input_section *ris, *sis;
+	struct ld_input_section *ris, *sis, *tis;
 	struct ld_reloc_entry *lre;
 	Elf *e;
 	Elf_Scn *scn;
@@ -149,7 +149,7 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 	GElf_Sym sym;
 	char *name;
 	size_t strndx;
-	uint64_t vma, sym_val;
+	uint64_t sym_val;
 	int elferr, i;
 
 	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
@@ -190,12 +190,6 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		return;
 	}
 
-	/*
-	 * Calculate the corresponding output VMA address for
-	 * the input section.
-	 */
-	vma = is->is_output->os_addr + is->is_reloff;
-
 	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
 		if (gelf_getsym(d, lre->lre_sym, &sym) != &sym)
 			ld_fatal(ld, "gelf_getsym failed: %s",
@@ -211,9 +205,11 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 			if (ld_symbols_get_value(ld, name, &sym_val) < 0)
 				sym_val = sym.st_value;
 		} else if (GELF_ST_BIND(sym.st_info) == STB_LOCAL) {
-			if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
-				sym_val = vma;
-			else
+			if (GELF_ST_TYPE(sym.st_info) == STT_SECTION) {
+				tis = &li->li_is[sym.st_shndx];
+				sym_val = tis->is_output->os_addr +
+				    tis->is_reloff;
+			} else
 				sym_val = sym.st_value;
 		} else
 			sym_val = 0;
