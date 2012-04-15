@@ -5929,8 +5929,11 @@ hex_dump(struct readelf *re)
 				    elf_errmsg(elferr));
 			continue;
 		}
-		if (d->d_size <= 0)
+		if (d->d_size <= 0 || d->d_buf == NULL) {
+			printf("\nSection '%s' has no data to dump.\n",
+			    s->name);
 			continue;
+		}
 		buf = d->d_buf;
 		sz = d->d_size;
 		addr = s->addr;
