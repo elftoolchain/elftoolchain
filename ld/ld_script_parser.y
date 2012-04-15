@@ -44,11 +44,12 @@ extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern int lineno;
 extern FILE *yyin;
 extern struct ld *ld;
-extern char *ldscript_default;
+extern char *amd64_script;
 
 static void yyerror(const char *s);
 static void _init_script(void);
 static struct ld_script_cmd_head ldss_c, ldso_c;
+static char *ldscript_default;
 
 %}
 
@@ -1167,6 +1168,7 @@ ld_script_parse_internal(void)
 
 	_init_script();
 
+	ldscript_default = amd64_script; /* XXX */
 	b = yy_scan_string(ldscript_default);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse internal linker script");
