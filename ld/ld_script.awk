@@ -1,7 +1,8 @@
 # $Id$
 
 BEGIN {
-    printf "const char *ldscript_default = ";
+    split(ARGV[1], s, ".");
+    printf "const char *%s = ", s[1];
 }
 
 {
