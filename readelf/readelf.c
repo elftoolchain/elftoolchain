@@ -5972,8 +5972,11 @@ str_dump(struct readelf *re)
 				    elf_errmsg(elferr));
 			continue;
 		}
-		if (d->d_size <= 0)
+		if (d->d_size <= 0 || d->d_buf == NULL) {
+			printf("\nSection '%s' has no data to dump.\n",
+			    s->name);
 			continue;
+		}
 		buf_end = (unsigned char *) d->d_buf + d->d_size;
 		start = (unsigned char *) d->d_buf;
 		found = 0;
