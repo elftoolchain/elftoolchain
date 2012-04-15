@@ -115,10 +115,17 @@ struct section {
 };
 
 struct dumpop {
-	size_t		 sn;		/* section index */
+	union {
+		size_t si;		/* section index */
+		const char *sn;		/* section name */
+	} u;
+	enum {
+		DUMP_BY_INDEX = 0,
+		DUMP_BY_NAME
+	} type;				/* dump type */
 #define HEX_DUMP	0x0001
 #define STR_DUMP	0x0002
-	int		 op;		/* dump op type */
+	int op;				/* dump operation */
 	STAILQ_ENTRY(dumpop) dumpop_list;
 };
 
@@ -195,7 +202,8 @@ struct mips_option {
 	const char *desc;
 };
 
-static void add_dumpop(struct readelf *re, size_t sn, int op);
+static void add_dumpop(struct readelf *re, size_t si, const char *sn, int op,
+    int t);
 static const char *aeabi_adv_simd_arch(uint64_t simd);
 static const char *aeabi_align_needed(uint64_t an);
 static const char *aeabi_align_preserved(uint64_t ap);
@@ -269,7 +277,8 @@ static void dump_ver(struct readelf *re);
 static void dump_verdef(struct readelf *re, int dump);
 static void dump_verneed(struct readelf *re, int dump);
 static void dump_versym(struct readelf *re);
-static struct dumpop *find_dumpop(struct readelf *re, size_t sn, int op);
+static struct dumpop *find_dumpop(struct readelf *re, size_t si, const char *sn,
+    int op, int t);
 static const char *get_string(struct readelf *re, int strtab, size_t off);
 static const char *get_symbol_name(struct readelf *re, int symtab, int i);
 static uint64_t get_symbol_value(struct readelf *re, int symtab, int i);
@@ -5909,9 +5918,9 @@ hex_dump(struct readelf *re)
 	int elferr, i, j;
 
 	for (i = 1; (size_t) i < re->shnum; i++) {
-		if (find_dumpop(re, (size_t) i, HEX_DUMP) == NULL)
-			continue;
 		s = &re->sl[i];
+		if (find_dumpop(re, (size_t) i, s->name, HEX_DUMP, -1) == NULL)
+			continue;
 		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
@@ -5961,9 +5970,9 @@ str_dump(struct readelf *re)
 	int i, j, elferr, found;
 
 	for (i = 1; (size_t) i < re->shnum; i++) {
-		if (find_dumpop(re, (size_t) i, STR_DUMP) == NULL)
-			continue;
 		s = &re->sl[i];
+		if (find_dumpop(re, (size_t) i, s->name, STR_DUMP, -1) == NULL)
+			continue;
 		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
@@ -6309,14 +6318,18 @@ dump_object(struct readelf *re)
 }
 
 static void
-add_dumpop(struct readelf *re, size_t sn, int op)
+add_dumpop(struct readelf *re, size_t si, const char *sn, int op, int t)
 {
 	struct dumpop *d;
 
-	if ((d = find_dumpop(re, sn, 0)) == NULL) {
-		if ((d = malloc(sizeof(*d))) == NULL)
-			err(EXIT_FAILURE, "malloc failed");
-		d->sn = sn;
+	if ((d = find_dumpop(re, si, sn, -1, t)) == NULL) {
+		if ((d = calloc(1, sizeof(*d))) == NULL)
+			err(EXIT_FAILURE, "calloc failed");
+		if (t == DUMP_BY_INDEX)
+			d->u.si = si;
+		else
+			d->u.sn = sn;
+		d->type = t;
 		d->op = op;
 		STAILQ_INSERT_TAIL(&re->v_dumpop, d, dumpop_list);
 	} else
@@ -6324,13 +6337,17 @@ add_dumpop(struct readelf *re, size_t sn, int op)
 }
 
 static struct dumpop *
-find_dumpop(struct readelf *re, size_t sn, int op)
+find_dumpop(struct readelf *re, size_t si, const char *sn, int op, int t)
 {
 	struct dumpop *d;
 
 	STAILQ_FOREACH(d, &re->v_dumpop, dumpop_list) {
-		if (d->sn == sn && (op == 0 || op & d->op))
-			return (d);
+		if ((op == -1 || op & d->op) &&
+		    (t == -1 || (unsigned) t == d->type)) {
+			if ((d->type == DUMP_BY_INDEX && d->u.si == si) ||
+			    (d->type == DUMP_BY_NAME && !strcmp(d->u.sn, sn)))
+				return (d);
+		}
 	}
 
 	return (NULL);
@@ -6627,8 +6644,9 @@ int
 main(int argc, char **argv)
 {
 	struct readelf	*re, re_storage;
-	unsigned long	 sn;
+	unsigned long	 si;
 	int		 opt, i;
+	char		*ep;
 
 	re = &re_storage;
 	memset(re, 0, sizeof(*re));
@@ -6685,8 +6703,13 @@ main(int argc, char **argv)
 			break;
 		case 'p':
 			re->options |= RE_P;
-			sn = strtoul(optarg, NULL, 10);
-			add_dumpop(re, (size_t) sn, STR_DUMP);
+			si = strtoul(optarg, &ep, 10);
+			if (*ep == '\0')
+				add_dumpop(re, (size_t) si, NULL, STR_DUMP,
+				    DUMP_BY_INDEX);
+			else
+				add_dumpop(re, 0, optarg, STR_DUMP,
+				    DUMP_BY_NAME);
 			break;
 		case 'r':
 			re->options |= RE_R;
@@ -6718,8 +6741,13 @@ main(int argc, char **argv)
 			break;
 		case 'x':
 			re->options |= RE_X;
-			sn = strtoul(optarg, NULL, 10);
-			add_dumpop(re, (size_t) sn, HEX_DUMP);
+			si = strtoul(optarg, &ep, 10);
+			if (*ep == '\0')
+				add_dumpop(re, (size_t) si, NULL, HEX_DUMP,
+				    DUMP_BY_INDEX);
+			else
+				add_dumpop(re, 0, optarg, HEX_DUMP,
+				    DUMP_BY_NAME);
 			break;
 		case OPTION_DEBUG_DUMP:
 			re->options |= RE_W;
