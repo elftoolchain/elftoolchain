@@ -262,7 +262,7 @@ struct name {							\
 #endif	/* __DragonFly__ || __FreeBSD__ || __minix || __NetBSD__ */
 
 
-#if defined(__linux__)
+#if defined(__GLIBC__)
 
 /*
  * GLIBC based systems have a global 'char *' pointer referencing
@@ -272,7 +272,7 @@ extern const char *program_invocation_short_name;
 
 #define	ELFTC_GETPROGNAME()	program_invocation_short_name
 
-#endif	/* __linux__ */
+#endif	/* __GLIBC__ */
 
 
 #if defined(__OpenBSD__)
@@ -303,7 +303,7 @@ extern const char *__progname;
 
 #endif
 
-#if defined(__linux__)
+#if defined(__GLIBC__)
 
 #include <endian.h>
 
@@ -314,7 +314,7 @@ extern const char *__progname;
 #define	ELFTC_HAVE_MMAP				1
 
 /*
- * Debian GNU/Linux is missing strmode(3).
+ * Debian GNU/Linux and Debian GNU/kFreeBSD do not have strmode(3).
  */
 #define	ELFTC_HAVE_STRMODE			0
 
@@ -323,7 +323,7 @@ extern const char *__progname;
 
 #define	roundup2	roundup
 
-#endif	/* __linux__ */
+#endif	/* __GLIBC__ */
 
 
 #if defined(__FreeBSD__)
