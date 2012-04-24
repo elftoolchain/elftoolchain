@@ -88,7 +88,6 @@ struct ar_obj {
 	mode_t		  md;		/* octal file permissions */
 	size_t		  size;		/* member size */
 	time_t		  mtime;	/* modification time */
-	int		  fd;		/* file descriptor */
 	dev_t		  dev;		/* inode's device */
 	ino_t		  ino;		/* inode's number */
 

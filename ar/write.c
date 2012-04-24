@@ -80,6 +80,7 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 	struct stat		 sb;
 	const char		*bname;
 	char			*tmpname;
+	int			fd;
 
 	if (name == NULL)
 		return (NULL);
@@ -89,7 +90,8 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 		bsdar_errc(bsdar, errno, "malloc failed");
 
 	obj->elf = NULL;
-	if ((obj->fd = open(name, O_RDONLY, 0)) < 0) {
+
+	if ((fd = open(name, O_RDONLY, 0)) < 0) {
 		bsdar_warnc(bsdar, errno, "can't open file: %s", name);
 		free(obj);
 		return (NULL);
@@ -108,7 +110,7 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 		    bsdar_errc(bsdar, errno, "strdup failed");
 	free(tmpname);
 
-	if (fstat(obj->fd, &sb) < 0) {
+	if (fstat(fd, &sb) < 0) {
 		bsdar_warnc(bsdar, errno, "can't fstat file: %s", obj->name);
 		goto giveup;
 	}
@@ -157,16 +159,33 @@ create_obj_from_file(struct bsdar *bsdar, const char *name, time_t mtime)
 		return (obj);
 	}
 
-	if ((obj->elf = elf_open(obj->fd)) == NULL) {
+	if ((obj->elf = elf_open(fd)) == NULL) {
 		bsdar_warnc(bsdar, 0, "file initialization failed for %s: %s",
 		    obj->name, elf_errmsg(-1));
 		goto giveup;
 	}
 
+	/*
+	 * Read the object fully into memory and close its file
+	 * descriptor.
+	 */
+	if (elf_cntl(obj->elf, ELF_C_FDREAD) < 0) {
+		bsdar_warnc(bsdar, 0, "%s could not be read in: %s",
+		    obj->name, elf_errmsg(-1));
+		goto giveup;
+	}
+
+	if (close(fd) < 0)
+		bsdar_errc(bsdar, errno, "close failed: %s",
+		    obj->name);
+
 	return (obj);
 
 giveup:
-	if (close(obj->fd) < 0)
+	if (obj->elf)
+		elf_end(obj->elf);
+
+	if (close(fd) < 0)
 		bsdar_errc(bsdar, errno, "close failed: %s",
 		    obj->name);
 	free(obj->name);
@@ -182,9 +201,6 @@ free_obj(struct ar_obj *obj)
 {
 	if (obj->elf)
 		elf_end(obj->elf);
-
-	if (obj->fd != -1)
-		(void) close(obj->fd);
 
 	free(obj->name);
 	free(obj);
@@ -330,11 +346,6 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 		obj->dev = 0;
 		obj->ino = 0;
 
-		/*
-		 * Objects from archive have obj->fd set to -1,
-		 * for the ease of cleaning up.
-		 */
-		obj->fd = -1;
 		TAILQ_INSERT_TAIL(&bsdar->v_obj, obj, objs);
 	}
 	AC(archive_read_close(a));
