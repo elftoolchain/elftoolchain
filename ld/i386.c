@@ -87,17 +87,17 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 void
 i386_register(struct ld *ld)
 {
-	struct ld_arch *i386;
+	struct ld_arch *i386_arch;
 
-	if ((i386 = calloc(1, sizeof(*i386))) == NULL)
+	if ((i386_arch = calloc(1, sizeof(*i386_arch))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	
-	snprintf(i386->name, sizeof(i386->name), "%s", "i386");
+	snprintf(i386_arch->name, sizeof(i386_arch->name), "%s", "i386");
 
-	i386->script = i386_script;
-	i386->get_max_page_size = _get_max_page_size;
-	i386->get_common_page_size = _get_common_page_size;
-	i386->process_reloc = _process_reloc;
+	i386_arch->script = i386_script;
+	i386_arch->get_max_page_size = _get_max_page_size;
+	i386_arch->get_common_page_size = _get_common_page_size;
+	i386_arch->process_reloc = _process_reloc;
 
-	HASH_ADD_STR(ld->ld_arch_list, name, i386);
+	HASH_ADD_STR(ld->ld_arch_list, name, i386_arch);
 }
