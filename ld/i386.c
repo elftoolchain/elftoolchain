@@ -52,7 +52,7 @@ _get_max_page_size(struct ld *ld)
 {
 
 	(void) ld;
-	return (0x200000);
+	return (0x1000);
 }
 
 static uint64_t
