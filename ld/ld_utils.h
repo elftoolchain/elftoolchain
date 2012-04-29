@@ -26,6 +26,26 @@
  * $Id$
  */
 
+#define	READ_32(P,V)					\
+	do {						\
+		if (lo->lo_endian == ELFDATA2MSB)	\
+			READ_32BE(P, V);		\
+		else					\
+			READ_32LE(P, V);		\
+	} while (0)
+
+#define READ_32BE(P,V)							\
+	do {								\
+		(V) = ((unsigned)(P)[0] << 24) | ((P)[1] << 16) |	\
+		    ((P)[2] << 8) | (P)[3];				\
+	} while (0)
+
+#define READ_32LE(P,V)							\
+	do {								\
+		(V) = ((unsigned)(P)[3] << 24) | ((P)[2] << 16) |	\
+		    ((P)[1] << 8) | (P)[0];				\
+	} while (0)
+
 #define	WRITE_8(P,V)					\
 	do {						\
 		*(P)++ = (V) & 0xff;			\

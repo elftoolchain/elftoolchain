@@ -7,6 +7,7 @@ WARNS?=	6
 
 SRCS=	amd64.c			\
 	amd64_script.c		\
+	i386.c			\
 	i386_script.c		\
 	ld_arch.c		\
 	ld_error.c 		\

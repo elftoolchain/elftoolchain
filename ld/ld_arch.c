@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "i386.h"
 #include "amd64.h"
 
 ELFTC_VCSID("$Id$");
@@ -34,6 +35,7 @@ void
 ld_arch_init(struct ld *ld)
 {
 
+	i386_register(ld);
 	amd64_register(ld);
 }
 
