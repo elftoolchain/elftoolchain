@@ -158,6 +158,9 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 	li = is->is_input;
 	ris = NULL;
 	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+		if (li->li_is[i].is_type != SHT_REL &&
+		    li->li_is[i].is_type != SHT_RELA)
+			continue;
 		if (li->li_is[i].is_info == is->is_index) {
 			ris = &li->li_is[i];
 			break;
