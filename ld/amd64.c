@@ -114,6 +114,7 @@ void
 amd64_register(struct ld *ld)
 {
 
+	amd64.script = amd64_script;
 	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name1, strlen(_amd64_name1),
 	    &amd64);
 	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name2, strlen(_amd64_name2),

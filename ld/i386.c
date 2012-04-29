@@ -96,5 +96,6 @@ void
 i386_register(struct ld *ld)
 {
 
+	i386.script = i386_script;
 	HASH_ADD_KEYPTR(hh, ld->ld_arch, _i386_name, strlen(_i386_name), &i386);
 }
