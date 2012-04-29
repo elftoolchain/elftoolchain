@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,8 +87,6 @@ void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *,
     struct ld_output_element *);
-void	ld_output_determine_arch(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);
-void	ld_output_verify_arch(struct ld *, struct ld_input *);
 void	ld_output_write(struct ld *);

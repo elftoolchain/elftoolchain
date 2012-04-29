@@ -26,6 +26,7 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_options.h"
 #include "ld_output.h"
 #include "ld_script.h"
@@ -44,12 +45,10 @@ extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern int lineno;
 extern FILE *yyin;
 extern struct ld *ld;
-extern char *amd64_script;
 
 static void yyerror(const char *s);
 static void _init_script(void);
 static struct ld_script_cmd_head ldss_c, ldso_c;
-static char *ldscript_default;
 
 %}
 
@@ -640,7 +639,10 @@ output_command
 	;
 
 output_arch_command
-	: T_OUTPUT_ARCH '(' ident ')'
+	: T_OUTPUT_ARCH '(' ident ')' {
+		ld_arch_set(ld, $3);
+		free($3);
+	}
 	;
 
 output_format_command
@@ -1168,8 +1170,8 @@ ld_script_parse_internal(void)
 
 	_init_script();
 
-	ldscript_default = amd64_script; /* XXX */
-	b = yy_scan_string(ldscript_default);
+	assert(ld->ld_arch != NULL && ld->ld_arch->script != NULL);
+	b = yy_scan_string(ld->ld_arch->script);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse internal linker script");
 	yy_delete_buffer(b);

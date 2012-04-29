@@ -39,14 +39,6 @@ static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf);
 
-static char _i386_name[] = "i386";
-
-static struct ld_arch i386 = {
-	.get_max_page_size = _get_max_page_size,
-	.get_common_page_size = _get_common_page_size,
-	.process_reloc = _process_reloc,
-};
-
 static uint64_t
 _get_max_page_size(struct ld *ld)
 {
@@ -95,7 +87,17 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 void
 i386_register(struct ld *ld)
 {
+	struct ld_arch *i386;
 
-	i386.script = i386_script;
-	HASH_ADD_KEYPTR(hh, ld->ld_arch, _i386_name, strlen(_i386_name), &i386);
+	if ((i386 = calloc(1, sizeof(*i386))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	
+	snprintf(i386->name, sizeof(i386->name), "%s", "i386");
+
+	i386->script = i386_script;
+	i386->get_max_page_size = _get_max_page_size;
+	i386->get_common_page_size = _get_common_page_size;
+	i386->process_reloc = _process_reloc;
+
+	HASH_ADD_STR(ld->ld_arch_list, name, i386);
 }

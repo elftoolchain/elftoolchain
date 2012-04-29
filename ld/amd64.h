@@ -26,6 +26,6 @@
  * $Id$
  */
 
-const char *amd64_script;
+char *amd64_script;
 
 void	amd64_register(struct ld *);

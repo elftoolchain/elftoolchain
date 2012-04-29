@@ -75,6 +75,7 @@ struct ld_state {
 struct ld {
 	const char *ld_progname;	/* ld(1) program name */
 	struct ld_arch *ld_arch;	/* arch-specific callbacks */
+	struct ld_arch *ld_arch_list;	/* list of supported archs */
 	Elftc_Bfd_Target *ld_otgt;	/* default output format */
 	Elftc_Bfd_Target *ld_otgt_be;	/* big-endian output format */
 	Elftc_Bfd_Target *ld_otgt_le;	/* little-endian output format */

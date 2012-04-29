@@ -75,8 +75,6 @@ main(int argc, char **argv)
 
 	ld_output_init(ld);
 
-	ld_output_determine_arch(ld);
-
 	ld_layout_sections(ld);
 
 	ld_output_create(ld);

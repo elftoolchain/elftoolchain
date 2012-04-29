@@ -31,12 +31,80 @@
 
 ELFTC_VCSID("$Id$");
 
+#define	LD_DEFAULT_ARCH		"amd64"
+
+static struct ld_arch *_get_arch_from_target(struct ld *ld, char *target);
+
 void
 ld_arch_init(struct ld *ld)
 {
+	char *end;
+	char arch[MAX_ARCH_NAME_LEN + 1], target[MAX_TARGET_NAME_LEN + 1];
+	size_t len;
+
+	/*
+	 * Register supported architectures.
+	 */
 
 	i386_register(ld);
 	amd64_register(ld);
+
+	/*
+	 * Find out default arch for output object.
+	 */
+
+	if ((end = strrchr(ld->ld_progname, '-')) != NULL &&
+	    end != ld->ld_progname) {
+		len = end - ld->ld_progname + 1;
+		if (len > MAX_TARGET_NAME_LEN)
+			return;
+		strncpy(target, ld->ld_progname, len);
+		target[len] = '\0';
+		ld->ld_arch = _get_arch_from_target(ld, target);
+	}
+
+	if (ld->ld_arch == NULL) {
+		snprintf(arch, sizeof(arch), "%s", LD_DEFAULT_ARCH);
+		ld->ld_arch = ld_arch_find(ld, arch);
+		if (ld->ld_arch == NULL)
+			ld_fatal(ld, "Internal: could not determine output"
+			    " object architecture");
+	}
+}
+
+void
+ld_arch_set(struct ld *ld, char *arch)
+{
+
+	ld->ld_arch = ld_arch_find(ld, arch);
+	if (ld->ld_arch == NULL)
+		ld_fatal(ld, "arch '%s' is not supported", arch);
+}
+
+void
+ld_arch_set_from_target(struct ld *ld)
+{
+
+	if (ld->ld_otgt != NULL) {
+		ld->ld_arch = _get_arch_from_target(ld, ld->ld_otgt_name);
+		if (ld->ld_arch == NULL)
+			ld_fatal(ld, "target '%s' is not supported",
+			    ld->ld_otgt_name);
+	}
+}
+
+void
+ld_arch_verify(struct ld *ld, struct ld_input *li)
+{
+
+	/*
+	 * TODO: Guess arch if the output arch is not yet determined.
+	 * Otherwise, verify the arch of the input object match the arch
+	 * of the output file.
+	 */
+
+	(void) ld;
+	(void) li;
 }
 
 struct ld_arch *
@@ -75,8 +143,8 @@ ld_arch_guess_arch_name(struct ld *ld, int mach)
 	return (ld_arch_find(ld, arch));
 }
 
-struct ld_arch *
-ld_arch_get_arch_from_target(struct ld *ld, char *target)
+static struct ld_arch *
+_get_arch_from_target(struct ld *ld, char *target)
 {
 	struct ld_arch *la;
 	char *begin, *end, name[MAX_TARGET_NAME_LEN + 1];
@@ -106,7 +174,7 @@ ld_arch_find(struct ld *ld, char *arch)
 {
 	struct ld_arch *la;
 
-	HASH_FIND_STR(ld->ld_arch, arch, la);
+	HASH_FIND_STR(ld->ld_arch_list, arch, la);
 
 	return (la);
 }

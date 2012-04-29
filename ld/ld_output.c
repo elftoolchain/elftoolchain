@@ -66,45 +66,6 @@ ld_output_init(struct ld *ld)
 }
 
 void
-ld_output_determine_arch(struct ld *ld)
-{
-	char *end, target[MAX_TARGET_NAME_LEN + 1];
-	size_t len;
-
-	if (ld->ld_otgt != NULL) {
-		ld->ld_arch = ld_arch_get_arch_from_target(ld,
-		    ld->ld_otgt_name);
-		if (ld->ld_arch == NULL)
-			ld_fatal(ld, "target %s is not supported",
-			    ld->ld_otgt_name);
-	} else {
-		if ((end = strrchr(ld->ld_progname, '-')) != NULL &&
-		    end != ld->ld_progname) {
-			len = end - ld->ld_progname + 1;
-			if (len > MAX_TARGET_NAME_LEN)
-				return;
-			strncpy(target, ld->ld_progname, len);
-			target[len] = '\0';
-			ld->ld_arch = ld_arch_get_arch_from_target(ld, target);
-		}
-	}
-}
-
-void
-ld_output_verify_arch(struct ld *ld, struct ld_input *li)
-{
-
-	/*
-	 * TODO: Guess arch if the output arch is not yet determined.
-	 * Otherwise, verify the arch of the input object match the arch
-	 * of the output file.
-	 */
-
-	(void) ld;
-	(void) li;
-}
-
-void
 ld_output_format(struct ld *ld, char *def, char *be, char *le)
 {
 
@@ -119,6 +80,8 @@ ld_output_format(struct ld *ld, char *def, char *be, char *le)
 	ld->ld_otgt_le_name = le;
 	if ((ld->ld_otgt_le = elftc_bfd_find_target(le)) == NULL)
 		ld_fatal(ld, "invalid BFD format %s", le);
+
+	ld_arch_set_from_target(ld);
 }
 
 struct ld_output_element *

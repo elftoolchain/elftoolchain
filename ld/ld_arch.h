@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,8 @@ struct ld_input_section;
 struct ld_reloc_entry;
 
 struct ld_arch {
-	const char *script;
+	char name[MAX_ARCH_NAME_LEN + 1];
+	char *script;
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
@@ -43,7 +44,7 @@ struct ld_arch {
 
 void	ld_arch_init(struct ld *);
 struct ld_arch *ld_arch_find(struct ld *, char *);
-struct ld_arch *ld_arch_get_arch_from_target(struct ld *, char *);
 struct ld_arch *ld_arch_guess_arch_name(struct ld *, int);
-
-
+void	ld_arch_set(struct ld *, char *);
+void	ld_arch_set_from_target(struct ld *);
+void	ld_arch_verify(struct ld *, struct ld_input *);

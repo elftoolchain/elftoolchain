@@ -39,15 +39,6 @@ static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf);
 
-static char _amd64_name1[] = "amd64";
-static char _amd64_name2[] = "x86-64";
-
-static struct ld_arch amd64 = {
-	.get_max_page_size = _get_max_page_size,
-	.get_common_page_size = _get_common_page_size,
-	.process_reloc = _process_reloc,
-};
-
 static uint64_t
 _get_max_page_size(struct ld *ld)
 {
@@ -113,10 +104,24 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 void
 amd64_register(struct ld *ld)
 {
+	struct ld_arch *amd64, *amd64_alt;
 
-	amd64.script = amd64_script;
-	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name1, strlen(_amd64_name1),
-	    &amd64);
-	HASH_ADD_KEYPTR(hh, ld->ld_arch, _amd64_name2, strlen(_amd64_name2),
-	    &amd64);
+	if ((amd64 = calloc(1, sizeof(*amd64))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	snprintf(amd64->name, sizeof(amd64->name), "%s", "amd64");
+
+	amd64->script = amd64_script;
+	amd64->get_max_page_size = _get_max_page_size;
+	amd64->get_common_page_size = _get_common_page_size;
+	amd64->process_reloc = _process_reloc;
+
+	HASH_ADD_STR(ld->ld_arch_list, name, amd64);
+
+	if ((amd64_alt = calloc(1, sizeof(*amd64_alt))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	memcpy(amd64_alt, amd64, sizeof(struct ld_arch));
+	snprintf(amd64_alt->name, sizeof(amd64_alt->name), "%s", "x86-64");
+
+	HASH_ADD_STR(ld->ld_arch_list, name, amd64_alt);
 }
