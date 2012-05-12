@@ -29,6 +29,7 @@
 #include "ld_options.h"
 #include "ld_script.h"
 #include "ld_file.h"
+#include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
 #include "ld_symbols.h"
@@ -39,45 +40,64 @@ static struct ld _ld;
 struct ld* ld = &_ld;
 
 static void
-_ld_init(void)
+_init(void)
 {
 
 	if ((ld->ld_progname = ELFTC_GETPROGNAME()) == NULL)
 		ld->ld_progname = "ld";
-
-	TAILQ_INIT(&ld->ld_lflist);
-	STAILQ_INIT(&ld->ld_lilist);
-	STAILQ_INIT(&ld->ld_state.ls_lplist);
 
 	/* Initialise libelf. */
 	if (elf_version(EV_CURRENT) == EV_NONE)
 		ld_fatal(ld, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	ld_script_init(ld);
+	/* Initialise internal data structure. */
+	TAILQ_INIT(&ld->ld_lflist);
+	STAILQ_INIT(&ld->ld_lilist);
+	STAILQ_INIT(&ld->ld_state.ls_lplist);
+}
+
+static void
+_cleanup(void)
+{
+
+	ld_script_cleanup(ld);
+	ld_symbols_cleanup(ld);
+/* 	ld_search_path_cleanup(ld); */
+	ld_input_cleanup(ld);
+	ld_file_cleanup(ld);
 }
 
 int
 main(int argc, char **argv)
 {
 
-	_ld_init();
+	_init();
 
 	ld->ld_progname = basename(argv[0]);
 
 	ld_arch_init(ld);
 
-	ld_script_parse_internal();
+restart:
+	ld_script_init(ld);
 
 	ld_options_parse(ld, argc, argv);
 
 	ld_symbols_resolve(ld);
+
+	if (ld->ld_arch_mismatch) {
+		_cleanup();
+		ld->ld_arch_mismatch = 0;
+		goto restart;
+	}
 
 	ld_output_init(ld);
 
 	ld_layout_sections(ld);
 
 	ld_output_create(ld);
+
+	_cleanup();
 
 	exit(EXIT_SUCCESS);
 }
