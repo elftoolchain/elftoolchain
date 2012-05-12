@@ -63,6 +63,7 @@ struct ld_input {
 
 struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
+void	ld_input_cleanup(struct ld *);
 void	ld_input_init_sections(struct ld *, struct ld_input *);
 void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);

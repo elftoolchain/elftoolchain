@@ -38,6 +38,18 @@ ELFTC_VCSID("$Id$");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
+void
+ld_input_cleanup(struct ld *ld)
+{
+	struct ld_input *li, *_li;
+
+	STAILQ_FOREACH_SAFE(li, &ld->ld_lilist, li_next, _li) {
+		STAILQ_REMOVE(&ld->ld_lilist, li, ld_input, li_next);
+		free(li->li_name);
+		free(li);
+	}
+}
+
 struct ld_input *
 ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 {

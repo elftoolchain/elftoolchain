@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,27 @@ ELFTC_VCSID("$Id$");
 static void _add_file(struct ld *ld, const char *name, enum ld_file_type type,
     int first);
 static void _search_file(struct ld *ld, struct ld_file *lf);
+
+void
+ld_file_cleanup(struct ld *ld)
+{
+	struct ld_file *lf, *_lf;
+	struct ld_archive_member *lam, *_lam;
+
+	TAILQ_FOREACH_SAFE(lf, &ld->ld_lflist, lf_next, _lf) {
+		TAILQ_REMOVE(&ld->ld_lflist, lf, lf_next);
+		free(lf->lf_name);
+		if (lf->lf_ar != NULL) {
+			HASH_ITER(hh, lf->lf_ar->la_m, lam, _lam) {
+				HASH_DEL(lf->lf_ar->la_m, lam);
+				free(lam->lam_name);
+				free(lam);
+			}
+			free(lf->lf_ar);
+		}
+		free(lf);
+	}
+}
 
 void
 ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)

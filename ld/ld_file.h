@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,5 +69,6 @@ void	ld_file_add(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_first(struct ld *, const char *, enum ld_file_type);
 void	ld_file_add_library(struct ld *, const char *);
 void	ld_file_add_library_path(struct ld *, char *);
+void	ld_file_cleanup(struct ld *);
 void	ld_file_load(struct ld *, struct ld_file *);
 void	ld_file_unload(struct ld *, struct ld_file *);
