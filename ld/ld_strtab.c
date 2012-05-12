@@ -51,6 +51,17 @@ ld_strtab_alloc(struct ld *ld)
 	return (st);
 }
 
+void
+ld_strtab_free(struct ld_strtab *st)
+{
+
+	if (st == NULL)
+		return;
+
+	free(st->st_buf);
+	free(st);
+}
+
 static void
 _resize_strtab(struct ld *ld, struct ld_strtab *st, size_t newsize)
 {

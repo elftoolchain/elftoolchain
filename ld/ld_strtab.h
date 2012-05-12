@@ -33,6 +33,7 @@ struct ld_strtab {
 };
 
 struct ld_strtab *ld_strtab_alloc(struct ld *);
+void	ld_strtab_free(struct ld_strtab *);
 void	ld_strtab_insert(struct ld *, struct ld_strtab *, const char *);
 int	ld_strtab_insert_no_suffix(struct ld *, struct ld_strtab *,
 	    const char *);
