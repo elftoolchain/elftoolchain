@@ -56,6 +56,7 @@ void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
 void	ld_symbols_build_symtab(struct ld *);
+void	ld_symbols_cleanup(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);

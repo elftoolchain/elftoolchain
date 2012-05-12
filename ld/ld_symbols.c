@@ -36,21 +36,138 @@ ELFTC_VCSID("$Id$");
 
 #define	_INIT_SYMTAB_SIZE	128
 
-static void ld_symbols_load(struct ld *ld, struct ld_file *lf);
-static void ld_symbols_load_archive(struct ld *ld, struct ld_file *lf);
-static void ld_symbols_load_elf(struct ld *ld, struct ld_input *li, Elf *e);
+static void _load_symbols(struct ld *ld, struct ld_file *lf);
+static void _load_archive_symbols(struct ld *ld, struct ld_file *lf);
+static void _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e);
+static void _unload_symbols(struct ld_input *li);
 static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx);
-void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
+static void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
     struct ld_strtab *strtab, struct ld_symbol *lsb);
+static void _free_symbol_table(struct ld_symbol_table *symtab);
 struct ld_symbol_table *_alloc_symbol_table(struct ld *ld);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
 static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
     struct ld_archive *la, off_t off);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
-static struct ld_symbol *_symbol_alloc(struct ld *ld);
-static struct ld_symbol *_symbol_find(struct ld_symbol *tbl, char *name);
+static struct ld_symbol *_alloc_symbol(struct ld *ld);
+static void _free_symbol(struct ld_symbol *lsb);
+static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
 static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
+
+#define	_add_symbol(tbl, s) \
+	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
+#define _remove_symbol(tbl, s) HASH_DEL((tbl), (s))
+
+void
+ld_symbols_cleanup(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_symbol *lsb, *_lsb;
+
+	HASH_CLEAR(hh, ld->ld_symtab_def);
+	HASH_CLEAR(hh, ld->ld_symtab_undef);
+	HASH_CLEAR(hh, ld->ld_symtab_common);
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		_unload_symbols(li);
+	}
+
+	if (ld->ld_ext_symbols != NULL) {
+		STAILQ_FOREACH_SAFE(lsb, ld->ld_ext_symbols, lsb_next, _lsb) {
+			STAILQ_REMOVE(ld->ld_ext_symbols, lsb, ld_symbol,
+			    lsb_next);
+			_free_symbol(lsb);
+		}
+		free(ld->ld_ext_symbols);
+		ld->ld_ext_symbols = NULL;
+	}
+
+	if (ld->ld_var_symbols != NULL) {
+		STAILQ_FOREACH_SAFE(lsb, ld->ld_var_symbols, lsb_next, _lsb) {
+			STAILQ_REMOVE(ld->ld_var_symbols, lsb, ld_symbol,
+			    lsb_next);
+			_free_symbol(lsb);
+		}
+		free(ld->ld_var_symbols);
+		ld->ld_var_symbols = NULL;
+	}
+
+	if (ld->ld_symtab != NULL) {
+		_free_symbol_table(ld->ld_symtab);
+		ld->ld_symtab = NULL;
+	}
+
+	if (ld->ld_strtab != NULL) {
+		ld_strtab_free(ld->ld_strtab);
+		ld->ld_strtab = NULL;
+	}
+}
+
+void
+ld_symbols_add_extern(struct ld *ld, char *name)
+{
+	struct ld_symbol *lsb;
+
+	if (_find_symbol(ld->ld_symtab_undef, name) != NULL)
+		return;
+
+	lsb = _alloc_symbol(ld);
+	if ((lsb->lsb_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	if (ld->ld_ext_symbols == NULL) {
+		ld->ld_ext_symbols = malloc(sizeof(*ld->ld_ext_symbols));
+		if (ld->ld_ext_symbols == NULL)
+			ld_fatal_std(ld, "malloc");
+		STAILQ_INIT(ld->ld_ext_symbols);
+	}
+	STAILQ_INSERT_TAIL(ld->ld_ext_symbols, lsb, lsb_next);
+
+	_add_symbol(ld->ld_symtab_undef, lsb);
+}
+
+void
+ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
+    unsigned provide, unsigned hidden)
+{
+	struct ld_symbol *lsb;
+
+	lsb = _alloc_symbol(ld);
+	if ((lsb->lsb_name = strdup(ldv->ldv_name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lsb->lsb_var = ldv;
+	lsb->lsb_bind = STB_GLOBAL;
+	lsb->lsb_shndx = SHN_ABS;
+	lsb->lsb_provide = provide;
+	if (hidden)
+		lsb->lsb_other = STV_HIDDEN;
+
+	if (ld->ld_var_symbols == NULL) {
+		ld->ld_var_symbols = malloc(sizeof(*ld->ld_var_symbols));
+		if (ld->ld_var_symbols == NULL)
+			ld_fatal_std(ld, "malloc");
+		STAILQ_INIT(ld->ld_var_symbols);
+	}
+	STAILQ_INSERT_TAIL(ld->ld_var_symbols, lsb, lsb_next);
+
+	_resolve_and_add_symbol(ld, lsb);
+}
+
+int
+ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
+{
+	struct ld_symbol *lsb;
+
+	if ((lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL)
+		*val = lsb->lsb_value;
+	else if ((lsb = _find_symbol(ld->ld_symtab_common, name)) != NULL)
+		*val = lsb->lsb_value;
+	else
+		return (-1);
+
+	return (0);
+}
 
 void
 ld_symbols_resolve(struct ld *ld)
@@ -80,7 +197,7 @@ ld_symbols_resolve(struct ld *ld)
 
 		/* Load symbols. */
 		ld_file_load(ld, lf);
-		ld_symbols_load(ld, lf);
+		_load_symbols(ld, lf);
 		ld_file_unload(ld, lf);
 		lf = TAILQ_NEXT(lf, lf_next);
 	}
@@ -91,337 +208,6 @@ ld_symbols_resolve(struct ld *ld)
 				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
 		}
 	}
-}
-
-static struct ld_symbol *
-_symbol_alloc(struct ld *ld)
-{
-	struct ld_symbol *s;
-
-	if ((s = calloc(1, sizeof(*s))) == NULL)
-		ld_fatal_std(ld, "calloc");
-
-	return (s);
-}
-
-static struct ld_symbol *
-_symbol_find(struct ld_symbol *tbl, char *name)
-{
-	struct ld_symbol *s;
-
-	HASH_FIND_STR(tbl, name, s);
-	return (s);
-}
-
-#define	_symbol_add(tbl, s) \
-	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
-#define _symbol_remove(tbl, s) HASH_DEL((tbl), (s))
-
-static void
-_resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-	char *name;
-
-	name = lsb->lsb_name;
-	if (lsb->lsb_shndx == SHN_UNDEF) {
-		if (_symbol_find(ld->ld_symtab_def, name) != NULL ||
-		    _symbol_find(ld->ld_symtab_undef, name) != NULL ||
-		    _symbol_find(ld->ld_symtab_common, name) != NULL)
-			return;
-		_symbol_add(ld->ld_symtab_undef, lsb);
-	} else if (lsb->lsb_shndx == SHN_COMMON) {
-		if (_symbol_find(ld->ld_symtab_def, name) != NULL)
-			return;
-		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL)
-			_symbol_remove(ld->ld_symtab_undef, _lsb);
-		if ((_lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL) {
-			if (lsb->lsb_size > _lsb->lsb_size)
-				_symbol_remove(ld->ld_symtab_common, _lsb);
-			else
-				return;
-		}
-		_symbol_add(ld->ld_symtab_common, lsb);
-	} else {
-		if ((_lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL) {
-			if (!lsb->lsb_provide)
-				ld_fatal(ld, "multiple definition of symbol "
-				    "%s", name);
-			else if (_lsb->lsb_provide) {
-				_symbol_remove(ld->ld_symtab_def, _lsb);
-			}
-		}
-		if ((_lsb = _symbol_find(ld->ld_symtab_undef, name)) != NULL)
-			_symbol_remove(ld->ld_symtab_undef, _lsb);
-		if ((_lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL)
-			_symbol_remove(ld->ld_symtab_common, _lsb);
-		_symbol_add(ld->ld_symtab_def, lsb);
-	}
-}
-
-static void
-_add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
-    size_t strndx)
-{
-	struct ld_symbol *lsb;
-	char *name;
-
-	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
-		return;
-
-	lsb = _symbol_alloc(ld);
-
-	if ((lsb->lsb_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "strdup");
-	lsb->lsb_value = sym->st_value;
-	lsb->lsb_size = sym->st_size;
-	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
-	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
-	lsb->lsb_shndx = sym->st_shndx;
-	lsb->lsb_input = li;
-
-	/*
-	 * Insert symbol to input object internal symbol list and
-	 * perform symbol resolving.
-	 */
-	if (lsb->lsb_bind == STB_LOCAL) {
-		if (lsb->lsb_type != STT_SECTION &&
-		    (lsb->lsb_type != STT_NOTYPE ||
-		    lsb->lsb_shndx != SHN_UNDEF))
-			STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
-	} else {
-		STAILQ_INSERT_TAIL(li->li_nonlocal, lsb, lsb_next);
-		_resolve_and_add_symbol(ld, lsb);
-	}
-}
-
-static int
-_archive_member_extracted(struct ld_archive *la, off_t off)
-{
-	struct ld_archive_member *_lam;
-
-	HASH_FIND(hh, la->la_m, &off, sizeof(off), _lam);
-	if (_lam != NULL)
-		return (1);
-
-	return (0);
-}
-
-static void
-_extract_archive_member(struct ld *ld, struct ld_file *lf,
-    struct ld_archive *la, off_t off)
-{
-	Elf *e;
-	Elf_Arhdr *arhdr;
-	struct ld_archive_member *lam;
-	struct ld_input *li;
-
-	if (elf_rand(lf->lf_elf, off) == 0)
-		ld_fatal(ld, "%s: elf_rand failed: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
-		ld_fatal(ld, "%s: elf_begin failed: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	if ((arhdr = elf_getarhdr(e)) == NULL)
-		ld_fatal(ld, "%s: elf_getarhdr failed: %s", lf->lf_name,
-		    elf_errmsg(-1));
-
-	/* Keep record of extracted members. */
-	if ((lam = calloc(1, sizeof(*lam))) == NULL)
-		ld_fatal_std(ld, "calloc");
-	lam->lam_name = strdup(arhdr->ar_name);
-	if (lam->lam_name == NULL)
-		ld_fatal_std(ld, "strdup");
-	lam->lam_off = off;
-	HASH_ADD(hh, la->la_m, lam_off, sizeof(lam->lam_off), lam);
-
-	/* Allocate input object for this member. */
-	li = ld_input_alloc(ld, lf, lam->lam_name);
-	li->li_moff = lam->lam_off;
-	lam->lam_input = li;
-
-	/* Load the symbols of this member. */
-	ld_symbols_load_elf(ld, li, e);
-
-	elf_end(e);
-}
-
-static void
-ld_symbols_load_archive(struct ld *ld, struct ld_file *lf)
-{
-	struct ld_state *ls;
-	struct ld_archive *la;
-	Elf_Arsym *as;
-	size_t c;
-	int extracted, i;
-
-	assert(lf != NULL && lf->lf_type == LFT_ARCHIVE);
-	assert(lf->lf_ar != NULL);
-
-	ls = &ld->ld_state;
-	la = lf->lf_ar;
-	if ((as = elf_getarsym(lf->lf_elf, &c)) == NULL)
-		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
-		    elf_errmsg(-1));
-	do {
-		extracted = 0;
-		for (i = 0; (size_t) i < c; i++) {
-			if (as[i].as_name == NULL)
-				break;
-			if (_archive_member_extracted(la, as[i].as_off))
-				continue;
-			if (_symbol_find(ld->ld_symtab_undef, as[i].as_name) !=
-			    NULL) {
-				_extract_archive_member(ld, lf, la,
-				    as[i].as_off);
-				extracted = 1;
-				ls->ls_extracted[ls->ls_group_level] = 1;
-			}
-		}
-	} while (extracted);
-}
-
-static void
-ld_symbols_load_elf(struct ld *ld, struct ld_input *li, Elf *e)
-{
-	Elf_Scn *scn, *scn_sym;
-	Elf_Data *d;
-	GElf_Shdr shdr;
-	GElf_Sym sym;
-	size_t strndx;
-	int elferr, len, i;
-
-	strndx = SHN_UNDEF;
-	scn = scn_sym = NULL;
-	(void) elf_errno();
-	while ((scn = elf_nextscn(e, scn)) != NULL) {
-		if (gelf_getshdr(scn, &shdr) != &shdr)
-			ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-			    elf_errmsg(-1));
-		if (shdr.sh_type == SHT_SYMTAB)
-			scn_sym = scn;
-		else if (shdr.sh_type == SHT_STRTAB)
-			strndx = elf_ndxscn(scn);
-	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
-		    elf_errmsg(elferr));
-	if (scn_sym == NULL || strndx == SHN_UNDEF)
-		return;
-
-	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d = elf_getdata(scn_sym, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		/* Empty .symtab section? */
-		return;
-	}
-
-	len = d->d_size / shdr.sh_entsize;
-	for (i = 0; i < len; i++) {
-		if (gelf_getsym(d, i, &sym) != &sym)
-			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
-			    elf_errmsg(-1));
-		_add_elf_symbol(ld, li, e, &sym, strndx);
-	}
-}
-
-static void
-ld_symbols_load(struct ld *ld, struct ld_file *lf)
-{
-
-	if (lf->lf_type == LFT_ARCHIVE)
-		ld_symbols_load_archive(ld, lf);
-	else {
-		lf->lf_input = ld_input_alloc(ld, lf, lf->lf_name);
-		ld_symbols_load_elf(ld, lf->lf_input, lf->lf_elf);
-	}
-}
-
-void
-ld_symbols_add_extern(struct ld *ld, char *name)
-{
-	struct ld_symbol *lsb;
-
-	if (_symbol_find(ld->ld_symtab_undef, name) != NULL)
-		return;
-
-	lsb = _symbol_alloc(ld);
-	if ((lsb->lsb_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "strdup");
-
-	_symbol_add(ld->ld_symtab_undef, lsb);
-}
-
-void
-ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
-    unsigned provide, unsigned hidden)
-{
-	struct ld_symbol *lsb;
-
-	lsb = _symbol_alloc(ld);
-	if ((lsb->lsb_name = strdup(ldv->ldv_name)) == NULL)
-		ld_fatal_std(ld, "strdup");
-	lsb->lsb_var = ldv;
-	lsb->lsb_bind = STB_GLOBAL;
-	lsb->lsb_shndx = SHN_ABS;
-	lsb->lsb_provide = provide;
-	if (hidden)
-		lsb->lsb_other = STV_HIDDEN;
-	_resolve_and_add_symbol(ld, lsb);
-}
-
-int
-ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
-{
-	struct ld_symbol *lsb;
-
-	if ((lsb = _symbol_find(ld->ld_symtab_def, name)) != NULL)
-		*val = lsb->lsb_value;
-	else if ((lsb = _symbol_find(ld->ld_symtab_common, name)) != NULL)
-		*val = lsb->lsb_value;
-	else
-		return (-1);
-
-	return (0);
-}
-
-static void
-_update_symbol(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_input *li;
-	struct ld_input_section *is;
-	struct ld_output *lo;
-	struct ld_output_section *os;
-
-	if (lsb->lsb_shndx == SHN_ABS)
-		return;
-
-	lo = ld->ld_output;
-	assert(lo != NULL);
-
-	li = lsb->lsb_input;
-	if (lsb->lsb_shndx == SHN_COMMON)
-		is = &li->li_is[li->li_shnum - 1];
-	else
-		is = &li->li_is[lsb->lsb_shndx];
-	if ((os = is->is_output) == NULL)
-		return;
-	lsb->lsb_value += os->os_addr + is->is_reloff;
-	lsb->lsb_shndx = elf_ndxscn(os->os_scn);
-#if 0
-	printf("symbol %s: %#jx\n", lsb->lsb_name,
-	    (uintmax_t) lsb->lsb_value);
-#endif
 }
 
 void
@@ -519,6 +305,309 @@ ld_symbols_build_symtab(struct ld *ld)
 	}
 }
 
+static struct ld_symbol *
+_alloc_symbol(struct ld *ld)
+{
+	struct ld_symbol *s;
+
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	return (s);
+}
+
+static struct ld_symbol *
+_find_symbol(struct ld_symbol *tbl, char *name)
+{
+	struct ld_symbol *s;
+
+	HASH_FIND_STR(tbl, name, s);
+	return (s);
+}
+
+static void
+_resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+	char *name;
+
+	name = lsb->lsb_name;
+	if (lsb->lsb_shndx == SHN_UNDEF) {
+		if (_find_symbol(ld->ld_symtab_def, name) != NULL ||
+		    _find_symbol(ld->ld_symtab_undef, name) != NULL ||
+		    _find_symbol(ld->ld_symtab_common, name) != NULL)
+			return;
+		_add_symbol(ld->ld_symtab_undef, lsb);
+	} else if (lsb->lsb_shndx == SHN_COMMON) {
+		if (_find_symbol(ld->ld_symtab_def, name) != NULL)
+			return;
+		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL)
+			_remove_symbol(ld->ld_symtab_undef, _lsb);
+		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) != NULL) {
+			if (lsb->lsb_size > _lsb->lsb_size)
+				_remove_symbol(ld->ld_symtab_common, _lsb);
+			else
+				return;
+		}
+		_add_symbol(ld->ld_symtab_common, lsb);
+	} else {
+		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
+			if (!lsb->lsb_provide)
+				ld_fatal(ld, "multiple definition of symbol "
+				    "%s", name);
+			else if (_lsb->lsb_provide) {
+				_remove_symbol(ld->ld_symtab_def, _lsb);
+			}
+		}
+		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL)
+			_remove_symbol(ld->ld_symtab_undef, _lsb);
+		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) != NULL)
+			_remove_symbol(ld->ld_symtab_common, _lsb);
+		_add_symbol(ld->ld_symtab_def, lsb);
+	}
+}
+
+static void
+_add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
+    size_t strndx)
+{
+	struct ld_symbol *lsb;
+	char *name;
+
+	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
+		return;
+
+	lsb = _alloc_symbol(ld);
+
+	if ((lsb->lsb_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lsb->lsb_value = sym->st_value;
+	lsb->lsb_size = sym->st_size;
+	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
+	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
+	lsb->lsb_shndx = sym->st_shndx;
+	lsb->lsb_input = li;
+
+	/*
+	 * Insert symbol to input object internal symbol list and
+	 * perform symbol resolving.
+	 */
+	if (lsb->lsb_bind == STB_LOCAL) {
+		if (lsb->lsb_type != STT_SECTION &&
+		    (lsb->lsb_type != STT_NOTYPE ||
+		    lsb->lsb_shndx != SHN_UNDEF))
+			STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
+	} else {
+		STAILQ_INSERT_TAIL(li->li_nonlocal, lsb, lsb_next);
+		_resolve_and_add_symbol(ld, lsb);
+	}
+}
+
+static int
+_archive_member_extracted(struct ld_archive *la, off_t off)
+{
+	struct ld_archive_member *_lam;
+
+	HASH_FIND(hh, la->la_m, &off, sizeof(off), _lam);
+	if (_lam != NULL)
+		return (1);
+
+	return (0);
+}
+
+static void
+_extract_archive_member(struct ld *ld, struct ld_file *lf,
+    struct ld_archive *la, off_t off)
+{
+	Elf *e;
+	Elf_Arhdr *arhdr;
+	struct ld_archive_member *lam;
+	struct ld_input *li;
+
+	if (elf_rand(lf->lf_elf, off) == 0)
+		ld_fatal(ld, "%s: elf_rand failed: %s", lf->lf_name,
+		    elf_errmsg(-1));
+
+	if ((e = elf_begin(-1, ELF_C_READ, lf->lf_elf)) == NULL)
+		ld_fatal(ld, "%s: elf_begin failed: %s", lf->lf_name,
+		    elf_errmsg(-1));
+
+	if ((arhdr = elf_getarhdr(e)) == NULL)
+		ld_fatal(ld, "%s: elf_getarhdr failed: %s", lf->lf_name,
+		    elf_errmsg(-1));
+
+	/* Keep record of extracted members. */
+	if ((lam = calloc(1, sizeof(*lam))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	lam->lam_name = strdup(arhdr->ar_name);
+	if (lam->lam_name == NULL)
+		ld_fatal_std(ld, "strdup");
+	lam->lam_off = off;
+	HASH_ADD(hh, la->la_m, lam_off, sizeof(lam->lam_off), lam);
+
+	/* Allocate input object for this member. */
+	li = ld_input_alloc(ld, lf, lam->lam_name);
+	li->li_moff = lam->lam_off;
+	lam->lam_input = li;
+
+	/* Load the symbols of this member. */
+	_load_elf_symbols(ld, li, e);
+
+	elf_end(e);
+}
+
+static void
+_load_archive_symbols(struct ld *ld, struct ld_file *lf)
+{
+	struct ld_state *ls;
+	struct ld_archive *la;
+	Elf_Arsym *as;
+	size_t c;
+	int extracted, i;
+
+	assert(lf != NULL && lf->lf_type == LFT_ARCHIVE);
+	assert(lf->lf_ar != NULL);
+
+	ls = &ld->ld_state;
+	la = lf->lf_ar;
+	if ((as = elf_getarsym(lf->lf_elf, &c)) == NULL)
+		ld_fatal(ld, "%s: elf_getarsym failed: %s", lf->lf_name,
+		    elf_errmsg(-1));
+	do {
+		extracted = 0;
+		for (i = 0; (size_t) i < c; i++) {
+			if (as[i].as_name == NULL)
+				break;
+			if (_archive_member_extracted(la, as[i].as_off))
+				continue;
+			if (_find_symbol(ld->ld_symtab_undef, as[i].as_name) !=
+			    NULL) {
+				_extract_archive_member(ld, lf, la,
+				    as[i].as_off);
+				extracted = 1;
+				ls->ls_extracted[ls->ls_group_level] = 1;
+			}
+		}
+	} while (extracted);
+}
+
+static void
+_load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
+{
+	Elf_Scn *scn, *scn_sym;
+	Elf_Data *d;
+	GElf_Shdr shdr;
+	GElf_Sym sym;
+	size_t strndx;
+	int elferr, len, i;
+
+	strndx = SHN_UNDEF;
+	scn = scn_sym = NULL;
+	(void) elf_errno();
+	while ((scn = elf_nextscn(e, scn)) != NULL) {
+		if (gelf_getshdr(scn, &shdr) != &shdr)
+			ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+			    elf_errmsg(-1));
+		if (shdr.sh_type == SHT_SYMTAB)
+			scn_sym = scn;
+		else if (shdr.sh_type == SHT_STRTAB)
+			strndx = elf_ndxscn(scn);
+	}
+	elferr = elf_errno();
+	if (elferr != 0)
+		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
+		    elf_errmsg(elferr));
+	if (scn_sym == NULL || strndx == SHN_UNDEF)
+		return;
+
+	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
+		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+		    elf_errmsg(-1));
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn_sym, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
+			    elf_errmsg(elferr));
+		/* Empty .symtab section? */
+		return;
+	}
+
+	len = d->d_size / shdr.sh_entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getsym(d, i, &sym) != &sym)
+			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
+			    elf_errmsg(-1));
+		_add_elf_symbol(ld, li, e, &sym, strndx);
+	}
+}
+
+static void
+_load_symbols(struct ld *ld, struct ld_file *lf)
+{
+
+	if (lf->lf_type == LFT_ARCHIVE)
+		_load_archive_symbols(ld, lf);
+	else {
+		lf->lf_input = ld_input_alloc(ld, lf, lf->lf_name);
+		_load_elf_symbols(ld, lf->lf_input, lf->lf_elf);
+	}
+}
+
+static void
+_unload_symbols(struct ld_input *li)
+{
+	struct ld_symbol *lsb, *_lsb;
+
+	STAILQ_FOREACH_SAFE(lsb, li->li_local, lsb_next, _lsb) {
+		STAILQ_REMOVE(li->li_local, lsb, ld_symbol, lsb_next);
+		_free_symbol(lsb);
+	}
+
+	STAILQ_FOREACH_SAFE(lsb, li->li_nonlocal, lsb_next, _lsb) {
+		STAILQ_REMOVE(li->li_nonlocal, lsb, ld_symbol, lsb_next);
+		_free_symbol(lsb);
+	}
+}
+
+static void
+_free_symbol(struct ld_symbol *lsb)
+{
+
+	free(lsb->lsb_name);
+	free(lsb);
+}
+
+static void
+_update_symbol(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+
+	if (lsb->lsb_shndx == SHN_ABS)
+		return;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	li = lsb->lsb_input;
+	if (lsb->lsb_shndx == SHN_COMMON)
+		is = &li->li_is[li->li_shnum - 1];
+	else
+		is = &li->li_is[lsb->lsb_shndx];
+	if ((os = is->is_output) == NULL)
+		return;
+	lsb->lsb_value += os->os_addr + is->is_reloff;
+	lsb->lsb_shndx = elf_ndxscn(os->os_scn);
+#if 0
+	printf("symbol %s: %#jx\n", lsb->lsb_name,
+	    (uintmax_t) lsb->lsb_value);
+#endif
+}
+
 struct ld_symbol_table *
 _alloc_symbol_table(struct ld *ld)
 {
@@ -530,7 +619,7 @@ _alloc_symbol_table(struct ld *ld)
 	return (symtab);
 }
 
-void
+static void
 _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
     struct ld_strtab *strtab, struct ld_symbol *lsb)
 {
@@ -593,4 +682,15 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 		symtab->sy_first_nonlocal = symtab->sy_size;
 
 	symtab->sy_size++;
+}
+
+static void
+_free_symbol_table(struct ld_symbol_table *symtab)
+{
+
+	if (symtab == NULL)
+		return;
+
+	free(symtab->sy_buf);
+	free(symtab);
 }

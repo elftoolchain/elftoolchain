@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@
 struct ld_file;
 struct ld_path;
 struct ld_symbol;
+struct ld_symbol_head;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -89,11 +90,14 @@ struct ld {
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
 	struct ld_strtab *ld_shstrtab;	/* section name table */
+	struct ld_symbol_head *ld_ext_symbols; /* -u/EXTERN symbols */
+	struct ld_symbol_head *ld_var_symbols; /* ldscript var symbols */
 	struct ld_symbol *ld_symtab_def;/* hash for defined symbols */
 	struct ld_symbol *ld_symtab_undef; /* hash for undefined symbols */
 	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
 	struct ld_symbol_table *ld_symtab; /* .symtab symbol table */
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
+	unsigned ld_arch_mismatch;	/* arch mismatch with default target */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */
