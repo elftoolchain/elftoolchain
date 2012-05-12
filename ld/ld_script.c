@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 ELFTC_VCSID("$Id$");
 
 static void _input_file_add(struct ld *ld, struct ld_script_input_file *ldif);
+static void _overlay_section_free(void *ptr);
 static struct ld_script_variable *_variable_find(struct ld *ld, char *name);
 
 #define _variable_add(v) \
@@ -77,6 +78,17 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 	}
 
 	return (lda);
+}
+
+void
+ld_script_assign_free(struct ld_script_assign *lda)
+{
+
+	if (lda == NULL)
+		return;
+	ld_exp_free(lda->lda_var);
+	ld_exp_free(lda->lda_val);
+	free(lda);
 }
 
 void
@@ -157,6 +169,103 @@ ld_script_cmd_insert(struct ld_script_cmd_head *head, struct ld_script_cmd *ldc)
 	STAILQ_INSERT_TAIL(head, ldc, ldc_next);
 }
 
+static void
+_overlay_section_free(void *ptr)
+{
+	struct ld_script_cmd *c, *_c;
+	struct ld_script_sections_overlay_section *ldos;
+
+	ldos = ptr;
+	if (ldos == NULL)
+		return;
+	free(ldos->ldos_name);
+	ld_script_list_free(ldos->ldos_phdr, free);
+	ld_exp_free(ldos->ldos_fill);
+	STAILQ_FOREACH_SAFE(c, &ldos->ldos_c, ldc_next, _c) {
+		STAILQ_REMOVE(&ldos->ldos_c, c, ld_script_cmd, ldc_next);
+		ld_script_cmd_free(c);
+	}
+	free(ldos);
+}
+
+void
+ld_script_cmd_free(struct ld_script_cmd *ldc)
+{
+	struct ld_script_cmd *c, *_c;
+	struct ld_script_assert *lda;
+	struct ld_script_sections *ldss;
+	struct ld_script_sections_output *ldso;
+	struct ld_script_sections_output_data *ldod;
+	struct ld_script_sections_overlay *ldso2;
+
+	switch (ldc->ldc_type) {
+	case LSC_ASSERT:
+		lda = ldc->ldc_cmd;
+		ld_exp_free(lda->lda_exp);
+		free(lda->lda_msg);
+		free(lda);
+		break;
+
+	case LSC_ASSIGN:
+		ld_script_assign_free(ldc->ldc_cmd);
+		break;
+
+	case LSC_SECTIONS:
+		ldss = ldc->ldc_cmd;
+		STAILQ_FOREACH_SAFE(c, &ldss->ldss_c, ldc_next, _c) {
+			STAILQ_REMOVE(&ldss->ldss_c, c, ld_script_cmd,
+			    ldc_next);
+			ld_script_cmd_free(c);
+		}
+		free(ldss);
+		break;
+
+	case LSC_SECTIONS_OUTPUT:
+		ldso = ldc->ldc_cmd;
+		free(ldso->ldso_name);
+		free(ldso->ldso_type);
+		ld_exp_free(ldso->ldso_vma);
+		ld_exp_free(ldso->ldso_lma);
+		ld_exp_free(ldso->ldso_align);
+		ld_exp_free(ldso->ldso_subalign);
+		free(ldso->ldso_constraint);
+		free(ldso->ldso_region);
+		free(ldso->ldso_lma_region);
+		ld_script_list_free(ldso->ldso_phdr, free);
+		ld_exp_free(ldso->ldso_fill);
+		STAILQ_FOREACH_SAFE(c, &ldso->ldso_c, ldc_next, _c) {
+			STAILQ_REMOVE(&ldso->ldso_c, c, ld_script_cmd,
+			    ldc_next);
+			ld_script_cmd_free(c);
+		}
+		free(ldso);
+		break;
+
+	case LSC_SECTIONS_OUTPUT_DATA:
+		ldod = ldc->ldc_cmd;
+		ld_exp_free(ldod->ldod_exp);
+		free(ldod);
+		break;
+
+	case LSC_SECTIONS_OVERLAY:
+		ldso2 = ldc->ldc_cmd;
+		ld_exp_free(ldso2->ldso_vma);
+		ld_exp_free(ldso2->ldso_lma);
+		free(ldso2->ldso_region);
+		ld_script_list_free(ldso2->ldso_phdr, free);
+		ld_exp_free(ldso2->ldso_fill);
+		ld_script_list_free(ldso2->ldso_s, _overlay_section_free);
+		free(ldso2);
+		break;
+
+	default:
+		free(ldc->ldc_cmd);
+		break;
+	}
+
+	free(ldc);
+}
+
 void
 ld_script_extern(struct ld *ld, struct ld_script_list *list)
 {
@@ -167,7 +276,7 @@ ld_script_extern(struct ld *ld, struct ld_script_list *list)
 		ld_symbols_add_extern(ld, ldl->ldl_entry);
 		ldl = ldl->ldl_next;
 	}
-	ld_script_list_free(list);
+	ld_script_list_free(list, free);
 }
 
 void
@@ -184,7 +293,7 @@ ld_script_group(struct ld *ld, struct ld_script_list *list)
 		ldl = ldl->ldl_next;
 	}
 	ld->ld_state.ls_group_level--;
-	ld_script_list_free(list);
+	ld_script_list_free(list, free);
 }
 
 void
@@ -200,6 +309,75 @@ ld_script_init(struct ld *ld)
 	STAILQ_INIT(&ld->ld_scp->lds_n);
 	STAILQ_INIT(&ld->ld_scp->lds_p);
 	STAILQ_INIT(&ld->ld_scp->lds_r);
+
+	ld_script_parse_internal();
+}
+
+void
+ld_script_cleanup(struct ld *ld)
+{
+	struct ld_script *lds;
+	struct ld_script_phdr *p, *_p;
+	struct ld_script_region *r, *_r;
+	struct ld_script_region_alias *a, *_a;
+	struct ld_script_nocrossref *n, *_n;
+	struct ld_script_cmd *c, *_c;
+	struct ld_script_variable *v, *_v;
+
+	if (ld->ld_scp == NULL)
+		return;
+
+	lds = ld->ld_scp;
+
+	if (lds->lds_entry_point != NULL) {
+		free(lds->lds_entry_point);
+		lds->lds_entry_point = NULL;
+	}
+
+	STAILQ_FOREACH_SAFE(p, &lds->lds_p, ldsp_next, _p) {
+		STAILQ_REMOVE(&lds->lds_p, p, ld_script_phdr, ldsp_next);
+		free(p->ldsp_name);
+		free(p->ldsp_type);
+		ld_exp_free(p->ldsp_addr);
+		free(p);
+	}
+
+	STAILQ_FOREACH_SAFE(r, &lds->lds_r, ldsr_next, _r) {
+		STAILQ_REMOVE(&lds->lds_r, r, ld_script_region, ldsr_next);
+		free(r->ldsr_name);
+		free(r->ldsr_attr);
+		ld_exp_free(r->ldsr_origin);
+		ld_exp_free(r->ldsr_len);
+		free(r);
+	}
+
+	STAILQ_FOREACH_SAFE(a, &lds->lds_a, ldra_next, _a) {
+		STAILQ_REMOVE(&lds->lds_a, a, ld_script_region_alias,
+		    ldra_next);
+		free(a->ldra_alias);
+		free(a->ldra_region);
+		free(a);
+	}
+
+	STAILQ_FOREACH_SAFE(n, &lds->lds_n, ldn_next, _n) {
+		STAILQ_REMOVE(&lds->lds_n, n, ld_script_nocrossref, ldn_next);
+		ld_script_list_free(n->ldn_l, free);
+		free(n);
+	}
+
+	STAILQ_FOREACH_SAFE(c, &lds->lds_c, ldc_next, _c) {
+		STAILQ_REMOVE(&lds->lds_c, c, ld_script_cmd, ldc_next);
+		ld_script_cmd_free(c);
+	}
+
+	if (lds->lds_v != NULL) {
+		HASH_ITER(hh, lds->lds_v, v, _v) {
+			HASH_DEL(lds->lds_v, v);
+			free(v->ldv_name);
+			free(v);
+		}
+		lds->lds_v = NULL;
+	}
 }
 
 void
@@ -214,7 +392,7 @@ ld_script_input(struct ld *ld, struct ld_script_list *list)
 		ldl = ldl->ldl_next;
 	}
 	ld->ld_state.ls_search_dir = 0;
-	ld_script_list_free(list);
+	ld_script_list_free(list, free);
 }
 
 struct ld_script_input_file *
@@ -247,7 +425,7 @@ ld_script_list(struct ld *ld, struct ld_script_list *list, void *entry)
 }
 
 void
-ld_script_list_free(struct ld_script_list *list)
+ld_script_list_free(struct ld_script_list *list, void (*_free)(void *ptr))
 {
 	struct ld_script_list *ldl;
 
@@ -255,7 +433,7 @@ ld_script_list_free(struct ld_script_list *list)
 		ldl = list;
 		list = ldl->ldl_next;
 		if (ldl->ldl_entry)
-			free(ldl->ldl_entry);
+			_free(ldl->ldl_entry);
 		free(ldl);
 	} while (list != NULL);
 }
@@ -358,7 +536,7 @@ _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)
 			ldl = ldl->ldl_next;
 		}
 		ls->ls_as_needed = old_as_needed;
-		ld_script_list_free(ldif->ldif_u.ldif_ldl);
+		ld_script_list_free(ldif->ldif_u.ldif_ldl, free);
 	}
 }
 

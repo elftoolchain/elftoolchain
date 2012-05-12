@@ -95,3 +95,4 @@ struct ld_exp *ld_exp_symbolic_constant(struct ld *, const char *);
 struct ld_exp *ld_exp_trinary(struct ld *, struct ld_exp *, struct ld_exp *,
     struct ld_exp *);
 struct ld_exp *ld_exp_unary(struct ld *, enum ld_exp_op, struct ld_exp *);
+void ld_exp_free(struct ld_exp *);

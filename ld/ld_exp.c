@@ -59,6 +59,23 @@ static int64_t _symbolic_constant(struct ld *ld, const char *name);
 
 #define	_EXP_EVAL(x) ld_exp_eval(ld, (x))
 
+void
+ld_exp_free(struct ld_exp *le)
+{
+
+	if (le == NULL)
+		return;
+
+	ld_exp_free(le->le_e1);
+	ld_exp_free(le->le_e2);
+	ld_exp_free(le->le_e3);
+	if (le->le_assign != NULL)
+		ld_script_assign_free(le->le_assign);
+	if (le->le_name != NULL)
+		free(le->le_name);
+	free(le);
+}
+
 struct ld_exp *
 ld_exp_unary(struct ld *ld, enum ld_exp_op op, struct ld_exp *e1)
 {

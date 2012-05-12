@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -214,8 +214,11 @@ struct ld_script {
 struct ld_script_cmd *ld_script_assert(struct ld *, struct ld_exp *, char *);
 struct ld_script_assign *ld_script_assign(struct ld *, struct ld_exp *,
     enum ld_script_assign_op, struct ld_exp *, unsigned, unsigned);
+void	ld_script_assign_free(struct ld_script_assign *);
+void	ld_script_cleanup(struct ld *);
 struct ld_script_cmd *ld_script_cmd(struct ld *, enum ld_script_cmd_type,
     void *);
+void	ld_script_cmd_free(struct ld_script_cmd *);
 void	ld_script_cmd_insert(struct ld_script_cmd_head *,
     struct ld_script_cmd *);
 void	ld_script_extern(struct ld *, struct ld_script_list *);
@@ -226,7 +229,7 @@ struct ld_script_input_file *ld_script_input_file(struct ld *, unsigned,
     void *);
 struct ld_script_list *ld_script_list(struct ld *, struct ld_script_list *,
     void *);
-void	ld_script_list_free(struct ld_script_list *);
+void	ld_script_list_free(struct ld_script_list *, void (*)(void *));
 struct ld_script_list *ld_script_list_reverse(struct ld_script_list *);
 void	ld_script_nocrossrefs(struct ld *, struct ld_script_list *);
 struct ld_script_phdr *ld_script_phdr(struct ld *, char *, char *, unsigned,
