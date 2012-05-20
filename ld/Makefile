@@ -18,6 +18,7 @@ SRCS=	amd64.c			\
 	ld_main.c 		\
 	ld_options.c		\
 	ld_output.c		\
+	ld_path.c		\
 	ld_reloc.c		\
 	ld_script.c		\
 	ld_script_lexer.l	\

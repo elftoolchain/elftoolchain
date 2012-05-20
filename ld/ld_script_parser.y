@@ -31,6 +31,7 @@
 #include "ld_output.h"
 #include "ld_script.h"
 #include "ld_file.h"
+#include "ld_path.h"
 #include "ld_exp.h"
 
 ELFTC_VCSID("$Id$");
@@ -700,7 +701,7 @@ region_alias_command
 
 search_dir_command
 	: T_SEARCH_DIR '(' ident ')' {
-		ld_file_add_library_path(ld, $3);
+		ld_path_add(ld, $3);
 		free($3);
 	}
 	;

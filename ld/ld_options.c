@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_file.h"
+#include "ld_path.h"
 #include "ld_script.h"
 #include "ld_symbols.h"
 #include "ld_options.h"
@@ -344,10 +345,10 @@ ld_options_process(struct ld *ld, int key, char *arg)
 			ld_fatal_std(ld, "strdup");
 		break;
 	case 'l':
-		ld_file_add_library(ld, arg);
+		ld_path_search_library(ld, arg);
 		break;
 	case 'L':
-		ld_file_add_library_path(ld, arg);
+		ld_path_add(ld, arg);
 		break;
 	case 'o':
 		if ((ld->ld_output_file = strdup(arg)) == NULL)
