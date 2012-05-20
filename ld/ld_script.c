@@ -196,6 +196,7 @@ ld_script_cmd_free(struct ld_script_cmd *ldc)
 	struct ld_script_sections *ldss;
 	struct ld_script_sections_output *ldso;
 	struct ld_script_sections_output_data *ldod;
+	struct ld_script_sections_output_input *ldoi;
 	struct ld_script_sections_overlay *ldso2;
 
 	switch (ldc->ldc_type) {
@@ -208,6 +209,10 @@ ld_script_cmd_free(struct ld_script_cmd *ldc)
 
 	case LSC_ASSIGN:
 		ld_script_assign_free(ldc->ldc_cmd);
+		break;
+
+	case LSC_ENTRY:
+		free(ldc->ldc_cmd);
 		break;
 
 	case LSC_SECTIONS:
@@ -247,6 +252,15 @@ ld_script_cmd_free(struct ld_script_cmd *ldc)
 		free(ldod);
 		break;
 
+	case LSC_SECTIONS_OUTPUT_INPUT:
+		ldoi = ldc->ldc_cmd;
+		ld_wildcard_free(ldoi->ldoi_ar);
+		ld_wildcard_free(ldoi->ldoi_file);
+		ld_script_list_free(ldoi->ldoi_exclude, ld_wildcard_free);
+		ld_script_list_free(ldoi->ldoi_sec, ld_wildcard_free);
+		free(ldoi);
+		break;
+		
 	case LSC_SECTIONS_OVERLAY:
 		ldso2 = ldc->ldc_cmd;
 		ld_exp_free(ldso2->ldso_vma);
@@ -259,7 +273,6 @@ ld_script_cmd_free(struct ld_script_cmd *ldc)
 		break;
 
 	default:
-		free(ldc->ldc_cmd);
 		break;
 	}
 
@@ -428,6 +441,9 @@ void
 ld_script_list_free(struct ld_script_list *list, void (*_free)(void *ptr))
 {
 	struct ld_script_list *ldl;
+
+	if (list == NULL)
+		return;
 
 	do {
 		ldl = list;

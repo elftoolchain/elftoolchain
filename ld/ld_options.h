@@ -154,3 +154,4 @@ struct ld_wildcard {
 
 void	ld_options_parse(struct ld*, int, char **);
 struct ld_wildcard *ld_wildcard_alloc(struct ld *);
+void	ld_wildcard_free(void *);

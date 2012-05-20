@@ -422,3 +422,16 @@ ld_wildcard_alloc(struct ld *ld)
 
 	return (lw);
 }
+
+void
+ld_wildcard_free(void *ptr)
+{
+	struct ld_wildcard *lw;
+
+	lw = ptr;
+	if (lw == NULL)
+		return;
+
+	free(lw->lw_name);
+	free(lw);
+}
