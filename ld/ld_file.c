@@ -176,8 +176,10 @@ _add_file(struct ld *ld, const char *name, enum ld_file_type type,
 
 	assert(ld != NULL && name != NULL);
 
-	if (!strncmp(name, "-l", 2))
+	if (!strncmp(name, "-l", 2)) {
 		ld_path_search_library(ld, &name[2]);
+		return;
+	}
 
 	ls = &ld->ld_state;
 
