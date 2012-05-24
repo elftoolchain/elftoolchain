@@ -2784,7 +2784,7 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		printf(" %ju\n", (uintmax_t) dyn->d_un.d_val);
 		break;
 	case DT_NEEDED:
-		printf(" Shared libarary: [%s]\n", name);
+		printf(" Shared library: [%s]\n", name);
 		break;
 	case DT_SONAME:
 		printf(" Library soname: [%s]\n", name);
