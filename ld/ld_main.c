@@ -72,8 +72,11 @@ _cleanup(void)
 int
 main(int argc, char **argv)
 {
+	struct ld_state *ls;
 
 	_init();
+
+	ls = &ld->ld_state;
 
 	ld->ld_progname = basename(argv[0]);
 
@@ -84,11 +87,13 @@ restart:
 
 	ld_options_parse(ld, argc, argv);
 
+	ls->ls_arch_conflict = 0;
+	ls->ls_first_elf_object = 1;
+
 	ld_symbols_resolve(ld);
 
-	if (ld->ld_arch_mismatch) {
+	if (ls->ls_retry) {
 		_cleanup();
-		ld->ld_arch_mismatch = 0;
 		goto restart;
 	}
 

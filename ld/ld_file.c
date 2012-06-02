@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_file.h"
 #include "ld_path.h"
 
@@ -128,6 +129,7 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 	if (gelf_getehdr(lf->lf_elf, &ehdr) == NULL)
 		ld_fatal(ld, "%s: gelf_getehdr failed: %s", lf->lf_name,
 		    elf_errmsg(-1));
+
 	switch (ehdr.e_type) {
 	case ET_NONE:
 		ld_fatal(ld, "%s: ELF type ET_NONE not supported", lf->lf_name);
@@ -145,6 +147,8 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 	default:
 		ld_fatal(ld, "%s: unknown ELF type %u", ehdr.e_type);
 	}
+
+	ld_arch_verify(ld, lf->lf_name, ehdr.e_machine);
 }
 
 void

@@ -121,6 +121,7 @@ amd64_register(struct ld *ld)
 	if ((amd64_alt = calloc(1, sizeof(*amd64_alt))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	memcpy(amd64_alt, amd64, sizeof(struct ld_arch));
+	amd64_alt->alias = amd64;
 	snprintf(amd64_alt->name, sizeof(amd64_alt->name), "%s", "x86-64");
 
 	HASH_ADD_STR(ld->ld_arch_list, name, amd64_alt);

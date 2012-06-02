@@ -197,6 +197,10 @@ ld_symbols_resolve(struct ld *ld)
 
 		/* Load symbols. */
 		ld_file_load(ld, lf);
+		if (ls->ls_arch_conflict) {
+			ld_file_unload(ld, lf);
+			return;
+		}
 		_load_symbols(ld, lf);
 		ld_file_unload(ld, lf);
 		lf = TAILQ_NEXT(lf, lf_next);

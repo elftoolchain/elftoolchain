@@ -93,18 +93,48 @@ ld_arch_set_from_target(struct ld *ld)
 	}
 }
 
-void
-ld_arch_verify(struct ld *ld, struct ld_input *li)
+int
+ld_arch_equal(struct ld_arch *a1, struct ld_arch *a2)
 {
 
-	/*
-	 * TODO: Guess arch if the output arch is not yet determined.
-	 * Otherwise, verify the arch of the input object match the arch
-	 * of the output file.
-	 */
+	assert(a1 != NULL && a2 != NULL);
 
-	(void) ld;
-	(void) li;
+	if (a1 == a2)
+		return (1);
+
+	if (a1->alias == a2 || a2->alias == a1)
+		return (1);
+
+	if (a1->alias != NULL && a1->alias == a2->alias)
+		return (1);
+
+	return (0);
+}
+
+void
+ld_arch_verify(struct ld *ld, const char *name, int mach)
+{
+	struct ld_arch *la;
+	struct ld_state *ls;
+
+	assert(ld->ld_arch != NULL);
+	ls = &ld->ld_state;
+
+	if ((la = ld_arch_guess_arch_name(ld, mach)) == NULL)
+		ld_fatal(ld, "%s: ELF object architecture %#x not supported",
+		    name, mach);
+
+	if (!ld_arch_equal(la, ld->ld_arch)) {
+		ls->ls_arch_conflict = 1;
+		if (ls->ls_retry || !ls->ls_first_elf_object)
+			ld_fatal(ld, "%s: ELF object architecture `%s' "
+			    "conflicts with output object architecture `%s'",
+			    name, la->name, ld->ld_arch->name);
+		ls->ls_retry = 1;
+		ld->ld_arch = la;
+	}
+
+	ls->ls_first_elf_object = 0;
 }
 
 struct ld_arch *

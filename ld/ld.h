@@ -71,6 +71,9 @@ struct ld_state {
 	uint64_t ls_loc_counter;	/* location counter */
 	uint64_t ls_offset;		/* current output section file offset */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
+	unsigned ls_arch_conflict;	/* input arch conflict with output */
+	unsigned ls_first_elf_object;	/* first ELF object to process */
+	unsigned ls_retry;		/* ld(1) need restart */
 };
 
 struct ld {
@@ -97,7 +100,6 @@ struct ld {
 	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
 	struct ld_symbol_table *ld_symtab; /* .symtab symbol table */
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
-	unsigned ld_arch_mismatch;	/* arch mismatch with default target */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */

@@ -40,11 +40,13 @@ struct ld_arch {
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, uint64_t, uint8_t *);
 	UT_hash_handle hh;		/* hash handle */
+	struct ld_arch *alias;
 };
 
 void	ld_arch_init(struct ld *);
+int	ld_arch_equal(struct ld_arch *, struct ld_arch *);
 struct ld_arch *ld_arch_find(struct ld *, char *);
 struct ld_arch *ld_arch_guess_arch_name(struct ld *, int);
 void	ld_arch_set(struct ld *, char *);
 void	ld_arch_set_from_target(struct ld *);
-void	ld_arch_verify(struct ld *, struct ld_input *);
+void	ld_arch_verify(struct ld *, const char *, int);
