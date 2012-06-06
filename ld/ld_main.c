@@ -92,8 +92,9 @@ restart:
 
 	ld_symbols_resolve(ld);
 
-	if (ls->ls_retry) {
+	if (ls->ls_arch_conflict) {
 		_cleanup();
+		ls->ls_rerun = 1;
 		goto restart;
 	}
 

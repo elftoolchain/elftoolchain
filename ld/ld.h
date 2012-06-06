@@ -73,7 +73,7 @@ struct ld_state {
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 	unsigned ls_arch_conflict;	/* input arch conflict with output */
 	unsigned ls_first_elf_object;	/* first ELF object to process */
-	unsigned ls_retry;		/* ld(1) need restart */
+	unsigned ls_rerun;		/* ld(1) restarted */
 };
 
 struct ld {

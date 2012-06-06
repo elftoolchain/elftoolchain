@@ -126,11 +126,10 @@ ld_arch_verify(struct ld *ld, const char *name, int mach)
 
 	if (!ld_arch_equal(la, ld->ld_arch)) {
 		ls->ls_arch_conflict = 1;
-		if (ls->ls_retry || !ls->ls_first_elf_object)
+		if (ls->ls_rerun || !ls->ls_first_elf_object)
 			ld_fatal(ld, "%s: ELF object architecture `%s' "
 			    "conflicts with output object architecture `%s'",
 			    name, la->name, ld->ld_arch->name);
-		ls->ls_retry = 1;
 		ld->ld_arch = la;
 	}
 
