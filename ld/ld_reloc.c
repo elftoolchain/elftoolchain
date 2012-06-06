@@ -198,13 +198,14 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 			ld_fatal(ld, "gelf_getsym failed: %s",
 			    elf_errmsg(-1));
 
+		name = elf_strptr(e, strndx, sym.st_name);
+
 		/*
 		 * Find out the value for the symbol assoicated
 		 * with the relocation entry.
 		 */
 		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL ||
 		    GELF_ST_BIND(sym.st_info) == STB_WEAK) {
-			name = elf_strptr(e, strndx, sym.st_name);
 			if (ld_symbols_get_value(ld, name, &sym_val) < 0)
 				sym_val = sym.st_value;
 		} else if (GELF_ST_BIND(sym.st_info) == STB_LOCAL) {
@@ -212,8 +213,11 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 				tis = &li->li_is[sym.st_shndx];
 				sym_val = tis->is_output->os_addr +
 				    tis->is_reloff;
-			} else
-				sym_val = sym.st_value;
+			} else {
+				if (ld_symbols_get_value_local(li, name,
+				    &sym_val) < 0)
+					sym_val = sym.st_value;
+			}
 		} else
 			sym_val = 0;
 

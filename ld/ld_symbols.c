@@ -169,6 +169,23 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 	return (0);
 }
 
+int
+ld_symbols_get_value_local(struct ld_input *li, char *name, uint64_t *val)
+{
+	struct ld_symbol *lsb;
+
+	/* TODO: Implement local symbol table with hash table. */
+
+	STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
+		if (strcmp(lsb->lsb_name, name) == 0) {
+			*val = lsb->lsb_value;
+			return (0);
+		}
+	}
+
+	return (-1);
+}
+
 void
 ld_symbols_resolve(struct ld *ld)
 {
