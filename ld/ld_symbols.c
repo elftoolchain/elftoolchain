@@ -406,6 +406,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_size = sym->st_size;
 	lsb->lsb_bind = GELF_ST_BIND(sym->st_info);
 	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
+	lsb->lsb_other = sym->st_other;
 	lsb->lsb_shndx = sym->st_shndx;
 	lsb->lsb_input = li;
 
