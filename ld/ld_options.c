@@ -106,7 +106,7 @@ static struct ld_option ld_opts[] = {
 	{"output", 'o', TWO_DASH, REQ_ARG},
 	{"pic-executable", KEY_PIE, ANY_DASH, NO_ARG},
 	{"pie", KEY_PIE, ONE_DASH, NO_ARG},
-	{"print-map", 'M', ANY_DASH, REQ_ARG},
+	{"print-map", 'M', ANY_DASH, NO_ARG},
 	{"qmagic", KEY_QMAGIC, ANY_DASH, NO_ARG},
 	{"relax", KEY_RELAX, ANY_DASH, NO_ARG},
 	{"relocatable", 'r', ANY_DASH, NO_ARG},
