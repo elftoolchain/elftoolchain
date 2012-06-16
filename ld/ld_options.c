@@ -145,7 +145,7 @@ static struct ld_option ld_opts[] = {
 	{"wrap", KEY_WRAP, ANY_DASH, REQ_ARG},
 	{"EB", KEY_EB, ONE_DASH, NO_ARG},
 	{"EL", KEY_EL, ONE_DASH, NO_ARG},
-	{"Map", 'M', ONE_DASH, REQ_ARG},
+	{"Map", KEY_MAP, ONE_DASH, REQ_ARG},
 	{"Qy", KEY_QY, ONE_DASH, NO_ARG},
 	{"Tbss", KEY_TBSS, ONE_DASH, REQ_ARG},
 	{"Tdata", KEY_TDATA, ONE_DASH, REQ_ARG},
