@@ -45,6 +45,8 @@ ld_input_cleanup(struct ld *ld)
 
 	STAILQ_FOREACH_SAFE(li, &ld->ld_lilist, li_next, _li) {
 		STAILQ_REMOVE(&ld->ld_lilist, li, ld_input, li_next);
+		if (li->li_fullname)
+			free(li->li_fullname);
 		free(li->li_name);
 		free(li);
 	}
@@ -78,6 +80,28 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 	li->li_file = lf;
 
 	return (li);
+}
+
+char *
+ld_input_get_fullname(struct ld *ld, struct ld_input *li)
+{
+	struct ld_archive_member *lam;
+	size_t len;
+
+	if (li->li_fullname != NULL)
+		return (li->li_fullname);
+
+	if (li->li_lam == NULL)
+		return (li->li_name);
+
+	lam = li->li_lam;
+	len = strlen(lam->lam_ar_name) + strlen(lam->lam_name) + 3;
+	if ((li->li_fullname = malloc(len)) == NULL)
+		ld_fatal_std(ld, "malloc");
+	snprintf(li->li_fullname, len, "%s(%s)", lam->lam_ar_name,
+	    lam->lam_name);
+
+	return  (li->li_fullname);
 }
 
 void
@@ -146,6 +170,7 @@ ld_input_load(struct ld *ld, struct ld_input *li)
 {
 	struct ld_state *ls;
 	struct ld_file *lf;
+	struct ld_archive_member *lam;
 
 	assert(li->li_elf == NULL);
 	ls = &ld->ld_state;
@@ -156,8 +181,9 @@ ld_input_load(struct ld *ld, struct ld_input *li)
 	}
 	lf = li->li_file;
 	if (lf->lf_ar != NULL) {
-		assert(li->li_moff != 0);
-		if (elf_rand(lf->lf_elf, li->li_moff) != li->li_moff)
+		assert(li->li_lam != NULL);
+		lam = li->li_lam;
+		if (elf_rand(lf->lf_elf, lam->lam_off) != lam->lam_off)
 			ld_fatal(ld, "%s: elf_rand: %s", lf->lf_name,
 			    elf_errmsg(-1));
 		if ((li->li_elf = elf_begin(-1, ELF_C_READ, lf->lf_elf)) ==

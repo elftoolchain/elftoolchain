@@ -74,6 +74,7 @@ struct ld_state {
 	unsigned ls_arch_conflict;	/* input arch conflict with output */
 	unsigned ls_first_elf_object;	/* first ELF object to process */
 	unsigned ls_rerun;		/* ld(1) restarted */
+	unsigned ls_archive_mb_header;	/* extracted list header printed */
 };
 
 struct ld {
@@ -104,6 +105,7 @@ struct ld {
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */
 	unsigned ld_gen_gnustack;	/* generate PT_GNUSTACK */
+	unsigned ld_print_linkmap;	/* print link map */
 	unsigned ld_stack_exec;		/* stack executable */
 	unsigned ld_stack_exec_set;	/* stack executable override */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */

@@ -47,8 +47,10 @@ static void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 static void _free_symbol_table(struct ld_symbol_table *symtab);
 struct ld_symbol_table *_alloc_symbol_table(struct ld *ld);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
-static void _extract_archive_member(struct ld *ld, struct ld_file *lf,
-    struct ld_archive *la, off_t off);
+static struct ld_archive_member * _extract_archive_member(struct ld *ld,
+    struct ld_file *lf, struct ld_archive *la, off_t off);
+static void _print_extracted_member(struct ld *ld,
+    struct ld_archive_member *lam, struct ld_symbol *lsb);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
@@ -437,7 +439,7 @@ _archive_member_extracted(struct ld_archive *la, off_t off)
 	return (0);
 }
 
-static void
+static struct ld_archive_member *
 _extract_archive_member(struct ld *ld, struct ld_file *lf,
     struct ld_archive *la, off_t off)
 {
@@ -461,21 +463,54 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 	/* Keep record of extracted members. */
 	if ((lam = calloc(1, sizeof(*lam))) == NULL)
 		ld_fatal_std(ld, "calloc");
+
+	lam->lam_ar_name = strdup(lf->lf_name);
+	if (lam->lam_ar_name == NULL)
+		ld_fatal_std(ld, "strdup");
+
 	lam->lam_name = strdup(arhdr->ar_name);
 	if (lam->lam_name == NULL)
 		ld_fatal_std(ld, "strdup");
+
 	lam->lam_off = off;
+
 	HASH_ADD(hh, la->la_m, lam_off, sizeof(lam->lam_off), lam);
 
 	/* Allocate input object for this member. */
 	li = ld_input_alloc(ld, lf, lam->lam_name);
-	li->li_moff = lam->lam_off;
+	li->li_lam = lam;
 	lam->lam_input = li;
 
 	/* Load the symbols of this member. */
 	_load_elf_symbols(ld, li, e);
 
 	elf_end(e);
+
+	return (lam);
+}
+
+static void
+_print_extracted_member(struct ld *ld, struct ld_archive_member *lam,
+    struct ld_symbol *lsb)
+{
+	struct ld_state *ls;
+	char *c1, *c2;
+
+	ls = &ld->ld_state;
+	
+	if (!ls->ls_archive_mb_header) {
+		printf("Extracted archive members:\n\n");
+		ls->ls_archive_mb_header = 1;
+	}
+
+	c1 = ld_input_get_fullname(ld, lam->lam_input);
+	c2 = ld_input_get_fullname(ld, lsb->lsb_input);
+
+	printf("%-30s", c1);
+	if (strlen(c1) >= 30) {
+		printf("\n%-30s", "");
+	}
+	printf("%s (%s)\n", c2, lsb->lsb_name);
 }
 
 static void
@@ -483,6 +518,8 @@ _load_archive_symbols(struct ld *ld, struct ld_file *lf)
 {
 	struct ld_state *ls;
 	struct ld_archive *la;
+	struct ld_archive_member *lam;
+	struct ld_symbol *lsb;
 	Elf_Arsym *as;
 	size_t c;
 	int extracted, i;
@@ -502,12 +539,14 @@ _load_archive_symbols(struct ld *ld, struct ld_file *lf)
 				break;
 			if (_archive_member_extracted(la, as[i].as_off))
 				continue;
-			if (_find_symbol(ld->ld_symtab_undef, as[i].as_name) !=
-			    NULL) {
-				_extract_archive_member(ld, lf, la,
+			if ((lsb = _find_symbol(ld->ld_symtab_undef,
+			    as[i].as_name)) != NULL) {
+				lam = _extract_archive_member(ld, lf, la,
 				    as[i].as_off);
 				extracted = 1;
 				ls->ls_extracted[ls->ls_group_level] = 1;
+				if (ld->ld_print_linkmap)
+					_print_extracted_member(ld, lam, lsb);
 			}
 		}
 	} while (extracted);

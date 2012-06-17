@@ -35,6 +35,7 @@ enum ld_file_type {
 };
 
 struct ld_archive_member {
+	char *lam_ar_name;		/* archive name */
 	char *lam_name;			/* archive member name */
 	off_t lam_off;			/* archive member offset */
 	struct ld_input *lam_input;	/* input object */

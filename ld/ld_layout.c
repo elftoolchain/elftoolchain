@@ -329,7 +329,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 
 		ldoi = ldc->ldc_cmd;
 
-		if (ldoi->ldoi_ar != NULL && li->li_moff != 0 &&
+		if (ldoi->ldoi_ar != NULL && li->li_lam != NULL &&
 		    !_wildcard_match(ldoi->ldoi_ar, lf->lf_name))
 			goto next_output_cmd;
 

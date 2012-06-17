@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id$");
  */
 
 static const char *ld_short_opts =
-    "b:c:e:Ef:Fgh:iIl:L:m:M:nNo:O::qrR:sStT:xXyY:u:v()";
+    "b:c:e:Ef:Fgh:iIl:L:m:MnNo:O::qrR:sStT:xXyY:u:v()";
 
 static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
@@ -349,6 +349,9 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		break;
 	case 'L':
 		ld_path_add(ld, arg);
+		break;
+	case 'M':
+		ld->ld_print_linkmap = 1;
 		break;
 	case 'o':
 		if ((ld->ld_output_file = strdup(arg)) == NULL)
