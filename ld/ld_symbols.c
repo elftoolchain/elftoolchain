@@ -225,6 +225,19 @@ ld_symbols_resolve(struct ld *ld)
 		lf = TAILQ_NEXT(lf, lf_next);
 	}
 
+	/* Print information regarding space allocated for common symbols. */
+	if (ld->ld_print_linkmap && HASH_COUNT(ld->ld_symtab_common) > 0) {
+		printf("\nCommon symbols:\n");
+		printf("%-34s %-10s %s\n", "name", "size", "file");
+		HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
+			printf("%-34s", lsb->lsb_name);
+			if (strlen(lsb->lsb_name) > 34)
+				printf("\n%-34s", "");
+			printf(" %#-10jx %s\n", (uintmax_t) lsb->lsb_size,
+			    ld_input_get_fullname(ld, lsb->lsb_input));
+		}
+	}
+
 	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
 		HASH_ITER(hh, ld->ld_symtab_undef, lsb, _lsb) {
 			if (lsb->lsb_bind != STB_WEAK)
