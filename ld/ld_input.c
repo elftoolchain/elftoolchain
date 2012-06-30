@@ -261,6 +261,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		is->is_off = sh.sh_offset;
 		is->is_size = sh.sh_size;
 		is->is_entsize = sh.sh_entsize;
+		is->is_addr = sh.sh_addr;
 		is->is_align = sh.sh_addralign;
 		is->is_type = sh.sh_type;
 		is->is_flags = sh.sh_flags;

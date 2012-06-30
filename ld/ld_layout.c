@@ -51,6 +51,7 @@ static void _layout_output_section(struct ld *ld, struct ld_input *li,
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _parse_output_section_descriptor(struct ld *ld,
     struct ld_output_section *os);
+static void _print_layout_map(struct ld *ld);
 static void _set_output_section_loadable_flag(struct ld_output_section *os);
 static int _wildcard_match(struct ld_wildcard *lw, const char *string);
 static int _wildcard_list_match(struct ld_script_list *list,
@@ -99,6 +100,40 @@ ld_layout_sections(struct ld *ld)
 		_layout_sections(ld, NULL);
 
 	_calc_offset(ld);
+
+	if (ld->ld_print_linkmap)
+		_print_layout_map(ld);
+}
+
+static void
+_print_layout_map(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	struct ld_output *lo;
+	int i;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/* Print out the list of discarded sections. */
+	printf("\nDiscarded input sections:\n\n");
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		for (i = 0; (size_t) i < li->li_shnum; i++) {
+			is = &li->li_is[i];
+			if (is->is_discard) {
+				printf(" %-20s ", is->is_name);
+				if (lo->lo_ec == ELFCLASS32)
+					printf("0x%08jx ",
+					    (uintmax_t) is->is_addr);
+				else
+					printf("0x%016jx ",
+					    (uintmax_t) is->is_addr);
+				printf("0x%jx ", (uintmax_t) is->is_size);
+				printf("%s\n", ld_input_get_fullname(ld, li));
+			}
+		}
+	}
 }
 
 off_t

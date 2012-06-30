@@ -32,6 +32,7 @@ struct ld_input_section {
 	struct ld_output_section *is_output; /* containing output section */
 	uint64_t is_off;		/* section file offset */
 	uint64_t is_reloff;		/* relative offset in output section */
+	uint64_t is_addr;		/* section vma */
 	uint64_t is_size;		/* section file size */
 	uint64_t is_entsize;		/* seciton entry size */
 	uint64_t is_align;		/* section align */
