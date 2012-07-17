@@ -90,7 +90,7 @@ struct ld_script_assign {
 	struct ld_exp *lda_var;		/* symbol */
 	struct ld_exp *lda_val;		/* value */
 	enum ld_script_assign_op lda_op; /* assign op */
-	unsigned lda_provide;
+	unsigned lda_provide;		/* provide assign */
 };
 
 struct ld_script_input_file {
