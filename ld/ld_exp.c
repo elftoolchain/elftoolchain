@@ -293,7 +293,6 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 void
 ld_exp_dump(struct ld *ld, struct ld_exp *le)
 {
-	char *name;
 
 	assert(le != NULL);
 
@@ -337,8 +336,7 @@ ld_exp_dump(struct ld *ld, struct ld_exp *le)
 		_EXP_DUMP(le->le_e2);
 		break;
 	case LEOP_ASSIGN:
-		name = le->le_assign->lda_var->le_name;
-		printf("0x%jx", (uintmax_t) ld_script_variable_value(ld, name));
+		printf("0x%jx", (uintmax_t)  le->le_assign->lda_res);
 		break;
 	case LEOP_CONSTANT:
 		printf("0x%jx", (uintmax_t) le->le_val);

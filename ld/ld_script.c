@@ -84,12 +84,9 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 void
 ld_script_assign_dump(struct ld *ld, struct ld_script_assign *lda)
 {
-	char *name;
 
-	name = lda->lda_var->le_name;
 	printf("%16s", "");
-	printf("0x%016jx ",
-	    (uintmax_t) ld_script_variable_value(ld, name));
+	printf("0x%016jx ", (uintmax_t) lda->lda_res);
 
 	if (lda->lda_provide)
 		printf("PROVIDE(");
@@ -127,7 +124,6 @@ ld_script_assign_dump(struct ld *ld, struct ld_script_assign *lda)
 	default:
 		ld_fatal(ld, "internal: unknown assignment op: %d",
 		    lda->lda_op);
-		break;
 	}
 
 	ld_exp_dump(ld, lda->lda_val);
@@ -175,6 +171,7 @@ ld_script_process_assign(struct ld *ld, struct ld_script_assign *lda)
 			    (uintmax_t) ldv->ldv_val);
 		ls->ls_loc_counter = (uint64_t) ldv->ldv_val;
 	}
+	lda->lda_res = ldv->ldv_val;
 }
 
 void
