@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ static int64_t _symbol_val(struct ld *ld, char *name);
 static int64_t _symbolic_constant(struct ld *ld, const char *name);
 
 #define	_EXP_EVAL(x) ld_exp_eval(ld, (x))
+#define	_EXP_DUMP(x) ld_exp_dump(ld, (x))
 
 void
 ld_exp_free(struct ld_exp *le)
@@ -201,12 +202,13 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 	assert(le != NULL);
 	switch (le->le_op) {
 	case LEOP_ABS:
-		return (abs(_EXP_EVAL(le)));
+		return (abs(_EXP_EVAL(le->le_e1)));
 	case LEOP_ADD:
 		return (_EXP_EVAL(le->le_e1) + _EXP_EVAL(le->le_e2));
 	case LEOP_ADDR:
 		return (_func_addr(ld, le));
 	case LEOP_ALIGN:
+	case LEOP_BLOCK:
 		return (_func_align(ld, le));
 	case LEOP_ALIGNOF:
 		return (_func_alignof(ld, le));
@@ -214,8 +216,6 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 		return (_EXP_EVAL(le->le_e1) & _EXP_EVAL(le->le_e2));
 	case LEOP_ASSIGN:
 		return (_assignment(ld, le));
-	case LEOP_BLOCK:
-		return (_func_align(ld, le));
 	case LEOP_CONSTANT:
 		return (le->le_val);
 	case LEOP_DIV:
@@ -288,6 +288,224 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 	}
 
 	return (0);
+}
+
+void
+ld_exp_dump(struct ld *ld, struct ld_exp *le)
+{
+	char *name;
+
+	assert(le != NULL);
+	switch (le->le_op) {
+	case LEOP_ABS:
+		printf("ABS(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_ADD:
+		_EXP_DUMP(le->le_e1);
+		printf(" + ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_ADDR:
+		printf("ADDR(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_ALIGN:
+	case LEOP_BLOCK:
+		printf("ALIGN(");
+		_EXP_DUMP(le->le_e1);
+		if (le->le_e2 != NULL) {
+			printf(", ");
+			_EXP_DUMP(le->le_e2);
+		}
+		printf(")");
+		break;
+	case LEOP_ALIGNOF:
+		printf("ALIGNOF(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_AND:
+		_EXP_DUMP(le->le_e1);
+		printf(" & ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_ASSIGN:
+		name = le->le_assign->lda_var->le_name;
+		printf("0x%jx", (uintmax_t) ld_script_variable_value(ld, name));
+		break;
+	case LEOP_CONSTANT:
+		printf("0x%jx", (uintmax_t) le->le_val);
+		break;
+	case LEOP_DIV:
+		_EXP_DUMP(le->le_e1);
+		printf(" / ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_DSA:
+		printf("DATA_SEGMENT_ALIGN(");
+		_EXP_DUMP(le->le_e1);
+		printf(", ");
+		_EXP_DUMP(le->le_e2);
+		printf(")");
+		break;
+	case LEOP_DSE:
+		printf("DATA_SEGMENT_END(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_DSRE:
+		printf("DATA_SEGMENT_RELRO_END(");
+		_EXP_DUMP(le->le_e1);
+		printf(", ");
+		_EXP_DUMP(le->le_e2);
+		printf(")");
+		break;
+	case LEOP_DEFINED:
+		printf("DEFINED(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_EQUAL:
+		_EXP_DUMP(le->le_e1);
+		printf(" == ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_GE:
+		_EXP_DUMP(le->le_e1);
+		printf(" >= ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_GREATER:
+		_EXP_DUMP(le->le_e1);
+		printf(" > ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_LENGTH:
+		printf("LENGTH(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_LOADADDR:
+		printf("LOADADDR(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_LOGICAL_AND:
+		_EXP_DUMP(le->le_e1);
+		printf(" && ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_LOGICAL_OR:
+		_EXP_DUMP(le->le_e1);
+		printf(" || ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_LSHIFT:
+		_EXP_DUMP(le->le_e1);
+		printf(" << ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_MAX:
+		printf("MAX(");
+		_EXP_DUMP(le->le_e1);
+		printf(", ");
+		_EXP_DUMP(le->le_e2);
+		printf(")");
+		break;
+	case LEOP_MIN:
+		printf("MIN(");
+		_EXP_DUMP(le->le_e1);
+		printf(", ");
+		_EXP_DUMP(le->le_e2);
+		printf(")");
+		break;
+	case LEOP_MINUS:
+		printf("-");
+		_EXP_DUMP(le->le_e1);
+		break;
+	case LEOP_MOD:
+		_EXP_DUMP(le->le_e1);
+		printf(" %% ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_MUL:
+		_EXP_DUMP(le->le_e1);
+		printf(" * ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_NE:
+		_EXP_DUMP(le->le_e1);
+		printf(" != ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_NEGATION:
+		printf("~");
+		_EXP_DUMP(le->le_e1);
+		break;
+	case LEOP_NEXT:
+		printf("NEXT(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_NOT:
+		printf("!");
+		_EXP_DUMP(le->le_e1);
+		break;
+	case LEOP_OR:
+		_EXP_DUMP(le->le_e1);
+		printf(" | ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_ORIGIN:
+		printf("ORIGIN(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_RSHIFT:
+		_EXP_DUMP(le->le_e1);
+		printf(" >> ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_SEGMENT_START:
+		printf("SEGMENT_START(");
+		_EXP_DUMP(le->le_e1);
+		printf(", ");
+		_EXP_DUMP(le->le_e2);
+		printf(")");
+		break;
+	case LEOP_SIZEOF:
+		printf("SIZEOF(");
+		_EXP_DUMP(le->le_e1);
+		printf(")");
+		break;
+	case LEOP_SIZEOF_HEADERS:
+		printf("SIZEOF_HEADERS");
+		break;
+	case LEOP_SUBSTRACT:
+		_EXP_DUMP(le->le_e1);
+		printf(" - ");
+		_EXP_DUMP(le->le_e2);
+		break;
+	case LEOP_SYMBOL:
+		printf("%s", le->le_name);
+		break;
+	case LEOP_SYMBOLIC_CONSTANT:
+		printf("0x%jx",
+		    (uintmax_t) _symbolic_constant(ld, le->le_name));
+		break;
+	case LEOP_TRINARY:
+		_EXP_DUMP(le->le_e1);
+		printf(" ? ");
+		_EXP_DUMP(le->le_e2);
+		printf(" : ");
+		_EXP_DUMP(le->le_e3);
+		break;
+	default:
+		ld_fatal(ld, "internal: unknown ldscript expression op");
+	}
 }
 
 static struct ld_exp *

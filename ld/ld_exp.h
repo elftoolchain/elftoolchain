@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,6 +88,7 @@ struct ld_exp *ld_exp_binary(struct ld *, enum ld_exp_op, struct ld_exp *,
     struct ld_exp *);
 struct ld_exp *ld_exp_constant(struct ld *, int64_t);
 int64_t ld_exp_eval(struct ld *, struct ld_exp *);
+void ld_exp_dump(struct ld *, struct ld_exp *);
 struct ld_exp *ld_exp_name(struct ld *, const char *);
 struct ld_exp *ld_exp_sizeof_headers(struct ld *);
 struct ld_exp *ld_exp_symbol(struct ld *, const char *);

@@ -111,6 +111,9 @@ _print_layout_map(struct ld *ld)
 	struct ld_input *li;
 	struct ld_input_section *is;
 	struct ld_output *lo;
+	struct ld_script *lds;
+	struct ld_script_cmd *ldc;
+	struct ld_script_sections *ldss;
 	int i;
 
 	lo = ld->ld_output;
@@ -133,6 +136,37 @@ _print_layout_map(struct ld *ld)
 				printf("%s\n", ld_input_get_fullname(ld, li));
 			}
 		}
+	}
+
+
+	lds = ld->ld_scp;
+	if (lds == NULL)
+		return;
+
+	/* TODO: Dump memory configuration */
+
+	printf("\nLinker script and memory map\n\n");
+
+	/* TODO: Dump loaded objects. */
+
+	STAILQ_FOREACH(ldc, &lds->lds_c, ldc_next) {
+		if (ldc->ldc_type == LSC_SECTIONS)
+			break;
+	}
+
+	if (ldc == NULL)
+		return;
+
+	ldss = ldc->ldc_cmd;
+	STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSIGN:
+			ld_script_assign_dump(ld, ldc->ldc_cmd);
+			break;
+		default:
+			break;
+		}
+
 	}
 }
 

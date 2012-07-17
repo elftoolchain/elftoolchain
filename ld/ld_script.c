@@ -67,6 +67,7 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 	lda->lda_var = var;
 	lda->lda_op = op;
 	lda->lda_val = val;
+	lda->lda_provide = provide;
 
 	if ((ldv = _variable_find(ld, var->le_name)) == NULL) {
 		ldv = calloc(1, sizeof(*ldv));
@@ -78,6 +79,63 @@ ld_script_assign(struct ld *ld, struct ld_exp *var, enum ld_script_assign_op op,
 	}
 
 	return (lda);
+}
+
+void
+ld_script_assign_dump(struct ld *ld, struct ld_script_assign *lda)
+{
+	char *name;
+
+	name = lda->lda_var->le_name;
+	printf("%16s", "");
+	printf("0x%016jx ",
+	    (uintmax_t) ld_script_variable_value(ld, name));
+
+	if (lda->lda_provide)
+		printf("PROVIDE(");
+
+	ld_exp_dump(ld, lda->lda_var);
+
+	switch (lda->lda_op) {
+	case LSAOP_ADD_E:
+		printf(" += ");
+		break;
+	case LSAOP_AND_E:
+		printf(" &= ");
+		break;
+	case LSAOP_DIV_E:
+		printf(" /= ");
+		break;
+	case LSAOP_E:
+		printf(" = ");
+		break;
+	case LSAOP_LSHIFT_E:
+		printf(" <<= ");
+		break;
+	case LSAOP_MUL_E:
+		printf(" *= ");
+		break;
+	case LSAOP_OR_E:
+		printf(" |= ");
+		break;
+	case LSAOP_RSHIFT_E:
+		printf(" >>= ");
+		break;
+	case LSAOP_SUB_E:
+		printf(" -= ");
+		break;
+	default:
+		ld_fatal(ld, "internal: unknown assignment op: %d",
+		    lda->lda_op);
+		break;
+	}
+
+	ld_exp_dump(ld, lda->lda_val);
+
+	if (lda->lda_provide)
+		printf(")");
+
+	printf("\n");
 }
 
 void

@@ -90,6 +90,7 @@ struct ld_script_assign {
 	struct ld_exp *lda_var;		/* symbol */
 	struct ld_exp *lda_val;		/* value */
 	enum ld_script_assign_op lda_op; /* assign op */
+	unsigned lda_provide;
 };
 
 struct ld_script_input_file {
@@ -214,6 +215,7 @@ struct ld_script {
 struct ld_script_cmd *ld_script_assert(struct ld *, struct ld_exp *, char *);
 struct ld_script_assign *ld_script_assign(struct ld *, struct ld_exp *,
     enum ld_script_assign_op, struct ld_exp *, unsigned, unsigned);
+void	ld_script_assign_dump(struct ld *, struct ld_script_assign *);
 void	ld_script_assign_free(struct ld_script_assign *);
 void	ld_script_cleanup(struct ld *);
 struct ld_script_cmd *ld_script_cmd(struct ld *, enum ld_script_cmd_type,
