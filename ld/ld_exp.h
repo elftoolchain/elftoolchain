@@ -80,6 +80,7 @@ struct ld_exp {
 	struct ld_exp *le_e3;	/* third operand */
 	struct ld_script_assign *le_assign; /* assignment */
 	char *le_name;		/* symbol/section name */
+	unsigned le_par;	/* parenthesis */
 	int64_t le_val;		/* constant value */
 };
 

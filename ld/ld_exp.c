@@ -296,6 +296,10 @@ ld_exp_dump(struct ld *ld, struct ld_exp *le)
 	char *name;
 
 	assert(le != NULL);
+
+	if (le->le_par)
+		printf("(");
+
 	switch (le->le_op) {
 	case LEOP_ABS:
 		printf("ABS(");
@@ -506,6 +510,9 @@ ld_exp_dump(struct ld *ld, struct ld_exp *le)
 	default:
 		ld_fatal(ld, "internal: unknown ldscript expression op");
 	}
+
+	if (le->le_par)
+		printf(")");
 }
 
 static struct ld_exp *

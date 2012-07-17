@@ -349,7 +349,7 @@ expression
 	| function
 	| constant
 	| variable
-	| '(' expression ')' { $$ = $2;	}
+	| '(' expression ')' { $$ = $2;	$$->le_par = 1; }
 	;
 
 function
