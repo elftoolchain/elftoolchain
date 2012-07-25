@@ -179,8 +179,10 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	char *p;
 
 	/* Check if we already added this CIE. */
-	if (_dwarf_frame_find_cie(fs, *off, NULL) != DW_DLE_NO_ENTRY)
+	if (_dwarf_frame_find_cie(fs, *off, &cie) != DW_DLE_NO_ENTRY) {
+		*off += cie->cie_length + 4;
 		return (DW_DLE_NONE);
+	}
 
 	if ((cie = calloc(1, sizeof(struct _Dwarf_Cie))) == NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
