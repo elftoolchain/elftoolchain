@@ -32,6 +32,7 @@
 #include "ld_output.h"
 #include "ld_layout.h"
 #include "ld_options.h"
+#include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -99,7 +100,11 @@ ld_layout_sections(struct ld *ld)
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
+	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
+
+	/* Calculate symbol values and indices of the output object. */
+	ld_symbols_update(ld);
 
 	if (ld->ld_print_linkmap)
 		_print_layout_map(ld);

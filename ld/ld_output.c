@@ -527,9 +527,6 @@ ld_output_create(struct ld *ld)
 	/* Insert section headers table and point e_shoff to it. */
 	eh.e_shoff = _insert_shdr(ld);
 
-	/* Update output symbol value and index. */
-	ld_symbols_update(ld);
-
 	/* Set executable entry point. */
 	eh.e_entry = _find_entry_point(ld);
 
