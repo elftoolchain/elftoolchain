@@ -144,9 +144,8 @@ _dwarf_info_load(Dwarf_Debug dbg, int load_all, Dwarf_Error *error)
 		/* Add the compilation unit to the list. */
 		STAILQ_INSERT_TAIL(&dbg->dbg_cu, cu, cu_next);
 
-		if (cu->cu_version != 2 && cu->cu_version != 3) {
-			DWARF_SET_ERROR(dbg, error,
-			    DW_DLE_VERSION_STAMP_ERROR);
+		if (cu->cu_version < 2 || cu->cu_version > 4) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_VERSION_STAMP_ERROR);
 			ret = DW_DLE_VERSION_STAMP_ERROR;
 			break;
 		}

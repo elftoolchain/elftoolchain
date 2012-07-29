@@ -210,7 +210,8 @@ _dwarf_frame_add_cie(Dwarf_Debug dbg, Dwarf_FrameSec fs, Dwarf_Section *ds,
 	cie->cie_length = length;
 
 	cie->cie_version = dbg->read(ds->ds_data, off, 1);
-	if (cie->cie_version != 1 && cie->cie_version != 3) {
+	if (cie->cie_version != 1 && cie->cie_version != 3 &&
+	    cie->cie_version != 4) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_FRAME_VERSION_BAD);
 		return (DW_DLE_FRAME_VERSION_BAD);
 	}
