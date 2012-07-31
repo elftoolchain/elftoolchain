@@ -42,7 +42,7 @@
 
 % Add meta-data to the PDF file.
 \hypersetup{
-  pdftitle={The Elftoolchain Build System},
+  pdftitle={A Build Automation System},
   pdfauthor={Joseph Koshy},
   pdfsubject={A build automation system},
   pdfkeywords={%
@@ -69,7 +69,7 @@
 \begin{document}
 
 % The title page.
-\title{The Elftoolchain Build System}
+\title{A Build Automation System}
 \author{Joseph~Koshy}
 \maketitle
 
@@ -78,18 +78,22 @@
 
 \chapter*{Preface}
 
-This document describes the build system used by the the \elftoolchain
-project on \href{http://sourceforge.net/}{SourceForge.Net}.  This
-build system helps the \elftoolchain project to build and test its
-source tree on a variety of operating systems and machine
-architectures.
+This document describes a build automation system being developed at
+the \elftoolchain project on
+\href{http://sourceforge.net/}{SourceForge.Net}.  The original
+motivation for this system was to automate the process of building and
+testing the \elftoolchain project's source tree on a variety of
+operating systems and machine architectures.  However, the design of
+the system is general enough that it can be used in other contexts
+too.
 
-The system is designed to use emulators such as
-\href{http://www.qemu.org}{QEMU},
+The system has been designed to be easy to use and to frugal in its
+use of computing resources.  For handling non-native platforms, the
+system uses emulators such as \href{http://www.qemu.org}{QEMU},
 \href{http://gxemul.sourceforge.net/}{GXemul} and
-\href{http://www.virtualbox.org}{VirtualBox}, permitting the project's
-source tree to be built on a wide variety of target platforms and
-operating systems.
+\href{http://www.virtualbox.org}{VirtualBox}.  The system is not tied
+to these specific emulators---it can as well manage physical machines,
+given the appropriate control specifications.
 
 This document itself is a
 \href{http://en.wikipedia.org/wiki/Literate_programming}%
@@ -100,18 +104,19 @@ system, as well as the source code of the system itself.
 
 This document would be useful to two audiences:
 \begin{itemize}
-\item Users of the build system would find part~\ref{part.intro},
-  which contains an overview and a user guide, to be of interest.
-\item For maintainers of the build system,
+\item Users of the system would find part~\ref{part.intro}, which
+  contains an overview and a user guide, to be of interest.
+\item For the maintainers of the system,
   part~\ref{part.implementation} contains the implementation itself.
 \end{itemize}
 
 \section*{Document Overview}
 
 \begin{itemize}
-\item Chapter~\vref{chap.introduction} describes the rationale and
-  formal requirements for the build system.
-\item Chapter~\vref{chap.userguide} contains a user guide.
+\item Chapter~\vref{chap.introduction} describes the rationale and the
+  requirements for the system.
+\item Chapter~\vref{chap.userguide} contains a brief user guide
+  showing how the system may be used.
 \item Chapter~\vref{chap.overview} presents an overview of the
   implementation.
 \item Chapter~\vref{chap.slave} describes the implementation of the
