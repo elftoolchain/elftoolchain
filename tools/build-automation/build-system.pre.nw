@@ -39,7 +39,7 @@
 
 % Typesetting requirements.
 \theoremstyle{remark}
-\newtheorem{requirement}{Requirement}
+\newtheorem{goal}{Design Goal}
 
 % Add meta-data to the PDF file.
 \hypersetup{
@@ -63,6 +63,7 @@
 \newcommand{\reg}{\textregistered\xspace}
 \newcommand{\tool}[1]{\textbf{#1}}
 \newcommand{\trade}{\texttrademark\xspace}
+\newcommand{\foreignphrase}[1]{\textit{#1}}
 \makeatother
 
 % Index related.
