@@ -29,6 +29,7 @@
 
 \documentclass[a4paper,pdftex]{book}
 \usepackage{amsthm}
+\usepackage{bookmark}
 \usepackage{hyperref}
 \usepackage{makeidx}
 \usepackage{noweb}
@@ -51,6 +52,9 @@
     literate program
   }
 }
+
+% Fix a bug in the PDF TOC.
+\bookmarksetup{startatroot}
 
 % Document-specific LaTeX macros.
 \makeatletter
