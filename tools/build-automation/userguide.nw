@@ -1,7 +1,50 @@
 % $Id$
 %
-% A user guide.
+% A user guide on how to use the system--configuring and running a
+% build.
 
 \chapter{Using The Build System}\label{chap.userguide}
 
-% How to use the system--configuring and running a build.
+In this chapter we will look at how to use the system.
+
+\section{Terminology}
+
+A \definition{build configuration} is specification of the steps need
+to invoke complete a build; i.e., the list of machines to be invoked,
+the scheduling logic for invoking these machines, the specific tasks
+be invoked inside each virtual machine, the results to retrieve, and
+so on.
+
+A \definition{build run} is an invocation of a \term{build
+  configuration}.
+
+A \definition{build scheduler} is a script that implements the logic
+for scheduling the machines that are part of the build.
+
+A \definition{build slave} is a physical or virtual machine that
+participates in a build.
+
+A \definition{slave script} is a script that lists the actions to
+be executed in a virtual machine.
+
+\section{Configuration}
+
+TODO: describe how to configure the tool.
+
+% File locations for $ROOT:
+%     /etc/yabs/default/
+%     /etc/yabs/<job-name>/
+%     $HOME/.yabs/default/
+%     $HOME/.yabs/<job-name>/
+
+
+% $ROOT/build-name/config           -- configuration
+% $ROOT/build-name/scheduler        -- which order to run stuff
+
+% $ROOT/build-name/<machine>.startup -- how to (externally) start the machine
+% $ROOT/build-name/<machine>.shutdown -- how to (externally) stop the machine
+% $ROOT/build-name/<machine>.commands -- the build commands to be issued
+
+% Logs:
+
+% /var/logs/yabs/build-name.NNN
