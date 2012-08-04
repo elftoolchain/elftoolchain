@@ -80,7 +80,7 @@
 \frontmatter                    % 
 
 % The title page.
-\title{A Build Automation System}
+\title{Yet Another Build System}
 \author{Joseph~Koshy}
 \maketitle
 
