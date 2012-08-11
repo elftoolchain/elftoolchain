@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010 Kai Wang
+ * Copyright (c) 2007-2010,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ struct segment;
 struct section {
 	struct segment	*seg;	/* containing segment */
 	const char	*name;	/* section name */
-	char		*newname;	/* new section name */
+	char		*newname; /* new section name */
 	Elf_Scn		*is;	/* input scn */
 	Elf_Scn		*os;	/* output scn */
 	void		*buf;	/* section content */
@@ -129,12 +129,11 @@ struct section {
 	uint64_t	 vma;	/* section virtual addr */
 	uint64_t	 lma;	/* section load addr */
 	uint64_t	 pad_sz;/* section padding size */
-	int		 loadable;	/* whether loadable */
+	int		 loadable; /* whether loadable */
 	int		 pseudo;
 	int		 nocopy;
 
-	TAILQ_ENTRY(section) sec_list;	/* list of all sections */
-	TAILQ_ENTRY(section) in_seg;	/* list of sections in a segment */
+	TAILQ_ENTRY(section) sec_list;	/* next section */
 };
 
 /* Internal data structure for segments. */
@@ -145,9 +144,10 @@ struct segment {
 	uint64_t	msz;	/* memory size */
 	uint64_t	type;	/* segment type */
 	int		remove;	/* whether remove */
+	int		nsec;	/* number of sections contained */
+	struct section **v_sec;	/* list of sections contained */
 
-	TAILQ_HEAD(sec_head, section) v_sec;
-	STAILQ_ENTRY(segment) seg_list;
+	STAILQ_ENTRY(segment) seg_list; /* next segment */
 };
 
 /*
@@ -172,8 +172,8 @@ struct ar_obj {
 struct elfcopy {
 	const char	*progname; /* program name */
 	int		 iec;	/* elfclass of input object */
-	Elftc_Bfd_Target_Flavor itf;	/* flavour of input object */
-	Elftc_Bfd_Target_Flavor otf;	/* flavour of output object */
+	Elftc_Bfd_Target_Flavor itf; /* flavour of input object */
+	Elftc_Bfd_Target_Flavor otf; /* flavour of output object */
 	const char	*otgt;	/* output target name */
 	int		 oec;	/* elfclass of output object */
 	unsigned char	 oed;	/* endianess of output object */

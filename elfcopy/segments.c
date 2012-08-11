@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010 Kai Wang
+ * Copyright (c) 2007-2010,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ adjust_addr(struct elfcopy *ecp)
 	struct segment *seg;
 	struct sec_action *sac;
 	uint64_t dl, lma, old_vma, start, end;
-	int found;
+	int found, i;
 
 	/*
 	 * Apply VMA and global LMA changes in the first iteration.
@@ -182,14 +182,14 @@ adjust_addr(struct elfcopy *ecp)
 				    "section %s load address to %#jx", s->name,
 				    (uintmax_t) lma);
 			start = lma - (s->lma - s->seg->addr);
-			if (s == TAILQ_LAST(&s->seg->v_sec, sec_head))
+			if (s == s->seg->v_sec[s->seg->nsec - 1])
 				end = start + s->seg->msz;
 			else
 				end = s->seg->addr + s->seg->msz;
 
 		} else {
 			/* Move section to upper address. */
-			if (s == TAILQ_FIRST(&s->seg->v_sec))
+			if (s == s->seg->v_sec[0])
 				start = lma;
 			else
 				start = s->seg->addr;
@@ -229,7 +229,8 @@ adjust_addr(struct elfcopy *ecp)
 			 * file offsets of all the sections that are after it.
 			 */
 			dl = s->lma - lma;
-			TAILQ_FOREACH(s0, &s->seg->v_sec, in_seg) {
+			for (i = 0; i < s->seg->nsec; i++) {
+				s0 = s->seg->v_sec[i];
 				s0->lma -= dl;
 #ifdef	DEBUG
 				printf("section %s LMA set to %#jx\n",
@@ -238,8 +239,8 @@ adjust_addr(struct elfcopy *ecp)
 				if (s0 == s)
 					break;
 			}
-			for (s0 = TAILQ_NEXT(s, in_seg); s0 != NULL;
-			     s0 = TAILQ_NEXT(s0, in_seg)) {
+			for (i = i + 1; i < s->seg->nsec; i++) {
+				s0 = s->seg->v_sec[i];
 				s0->off += dl;
 #ifdef	DEBUG
 				printf("section %s offset set to %#jx\n",
@@ -255,13 +256,21 @@ adjust_addr(struct elfcopy *ecp)
 			 * is the first in its containing segment.
 			 */
 			dl = lma - s->lma;
-			for (s0 = s; s0 != NULL; s0 = TAILQ_NEXT(s0, in_seg)) {
+			for (i = 0; i < s->seg->nsec; i++)
+				if (s->seg->v_sec[i] == s)
+					break;
+			if (i >= s->seg->nsec)
+				errx(EXIT_FAILURE, "Internal: section `%s' not"
+				    " found in its containing segement",
+				    s->name);
+			for (; i < s->seg->nsec; i++) {
+				s0 = s->seg->v_sec[i];
 				s0->lma += dl;
 #ifdef	DEBUG
 				printf("section %s LMA set to %#jx\n",
 				    s0->name, (uintmax_t) s0->lma);
 #endif
-				if (s != TAILQ_FIRST(&s->seg->v_sec)) {
+				if (s != s->seg->v_sec[0]) {
 					s0->off += dl;
 #ifdef	DEBUG
 					printf("section %s offset set to %#jx\n",
@@ -286,10 +295,15 @@ adjust_addr(struct elfcopy *ecp)
 		STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
 			if (seg->type != PT_LOAD)
 				continue;
+			for (i = seg->nsec - 1; i >= 0; i--)
+				if (seg->v_sec[i]->type != SHT_NOBITS)
+					break;
+			if (i < 0)
+				continue;
 			if (s == NULL)
-				s = TAILQ_LAST(&seg->v_sec, sec_head);
+				s = seg->v_sec[i];
 			else {
-				s0 = TAILQ_LAST(&seg->v_sec, sec_head);
+				s0 = seg->v_sec[i];
 				if (s0->lma > s->lma)
 					s = s0;
 			}
@@ -297,11 +311,6 @@ adjust_addr(struct elfcopy *ecp)
 
 		if (s == NULL)
 			goto issue_warn;
-		else if (s->name != NULL && !strcmp(s->name, ".bss")) {
-			s = TAILQ_PREV(s, sec_head, in_seg);
-			if (s == NULL)
-				goto issue_warn;
-		}
 
 		/* No need to pad if the pad_to address is lower. */
 		if (ecp->pad_to <= s->lma + s->sz)
@@ -344,15 +353,27 @@ static void
 insert_to_inseg_list(struct segment *seg, struct section *sec)
 {
 	struct section *s;
+	int i;
 
-	TAILQ_FOREACH(s, &seg->v_sec, in_seg) {
-		if (sec->off < s->off) {
-			TAILQ_INSERT_BEFORE(s, sec, in_seg);
-			return;
-		}
+	seg->nsec++;
+	seg->v_sec = realloc(seg->v_sec, seg->nsec * sizeof(*seg->v_sec));
+	if (seg->v_sec == NULL)
+		err(EXIT_FAILURE, "realloc failed");
+
+	/*
+	 * Sort the section in order of offset.
+	 */
+
+	for (i = seg->nsec - 1; i > 0; i--) {
+		s = seg->v_sec[i - 1];
+		if (sec->off >= s->off) {
+			seg->v_sec[i] = sec;
+			break;
+		} else
+			seg->v_sec[i] = s;
 	}
-
-	TAILQ_INSERT_TAIL(&seg->v_sec, sec, in_seg);
+	if (i == 0)
+		seg->v_sec[0] = sec;
 }
 
 void
@@ -388,7 +409,6 @@ setup_phdr(struct elfcopy *ecp)
 		seg->fsz	= iphdr.p_filesz;
 		seg->msz	= iphdr.p_memsz;
 		seg->type	= iphdr.p_type;
-		TAILQ_INIT(&seg->v_sec);
 		STAILQ_INSERT_TAIL(&ecp->v_seg, seg, seg_list);
 	}
 }
@@ -413,18 +433,13 @@ copy_phdr(struct elfcopy *ecp)
 			continue;
 		}
 
-		if (!TAILQ_EMPTY(&seg->v_sec)) {
-			s = TAILQ_FIRST(&seg->v_sec);
-			seg->off = s->off;
-			seg->addr = s->lma;
-			s = TAILQ_LAST(&seg->v_sec, sec_head);
-			seg->fsz = seg->msz = s->off + s->sz - seg->off;
-			if (s->name != NULL && !strcmp(s->name, ".bss")) {
-				s = TAILQ_PREV(s, sec_head, in_seg);
-				seg->fsz = s->off + s->sz - seg->off;
-			}
-		} else
-			seg->fsz = seg->msz = 0;
+		seg->fsz = seg->msz = 0;
+		for (i = 0; i < seg->nsec; i++) {
+			s = seg->v_sec[i];
+			seg->msz = s->off + s->sz - seg->off;
+			if (s->type != SHT_NOBITS)
+				seg->fsz = seg->msz;
+		}
 	}
 
 	/*
