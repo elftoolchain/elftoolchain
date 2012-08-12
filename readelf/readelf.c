@@ -6132,7 +6132,7 @@ dump_elf(struct readelf *re)
 
 	if (re->options & ~RE_H)
 		load_sections(re);
-	if ((re->options & RE_VV) || (re->options && RE_S))
+	if ((re->options & RE_VV) || (re->options & RE_S))
 		search_ver(re);
 	if (re->options & RE_H)
 		dump_ehdr(re);
