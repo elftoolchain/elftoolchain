@@ -430,6 +430,8 @@ copy_phdr(struct elfcopy *ecp)
 					    gelf_fsize(ecp->eout, ELF_T_EHDR,
 						1, EV_CURRENT);
 			}
+			seg->fsz = seg->msz = gelf_fsize(ecp->eout, ELF_T_PHDR,
+			    ecp->ophnum, EV_CURRENT);
 			continue;
 		}
 
