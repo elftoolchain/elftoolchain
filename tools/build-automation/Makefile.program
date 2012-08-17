@@ -13,7 +13,7 @@ all:		${MASTER} ${SLAVE}
 NW_ROOTS!=	noroots ${NW_SRCS} /dev/null | sed -e 's:<<::' -e 's:>>::'
 .for n in ${NW_ROOTS}
 $n:	${NW_SRCS}
-	notangle -R${.TARGET} ${NW_SRCS} | cpif ${.TARGET}
+	notangle -L -R${.TARGET} ${NW_SRCS} | cpif ${.TARGET}
 CLEANFILES+=	$n
 .endfor
 
