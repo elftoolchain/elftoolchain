@@ -13,4 +13,49 @@ main(int argc, char **argv)
 }
 @ %def main
 
-% End-of-file.
+
+\section{Build Rules}
+
+Using the facilities provided by the standard rules in
+\verb|<bsd.prog.mk>|, a simple \file{Makefile} suffices to build the
+slave.
+
+The \file{Makefile} indicates that the generated progam is to be
+called \tool{yabs-slave} and that the file \file{slave.c} is the
+source file to be compiled.  The contents of this source file is
+defined by the chunk [[<<slave/slave.c>>]].
+
+<<slave/Makefile>>=
+PROG=		yabs-slave
+SRCS=		slave.c
+
+<<make: libevent related definitions>>
+
+.include <bsd.prog.mk>
+
+<<make: override debug flags during development>>
+@
+
+We look in a set of standard locations to determine where the headers
+and library files for \tool{libevent} are located.
+
+<<make: libevent related definitions>>=
+.if exists(${HOME}/local/include/event2)
+LIBEVENT_INCLUDE= -I ${HOME}/local/include
+LIBEVENT_LIB=     -L ${HOME}/local/lib
+.elif exists(/usr/local/include/event2)
+LIBEVENT_INCLUDE= -I /usr/local/include
+LIBEVENT_LIB=     -L /usr/local/lib
+.endif
+
+CFLAGS+=        ${LIBEVENT_INCLUDE}
+LDADD+=         ${LIBEVENT_LIB} -levent
+@
+
+Debugging is simpler if compiler optimizations are turned off.  We
+thus remove the \term{-O2} flag during development.
+
+<<make: override debug flags during development>>=
+CFLAGS:=    ${CFLAGS:N-O2} -g
+LDFLAGS+=   -g
+@

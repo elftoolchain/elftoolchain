@@ -62,12 +62,14 @@
 \newcommand{\definition}[1]{\textit{#1}\index{\textit{#1}!definition~of}\xspace}
 \newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
     {ElfToolChain}\xspace}
+\newcommand{\file}[1]{\texttt{#1}\xspace}
 \newcommand{\foreignphrase}[1]{\textit{#1}\xspace}
 \newcommand{\protocmd}[2]{\texttt{#1} #2\\\xspace}
 \newcommand{\reg}{\textregistered\xspace}
 \newcommand{\term}[1]{\textit{#1}\xspace}
 \newcommand{\tool}[1]{\textbf{#1}\xspace}
 \newcommand{\trade}{\texttrademark\xspace}
+\newcommand{\var}[1]{\texttt{#1}\xspace}
 \makeatother
 
 % Index related.
