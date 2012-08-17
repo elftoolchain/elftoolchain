@@ -8,9 +8,6 @@
 
 TOP=		../..
 
-BUILD_TARGETS=	all clean clobber
-BUILD_RULES=	documentation program
-
 # The literate program input, in order of presentation in the
 # generated text.
 NW_SRCS= 	introduction.nw
@@ -19,16 +16,40 @@ NW_SRCS+=	implementation.nw
 NW_SRCS+=	slave.nw
 NW_SRCS+=	master.nw
 
+NW_ROOTS!=	noroots ${NW_SRCS} /dev/null | sed -e 's:<<::' -e 's:>>::'
+
+# The name of the document's base file.
+DOC=		build-system
+
+PROGRAMDIRS=	master slave
+
+BUILD_RULES=	documentation program
+
+# Explicitly state the 'main' target for the Makefile.
 .MAIN:		all
 
-# Pass standard targets down to both rulesets.
-.for target in ${BUILD_TARGETS}
-${target}:	.PHONY
+all:	${PROGRAMDIRS} ${NW_ROOTS} ${DOC}.tex .PHONY
 .for rules in ${BUILD_RULES}
-	@${MAKE} -f Makefile.${rules} ${target} NW_SRCS="${NW_SRCS}" \
-		TOP="${TOP}"
+	${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
+		DOC=${DOC} TOP="${TOP}"
 .endfor
+
+# Create the directories holding the program source code, if needed.
+${PROGRAMDIRS}:	.SILENT
+	[ -d ${.TARGET} ] || mkdir ${.TARGET}
+
+# Extract all program 'root chunks' from the literate program inputs.
+.for n in ${NW_ROOTS}
+$n:	${NW_SRCS}
+	notangle -L -R${.TARGET} ${NW_SRCS} | cpif ${.TARGET}
+CLEANFILES+=	$n
 .endfor
+
+# Create a single TeX file holding the material to be typeset.
+# By passing the complete literate program as input to 'noweave', we
+# avoid noweb's limitation on chunk names having file scope.
+${DOC}.tex:	 ${DOC}.pre.nw ${NW_SRCS} ${DOC}.post.nw
+	cat ${.ALLSRC} | noweave -delay -index | cpif ${.TARGET}
 
 #
 # Special targets.
@@ -39,7 +60,18 @@ index:	.PHONY
 	@${MAKE} -f Makefile.documentation ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		TOP="${TOP}"
 
-# The 'test' target only applies to the program.
+# The 'test' target only applies to the programs.
 test:	.PHONY
 	@${MAKE} -f Makefile.program ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		TOP="${TOP}"
+
+clean:	.PHONY
+.for rules in ${BUILD_RULES}
+	${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
+		DOC=${DOC} TOP="${TOP}"
+.endfor
+	rm -f ${CLEANFILES}
+
+# Provide a 'clobber' target that goes beyond 'clean'.
+clobber: clean .PHONY
+	rm -rf ${PROGRAMDIRS}
