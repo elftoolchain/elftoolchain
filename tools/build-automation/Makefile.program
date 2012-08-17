@@ -23,6 +23,12 @@ CLEANFILES+=	$n
 PROG=		${SLAVE}
 SRCS=		${NW_ROOTS:M*.c}
 
+LIBEVENT_INCLUDE= ${HOME}/local/include
+LIBEVENT_LIB=     ${HOME}/local/lib
+
+CFLAGS+=        -I ${LIBEVENT_INCLUDE}
+LDADD+=         -L ${LIBEVENT_LIB} -levent
+
 .include <bsd.prog.mk>
 
 #
