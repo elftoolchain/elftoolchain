@@ -231,6 +231,9 @@ _print_section_layout(struct ld *ld, struct ld_output_section *os)
 			if ((islist = oe->oe_islist) == NULL)
 				break;
 			STAILQ_FOREACH(is, islist, is_next) {
+				if (!strcmp(is->is_name, "COMMON") &&
+				    is->is_size == 0)
+					continue;
 				printf(" %-14s", is->is_name);
 				if (lo->lo_ec == ELFCLASS32)
 					printf(" 0x%08jx", (uintmax_t)
