@@ -53,6 +53,9 @@ static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _parse_output_section_descriptor(struct ld *ld,
     struct ld_output_section *os);
 static void _print_layout_map(struct ld *ld);
+static void _print_section_layout(struct ld *ld, struct ld_output_section *os);
+static void _print_wildcard(struct ld_wildcard *lw);
+static void _print_wildcard_list(struct ld_script_list *ldl);
 static void _set_output_section_loadable_flag(struct ld_output_section *os);
 static int _wildcard_match(struct ld_wildcard *lw, const char *string);
 static int _wildcard_list_match(struct ld_script_list *list,
@@ -116,9 +119,8 @@ _print_layout_map(struct ld *ld)
 	struct ld_input *li;
 	struct ld_input_section *is;
 	struct ld_output *lo;
+	struct ld_output_element *oe;
 	struct ld_script *lds;
-	struct ld_script_cmd *ldc;
-	struct ld_script_sections *ldss;
 	int i;
 
 	lo = ld->ld_output;
@@ -154,24 +156,100 @@ _print_layout_map(struct ld *ld)
 
 	/* TODO: Dump loaded objects. */
 
-	STAILQ_FOREACH(ldc, &lds->lds_c, ldc_next) {
-		if (ldc->ldc_type == LSC_SECTIONS)
+	STAILQ_FOREACH(oe, &lo->lo_oelist, oe_next) {
+
+		switch (oe->oe_type) {
+		case OET_ASSERT:
+			/* TODO */
 			break;
-	}
-
-	if (ldc == NULL)
-		return;
-
-	ldss = ldc->ldc_cmd;
-	STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
-		switch (ldc->ldc_type) {
-		case LSC_ASSIGN:
-			ld_script_assign_dump(ld, ldc->ldc_cmd);
+		case OET_ASSIGN:
+			ld_script_assign_dump(ld, oe->oe_entry);
+			break;
+		case OET_ENTRY:
+			/* TODO */
+			break;
+ 		case OET_OUTPUT_SECTION:
+			_print_section_layout(ld, oe->oe_entry);
 			break;
 		default:
 			break;
 		}
+	}
+}
 
+static void
+_print_section_layout(struct ld *ld, struct ld_output_section *os)
+{
+	struct ld_output_element *oe;
+	struct ld_script_sections_output_input *ldoi;
+
+	printf("\n%s\n", os->os_name);
+
+	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+		switch (oe->oe_type) {
+		case OET_ASSIGN:
+			ld_script_assign_dump(ld, oe->oe_entry);
+			break;
+		case OET_INPUT_SECTION_LIST:
+			ldoi = oe->oe_entry;
+			if (ldoi == NULL)
+				break;
+			putchar(' ');
+			if (ldoi->ldoi_ar) {
+				_print_wildcard(ldoi->ldoi_ar);
+				putchar(':');
+			}
+			_print_wildcard(ldoi->ldoi_file);
+			putchar('(');
+			if (ldoi->ldoi_exclude) {
+				printf("(EXCLUDE_FILE(");
+				_print_wildcard_list(ldoi->ldoi_exclude);
+				putchar(')');
+				putchar(' ');
+			}
+			_print_wildcard_list(ldoi->ldoi_sec);
+			putchar(')');
+			putchar('\n');
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+static void
+_print_wildcard(struct ld_wildcard *lw)
+{
+
+	switch (lw->lw_sort) {
+	case LWS_NONE:
+		printf("%s", lw->lw_name);
+		break;
+	case LWS_NAME:
+		printf("SORT_BY_NAME(%s)", lw->lw_name);
+		break;
+	case LWS_ALIGN:
+		printf("SORT_BY_ALIGNMENT(%s)", lw->lw_name);
+		break;
+	case LWS_NAME_ALIGN:
+		printf("SORT_BY_NAME(SORT_BY_ALIGNMENT(%s))", lw->lw_name);
+		break;
+	case LWS_ALIGN_NAME:
+		printf("SORT_BY_ALIGNMENT(SORT_BY_NAME(%s))", lw->lw_name);
+		break;
+	default:
+		break;
+	}
+}
+
+static void
+_print_wildcard_list(struct ld_script_list *ldl)
+{
+
+	_print_wildcard(ldl->ldl_entry);
+	if (ldl->ldl_next != NULL) {
+		putchar(' ');
+		_print_wildcard_list(ldl->ldl_next);
 	}
 }
 
@@ -386,7 +464,8 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 					ld_fatal_std(ld, "calloc");
 				STAILQ_INIT(islist);
 				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_INPUT_SECTION_LIST, islist, NULL);
+				    OET_INPUT_SECTION_LIST, ldc->ldc_cmd, NULL);
+				oe->oe_islist = islist;
 			}
 			break;
 		case LSC_SECTIONS_OUTPUT_KEYWORD:
@@ -428,7 +507,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 			}
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(lo, os, is, oe->oe_entry);
+			_insert_input_to_output(lo, os, is, oe->oe_islist);
 		}
 
 	next_output_cmd:
@@ -474,7 +553,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			oe = STAILQ_FIRST(&os->os_e);
 			assert(oe != NULL &&
 			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(lo, os, is, oe->oe_entry);
+			_insert_input_to_output(lo, os, is, oe->oe_islist);
 			continue;
 		}
 
@@ -505,8 +584,9 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		STAILQ_INIT(islist);
 
 		oe = ld_output_create_element(ld, &_os->os_e,
-		    OET_INPUT_SECTION_LIST, islist, NULL);
-		_insert_input_to_output(lo, _os, is, oe->oe_entry);
+		    OET_INPUT_SECTION_LIST, NULL, NULL);
+		oe->oe_islist = islist;
+		_insert_input_to_output(lo, _os, is, oe->oe_islist);
 	}
 }
 
@@ -582,7 +662,7 @@ _calc_offset(struct ld *ld)
 		case OET_ENTRY:
 			ld_script_process_entry(ld, oe->oe_entry);
 			break;
-		case OET_OUTPUT_SECTION:
+ 		case OET_OUTPUT_SECTION:
 			_parse_output_section_descriptor(ld, oe->oe_entry);
 			_calc_output_section_offset(ld, oe->oe_entry);
 			break;
@@ -625,7 +705,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 			ld_script_process_entry(ld, oe->oe_entry);
 			break;
 		case OET_INPUT_SECTION_LIST:
-			islist = oe->oe_entry;
+			islist = oe->oe_islist;
 			STAILQ_FOREACH(is, islist, is_next) {
 				if (is->is_size == 0)
 					continue;

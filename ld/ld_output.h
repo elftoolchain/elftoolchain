@@ -41,6 +41,7 @@ struct ld_output_element {
 	enum ld_output_element_type oe_type; /* output element type */
 	uint64_t oe_off;		/* output element offset */
 	void *oe_entry;			/* output element */
+	void *oe_islist;		/* input section list */
 	unsigned char oe_insec;		/* element inside SECTIONS */
 	STAILQ_ENTRY(ld_output_element) oe_next; /* next element */
 };

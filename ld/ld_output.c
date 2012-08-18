@@ -181,7 +181,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			/* TODO */
 			break;
 		case OET_INPUT_SECTION_LIST:
-			islist = oe->oe_entry;
+			islist = oe->oe_islist;
 			STAILQ_FOREACH(is, islist, is_next) {
 				if (scn == NULL)
 					scn = _create_elf_scn(ld, lo, os);
