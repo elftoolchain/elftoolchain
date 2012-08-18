@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010,2011 Kai Wang
+ * Copyright (c) 2010-2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -880,15 +880,15 @@ input_section
 		$$ = calloc(1, sizeof(struct ld_script_sections_output_input));
 		if ($$ == NULL)
 			ld_fatal_std(ld, "calloc");
-		$$->ldoi_exclude = $4;
-		$$->ldoi_sec = $6;
+		$$->ldoi_exclude = ld_script_list_reverse($4);
+		$$->ldoi_sec = ld_script_list_reverse($6);
 	}
 	| '(' wildcard_list ')' {
 		$$ = calloc(1, sizeof(struct ld_script_sections_output_input));
 		if ($$ == NULL)
 			ld_fatal_std(ld, "calloc");
 		$$->ldoi_exclude = NULL;
-		$$->ldoi_sec = $2;
+		$$->ldoi_sec = ld_script_list_reverse($2);
 	}
 	;
 
