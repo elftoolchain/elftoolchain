@@ -180,10 +180,24 @@ _print_layout_map(struct ld *ld)
 static void
 _print_section_layout(struct ld *ld, struct ld_output_section *os)
 {
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+	struct ld_output *lo;
 	struct ld_output_element *oe;
 	struct ld_script_sections_output_input *ldoi;
 
-	printf("\n%s\n", os->os_name);
+	lo = ld->ld_output;
+
+	if (os->os_empty)
+		printf("\n%s\n", os->os_name);
+	else {
+		printf("\n%-15s", os->os_name);
+		if (lo->lo_ec == ELFCLASS32)
+			printf(" 0x%08jx", (uintmax_t) os->os_addr);
+		else
+			printf(" 0x%016jx", (uintmax_t) os->os_addr);
+		printf(" %#10jx\n", (uintmax_t) os->os_size);
+	}
 
 	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
 		switch (oe->oe_type) {
@@ -191,6 +205,10 @@ _print_section_layout(struct ld *ld, struct ld_output_section *os)
 			ld_script_assign_dump(ld, oe->oe_entry);
 			break;
 		case OET_INPUT_SECTION_LIST:
+			/*
+			 * Print out wildcard patterns and input sections
+			 * matched by these patterns.
+			 */
 			ldoi = oe->oe_entry;
 			if (ldoi == NULL)
 				break;
@@ -210,6 +228,24 @@ _print_section_layout(struct ld *ld, struct ld_output_section *os)
 			_print_wildcard_list(ldoi->ldoi_sec);
 			putchar(')');
 			putchar('\n');
+			if ((islist = oe->oe_islist) == NULL)
+				break;
+			STAILQ_FOREACH(is, islist, is_next) {
+				printf(" %-14s", is->is_name);
+				if (lo->lo_ec == ELFCLASS32)
+					printf(" 0x%08jx", (uintmax_t)
+					    os->os_addr + is->is_reloff);
+				else
+					printf(" 0x%016jx", (uintmax_t)
+					    os->os_addr + is->is_reloff);
+				if (is->is_size == 0)
+					printf(" %10s", "0x0");
+				else
+					printf(" %#10jx", (uintmax_t)
+					    is->is_size);
+				printf(" %s\n", ld_input_get_fullname(ld,
+				    is->is_input));
+			}
 			break;
 		default:
 			break;
