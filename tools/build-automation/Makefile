@@ -23,16 +23,24 @@ DOC=		build-system
 
 PROGRAMDIRS=	master slave
 
-BUILD_RULES=	documentation program
+SUBMAKEFILES=	documentation program
 
-# Explicitly state the 'main' target for the Makefile.
+# Declare make targets with special characteristics.
 .MAIN:		all
+.PHONY:		all clean clobber index install test
 
-all:	${PROGRAMDIRS} ${NW_ROOTS} ${DOC}.tex .PHONY
-.for rules in ${BUILD_RULES}
+# Capture actions shared by multiple targets in a macro.
+.dosubmake:	.USE
+.for rules in ${SUBMAKEFILES}
 	${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		DOC=${DOC} TOP="${TOP}"
 .endfor
+
+# Standard targets.
+all:		${PROGRAMDIRS} ${NW_ROOTS} ${DOC}.tex .dosubmake
+install:	all .dosubmake
+clean:		.dosubmake
+	rm -f ${CLEANFILES}
 
 # Create the directories holding the program source code, if needed.
 ${PROGRAMDIRS}:	.SILENT
@@ -56,22 +64,15 @@ ${DOC}.tex:	 ${DOC}.pre.nw ${NW_SRCS} ${DOC}.post.nw
 #
 
 # The 'index' target only applies to the documentation.
-index:	.PHONY
+index:
 	@${MAKE} -f Makefile.documentation ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		TOP="${TOP}"
 
 # The 'test' target only applies to the programs.
-test:	.PHONY
+test:
 	@${MAKE} -f Makefile.program ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		TOP="${TOP}"
 
-clean:	.PHONY
-.for rules in ${BUILD_RULES}
-	${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
-		DOC=${DOC} TOP="${TOP}"
-.endfor
-	rm -f ${CLEANFILES}
-
 # Provide a 'clobber' target that goes beyond 'clean'.
-clobber: clean .PHONY
+clobber: clean
 	rm -rf ${PROGRAMDIRS}
