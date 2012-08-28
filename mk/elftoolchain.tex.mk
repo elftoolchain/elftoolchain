@@ -9,7 +9,8 @@
 .if defined(MKTEX) && ${MKTEX} == "yes" && exists(${MPOST}) && exists(${PDFLATEX})
 
 TEXINPUTS=	`kpsepath tex`:${.CURDIR}
-_TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX}
+_TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX} -file-line-error \
+			-halt-on-error
 
 DOCSUBDIR=	elftoolchain	# Destination directory.
 
@@ -52,12 +53,13 @@ CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 CLEANFILES+=	mpxerr.tex mpxerr.log makempx.log missfont.log
 
 ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
-	${_TEX} ${.CURDIR}/${DOC}.tex || (rm ${.TARGET}; exit 1)
+	${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null || \
+		(cat ${DOC}.log; rm -f ${.TARGET}; exit 1)
 	@if grep 'undefined references' ${DOC}.log > /dev/null; then \
-		${_TEX} ${.CURDIR}/${DOC}.tex; \
+		${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null; \
 	fi
 	@if grep 'Rerun to get' ${DOC}.log > /dev/null; then \
-		${_TEX} ${.CURDIR}/${DOC}.tex; \
+		${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null; \
 	fi
 
 .for f in aux log out pdf toc ind idx ilg
