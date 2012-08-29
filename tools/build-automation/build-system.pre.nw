@@ -58,13 +58,15 @@
 
 % Document-specific LaTeX macros.
 \makeatletter
-\newcommand{\protoarg}[1]{\textit{#1}}
-\newcommand{\definition}[1]{\textit{#1}\index{\textit{#1}!definition~of}\xspace}
+\newcommand{\definition}[1]{\textit{#1}\index{#1!definition~of}\xspace}
 \newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
     {ElfToolChain}\xspace}
 \newcommand{\file}[1]{\texttt{#1}\xspace}
 \newcommand{\foreignphrase}[1]{\textit{#1}\xspace}
-\newcommand{\protocmd}[2]{\texttt{#1} #2\\\xspace}
+\newcommand{\protoarg}[1]{\textit{#1}\xspace}
+\newcommand{\protocmd}[1]{\texttt{#1}\xspace}
+\newcommand{\protodef}[2]{\protocmd{#1} #2%
+    \index{#1@\texttt{#1}!protocol~definition}\\}
 \newcommand{\reg}{\textregistered\xspace}
 \newcommand{\term}[1]{\textit{#1}\xspace}
 \newcommand{\tool}[1]{\textbf{#1}\xspace}
