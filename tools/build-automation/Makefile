@@ -24,7 +24,7 @@ DOC=		build-system
 
 PROGRAMDIRS=	master slave
 
-SUBMAKEFILES=	documentation program
+SUBMAKEFILES=	documentation manuals program
 
 # Declare make targets with special characteristics.
 .MAIN:		all
