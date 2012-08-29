@@ -32,7 +32,7 @@ SUBMAKEFILES=	documentation program
 # Capture actions shared by multiple targets in a macro.
 .dosubmake:	.USE
 .for rules in ${SUBMAKEFILES}
-	${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
+	@${MAKE} -f Makefile.${rules} ${.TARGET} NW_SRCS="${NW_SRCS}" \
 		DOC=${DOC} TOP="${TOP}"
 .endfor
 
