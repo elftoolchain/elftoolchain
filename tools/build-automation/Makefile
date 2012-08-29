@@ -15,6 +15,7 @@ NW_SRCS+= 	userguide.nw
 NW_SRCS+=	implementation.nw
 NW_SRCS+=	slave.nw
 NW_SRCS+=	master.nw
+NW_SRCS+=	utilities.nw
 
 NW_ROOTS!=	noroots ${NW_SRCS} /dev/null | sed -e 's:<<::' -e 's:>>::'
 

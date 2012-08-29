@@ -1,18 +1,74 @@
+% -*- mode: Noweb; -*-
+%
 % $Id$
 %
 % The build slave.
 
 \chapter{The Build Slave}\label{chap.slave}
 
-% ... stub.
-<<slave.c>>=
+The
+
+<<slave/slave.c>>=
+
+<<include utility headers>>
+
+#include <event2/event.h>
+
+<<declare utility functions>>
+
+<<slave: declare slave configuration>>
+
+<<define utility functions>>
+
 int
 main(int argc, char **argv)
 {
-  return (0);
+	<<slave: declare variables>>
+	<<slave: initialization>>
+	<<slave: parse slave options>>
+	<<slave: configure the slave>>
+	<<slave: invoke libevent main loop>>
+	return (0);
 }
 @ %def main
 
+<<slave: declare variables>>=
+int	option;
+struct slave_configuration config;
+@
+
+<<slave: declare slave configuration>>=
+struct slave_configuration {
+	const char *host;
+};
+@ %def slave_configuration
+
+<<slave: initialization>>=
+@
+
+<<slave: parse slave options>>=
+while ((option = getopt(argc, argv, "h:")) != -1) {
+	switch (option) {
+	case 'h':
+		config.host = optarg;
+		break;
+	case '?':
+		exit(1);
+		break;
+	default:
+		display_error("FATAL", "Unrecognized option value %c (%d)",
+		    option, option);
+		break;
+	}
+}
+@
+
+<<slave: configure the slave>>=
+@
+
+<<slave: invoke libevent main loop>>=
+event_base_loop((void *) 0, 0);
+@
 
 \section{Build Rules}
 
@@ -29,6 +85,7 @@ defined by the chunk [[<<slave/slave.c>>]].
 PROG=		yabs-slave
 SRCS=		slave.c
 
+CFLAGS+=	-Wall -Wextra -Werror -pedantic
 <<make: libevent related definitions>>
 
 .include <bsd.prog.mk>
@@ -59,3 +116,8 @@ thus remove the \term{-O2} flag during development.
 CFLAGS:=    ${CFLAGS:N-O2} -g
 LDFLAGS+=   -g
 @
+
+% Local Variables:
+% noweb-code-mode: c-mode
+% c-electric-flag: nil
+% End:
