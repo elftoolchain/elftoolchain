@@ -26,6 +26,7 @@ SUBDIR += nm
 SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
+SUBDIR += tools
 
 # Build the test suites.
 .if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
