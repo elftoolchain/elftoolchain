@@ -1,0 +1,36 @@
+% $Id$
+%
+% Code chunks containing utility functions.
+
+\chapter{Utility Functions}\label{chap.utility}
+
+<<declare utility functions>>=
+void	  display_error(const char *_pfx, const char *_msg, ...);
+@
+
+<<define utility functions>>=
+void
+display_error(const char *message_prefix, const char *message, ...)
+{
+	va_list ap;
+
+	va_start(ap, message);
+
+	if (message_prefix)
+		fprintf(stderr, "%s: ", message_prefix);
+	vfprintf(stderr, message, ap);
+	fputc('\n', stderr);		
+
+	va_end(ap);
+
+	exit(1);
+}
+@ %def fatal_error
+
+
+<<include utility headers>>=
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+@
