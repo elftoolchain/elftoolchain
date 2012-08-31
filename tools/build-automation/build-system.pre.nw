@@ -62,6 +62,7 @@
 \newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
     {ElfToolChain}\xspace}
 \newcommand{\file}[1]{\texttt{#1}\xspace}
+\newcommand{\func}[1]{\texttt{#1()}\xspace}
 \newcommand{\foreignphrase}[1]{\textit{#1}\xspace}
 \newcommand{\protoarg}[1]{\textit{#1}\xspace}
 \newcommand{\protocmd}[1]{\texttt{#1}\xspace}
@@ -73,6 +74,9 @@
 \newcommand{\trade}{\texttrademark\xspace}
 \newcommand{\var}[1]{\texttt{#1}\xspace}
 \makeatother
+
+% Noweb related
+\noweboptions{shift,hideunuseddefs,noidentxref}
 
 % Index related.
 \makeindex
