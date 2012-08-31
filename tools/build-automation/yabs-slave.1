@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 29, 2012
+.Dd August 31, 2012
 .Os
 .Dt YABS-SLAVE 1
 .Sh NAME
@@ -31,9 +31,11 @@
 .Nd the slave program for the Elftoolchain system
 .Sh SYNOPSIS
 .Nm
+.Op Fl h
 .Op Fl i Ar identifier
 .Op Fl p Ar port
 .Op Fl v
+.Op Fl V
 .Op Ar server
 .Sh DESCRIPTION
 The
@@ -67,6 +69,8 @@ The
 .Nm
 utility recognizes the following options:
 .Bl -tag -width indent
+.It Fl h
+Print a help message and exit.
 .It Fl i Ar identifier
 Use the argument
 .Ar identifier
@@ -82,6 +86,8 @@ is not specified, or if it specifies a local socket.
 .It Fl v
 Increase verbosity.
 This flag may be specified multiple times.
+.It Fl V
+Print a version number and exit.
 .El
 .Sh EXIT STATUS
 .Ex -std
