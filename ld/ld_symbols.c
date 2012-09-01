@@ -582,15 +582,21 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 		if (gelf_getshdr(scn, &shdr) != &shdr)
 			ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
 			    elf_errmsg(-1));
-		if (shdr.sh_type == SHT_SYMTAB)
-			scn_sym = scn;
-		else if (shdr.sh_type == SHT_STRTAB)
-			strndx = elf_ndxscn(scn);
+		if (li->li_file->lf_type == LFT_DSO) {
+			if (shdr.sh_type == SHT_DYNSYM) {
+				scn_sym = scn;
+				strndx = shdr.sh_link;
+				break;
+			}
+		} else {
+			if (shdr.sh_type == SHT_SYMTAB) {
+				scn_sym = scn;
+				strndx = shdr.sh_link;
+				break;
+			}
+		}
 	}
-	elferr = elf_errno();
-	if (elferr != 0)
-		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
-		    elf_errmsg(elferr));
+
 	if (scn_sym == NULL || strndx == SHN_UNDEF)
 		return;
 
