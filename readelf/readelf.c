@@ -2969,8 +2969,13 @@ dump_symtab(struct readelf *re, int i)
 		/* Append symbol version string for SHT_DYNSYM symbol table. */
 		if (s->type == SHT_DYNSYM && re->vname != NULL &&
 		    re->vs != NULL && re->vs[j] > 1) {
-			printf("@%s (%d)", re->vname[re->vs[j] & 0x7fff],
-			    re->vs[j] & 0x7fff);
+			if (re->vs[j] & 0x8000)
+				printf("@%s (%d)",
+				    re->vname[re->vs[j] & 0x7fff],
+				    re->vs[j] & 0x7fff);
+			else
+				printf("@@%s (%d)", re->vname[re->vs[j]],
+				    re->vs[j]);
 		}
 		putchar('\n');
 	}
