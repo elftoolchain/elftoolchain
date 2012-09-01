@@ -50,7 +50,10 @@ ${PROGRAMDIRS}:	.SILENT
 # Extract all program 'root chunks' from the literate program inputs.
 .for n in ${NW_ROOTS}
 $n:	${NW_SRCS}
-	notangle -L -R${.TARGET} ${NW_SRCS} | cpif ${.TARGET}
+	@tmpfile=`mktemp /tmp/mba.XXXXXXX`; \
+	trap "rm $${tmpfile}" 0 1 2 3 15; \
+	notangle -L -R${.TARGET} ${NW_SRCS} > $${tmpfile} || exit $$?; \
+	cpif ${.TARGET} < $${tmpfile}
 CLEANFILES+=	$n
 .endfor
 
