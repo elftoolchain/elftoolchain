@@ -60,6 +60,10 @@ struct ld_input {
 	struct ld_archive_member *li_lam; /* archive member */
 	struct ld_symbol_head *li_local; /* local symbol list */
 	struct ld_symbol_head *li_nonlocal; /* non-local symbol list */
+	char **li_vername;		/* version name array */
+	size_t li_vername_sz;		/* version name array size */
+	uint16_t *li_versym;		/* symbol version array */
+	size_t li_versym_sz;		/* symbol version array size */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 

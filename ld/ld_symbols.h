@@ -28,6 +28,7 @@
 
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
+	char *lsb_ver;			/* symbol version */
 	uint64_t lsb_size;		/* symbol size */
 	uint64_t lsb_value;		/* symbol value */
 	uint16_t lsb_shndx;		/* symbol index */

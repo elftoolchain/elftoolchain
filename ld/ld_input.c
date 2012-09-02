@@ -42,9 +42,18 @@ void
 ld_input_cleanup(struct ld *ld)
 {
 	struct ld_input *li, *_li;
+	int i;
 
 	STAILQ_FOREACH_SAFE(li, &ld->ld_lilist, li_next, _li) {
 		STAILQ_REMOVE(&ld->ld_lilist, li, ld_input, li_next);
+		if (li->li_versym)
+			free(li->li_versym);
+		if (li->li_vername) {
+			for (i = 0; (size_t) i < li->li_vername_sz; i++)
+				if (li->li_vername[i])
+					free(li->li_vername[i]);
+			free(li->li_vername);
+		}
 		if (li->li_fullname)
 			free(li->li_fullname);
 		free(li->li_name);
