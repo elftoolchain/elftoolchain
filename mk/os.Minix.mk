@@ -4,6 +4,7 @@
 
 MKDOC?=		yes	# Build documentation.
 MKTESTS?=	no	# Enable the test suites.
+MKNOWEB?=	no	# Build literate programs.
 
 # Use GCC to compile the source tree.
 CC=/usr/pkg/bin/gcc

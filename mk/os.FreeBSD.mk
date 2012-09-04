@@ -5,6 +5,7 @@
 MKDOC?=		yes	# Build documentation.
 MKTESTS?=	yes	# Enable the test suites.
 MKTEX?=		yes	# TeX and friends are packaged in the teTeX package.
+MKNOWEB?=	no	# Build literate programs.
 
 # Link programs statically by default.
 NO_SHARED?=	yes
@@ -21,3 +22,6 @@ PDFLATEX?=	/usr/local/bin/pdflatex
 .if defined(NOMAN)
 NO_MAN=		yes
 .endif
+
+# Literate programming utility.
+NOWEB?=		/usr/local/bin/noweb
