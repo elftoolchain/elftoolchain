@@ -2585,7 +2585,9 @@ dump_dynamic(struct readelf *re)
 	GElf_Dyn	 dyn;
 	Elf_Data	*d;
 	struct section	*s;
-	int		 elferr, i, j;
+	int		 elferr, i, is_dynamic, j, jmax, nentries;
+
+	is_dynamic = 0;
 
 	for (i = 0; (size_t)i < re->shnum; i++) {
 		s = &re->sl[i];
@@ -2600,17 +2602,35 @@ dump_dynamic(struct readelf *re)
 		}
 		if (d->d_size <= 0)
 			continue;
+
+		is_dynamic = 1;
+
+		/* Determine the actual number of table entries. */
+		nentries = 0;
+		jmax = (int) (s->sz / s->entsize);
+
+		for (j = 0; j < jmax; j++) {
+			if (gelf_getdyn(d, j, &dyn) != &dyn) {
+				warnx("gelf_getdyn failed: %s",
+				    elf_errmsg(-1));
+				continue;
+			}
+			nentries ++;
+			if (dyn.d_tag == DT_NULL)
+				break;
+                }
+
 		printf("\nDynamic section at offset 0x%jx", (uintmax_t)s->off);
-		printf(" contains %ju entries:\n", s->sz / s->entsize);
+		printf(" contains %u entries:\n", nentries);
+
 		if (re->ec == ELFCLASS32)
 			printf("%5s%12s%28s\n", "Tag", "Type", "Name/Value");
 		else
 			printf("%5s%20s%28s\n", "Tag", "Type", "Name/Value");
-		for (j = 0; (uint64_t)j < s->sz / s->entsize; j++) {
-			if (gelf_getdyn(d, j, &dyn) != &dyn) {
-				warnx("gelf_getdyn failed: %s", elf_errmsg(-1));
+
+		for (j = 0; j < nentries; j++) {
+			if (gelf_getdyn(d, j, &dyn) != &dyn)
 				continue;
-			}
 			/* Dump dynamic entry type. */
 			if (re->ec == ELFCLASS32)
 				printf(" 0x%8.8jx", (uintmax_t)dyn.d_tag);
@@ -2622,6 +2642,9 @@ dump_dynamic(struct readelf *re)
 			dump_dyn_val(re, &dyn, s->link);
 		}
 	}
+
+	if (!is_dynamic)
+		printf("\nThere is no dynamic section in this file.\n");
 }
 
 static char *
