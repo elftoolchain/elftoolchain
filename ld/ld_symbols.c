@@ -58,11 +58,12 @@ static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
 static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
 static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
     const char *name);
-static void _load_verdef(struct ld *ld, struct ld_input *li, Elf_Scn *verdef);
-static void _load_verneed(struct ld *ld, struct ld_input *li,
+static void _load_verdef(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *verdef);
+static void _load_verneed(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verneed);
 static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
-    Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef);
+    Elf *e, Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef);
 
 #define	_add_symbol(tbl, s) \
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
@@ -625,7 +626,7 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	if (scn_sym == NULL || strndx == SHN_UNDEF)
 		return;
 
-	_load_symbol_version_info(ld, li, scn_versym, scn_verneed, scn_verdef);
+	_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed, scn_verdef);
 
 	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
 		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
@@ -849,7 +850,7 @@ _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
 }
 
 static void
-_load_verneed(struct ld *ld, struct ld_input *li, Elf_Scn *verneed)
+_load_verneed(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
 {
 	Elf_Data *d_vn;
 	Elf_Verneed *vn;
@@ -882,7 +883,7 @@ _load_verneed(struct ld *ld, struct ld_input *li, Elf_Scn *verneed)
 		i = 0;
 		while (buf2 + sizeof(Elf_Vernaux) <= end && i < vn->vn_cnt) {
 			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
-			name = elf_strptr(li->li_elf, sh_vn.sh_link,
+			name = elf_strptr(e, sh_vn.sh_link,
 			    vna->vna_name);
 			if (name != NULL)
 				_add_version_name(ld, li, (int) vna->vna_other,
@@ -897,7 +898,7 @@ _load_verneed(struct ld *ld, struct ld_input *li, Elf_Scn *verneed)
 }
 
 static void
-_load_verdef(struct ld *ld, struct ld_input *li, Elf_Scn *verdef)
+_load_verdef(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
 {
 	Elf_Data *d_vd;
 	Elf_Verdef *vd;
@@ -928,7 +929,7 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf_Scn *verdef)
 		vd = (Elf_Verdef *) (uintptr_t) buf;
 		buf2 = buf + vd->vd_aux;
 		vda = (Elf_Verdaux *) (uintptr_t) buf2;
-		name = elf_strptr(li->li_elf, sh_vd.sh_link, vda->vda_name);
+		name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
 		if (name != NULL)
 			_add_version_name(ld, li, (int) vd->vd_ndx, name);
 		if (vd->vd_next == 0)
@@ -938,8 +939,8 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf_Scn *verdef)
 }
 
 static void
-_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf_Scn *versym,
-    Elf_Scn *verneed, Elf_Scn *verdef)
+_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
 {
 	Elf_Data *d_vs;
 	int elferr;
@@ -967,10 +968,10 @@ _load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf_Scn *versym,
 	_add_version_name(ld, li, 1, "*global*");
 
 	if (verneed != NULL)
-		_load_verneed(ld, li, verneed);
+		_load_verneed(ld, li, e, verneed);
 
 	if (verdef != NULL)
-		_load_verdef(ld, li, verdef);
+		_load_verdef(ld, li, e, verdef);
 }
 
 #undef	Elf_Verdef
