@@ -485,7 +485,8 @@ ld_output_create(struct ld *ld)
 
 	lo = ld->ld_output;
 
-	if ((lo->lo_fd = open(fn, O_WRONLY | O_CREAT)) < 0)
+	lo->lo_fd = open(fn, O_WRONLY | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
+	if (lo->lo_fd < 0)
 		ld_fatal_std(ld, "can not create output file: open %s", fn);
 
 	if ((lo->lo_elf = elf_begin(lo->lo_fd, ELF_C_WRITE, NULL)) == NULL)
