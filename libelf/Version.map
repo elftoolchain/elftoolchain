@@ -1,9 +1,6 @@
-/*
- * $Id$
- * 
- * $FreeBSD: src/lib/libelf/Version.map,v 1.3 2007/04/29 14:05:22 deischen Exp $
- */
-FBSD_1.0 {
+/* $Id$ */
+
+R1.0 {
 global:
 	elf32_checksum;
 	elf32_fsize;
@@ -41,12 +38,12 @@ global:
 	elf_getbase;
 	elf_getdata;
 	elf_getident;
-	elf_getscn;
 	elf_getphdrnum;
 	elf_getphnum;
+	elf_getscn;
 	elf_getshdrnum;
-	elf_getshnum;
 	elf_getshdrstrndx;
+	elf_getshnum;
 	elf_getshstrndx;
 	elf_hash;
 	elf_kind;
@@ -56,6 +53,8 @@ global:
 	elf_newscn;
 	elf_next;
 	elf_nextscn;
+	elf_open;
+	elf_openmemory;
 	elf_rand;
 	elf_rawdata;
 	elf_rawfile;

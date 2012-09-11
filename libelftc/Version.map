@@ -2,15 +2,17 @@
  * $Id$
  */
 
-FBSD_1.0 {
+R1.0 {
 global:
-	elftc_demangle;
 	elftc_bfd_find_target;
 	elftc_bfd_target_byteorder;
 	elftc_bfd_target_class;
 	elftc_bfd_target_flavor;
 	elftc_bfd_target_machine;
-	elftc_bfd_target_type;
+	elftc_copyfile;
+	elftc_demangle;
+	elftc_set_timestamps;
+	elftc_version;
 local:
 	*;
 };
