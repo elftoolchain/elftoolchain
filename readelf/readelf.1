@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 27, 2011
+.Dd September 13, 2012
 .Os
 .Dt READELF 1
 .Sh NAME
@@ -40,10 +40,10 @@
 .Op Fl h | Fl -file-header
 .Op Fl l | Fl -program-headers
 .Op Fl n | Fl -notes
-.Op Fl p Ar section-index | Fl -string-dump Ns = Ns Ar section-index
+.Op Fl p Ar section | Fl -string-dump Ns = Ns Ar section
 .Op Fl r | Fl -relocs
 .Op Fl t | Fl -section-details
-.Op Fl x Ar section-index | Fl -hex-dump Ns = Ns Ar section-index
+.Op Fl x Ar section | Fl -hex-dump Ns = Ns Ar section
 .Op Fl v | Fl -version
 .Oo
 .Fl w Ns Oo Ns Ar afilmoprsFLR Ns Oc |
@@ -101,10 +101,11 @@ Print the contents of
 segments or
 .Li SHT_NOTE
 sections present in the ELF object.
-.It Fl p Ar section-index | Fl -string-dump Ns = Ns Ar section-index
-Print the contents of the section at index
-.Ar section-index
-as printable strings.
+.It Fl p Ar section | Fl -string-dump Ns = Ns Ar section
+Print the contents of the specified section as printable strings.
+The argument
+.Ar section
+should be the name of a section or a numeric section index.
 .It Fl r | Fl -relocs
 Print relocation information.
 .It Fl s | Fl -syms | Fl -symbols
@@ -149,10 +150,11 @@ corresponding to the
 and
 .Ar R
 short options.
-.It Fl x Ar section-index | Fl -hex-dump Ns = Ns Ar section-index
-Display the contents of the section with index
-.Ar section-index
-as hexadecimal.
+.It Fl x Ar section | Fl -hex-dump Ns = Ns Ar section
+Display the contents of the specified section in hexadecimal.
+The argument
+.Ar section
+should be the name of a section or a numeric section index.
 .It Fl A | Fl -arch-specific
 This option is accepted but is currently unimplemented.
 .It Fl D | Fl -use-dynamic
