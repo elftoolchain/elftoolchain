@@ -398,7 +398,7 @@ typedef struct _Dwarf_Error {
 typedef void (*Dwarf_Handler)(Dwarf_Error, Dwarf_Ptr);
 
 #define	dwarf_errno(error)	error.err_error
-#define	dwarf_errmsg(error)	_dwarf_errmsg(&error)
+#define	dwarf_errmsg(error)	dwarf_errmsg_(&error)
 
 /*
  * Return values which have to be compatible with other
@@ -446,7 +446,6 @@ enum Dwarf_ISA {
 
 /* Function prototype definitions. */
 __BEGIN_DECLS
-const char	*_dwarf_errmsg(Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_comp_dir(Dwarf_P_Die, char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_const_value_signedint(Dwarf_P_Die, Dwarf_Signed,
 		    Dwarf_Error *);
@@ -546,6 +545,7 @@ int		dwarf_dieoffset(Dwarf_Die, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_elf_init(Elf *, int, Dwarf_Handler, Dwarf_Ptr,
 		    Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_end_macro_file(Dwarf_P_Debug, Dwarf_Error *);
+const char	*dwarf_errmsg_(Dwarf_Error *);
 int		dwarf_expand_frame_instructions(Dwarf_Cie, Dwarf_Ptr,
 		    Dwarf_Unsigned, Dwarf_Frame_Op **, Dwarf_Signed *,
 		    Dwarf_Error *);

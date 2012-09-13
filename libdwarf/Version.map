@@ -2,7 +2,6 @@
 
 R1.0 {
 global:
-	_dwarf_errmsg;
 	dwarf_add_AT_comp_dir;
 	dwarf_add_AT_const_value_signedint;
 	dwarf_add_AT_const_value_string;
@@ -58,6 +57,7 @@ global:
 	dwarf_dieoffset;
 	dwarf_elf_init;
 	dwarf_end_macro_file;
+	dwarf_errmsg_;
 	dwarf_expand_frame_instructions;
 	dwarf_expr_current_offset;
 	dwarf_expr_into_block;

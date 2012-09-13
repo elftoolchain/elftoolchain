@@ -64,7 +64,7 @@ const char *_libdwarf_errors[] = {
 };
 
 const char *
-_dwarf_errmsg(Dwarf_Error *error)
+dwarf_errmsg_(Dwarf_Error *error)
 {
 	const char *p;
 
