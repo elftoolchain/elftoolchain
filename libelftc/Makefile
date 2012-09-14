@@ -16,7 +16,7 @@ SRCS=	elftc_bfdtarget.c			\
 	libelftc_vstr.c
 INCS=	libelftc.h
 
-BRANCH=		HEAD		# Change this on release branches.
+RELEASE=	HEAD		# Change this on release branches.
 
 SHLIB_MAJOR=	1
 
@@ -38,7 +38,7 @@ MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 
 .if	!make(clean) && !make(clobber)
 .BEGIN:	.SILENT
-	${.CURDIR}/make-toolchain-version -t ${TOP} -b ${BRANCH} \
+	${.CURDIR}/make-toolchain-version -t ${TOP} -r ${RELEASE} \
 	    -h ${OS_HOST}
 .endif
 
