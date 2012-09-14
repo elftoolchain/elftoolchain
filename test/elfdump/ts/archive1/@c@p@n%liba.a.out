@@ -1,8 +1,6 @@
 
 liba.a(a1.o):
 
-program header:
-
 section header:
 
 entry: 0
@@ -114,8 +112,6 @@ entry: 8
 	sh_entsize: 0
 
 liba.a(a2.o):
-
-program header:
 
 section header:
 
@@ -241,8 +237,6 @@ entry: 9
 
 liba.a(a3.o):
 
-program header:
-
 section header:
 
 entry: 0
@@ -354,8 +348,6 @@ entry: 8
 	sh_entsize: 0
 
 liba.a(a4.o):
-
-program header:
 
 section header:
 

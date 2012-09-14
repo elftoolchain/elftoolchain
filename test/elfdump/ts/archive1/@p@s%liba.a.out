@@ -53,8 +53,6 @@ entry: 9
 
 liba.a(a1.o):
 
-program header:
-
 symbol table (.symtab):
 
 entry: 0
@@ -114,8 +112,6 @@ entry: 7
 	st_shndx: 65522
 
 liba.a(a2.o):
-
-program header:
 
 symbol table (.symtab):
 
@@ -191,8 +187,6 @@ entry: 9
 
 liba.a(a3.o):
 
-program header:
-
 symbol table (.symtab):
 
 entry: 0
@@ -259,8 +253,6 @@ entry: 8
 	st_shndx: 65522
 
 liba.a(a4.o):
-
-program header:
 
 symbol table (.symtab):
 

@@ -18,8 +18,6 @@ elf header:
 	e_shnum: 9
 	e_shstrndx: 6
 
-program header:
-
 section header:
 
 entry: 0
@@ -148,8 +146,6 @@ elf header:
 	e_shentsize: 40
 	e_shnum: 10
 	e_shstrndx: 7
-
-program header:
 
 section header:
 
@@ -292,8 +288,6 @@ elf header:
 	e_shnum: 9
 	e_shstrndx: 6
 
-program header:
-
 section header:
 
 entry: 0
@@ -422,8 +416,6 @@ elf header:
 	e_shentsize: 40
 	e_shnum: 10
 	e_shstrndx: 7
-
-program header:
 
 section header:
 

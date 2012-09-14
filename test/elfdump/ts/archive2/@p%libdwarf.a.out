@@ -1,52 +1,26 @@
 
 libdwarf.a(dwarf_loc.o):
 
-program header:
-
 libdwarf.a(dwarf_init.o):
-
-program header:
 
 libdwarf.a(dwarf_form.o):
 
-program header:
-
 libdwarf.a(dwarf_finish.o):
-
-program header:
 
 libdwarf.a(dwarf_errno.o):
 
-program header:
-
 libdwarf.a(dwarf_dealloc.o):
-
-program header:
 
 libdwarf.a(dwarf_attrval.o):
 
-program header:
-
 libdwarf.a(dwarf_attr.o):
-
-program header:
 
 libdwarf.a(dwarf_abbrev.o):
 
-program header:
-
 libdwarf.a(dwarf_dump.o):
-
-program header:
 
 libdwarf.a(dwarf_die.o):
 
-program header:
-
 libdwarf.a(dwarf_cu.o):
 
-program header:
-
 libdwarf.a(dwarf_errmsg.o):
-
-program header:
