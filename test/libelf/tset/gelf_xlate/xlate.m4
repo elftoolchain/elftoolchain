@@ -729,17 +729,13 @@ _tpUnimplemented(const char *fn, Elf *e)
 
 	ed.d_buf = es.d_buf = buf;
 	ed.d_size = es.d_size = 1024;
-	es.d_version = EV_CURRENT;
+	ed.d_version = es.d_version = EV_CURRENT;
 
 	result = TET_PASS;
 
 	for (i = 0; i < ELF_T_NUM; i++) {
 		switch (i) {
-		case ELF_T_CAP:
-		case ELF_T_MOVE:
 		case ELF_T_MOVEP:
-		case ELF_T_NOTE:
-		case ELF_T_SYMINFO:
 			break;
 
 		case ELF_T_SXWORD:	/* unimplemented for 32 bit ELF */

@@ -1521,14 +1521,13 @@ __XCONCAT(tcArg_tpUnimplemented,TS_XLATESZ)(void)
 
 	ed.d_buf = es.d_buf = buf;
 	ed.d_size = es.d_size = 1024;
-	es.d_version = EV_CURRENT;
+	ed.d_version = es.d_version = EV_CURRENT;
 
 	result = TET_PASS;
 
 	for (i = 0; i < ELF_T_NUM; i++) {
 		switch (i) {
 		case ELF_T_MOVEP:
-		case ELF_T_NOTE:
 #if	TS_XLATESZ == 32
 		case ELF_T_SXWORD:
 		case ELF_T_XWORD:
