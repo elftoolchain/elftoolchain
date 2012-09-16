@@ -129,6 +129,11 @@ struct dumpop {
 	STAILQ_ENTRY(dumpop) dumpop_list;
 };
 
+struct symver {
+	const char *name;
+	int type;
+};
+
 /*
  * Structure encapsulates the global data for readelf(1).
  */
@@ -148,8 +153,8 @@ struct readelf {
 	struct section	 *vs_s;		/* Versym section. */
 	uint16_t	 *vs;		/* Versym array. */
 	int		  vs_sz;	/* Versym array size. */
-	const char	**vname;	/* Version name array. */
-	int		  vname_sz;	/* Size version name array. */
+	struct symver	 *ver;		/* Version array. */
+	int		  ver_sz;	/* Size of version array. */
 	struct section	 *sl;		/* list of sections. */
 	STAILQ_HEAD(, dumpop) v_dumpop; /* list of dump ops. */
 	uint64_t	(*dw_read)(Elf_Data *, uint64_t *, int);
@@ -2990,14 +2995,15 @@ dump_symtab(struct readelf *re, int i)
 		if ((name = elf_strptr(re->elf, stab, sym.st_name)) != NULL)
 			printf(" %s", name);
 		/* Append symbol version string for SHT_DYNSYM symbol table. */
-		if (s->type == SHT_DYNSYM && re->vname != NULL &&
+		if (s->type == SHT_DYNSYM && re->ver != NULL &&
 		    re->vs != NULL && re->vs[j] > 1) {
-			if (re->vs[j] & 0x8000)
+			if (re->vs[j] & 0x8000 ||
+			    re->ver[re->vs[j] & 0x7fff].type == 0)
 				printf("@%s (%d)",
-				    re->vname[re->vs[j] & 0x7fff],
+				    re->ver[re->vs[j] & 0x7fff].name,
 				    re->vs[j] & 0x7fff);
 			else
-				printf("@@%s (%d)", re->vname[re->vs[j]],
+				printf("@@%s (%d)", re->ver[re->vs[j]].name,
 				    re->vs[j]);
 		}
 		putchar('\n');
@@ -3380,23 +3386,27 @@ dump_notes_content(struct readelf *re, const char *buf, size_t sz, off_t off)
 #define	Elf_Verneed	Elf32_Verneed
 #define	Elf_Vernaux	Elf32_Vernaux
 
-#define	SAVE_VERSION_NAME(ndx, name)					\
+#define	SAVE_VERSION_NAME(x, n, t)					\
 	do {								\
-		while (ndx >= re->vname_sz) {				\
-			nv = realloc(re->vname,				\
-			    sizeof(*re->vname)*re->vname_sz*2);		\
+		while (x >= re->ver_sz) {				\
+			nv = realloc(re->ver,				\
+			    sizeof(*re->ver) * re->ver_sz * 2);		\
 			if (nv == NULL) {				\
 				warn("realloc failed");			\
-				free(re->vname);			\
+				free(re->ver);				\
 				return;					\
 			}						\
-			re->vname = nv;					\
-			for (i = re->vname_sz; i < re->vname_sz*2; i++) \
-				re->vname[i] = NULL;			\
-			re->vname_sz *= 2;				\
+			re->ver = nv;					\
+			for (i = re->ver_sz; i < re->ver_sz * 2; i++) {	\
+				re->ver[i].name = NULL;			\
+				re->ver[i].type = 0;			\
+			}						\
+			re->ver_sz *= 2;				\
 		}							\
-		if (ndx > 1)						\
-			re->vname[ndx] = name;				\
+		if (x > 1) {						\
+			re->ver[x].name = n;				\
+			re->ver[x].type = t;				\
+		}							\
 	} while (0)
 
 
@@ -3404,25 +3414,26 @@ static void
 dump_verdef(struct readelf *re, int dump)
 {
 	struct section *s;
+	struct symver *nv;
 	Elf_Data *d;
 	Elf_Verdef *vd;
 	Elf_Verdaux *vda;
 	uint8_t *buf, *end, *buf2;
-	const char **nv, *name;
+	const char *name;
 	int elferr, i;
 
 	if ((s = re->vd_s) == NULL)
 		return;
 
-	if (re->vname == NULL) {
-		re->vname_sz = 16;
-		if ((re->vname = calloc(re->vname_sz, sizeof(*re->vname))) ==
+	if (re->ver == NULL) {
+		re->ver_sz = 16;
+		if ((re->ver = calloc(re->ver_sz, sizeof(*re->ver))) ==
 		    NULL) {
 			warn("calloc failed");
 			return;
 		}
-		re->vname[0] = "*local*";
-		re->vname[1] = "*global*";
+		re->ver[0].name = "*local*";
+		re->ver[1].name = "*global*";
 	}
 
 	if (dump)
@@ -3453,7 +3464,7 @@ dump_verdef(struct readelf *re, int dump)
 		name = get_string(re, s->link, vda->vda_name);
 		if (dump)
 			printf(" vda_name: %s\n", name);
-		SAVE_VERSION_NAME((int)vd->vd_ndx, name);
+		SAVE_VERSION_NAME((int)vd->vd_ndx, name, 1);
 		if (vd->vd_next == 0)
 			break;
 		buf += vd->vd_next;
@@ -3464,25 +3475,26 @@ static void
 dump_verneed(struct readelf *re, int dump)
 {
 	struct section *s;
+	struct symver *nv;
 	Elf_Data *d;
 	Elf_Verneed *vn;
 	Elf_Vernaux *vna;
 	uint8_t *buf, *end, *buf2;
-	const char **nv, *name;
+	const char *name;
 	int elferr, i, j;
 
 	if ((s = re->vn_s) == NULL)
 		return;
 
-	if (re->vname == NULL) {
-		re->vname_sz = 16;
-		if ((re->vname = calloc(re->vname_sz, sizeof(*re->vname))) ==
+	if (re->ver == NULL) {
+		re->ver_sz = 16;
+		if ((re->ver = calloc(re->ver_sz, sizeof(*re->ver))) ==
 		    NULL) {
 			warn("calloc failed");
 			return;
 		}
-		re->vname[0] = "*local*";
-		re->vname[1] = "*global*";
+		re->ver[0].name = "*local*";
+		re->ver[1].name = "*global*";
 	}
 
 	if (dump)
@@ -3521,10 +3533,11 @@ dump_verneed(struct readelf *re, int dump)
 				printf("   vna_name: %s vna_flags: %u"
 				    " vna_other: %u\n", name,
 				    vna->vna_flags, vna->vna_other);
-			SAVE_VERSION_NAME((int)vna->vna_other, name);
+			SAVE_VERSION_NAME((int)vna->vna_other, name, 0);
 			if (vna->vna_next == 0)
 				break;
 			buf2 += vna->vna_next;
+			j++;
 		}
 		if (vn->vn_next == 0)
 			break;
@@ -3537,7 +3550,7 @@ dump_versym(struct readelf *re)
 {
 	int i;
 
-	if (re->vs_s == NULL || re->vname == NULL || re->vs == NULL)
+	if (re->vs_s == NULL || re->ver == NULL || re->vs == NULL)
 		return;
 	printf("\nVersion symbol section (%s):\n", re->vs_s->name);
 	for (i = 0; i < re->vs_sz; i++) {
@@ -3548,9 +3561,10 @@ dump_versym(struct readelf *re)
 		}
 		if (re->vs[i] & 0x8000)
 			printf(" %3xh %-12s ", re->vs[i] & 0x7fff,
-			    re->vname[re->vs[i] & 0x7fff]);
+			    re->ver[re->vs[i] & 0x7fff].name);
 		else
-			printf(" %3x %-12s ", re->vs[i], re->vname[re->vs[i]]);
+			printf(" %3x %-12s ", re->vs[i],
+			    re->ver[re->vs[i]].name);
 	}
 	putchar('\n');
 }
@@ -3559,7 +3573,7 @@ static void
 dump_ver(struct readelf *re)
 {
 
-	if (re->vs_s && re->vname && re->vs)
+	if (re->vs_s && re->ver && re->vs)
 		dump_versym(re);
 	if (re->vd_s)
 		dump_verdef(re, 1);
@@ -3587,7 +3601,7 @@ search_ver(struct readelf *re)
 		dump_verdef(re, 0);
 	if (re->vn_s)
 		dump_verneed(re, 0);
-	if (re->vs_s && re->vname != NULL) {
+	if (re->vs_s && re->ver != NULL) {
 		(void) elf_errno();
 		if ((d = elf_getdata(re->vs_s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
@@ -6130,10 +6144,10 @@ unload_sections(struct readelf *re)
 	re->vs_s = NULL;
 	re->vs = NULL;
 	re->vs_sz = 0;
-	if (re->vname != NULL) {
-		free(re->vname);
-		re->vname = NULL;
-		re->vname_sz = 0;
+	if (re->ver != NULL) {
+		free(re->ver);
+		re->ver = NULL;
+		re->ver_sz = 0;
 	}
 }
 
