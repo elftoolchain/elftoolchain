@@ -29,38 +29,39 @@ Libraries and Utilities
 This release comprises the following libraries and utilities.
 
   =================       ==========================================
-  **Name**	          **Description**
+  **Name**                **Description**
   =================       ==========================================
-  ar	                  Archive manager.
-  addr2line	          Debug tool.
-  brandelf	          Manage the ELF brand on executables.
-  c++filt	          Translate encoded symbols.
-  elfcopy	          Copy and translate between object formats.
-  elfdump	          Diagnostic tool.
-  findtextrel	          Find undesired text relocations.
-  libdwarf	          DWARF access library.
-  libelf	          ELF access library.
-  mcs	                  Manage comment sections.
-  nm	                  List symbols in an ELF object.
-  ranlib	          Add archive symbol tables to an archive.
-  readelf	          Display ELF information.
-  size	                  List object sizes.
-  strings	          Extract printable strings.
-  strip	                  Discard information from ELF objects.
+  **ar**                  Archive manager.
+  **addr2line**           Debug tool.
+  **brandelf**            Manage the ELF brand on executables.
+  **c++filt**             Translate encoded symbols.
+  **elfcopy**             Copy and translate between object formats.
+  **elfdump**             Diagnostic tool.
+  **findtextrel**         Find undesired text relocations.
+  **libdwarf**            DWARF access library.
+  **libelf**              ELF access library.
+  **mcs**                 Manage comment sections.
+  **nm**                  List symbols in an ELF object.
+  **ranlib**              Add archive symbol tables to an archive.
+  **readelf**             Display ELF information.
+  **size**                List object sizes.
+  **strings**             Extract printable strings.
+  **strip**               Discard information from ELF objects.
   =================       ==========================================
 
 Documentation
 ~~~~~~~~~~~~~
 
-Each public API and invocable utility has its own manual page
-(%NENTRIES% manual entries, documented in %NFILES% files).
+Each public API and invocable utility has a reference manual entry.
+We currently offer %NENTRIES% manual entries, documented in %NFILES%
+manual pages.
 
 Additionally, this release contains the following documentation:
 
   =================       ==========================================
-  **Name**	          **Description**
+  **Name**                **Description**
   =================       ==========================================
-  libelf-by-example       A tutorial introduction to ``libelf``.
+  libelf-by-example       A tutorial introduction to **libelf**.
   =================       ==========================================
 
 Test Suites
@@ -69,14 +70,14 @@ Test Suites
 The release contains the following test suites:
 
   =================       ==========================================
-  **Name**	          **Description**
+  **Name**                **Description**
   =================       ==========================================
-  ar			  Test the ``ar`` utility.
-  elfcopy		  Test the ``elfcopy`` utility.
-  elfdump		  Test the ``elfdump`` utility.
-  libdwarf		  Test the ``libdwarf`` library.
-  libelf		  Test the ``libelf`` library.
-  nm			  Test the ``nm`` utility.
+  ar                      Test the **ar** utility.
+  elfcopy                 Test the **elfcopy** utility.
+  elfdump                 Test the **elfdump** utility.
+  libdwarf                Test the **libdwarf** library.
+  libelf                  Test the **libelf** library.
+  nm                      Test the **nm** utility.
   =================       ==========================================
 
 
@@ -94,8 +95,11 @@ systems:
   ====================  ===========  ===========================
   **Operating System**  **Version**  **Supported Architectures**
   --------------------  -----------  ---------------------------
+  `DragonFly BSD`_      2.10.1       i386
   FreeBSD_              v8.2         amd64 & i386
+  Minix_                3.0.2        i386
   NetBSD_               v5.0.2       i386
+  OpenBSD_              v5.0         i386
   Ubuntu_ GNU/Linux     10.04LTS     i386 & x86_64
   ====================  ===========  ===========================
 
@@ -140,15 +144,16 @@ Test Statistics
 
 The test summary for this release is presented below:
 
- ========= ========= ===============  ================  ===================
- **Suite** **Tests** **FreeBSD**      **NetBSD**        **Ubuntu 10.04LTS**
- ========= ========= ===============  ================  ===================
- ar 	  
- elfcopy  
- elfdump  
- libdwarf 
- libelf   
- ========= ========= ===============  ================  ===================
+ =========  =========  ================  ===============  ================  ===================
+ **Suite**  **Tests**  **DragonFlyBSD**  **FreeBSD**      **NetBSD**        **Ubuntu 10.04LTS**
+ =========  =========  ================  ===============  ================  ===================
+ ar
+ elfcopy
+ elfdump
+ libdwarf
+ libelf
+ nm
+ =========  =========  ================  ===============  ================  ===================
 
 Key:
 
@@ -166,9 +171,6 @@ More Information
 ================
 
 The project's website is at http://elftoolchain.sourceforge.net/.
-
-The source code for this software and for its associated documentation
-is open-source under the BSD license.
 
 Developer Community
 -------------------
@@ -190,9 +192,12 @@ This software is copyright its authors, and is distributed under the
 `BSD License`_.
 
 .. _BSD License: http://www.opensource.org/licenses/bsd-license.php
+.. _DragonFly BSD: http://www.dragonflybsd.org/
 .. _Elftoolchain project: http://elftoolchain.sourceforge.net/
 .. _FreeBSD: http://www.freebsd.org/
+.. _Minix:   http://www.minix3.org/
 .. _NetBSD:  http://www.netbsd.org/
+.. _OpenBSD: http://www.openbsd.org/
 .. _`Trac instance`: http://sourceforge.net/apps/trac/elftoolchain/report
 .. _Ubuntu:  http://www.ubuntu.com/
 
