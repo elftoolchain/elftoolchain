@@ -44,6 +44,7 @@ _dwarf_lineno_add_file(Dwarf_LineInfo li, uint8_t **p, const char *compdir,
 		return (DW_DLE_MEMORY);
 	}
 
+	lf->lf_fullpath = NULL;
 	lf->lf_fname = (char *) src;
 	src += strlen(lf->lf_fname) + 1;
 	lf->lf_dirndx = _dwarf_decode_uleb128(&src);
