@@ -936,6 +936,8 @@ _ELF_DEFINE_SHF(SHF_GROUP,           0x200,				\
 	"member of a section group")					\
 _ELF_DEFINE_SHF(SHF_TLS,             0x400,				\
 	"holds thread-local storage")					\
+_ELF_DEFINE_SHF(SHF_COMPRESSED,      0x800,				\
+	"holds compressed data")					\
 _ELF_DEFINE_SHF(SHF_MASKOS,          0x0FF00000UL,			\
 	"bits reserved for OS-specific semantics")			\
 _ELF_DEFINE_SHF(SHF_AMD64_LARGE,     0x10000000UL,			\
