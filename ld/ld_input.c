@@ -74,6 +74,21 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 
 	li->li_file = lf;
 
+	switch (lf->lf_type) {
+	case LFT_ARCHIVE:
+	case LFT_RELOCATABLE:
+		li->li_type = LIT_RELOCATABLE;
+		break;
+	case LFT_DSO:
+		li->li_type = LIT_DSO;
+		break;
+	case LFT_BINARY:
+	case LFT_UNKNOWN:
+	default:
+		li->li_type = LIT_UNKNOWN;
+		break;
+	}
+
 	return (li);
 }
 
