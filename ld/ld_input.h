@@ -58,8 +58,8 @@ struct ld_input {
 	size_t li_shnum;		/* num of sections in ELF object */
 	struct ld_input_section *li_is;	/* input section list */
 	struct ld_archive_member *li_lam; /* archive member */
-	struct ld_symbol_head *li_local; /* local symbol list */
-	struct ld_symbol_head *li_nonlocal; /* non-local symbol list */
+	struct ld_symbol *li_local;	/* local symbol hash table */
+	struct ld_symbol *li_nonlocal;	/* non-local symbol hash table */
 	char **li_vername;		/* version name array */
 	size_t li_vername_sz;		/* version name array size */
 	uint16_t *li_versym;		/* symbol version array */

@@ -29,6 +29,7 @@
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
 	char *lsb_ver;			/* symbol version */
+	char *lsb_longname;		/* symbol name+version (as hash key)*/
 	uint64_t lsb_size;		/* symbol size */
 	uint64_t lsb_value;		/* symbol value */
 	uint16_t lsb_shndx;		/* symbol index */
@@ -36,11 +37,13 @@ struct ld_symbol {
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
 	unsigned char lsb_other;	/* symbol visibility */
+	unsigned char lsb_default;	/* symbol is default/only version */
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
-	struct ld_symbol *lsb_ref;	/* symbol reference */
+	struct ld_symbol *lsb_ref;	/* resolved symbol reference */
 	struct ld_input *lsb_input;	/* containing input object */
 	UT_hash_handle hh;		/* hash handle */
+	UT_hash_handle hhi;		/* hash handle (input object) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
 };
 
@@ -59,6 +62,8 @@ void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
-int	ld_symbols_get_value_local(struct ld_input *, char *, uint64_t *);
+int	ld_symbols_get_value_from_input(struct ld_input *, char *, uint64_t *);
+int	ld_symbols_get_value_from_input_local(struct ld_input *, char *,
+    uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);

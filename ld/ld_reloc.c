@@ -206,7 +206,8 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		 */
 		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL ||
 		    GELF_ST_BIND(sym.st_info) == STB_WEAK) {
-			if (ld_symbols_get_value(ld, name, &sym_val) < 0)
+			if (ld_symbols_get_value_from_input(li, name,
+			    &sym_val) < 0)
 				sym_val = sym.st_value;
 		} else if (GELF_ST_BIND(sym.st_info) == STB_LOCAL) {
 			if (GELF_ST_TYPE(sym.st_info) == STT_SECTION) {
@@ -214,8 +215,8 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 				sym_val = tis->is_output->os_addr +
 				    tis->is_reloff;
 			} else {
-				if (ld_symbols_get_value_local(li, name,
-				    &sym_val) < 0)
+				if (ld_symbols_get_value_from_input_local(li,
+				    name, &sym_val) < 0)
 					sym_val = sym.st_value;
 			}
 		} else
