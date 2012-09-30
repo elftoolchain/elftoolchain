@@ -516,7 +516,7 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
+		    (_lsb = _find_symbol(ld->ld_symtab_undef, sn)) != NULL) {
 			_lsb->lsb_ref = lsb;
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
