@@ -52,6 +52,8 @@ static struct ld_archive_member * _extract_archive_member(struct ld *ld,
 static void _print_extracted_member(struct ld *ld,
     struct ld_archive_member *lam, struct ld_symbol *lsb);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
+static void _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
+    struct ld_symbol *_lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
@@ -400,6 +402,25 @@ _find_symbol_from_input(struct ld_symbol *tbl, char *name)
 }
 
 static void
+_resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
+    struct ld_symbol *_lsb)
+{
+
+	if (_lsb->lsb_provide)
+		_remove_symbol(ld->ld_symtab_def, _lsb);
+	else if (lsb->lsb_input != NULL &&
+	    lsb->lsb_input->li_type == LIT_DSO) {
+		lsb->lsb_ref = _lsb;
+	} else if (_lsb->lsb_input != NULL &&
+	    _lsb->lsb_input->li_type == LIT_DSO) {
+		_lsb->lsb_ref = lsb;
+		_remove_symbol(ld->ld_symtab_def, _lsb);
+	} else
+		ld_fatal(ld, "multiple definition of symbol "
+		    "%s", lsb->lsb_longname);
+}
+
+static void
 _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol *_lsb;
@@ -464,33 +485,23 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 			}
 		}
 
-		/* Otherwise add the new symbol to common symbol hash table. */
+		/* Add the new symbol to common symbol hash table. */
 		_add_symbol(ld->ld_symtab_common, lsb);
 
 	} else {
 		/*
 		 * Search in the defined symbol hash table for the symbol
-		 * with the same "long name". If such symbol is found and it's
-		 * not a "provide" symbol. We have a multiple definition error.
+		 * with the same "long name". If such symbol is found, pass
+		 * it to function _resolve_multidef_symbol() for resolution.
 		 * If the symbol is default-versioned, also search in the
 		 * defined symbol hash table for unversioned symbol with the
 		 * same "short name".
 		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
-			if (!lsb->lsb_provide)
-				ld_fatal(ld, "multiple definition of symbol "
-				    "%s", name);
-			else if (_lsb->lsb_provide)
-				_remove_symbol(ld->ld_symtab_def, _lsb);
-		}
+		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL)
+			_resolve_multidef_symbol(ld, lsb, _lsb);
 		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL) {
-			if (!lsb->lsb_provide)
-				ld_fatal(ld, "multiple definition of symbol "
-				    "%s", name);
-			else if (_lsb->lsb_provide)
-				_lsb->lsb_ref = lsb;
-		}
+		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL)
+			_resolve_multidef_symbol(ld, lsb, _lsb);
 
 		/*
 		 * Search in the undefined symbol hash table for the symbol
