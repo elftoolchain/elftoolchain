@@ -2,8 +2,8 @@
 
 TOP=	..
 
-INCS=	elfdefinitions.h
-INCSDIR?=	/usr/include
+INCS=		elfdefinitions.h
+INCSDIR=	/usr/include
 
 .PHONY:	all clean clobber depend obj
 
