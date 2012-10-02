@@ -69,7 +69,8 @@ SRCS=	\
 	libdwarf_sections.c	\
 	libdwarf_str.c
 
-INCS=	dwarf.h libdwarf.h
+INCS=		dwarf.h libdwarf.h
+INCSDIR=	/usr/include
 
 GENSRCS=	dwarf_pubnames.c dwarf_pubtypes.c dwarf_weaks.c \
 		dwarf_funcs.c dwarf_vars.c dwarf_types.c	\

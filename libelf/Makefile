@@ -58,7 +58,9 @@ SRCS=	elf.c							\
 	libelf_shdr.c						\
 	libelf_xlate.c						\
 	${GENSRCS}
-INCS=	libelf.h gelf.h
+
+INCS=		libelf.h gelf.h
+INCSDIR=	/usr/include
 
 GENSRCS=	libelf_fsize.c libelf_msize.c libelf_convert.c
 CLEANFILES=	${GENSRCS}

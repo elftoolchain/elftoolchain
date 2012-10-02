@@ -14,7 +14,9 @@ SRCS=	elftc_bfdtarget.c			\
 	libelftc_dem_gnu2.c			\
 	libelftc_dem_gnu3.c			\
 	libelftc_vstr.c
-INCS=	libelftc.h
+
+INCS=		libelftc.h
+INCSDIR=	/usr/include
 
 RELEASE=	HEAD		# Change this on release branches.
 
