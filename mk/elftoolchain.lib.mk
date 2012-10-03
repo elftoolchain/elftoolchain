@@ -35,5 +35,12 @@ LDFLAGS+=	-L${TOP}/libelf
 CFLAGS:=	${CFLAGS:N-O*} -g
 .endif
 
+.if ${OS_HOST} == "DragonFly" || ${OS_HOST} == "FreeBSD"
+# Install headers too, in the 'install' phase.
+install:	includes
+.elif ${OS_HOST} == "Linux" || ${OS_HOST} == "NetBSD" || ${OS_HOST} == "Minix"
+install:	incinstall
+.endif
+
 # Bring in rules related to test code.
 .include "${TOP}/mk/elftoolchain.test.mk"

@@ -17,13 +17,17 @@
 .PHONY:		incinstall
 includes:	${INCS}	incinstall
 .for inc in ${INCS}
-incinstall::	${DESTDIR}${INCSDIR}/${inc}
+install incinstall::	${DESTDIR}${INCSDIR}/${inc}
 .PRECIOUS:	${DESTDIR}${INCSDIR}/${inc}
 ${DESTDIR}${INCSDIR}/${inc}: ${inc}
 	cmp -s $> $@ > /dev/null 2>&1 || \
 		${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NOBINMODE} $> $@
 .endfor
-.else
+.else	
+
+# Provide a default 'install' target.
+install:	incinstall .PHONY
+
 # Use the standard <bsd.inc.mk>.
 .include <bsd.inc.mk>
 .endif
