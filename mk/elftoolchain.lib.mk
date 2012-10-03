@@ -40,7 +40,24 @@ CFLAGS:=	${CFLAGS:N-O*} -g
 install:	includes
 .elif ${OS_HOST} == "Linux" || ${OS_HOST} == "NetBSD" || ${OS_HOST} == "Minix"
 install:	incinstall
-.endif
+.elif ${OS_HOST} == "OpenBSD"
+
+# OpenBSD's standard make ruleset does not install header files.  Provide
+# an alternative.
+
+NOBINMODE?=	444
+
+install:	${INCS}	incinstall
+
+.for inc in ${INCS}
+incinstall::	${DESTDIR}${INCSDIR}/${inc}
+.PRECIOUS:	${DESTDIR}${INCSDIR}/${inc}
+${DESTDIR}${INCSDIR}/${inc}: ${inc}
+	cmp -s $> $@ > /dev/null 2>&1 || \
+		${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NOBINMODE} $> $@
+.endfor
+
+.endif	# OpenBSD
 
 # Bring in rules related to test code.
 .include "${TOP}/mk/elftoolchain.test.mk"

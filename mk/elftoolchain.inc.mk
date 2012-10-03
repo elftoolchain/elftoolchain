@@ -14,6 +14,9 @@
 .if ${OS_HOST} == "DragonFly" || ${OS_HOST} == "FreeBSD" || \
 	${OS_HOST} == "OpenBSD"
 # Simulate <bsd.inc.mk>.
+
+NOBINMODE?=	444		# Missing in OpenBSD's rule set.
+
 .PHONY:		incinstall
 includes:	${INCS}	incinstall
 .for inc in ${INCS}
