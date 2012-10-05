@@ -13,6 +13,8 @@ LIBDWARF?=	${TOP}/libdwarf
 LIBELF?=	${TOP}/libelf
 LIBELFTC?=	${TOP}/libelftc
 
+BINDIR?=	/usr/bin
+
 CFLAGS+=	-I. -I${.CURDIR} -I${TOP}/common
 CLEANFILES+=	.depend
 
