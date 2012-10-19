@@ -782,7 +782,12 @@ _ELF_DEFINE_EM(EM_OPEN8,            196,				\
 	"Open8 8-bit RISC soft processor core")				\
 _ELF_DEFINE_EM(EM_RL78,             197, "Renesas RL78 family")		\
 _ELF_DEFINE_EM(EM_VIDEOCORE5,       198, "Broadcom VideoCore V processor") \
-_ELF_DEFINE_EM(EM_78KOR,            199, "Renesas 78KOR family")
+_ELF_DEFINE_EM(EM_78KOR,            199, "Renesas 78KOR family")	\
+_ELF_DEFINE_EM(EM_56800EX,          200,				\
+	"Freescale 56800EX Digital Signal Controller")	\
+_ELF_DEFINE_EM(EM_BA1,              201, "Beyond BA1 CPU architecture")	\
+_ELF_DEFINE_EM(EM_BA2,              202, "Beyond BA2 CPU architecture")	\
+_ELF_DEFINE_EM(EM_XCORE,            203, "XMOS xCORE processor family")
 
 #undef	_ELF_DEFINE_EM
 #define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
