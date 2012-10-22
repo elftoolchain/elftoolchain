@@ -52,7 +52,7 @@ static struct ld_archive_member * _extract_archive_member(struct ld *ld,
 static void _print_extracted_member(struct ld *ld,
     struct ld_archive_member *lam, struct ld_symbol *lsb);
 static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
-static void _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
+static int _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
     struct ld_symbol *_lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
@@ -401,7 +401,7 @@ _find_symbol_from_input(struct ld_symbol *tbl, char *name)
 	return (s);
 }
 
-static void
+static int
 _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
     struct ld_symbol *_lsb)
 {
@@ -411,6 +411,7 @@ _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
 	else if (lsb->lsb_input != NULL &&
 	    lsb->lsb_input->li_type == LIT_DSO) {
 		lsb->lsb_ref = _lsb;
+		return (-1);
 	} else if (_lsb->lsb_input != NULL &&
 	    _lsb->lsb_input->li_type == LIT_DSO) {
 		_lsb->lsb_ref = lsb;
@@ -418,6 +419,8 @@ _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
 	} else
 		ld_fatal(ld, "multiple definition of symbol "
 		    "%s", lsb->lsb_longname);
+
+	return (0);
 }
 
 static void
@@ -497,11 +500,15 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * defined symbol hash table for unversioned symbol with the
 		 * same "short name".
 		 */
-		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL)
-			_resolve_multidef_symbol(ld, lsb, _lsb);
+		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
+			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
+				return;
+		}
 		if (lsb->lsb_default &&
-		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL)
-			_resolve_multidef_symbol(ld, lsb, _lsb);
+		    (_lsb = _find_symbol(ld->ld_symtab_def, sn)) != NULL) {
+			if (_resolve_multidef_symbol(ld, lsb, _lsb) < 0)
+				return;
+		}
 
 		/*
 		 * Search in the undefined symbol hash table for the symbol
