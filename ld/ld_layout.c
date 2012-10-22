@@ -378,6 +378,8 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	lo = ld->ld_output;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		ld_input_init_sections(ld, li);
+		if (li->li_type != LIT_RELOCATABLE)
+			continue;
 		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
 			switch (ldc->ldc_type) {
 			case LSC_ASSERT:
@@ -408,8 +410,11 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 		first = 0;
 	}
 
-	STAILQ_FOREACH(li, &ld->ld_lilist, li_next)
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_type != LIT_RELOCATABLE)
+			continue;
 		_layout_orphan_section(ld, li);
+	}
 }
 
 static int
