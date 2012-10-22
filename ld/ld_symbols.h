@@ -40,7 +40,8 @@ struct ld_symbol {
 	unsigned char lsb_default;	/* symbol is default/only version */
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
-	struct ld_symbol *lsb_ref;	/* resolved symbol reference */
+	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
+	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
 	UT_hash_handle hh;		/* hash handle */
 	UT_hash_handle hhi;		/* hash handle (input object) */

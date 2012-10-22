@@ -59,6 +59,7 @@ static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
 static struct ld_symbol *_find_symbol_from_input(struct ld_symbol *tbl,
     char *name);
+static void _update_import_export(struct ld *ld, struct ld_symbol *lsb);
 static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
 static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
     const char *name);
@@ -69,12 +70,26 @@ static void _load_verneed(struct ld *ld, struct ld_input *li, Elf *e,
 static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
     Elf *e, Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef);
 
-#define	_add_symbol(tbl, s) \
-	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname, \
-	    strlen((s)->lsb_longname), (s))
+#define	_add_symbol(tbl, s) do {				\
+	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
+	    strlen((s)->lsb_longname), (s));			\
+	_update_import_export(ld, (s));				\
+	} while (0)
 #define _add_symbol_to_input(tbl, s) \
 	HASH_ADD_KEYPTR(hhi, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
-#define _remove_symbol(tbl, s) HASH_DEL((tbl), (s))
+#define _remove_symbol(tbl, s) do {				\
+	HASH_DEL((tbl), (s));					\
+	_update_import_export(ld, (s));				\
+	} while (0)
+#define _resolve_symbol(_s, s) do {				\
+	assert((_s) != (s));					\
+	if ((s)->lsb_prev != NULL) {				\
+		(s)->lsb_prev->lsb_ref = (_s);			\
+		(_s)->lsb_prev = (s)->lsb_prev;			\
+	}							\
+	(s)->lsb_prev = (_s);					\
+	(_s)->lsb_ref = (s);					\
+	} while (0)
 
 void
 ld_symbols_cleanup(struct ld *ld)
@@ -401,6 +416,14 @@ _find_symbol_from_input(struct ld_symbol *tbl, char *name)
 	return (s);
 }
 
+static void
+_update_import_export(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	(void) ld;
+	(void) lsb;
+}
+
 static int
 _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
     struct ld_symbol *_lsb)
@@ -410,11 +433,11 @@ _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
 		_remove_symbol(ld->ld_symtab_def, _lsb);
 	else if (lsb->lsb_input != NULL &&
 	    lsb->lsb_input->li_type == LIT_DSO) {
-		lsb->lsb_ref = _lsb;
+		_resolve_symbol(lsb, _lsb);
 		return (-1);
 	} else if (_lsb->lsb_input != NULL &&
 	    _lsb->lsb_input->li_type == LIT_DSO) {
-		_lsb->lsb_ref = lsb;
+		_resolve_symbol(_lsb, lsb);
 		_remove_symbol(ld->ld_symtab_def, _lsb);
 	} else
 		ld_fatal(ld, "multiple definition of symbol "
@@ -441,7 +464,7 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		    (_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL ||
 		    (_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
-			lsb->lsb_ref = _lsb;
+			_resolve_symbol(lsb, _lsb);
 			return;
 		}
 
@@ -458,7 +481,7 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * found.
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
-			lsb->lsb_ref = _lsb;
+			_resolve_symbol(lsb, _lsb);
 			return;
 		}
 
@@ -468,7 +491,7 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * symbol.
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 
@@ -480,10 +503,10 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
 			if (lsb->lsb_size > _lsb->lsb_size) {
-				_lsb->lsb_ref = lsb;
+				_resolve_symbol(_lsb, lsb);
 				_remove_symbol(ld->ld_symtab_common, _lsb);
 			} else {
-				lsb->lsb_ref = _lsb;
+				_resolve_symbol(lsb, _lsb);
 				return;
 			}
 		}
@@ -519,12 +542,12 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 * "short name".
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_undef, name)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 		if (lsb->lsb_default &&
 		    (_lsb = _find_symbol(ld->ld_symtab_undef, sn)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_undef, _lsb);
 		}
 
@@ -537,12 +560,12 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		 */
 		if ((_lsb = _find_symbol(ld->ld_symtab_common, name)) !=
 		    NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_common, _lsb);
 		}
 		if (lsb->lsb_default &&
 		    (_lsb = _find_symbol(ld->ld_symtab_common, sn)) != NULL) {
-			_lsb->lsb_ref = lsb;
+			_resolve_symbol(_lsb, lsb);
 			_remove_symbol(ld->ld_symtab_common, _lsb);
 		}
 
