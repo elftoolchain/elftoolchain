@@ -59,7 +59,10 @@ static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
 static struct ld_symbol *_find_symbol_from_input(struct ld_symbol *tbl,
     char *name);
-static void _update_import_export(struct ld *ld, struct ld_symbol *lsb);
+static void _update_import(struct ld *ld, struct ld_symbol *lsb, int add);
+static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
+static void _update_import_export(struct ld *ld, struct ld_symbol *lsb,
+    int add);
 static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
 static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
     const char *name);
@@ -73,13 +76,13 @@ static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
 #define	_add_symbol(tbl, s) do {				\
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
 	    strlen((s)->lsb_longname), (s));			\
-	_update_import_export(ld, (s));				\
+	_update_import_export(ld, (s), 1);			\
 	} while (0)
 #define _add_symbol_to_input(tbl, s) \
 	HASH_ADD_KEYPTR(hhi, (tbl), (s)->lsb_name, strlen((s)->lsb_name), (s))
 #define _remove_symbol(tbl, s) do {				\
 	HASH_DEL((tbl), (s));					\
-	_update_import_export(ld, (s));				\
+	_update_import_export(ld, (s), 0);			\
 	} while (0)
 #define _resolve_symbol(_s, s) do {				\
 	assert((_s) != (s));					\
@@ -417,11 +420,67 @@ _find_symbol_from_input(struct ld_symbol *tbl, char *name)
 }
 
 static void
-_update_import_export(struct ld *ld, struct ld_symbol *lsb)
+_update_import(struct ld *ld, struct ld_symbol *lsb, int add)
 {
+	struct ld_symbol *_lsb;
 
-	(void) ld;
-	(void) lsb;
+	if (add) {
+		HASH_FIND(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), _lsb);
+		assert(_lsb == NULL);
+		HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), lsb);
+	} else {
+		HASH_FIND(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), _lsb);
+		assert(_lsb != NULL);
+		HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
+	}
+}
+
+static void
+_update_export(struct ld *ld, struct ld_symbol *lsb, int add)
+{
+	struct ld_symbol *_lsb;
+
+	if (add) {
+		HASH_FIND(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), _lsb);
+		assert(_lsb == NULL);
+		HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), lsb);
+	} else {
+		HASH_FIND(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
+		    strlen(lsb->lsb_longname), _lsb);
+		assert(_lsb != NULL);
+		HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
+	}
+}
+
+static void
+_update_import_export(struct ld *ld, struct ld_symbol *lsb, int add)
+{
+	struct ld_symbol *_lsb;
+
+	if (lsb->lsb_shndx == SHN_UNDEF || lsb->lsb_input == NULL)
+		return;
+
+	if (lsb->lsb_input->li_type == LIT_DSO) {
+		for (_lsb = lsb->lsb_prev; _lsb != NULL;
+		     _lsb = _lsb->lsb_prev) {
+			if (_lsb->lsb_input == NULL)
+				continue;
+			if (_lsb->lsb_input->li_type == LIT_RELOCATABLE) {
+				_update_import(ld, lsb, add);
+				break;
+			}
+		}
+	} else {
+		/* TODO: DSOs export functions. */
+		if (lsb->lsb_type == STT_OBJECT &&
+		    lsb->lsb_other != STV_HIDDEN)
+			_update_export(ld, lsb, add);
+	}
 }
 
 static int

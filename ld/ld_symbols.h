@@ -45,6 +45,8 @@ struct ld_symbol {
 	struct ld_input *lsb_input;	/* containing input object */
 	UT_hash_handle hh;		/* hash handle */
 	UT_hash_handle hhi;		/* hash handle (input object) */
+	UT_hash_handle hhimp;		/* hash handle (import) */
+	UT_hash_handle hhexp;		/* hash handle (export) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
 };
 
