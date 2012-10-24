@@ -434,6 +434,7 @@ _add_to_import(struct ld *ld, struct ld_symbol *lsb)
 	assert(_lsb == NULL);
 	HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
 	    strlen(lsb->lsb_longname), lsb);
+	lsb->lsb_input->li_dso_refcnt++;
 }
 
 static void
@@ -446,6 +447,7 @@ _remove_from_import(struct ld *ld, struct ld_symbol *lsb)
 	if (_lsb == NULL)
 		return;
 	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
+	_lsb->lsb_input->li_dso_refcnt--;
 }
 
 static void

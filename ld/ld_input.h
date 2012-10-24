@@ -71,6 +71,7 @@ struct ld_input {
 	size_t li_vername_sz;		/* version name array size */
 	uint16_t *li_versym;		/* symbol version array */
 	size_t li_versym_sz;		/* symbol version array size */
+	int li_dso_refcnt;		/* symbol reference count (DSO) */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
