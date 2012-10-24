@@ -453,10 +453,18 @@ _update_import(struct ld *ld, struct ld_symbol *_lsb, struct ld_symbol *lsb)
 {
 	struct ld_symbol *__lsb;
 
+	/*
+	 * If a defined DSO symbol is resolved by another symbol, it should
+	 * be removed from the import symbol table, if it exists there.
+	 */
 	if (_lsb->lsb_input != NULL && _lsb->lsb_input->li_type == LIT_DSO &&
 	    _lsb->lsb_shndx != SHN_UNDEF)
 		_remove_from_import(ld, _lsb);
 
+	/*
+	 * If some symbol resolved to a defined DSO symbol, it should be
+	 * added to import symbol table, if it doesn't yet exist there.
+	 */
 	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO &&
 	    lsb->lsb_shndx != SHN_UNDEF) {
 		for (__lsb = lsb->lsb_prev; __lsb != NULL;
