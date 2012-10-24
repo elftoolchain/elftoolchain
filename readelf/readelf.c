@@ -2740,7 +2740,7 @@ dump_arch_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		case DT_MIPS_PERF_SUFFIX:
 		case DT_AUXILIARY:
 		case DT_FILTER:
-			name = dyn_str(re, stab, dyn->d_un.d_val);;
+			name = dyn_str(re, stab, dyn->d_un.d_val);
 			printf(" %s\n", name);
 			break;
 		case DT_MIPS_TIME_STAMP:
