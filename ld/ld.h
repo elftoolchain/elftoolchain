@@ -101,6 +101,7 @@ struct ld {
 	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
 	struct ld_symbol *ld_symtab_import; /* hash for import symbols */
 	struct ld_symbol *ld_symtab_export; /* hash for export symbols */
+	struct ld_symbol_defver *ld_defver; /* default version table */
 	struct ld_symbol_table *ld_symtab; /* .symtab symbol table */
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */

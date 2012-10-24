@@ -59,6 +59,12 @@ struct ld_symbol_table {
 	size_t sy_first_nonlocal;
 };
 
+struct ld_symbol_defver {
+	void *dv_name;
+	void *dv_longname;
+	UT_hash_handle hh;
+};
+
 void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);

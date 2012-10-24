@@ -509,6 +509,7 @@ static void
 _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol *_lsb;
+	struct ld_symbol_defver *dv;
 	char *name, *sn;
 
 	name = lsb->lsb_longname;
@@ -528,6 +529,21 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		}
 
 		/*
+		 * If the symbol version is not specified, also search the
+		 * default-versioned defined symbol table.
+		 */
+		if (!strcmp(name, sn)){
+			HASH_FIND_STR(ld->ld_defver, name, dv);
+			if (dv != NULL) {
+				if ((_lsb = _find_symbol(ld->ld_symtab_def,
+				    dv->dv_longname)) != NULL) {
+					_resolve_symbol(lsb, _lsb);
+					return;
+				}
+			}
+		}
+
+		/*
 		 * Otherwise add the new symbol to undefined symbol hash
 		 * table.
 		 */
@@ -542,6 +558,21 @@ _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb)
 		if ((_lsb = _find_symbol(ld->ld_symtab_def, name)) != NULL) {
 			_resolve_symbol(lsb, _lsb);
 			return;
+		}
+
+		/*
+		 * If the symbol version is not specified, also search the
+		 * default-versioned defined symbol table.
+		 */
+		if (!strcmp(name, sn)){
+			HASH_FIND_STR(ld->ld_defver, name, dv);
+			if (dv != NULL) {
+				if ((_lsb = _find_symbol(ld->ld_symtab_def,
+				    dv->dv_longname)) != NULL) {
+					_resolve_symbol(lsb, _lsb);
+					return;
+				}
+			}
 		}
 
 		/*
@@ -638,6 +669,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
     size_t strndx, int i)
 {
 	struct ld_symbol *lsb;
+	struct ld_symbol_defver *dv;
 	char *name;
 	int j, len, ndx;
 
@@ -683,6 +715,16 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 			ld_fatal_std(ld, "malloc");
 		snprintf(lsb->lsb_longname, len, "%s@%s", lsb->lsb_name,
 		    lsb->lsb_ver);
+	}
+
+	/* Keep track of default versions. */
+	if (lsb->lsb_default) {
+		if ((dv = calloc(1, sizeof(*dv))) == NULL)
+			ld_fatal(ld, "calloc");
+		dv->dv_name = lsb->lsb_name;
+		dv->dv_longname = lsb->lsb_longname;
+		HASH_ADD_KEYPTR(hh, ld->ld_defver, dv->dv_name,
+		    strlen(dv->dv_name), dv);
 	}
 
 	/*
