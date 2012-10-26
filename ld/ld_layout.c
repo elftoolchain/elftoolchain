@@ -610,7 +610,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		 * Create a new output secton and put it in a proper place,
 		 * based on the section flag.
 		 */
-		_os = ld_layout_place_output_section(ld, is->is_name,
+		_os = ld_layout_insert_output_section(ld, is->is_name,
 		    is->is_flags);
 
 		if ((islist = calloc(1, sizeof(*islist))) == NULL)
@@ -625,7 +625,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 }
 
 struct ld_output_section *
-ld_layout_place_output_section(struct ld *ld, const char *name,
+ld_layout_insert_output_section(struct ld *ld, const char *name,
     uint64_t flags)
 {
 	struct ld_output *lo;

@@ -126,7 +126,7 @@ _create_pltgot(struct ld *ld)
 
 	HASH_FIND_STR(lo->lo_ostbl, got_name, os);
 	if (os == NULL)
-		os = ld_layout_place_output_section(ld, got_name,
+		os = ld_layout_insert_output_section(ld, got_name,
 		    SHF_ALLOC | SHF_WRITE);
 	os->os_type = SHT_PROGBITS;
 	os->os_align = 8;
@@ -147,7 +147,7 @@ _create_pltgot(struct ld *ld)
 
 	HASH_FIND_STR(lo->lo_ostbl, plt_name, os);
 	if (os == NULL)
-		os = ld_layout_place_output_section(ld, plt_name,
+		os = ld_layout_insert_output_section(ld, plt_name,
 		    SHF_ALLOC | SHF_EXECINSTR);
 	os->os_type = SHT_PROGBITS;
 	os->os_align = 4;

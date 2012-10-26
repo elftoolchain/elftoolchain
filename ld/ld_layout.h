@@ -27,5 +27,5 @@
  */
 
 off_t	ld_layout_calc_header_size(struct ld *);
-struct ld_output_section *ld_layout_place_output_section(struct ld *,
+struct ld_output_section *ld_layout_insert_output_section(struct ld *,
     const char *, uint64_t);
