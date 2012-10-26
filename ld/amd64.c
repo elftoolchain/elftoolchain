@@ -27,8 +27,10 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_input.h"
+#include "ld_layout.h"
 #include "ld_output.h"
 #include "ld_reloc.h"
+#include "ld_symbols.h"
 #include "ld_utils.h"
 #include "amd64.h"
 
@@ -101,6 +103,75 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	}
 }
 
+static void
+_create_pltgot(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *got_odb, *plt_odb;
+	struct ld_symbol *lsb, *_lsb;
+	char plt_name[] = ".plt";
+	char got_name[] = ".got";
+	int func_cnt;
+
+	if (HASH_COUNT(ld->ld_symtab_import) == 0)
+		return;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * Create GOT section.
+	 */
+
+	HASH_FIND_STR(lo->lo_ostbl, got_name, os);
+	if (os == NULL)
+		os = ld_layout_place_output_section(ld, got_name,
+		    SHF_ALLOC | SHF_WRITE);
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 8;
+	os->os_flags = SHF_ALLOC | SHF_WRITE;
+
+	if ((got_odb = calloc(1, sizeof(*got_odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	got_odb->odb_size = (HASH_COUNT(ld->ld_symtab_import) + 3) * 8;
+	got_odb->odb_align = 8;
+	got_odb->odb_type = ELF_T_BYTE;
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	    got_odb, NULL);
+
+	/*
+	 * Create PLT section.
+	 */
+
+	HASH_FIND_STR(lo->lo_ostbl, plt_name, os);
+	if (os == NULL)
+		os = ld_layout_place_output_section(ld, plt_name,
+		    SHF_ALLOC | SHF_EXECINSTR);
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 4;
+	os->os_flags = SHF_ALLOC | SHF_EXECINSTR;
+
+	func_cnt = 0;
+	HASH_ITER(hh, ld->ld_symtab_import, lsb, _lsb) {
+		if (lsb->lsb_type == STT_FUNC)
+			func_cnt++;
+	}
+
+	if (func_cnt == 0)
+		return;
+
+	if ((plt_odb = calloc(1, sizeof(*plt_odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	plt_odb->odb_size = (func_cnt + 1) * 16;
+	plt_odb->odb_align = 1;
+	plt_odb->odb_type = ELF_T_BYTE;
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	    plt_odb, NULL);
+}
+
 void
 amd64_register(struct ld *ld)
 {
@@ -115,6 +186,7 @@ amd64_register(struct ld *ld)
 	amd64->get_max_page_size = _get_max_page_size;
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->process_reloc = _process_reloc;
+	amd64->create_pltgot = _create_pltgot;
 
 	HASH_ADD_STR(ld->ld_arch_list, name, amd64);
 
