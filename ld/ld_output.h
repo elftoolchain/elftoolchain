@@ -35,6 +35,7 @@ enum ld_output_element_type {
 	OET_KEYWORD,
 	OET_OUTPUT_SECTION,
 	OET_OVERLAY,
+	OET_DATA_BUFFER,
 };
 
 struct ld_output_element {
@@ -47,6 +48,14 @@ struct ld_output_element {
 };
 
 STAILQ_HEAD(ld_output_element_head, ld_output_element);
+
+struct ld_output_data_buffer {
+	uint8_t *odb_buf;		/* point to data */
+	uint64_t odb_size;		/* buffer size */
+	uint64_t odb_off;		/* relative offset in output section */
+	uint64_t odb_align;		/* buffer alignment */
+	uint64_t odb_type;		/* buffer data type */
+};
 
 struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */

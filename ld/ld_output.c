@@ -38,6 +38,8 @@ ELFTC_VCSID("$Id$");
 
 static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
+static void _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
+    struct ld_output_data_buffer *odb);
 static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
@@ -180,6 +182,11 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 				scn = _create_elf_scn(ld, lo, os);
 			/* TODO */
 			break;
+		case OET_DATA_BUFFER:
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			_alloc_section_data_from_buffer(ld, scn, oe->oe_entry);
+			break;
 		case OET_INPUT_SECTION_LIST:
 			islist = oe->oe_islist;
 			STAILQ_FOREACH(is, islist, is_next) {
@@ -243,6 +250,23 @@ _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
 		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
 
 	is->is_data = d;
+}
+
+static void
+_alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
+    struct ld_output_data_buffer *odb)
+{
+	Elf_Data *d;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = odb->odb_align;
+	d->d_off = odb->odb_off;
+	d->d_type = odb->odb_type;
+	d->d_size = odb->odb_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = odb->odb_buf;
 }
 
 static void
