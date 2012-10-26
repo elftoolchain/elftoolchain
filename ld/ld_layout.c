@@ -743,6 +743,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 {
 	struct ld_state *ls;
 	struct ld_output_element *oe;
+	struct ld_output_data_buffer *odb;
 	struct ld_input_section *is;
 	struct ld_input_section_head *islist;
 	uint64_t addr;
@@ -766,6 +767,12 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 			break;
 		case OET_DATA:
 			/* TODO */
+			break;
+		case OET_DATA_BUFFER:
+			odb = oe->oe_entry;
+			odb->odb_off = roundup(ls->ls_loc_counter,
+			    odb->odb_align);
+			ls->ls_loc_counter = odb->odb_off + odb->odb_size;
 			break;
 		case OET_ENTRY:
 			ld_script_process_entry(ld, oe->oe_entry);
