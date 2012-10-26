@@ -39,6 +39,7 @@ struct ld_arch {
 	uint64_t (*get_common_page_size)(struct ld *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, uint64_t, uint8_t *);
+	void (*create_pltgot)(struct ld *);
 	UT_hash_handle hh;		/* hash handle */
 	struct ld_arch *alias;
 };
