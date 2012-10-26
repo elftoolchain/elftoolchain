@@ -55,6 +55,7 @@ struct ld_file;
 struct ld_path;
 struct ld_symbol;
 struct ld_symbol_head;
+struct ld_output_data_buffer;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -104,6 +105,10 @@ struct ld {
 	struct ld_symbol_defver *ld_defver; /* default version table */
 	struct ld_symbol_table *ld_symtab; /* .symtab symbol table */
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
+	struct ld_output_section *ld_os_got;  /* GOT section */
+	struct ld_output_section *ld_os_plt;  /* PLT section */
+	struct ld_output_data_buffer *ld_got; /* GOT section data */
+	struct ld_output_data_buffer *ld_plt; /* PLT section data */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */

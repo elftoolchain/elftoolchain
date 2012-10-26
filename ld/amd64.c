@@ -114,7 +114,7 @@ _create_pltgot(struct ld *ld)
 	char got_name[] = ".got";
 	int func_cnt;
 
-	if (HASH_COUNT(ld->ld_symtab_import) == 0)
+	if (HASH_CNT(hhimp, ld->ld_symtab_import) == 0)
 		return;
 
 	lo = ld->ld_output;
@@ -131,12 +131,14 @@ _create_pltgot(struct ld *ld)
 	os->os_type = SHT_PROGBITS;
 	os->os_align = 8;
 	os->os_flags = SHF_ALLOC | SHF_WRITE;
+	ld->ld_os_got = os;
 
 	if ((got_odb = calloc(1, sizeof(*got_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
-	got_odb->odb_size = (HASH_COUNT(ld->ld_symtab_import) + 3) * 8;
+	got_odb->odb_size = (HASH_CNT(hhimp, ld->ld_symtab_import) + 3) * 8;
 	got_odb->odb_align = 8;
 	got_odb->odb_type = ELF_T_BYTE;
+	ld->ld_got = got_odb;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
 	    got_odb, NULL);
@@ -145,16 +147,8 @@ _create_pltgot(struct ld *ld)
 	 * Create PLT section.
 	 */
 
-	HASH_FIND_STR(lo->lo_ostbl, plt_name, os);
-	if (os == NULL)
-		os = ld_layout_insert_output_section(ld, plt_name,
-		    SHF_ALLOC | SHF_EXECINSTR);
-	os->os_type = SHT_PROGBITS;
-	os->os_align = 4;
-	os->os_flags = SHF_ALLOC | SHF_EXECINSTR;
-
 	func_cnt = 0;
-	HASH_ITER(hh, ld->ld_symtab_import, lsb, _lsb) {
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, _lsb) {
 		if (lsb->lsb_type == STT_FUNC)
 			func_cnt++;
 	}
@@ -162,14 +156,152 @@ _create_pltgot(struct ld *ld)
 	if (func_cnt == 0)
 		return;
 
+	HASH_FIND_STR(lo->lo_ostbl, plt_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, plt_name,
+		    SHF_ALLOC | SHF_EXECINSTR);
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 4;
+	os->os_flags = SHF_ALLOC | SHF_EXECINSTR;
+	ld->ld_os_plt = os;
+
 	if ((plt_odb = calloc(1, sizeof(*plt_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	plt_odb->odb_size = (func_cnt + 1) * 16;
 	plt_odb->odb_align = 1;
 	plt_odb->odb_type = ELF_T_BYTE;
+	ld->ld_plt = plt_odb;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
 	    plt_odb, NULL);
+}
+
+static void
+_finalize_pltgot(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_symbol *lsb, *_lsb;
+	uint8_t *got, *plt;
+	uint64_t u64;
+	int32_t s32, pltgot, gotpcrel;
+	int i;
+
+	if (ld->ld_got == NULL || ld->ld_got->odb_size == 0)
+		return;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	if ((got = calloc(ld->ld_got->odb_size, 1)) == NULL)
+		ld_fatal_std(ld, "calloc");
+	ld->ld_got->odb_buf = got;
+
+	plt = NULL;
+	if (ld->ld_plt != NULL && ld->ld_plt->odb_size != 0) {
+		if ((plt = calloc(ld->ld_plt->odb_size, 1)) == NULL)
+			ld_fatal_std(ld, "calloc");
+		ld->ld_plt->odb_buf = plt;
+	}
+
+	/* TODO: fill in _DYNAMIC in the first got entry. */
+	got += 8;
+
+	/* Reserve the second and the third entries for the dynamic linker. */
+	got += 16;
+
+	/*
+	 * Write the first PLT entry.
+	 */
+	if (plt != NULL) {
+		/*
+		 * Calculate the relative offset from PLT to GOT.
+		 */
+		pltgot = ld->ld_os_got->os_addr - ld->ld_os_plt->os_addr;
+
+		/*
+		 * Push the second GOT entry to the stack for the dynamic
+		 * linker. (PUSH reg/memXX [RIP+disp32]) (6 bytes for push)
+		 */
+		WRITE_8(plt, 0xff);
+		WRITE_8(plt + 1, 0x35);
+		s32 = pltgot - 6 + 8;
+		WRITE_32(plt + 2, s32);
+		plt += 6;
+
+		/*
+		 * Jump to the address in the third GOT entry (call into
+		 * the dynamic linker). (JMP reg/memXX [RIP+disp32])
+		 * (6 bytes for jmp)
+		 */
+		WRITE_8(plt, 0xff);
+		WRITE_8(plt + 1, 0x25);
+		s32 = pltgot - 12 + 16;
+		WRITE_32(plt + 2, s32);
+		plt += 6;
+
+		/* Padding: 4-byte nop. (NOP [rAx+disp8]) */
+		WRITE_8(plt, 0x0f);
+		WRITE_8(plt + 1, 0x1f);
+		WRITE_8(plt + 2, 0x40);
+		WRITE_8(plt + 3, 0x0);
+		plt += 4;
+	} else
+		return;
+
+	/*
+	 * Write remaining GOT and PLT entries.
+	 */
+	i = 3;
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, _lsb) {
+		if (lsb->lsb_type != STT_FUNC)
+			goto next_symbol;
+
+		/*
+		 * Calculate the IP-relative offset to the GOT entry for
+		 * this function. (6 bytes for jmp)
+		 */
+		gotpcrel = pltgot + i * 8 - (i - 2) * 16 - 6;
+
+		/*
+		 * Jump to the address in the GOT entry for this function.
+		 * (JMP reg/memXX [RIP+disp32])
+		 */
+		WRITE_8(plt, 0xff);
+		WRITE_8(plt + 1, 0x25);
+		WRITE_32(plt + 2, gotpcrel);
+		plt += 6;
+
+		/*
+		 * Symbol is not resolved, push the relocation index to
+		 * the stack. (PUSH imm32)
+		 */
+		WRITE_8(plt, 0x68);
+		WRITE_32(plt + 1, 0x0); /* TODO */
+		plt += 5;
+
+		/*
+		 * Jump to the first PLT entry, eventually call the dynamic
+		 * linker. (JMP rel32off)
+		 */
+		WRITE_8(plt, 0xe9);
+		s32 = - (i - 1) * 16;
+		WRITE_32(plt + 1, s32);
+		plt += 5;
+
+		/*
+		 * Write the GOT entry for this function, pointing to the
+		 * push op.
+		 */
+		u64 = ld->ld_os_plt->os_addr + (i - 2) * 16 + 6;
+		WRITE_64(got, u64);
+		
+next_symbol:
+		got += 8;
+		i++;
+	}
+
+	assert(got == ld->ld_got->odb_buf + ld->ld_got->odb_size);
+	assert(plt == ld->ld_plt->odb_buf + ld->ld_plt->odb_size);
 }
 
 void
@@ -187,6 +319,7 @@ amd64_register(struct ld *ld)
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->process_reloc = _process_reloc;
 	amd64->create_pltgot = _create_pltgot;
+	amd64->finalize_pltgot = _finalize_pltgot;
 
 	HASH_ADD_STR(ld->ld_arch_list, name, amd64);
 
