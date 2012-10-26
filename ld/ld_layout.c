@@ -104,8 +104,16 @@ ld_layout_sections(struct ld *ld)
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
+	/* Create PLT and GOT sections. */
+	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
+		ld->ld_arch->create_pltgot(ld);
+
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
+
+	/* Finalize PLT and GOT sections. */
+	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
+		ld->ld_arch->finalize_pltgot(ld);
 
 	/* Calculate symbol values and indices of the output object. */
 	ld_symbols_update(ld);
@@ -416,10 +424,6 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 			continue;
 		_layout_orphan_section(ld, li);
 	}
-
-	/* Create PLT and GOT sections if need. */
-	if (HASH_COUNT(ld->ld_symtab_import) > 0)
-		ld->ld_arch->create_pltgot(ld);
 }
 
 static int
