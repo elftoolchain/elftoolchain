@@ -2088,7 +2088,7 @@ elf_print_got(struct elfdump *ed)
 	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
 		s = &ed->sl[i];
-		if (s->name && !strcmp(s->name, ".got") &&
+		if (s->name && !strncmp(s->name, ".got", 4) &&
 		    (STAILQ_EMPTY(&ed->snl) || find_name(ed, s->name)))
 			break;
 	}
