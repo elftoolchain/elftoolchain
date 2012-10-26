@@ -48,7 +48,7 @@
 
 #define	WRITE_8(P,V)					\
 	do {						\
-		*(P)++ = (V) & 0xff;			\
+		*(P) = (V) & 0xff;			\
 	} while (0)
 #define	WRITE_16(P,V)					\
 	do {						\
