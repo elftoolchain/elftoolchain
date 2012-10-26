@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011 Kai Wang
+ * Copyright (c) 2011,2012 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,3 +27,5 @@
  */
 
 off_t	ld_layout_calc_header_size(struct ld *);
+struct ld_output_section *ld_layout_place_output_section(struct ld *,
+    const char *, uint64_t);

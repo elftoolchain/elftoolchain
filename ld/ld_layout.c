@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_exp.h"
 #include "ld_file.h"
 #include "ld_script.h"
@@ -415,6 +416,10 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 			continue;
 		_layout_orphan_section(ld, li);
 	}
+
+	/* Create PLT and GOT sections if need. */
+	if (HASH_COUNT(ld->ld_symtab_import) > 0)
+		ld->ld_arch->create_pltgot(ld);
 }
 
 static int
@@ -601,27 +606,12 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 			continue;
 		}
 
-		STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
-			if ((os->os_flags & SHF_ALLOC) !=
-			    (is->is_flags & SHF_ALLOC))
-				continue;
-
-			if (os->os_flags == is->is_flags) {
-				_os = STAILQ_NEXT(os, os_next);
-				if (_os == NULL ||
-				    _os->os_flags != is->is_flags)
-					break;
-			}
-
-			_os = STAILQ_NEXT(os, os_next);
-			if (_os == NULL &&
-			    (_os->os_flags & SHF_ALLOC) !=
-			    (is->is_flags & SHF_ALLOC))
-				break;
-		}
-
-		_os = ld_output_alloc_section(ld, is->is_name, os);
-		_os->os_flags |= is->is_flags & SHF_ALLOC;
+		/*
+		 * Create a new output secton and put it in a proper place,
+		 * based on the section flag.
+		 */
+		_os = ld_layout_place_output_section(ld, is->is_name,
+		    is->is_flags);
 
 		if ((islist = calloc(1, sizeof(*islist))) == NULL)
 			ld_fatal_std(ld, "calloc");
@@ -632,6 +622,38 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 		oe->oe_islist = islist;
 		_insert_input_to_output(lo, _os, is, oe->oe_islist);
 	}
+}
+
+struct ld_output_section *
+ld_layout_place_output_section(struct ld *ld, const char *name,
+    uint64_t flags)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os, *_os;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if ((os->os_flags & SHF_ALLOC) != (flags & SHF_ALLOC))
+			continue;
+
+		if (os->os_flags == flags) {
+			_os = STAILQ_NEXT(os, os_next);
+			if (_os == NULL || _os->os_flags != flags)
+				break;
+		}
+
+		_os = STAILQ_NEXT(os, os_next);
+		if (_os == NULL &&
+		    (_os->os_flags & SHF_ALLOC) != (flags & SHF_ALLOC))
+			break;
+	}
+
+	_os = ld_output_alloc_section(ld, name, os);
+	_os->os_flags |= flags & SHF_ALLOC;
+
+	return (_os);
 }
 
 static void
