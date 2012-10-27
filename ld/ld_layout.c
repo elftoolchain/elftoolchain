@@ -53,7 +53,6 @@ static void _layout_output_section(struct ld *ld, struct ld_input *li,
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _parse_output_section_descriptor(struct ld *ld,
     struct ld_output_section *os);
-static void _print_layout_map(struct ld *ld);
 static void _print_section_layout(struct ld *ld, struct ld_output_section *os);
 static void _print_wildcard(struct ld_wildcard *lw);
 static void _print_wildcard_list(struct ld_script_list *ldl);
@@ -114,25 +113,10 @@ ld_layout_sections(struct ld *ld)
 	/* Finalize PLT and GOT sections. */
 	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
 		ld->ld_arch->finalize_pltgot(ld);
-
-	if (ld->ld_print_linkmap) {
-		/*
-		 * Get updated symbol information needed for linkmap
-		 * printout. Note that the call to ld_symbols_update()
-		 * here can not update symbol indices. So a second call
-		 * to the function is needed when ELF sections are
-		 * created later. This overhead is introduced only when
-		 * linkmap printout is requested.
-		 */
-		ld_symbols_update(ld);
-
-		/* Print out linkmap. */
-		_print_layout_map(ld);
-	}
 }
 
-static void
-_print_layout_map(struct ld *ld)
+void
+ld_layout_print_linkmap(struct ld *ld)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;

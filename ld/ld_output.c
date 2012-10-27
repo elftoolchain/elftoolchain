@@ -567,6 +567,10 @@ ld_output_create(struct ld *ld)
 	/* Calculate symbol values and indices of the output object. */
 	ld_symbols_update(ld);
 
+	/* Print out link map if requested. */
+	if (ld->ld_print_linkmap)
+		ld_layout_print_linkmap(ld);
+
 	/* Insert section headers table and point e_shoff to it. */
 	eh.e_shoff = _insert_shdr(ld);
 
