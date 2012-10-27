@@ -115,11 +115,20 @@ ld_layout_sections(struct ld *ld)
 	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
 		ld->ld_arch->finalize_pltgot(ld);
 
-	/* Calculate symbol values and indices of the output object. */
-	ld_symbols_update(ld);
+	if (ld->ld_print_linkmap) {
+		/*
+		 * Get updated symbol information needed for linkmap
+		 * printout. Note that the call to ld_symbols_update()
+		 * here can not update symbol indices. So a second call
+		 * to the function is needed when ELF sections are
+		 * created later. This overhead is introduced only when
+		 * linkmap printout is requested.
+		 */
+		ld_symbols_update(ld);
 
-	if (ld->ld_print_linkmap)
+		/* Print out linkmap. */
 		_print_layout_map(ld);
+	}
 }
 
 static void
