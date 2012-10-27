@@ -381,14 +381,19 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy resolved global symbols from hash table. */
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
-		/* TODO: handle DSO output object. */
 		if (lsb->lsb_input != NULL &&
 		    lsb->lsb_input->li_type == LIT_DSO) {
 			lsb0 = _find_symbol_from_import(ld, lsb->lsb_longname);
 			if (lsb0 == NULL)
 				continue;
-		}
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+			memcpy(&_lsb, lsb0, sizeof(_lsb));
+			_lsb.lsb_value = 0;
+			_lsb.lsb_shndx = SHN_UNDEF;
+			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
+			    &_lsb);
+		} else
+			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
+			    lsb);
 	}
 
 	/* Copy undefined weak symbols. */
