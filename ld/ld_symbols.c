@@ -198,6 +198,28 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 	_resolve_and_add_symbol(ld, lsb);
 }
 
+void
+ld_symbols_add_internal(struct ld *ld, char *name, uint64_t size,
+    uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
+    unsigned char other)
+{
+	struct ld_symbol *lsb;
+
+	lsb = _alloc_symbol(ld);
+	if ((lsb->lsb_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	if ((lsb->lsb_longname = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lsb->lsb_size = size;
+	lsb->lsb_value = value;
+	lsb->lsb_shndx = shndx;
+	lsb->lsb_bind = bind;
+	lsb->lsb_type = type;
+	lsb->lsb_other = other;
+
+	_resolve_and_add_symbol(ld, lsb);
+}
+
 int
 ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 {
