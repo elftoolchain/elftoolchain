@@ -183,6 +183,7 @@ _finalize_pltgot(struct ld *ld)
 {
 	struct ld_output *lo;
 	struct ld_symbol *lsb, *_lsb;
+	size_t shndx;
 	uint8_t *got, *plt;
 	uint64_t u64;
 	int32_t s32, pltgot, gotpcrel;
@@ -304,6 +305,12 @@ next_symbol:
 
 	assert(got == ld->ld_got->odb_buf + ld->ld_got->odb_size);
 	assert(plt == ld->ld_plt->odb_buf + ld->ld_plt->odb_size);
+
+	/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
+	shndx = ld_output_get_section_index(ld, ld->ld_os_got);
+	ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0,
+	    ld->ld_os_got->os_addr, (uint16_t) shndx, STB_LOCAL, STT_OBJECT,
+	    STV_HIDDEN);
 }
 
 void
