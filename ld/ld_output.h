@@ -99,6 +99,5 @@ struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *,
     struct ld_output_element *);
 void	ld_output_format(struct ld *, char *, char *, char *);
-size_t	ld_output_get_section_index(struct ld *, struct ld_output_section *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);

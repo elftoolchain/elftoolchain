@@ -66,7 +66,7 @@ static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
 static void _update_import(struct ld *ld, struct ld_symbol *_lsb,
     struct ld_symbol *lsb);
 static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
-static void _update_symbol(struct ld *ld, struct ld_symbol *lsb);
+static void _update_symbol(struct ld_symbol *lsb);
 static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
     const char *name);
 static void _load_verdef(struct ld *ld, struct ld_input *li, Elf *e,
@@ -201,7 +201,7 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 void
 ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
     uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
-    unsigned char other)
+    unsigned char other, struct ld_output_section *preset_os)
 {
 	struct ld_symbol *lsb;
 
@@ -216,6 +216,7 @@ ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
 	lsb->lsb_bind = bind;
 	lsb->lsb_type = type;
 	lsb->lsb_other = other;
+	lsb->lsb_preset_os = preset_os;
 
 	_resolve_and_add_symbol(ld, lsb);
 }
@@ -330,7 +331,7 @@ ld_symbols_update(struct ld *ld)
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		HASH_ITER(hhi, li->li_local, lsb, _lsb)
-			_update_symbol(ld, lsb);
+			_update_symbol(lsb);
 	}	
 
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
@@ -339,11 +340,11 @@ ld_symbols_update(struct ld *ld)
 		    lsb->lsb_input->li_type == LIT_DSO)
 			continue;
 
-		_update_symbol(ld, lsb);
+		_update_symbol(lsb);
 	}
 
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, _lsb) {
-		_update_symbol(ld, lsb);
+		_update_symbol(lsb);
 	}
 }
 
@@ -778,8 +779,10 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 		ndx = j & ~0x8000;
 		if ((size_t) ndx < li->li_vername_sz) {
 			lsb->lsb_ver = li->li_vername[ndx];
+#if 0
 			printf("symbol: %s ver: %s\n", lsb->lsb_name,
 			    lsb->lsb_ver);
+#endif
 			if (j >= 2 && (j & 0x8000) == 0 &&
 			    lsb->lsb_shndx != SHN_UNDEF)
 				lsb->lsb_default = 1;
@@ -1053,32 +1056,31 @@ _free_symbol(struct ld_symbol *lsb)
 }
 
 static void
-_update_symbol(struct ld *ld, struct ld_symbol *lsb)
+_update_symbol(struct ld_symbol *lsb)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
-	struct ld_output *lo;
 	struct ld_output_section *os;
+
+	if (lsb->lsb_preset_os != NULL) {
+		lsb->lsb_shndx = elf_ndxscn(lsb->lsb_preset_os->os_scn);
+		return;
+	}
 
 	if (lsb->lsb_shndx == SHN_ABS)
 		return;
 
-	lo = ld->ld_output;
-	assert(lo != NULL);
-
-	li = lsb->lsb_input;
-	if (lsb->lsb_shndx == SHN_COMMON)
-		is = &li->li_is[li->li_shnum - 1];
-	else
-		is = &li->li_is[lsb->lsb_shndx];
-	if ((os = is->is_output) == NULL)
-		return;
-	lsb->lsb_value += os->os_addr + is->is_reloff;
-	lsb->lsb_shndx = elf_ndxscn(os->os_scn);
-#if 0
-	printf("symbol %s: %#jx\n", lsb->lsb_name,
-	    (uintmax_t) lsb->lsb_value);
-#endif
+	if (lsb->lsb_input != NULL) {
+		li = lsb->lsb_input;
+		if (lsb->lsb_shndx == SHN_COMMON)
+			is = &li->li_is[li->li_shnum - 1];
+		else
+			is = &li->li_is[lsb->lsb_shndx];
+		if ((os = is->is_output) == NULL)
+			return;
+		lsb->lsb_value += os->os_addr + is->is_reloff;
+		lsb->lsb_shndx = elf_ndxscn(os->os_scn);
+	}
 }
 
 struct ld_symbol_table *

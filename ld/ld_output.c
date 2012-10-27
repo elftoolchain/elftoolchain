@@ -142,20 +142,6 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 	return (os);
 }
 
-size_t
-ld_output_get_section_index(struct ld *ld, struct ld_output_section *os)
-{
-	struct ld_output *lo;
-
-	if ((lo = ld->ld_output) == NULL)
-		return (SHN_UNDEF);
-
-	if (lo->lo_elf == NULL || os->os_scn == NULL)
-		return (SHN_UNDEF);
-
-	return (elf_ndxscn(os->os_scn));
-}
-
 static Elf_Scn *
 _create_elf_scn(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os)

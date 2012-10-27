@@ -43,6 +43,7 @@ struct ld_symbol {
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
+	struct ld_output_section *lsb_preset_os; /* Preset output section */
 	UT_hash_handle hh;		/* hash handle */
 	UT_hash_handle hhi;		/* hash handle (input object) */
 	UT_hash_handle hhimp;		/* hash handle (import) */
@@ -69,7 +70,8 @@ void	ld_symbols_add_extern(struct ld *, char *);
 void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
 void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
-    uint16_t, unsigned char, unsigned char, unsigned char);
+    uint16_t, unsigned char, unsigned char, unsigned char,
+    struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
