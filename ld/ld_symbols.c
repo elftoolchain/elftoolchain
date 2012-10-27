@@ -334,6 +334,11 @@ ld_symbols_update(struct ld *ld)
 	}	
 
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
+		/* Skip defined symbols from DSOs. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
+
 		_update_symbol(ld, lsb);
 	}
 
