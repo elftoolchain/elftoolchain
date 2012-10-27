@@ -130,6 +130,7 @@ _create_pltgot(struct ld *ld)
 		    SHF_ALLOC | SHF_WRITE);
 	os->os_type = SHT_PROGBITS;
 	os->os_align = 8;
+	os->os_entsize = 8;
 	os->os_flags = SHF_ALLOC | SHF_WRITE;
 	ld->ld_os_got = os;
 
@@ -162,6 +163,7 @@ _create_pltgot(struct ld *ld)
 		    SHF_ALLOC | SHF_EXECINSTR);
 	os->os_type = SHT_PROGBITS;
 	os->os_align = 4;
+	os->os_entsize = 16;
 	os->os_flags = SHF_ALLOC | SHF_EXECINSTR;
 	ld->ld_os_plt = os;
 
