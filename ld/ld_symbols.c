@@ -199,7 +199,7 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 }
 
 void
-ld_symbols_add_internal(struct ld *ld, char *name, uint64_t size,
+ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
     uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
     unsigned char other)
 {
