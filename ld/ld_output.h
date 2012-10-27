@@ -67,6 +67,7 @@ struct ld_output_section {
 	uint64_t os_align;		/* output section alignment */
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
+	uint64_t os_entsize;		/* output seciton entry size */
 	unsigned os_empty;		/* output section is empty */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */

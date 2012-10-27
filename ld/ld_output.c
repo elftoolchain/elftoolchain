@@ -230,6 +230,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	sh.sh_offset = os->os_off;
 	sh.sh_size = os->os_size;
 	sh.sh_type = os->os_type;
+	sh.sh_entsize = os->os_entsize;
 
 	_add_to_shstrtab(ld, os->os_name);
 
