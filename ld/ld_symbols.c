@@ -59,6 +59,8 @@ static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
 static struct ld_symbol *_find_symbol_from_input(struct ld_symbol *tbl,
     char *name);
+static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
+static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
 static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
 static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
 static void _update_import(struct ld *ld, struct ld_symbol *_lsb,
@@ -327,7 +329,7 @@ ld_symbols_build_symtab(struct ld *ld)
 #if 0
 	struct ld_input_section *is;
 #endif
-	struct ld_symbol *lsb, *tmp, _lsb;
+	struct ld_symbol *lsb, *lsb0, *tmp, _lsb;
 
 	lo = ld->ld_output;
 
@@ -379,6 +381,13 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy resolved global symbols from hash table. */
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, tmp) {
+		/* TODO: handle DSO output object. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO) {
+			lsb0 = _find_symbol_from_import(ld, lsb->lsb_longname);
+			if (lsb0 == NULL)
+				continue;
+		}
 		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
 	}
 
@@ -422,13 +431,30 @@ _find_symbol_from_input(struct ld_symbol *tbl, char *name)
 	return (s);
 }
 
+static struct ld_symbol *
+_find_symbol_from_import(struct ld *ld, char *name)
+{
+	struct ld_symbol *s;
+
+	HASH_FIND(hhimp, ld->ld_symtab_import, name, strlen(name), s);
+	return (s);
+}
+
+static struct ld_symbol *
+_find_symbol_from_export(struct ld *ld, char *name)
+{
+	struct ld_symbol *s;
+
+	HASH_FIND(hhexp, ld->ld_symtab_export, name, strlen(name), s);
+	return (s);
+}
+
 static void
 _add_to_import(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol *_lsb;
 
-	HASH_FIND(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), _lsb);
+	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
 	if (_lsb != NULL)
 		return;
 	assert(_lsb == NULL);
@@ -442,8 +468,7 @@ _remove_from_import(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol *_lsb;
 
-	HASH_FIND(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), _lsb);
+	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
 	if (_lsb == NULL)
 		return;
 	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
@@ -497,14 +522,12 @@ _update_export(struct ld *ld, struct ld_symbol *lsb, int add)
 		return;
 
 	if (add) {
-		HASH_FIND(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
-		    strlen(lsb->lsb_longname), _lsb);
+		_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
 		assert(_lsb == NULL);
 		HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
 		    strlen(lsb->lsb_longname), lsb);
 	} else {
-		HASH_FIND(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
-		    strlen(lsb->lsb_longname), _lsb);
+		_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
 		assert(_lsb != NULL);
 		HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
 	}
