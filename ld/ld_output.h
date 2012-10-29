@@ -87,9 +87,11 @@ struct ld_output {
 	int lo_osabi;			 /* output object osabi */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
+	unsigned lo_dso_needed;		 /* num of DSO referenced */
 	struct ld_output_element_head lo_oelist; /* output element list */
 	struct ld_output_section_head lo_oslist; /* output section list */
 	struct ld_output_section *lo_ostbl; /* output section hash table */
+	struct ld_output_section *lo_interp; /* .interp section. */
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,

@@ -70,7 +70,7 @@ ld_layout_sections(struct ld *ld)
 	struct ld_script *lds;
 	struct ld_script_cmd *ldc;
 	struct ld_state *ls;
-	int sections_cmd_exist, dso_needed;
+	int sections_cmd_exist;
 
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
@@ -109,20 +109,20 @@ ld_layout_sections(struct ld *ld)
 	/*
 	 * Check how many DSOs is needed for output object.
 	 */
-	dso_needed = 0;
+	lo->lo_dso_needed = 0;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		if (li->li_type != LIT_DSO)
 			continue;
 		if (li->li_dso_refcnt > 0 || !li->li_file->lf_as_needed)
-			dso_needed++;
+			lo->lo_dso_needed++;
 	}
 
 	/* Create .interp section. */
-	if (dso_needed > 0)
+	if (lo->lo_dso_needed > 0)
 		_create_interp(ld);
 
 	/* Create PLT and GOT sections. */
-	if (dso_needed > 0)
+	if (lo->lo_dso_needed > 0)
 		ld->ld_arch->create_pltgot(ld);
 
 	/* Create .dynamic section. */
@@ -131,7 +131,7 @@ ld_layout_sections(struct ld *ld)
 	_calc_offset(ld);
 
 	/* Finalize PLT and GOT sections. */
-	if (dso_needed > 0)
+	if (lo->lo_dso_needed > 0)
 		ld->ld_arch->finalize_pltgot(ld);
 }
 
@@ -363,16 +363,14 @@ ld_layout_calc_header_size(struct ld *ld)
 				}
 			}
 
+			if (lo->lo_interp != NULL)
+				num_phdrs++;
+
 			if (lo->lo_phdr_note)
 				num_phdrs++;
 
 			if (ld->ld_gen_gnustack)
 				num_phdrs++;
-
-			if (lo->lo_phdr_num != 0 &&
-			    lo->lo_phdr_num != num_phdrs)
-				ld_fatal(ld, "not enough room for program"
-				    " headers");
 		}
 	}
 
@@ -886,4 +884,5 @@ _create_interp(struct ld *ld)
 	
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
 	    NULL);
+	lo->lo_interp = os;
 }

@@ -362,7 +362,7 @@ _create_phdr(struct ld *ld)
 	void *phdrs;
 	uint64_t addr, off, align, flags, filesz, memsz;
 	unsigned w;
-	int i, new;
+	int i, new, first;
 
 	/* TODO: support segments created by linker script command PHDR. */
 
@@ -404,16 +404,28 @@ _create_phdr(struct ld *ld)
 	else
 		p64 = phdrs;
 
-	/* Create PT_LOAD segments. */
+	i = -1;
+
+	/* Create PT_INTERP segment for dynamically linked output object */
+	if (lo->lo_interp != NULL) {
+		i++;
+		os = lo->lo_interp;
+		_WRITE_PHDR(PT_INTERP, os->os_off, os->os_addr, os->os_size,
+		    os->os_size, PF_R, 1);
+	}
+
+	/*
+	 * Create PT_LOAD segments. 
+	 */
 
 	align = ld->ld_arch->get_max_page_size(ld);
 	new = 1;
-	i = -1;
 	w = 0;
 	filesz = 0;
 	memsz = 0;
 	flags = PF_R;
 	off = 0;
+	first = 1;
 
 	/* Calculate the start vma of output object. */
 	os = STAILQ_FIRST(&lo->lo_oslist);
@@ -432,7 +444,7 @@ _create_phdr(struct ld *ld)
 			new = 0;
 			w = os->os_flags & SHF_WRITE;
 
-			if (i >= 0)
+			if (!first)
 				_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz,
 				    flags, align);
 
@@ -440,10 +452,11 @@ _create_phdr(struct ld *ld)
 			if ((unsigned) i >= lo->lo_phdr_num)
 				ld_fatal(ld, "not enough room for program"
 				    " headers");
-			if (i > 0) {
+			if (!first) {
 				addr = os->os_addr;
 				off = os->os_off;
 			}
+			first = 0;
 			flags = PF_R;
 			filesz = 0;
 			memsz = 0;
