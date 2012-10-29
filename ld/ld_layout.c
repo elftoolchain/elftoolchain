@@ -363,6 +363,9 @@ ld_layout_calc_header_size(struct ld *ld)
 				}
 			}
 
+			if (lo->lo_dso_needed > 0)
+				num_phdrs++;
+
 			if (lo->lo_interp != NULL)
 				num_phdrs++;
 

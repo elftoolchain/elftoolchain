@@ -360,7 +360,7 @@ _create_phdr(struct ld *ld)
 	Elf32_Phdr *p32;
 	Elf64_Phdr *p64;
 	void *phdrs;
-	uint64_t addr, off, align, flags, filesz, memsz;
+	uint64_t addr, off, align, flags, filesz, memsz, phdr_addr;
 	unsigned w;
 	int i, new, first;
 
@@ -406,6 +406,23 @@ _create_phdr(struct ld *ld)
 
 	i = -1;
 
+	/* Calculate the start vma of output object. */
+	os = STAILQ_FIRST(&lo->lo_oslist);
+	addr = os->os_addr - os->os_off;
+
+	/* Create PT_PHDR segment for dynamically linked output object */
+	if (lo->lo_dso_needed > 0) {
+		i++;
+		off = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
+		phdr_addr = addr + off;
+		filesz = memsz = gelf_fsize(lo->lo_elf, ELF_T_PHDR,
+		    lo->lo_phdr_num, EV_CURRENT);
+		align = lo->lo_ec == ELFCLASS32 ? 4 : 8;
+		flags = PF_R | PF_X;
+		_WRITE_PHDR(PT_PHDR, off, phdr_addr, filesz, memsz, flags,
+		    align);
+	}
+
 	/* Create PT_INTERP segment for dynamically linked output object */
 	if (lo->lo_interp != NULL) {
 		i++;
@@ -426,10 +443,6 @@ _create_phdr(struct ld *ld)
 	flags = PF_R;
 	off = 0;
 	first = 1;
-
-	/* Calculate the start vma of output object. */
-	os = STAILQ_FIRST(&lo->lo_oslist);
-	addr = os->os_addr - os->os_off;
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
