@@ -44,6 +44,7 @@ ELFTC_VCSID("$Id$");
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
+static void _create_interp(struct ld *);
 static void _insert_input_to_output(struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
@@ -115,6 +116,10 @@ ld_layout_sections(struct ld *ld)
 		if (li->li_dso_refcnt > 0 || !li->li_file->lf_as_needed)
 			dso_needed++;
 	}
+
+	/* Create .interp section. */
+	if (dso_needed > 0)
+		_create_interp(ld);
 
 	/* Create PLT and GOT sections. */
 	if (dso_needed > 0)
@@ -839,4 +844,46 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	/* Reset location counter to the current VMA. */
 	if (os->os_flags & SHF_ALLOC)
 		ls->ls_loc_counter = os->os_addr + os->os_size;
+}
+
+static void
+_create_interp(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *odb;
+	const char *interp;
+	char interp_name[] = ".interp";
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	HASH_FIND_STR(lo->lo_ostbl, interp_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, interp_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 1;
+	os->os_entsize = 0;
+	os->os_flags = SHF_ALLOC;
+
+	if (ld->ld_interp != NULL)
+		interp = ld->ld_interp;
+	else
+		interp = ld->ld_arch->interp;
+	assert(interp != NULL);
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	odb->odb_size = strlen(interp) + 1;
+	odb->odb_align = 1;
+	odb->odb_type = ELF_T_BYTE;
+
+	if ((odb->odb_buf = calloc(odb->odb_size, 1)) == NULL)
+		ld_fatal_std(ld, "calloc");
+	strncpy(odb->odb_buf, interp, strlen(interp));
+	odb->odb_buf[strlen(interp)] = '\0';
+	
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	    NULL);
 }

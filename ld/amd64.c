@@ -322,6 +322,7 @@ amd64_register(struct ld *ld)
 	snprintf(amd64->name, sizeof(amd64->name), "%s", "amd64");
 
 	amd64->script = amd64_script;
+	amd64->interp = "/libexec/ld-elf.so.1";
 	amd64->get_max_page_size = _get_max_page_size;
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->process_reloc = _process_reloc;

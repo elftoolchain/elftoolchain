@@ -344,6 +344,11 @@ ld_options_process(struct ld *ld, int key, char *arg)
 		if ((ld->ld_entry = strdup(arg)) == NULL)
 			ld_fatal_std(ld, "strdup");
 		break;
+	case 'I':
+		if (ld->ld_interp != NULL)
+			free(ld->ld_interp);
+		if ((ld->ld_interp = strdup(arg)) == NULL)
+			ld_fatal_std(ld, "strdup");
 	case 'l':
 		ld_path_search_library(ld, arg);
 		break;
