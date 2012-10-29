@@ -112,7 +112,7 @@ ld_layout_sections(struct ld *ld)
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		if (li->li_type != LIT_DSO)
 			continue;
-		if (li->li_dso_refcnt > 0 || li->li_file->lf_as_needed)
+		if (li->li_dso_refcnt > 0 || !li->li_file->lf_as_needed)
 			dso_needed++;
 	}
 
