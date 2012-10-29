@@ -64,11 +64,12 @@ static int _wildcard_list_match(struct ld_script_list *list,
 void
 ld_layout_sections(struct ld *ld)
 {
+	struct ld_input *li;
 	struct ld_output *lo;
 	struct ld_script *lds;
 	struct ld_script_cmd *ldc;
 	struct ld_state *ls;
-	int sections_cmd_exist;
+	int sections_cmd_exist, dso_needed;
 
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
@@ -100,18 +101,32 @@ ld_layout_sections(struct ld *ld)
 			break;
 		}
 	}
+
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
+	/*
+	 * Check how many DSOs is needed for output object.
+	 */
+	dso_needed = 0;
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_type != LIT_DSO)
+			continue;
+		if (li->li_dso_refcnt > 0 || li->li_file->lf_as_needed)
+			dso_needed++;
+	}
+
 	/* Create PLT and GOT sections. */
-	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
+	if (dso_needed > 0)
 		ld->ld_arch->create_pltgot(ld);
+
+	/* Create .dynamic section. */
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
 
 	/* Finalize PLT and GOT sections. */
-	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0)
+	if (dso_needed > 0)
 		ld->ld_arch->finalize_pltgot(ld);
 }
 
