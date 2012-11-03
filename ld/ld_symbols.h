@@ -28,6 +28,7 @@
 
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
+	uint64_t lsb_nameindex;		/* symbol name index */
 	char *lsb_ver;			/* symbol version */
 	char *lsb_longname;		/* symbol name+version (as hash key)*/
 	uint64_t lsb_size;		/* symbol size */
@@ -58,6 +59,7 @@ struct ld_symbol_table {
 	size_t sy_cap;
 	size_t sy_size;
 	size_t sy_first_nonlocal;
+	size_t sy_write_pos;
 };
 
 struct ld_symbol_defver {
@@ -74,6 +76,8 @@ void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
     struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
+void	ld_symbols_create_dynsym(struct ld *);
+void	ld_symbols_finalize_dynsym(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 int	ld_symbols_get_value_from_input(struct ld_input *, char *, uint64_t *);
 int	ld_symbols_get_value_from_input_local(struct ld_input *, char *,

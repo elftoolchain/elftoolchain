@@ -42,8 +42,9 @@ static void _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e);
 static void _unload_symbols(struct ld_input *li);
 static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx, int i);
-static void _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
-    struct ld_strtab *strtab, struct ld_symbol *lsb);
+static void _add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb);
+static void _write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb);
+static void _add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb);
 static void _free_symbol_table(struct ld_symbol_table *symtab);
 struct ld_symbol_table *_alloc_symbol_table(struct ld *ld);
 static int _archive_member_extracted(struct ld_archive *la, off_t off);
@@ -364,10 +365,7 @@ ld_symbols_build_symtab(struct ld *ld)
 	ld->ld_symtab = _alloc_symbol_table(ld);
 	ld->ld_strtab = ld_strtab_alloc(ld);
 
-	/*
-	 * Always create the special symbol at the beginning of the
-	 * symbol table.
-	 */
+	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
 	_lsb.lsb_size = 0;
 	_lsb.lsb_value = 0;
@@ -375,7 +373,7 @@ ld_symbols_build_symtab(struct ld *ld)
 	_lsb.lsb_bind = STB_LOCAL;
 	_lsb.lsb_type = STT_NOTYPE;
 	_lsb.lsb_other = 0;
-	_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+	_add_to_symbol_table(ld, &_lsb);
 
 	/* Create STT_SECTION symbols. */
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
@@ -388,7 +386,7 @@ ld_symbols_build_symtab(struct ld *ld)
 		_lsb.lsb_bind = STB_LOCAL;
 		_lsb.lsb_type = STT_SECTION;
 		_lsb.lsb_other = 0;
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, &_lsb);
+		_add_to_symbol_table(ld, &_lsb);
 	}
 
 	/* Copy local symbols from each input object. */
@@ -402,8 +400,7 @@ ld_symbols_build_symtab(struct ld *ld)
 				continue;
 			}
 #endif
-			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
-			    lsb);
+			_add_to_symbol_table(ld, lsb);
 		}
 	}
 
@@ -417,21 +414,80 @@ ld_symbols_build_symtab(struct ld *ld)
 			memcpy(&_lsb, lsb0, sizeof(_lsb));
 			_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
-			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
-			    &_lsb);
+			_add_to_symbol_table(ld, &_lsb);
 		} else
-			_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab,
-			    lsb);
+			_add_to_symbol_table(ld, lsb);
 	}
 
 	/* Copy undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+		_add_to_symbol_table(ld, lsb);
 	}
 
 	/* Copy common symbols. */
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
-		_add_to_symbol_table(ld, ld->ld_symtab, ld->ld_strtab, lsb);
+		_add_to_symbol_table(ld, lsb);
+	}
+}
+
+void
+ld_symbols_create_dynsym(struct ld *ld)
+{
+	struct ld_symbol *lsb, *tmp;
+
+	ld->ld_dynsym = _alloc_symbol_table(ld);
+	ld->ld_dynstr = ld_strtab_alloc(ld);
+
+	/* Reserve space for the initial symbol. */
+	ld->ld_dynsym->sy_size++;
+
+	/* undefined weak symbols. */
+	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		_add_to_dynsym_table(ld, lsb);
+	}
+
+	/* import symbols. */
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		_add_to_dynsym_table(ld, lsb);
+	}
+
+	/* export symbols. */
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		_add_to_dynsym_table(ld, lsb);
+	}
+}
+
+void
+ld_symbols_finalize_dynsym(struct ld *ld)
+{
+	struct ld_symbol *lsb, *tmp, _lsb;
+
+	/* Create an initial symbol at the beginning of symbol table. */
+	_lsb.lsb_name = NULL;
+	_lsb.lsb_size = 0;
+	_lsb.lsb_value = 0;
+	_lsb.lsb_shndx = SHN_UNDEF;
+	_lsb.lsb_bind = STB_LOCAL;
+	_lsb.lsb_type = STT_NOTYPE;
+	_lsb.lsb_other = 0;
+	_write_to_dynsym_table(ld, &_lsb);
+
+	/* Copy undefined weak symbols. */
+	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		_write_to_dynsym_table(ld, lsb);
+	}
+
+	/* Copy import symbols. */
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		memcpy(&_lsb, lsb, sizeof(_lsb));
+		_lsb.lsb_value = 0;
+		_lsb.lsb_shndx = SHN_UNDEF;
+		_write_to_dynsym_table(ld, &_lsb);
+	}
+
+	/* Copy export symbols. */
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		_write_to_dynsym_table(ld, lsb);
 	}
 }
 
@@ -1096,24 +1152,89 @@ _alloc_symbol_table(struct ld *ld)
 }
 
 static void
-_add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
-    struct ld_strtab *strtab, struct ld_symbol *lsb)
+_add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	assert(ld->ld_dynsym != NULL && ld->ld_dynstr != NULL);
+
+	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+	    lsb->lsb_name);
+
+	ld->ld_dynsym->sy_size++;
+}
+
+static void
+_write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_output *lo;
+	struct ld_symbol_table *symtab;
 	Elf32_Sym *s32;
 	Elf64_Sym *s64;
 	size_t es;
 
-	assert(symtab != NULL && lsb != NULL);
+	assert(lsb != NULL);
+	assert(ld->ld_dynsym != NULL && ld->ld_dynstr != NULL);
+	symtab = ld->ld_dynsym;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
 	es = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym);
 
-	/*
-	 * Allocate/Reallocate buffer for the symbol table.
-	 */
+	/* Allocate buffer for the dynsym table. */
+	if (symtab->sy_buf == NULL) {
+		symtab->sy_buf = malloc(symtab->sy_size * es);
+		symtab->sy_write_pos = 0;
+	}
+
+	if (lo->lo_ec == ELFCLASS32) {
+		s32 = symtab->sy_buf;
+		s32 += symtab->sy_size;
+		s32->st_name = lsb->lsb_nameindex;
+		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s32->st_other = lsb->lsb_other;
+		s32->st_shndx = lsb->lsb_shndx;
+		s32->st_value = lsb->lsb_value;
+		s32->st_size = lsb->lsb_size;
+	} else {
+		s64 = symtab->sy_buf;
+		s64 += symtab->sy_size;
+		s64->st_name = lsb->lsb_nameindex;
+		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
+		s64->st_other = lsb->lsb_other;
+		s64->st_shndx = lsb->lsb_shndx;
+		s64->st_value = lsb->lsb_value;
+		s64->st_size = lsb->lsb_size;
+	}
+
+	/* Remember the index for the first non-local symbol. */
+	if (symtab->sy_first_nonlocal == 0 && lsb->lsb_bind != STB_LOCAL)
+		symtab->sy_first_nonlocal = symtab->sy_write_pos;
+
+	symtab->sy_write_pos++;
+}
+
+static void
+_add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_output *lo;
+	struct ld_symbol_table *symtab;
+	struct ld_strtab *strtab;
+	Elf32_Sym *s32;
+	Elf64_Sym *s64;
+	size_t es;
+
+	assert(lsb != NULL);
+	assert(ld->ld_symtab != NULL && ld->ld_strtab != NULL);
+	symtab = ld->ld_symtab;
+	strtab = ld->ld_strtab;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	es = (lo->lo_ec == ELFCLASS32) ? sizeof(Elf32_Sym) : sizeof(Elf64_Sym);
+
+	/* Allocate/Reallocate buffer for the symbol table. */
 	if (symtab->sy_buf == NULL) {
 		symtab->sy_size = 0;
 		symtab->sy_cap = _INIT_SYMTAB_SIZE;
@@ -1131,11 +1252,12 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 	 * Insert the symbol into the symbol table and the symbol name to
 	 * the assoicated name string table.
 	 */
+	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, strtab,
+	    lsb->lsb_name);
 	if (lo->lo_ec == ELFCLASS32) {
 		s32 = symtab->sy_buf;
 		s32 += symtab->sy_size;
-		s32->st_name = ld_strtab_insert_no_suffix(ld, strtab,
-		    lsb->lsb_name);
+		s32->st_name = lsb->lsb_nameindex;
 		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s32->st_other = lsb->lsb_other;
 		s32->st_shndx = lsb->lsb_shndx;
@@ -1144,8 +1266,7 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol_table *symtab,
 	} else {
 		s64 = symtab->sy_buf;
 		s64 += symtab->sy_size;
-		s64->st_name = ld_strtab_insert_no_suffix(ld, strtab,
-		    lsb->lsb_name);
+		s64->st_name = lsb->lsb_nameindex;
 		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s64->st_other = lsb->lsb_other;
 		s64->st_shndx = lsb->lsb_shndx;
