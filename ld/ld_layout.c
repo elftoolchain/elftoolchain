@@ -44,7 +44,8 @@ ELFTC_VCSID("$Id$");
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
-static void _create_interp(struct ld *);
+static void _create_dynamic(struct ld *ld);
+static void _create_interp(struct ld *ld);
 static void _insert_input_to_output(struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
@@ -126,6 +127,8 @@ ld_layout_sections(struct ld *ld)
 		ld->ld_arch->create_pltgot(ld);
 
 	/* Create .dynamic section. */
+	if (lo->lo_dso_needed > 0)
+		_create_dynamic(ld);
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
@@ -888,4 +891,84 @@ _create_interp(struct ld *ld)
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
 	    NULL);
 	lo->lo_interp = os;
+}
+
+static void
+_create_dynamic(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os, *_os;
+	struct ld_output_data_buffer *odb;
+	char dynamic_name[] = ".interp";
+	char init_name[] = ".init";
+	char fini_name[] = ".fini";
+	int entries;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	HASH_FIND_STR(lo->lo_ostbl, dynamic_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, dynamic_name,
+		    SHF_ALLOC | SHF_WRITE);
+	os->os_type = SHT_PROGBITS;
+	os->os_flags = SHF_ALLOC | SHF_WRITE;
+	if (lo->lo_ec == ELFCLASS32) {
+		os->os_entsize = 8;
+		os->os_align = 4;
+	} else {
+		os->os_entsize = 16;
+		os->os_align = 8;
+	}
+
+	entries = lo->lo_dso_needed;
+
+	/* DT_INIT */
+	HASH_FIND_STR(lo->lo_ostbl, init_name, _os);
+	if (_os != NULL && !os->os_empty)
+		entries++;
+
+	/* DT_FINI */
+	HASH_FIND_STR(lo->lo_ostbl, fini_name, _os);
+	if (_os != NULL && !os->os_empty)
+		entries++;
+
+	/* DT_HASH, DT_STRTAB, DT_SYMTAB, DT_STRSZ and DT_SYMENT */
+	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0 ||
+	    HASH_CNT(hhexp, ld->ld_symtab_export) > 0)
+		entries += 5;
+
+	/* TODO: DT_RPATH. */
+
+	/*
+	 * DT_DEBUG. dynamic linker changes this at runtime, gdb uses
+	 * it to find all the loaded DSOs. (thus .dynamic has to be
+	 * writable)
+	 */
+	entries++;
+
+	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
+	if (ld->ld_os_plt)
+		entries += 4;
+
+	/*
+	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
+	 * DT_VERSYM.
+	 */
+
+	/* DT_NULL. TODO: Reserve multiple DT_NULL entries for DT_RPATH? */
+	entries++;
+
+	/*
+	 * Reserve space for .dynamic section, based on number of entries.
+	 */
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	odb->odb_size = entries * os->os_entsize;
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_BYTE;
+
+	/* Create _DYNAMIC symobl. */
+	ld_symbols_add_internal(ld, "_DYNAMIC", 0, 0, SHN_ABS, STB_LOCAL,
+	    STT_OBJECT, STV_HIDDEN, os);
 }
