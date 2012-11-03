@@ -176,6 +176,10 @@ _create_pltgot(struct ld *ld)
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
 	    plt_odb, NULL);
+
+	/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
+	ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0, 0, SHN_ABS,
+	    STB_LOCAL, STT_OBJECT, STV_HIDDEN, ld->ld_os_got);
 }
 
 static void
@@ -304,11 +308,6 @@ next_symbol:
 
 	assert(got == ld->ld_got->odb_buf + ld->ld_got->odb_size);
 	assert(plt == ld->ld_plt->odb_buf + ld->ld_plt->odb_size);
-
-	/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
-	ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0,
-	    ld->ld_os_got->os_addr, SHN_ABS, STB_LOCAL, STT_OBJECT,
-	    STV_HIDDEN, ld->ld_os_got);
 }
 
 void

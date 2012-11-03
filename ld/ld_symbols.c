@@ -1063,6 +1063,7 @@ _update_symbol(struct ld_symbol *lsb)
 	struct ld_output_section *os;
 
 	if (lsb->lsb_preset_os != NULL) {
+		lsb->lsb_value = lsb->lsb_preset_os->os_addr;
 		lsb->lsb_shndx = elf_ndxscn(lsb->lsb_preset_os->os_scn);
 		return;
 	}
