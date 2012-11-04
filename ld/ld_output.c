@@ -207,12 +207,12 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			/* TODO */
 			break;
 		case OET_SYMTAB:
+			/* TODO: Check symtab size. */
 			if (scn == NULL)
 				scn = _create_elf_scn(ld, lo, os);
-			_alloc_section_data_for_symtab(ld, os, scn,
-			    oe->oe_entry);
 			break;
 		case OET_STRTAB:
+			/* TODO: Check strtab size. */
 			if (scn == NULL)
 				scn = _create_elf_scn(ld, lo, os);
 			_alloc_section_data_for_strtab(ld, scn, oe->oe_entry);
@@ -651,6 +651,13 @@ ld_output_create(struct ld *ld)
 
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
+
+	/* Finalize dynamic symbol section. */
+	if (lo->lo_dynsym != NULL) {
+		ld_symbols_finalize_dynsym(ld);
+		_alloc_section_data_for_symtab(ld, lo->lo_dynsym,
+		    lo->lo_dynsym->os_scn, ld->ld_dynsym);
+	}
 
 	/* Generate section name string table section (.shstrtab). */
 	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);

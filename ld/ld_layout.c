@@ -143,9 +143,6 @@ ld_layout_sections(struct ld *ld)
 	if (lo->lo_dso_needed > 0) {
 		/* Finalize PLT and GOT sections. */
 		ld->ld_arch->finalize_pltgot(ld);
-
-		/* Finalize internal dynsym table. */
-		ld_symbols_finalize_dynsym(ld);
 	}
 }
 
@@ -1024,6 +1021,7 @@ _create_dynsym_and_dynstr(struct ld *ld)
 		os->os_entsize = sizeof(Elf64_Sym);
 		os->os_align = 8;
 	}
+	lo->lo_dynsym = os;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_SYMTAB,
 	    ld->ld_dynsym, NULL);
