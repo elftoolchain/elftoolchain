@@ -34,6 +34,7 @@
 #include "ld_layout.h"
 #include "ld_options.h"
 #include "ld_symbols.h"
+#include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -772,6 +773,8 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	struct ld_output_data_buffer *odb;
 	struct ld_input_section *is;
 	struct ld_input_section_head *islist;
+	struct ld_symbol_table *sy;
+	struct ld_strtab *st;
 	uint64_t addr;
 
 	ls = &ld->ld_state;
@@ -822,6 +825,16 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 			break;
 		case OET_KEYWORD:
 			/* TODO */
+			break;
+		case OET_SYMTAB:
+			assert(ls->ls_loc_counter == 0);
+			sy = oe->oe_entry;
+			ls->ls_loc_counter = sy->sy_size * os->os_entsize;
+			break;
+		case OET_STRTAB:
+			assert(ls->ls_loc_counter == 0);
+			st = oe->oe_entry;
+			ls->ls_loc_counter = st->st_size;
 			break;
 		default:
 			break;
