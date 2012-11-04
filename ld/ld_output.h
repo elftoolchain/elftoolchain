@@ -36,6 +36,8 @@ enum ld_output_element_type {
 	OET_OUTPUT_SECTION,
 	OET_OVERLAY,
 	OET_DATA_BUFFER,
+	OET_SYMTAB,
+	OET_STRTAB
 };
 
 struct ld_output_element {
