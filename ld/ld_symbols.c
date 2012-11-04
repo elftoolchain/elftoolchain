@@ -452,7 +452,7 @@ ld_symbols_create_dynsym(struct ld *ld)
 	}
 
 	/* export symbols. */
-	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+	HASH_ITER(hhexp, ld->ld_symtab_export, lsb, tmp) {
 		_add_to_dynsym_table(ld, lsb);
 	}
 }
@@ -486,7 +486,7 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	}
 
 	/* Copy export symbols. */
-	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+	HASH_ITER(hhexp, ld->ld_symtab_export, lsb, tmp) {
 		_write_to_dynsym_table(ld, lsb);
 	}
 }
