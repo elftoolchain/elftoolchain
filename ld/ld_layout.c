@@ -46,6 +46,7 @@ static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
 static void _create_dynamic(struct ld *ld);
 static void _create_interp(struct ld *ld);
+static void _create_dynsym_and_dynstr(struct ld *ld);
 static void _insert_input_to_output(struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
@@ -129,6 +130,10 @@ ld_layout_sections(struct ld *ld)
 	/* Create .dynamic section. */
 	if (lo->lo_dso_needed > 0)
 		_create_dynamic(ld);
+
+	/* Create .dynsym and .dynstr sections. */
+	if (lo->lo_dso_needed > 0)
+		_create_dynsym_and_dynstr(ld);
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
@@ -971,4 +976,59 @@ _create_dynamic(struct ld *ld)
 	/* Create _DYNAMIC symobl. */
 	ld_symbols_add_internal(ld, "_DYNAMIC", 0, 0, SHN_ABS, STB_LOCAL,
 	    STT_OBJECT, STV_HIDDEN, os);
+}
+
+static void
+_create_dynsym_and_dynstr(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	char dynsym_name[] = ".dynsym";
+	char dynstr_name[] = ".dynstr";
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * Copy relevant symbols to internal dynamic symbol table.
+	 */
+
+	ld_symbols_create_dynsym(ld);
+
+	/*
+	 * Create .dynsym section.
+	 */
+
+	HASH_FIND_STR(lo->lo_ostbl, dynsym_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, dynsym_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_DYNSYM;
+	os->os_flags = SHF_ALLOC;
+	if (lo->lo_ec == ELFCLASS32) {
+		os->os_entsize = sizeof(Elf32_Sym);
+		os->os_align = 4;
+	} else {
+		os->os_entsize = sizeof(Elf64_Sym);
+		os->os_align = 8;
+	}
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_SYMTAB,
+	    ld->ld_dynsym, NULL);
+
+	/*
+	 * Create .dynstr section.
+	 */
+
+	HASH_FIND_STR(lo->lo_ostbl, dynstr_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, dynstr_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_STRTAB;
+	os->os_flags = SHF_ALLOC;
+	os->os_entsize = 0;
+	os->os_align = 1;
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_STRTAB,
+	    ld->ld_dynstr, NULL);
 }
