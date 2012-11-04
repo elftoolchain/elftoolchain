@@ -1041,4 +1041,6 @@ _create_dynsym_and_dynstr(struct ld *ld)
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_STRTAB,
 	    ld->ld_dynstr, NULL);
+
+	lo->lo_dynsym->os_link = os;
 }

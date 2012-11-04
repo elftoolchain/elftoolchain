@@ -71,6 +71,7 @@ struct ld_output_section {
 	uint64_t os_type;		/* output section type */
 	uint64_t os_entsize;		/* output seciton entry size */
 	unsigned os_empty;		/* output section is empty */
+	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */

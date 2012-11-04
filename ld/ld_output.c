@@ -57,7 +57,7 @@ static void _create_string_table_section(struct ld *ld, const char *name,
 static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
-static void _set_section_name(struct ld *ld);
+static void _update_section_header(struct ld *ld);
 
 void
 ld_output_init(struct ld *ld)
@@ -665,8 +665,11 @@ ld_output_create(struct ld *ld)
 	/* Generate symbol table. */
 	_create_symbol_table(ld);
 
-	/* Update "sh_name" fields of each section headers. */
-	_set_section_name(ld);
+	/*
+	 * Update "sh_name", "sh_link" and "sh_info" fields of each section
+	 * headers, wherever applicable.
+	 */
+	_update_section_header(ld);
 
 	/* Finally write out the output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)
@@ -719,7 +722,7 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 }
 
 static void
-_set_section_name(struct ld *ld)
+_update_section_header(struct ld *ld)
 {
 	struct ld_strtab *st;
 	struct ld_output *lo;
@@ -730,11 +733,6 @@ _set_section_name(struct ld *ld)
 	st = ld->ld_shstrtab;
 	assert(st != NULL && st->st_buf != NULL);
 
-	/*
-	 * Set "sh_name" fields of each section headers to point
-	 * to the string table.
-	 */
-
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_scn == NULL)
 			continue;
@@ -743,7 +741,21 @@ _set_section_name(struct ld *ld)
 			ld_fatal(ld, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
+		/*
+		 * Set "sh_name" fields of each section headers to point
+		 * to the string table.
+		 */
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
+
+		/* Update "sh_link" field if need. */
+		if (os->os_link != NULL)
+			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
+
+		/* Update "sh_info" for dynamic symbol table section. */
+		if (os->os_type == SHT_DYNSYM) {
+			assert(ld->ld_dynsym != NULL);
+			sh.sh_info = ld->ld_dynsym->sy_first_nonlocal;
+		}
 
 #if 0
 		printf("name=%s, shname=%#jx, offset=%#jx, size=%#jx, type=%#jx\n",
