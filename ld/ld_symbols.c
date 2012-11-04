@@ -1189,7 +1189,7 @@ _write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 
 	if (lo->lo_ec == ELFCLASS32) {
 		s32 = symtab->sy_buf;
-		s32 += symtab->sy_size;
+		s32 += symtab->sy_write_pos;
 		s32->st_name = lsb->lsb_nameindex;
 		s32->st_info = ELF32_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s32->st_other = lsb->lsb_other;
@@ -1198,7 +1198,7 @@ _write_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 		s32->st_size = lsb->lsb_size;
 	} else {
 		s64 = symtab->sy_buf;
-		s64 += symtab->sy_size;
+		s64 += symtab->sy_write_pos;
 		s64->st_name = lsb->lsb_nameindex;
 		s64->st_info = ELF64_ST_INFO(lsb->lsb_bind, lsb->lsb_type);
 		s64->st_other = lsb->lsb_other;
