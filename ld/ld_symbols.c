@@ -464,6 +464,7 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 
 	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
+	_lsb.lsb_nameindex = 0;
 	_lsb.lsb_size = 0;
 	_lsb.lsb_value = 0;
 	_lsb.lsb_shndx = SHN_UNDEF;
