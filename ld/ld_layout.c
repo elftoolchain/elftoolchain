@@ -120,28 +120,33 @@ ld_layout_sections(struct ld *ld)
 			lo->lo_dso_needed++;
 	}
 
-	/* Create .interp section. */
-	if (lo->lo_dso_needed > 0)
+	if (lo->lo_dso_needed > 0) {
+		/* Create .interp section. */
 		_create_interp(ld);
 
-	/* Create PLT and GOT sections. */
-	if (lo->lo_dso_needed > 0)
+		/* Create PLT and GOT sections. */
 		ld->ld_arch->create_pltgot(ld);
 
-	/* Create .dynamic section. */
-	if (lo->lo_dso_needed > 0)
+		/* Create .dynamic section. */
 		_create_dynamic(ld);
 
-	/* Create .dynsym and .dynstr sections. */
-	if (lo->lo_dso_needed > 0)
+		/* Copy relevant symbols to internal dynsym table. */
+		ld_symbols_create_dynsym(ld);
+
+		/* Create .dynsym and .dynstr sections. */
 		_create_dynsym_and_dynstr(ld);
+	}
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
 
-	/* Finalize PLT and GOT sections. */
-	if (lo->lo_dso_needed > 0)
+	if (lo->lo_dso_needed > 0) {
+		/* Finalize PLT and GOT sections. */
 		ld->ld_arch->finalize_pltgot(ld);
+
+		/* Finalize internal dynsym table. */
+		ld_symbols_finalize_dynsym(ld);
+	}
 }
 
 void
@@ -1001,12 +1006,6 @@ _create_dynsym_and_dynstr(struct ld *ld)
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
-
-	/*
-	 * Copy relevant symbols to internal dynamic symbol table.
-	 */
-
-	ld_symbols_create_dynsym(ld);
 
 	/*
 	 * Create .dynsym section.
