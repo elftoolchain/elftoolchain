@@ -300,7 +300,7 @@ _alloc_section_data_for_symtab(struct ld *ld, struct ld_output_section *os,
 
 	d->d_align = os->os_align;
 	d->d_off = 0;
-	d->d_type = os->os_type;
+	d->d_type = ELF_T_SYM;
 	d->d_size = os->os_entsize * symtab->sy_size;
 	d->d_version = EV_CURRENT;
 	d->d_buf = symtab->sy_buf;

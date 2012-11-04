@@ -922,7 +922,7 @@ _create_dynamic(struct ld *ld)
 	struct ld_output *lo;
 	struct ld_output_section *os, *_os;
 	struct ld_output_data_buffer *odb;
-	char dynamic_name[] = ".interp";
+	char dynamic_name[] = ".dynamic";
 	char init_name[] = ".init";
 	char fini_name[] = ".fini";
 	int entries;
