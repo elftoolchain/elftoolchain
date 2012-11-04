@@ -40,6 +40,11 @@ static void _alloc_input_section_data(struct ld *ld, Elf_Scn *scn,
     struct ld_input_section *is);
 static void _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
     struct ld_output_data_buffer *odb);
+static void _alloc_section_data_for_symtab(struct ld *ld,
+    struct ld_output_section *os, Elf_Scn *scn,
+    struct ld_symbol_table *symtab);
+static void _alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
+    struct ld_strtab *strtab);
 static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
@@ -201,6 +206,17 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 				scn = _create_elf_scn(ld, lo, os);
 			/* TODO */
 			break;
+		case OET_SYMTAB:
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			_alloc_section_data_for_symtab(ld, os, scn,
+			    oe->oe_entry);
+			break;
+		case OET_STRTAB:
+			if (scn == NULL)
+				scn = _create_elf_scn(ld, lo, os);
+			_alloc_section_data_for_strtab(ld, scn, oe->oe_entry);
+			break;
 		default:
 			break;
 		}
@@ -268,6 +284,46 @@ _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
 	d->d_size = odb->odb_size;
 	d->d_version = EV_CURRENT;
 	d->d_buf = odb->odb_buf;
+}
+
+static void
+_alloc_section_data_for_symtab(struct ld *ld, struct ld_output_section *os,
+    Elf_Scn *scn, struct ld_symbol_table *symtab)
+{
+	Elf_Data *d;
+
+	if (symtab->sy_buf == NULL || symtab->sy_size == 0)
+		return;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = os->os_align;
+	d->d_off = 0;
+	d->d_type = os->os_type;
+	d->d_size = os->os_entsize * symtab->sy_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = symtab->sy_buf;
+}
+
+static void
+_alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
+    struct ld_strtab *strtab)
+{
+	Elf_Data *d;
+
+	if (strtab->st_buf == NULL || strtab->st_size == 0)
+		return;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = 1;
+	d->d_off = 0;
+	d->d_type = ELF_T_BYTE;
+	d->d_size = strtab->st_size;
+	d->d_version = EV_CURRENT;
+	d->d_buf = strtab->st_buf;
 }
 
 static void
