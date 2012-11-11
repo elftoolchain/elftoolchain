@@ -136,6 +136,11 @@ ld_symbols_cleanup(struct ld *ld)
 		ld->ld_var_symbols = NULL;
 	}
 
+	if (ld->ld_dyn_symbols != NULL) {
+		free(ld->ld_dyn_symbols);
+		ld->ld_dyn_symbols = NULL;
+	}
+
 	if (ld->ld_symtab != NULL) {
 		_free_symbol_table(ld->ld_symtab);
 		ld->ld_symtab = NULL;
@@ -458,6 +463,7 @@ ld_symbols_create_dynsym(struct ld *ld)
 
 	/* import symbols. */
 	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		lsb->lsb_import = 1;
 		_add_to_dynsym_table(ld, lsb);
 	}
 
@@ -470,7 +476,7 @@ ld_symbols_create_dynsym(struct ld *ld)
 void
 ld_symbols_finalize_dynsym(struct ld *ld)
 {
-	struct ld_symbol *lsb, *tmp, _lsb;
+	struct ld_symbol *lsb, _lsb;
 
 	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
@@ -483,26 +489,16 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	_lsb.lsb_other = 0;
 	_write_to_dynsym_table(ld, &_lsb);
 
-	/* Copy undefined weak symbols. */
-	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
-		/* Skip weak undefined symbols from DSO. */
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type == LIT_DSO)
-			continue;
-		_write_to_dynsym_table(ld, lsb);
-	}
+	assert(ld->ld_dyn_symbols != NULL);
 
-	/* Copy import symbols. */
-	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
-		memcpy(&_lsb, lsb, sizeof(_lsb));
-		_lsb.lsb_value = 0;
-		_lsb.lsb_shndx = SHN_UNDEF;
-		_write_to_dynsym_table(ld, &_lsb);
-	}
-
-	/* Copy export symbols. */
-	HASH_ITER(hhexp, ld->ld_symtab_export, lsb, tmp) {
-		_write_to_dynsym_table(ld, lsb);
+	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
+		if (lsb->lsb_import) {
+			memcpy(&_lsb, lsb, sizeof(_lsb));
+			_lsb.lsb_value = 0;
+			_lsb.lsb_shndx = SHN_UNDEF;
+			_write_to_dynsym_table(ld, &_lsb);
+		} else
+			_write_to_dynsym_table(ld, lsb);
 	}
 }
 
@@ -1196,6 +1192,14 @@ _add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 {
 
 	assert(ld->ld_dynsym != NULL && ld->ld_dynstr != NULL);
+
+	if (ld->ld_dyn_symbols == NULL) {
+		ld->ld_dyn_symbols = malloc(sizeof(*ld->ld_dyn_symbols));
+		if (ld->ld_dyn_symbols == NULL)
+			ld_fatal_std(ld, "malloc");
+		STAILQ_INIT(ld->ld_dyn_symbols);
+	}
+	STAILQ_INSERT_TAIL(ld->ld_dyn_symbols, lsb, lsb_dyn);
 
 	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 	    lsb->lsb_name);

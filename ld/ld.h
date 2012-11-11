@@ -108,6 +108,7 @@ struct ld {
 	struct ld_strtab *ld_strtab;	/* .strtab string table */
 	struct ld_symbol_table *ld_dynsym; /* .dynsym symbol table */
 	struct ld_strtab *ld_dynstr;	/* .dynstr string table */
+	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
 	struct ld_output_section *ld_os_got;  /* GOT section */
 	struct ld_output_section *ld_os_plt;  /* PLT section */
 	struct ld_output_data_buffer *ld_got; /* GOT section data */

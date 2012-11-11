@@ -41,6 +41,7 @@ struct ld_symbol {
 	unsigned char lsb_default;	/* symbol is default/only version */
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
+	unsigned char lsb_import;	/* symbol is a import symbol */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
@@ -50,6 +51,7 @@ struct ld_symbol {
 	UT_hash_handle hhimp;		/* hash handle (import) */
 	UT_hash_handle hhexp;		/* hash handle (export) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
+	STAILQ_ENTRY(ld_symbol) lsb_dyn;  /* next dynamic symbol */
 };
 
 STAILQ_HEAD(ld_symbol_head, ld_symbol);
