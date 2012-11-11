@@ -421,6 +421,10 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		/* Skip weak undefined symbols from DSO. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
 		_add_to_symbol_table(ld, lsb);
 	}
 
@@ -443,6 +447,10 @@ ld_symbols_create_dynsym(struct ld *ld)
 
 	/* undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		/* Skip weak undefined symbols from DSO. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
 		_add_to_dynsym_table(ld, lsb);
 	}
 
@@ -475,6 +483,10 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 
 	/* Copy undefined weak symbols. */
 	HASH_ITER(hh, ld->ld_symtab_undef, lsb, tmp) {
+		/* Skip weak undefined symbols from DSO. */
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type == LIT_DSO)
+			continue;
 		_write_to_dynsym_table(ld, lsb);
 	}
 
