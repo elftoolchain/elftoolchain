@@ -64,7 +64,9 @@ static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
 static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
 static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
 static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
-static void _update_import(struct ld *ld, struct ld_symbol *_lsb,
+static void _add_to_export(struct ld *ld, struct ld_symbol *lsb);
+static void _remove_from_export(struct ld *ld, struct ld_symbol *lsb);
+static void _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
     struct ld_symbol *lsb);
 static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
 static void _update_symbol(struct ld_symbol *lsb);
@@ -97,7 +99,7 @@ static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
 	}							\
 	(s)->lsb_prev = (_s);					\
 	(_s)->lsb_ref = (s);					\
-	_update_import(ld, _s, s);				\
+	_update_import_and_export(ld, _s, s);			\
 	} while (0)
 
 void
@@ -578,7 +580,31 @@ _remove_from_import(struct ld *ld, struct ld_symbol *lsb)
 }
 
 static void
-_update_import(struct ld *ld, struct ld_symbol *_lsb, struct ld_symbol *lsb)
+_add_to_export(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
+	if (_lsb != NULL)
+		return;
+	HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
+	    strlen(lsb->lsb_longname), lsb);
+}
+
+static void
+_remove_from_export(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol *_lsb;
+
+	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
+	if (_lsb == NULL)
+		return;
+	HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
+}
+
+static void
+_update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
+    struct ld_symbol *lsb)
 {
 	struct ld_symbol *__lsb;
 
@@ -605,14 +631,21 @@ _update_import(struct ld *ld, struct ld_symbol *_lsb, struct ld_symbol *lsb)
 			}
 		}
 	}
+
+	/*
+	 * If some symbol resolved to a ABS symbol, the ABS symbol should be
+	 * added to the export symbol table, if it doesn't yet exist there.
+	 */
+	if (lsb->lsb_input == NULL && lsb->lsb_shndx == SHN_ABS &&
+	    lsb->lsb_bind == STB_GLOBAL)
+		_add_to_export(ld, lsb);
 }
 
 static void
 _update_export(struct ld *ld, struct ld_symbol *lsb, int add)
 {
-	struct ld_symbol *_lsb;
 
-	if (lsb->lsb_shndx == SHN_UNDEF)
+	if (lsb->lsb_shndx == SHN_UNDEF || lsb->lsb_shndx == SHN_ABS)
 		return;
 
 	if (lsb->lsb_input != NULL &&
@@ -620,19 +653,13 @@ _update_export(struct ld *ld, struct ld_symbol *lsb, int add)
 		return;
 
 	/* TODO: DSOs export functions. */
-	if (lsb->lsb_type != STT_OBJECT || lsb->lsb_other == STV_HIDDEN)
+	if (lsb->lsb_type == STT_FUNC || lsb->lsb_other == STV_HIDDEN)
 		return;
 
-	if (add) {
-		_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-		assert(_lsb == NULL);
-		HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
-		    strlen(lsb->lsb_longname), lsb);
-	} else {
-		_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-		assert(_lsb != NULL);
-		HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
-	}
+	if (add)
+		_add_to_export(ld, lsb);
+	else
+		_remove_from_export(ld, lsb);
 }
 
 static int
