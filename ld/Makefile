@@ -13,6 +13,7 @@ SRCS=	amd64.c			\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
+	ld_hash.c		\
 	ld_input.c		\
 	ld_layout.c		\
 	ld_main.c 		\

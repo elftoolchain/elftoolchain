@@ -28,6 +28,7 @@
 #include "ld_arch.h"
 #include "ld_exp.h"
 #include "ld_file.h"
+#include "ld_hash.h"
 #include "ld_script.h"
 #include "ld_input.h"
 #include "ld_output.h"
@@ -135,6 +136,9 @@ ld_layout_sections(struct ld *ld)
 
 		/* Create .dynsym and .dynstr sections. */
 		_create_dynsym_and_dynstr(ld);
+
+		/* Create .hash section. */
+		ld_hash_create_svr4_hash_section(ld);
 	}
 
 	/* Calculate section offsets of the output object. */
