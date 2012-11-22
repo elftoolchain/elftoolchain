@@ -143,6 +143,9 @@ ld_layout_sections(struct ld *ld)
 
 		/* Create .gnu.version_r section. */
 		ld_symver_create_verneed_section(ld);
+
+		/* Create .gnu.version section. */
+		ld_symver_create_versym_section(ld);
 	}
 
 	/* Calculate section offsets of the output object. */
@@ -599,7 +602,7 @@ _layout_output_section(struct ld *ld, struct ld_input *li,
 	next_output_cmd:
 		assert(oe != NULL);
 		if (!new_section)
-			oe = STAILQ_NEXT(oe, oe_next);			
+			oe = STAILQ_NEXT(oe, oe_next);
 	}
 }
 
@@ -915,7 +918,7 @@ _create_interp(struct ld *ld)
 		ld_fatal_std(ld, "calloc");
 	strncpy(odb->odb_buf, interp, strlen(interp));
 	odb->odb_buf[strlen(interp)] = '\0';
-	
+
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
 	    NULL);
 	lo->lo_interp = os;

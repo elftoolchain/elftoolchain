@@ -195,9 +195,8 @@ ld_symver_create_verneed_section(struct ld *ld)
 	}
 
 	/*
-	 * Write Verneed/Vernaux structures
+	 * Write Verneed/Vernaux structures.
 	 */
-
 	if ((buf = malloc(sz)) == NULL)
 		ld_fatal_std(ld, "malloc");
 
@@ -255,11 +254,63 @@ ld_symver_create_verneed_section(struct ld *ld)
 void
 ld_symver_create_versym_section(struct ld *ld)
 {
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *odb;
 	struct ld_symbol *lsb;
+	char versym_name[] = ".gnu.version";
+	uint16_t *buf;
+	size_t sz;
+	int i;
 
+	lo = ld->ld_output;
+	assert(lo != NULL);
+	assert(lo->lo_dynsym != NULL);
+	assert(ld->ld_dynsym != NULL);
+
+	/*
+	 * Create .gnu.version section.
+	 */
+	HASH_FIND_STR(lo->lo_ostbl, versym_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, versym_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_GNU_versym;
+	os->os_flags = SHF_ALLOC;
+	os->os_entsize = 2;
+	os->os_align = 2;
+	os->os_link = lo->lo_dynsym;
+
+	/*
+	 * Write versym table.
+	 */
+	sz = ld->ld_dynsym->sy_size * sizeof(*buf);
+	if ((buf = malloc(sz)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	buf[0] = 0;		/* special index 0 symbol */
+	i = 1;
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
-		/* TODO */
+		if (lsb->lsb_bind == STB_LOCAL)
+			buf[i] = 0; /* Version is *local* */
+		else if (lsb->lsb_vd != NULL)
+			buf[i] = lsb->lsb_vd->svd_ndx_output;
+		else
+			buf[i] = 1; /* Version is *global* */
+		i++;
 	}
+	assert((size_t) i == ld->ld_dynsym->sy_size);
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	odb->odb_buf = (void *) buf;
+	odb->odb_size = sz;
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_HALF; /* enable libelf translation */
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	    odb, NULL);
 }
 
 void
@@ -524,7 +575,7 @@ _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef
 		if (vd->vd_next == 0)
 			break;
 		buf += vd->vd_next;
-	}		
+	}
 }
 
 static struct ld_symver_verdef *
