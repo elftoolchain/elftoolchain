@@ -103,7 +103,6 @@ ld_hash_create_svr4_hash_section(struct ld *ld)
 		}
 
 		j = elf_hash(lsb->lsb_name) % nbuckets;
-		printf("i=%d, j=%d name=%s hash=%lu\n", i, j, lsb->lsb_name, elf_hash(lsb->lsb_name));
 		chains[i] = buckets[j];
 		buckets[j] = i;
 		i++;
