@@ -3420,7 +3420,7 @@ dump_verdef(struct readelf *re, int dump)
 	Elf_Verdaux *vda;
 	uint8_t *buf, *end, *buf2;
 	const char *name;
-	int elferr, i;
+	int elferr, i, j;
 
 	if ((s = re->vd_s) == NULL)
 		return;
@@ -3460,11 +3460,22 @@ dump_verdef(struct readelf *re, int dump)
 			    vd->vd_flags, vd->vd_ndx, vd->vd_cnt);
 		}
 		buf2 = buf + vd->vd_aux;
-		vda = (Elf_Verdaux *) (uintptr_t) buf2;
-		name = get_string(re, s->link, vda->vda_name);
-		if (dump)
-			printf(" vda_name: %s\n", name);
-		SAVE_VERSION_NAME((int)vd->vd_ndx, name, 1);
+		j = 0;
+		while (buf2 + sizeof(Elf_Verdaux) <= end && j < vd->vd_cnt) {
+			vda = (Elf_Verdaux *) (uintptr_t) buf2;
+			name = get_string(re, s->link, vda->vda_name);
+			if (j == 0) {
+				if (dump)
+					printf(" vda_name: %s\n", name);
+				SAVE_VERSION_NAME((int)vd->vd_ndx, name, 1);
+			} else if (dump)
+				printf("  0x%4.4lx parent: %s\n",
+				    buf2 - (uint8_t *)d->d_buf, name);
+			if (vda->vda_next == 0)
+				break;
+			buf2 += vda->vda_next;
+			j++;
+		}
 		if (vd->vd_next == 0)
 			break;
 		buf += vd->vd_next;
