@@ -29,6 +29,7 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_symbols.h"
+#include "ld_symver.h"
 #include "ld_script.h"
 #include "ld_strtab.h"
 
@@ -70,14 +71,6 @@ static void _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
     struct ld_symbol *lsb);
 static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
 static void _update_symbol(struct ld_symbol *lsb);
-static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
-    const char *name);
-static void _load_verdef(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *verdef);
-static void _load_verneed(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *verneed);
-static void _load_symbol_version_info(struct ld *ld, struct ld_input *li,
-    Elf *e, Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef);
 
 #define	_add_symbol(tbl, s) do {				\
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
@@ -1085,7 +1078,8 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	if (scn_sym == NULL || strndx == SHN_UNDEF)
 		return;
 
-	_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed, scn_verdef);
+	ld_symver_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed,
+	    scn_verdef);
 
 	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
 		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
@@ -1335,179 +1329,3 @@ _free_symbol_table(struct ld_symbol_table *symtab)
 	free(symtab->sy_buf);
 	free(symtab);
 }
-
-/*
- * Symbol versioning sections are the same for 32bit and 64bit
- * ELF objects.
- */
-#define Elf_Verdef	Elf32_Verdef
-#define	Elf_Verdaux	Elf32_Verdaux
-#define	Elf_Verneed	Elf32_Verneed
-#define	Elf_Vernaux	Elf32_Vernaux
-
-static void
-_add_version_name(struct ld *ld, struct ld_input *li, int ndx,
-    const char *name)
-{
-	int i;
-
-	assert(name != NULL);
-
-	if (ndx <= 1)
-		return;
-
-	if (li->li_vername == NULL) {
-		li->li_vername_sz = 10;
-		li->li_vername = calloc(li->li_vername_sz,
-		    sizeof(*li->li_vername));
-		if (li->li_vername == NULL)
-			ld_fatal_std(ld, "calloc");
-	}
-
-	if ((size_t) ndx >= li->li_vername_sz) {
-		li->li_vername = realloc(li->li_vername,
-		    sizeof(*li->li_vername) * li->li_vername_sz * 2);
-		if (li->li_vername == NULL)
-			ld_fatal_std(ld, "realloc");
-		for (i = li->li_vername_sz; (size_t) i < li->li_vername_sz * 2;
-		     i++)
-			li->li_vername[i] = NULL;
-		li->li_vername_sz *= 2;
-	}
-
-	if (li->li_vername[ndx] == NULL) {
-		li->li_vername[ndx] = strdup(name);
-		if (li->li_vername[ndx] == NULL)
-			ld_fatal_std(ld, "strdup");
-	}
-}
-
-static void
-_load_verneed(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
-{
-	Elf_Data *d_vn;
-	Elf_Verneed *vn;
-	Elf_Vernaux *vna;
-	GElf_Shdr sh_vn;
-	uint8_t *buf, *end, *buf2;
-	char *name;
-	int elferr, i;
-
-	if (gelf_getshdr(verneed, &sh_vn) != &sh_vn)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d_vn = elf_getdata(verneed, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vn->d_size == 0)
-		return;
-
-	buf = d_vn->d_buf;
-	end = buf + d_vn->d_size;
-	while (buf + sizeof(Elf_Verneed) <= end) {
-		vn = (Elf_Verneed *) (uintptr_t) buf;
-		buf2 = buf + vn->vn_aux;
-		i = 0;
-		while (buf2 + sizeof(Elf_Vernaux) <= end && i < vn->vn_cnt) {
-			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
-			name = elf_strptr(e, sh_vn.sh_link,
-			    vna->vna_name);
-			if (name != NULL)
-				_add_version_name(ld, li, (int) vna->vna_other,
-				    name);
-			buf2 += vna->vna_next;
-			i++;
-		}
-		if (vn->vn_next == 0)
-			break;
-		buf += vn->vn_next;
-	}
-}
-
-static void
-_load_verdef(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
-{
-	Elf_Data *d_vd;
-	Elf_Verdef *vd;
-	Elf_Verdaux *vda;
-	GElf_Shdr sh_vd;
-	uint8_t *buf, *end, *buf2;
-	char *name;
-	int elferr;
-
-	if (gelf_getshdr(verdef, &sh_vd) != &sh_vd)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
-		    elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d_vd = elf_getdata(verdef, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vd->d_size == 0)
-		return;
-
-	buf = d_vd->d_buf;
-	end = buf + d_vd->d_size;
-	while (buf + sizeof(Elf_Verdef) <= end) {
-		vd = (Elf_Verdef *) (uintptr_t) buf;
-		buf2 = buf + vd->vd_aux;
-		vda = (Elf_Verdaux *) (uintptr_t) buf2;
-		name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
-		if (name != NULL)
-			_add_version_name(ld, li, (int) vd->vd_ndx, name);
-		if (vd->vd_next == 0)
-			break;
-		buf += vd->vd_next;
-	}		
-}
-
-static void
-_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
-    Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
-{
-	Elf_Data *d_vs;
-	int elferr;
-
-	if (versym == NULL)
-		return;
-
-	(void) elf_errno();
-	if ((d_vs = elf_getdata(versym, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
-			    elf_errmsg(elferr));
-		return;
-	}
-	if (d_vs->d_size == 0)
-		return;
-
-	if ((li->li_versym = malloc(d_vs->d_size)) == NULL)
-		ld_fatal_std(ld, "malloc");
-	memcpy(li->li_versym, d_vs->d_buf, d_vs->d_size);
-	li->li_versym_sz = d_vs->d_size / sizeof(uint16_t);
-
-	_add_version_name(ld, li, 0, "*local*");
-	_add_version_name(ld, li, 1, "*global*");
-
-	if (verneed != NULL)
-		_load_verneed(ld, li, e, verneed);
-
-	if (verdef != NULL)
-		_load_verdef(ld, li, e, verdef);
-}
-
-#undef	Elf_Verdef
-#undef	Elf_Verdaux
-#undef	Elf_Verneed
-#undef	Elf_Vernaux

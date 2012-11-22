@@ -26,6 +26,7 @@ SRCS=	amd64.c			\
 	ld_script_parser.y	\
 	ld_strtab.c		\
 	ld_symbols.c		\
+	ld_symver.c		\
 	y.tab.h
 
 .SUFFIXES:	.ld .c
