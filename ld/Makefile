@@ -10,6 +10,7 @@ SRCS=	amd64.c			\
 	i386.c			\
 	i386_script.c		\
 	ld_arch.c		\
+	ld_dynamic.c		\
 	ld_error.c 		\
 	ld_exp.c		\
 	ld_file.c		\
