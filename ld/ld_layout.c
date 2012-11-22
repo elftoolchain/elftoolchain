@@ -1042,6 +1042,7 @@ _create_dynsym_and_dynstr(struct ld *ld)
 	os->os_flags = SHF_ALLOC;
 	os->os_entsize = 0;
 	os->os_align = 1;
+	lo->lo_dynstr = os;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_STRTAB,
 	    ld->ld_dynstr, NULL);
