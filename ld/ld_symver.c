@@ -101,12 +101,16 @@ ld_symver_create_verneed_section(struct ld *ld)
 	struct ld_input *li;
 	struct ld_output *lo;
 	struct ld_output_section *os;
-	/* struct ld_output_data_buffer *odb; */
+	struct ld_output_data_buffer *odb;
 	struct ld_symver_verdef *svd;
 	struct ld_symver_verneed *svn;
 	struct ld_symver_vda *sda;
 	struct ld_symver_vna *sna;
 	char verneed_name[] = ".gnu.version_r";
+	Elf_Verneed *vn;
+	Elf_Vernaux *vna;
+	uint8_t *buf, *buf2, *end;
+	size_t sz;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
@@ -121,19 +125,18 @@ ld_symver_create_verneed_section(struct ld *ld)
 		    SHF_ALLOC);
 	os->os_type = SHT_GNU_verneed;
 	os->os_flags = SHF_ALLOC;
-	if (lo->lo_ec == ELFCLASS32) {
-		os->os_entsize = sizeof(Elf32_Sym);
+	os->os_entsize = 0;
+	if (lo->lo_ec == ELFCLASS32)
 		os->os_align = 4;
-	} else {
-		os->os_entsize = sizeof(Elf64_Sym);
+	else
 		os->os_align = 8;
-	}
 	os->os_link = lo->lo_dynstr;
 	/* TODO os_info */
 
 	/*
 	 * Build Verneed/Vernaux structures.
 	 */
+	sz = 0;
 	lo->lo_version_index = 2; /* TODO: move this to somewhere else. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0)
@@ -169,6 +172,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 				svn->svn_fileindex =
 				    ld_strtab_insert_no_suffix(ld,
 					ld->ld_dynstr, svn->svn_file);
+				sz += sizeof(Elf_Verneed);
 			}
 
 			/* Allocate Vernaux entry. */
@@ -177,6 +181,9 @@ ld_symver_create_verneed_section(struct ld *ld)
 			sna->sna_nameindex = ld_strtab_insert_no_suffix(ld,
 			    ld->ld_dynstr, sna->sna_name);
 			/* TODO: flags? VER_FLG_WEAK */
+			svn->svn_cnt++;
+
+			sz += sizeof(Elf_Vernaux);
 
 			/*
 			 * Store the index in Verdef structure, so later we can
@@ -186,6 +193,63 @@ ld_symver_create_verneed_section(struct ld *ld)
 			svd->svd_ndx_output = sna->sna_other;
 		}
 	}
+
+	/*
+	 * Write Verneed/Vernaux structures
+	 */
+
+	if ((buf = malloc(sz)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	odb->odb_buf = buf;
+	odb->odb_size = sz;
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_VNEED; /* enable libelf translation */
+
+	end = buf + sz;
+	vn = NULL;
+	STAILQ_FOREACH(svn, lo->lo_vnlist, svn_next){
+		vn = (Elf_Verneed *) (uintptr_t) buf;
+		vn->vn_version = VER_NEED_CURRENT;
+		vn->vn_cnt = svn->svn_cnt;
+		vn->vn_file = svn->svn_fileindex;
+		vn->vn_aux = sizeof(Elf_Verneed);
+		vn->vn_next = sizeof(Elf_Verneed) +
+		    svn->svn_cnt * sizeof(Elf_Vernaux);
+
+		/*
+		 * Write Vernaux entries.
+		 */
+		buf2 = buf + sizeof(Elf_Verneed);
+		vna = NULL;
+		STAILQ_FOREACH(sna, &svn->svn_aux, sna_next) {
+			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
+			vna->vna_hash = sna->sna_hash;
+			vna->vna_flags = 0; /* TODO: VER_FLG_WEAK? */
+			vna->vna_other = sna->sna_other;
+			vna->vna_name = sna->sna_nameindex;
+			vna->vna_next = sizeof(Elf_Vernaux);
+			buf2 += sizeof(Elf_Vernaux);
+		}
+
+		/* Set last Vernaux entry's vna_next to 0. */
+		if (vna != NULL)
+			vna->vna_next = 0;
+
+		buf += vn->vn_next;
+	}
+
+	/* Set last Verneed entry's vn_next to 0 */
+	if (vn != NULL)
+		vn->vn_next = 0;
+
+	assert(buf == end);
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	    odb, NULL);
 }
 
 void

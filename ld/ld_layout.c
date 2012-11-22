@@ -35,6 +35,7 @@
 #include "ld_layout.h"
 #include "ld_options.h"
 #include "ld_symbols.h"
+#include "ld_symver.h"
 #include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
@@ -139,6 +140,9 @@ ld_layout_sections(struct ld *ld)
 
 		/* Create .hash section. */
 		ld_hash_create_svr4_hash_section(ld);
+
+		/* Create .gnu.version_r section. */
+		ld_symver_create_verneed_section(ld);
 	}
 
 	/* Calculate section offsets of the output object. */
