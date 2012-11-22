@@ -26,6 +26,8 @@
  * $Id$
  */
 
+struct ld_symver_verdef;
+
 struct ld_symbol {
 	char *lsb_name;			/* symbol name */
 	uint64_t lsb_nameindex;		/* symbol name index */
@@ -42,6 +44,7 @@ struct ld_symbol {
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
 	unsigned char lsb_import;	/* symbol is a import symbol */
+	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
@@ -65,8 +68,9 @@ struct ld_symbol_table {
 };
 
 struct ld_symbol_defver {
-	void *dv_name;
-	void *dv_longname;
+	char *dv_name;
+	char *dv_longname;
+	char *dv_ver;
 	UT_hash_handle hh;
 };
 

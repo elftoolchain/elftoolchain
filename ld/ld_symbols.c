@@ -554,6 +554,7 @@ _add_to_import(struct ld *ld, struct ld_symbol *lsb)
 	HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
 	    strlen(lsb->lsb_longname), lsb);
 	lsb->lsb_input->li_dso_refcnt++;
+	ld_symver_increase_verdef_refcnt(ld, lsb);
 }
 
 static void
@@ -566,6 +567,7 @@ _remove_from_import(struct ld *ld, struct ld_symbol *lsb)
 		return;
 	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
 	_lsb->lsb_input->li_dso_refcnt--;
+	ld_symver_decrease_verdef_refcnt(ld, lsb);
 }
 
 static void
@@ -893,6 +895,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 			ld_fatal(ld, "calloc");
 		dv->dv_name = lsb->lsb_name;
 		dv->dv_longname = lsb->lsb_longname;
+		dv->dv_ver = lsb->lsb_ver;
 		HASH_ADD_KEYPTR(hh, ld->ld_defver, dv->dv_name,
 		    strlen(dv->dv_name), dv);
 	}

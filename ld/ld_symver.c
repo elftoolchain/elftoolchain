@@ -26,8 +26,11 @@
 
 #include "ld.h"
 #include "ld_input.h"
+#include "ld_layout.h"
+#include "ld_output.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
+#include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -42,11 +45,20 @@ ELFTC_VCSID("$Id$");
 
 static void _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
     const char *name);
-static void _load_verdef(struct ld *ld, struct ld_input *li, Elf *e,
+static struct ld_symver_vda *_alloc_vda(struct ld *ld, const char *name,
+    struct ld_symver_verdef *svd);
+static struct ld_symver_vna *_alloc_vna(struct ld *ld, const char *name,
+    struct ld_symver_verneed *svn);
+static struct ld_symver_verdef *_alloc_verdef(struct ld *ld,
+    struct ld_symver_verdef_head *head);
+static struct ld_symver_verneed *_alloc_verneed(struct ld *ld,
+    const char *file, struct ld_symver_verneed_head *head);
+static struct ld_symver_verdef *_load_verdef(struct ld *ld,
+    struct ld_input *li, Elf_Verdef *vd);
+static void _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verdef);
-static void _load_verneed(struct ld *ld, struct ld_input *li, Elf *e,
+static void _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verneed);
-
 void
 ld_symver_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
@@ -77,10 +89,167 @@ ld_symver_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
 	_add_version_name(ld, li, 1, "*global*");
 
 	if (verneed != NULL)
-		_load_verneed(ld, li, e, verneed);
+		_load_verneed_section(ld, li, e, verneed);
 
 	if (verdef != NULL)
-		_load_verdef(ld, li, e, verdef);
+		_load_verdef_section(ld, li, e, verdef);
+}
+
+void
+ld_symver_create_verneed_section(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	/* struct ld_output_data_buffer *odb; */
+	struct ld_symver_verdef *svd;
+	struct ld_symver_verneed *svn;
+	struct ld_symver_vda *sda;
+	struct ld_symver_vna *sna;
+	char verneed_name[] = ".gnu.version_r";
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+	assert(lo->lo_dynstr != NULL);
+
+	/*
+	 * Create .gnu.version_r section.
+	 */
+	HASH_FIND_STR(lo->lo_ostbl, verneed_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, verneed_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_GNU_verneed;
+	os->os_flags = SHF_ALLOC;
+	if (lo->lo_ec == ELFCLASS32) {
+		os->os_entsize = sizeof(Elf32_Sym);
+		os->os_align = 4;
+	} else {
+		os->os_entsize = sizeof(Elf64_Sym);
+		os->os_align = 8;
+	}
+	os->os_link = lo->lo_dynstr;
+	/* TODO os_info */
+
+	/*
+	 * Build Verneed/Vernaux structures.
+	 */
+	lo->lo_version_index = 2; /* TODO: move this to somewhere else. */
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0)
+			continue;
+
+		svn = NULL;
+		STAILQ_FOREACH(svd, li->li_verdef, svd_next) {
+			if (svd->svd_flags & VER_FLG_BASE)
+				continue;
+
+			/* Skip version definition that is never ref'ed. */
+			if (svd->svd_ref == 0)
+				continue;
+
+			/* Invalid Verdef? */
+			if ((sda = STAILQ_FIRST(&svd->svd_aux)) == NULL)
+				continue;
+
+			if (lo->lo_vnlist == NULL) {
+				lo->lo_vnlist = calloc(1,
+				    sizeof(*lo->lo_vnlist));
+				if (lo->lo_vnlist == NULL)
+					ld_fatal_std(ld, "calloc");
+				STAILQ_INIT(lo->lo_vnlist);
+			}
+
+			/* Allocate Verneed entry. */
+			if (svn == NULL) {
+				svn = _alloc_verneed(ld, li->li_name,
+				    lo->lo_vnlist);
+				svn->svn_version = VER_NEED_CURRENT;
+				svn->svn_cnt = 0;
+				svn->svn_fileindex =
+				    ld_strtab_insert_no_suffix(ld,
+					ld->ld_dynstr, svn->svn_file);
+			}
+
+			/* Allocate Vernaux entry. */
+			sna = _alloc_vna(ld, sda->sda_name, svn);
+			sna->sna_other = lo->lo_version_index++;
+			sna->sna_nameindex = ld_strtab_insert_no_suffix(ld,
+			    ld->ld_dynstr, sna->sna_name);
+			/* TODO: flags? VER_FLG_WEAK */
+
+			/*
+			 * Store the index in Verdef structure, so later we can
+			 * quickly find the version index for a dynamic symbol,
+			 * when we build the .gnu.version section.
+			 */
+			svd->svd_ndx_output = sna->sna_other;
+		}
+	}
+}
+
+void
+ld_symver_create_versym_section(struct ld *ld)
+{
+	struct ld_symbol *lsb;
+
+	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
+		/* TODO */
+	}
+}
+
+void
+ld_symver_increase_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_symbol_defver *dv;
+	struct ld_symver_verdef *svd;
+	struct ld_symver_vda *sda;
+	struct ld_input *li;
+	const char *ver;
+
+	li = lsb->lsb_input;
+	assert(li != NULL);
+
+	if (li->li_verdef == NULL)
+		return;
+
+	if (lsb->lsb_ver != NULL)
+		ver = lsb->lsb_ver;
+	else {
+		HASH_FIND_STR(ld->ld_defver, lsb->lsb_name, dv);
+		if (dv == NULL || dv->dv_ver == NULL)
+			return;
+		ver = dv->dv_ver;
+	}
+
+	STAILQ_FOREACH(svd, li->li_verdef, svd_next) {
+		if (svd->svd_flags & VER_FLG_BASE)
+			continue;
+
+		/* Invalid Verdef? */
+		if ((sda = STAILQ_FIRST(&svd->svd_aux)) == NULL)
+			continue;
+
+		if (!strcmp(ver, sda->sda_name))
+			break;
+	}
+
+	if (svd != NULL) {
+		svd->svd_ref++;
+		lsb->lsb_vd = svd;
+	}
+}
+
+void
+ld_symver_decrease_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	(void) ld;		/* unused */
+
+	if (lsb->lsb_vd != NULL) {
+		lsb->lsb_vd->svd_ref--;
+		lsb->lsb_vd = NULL;
+	}
 }
 
 static void
@@ -120,8 +289,82 @@ _add_version_name(struct ld *ld, struct ld_input *li, int ndx,
 	}
 }
 
+static struct ld_symver_vna *
+_alloc_vna(struct ld *ld, const char *name, struct ld_symver_verneed *svn)
+{
+	struct ld_symver_vna *sna;
+
+	assert(name != NULL);
+
+	if ((sna = calloc(1, sizeof(*sna))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((sna->sna_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	sna->sna_hash = (uint32_t) elf_hash(sna->sna_name);
+
+	if (svn != NULL)
+		STAILQ_INSERT_TAIL(&svn->svn_aux, sna, sna_next);
+
+	return (sna);
+}
+
+static struct ld_symver_vda *
+_alloc_vda(struct ld *ld, const char *name, struct ld_symver_verdef *svd)
+{
+	struct ld_symver_vda *sda;
+
+	if ((sda = calloc(1, sizeof(*sda))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((sda->sda_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	if (svd != NULL)
+		STAILQ_INSERT_TAIL(&svd->svd_aux, sda, sda_next);
+
+	return (sda);
+}
+
+static struct ld_symver_verneed *
+_alloc_verneed(struct ld *ld, const char *file,
+    struct ld_symver_verneed_head *head)
+{
+	struct ld_symver_verneed *svn;
+
+	if ((svn = calloc(1, sizeof(*svn))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((svn->svn_file = strdup(file)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	STAILQ_INIT(&svn->svn_aux);
+
+	if (head != NULL)
+		STAILQ_INSERT_TAIL(head, svn, svn_next);
+
+	return (svn);
+}
+
+static struct ld_symver_verdef *
+_alloc_verdef(struct ld *ld, struct ld_symver_verdef_head *head)
+{
+	struct ld_symver_verdef *svd;
+
+	if ((svd = calloc(1, sizeof(*svd))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	STAILQ_INIT(&svd->svd_aux);
+
+	if (head != NULL)
+		STAILQ_INSERT_TAIL(head, svd, svd_next);
+
+	return (svd);
+}
+
 static void
-_load_verneed(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
+_load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
 {
 	Elf_Data *d_vn;
 	Elf_Verneed *vn;
@@ -169,15 +412,16 @@ _load_verneed(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
 }
 
 static void
-_load_verdef(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
+_load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
 {
+	struct ld_symver_verdef *svd;
 	Elf_Data *d_vd;
 	Elf_Verdef *vd;
 	Elf_Verdaux *vda;
 	GElf_Shdr sh_vd;
 	uint8_t *buf, *end, *buf2;
 	char *name;
-	int elferr;
+	int elferr, i;
 
 	if (gelf_getshdr(verdef, &sh_vd) != &sh_vd)
 		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
@@ -198,13 +442,45 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
 	end = buf + d_vd->d_size;
 	while (buf + sizeof(Elf_Verdef) <= end) {
 		vd = (Elf_Verdef *) (uintptr_t) buf;
+		svd = _load_verdef(ld, li, vd);
 		buf2 = buf + vd->vd_aux;
-		vda = (Elf_Verdaux *) (uintptr_t) buf2;
-		name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
-		if (name != NULL)
-			_add_version_name(ld, li, (int) vd->vd_ndx, name);
+		i = 0;
+		while (buf2 + sizeof(Elf_Verdaux) <= end && i < vd->vd_cnt) {
+			vda = (Elf_Verdaux *) (uintptr_t) buf2;
+			name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
+			if (name != NULL) {
+				_add_version_name(ld, li, (int) vd->vd_ndx, name);
+				(void) _alloc_vda(ld, name, svd);
+			}
+			if (vda->vda_next == 0)
+				break;
+			buf2 += vda->vda_next;
+			i++;
+		}
 		if (vd->vd_next == 0)
 			break;
 		buf += vd->vd_next;
 	}		
+}
+
+static struct ld_symver_verdef *
+_load_verdef(struct ld *ld, struct ld_input *li, Elf_Verdef *vd)
+{
+	struct ld_symver_verdef *svd;
+
+	if (li->li_verdef == NULL) {
+		if ((li->li_verdef = calloc(1, sizeof(*li->li_verdef))) ==
+		    NULL)
+			ld_fatal_std(ld, "calloc");
+		STAILQ_INIT(li->li_verdef);
+	}
+
+	svd = _alloc_verdef(ld, li->li_verdef);
+	svd->svd_version = vd->vd_version;
+	svd->svd_flags = vd->vd_flags;
+	svd->svd_ndx = vd->vd_ndx;
+	svd->svd_cnt = vd->vd_cnt;
+	svd->svd_hash = vd->vd_hash;
+
+	return (svd);
 }
