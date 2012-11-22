@@ -56,6 +56,8 @@ enum ld_input_type {
 	LIT_DSO,
 };
 
+struct ld_symver_verdef_head;
+
 struct ld_input {
 	char *li_name;			/* input object name */
 	char *li_fullname;		/* input object and archive name */
@@ -72,6 +74,7 @@ struct ld_input {
 	uint16_t *li_versym;		/* symbol version array */
 	size_t li_versym_sz;		/* symbol version array size */
 	int li_dso_refcnt;		/* symbol reference count (DSO) */
+	struct ld_symver_verdef_head *li_verdef; /* version definition */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
