@@ -133,6 +133,8 @@ ld_symver_create_verneed_section(struct ld *ld)
 	os->os_link = lo->lo_dynstr;
 	/* TODO os_info */
 
+	lo->lo_verneed = os;
+
 	/*
 	 * Build Verneed/Vernaux structures.
 	 */
@@ -280,6 +282,8 @@ ld_symver_create_versym_section(struct ld *ld)
 	os->os_entsize = 2;
 	os->os_align = 2;
 	os->os_link = lo->lo_dynsym;
+
+	lo->lo_versym = os;
 
 	/*
 	 * Write versym table.

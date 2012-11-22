@@ -132,14 +132,14 @@ _create_pltgot(struct ld *ld)
 	os->os_align = 8;
 	os->os_entsize = 8;
 	os->os_flags = SHF_ALLOC | SHF_WRITE;
-	ld->ld_os_got = os;
+	lo->lo_got = os;
 
 	if ((got_odb = calloc(1, sizeof(*got_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	got_odb->odb_size = (HASH_CNT(hhimp, ld->ld_symtab_import) + 3) * 8;
 	got_odb->odb_align = 8;
 	got_odb->odb_type = ELF_T_BYTE;
-	ld->ld_got = got_odb;
+	lo->lo_got_odb = got_odb;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
 	    got_odb, NULL);
@@ -165,21 +165,21 @@ _create_pltgot(struct ld *ld)
 	os->os_align = 4;
 	os->os_entsize = 16;
 	os->os_flags = SHF_ALLOC | SHF_EXECINSTR;
-	ld->ld_os_plt = os;
+	lo->lo_plt = os;
 
 	if ((plt_odb = calloc(1, sizeof(*plt_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	plt_odb->odb_size = (func_cnt + 1) * 16;
 	plt_odb->odb_align = 1;
 	plt_odb->odb_type = ELF_T_BYTE;
-	ld->ld_plt = plt_odb;
+	lo->lo_plt_odb = plt_odb;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
 	    plt_odb, NULL);
 
 	/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
 	ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0, 0, SHN_ABS,
-	    STB_LOCAL, STT_OBJECT, STV_HIDDEN, ld->ld_os_got);
+	    STB_LOCAL, STT_OBJECT, STV_HIDDEN, lo->lo_got);
 }
 
 static void
@@ -192,21 +192,21 @@ _finalize_pltgot(struct ld *ld)
 	int32_t s32, pltgot, gotpcrel;
 	int i;
 
-	if (ld->ld_got == NULL || ld->ld_got->odb_size == 0)
-		return;
-
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
-	if ((got = calloc(ld->ld_got->odb_size, 1)) == NULL)
+	if (lo->lo_got_odb == NULL || lo->lo_got_odb->odb_size == 0)
+		return;
+
+	if ((got = calloc(lo->lo_got_odb->odb_size, 1)) == NULL)
 		ld_fatal_std(ld, "calloc");
-	ld->ld_got->odb_buf = got;
+	lo->lo_got_odb->odb_buf = got;
 
 	plt = NULL;
-	if (ld->ld_plt != NULL && ld->ld_plt->odb_size != 0) {
-		if ((plt = calloc(ld->ld_plt->odb_size, 1)) == NULL)
+	if (lo->lo_plt_odb != NULL && lo->lo_plt_odb->odb_size != 0) {
+		if ((plt = calloc(lo->lo_plt_odb->odb_size, 1)) == NULL)
 			ld_fatal_std(ld, "calloc");
-		ld->ld_plt->odb_buf = plt;
+		lo->lo_plt_odb->odb_buf = plt;
 	}
 
 	/* TODO: fill in _DYNAMIC in the first got entry. */
@@ -222,7 +222,7 @@ _finalize_pltgot(struct ld *ld)
 		/*
 		 * Calculate the relative offset from PLT to GOT.
 		 */
-		pltgot = ld->ld_os_got->os_addr - ld->ld_os_plt->os_addr;
+		pltgot = lo->lo_got->os_addr - lo->lo_plt->os_addr;
 
 		/*
 		 * Push the second GOT entry to the stack for the dynamic
@@ -298,7 +298,7 @@ _finalize_pltgot(struct ld *ld)
 		 * Write the GOT entry for this function, pointing to the
 		 * push op.
 		 */
-		u64 = ld->ld_os_plt->os_addr + (i - 2) * 16 + 6;
+		u64 = lo->lo_plt->os_addr + (i - 2) * 16 + 6;
 		WRITE_64(got, u64);
 		
 next_symbol:
@@ -306,8 +306,8 @@ next_symbol:
 		i++;
 	}
 
-	assert(got == ld->ld_got->odb_buf + ld->ld_got->odb_size);
-	assert(plt == ld->ld_plt->odb_buf + ld->ld_plt->odb_size);
+	assert(got == lo->lo_got_odb->odb_buf + lo->lo_got_odb->odb_size);
+	assert(plt == lo->lo_plt_odb->odb_buf + lo->lo_plt_odb->odb_size);
 }
 
 void

@@ -34,12 +34,14 @@
 #include "ld_output.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
+#include "ld_strtab.h"
 
 ELFTC_VCSID("$Id$");
 
 static void _create_dynamic(struct ld *ld);
 static void _create_interp(struct ld *ld);
 static void _create_dynsym_and_dynstr(struct ld *ld);
+static void _finalize_dynamic(struct ld *ld);
 
 void
 ld_dynamic_create(struct ld *ld)
@@ -101,6 +103,9 @@ ld_dynamic_finalize(struct ld *ld)
 
 	/* Finalize PLT and GOT sections. */
 	ld->ld_arch->finalize_pltgot(ld);
+
+	/* Finalize .dynamic section */
+	_finalize_dynamic(ld);
 }
 
 static void
@@ -124,6 +129,8 @@ _create_interp(struct ld *ld)
 	os->os_entsize = 0;
 	os->os_flags = SHF_ALLOC;
 
+	lo->lo_interp = os;
+
 	if (ld->ld_interp != NULL)
 		interp = ld->ld_interp;
 	else
@@ -143,7 +150,6 @@ _create_interp(struct ld *ld)
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
 	    NULL);
-	lo->lo_interp = os;
 }
 
 static void
@@ -178,13 +184,17 @@ _create_dynamic(struct ld *ld)
 
 	/* DT_INIT */
 	HASH_FIND_STR(lo->lo_ostbl, init_name, _os);
-	if (_os != NULL && !os->os_empty)
+	if (_os != NULL && !os->os_empty) {
+		lo->lo_init = _os;
 		entries++;
+	}
 
 	/* DT_FINI */
 	HASH_FIND_STR(lo->lo_ostbl, fini_name, _os);
-	if (_os != NULL && !os->os_empty)
+	if (_os != NULL && !os->os_empty) {
+		lo->lo_fini = _os;
 		entries++;
+	}
 
 	/* DT_HASH, DT_STRTAB, DT_SYMTAB, DT_STRSZ and DT_SYMENT */
 	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0 ||
@@ -200,14 +210,14 @@ _create_dynamic(struct ld *ld)
 	 */
 	entries++;
 
-	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
-	if (ld->ld_os_plt)
-		entries += 4;
+	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
+	entries += 4;
 
 	/*
 	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
 	 * DT_VERSYM.
 	 */
+	entries += 5;
 
 	/* DT_NULL. TODO: Reserve multiple DT_NULL entries for DT_RPATH? */
 	entries++;
@@ -218,12 +228,125 @@ _create_dynamic(struct ld *ld)
 	if ((odb = calloc(1, sizeof(*odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	odb->odb_size = entries * os->os_entsize;
+	if ((odb->odb_buf = malloc(odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
 	odb->odb_align = os->os_align;
-	odb->odb_type = ELF_T_BYTE;
+	odb->odb_type = ELF_T_DYN;
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	    NULL);
+
+	lo->lo_dynamic_odb = odb;
 
 	/* Create _DYNAMIC symobl. */
 	ld_symbols_add_internal(ld, "_DYNAMIC", 0, 0, SHN_ABS, STB_LOCAL,
 	    STT_OBJECT, STV_HIDDEN, os);
+}
+
+#define	DT_ENTRY_VAL(tag,val)					\
+	do {							\
+		if (lo->lo_ec == ELFCLASS32) {			\
+			assert(dt32 < end32); 			\
+			dt32->d_tag = (int32_t) (tag);		\
+			dt32->d_un.d_val = (uint32_t) (val);	\
+			dt32++;					\
+		} else {					\
+			assert(dt64 < end64); 			\
+			dt64->d_tag = (tag);			\
+			dt64->d_un.d_val = (val);		\
+			dt64++;					\
+		}						\
+	} while(0)
+
+#define DT_ENTRY_PTR(tag,ptr)					\
+	do {							\
+		if (lo->lo_ec == ELFCLASS32) {			\
+			assert(dt32 < end32); 			\
+			dt32->d_tag = (int32_t) (tag);		\
+			dt32->d_un.d_ptr = (uint32_t) (ptr);	\
+			dt32++;					\
+		} else {					\
+			assert(dt64 < end64); 			\
+			dt64->d_tag = (tag);			\
+			dt64->d_un.d_ptr = (ptr);		\
+			dt64++;					\
+		}						\
+	} while(0)
+
+#define DT_ENTRY_NULL						\
+	do {							\
+		if (lo->lo_ec == ELFCLASS32) {			\
+			assert(dt32 < end32); 			\
+			while (dt32 < end32)			\
+				DT_ENTRY_VAL(DT_NULL, 0);	\
+			assert(dt32 == end32);			\
+		} else {					\
+			assert(dt64 < end64); 			\
+			while (dt64 < end64)			\
+				DT_ENTRY_VAL(DT_NULL, 0);	\
+			assert(dt64 == end64);			\
+		}						\
+	} while(0)
+
+static void
+_finalize_dynamic(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_data_buffer *odb;
+	Elf32_Dyn *dt32, *end32;
+	Elf64_Dyn *dt64, *end64;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	odb = lo->lo_dynamic_odb;
+	assert(odb != NULL);
+
+	dt32 = (Elf32_Dyn *) (uintptr_t) odb->odb_buf;
+	dt64 = (Elf64_Dyn *) (uintptr_t) odb->odb_buf;
+	end32 = (Elf32_Dyn *) (uintptr_t) (odb->odb_buf + odb->odb_size);
+	end64 = (Elf64_Dyn *) (uintptr_t) (odb->odb_buf + odb->odb_size);
+
+	/* TODO: DT_NEEDED. */
+
+	/* DT_INIT and DT_FINI */
+	if (lo->lo_init != NULL)
+		DT_ENTRY_PTR(DT_INIT, lo->lo_init->os_addr);
+	if (lo->lo_fini != NULL)
+		DT_ENTRY_PTR(DT_FINI, lo->lo_fini->os_addr);
+
+	/* DT_HASH */
+	if (lo->lo_hash != NULL)
+		DT_ENTRY_PTR(DT_HASH, lo->lo_hash->os_addr);
+
+	/* DT_HASH, DT_STRTAB, DT_SYMTAB, DT_STRSZ and DT_SYMENT */
+	if (lo->lo_dynsym != NULL && lo->lo_dynstr != NULL) {
+		DT_ENTRY_PTR(DT_STRTAB, lo->lo_dynstr->os_addr);
+		DT_ENTRY_PTR(DT_SYMTAB, lo->lo_dynsym->os_addr);
+		DT_ENTRY_VAL(DT_STRSZ, ld->ld_dynstr->st_size);
+		DT_ENTRY_VAL(DT_SYMENT, ld->ld_dynsym->sy_size);
+	}
+
+	/* DT_DEBUG */
+	DT_ENTRY_VAL(DT_DEBUG, 0);
+
+	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
+	if (lo->lo_got != NULL)
+		DT_ENTRY_PTR(DT_PLTGOT, lo->lo_got->os_addr);
+
+	/*
+	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
+	 * DT_VERSYM.
+	 */
+	if (lo->lo_verneed != NULL) {
+		DT_ENTRY_PTR(DT_VERNEED, lo->lo_verneed->os_addr);
+		DT_ENTRY_PTR(DT_VERNEEDNUM, lo->lo_verneed_num);
+	}
+	if (lo->lo_versym != NULL)
+		DT_ENTRY_PTR(DT_VERSYM, lo->lo_versym->os_addr);
+
+	/* Fill in the space left with DT_NULL entries */
+	DT_ENTRY_NULL;
 }
 
 static void

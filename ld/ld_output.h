@@ -94,13 +94,26 @@ struct ld_output {
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */
 	unsigned lo_version_index;	 /* current symver index */
+	unsigned lo_verneed_num;	 /* num of verneed entries */
 	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */
 	struct ld_output_section_head lo_oslist; /* output section list */
 	struct ld_output_section *lo_ostbl; /* output section hash table */
 	struct ld_output_section *lo_interp; /* .interp section. */
+	struct ld_output_section *lo_init; /* .init section */
+	struct ld_output_section *lo_fini; /* .fini section */
+	struct ld_output_section *lo_dynamic; /* .dynamic section. */
 	struct ld_output_section *lo_dynsym; /* .dynsym section. */
 	struct ld_output_section *lo_dynstr; /* .dynstr section. */
+	struct ld_output_section *lo_hash; /* .hash section. */
+	struct ld_output_section *lo_verdef; /* .gnu.version.d section */
+	struct ld_output_section *lo_verneed; /* .gnu.version.r section */
+	struct ld_output_section *lo_versym; /* .gnu.version section */
+	struct ld_output_section *lo_got; /* GOT section */
+	struct ld_output_section *lo_plt; /* PLT section */
+	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
+	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
+	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
