@@ -451,11 +451,17 @@ _alloc_verneed(struct ld *ld, const char *file,
     struct ld_symver_verneed_head *head)
 {
 	struct ld_symver_verneed *svn;
+	const char *bn;
 
 	if ((svn = calloc(1, sizeof(*svn))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	if ((svn->svn_file = strdup(file)) == NULL)
+	if ((bn = strrchr(file, '/')) == NULL)
+		bn = file;
+	else
+		bn++;
+
+	if ((svn->svn_file = strdup(bn)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
 	STAILQ_INIT(&svn->svn_aux);
