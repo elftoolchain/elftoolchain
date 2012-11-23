@@ -326,7 +326,9 @@ _finalize_dynamic(struct ld *ld)
 		DT_ENTRY_PTR(DT_STRTAB, lo->lo_dynstr->os_addr);
 		DT_ENTRY_PTR(DT_SYMTAB, lo->lo_dynsym->os_addr);
 		DT_ENTRY_VAL(DT_STRSZ, ld->ld_dynstr->st_size);
-		DT_ENTRY_VAL(DT_SYMENT, ld->ld_dynsym->sy_size);
+		DT_ENTRY_VAL(DT_SYMENT,
+		    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Sym) :
+		    sizeof(Elf64_Sym));
 	}
 
 	/* DT_DEBUG */
