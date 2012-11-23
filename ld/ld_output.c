@@ -545,6 +545,16 @@ _create_phdr(struct ld *ld)
 		_WRITE_PHDR(PT_LOAD, off, addr, filesz, memsz, flags, align);
 
 	/*
+	 * Create PT_DYNAMIC segment.
+	 */
+	if (lo->lo_dynamic != NULL) {
+		i++;
+		os = lo->lo_dynamic;
+		_WRITE_PHDR(PT_DYNAMIC, os->os_off, os->os_addr, os->os_size,
+		    os->os_size, PF_R | PF_W, lo->lo_ec == ELFCLASS32 ? 4 : 8);
+	}
+
+	/*
 	 * Create PT_NOTE segment.
 	 */
 

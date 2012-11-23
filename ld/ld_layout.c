@@ -344,8 +344,9 @@ ld_layout_calc_header_size(struct ld *ld)
 				}
 			}
 
+			/* PT_PHDR and PT_DYNAMIC for dynamic linking */
 			if (lo->lo_dso_needed > 0)
-				num_phdrs++;
+				num_phdrs += 2;
 
 			if (lo->lo_interp != NULL)
 				num_phdrs++;

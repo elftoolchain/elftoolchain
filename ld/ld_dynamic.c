@@ -180,6 +180,8 @@ _create_dynamic(struct ld *ld)
 		os->os_align = 8;
 	}
 
+	lo->lo_dynamic = os;
+
 	entries = lo->lo_dso_needed;
 
 	/* DT_INIT */
