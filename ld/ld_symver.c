@@ -175,6 +175,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 				    ld_strtab_insert_no_suffix(ld,
 					ld->ld_dynstr, svn->svn_file);
 				sz += sizeof(Elf_Verneed);
+				lo->lo_verneed_num++;
 			}
 
 			/* Allocate Vernaux entry. */
