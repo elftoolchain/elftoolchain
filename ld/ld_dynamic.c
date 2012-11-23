@@ -38,28 +38,22 @@
 
 ELFTC_VCSID("$Id$");
 
+static void _check_dso_needed(struct ld *ld, struct ld_output *lo);
 static void _create_dynamic(struct ld *ld);
 static void _create_interp(struct ld *ld);
-static void _create_dynsym_and_dynstr(struct ld *ld);
+static void _create_dynsym_and_dynstr_section(struct ld *ld);
 static void _finalize_dynamic(struct ld *ld);
 
 void
 ld_dynamic_create(struct ld *ld)
 {
-	struct ld_input *li;
 	struct ld_output *lo;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
 	/* Check how many DSOs is needed for output object. */
-	lo->lo_dso_needed = 0;
-	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		if (li->li_type != LIT_DSO)
-			continue;
-		if (li->li_dso_refcnt > 0 || !li->li_file->lf_as_needed)
-			lo->lo_dso_needed++;
-	}
+	_check_dso_needed(ld, lo);
 
 	/* Link statically if we don't use DSOs? */
 	if (lo->lo_dso_needed == 0)
@@ -78,7 +72,7 @@ ld_dynamic_create(struct ld *ld)
 	ld_symbols_create_dynsym(ld);
 
 	/* Create .dynsym and .dynstr sections. */
-	_create_dynsym_and_dynstr(ld);
+	_create_dynsym_and_dynstr_section(ld);
 
 	/* Create .hash section. */
 	ld_hash_create_svr4_hash_section(ld);
@@ -182,6 +176,7 @@ _create_dynamic(struct ld *ld)
 
 	lo->lo_dynamic = os;
 
+	/* DT_NEEDED */
 	entries = lo->lo_dso_needed;
 
 	/* DT_INIT */
@@ -354,7 +349,7 @@ _finalize_dynamic(struct ld *ld)
 }
 
 static void
-_create_dynsym_and_dynstr(struct ld *ld)
+_create_dynsym_and_dynstr_section(struct ld *ld)
 {
 	struct ld_output *lo;
 	struct ld_output_section *os;
@@ -404,4 +399,33 @@ _create_dynsym_and_dynstr(struct ld *ld)
 	    ld->ld_dynstr, NULL);
 
 	lo->lo_dynsym->os_link = os;
+}
+
+static void
+_check_dso_needed(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_input *li;
+	const char *bn;
+
+	lo->lo_dso_needed = 0;
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_type != LIT_DSO)
+			continue;
+
+		if (li->li_dso_refcnt > 0 || !li->li_file->lf_as_needed) {
+			lo->lo_dso_needed++;
+
+			if (ld->ld_dynstr == NULL)
+				ld->ld_dynstr = ld_strtab_alloc(ld);
+
+			/* Insert DSO name to the .dynstr string table. */
+			if ((bn = strrchr(li->li_name, '/')) == NULL)
+				bn = li->li_name;
+			else
+				bn++;
+			(void) ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+			    bn);
+		}
+	}
 }

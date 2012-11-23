@@ -440,7 +440,8 @@ ld_symbols_create_dynsym(struct ld *ld)
 	struct ld_symbol *lsb, *tmp;
 
 	ld->ld_dynsym = _alloc_symbol_table(ld);
-	ld->ld_dynstr = ld_strtab_alloc(ld);
+	if (ld->ld_dynstr == NULL)
+		ld->ld_dynstr = ld_strtab_alloc(ld);
 
 	/* Reserve space for the initial symbol. */
 	ld->ld_dynsym->sy_size++;
