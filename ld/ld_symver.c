@@ -131,7 +131,6 @@ ld_symver_create_verneed_section(struct ld *ld)
 	else
 		os->os_align = 8;
 	os->os_link = lo->lo_dynstr;
-	/* TODO os_info */
 
 	lo->lo_verneed = os;
 
@@ -196,6 +195,9 @@ ld_symver_create_verneed_section(struct ld *ld)
 			svd->svd_ndx_output = sna->sna_other;
 		}
 	}
+
+	/* Store the number of verneed entries in the sh_info field. */
+	os->os_info = lo->lo_verneed_num;
 
 	/*
 	 * Write Verneed/Vernaux structures.
