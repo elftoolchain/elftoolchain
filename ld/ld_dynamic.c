@@ -39,10 +39,11 @@
 ELFTC_VCSID("$Id$");
 
 static void _check_dso_needed(struct ld *ld, struct ld_output *lo);
-static void _create_dynamic(struct ld *ld);
-static void _create_interp(struct ld *ld);
-static void _create_dynsym_and_dynstr_section(struct ld *ld);
-static void _finalize_dynamic(struct ld *ld);
+static void _create_dynamic(struct ld *ld, struct ld_output *lo);
+static void _create_interp(struct ld *ld, struct ld_output *lo);
+static void _create_dynsym_and_dynstr_section(struct ld *ld,
+    struct ld_output *lo);
+static void _finalize_dynamic(struct ld *ld, struct ld_output *lo);
 
 void
 ld_dynamic_create(struct ld *ld)
@@ -60,19 +61,19 @@ ld_dynamic_create(struct ld *ld)
 		return;
 
 	/* Create .interp section. */
-	_create_interp(ld);
+	_create_interp(ld, lo);
 
 	/* Create PLT and GOT sections. */
 	ld->ld_arch->create_pltgot(ld);
 
 	/* Create .dynamic section. */
-	_create_dynamic(ld);
+	_create_dynamic(ld, lo);
 
 	/* Copy relevant symbols to internal dynsym table. */
 	ld_symbols_create_dynsym(ld);
 
 	/* Create .dynsym and .dynstr sections. */
-	_create_dynsym_and_dynstr_section(ld);
+	_create_dynsym_and_dynstr_section(ld, lo);
 
 	/* Create .hash section. */
 	ld_hash_create_svr4_hash_section(ld);
@@ -99,20 +100,16 @@ ld_dynamic_finalize(struct ld *ld)
 	ld->ld_arch->finalize_pltgot(ld);
 
 	/* Finalize .dynamic section */
-	_finalize_dynamic(ld);
+	_finalize_dynamic(ld, lo);
 }
 
 static void
-_create_interp(struct ld *ld)
+_create_interp(struct ld *ld, struct ld_output *lo)
 {
-	struct ld_output *lo;
 	struct ld_output_section *os;
 	struct ld_output_data_buffer *odb;
 	const char *interp;
 	char interp_name[] = ".interp";
-
-	lo = ld->ld_output;
-	assert(lo != NULL);
 
 	HASH_FIND_STR(lo->lo_ostbl, interp_name, os);
 	if (os == NULL)
@@ -147,18 +144,14 @@ _create_interp(struct ld *ld)
 }
 
 static void
-_create_dynamic(struct ld *ld)
+_create_dynamic(struct ld *ld, struct ld_output *lo)
 {
-	struct ld_output *lo;
 	struct ld_output_section *os, *_os;
 	struct ld_output_data_buffer *odb;
 	char dynamic_name[] = ".dynamic";
 	char init_name[] = ".init";
 	char fini_name[] = ".fini";
 	int entries;
-
-	lo = ld->ld_output;
-	assert(lo != NULL);
 
 	HASH_FIND_STR(lo->lo_ostbl, dynamic_name, os);
 	if (os == NULL)
@@ -286,15 +279,11 @@ _create_dynamic(struct ld *ld)
 	} while(0)
 
 static void
-_finalize_dynamic(struct ld *ld)
+_finalize_dynamic(struct ld *ld, struct ld_output *lo)
 {
-	struct ld_output *lo;
 	struct ld_output_data_buffer *odb;
 	Elf32_Dyn *dt32, *end32;
 	Elf64_Dyn *dt64, *end64;
-
-	lo = ld->ld_output;
-	assert(lo != NULL);
 
 	odb = lo->lo_dynamic_odb;
 	assert(odb != NULL);
@@ -349,15 +338,11 @@ _finalize_dynamic(struct ld *ld)
 }
 
 static void
-_create_dynsym_and_dynstr_section(struct ld *ld)
+_create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 {
-	struct ld_output *lo;
 	struct ld_output_section *os;
 	char dynsym_name[] = ".dynsym";
 	char dynstr_name[] = ".dynstr";
-
-	lo = ld->ld_output;
-	assert(lo != NULL);
 
 	/*
 	 * Create .dynsym section.
