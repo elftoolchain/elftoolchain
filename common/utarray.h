@@ -220,7 +220,7 @@ typedef struct {
 
 /* last we pre-define a few icd for common utarrays of ints and strings */
 static void utarray_str_cpy(void *dst, const void *src) {
-  char **_src = (char**)src, **_dst = (char**)dst;
+  char *const*_src = (char*const*)src, **_dst = (char**)dst;
   *_dst = (*_src == NULL) ? NULL : strdup(*_src);
 }
 static void utarray_str_dtor(void *elt) {
