@@ -126,5 +126,4 @@ struct ld {
 void	ld_err(struct ld *, const char *, ...);
 void	ld_fatal(struct ld *, const char *, ...);
 void	ld_fatal_std(struct ld *, const char *, ...);
-void	ld_layout_sections(struct ld *);
 void	ld_warn(struct ld *, const char *, ...);
