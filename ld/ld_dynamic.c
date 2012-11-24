@@ -284,6 +284,7 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	struct ld_output_data_buffer *odb;
 	Elf32_Dyn *dt32, *end32;
 	Elf64_Dyn *dt64, *end64;
+	int *p;
 
 	odb = lo->lo_dynamic_odb;
 	assert(odb != NULL);
@@ -293,7 +294,11 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	end32 = (Elf32_Dyn *) (uintptr_t) (odb->odb_buf + odb->odb_size);
 	end64 = (Elf64_Dyn *) (uintptr_t) (odb->odb_buf + odb->odb_size);
 
-	/* TODO: DT_NEEDED. */
+	/* DT_NEEDED. */
+	for (p = (int *) (uintptr_t) utarray_front(lo->lo_dso_nameindex);
+	     p != NULL;
+	     p = (int *) (uintptr_t) utarray_next(lo->lo_dso_nameindex, p))
+		DT_ENTRY_VAL(DT_NEEDED, *p);
 
 	/* DT_INIT and DT_FINI */
 	if (lo->lo_init != NULL)
@@ -391,6 +396,7 @@ _check_dso_needed(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_input *li;
 	const char *bn;
+	int ndx;
 
 	lo->lo_dso_needed = 0;
 
@@ -409,8 +415,13 @@ _check_dso_needed(struct ld *ld, struct ld_output *lo)
 				bn = li->li_name;
 			else
 				bn++;
-			(void) ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+			ndx = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 			    bn);
+
+			/* Save the generated name index for later use. */
+			if (lo->lo_dso_nameindex == NULL)
+				utarray_new(lo->lo_dso_nameindex, &ut_int_icd);
+			utarray_push_back(lo->lo_dso_nameindex, &ndx);
 		}
 	}
 }

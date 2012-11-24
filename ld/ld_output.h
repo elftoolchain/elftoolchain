@@ -96,6 +96,7 @@ struct ld_output {
 	unsigned lo_dso_needed;		 /* num of DSO referenced */
 	unsigned lo_version_index;	 /* current symver index */
 	unsigned lo_verneed_num;	 /* num of verneed entries */
+	UT_array *lo_dso_nameindex;	 /* array of DSO name indices */
 	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */
 	struct ld_output_section_head lo_oslist; /* output section list */
