@@ -33,6 +33,7 @@ static const char *debug_name[] = {
 	".debug_aranges",
 	".debug_frame",
 	".debug_info",
+	".debug_types",
 	".debug_line",
 	".debug_pubnames",
 	".eh_frame",
@@ -43,7 +44,7 @@ static const char *debug_name[] = {
 	".debug_ranges",
 	".debug_static_func",
 	".debug_static_vars",
-	".debug_types",
+	".debug_typenames",
 	".debug_weaknames",
 	NULL
 };
