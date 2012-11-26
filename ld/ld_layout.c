@@ -382,7 +382,7 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	first = 1;
 	lo = ld->ld_output;
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		ld_input_init_sections(ld, li);
+		ld_input_init_common_section(ld, li);
 		if (li->li_type != LIT_RELOCATABLE)
 			continue;
 		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {

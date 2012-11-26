@@ -637,9 +637,6 @@ ld_output_create(struct ld *ld)
 	if (eh.e_phoff == 0)
 		ld_fatal(ld, "gelf_fsize failed: %s", elf_errmsg(-1));
 
-	/* Read relocation information from input sections. */
-	ld_reloc_read(ld);
-
 	/* Create output ELF sections. */
 	_create_elf_sections(ld);
 

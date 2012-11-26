@@ -37,58 +37,29 @@ ELFTC_VCSID("$Id$");
  * Support routines for relocation handling.
  */
 
-static void _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d);
-static void _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d);
-
 void
-ld_reloc_read(struct ld *ld)
-{
-	struct ld_input *li;
-	struct ld_input_section *is;
-	Elf *e;
-	Elf_Data *d;
-	Elf_Scn *scn;
-	int i, elferr;
-
-	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		e = NULL;
-		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
-			is = &li->li_is[i];
-			if (is->is_type != SHT_REL && is->is_type != SHT_RELA)
-				continue;
-			if (e == NULL) {
-				ld_input_load(ld, li);
-				e = li->li_elf;
-			}
-			if ((scn = elf_getscn(e, is->is_index)) == NULL) {
-				ld_warn(ld, "elf_getscn failed: %s",
-				    elf_errmsg(-1));
-				continue;
-			}
-			(void) elf_errno();
-			if ((d = elf_getdata(scn, NULL)) == NULL) {
-				elferr = elf_errno();
-				if (elferr != 0)
-					ld_warn(ld, "elf_getdata failed: %s",
-					    elf_errmsg(elferr));
-				continue;
-			}
-			if (is->is_type == SHT_REL)
-				_read_rel(ld, is, d);
-			else
-				_read_rela(ld, is, d);
-		}
-		if (e != NULL)
-			ld_input_unload(ld, li);
-	}
-}
-
-static void
-_read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
+ld_reloc_read_rel(struct ld *ld, struct ld_input_section *is, Elf *e)
 {
 	struct ld_reloc_entry *lre;
+	Elf_Data *d;
+	Elf_Scn *scn;
 	GElf_Rel r;
-	int i, len;
+	int elferr, i, len;
+
+	if ((scn = elf_getscn(e, is->is_index)) == NULL) {
+		ld_warn(ld, "elf_getscn failed: %s",
+		    elf_errmsg(-1));
+		return;
+	}
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_warn(ld, "elf_getdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
 
 	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
 		ld_fatal(ld, "malloc");
@@ -109,12 +80,29 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 	}
 }
 
-static void
-_read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
+void
+ld_reloc_read_rela(struct ld *ld, struct ld_input_section *is, Elf *e)
 {
 	struct ld_reloc_entry *lre;
+	Elf_Data *d;
+	Elf_Scn *scn;
 	GElf_Rela r;
-	int i, len;
+	int elferr, i, len;
+
+	if ((scn = elf_getscn(e, is->is_index)) == NULL) {
+		ld_warn(ld, "elf_getscn failed: %s",
+		    elf_errmsg(-1));
+		return;
+	}
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_warn(ld, "elf_getdata failed: %s",
+			    elf_errmsg(elferr));
+		return;
+	}
 
 	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
 		ld_fatal(ld, "malloc");

@@ -218,19 +218,15 @@ ld_input_unload(struct ld *ld, struct ld_input *li)
 }
 
 void
-ld_input_init_sections(struct ld *ld, struct ld_input *li)
+ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
-	struct ld_symbol *lsb, *tmp;
-	Elf *e;
 	Elf_Scn *scn;
 	const char *name;
 	GElf_Shdr sh;
 	size_t shstrndx, ndx;
 	int elferr;
 
-	ld_input_load(ld, li);
-	e = li->li_elf;
 	if (elf_getshdrnum(e, &li->li_shnum) < 0)
 		ld_fatal(ld, "%s: elf_getshdrnum: %s", li->li_name,
 		    elf_errmsg(-1));
@@ -298,6 +294,13 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	if (elferr != 0)
 		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
+}
+
+void
+ld_input_init_common_section(struct ld *ld, struct ld_input *li)
+{
+	struct ld_input_section *is;
+	struct ld_symbol *lsb, *tmp;
 
 	/*
 	 * Create a pseudo section named COMMON to keep track of common symbols.
@@ -320,6 +323,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 	is->is_index = SHN_COMMON;
 	is->is_input = li;
 	is->is_orphan = 1;
+
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
 		if (lsb->lsb_input != li)
 			continue;
@@ -332,8 +336,6 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li)
 		lsb->lsb_value = is->is_size;
 		is->is_size += lsb->lsb_size;
 	}
-
-	ld_input_unload(ld, li);
 }
 
 static off_t
