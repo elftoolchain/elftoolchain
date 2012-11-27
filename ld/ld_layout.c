@@ -39,6 +39,16 @@
 
 ELFTC_VCSID("$Id$");
 
+struct ld_wildcard_match {
+	char *wm_name;
+	unsigned wm_no_match;
+	struct ld_output_section *wm_os;
+	struct ld_input_section_head *wm_islist;
+	struct ld_script_sections_output_input *wm_ldoi;
+	struct ld_wildcard_match *wm_next;
+	UT_hash_handle hh;
+};
+
 /*
  * Support routines for output section layout.
  */
@@ -46,18 +56,24 @@ ELFTC_VCSID("$Id$");
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
+static int _check_filename_constraint(struct ld_input *li,
+    struct ld_script_sections_output_input *ldoi);
 static void _insert_input_to_output(struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
-static void _layout_orphan_section(struct ld *ld, struct ld_input *li);
-static void _layout_output_section(struct ld *ld, struct ld_input *li,
-    struct ld_script_sections_output *ldso);
+static void _layout_input_sections(struct ld *ld, struct ld_input *li);
+static void _layout_orphan_section(struct ld *ld, struct ld_input_section *is);
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _parse_output_section_descriptor(struct ld *ld,
     struct ld_output_section *os);
+static void _prepare_output_section(struct ld *ld,
+    struct ld_script_sections_output *ldso);
 static void _print_section_layout(struct ld *ld, struct ld_output_section *os);
 static void _print_wildcard(struct ld_wildcard *lw);
 static void _print_wildcard_list(struct ld_script_list *ldl);
+static void _record_wildcard_match(struct ld *ld, char *name,
+    struct ld_output_section *os, struct ld_output_element *oe);
+static void _record_wildcard_no_match(struct ld *ld, char *name);
 static void _set_output_section_loadable_flag(struct ld_output_section *os);
 static int _wildcard_match(struct ld_wildcard *lw, const char *string);
 static int _wildcard_list_match(struct ld_script_list *list,
@@ -375,50 +391,107 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	struct ld_input *li;
 	struct ld_output *lo;
 	struct ld_script_cmd *ldc;
-	int first;
 
 	ld_input_link_objects(ld);
 
-	first = 1;
 	lo = ld->ld_output;
-	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		ld_input_init_common_section(ld, li);
-		if (li->li_type != LIT_RELOCATABLE)
-			continue;
-		STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
-			switch (ldc->ldc_type) {
-			case LSC_ASSERT:
-				if (!first)
-					break;
-				ld_output_create_element(ld, &lo->lo_oelist,
-				    OET_ASSIGN, ldc->ldc_cmd, NULL);
-			case LSC_ASSIGN:
-				if (!first)
-					break;
-				ld_output_create_element(ld, &lo->lo_oelist,
-				    OET_ASSIGN, ldc->ldc_cmd, NULL);
-				break;
-			case LSC_ENTRY:
-				ld_output_create_element(ld, &lo->lo_oelist,
-				    OET_ENTRY, ldc->ldc_cmd, NULL);
-				break;
-			case LSC_SECTIONS_OUTPUT:
-				_layout_output_section(ld, li, ldc->ldc_cmd);
-				break;
-			case LSC_SECTIONS_OVERLAY:
-				/* TODO */
-				break;
-			default:
-				break;
-			}
+
+	/*
+	 * Process commands inside the SECTIONS command and create
+	 * output elements.
+	 */
+	STAILQ_FOREACH(ldc, &ldss->ldss_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSERT:
+			ld_output_create_element(ld, &lo->lo_oelist,
+			    OET_ASSIGN, ldc->ldc_cmd, NULL);
+		case LSC_ASSIGN:
+			ld_output_create_element(ld, &lo->lo_oelist,
+			    OET_ASSIGN, ldc->ldc_cmd, NULL);
+			break;
+		case LSC_ENTRY:
+			ld_output_create_element(ld, &lo->lo_oelist,
+			    OET_ENTRY, ldc->ldc_cmd, NULL);
+			break;
+		case LSC_SECTIONS_OUTPUT:
+			_prepare_output_section(ld, ldc->ldc_cmd);
+			break;
+		case LSC_SECTIONS_OVERLAY:
+			/* TODO */
+			break;
+		default:
+			break;
 		}
-		first = 0;
 	}
 
+	/* Lay out each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+
+		/*
+		 * Build the pseudo COMMON section which holds all the
+		 * common symbols for this input object.
+		 */
+		ld_input_init_common_section(ld, li);
+
+		/* Only lay out relocatable input objects. */
 		if (li->li_type != LIT_RELOCATABLE)
 			continue;
-		_layout_orphan_section(ld, li);
+
+		/* Lay out sections for the input object. */
+		_layout_input_sections(ld, li);
+	}
+}
+
+static void
+_prepare_output_section(struct ld *ld, struct ld_script_sections_output *ldso)
+{
+	struct ld_script_cmd *ldc;
+	struct ld_input_section_head *islist;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_element *oe;
+
+	lo = ld->ld_output;
+
+	HASH_FIND_STR(lo->lo_ostbl, ldso->ldso_name, os);
+	if (os != NULL)
+		return;
+
+	os = ld_output_alloc_section(ld, ldso->ldso_name, NULL);
+	os->os_ldso = ldso;
+	_set_output_section_loadable_flag(os);
+
+	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
+		switch (ldc->ldc_type) {
+		case LSC_ASSERT:
+			oe = ld_output_create_element(ld, &os->os_e,
+			    OET_ASSERT, ldc->ldc_cmd, NULL);
+			break;
+		case LSC_ASSIGN:
+			oe = ld_output_create_element(ld, &os->os_e,
+			    OET_ASSIGN, ldc->ldc_cmd, NULL);
+			break;
+		case LSC_SECTIONS_OUTPUT_DATA:
+			oe = ld_output_create_element(ld, &os->os_e,
+			    OET_DATA, ldc->ldc_cmd, NULL);
+			break;
+		case LSC_SECTIONS_OUTPUT_INPUT:
+			islist = calloc(1, sizeof(*islist));
+			if (islist == NULL)
+				ld_fatal_std(ld, "calloc");
+			STAILQ_INIT(islist);
+			oe = ld_output_create_element(ld, &os->os_e,
+			    OET_INPUT_SECTION_LIST, ldc->ldc_cmd, NULL);
+			oe->oe_islist = islist;
+			break;
+		case LSC_SECTIONS_OUTPUT_KEYWORD:
+			ld_output_create_element(ld, &os->os_e,
+			    OET_KEYWORD, ldc->ldc_cmd, NULL);
+			break;
+		default:
+			ld_fatal(ld, "internal: invalid output section "
+			    "command: %d", ldc->ldc_type);
+		}
 	}
 }
 
@@ -462,119 +535,237 @@ _set_output_section_loadable_flag(struct ld_output_section *os)
 		os->os_flags &= ~SHF_ALLOC;
 }
 
-static void
-_layout_output_section(struct ld *ld, struct ld_input *li,
-    struct ld_script_sections_output *ldso)
+static int
+_check_filename_constraint(struct ld_input *li,
+    struct ld_script_sections_output_input *ldoi)
 {
 	struct ld_file *lf;
-	struct ld_output *lo;
-	struct ld_script_cmd *ldc;
-	struct ld_script_sections_output_input *ldoi;
-	struct ld_input_section *is;
-	struct ld_input_section_head *islist;
-	struct ld_output_element *oe;
-	struct ld_output_section *os;
-	int i, new_section;
 
 	lf = li->li_file;
+
+	if (ldoi->ldoi_ar != NULL && li->li_lam != NULL &&
+	    !_wildcard_match(ldoi->ldoi_ar, lf->lf_name))
+		return (0);
+
+	assert(ldoi->ldoi_file != NULL);
+	if (!_wildcard_match(ldoi->ldoi_file, li->li_name))
+		return (0);
+
+	if (ldoi->ldoi_exclude != NULL &&
+	    _wildcard_list_match(ldoi->ldoi_exclude, li->li_name))
+		return (0);
+
+	return (1);
+}
+
+static void
+_record_wildcard_match(struct ld *ld, char *name, struct ld_output_section *os,
+    struct ld_output_element *oe)
+{
+	struct ld_wildcard_match *wm, *_wm;
+
+	assert(name != NULL && os != NULL);
+	assert(oe != NULL && oe->oe_type == OET_INPUT_SECTION_LIST);
+
+	HASH_FIND_STR(ld->ld_wm, name, wm);
+
+	/* Create a new wildcard match. */
+	if (wm == NULL) {
+		if ((wm = calloc(1, sizeof(*wm))) == NULL)
+			ld_fatal_std(ld, "calloc");
+		if ((wm->wm_name = strdup(name)) == NULL)
+			ld_fatal_std(ld, "strdup");
+		wm->wm_os = os;
+		wm->wm_islist = oe->oe_islist;
+		wm->wm_ldoi = oe->oe_entry;
+		wm->wm_next = NULL;
+		HASH_ADD_KEYPTR(hh, ld->ld_wm, wm->wm_name,
+		    strlen(wm->wm_name), wm);
+		return;
+	}
+
+	/*
+	 * Wildcard match already exist, compare the "ldoi" to check
+	 * if this is a new wildcard match with a different file/archive
+	 * constraint. If so, Insert it to the tail of the wildcard match
+	 * list.
+	 */
+	do {
+		if (oe->oe_entry == (void *) wm->wm_ldoi)
+			return;
+	} while (wm->wm_next != NULL && (wm = wm->wm_next));
+
+	if ((_wm = calloc(1, sizeof(*_wm))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	_wm->wm_os = os;
+	_wm->wm_islist = oe->oe_islist;
+	_wm->wm_ldoi = oe->oe_entry;
+	_wm->wm_next = NULL;
+	wm->wm_next = _wm;
+}
+
+static void
+_record_wildcard_no_match(struct ld *ld, char *name)
+{
+	struct ld_wildcard_match *wm;
+
+	assert(name != NULL);
+
+	HASH_FIND_STR(ld->ld_wm, name, wm);
+
+	/*
+	 * Unfortunately this section is an orphan section because
+	 * it doesn't satisfy the file/archive constraint but does
+	 * match certain section name wildcard. We can not record this.
+	 */
+	if (wm != NULL)
+		return;
+
+	/* Create the wildcard "no-match" for the orphan. */
+	if ((wm = calloc(1, sizeof(*wm))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	if ((wm->wm_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "strdup");
+	wm->wm_no_match = 1;
+}
+
+static void
+_layout_input_sections(struct ld *ld, struct ld_input *li)
+{
+	struct ld_input_section *is;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_element *oe;
+	struct ld_wildcard_match *wm;
+	struct ld_script_sections_output_input *ldoi;	
+	int i;
+
 	lo = ld->ld_output;
-	new_section = 0;
-	oe = NULL;
-	HASH_FIND_STR(lo->lo_ostbl, ldso->ldso_name, os);
-	if (os == NULL) {
-		os = ld_output_alloc_section(ld, ldso->ldso_name, NULL);
-		os->os_ldso = ldso;
-		_set_output_section_loadable_flag(os);
-		new_section = 1;
-	} else
-		oe = STAILQ_FIRST(&os->os_e);
 
-	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
-		switch (ldc->ldc_type) {
-		case LSC_ASSERT:
-			if (new_section)
-				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_ASSERT, ldc->ldc_cmd, NULL);
-			break;
-		case LSC_ASSIGN:
-			if (new_section)
-				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_ASSIGN, ldc->ldc_cmd, NULL);
-			break;
-		case LSC_SECTIONS_OUTPUT_DATA:
-			if (new_section)
-				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_DATA, ldc->ldc_cmd, NULL);
-			break;
-		case LSC_SECTIONS_OUTPUT_INPUT:
-			if (new_section) {
-				islist = calloc(1, sizeof(*islist));
-				if (islist == NULL)
-					ld_fatal_std(ld, "calloc");
-				STAILQ_INIT(islist);
-				oe = ld_output_create_element(ld, &os->os_e,
-				    OET_INPUT_SECTION_LIST, ldc->ldc_cmd, NULL);
-				oe->oe_islist = islist;
+	for (i = 1; (size_t) i < li->li_shnum; i++) {
+
+		is = &li->li_is[i];
+
+		if (strcmp(is->is_name, ".shstrtab") == 0 ||
+		    strcmp(is->is_name, ".symtab") == 0 ||
+		    strcmp(is->is_name, ".strtab") == 0)
+			continue;
+
+		/* Search the wildcard match table for a quick match. */
+		HASH_FIND_STR(ld->ld_wm, is->is_name, wm);
+		if (wm != NULL) {
+			if (wm->wm_no_match) {
+				/*
+				 * We found a "no-match". This is certainly
+				 * an orphan section.
+				 */
+				_layout_orphan_section(ld, is);
+				continue;
 			}
-			break;
-		case LSC_SECTIONS_OUTPUT_KEYWORD:
-			if (new_section)
-				ld_output_create_element(ld, &os->os_e,
-				    OET_KEYWORD, ldc->ldc_cmd, NULL);
-			break;
-		default:
-			ld_fatal(ld, "internal: invalid output section "
-			    "command: %d", ldc->ldc_type);
-		}
-		if (ldc->ldc_type != LSC_SECTIONS_OUTPUT_INPUT)
-			goto next_output_cmd;
+		} else
+			goto full_search;
 
-		ldoi = ldc->ldc_cmd;
+		/* There is a match! Verify file/archive constraint. */
+		while (wm != NULL) {
+			ldoi = wm->wm_ldoi;
 
-		if (ldoi->ldoi_ar != NULL && li->li_lam != NULL &&
-		    !_wildcard_match(ldoi->ldoi_ar, lf->lf_name))
-			goto next_output_cmd;
+			if (!_check_filename_constraint(li, ldoi))
+				goto next_wm;
 
-		assert(ldoi->ldoi_file != NULL);
-		if (!_wildcard_match(ldoi->ldoi_file, li->li_name))
-			goto next_output_cmd;
-
-		if (ldoi->ldoi_exclude != NULL &&
-		    _wildcard_list_match(ldoi->ldoi_exclude, li->li_name))
-			goto next_output_cmd;
-
-		assert(ldoi->ldoi_sec != NULL);
-		for (i = 1; (size_t) i < li->li_shnum; i++) {
-			is = &li->li_is[i];
-			if (!is->is_orphan)
-				continue;
-			if (!_wildcard_list_match(ldoi->ldoi_sec, is->is_name))
-				continue;
-			if (strcmp(os->os_name, "/DISCARD/") == 0) {
+			if (strcmp(wm->wm_os->os_name, "/DISCARD/") == 0) {
 				is->is_discard = 1;
-				continue;
+				break;
 			}
-			assert(oe != NULL &&
-			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(lo, os, is, oe->oe_islist);
+
+			/*
+			 * File/archive constraint satisfied. Insert the
+			 * this section to the input section list of the
+			 * output section element.
+			 */
+			_insert_input_to_output(lo, wm->wm_os, is,
+			    wm->wm_islist);
+			break;
+
+		next_wm:
+			wm = wm->wm_next;
 		}
 
-	next_output_cmd:
-		assert(oe != NULL);
-		if (!new_section)
-			oe = STAILQ_NEXT(oe, oe_next);
+		if (wm != NULL)
+			continue;
+
+	full_search:
+
+		/*
+		 * Otherwise, we have to do a full search for the section
+		 * name in all the wildcard list.
+		 */
+		STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+			STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+
+				if (oe->oe_type != OET_INPUT_SECTION_LIST)
+					continue;
+
+				/*
+				 * Skip output sections created for orphan
+				 * input sections. They don't have wildcard
+				 * list.
+				 */
+				if ((ldoi = oe->oe_entry) == NULL)
+					continue;
+
+				/* Check if the section name match wildcard */
+				assert(ldoi->ldoi_sec != NULL);
+				if (!_wildcard_list_match(ldoi->ldoi_sec,
+				    is->is_name))
+					continue;
+
+				/*
+				 * Record this wildcard match to speed up
+				 * wildcard match for sections with the same
+				 * name.
+				 */
+				_record_wildcard_match(ld, is->is_name, os,
+				    oe);
+
+				/* Check file/archive constraint.  */
+				if (!_check_filename_constraint(li, ldoi)) {
+					continue;
+				}
+
+				/* Check if we should discard the section. */
+				if (strcmp(os->os_name, "/DISCARD/") == 0) {
+					is->is_discard = 1;
+					goto next_input_section;
+				}
+
+				/* Match! Insert to the input section list. */
+				_insert_input_to_output(lo, os, is,
+				    oe->oe_islist);
+				goto next_input_section;
+			}
+		}
+
+		/*
+		 * We found an orphan section. Record this so we can quickly
+		 * identify other orphan sections with the same name.
+		 */
+		_record_wildcard_no_match(ld, is->is_name);
+
+		/* Lay out the orphan section. */
+		_layout_orphan_section(ld, is);
+
+	next_input_section:
+		;
 	}
 }
 
 static void
-_layout_orphan_section(struct ld *ld, struct ld_input *li)
+_layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 {
-	struct ld_input_section *is;
 	struct ld_input_section_head *islist;
 	struct ld_output *lo;
 	struct ld_output_element *oe;
 	struct ld_output_section *os, *_os;
-	int i;
 
 	/*
 	 * Layout the input sections that are not listed in the output
@@ -582,46 +773,43 @@ _layout_orphan_section(struct ld *ld, struct ld_input *li)
 	 */
 
 	lo = ld->ld_output;
-	for (i = 1; (size_t) i < li->li_shnum; i++) {
-		is = &li->li_is[i];
 
-		if (!is->is_orphan || is->is_discard)
-			continue;
+	if (is->is_discard)
+		return;
 
-		if (strcmp(is->is_name, ".shstrtab") == 0 ||
-		    strcmp(is->is_name, ".symtab") == 0 ||
-		    strcmp(is->is_name, ".strtab") == 0)
-			continue;
+	if (strcmp(is->is_name, ".shstrtab") == 0 ||
+	    strcmp(is->is_name, ".symtab") == 0 ||
+	    strcmp(is->is_name, ".strtab") == 0)
+		return;
 
-		if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
-		    !ld->ld_emit_reloc)
-			continue;
+	if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
+	    !ld->ld_emit_reloc)
+		return;
 
-		HASH_FIND_STR(lo->lo_ostbl, is->is_name, os);
-		if (os != NULL) {
-			oe = STAILQ_FIRST(&os->os_e);
-			assert(oe != NULL &&
-			    oe->oe_type == OET_INPUT_SECTION_LIST);
-			_insert_input_to_output(lo, os, is, oe->oe_islist);
-			continue;
-		}
-
-		/*
-		 * Create a new output secton and put it in a proper place,
-		 * based on the section flag.
-		 */
-		_os = ld_layout_insert_output_section(ld, is->is_name,
-		    is->is_flags);
-
-		if ((islist = calloc(1, sizeof(*islist))) == NULL)
-			ld_fatal_std(ld, "calloc");
-		STAILQ_INIT(islist);
-
-		oe = ld_output_create_element(ld, &_os->os_e,
-		    OET_INPUT_SECTION_LIST, NULL, NULL);
-		oe->oe_islist = islist;
-		_insert_input_to_output(lo, _os, is, oe->oe_islist);
+	HASH_FIND_STR(lo->lo_ostbl, is->is_name, os);
+	if (os != NULL) {
+		oe = STAILQ_FIRST(&os->os_e);
+		assert(oe != NULL &&
+		    oe->oe_type == OET_INPUT_SECTION_LIST);
+		_insert_input_to_output(lo, os, is, oe->oe_islist);
+		return;
 	}
+
+	/*
+	 * Create a new output secton and put it in a proper place,
+	 * based on the section flag.
+	 */
+	_os = ld_layout_insert_output_section(ld, is->is_name,
+	    is->is_flags);
+
+	if ((islist = calloc(1, sizeof(*islist))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	STAILQ_INIT(islist);
+
+	oe = ld_output_create_element(ld, &_os->os_e,
+	    OET_INPUT_SECTION_LIST, NULL, NULL);
+	oe->oe_islist = islist;
+	_insert_input_to_output(lo, _os, is, oe->oe_islist);
 }
 
 struct ld_output_section *
@@ -668,7 +856,6 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
 		return;
 
-	is->is_orphan = 0;
 	os->os_empty = 0;
 
 	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);

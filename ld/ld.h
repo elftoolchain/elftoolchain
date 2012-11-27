@@ -59,6 +59,7 @@ struct ld_path;
 struct ld_symbol;
 struct ld_symbol_head;
 struct ld_output_data_buffer;
+struct ld_wildcard_match;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -112,6 +113,7 @@ struct ld {
 	struct ld_symbol_table *ld_dynsym; /* .dynsym symbol table */
 	struct ld_strtab *ld_dynstr;	/* .dynstr string table */
 	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
+	struct ld_wildcard_match *ld_wm; /* wildcard hash table */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */
 	unsigned ld_emit_reloc;		/* emit relocations */

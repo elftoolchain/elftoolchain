@@ -275,7 +275,6 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		is->is_info = sh.sh_info;
 		is->is_index = elf_ndxscn(scn);
 		is->is_input = li;
-		is->is_orphan = 1;
 
 		/*
 		 * Check for informational sections which should not
@@ -322,7 +321,6 @@ ld_input_init_common_section(struct ld *ld, struct ld_input *li)
 	is->is_info = 0;
 	is->is_index = SHN_COMMON;
 	is->is_input = li;
-	is->is_orphan = 1;
 
 	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
 		if (lsb->lsb_input != li)
