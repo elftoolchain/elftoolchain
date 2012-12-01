@@ -59,8 +59,6 @@ static int _resolve_multidef_symbol(struct ld *ld, struct ld_symbol *lsb,
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
-static struct ld_symbol *_find_symbol_from_input(struct ld_symbol *tbl,
-    char *name);
 static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
 static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
 static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
@@ -77,9 +75,6 @@ static void _update_symbol(struct ld_symbol *lsb);
 	    strlen((s)->lsb_longname), (s));			\
 	_update_export(ld, (s), 1);				\
 	} while (0)
-#define _add_symbol_to_input(tbl, s) 				\
-	HASH_ADD_KEYPTR(hhi, (tbl), (s)->lsb_name,		\
-	    strlen((s)->lsb_name), (s))
 #define _remove_symbol(tbl, s) do {				\
 	HASH_DEL((tbl), (s));					\
 	_update_export(ld, (s), 0);				\
@@ -237,35 +232,6 @@ ld_symbols_get_value(struct ld *ld, char *name, uint64_t *val)
 	return (0);
 }
 
-int
-ld_symbols_get_value_from_input(struct ld_input *li, char *name, uint64_t *val)
-{
-	struct ld_symbol *lsb;
-
-	if ((lsb = _find_symbol_from_input(li->li_nonlocal, name)) != NULL) {
-		while (lsb->lsb_ref != NULL)
-			lsb = lsb->lsb_ref;
-		*val = lsb->lsb_value;
-		return (0);
-	}
-
-	return (-1);
-}
-
-int
-ld_symbols_get_value_from_input_local(struct ld_input *li, char *name,
-    uint64_t *val)
-{
-	struct ld_symbol *lsb;
-
-	if ((lsb = _find_symbol_from_input(li->li_local, name)) != NULL) {
-		*val = lsb->lsb_value;
-		return (0);
-	}
-
-	return (-1);
-}
-
 void
 ld_symbols_resolve(struct ld *ld)
 {
@@ -331,7 +297,7 @@ ld_symbols_update(struct ld *ld)
 	struct ld_symbol *lsb, *_lsb;
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		HASH_ITER(hhi, li->li_local, lsb, _lsb)
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
 			_update_symbol(lsb);
 	}	
 
@@ -391,7 +357,7 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy local symbols from each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		HASH_ITER(hhi, li->li_local, lsb, tmp) {
+		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
 #if 0
 			li = lsb->lsb_input;
 			is = &li->li_is[lsb->lsb_shndx];
@@ -400,7 +366,9 @@ ld_symbols_build_symtab(struct ld *ld)
 				continue;
 			}
 #endif
-			_add_to_symbol_table(ld, lsb);
+			if (lsb->lsb_type != STT_SECTION &&
+			    lsb->lsb_index != 0)
+				_add_to_symbol_table(ld, lsb);
 		}
 	}
 
@@ -513,15 +481,6 @@ _find_symbol(struct ld_symbol *tbl, char *name)
 	struct ld_symbol *s;
 
 	HASH_FIND_STR(tbl, name, s);
-	return (s);
-}
-
-static struct ld_symbol *
-_find_symbol_from_input(struct ld_symbol *tbl, char *name)
-{
-	struct ld_symbol *s;
-
-	HASH_FIND(hhi, tbl, name, strlen(name), s);
 	return (s);
 }
 
@@ -857,6 +816,7 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_type = GELF_ST_TYPE(sym->st_info);
 	lsb->lsb_other = sym->st_other;
 	lsb->lsb_shndx = sym->st_shndx;
+	lsb->lsb_index = i;
 	lsb->lsb_input = li;
 	lsb->lsb_ver = NULL;
 
@@ -905,15 +865,9 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	 * Insert symbol to input object internal symbol list and
 	 * perform symbol resolving.
 	 */
-	if (lsb->lsb_bind == STB_LOCAL) {
-		if (lsb->lsb_type != STT_SECTION &&
-		    (lsb->lsb_type != STT_NOTYPE ||
-		    lsb->lsb_shndx != SHN_UNDEF))
-			_add_symbol_to_input(li->li_local, lsb);
-	} else {
-		_add_symbol_to_input(li->li_nonlocal, lsb);
+	ld_input_add_symbol(ld, li, lsb);
+	if (lsb->lsb_bind != STB_LOCAL)
 		_resolve_and_add_symbol(ld, lsb);
-	}
 }
 
 static int
@@ -1051,7 +1005,7 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	GElf_Sym sym;
 	GElf_Shdr shdr;
 	size_t strndx;
-	int elferr, len, i;
+	int elferr, i;
 
 	/* Load section list from input object. */
 	ld_input_init_sections(ld, li, e);
@@ -1100,8 +1054,8 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 		return;
 	}
 
-	len = d->d_size / shdr.sh_entsize;
-	for (i = 0; i < len; i++) {
+	li->li_symnum = d->d_size / shdr.sh_entsize;
+	for (i = 0; (uint64_t) i < li->li_symnum; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym)
 			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
 			    elf_errmsg(-1));
@@ -1124,17 +1078,13 @@ _load_symbols(struct ld *ld, struct ld_file *lf)
 static void
 _unload_symbols(struct ld_input *li)
 {
-	struct ld_symbol *lsb, *_lsb;
+	int i;
 
-	HASH_ITER(hhi, li->li_local, lsb, _lsb) {
-		HASH_DELETE(hhi, li->li_local, lsb);
-		_free_symbol(lsb);
-	}
+	if (li->li_symindex == NULL)
+		return;
 
-	HASH_ITER(hhi, li->li_nonlocal, lsb, _lsb) {
-		HASH_DELETE(hhi, li->li_nonlocal, lsb);
-		_free_symbol(lsb);
-	}
+	for (i = 0; (uint64_t) i < li->li_symnum; i++)
+		_free_symbol(li->li_symindex[i]);
 }
 
 static void
@@ -1203,7 +1153,7 @@ _add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 	    lsb->lsb_name);
 
-	lsb->lsb_index = ld->ld_dynsym->sy_size++;
+	lsb->lsb_dyn_index = ld->ld_dynsym->sy_size++;
 }
 
 static void

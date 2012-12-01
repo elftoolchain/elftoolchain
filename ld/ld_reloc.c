@@ -37,6 +37,8 @@ ELFTC_VCSID("$Id$");
  * Support routines for relocation handling.
  */
 
+static void _process_reloc(struct ld *ld, struct ld_input_section *is,
+    uint64_t sym, struct ld_reloc_entry *lre);
 static void _read_rel(struct ld *ld, struct ld_input_section *is,
     Elf_Data *d);
 static void _read_rela(struct ld *ld, struct ld_input_section *is,
@@ -80,6 +82,15 @@ ld_reloc_load(struct ld *ld)
 				continue;
 			}
 
+			/*
+			 * Load and process relocation entries.
+			 */
+
+			if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) ==
+			    NULL)
+				ld_fatal(ld, "malloc");
+			STAILQ_INIT(is->is_reloc);
+
 			if (is->is_type == SHT_REL)
 				_read_rel(ld, is, d);
 			else
@@ -97,9 +108,7 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 	GElf_Rel r;
 	int i, len;
 
-	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
-		ld_fatal(ld, "malloc");
-	STAILQ_INIT(is->is_reloc);
+	assert(is->is_reloc != NULL);
 
 	len = d->d_size / is->is_entsize;
 	for (i = 0; i < len; i++) {
@@ -110,8 +119,8 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
-		lre->lre_sym = GELF_R_SYM(r.r_info);
 		lre->lre_type = GELF_R_TYPE(r.r_info);
+		_process_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	}
 }
@@ -123,9 +132,7 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 	GElf_Rela r;
 	int i, len;
 
-	if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) == NULL)
-		ld_fatal(ld, "malloc");
-	STAILQ_INIT(is->is_reloc);
+	assert(is->is_reloc != NULL);
 
 	len = d->d_size / is->is_entsize;
 	for (i = 0; i < len; i++) {
@@ -136,11 +143,24 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
-		lre->lre_sym = GELF_R_SYM(r.r_info);
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_addend = r.r_addend;
+		_process_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	}
+}
+
+static void
+_process_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
+    struct ld_reloc_entry *lre)
+{
+	struct ld_input *li;
+
+	(void) ld;
+
+	li = is->is_input;
+
+	lre->lre_sym = li->li_symindex[sym];
 }
 
 void
@@ -148,16 +168,10 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
     void *buf)
 {
 	struct ld_input *li;
-	struct ld_input_section *ris, *sis, *tis;
+	struct ld_input_section *ris;
 	struct ld_reloc_entry *lre;
-	Elf *e;
-	Elf_Scn *scn;
-	Elf_Data *d;
-	GElf_Sym sym;
-	char *name;
-	size_t strndx;
-	uint64_t sym_val;
-	int elferr, i;
+	struct ld_symbol *lsb;
+	int i;
 
 	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
 		return;
@@ -179,57 +193,12 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 
 	assert(ris->is_reloc != NULL);
 
-	sis = &li->li_is[ris->is_link];
-	if (sis->is_type != SHT_SYMTAB)
-		return;
-
-	strndx = sis->is_link;
-
-	e = li->li_elf;
-	assert(e != NULL);
-
-	if ((scn = elf_getscn(e, sis->is_index)) == NULL)
-		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
-
-	(void) elf_errno();
-	if ((d = elf_getdata(scn, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			ld_fatal(ld, "elf_getdata failed: %s",
-			    elf_errmsg(elferr));
-		return;
-	}
-
 	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
-		if (gelf_getsym(d, lre->lre_sym, &sym) != &sym)
-			ld_fatal(ld, "gelf_getsym failed: %s",
-			    elf_errmsg(-1));
-
-		name = elf_strptr(e, strndx, sym.st_name);
-
-		/*
-		 * Find out the value for the symbol assoicated
-		 * with the relocation entry.
-		 */
-		if (GELF_ST_BIND(sym.st_info) == STB_GLOBAL ||
-		    GELF_ST_BIND(sym.st_info) == STB_WEAK) {
-			if (ld_symbols_get_value_from_input(li, name,
-			    &sym_val) < 0)
-				sym_val = sym.st_value;
-		} else if (GELF_ST_BIND(sym.st_info) == STB_LOCAL) {
-			if (GELF_ST_TYPE(sym.st_info) == STT_SECTION) {
-				tis = &li->li_is[sym.st_shndx];
-				sym_val = tis->is_output->os_addr +
-				    tis->is_reloff;
-			} else {
-				if (ld_symbols_get_value_from_input_local(li,
-				    name, &sym_val) < 0)
-					sym_val = sym.st_value;
-			}
-		} else
-			sym_val = 0;
+		lsb = lre->lre_sym;
+		while (lsb->lsb_ref != NULL)
+			lsb = lsb->lsb_ref;
 
 		/* Arch-specific relocation handling. */
-		ld->ld_arch->process_reloc(ld, is, lre, sym_val, buf);
+		ld->ld_arch->process_reloc(ld, is, lre, lsb->lsb_value, buf);
 	}
 }

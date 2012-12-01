@@ -66,8 +66,9 @@ struct ld_input {
 	size_t li_shnum;		/* num of sections in ELF object */
 	struct ld_input_section *li_is;	/* input section list */
 	struct ld_archive_member *li_lam; /* archive member */
-	struct ld_symbol *li_local;	/* local symbol hash table */
-	struct ld_symbol *li_nonlocal;	/* non-local symbol hash table */
+	struct ld_symbol_head *li_local; /* local symbol list */
+	struct ld_symbol **li_symindex;	/* symbol index table */
+	size_t li_symnum;		/* number of symbols */
 	char **li_vername;		/* version name array */
 	size_t li_vername_sz;		/* version name array size */
 	uint16_t *li_versym;		/* symbol version array */
@@ -77,6 +78,8 @@ struct ld_input {
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
+void	ld_input_add_symbol(struct ld *, struct ld_input *,
+    struct ld_symbol *);
 struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
 void	ld_input_cleanup(struct ld *);

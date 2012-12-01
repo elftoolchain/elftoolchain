@@ -26,8 +26,10 @@
  * $Id$
  */
 
+struct ld_symbol;
+
 struct ld_reloc_entry {
-	uint64_t lre_sym;		/* reloc symbol */
+	struct ld_symbol *lre_sym;	/* reloc symbol */
 	uint64_t lre_type;		/* reloc type */
 	uint64_t lre_offset;		/* reloc offset */
 	uint64_t lre_addend;		/* reloc addend */

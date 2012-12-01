@@ -302,7 +302,7 @@ _finalize_pltgot(struct ld *ld)
 		 * PLT entry.
 		 */
 		rela_plt[j].r_offset = lo->lo_got->os_addr + i * 8;
-		rela_plt[j].r_info = ELF64_R_INFO(lsb->lsb_index,
+		rela_plt[j].r_info = ELF64_R_INFO(lsb->lsb_dyn_index,
 		    R_X86_64_JUMP_SLOT);
 		rela_plt[j].r_addend = 0;
 

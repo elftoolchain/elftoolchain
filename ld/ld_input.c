@@ -46,6 +46,10 @@ ld_input_cleanup(struct ld *ld)
 
 	STAILQ_FOREACH_SAFE(li, &ld->ld_lilist, li_next, _li) {
 		STAILQ_REMOVE(&ld->ld_lilist, li, ld_input, li_next);
+		if (li->li_symindex)
+			free(li->li_symindex);
+		if (li->li_local)
+			free(li->li_local);
 		if (li->li_versym)
 			free(li->li_versym);
 		if (li->li_vername) {
@@ -58,6 +62,31 @@ ld_input_cleanup(struct ld *ld)
 			free(li->li_fullname);
 		free(li->li_name);
 		free(li);
+	}
+}
+
+void
+ld_input_add_symbol(struct ld *ld, struct ld_input *li, struct ld_symbol *lsb)
+{
+
+	if (li->li_symindex == NULL) {
+		assert(li->li_symnum != 0);
+		li->li_symindex = calloc(li->li_symnum,
+		    sizeof(*li->li_symindex));
+		if (li->li_symindex == NULL)
+			ld_fatal_std(ld, "calloc");
+	}
+
+	li->li_symindex[lsb->lsb_index] = lsb;
+
+	if (lsb->lsb_bind == STB_LOCAL) {
+		if (li->li_local == NULL) {
+			li->li_local = calloc(1, sizeof(*li->li_local));
+			if (li->li_local == NULL)
+				ld_fatal_std(ld, "calloc");
+			STAILQ_INIT(li->li_local);
+		}
+		STAILQ_INSERT_TAIL(li->li_local, lsb, lsb_next);
 	}
 }
 

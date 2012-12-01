@@ -37,6 +37,7 @@ struct ld_symbol {
 	uint64_t lsb_value;		/* symbol value */
 	uint16_t lsb_shndx;		/* symbol section index */
 	uint64_t lsb_index;		/* symbol index */
+	uint64_t lsb_dyn_index;		/* dynamic symbol index */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
@@ -51,7 +52,6 @@ struct ld_symbol {
 	struct ld_input *lsb_input;	/* containing input object */
 	struct ld_output_section *lsb_preset_os; /* Preset output section */
 	UT_hash_handle hh;		/* hash handle */
-	UT_hash_handle hhi;		/* hash handle (input object) */
 	UT_hash_handle hhimp;		/* hash handle (import) */
 	UT_hash_handle hhexp;		/* hash handle (export) */
 	STAILQ_ENTRY(ld_symbol) lsb_next; /* next symbol */
@@ -86,8 +86,5 @@ void	ld_symbols_cleanup(struct ld *);
 void	ld_symbols_create_dynsym(struct ld *);
 void	ld_symbols_finalize_dynsym(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
-int	ld_symbols_get_value_from_input(struct ld_input *, char *, uint64_t *);
-int	ld_symbols_get_value_from_input_local(struct ld_input *, char *,
-    uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);
