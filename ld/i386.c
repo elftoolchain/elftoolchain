@@ -29,6 +29,7 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_reloc.h"
+#include "ld_symbols.h"
 #include "ld_utils.h"
 #include "i386.h"
 
@@ -37,7 +38,7 @@ ELFTC_VCSID("$Id$");
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf);
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -57,15 +58,16 @@ _get_common_page_size(struct ld *ld)
 
 static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf)
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
 {
 	struct ld_output *lo;
-	uint32_t p;
+	uint32_t p, s;
 	int32_t a;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
+	s = (uint32_t) lsb->lsb_value;
 	p = lre->lre_offset + is->is_output->os_addr + is->is_reloff;
 	READ_32(buf + lre->lre_offset, a);
 

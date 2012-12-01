@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id$");
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf);
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -59,10 +59,10 @@ _get_common_page_size(struct ld *ld)
 
 static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
-    struct ld_reloc_entry *lre, uint64_t s, uint8_t *buf)
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
 {
 	struct ld_output *lo;
-	uint64_t u64;
+	uint64_t u64, s;
 	int64_t s64;
 	uint32_t u32;
 	int32_t s32;
@@ -71,6 +71,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
+	s = lsb->lsb_value;
 	p = lre->lre_offset + is->is_output->os_addr + is->is_reloff;
 
 	switch (lre->lre_type) {

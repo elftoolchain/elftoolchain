@@ -199,6 +199,6 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 			lsb = lsb->lsb_ref;
 
 		/* Arch-specific relocation handling. */
-		ld->ld_arch->process_reloc(ld, is, lre, lsb->lsb_value, buf);
+		ld->ld_arch->process_reloc(ld, is, lre, lsb, buf);
 	}
 }
