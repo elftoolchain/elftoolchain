@@ -70,9 +70,11 @@ struct ld_output_section {
 	uint64_t os_flags;		/* output section flags */
 	uint64_t os_type;		/* output section type */
 	uint64_t os_entsize;		/* output seciton entry size */
-	uint64_t os_info;		/* output section info */
+	uint64_t os_info_val;		/* output section info */
+	char *os_link_name;		/* link to other output section */
 	unsigned os_empty;		/* output section is empty */
 	struct ld_output_section *os_link; /* link to other output section */
+	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
@@ -113,9 +115,11 @@ struct ld_output {
 	struct ld_output_section *lo_versym; /* .gnu.version section */
 	struct ld_output_section *lo_got; /* GOT section */
 	struct ld_output_section *lo_plt; /* PLT section */
+	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
 	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
 	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
 	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */
+	struct ld_output_data_buffer *lo_rel_plt_odb; /* PLT reloc data */
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,

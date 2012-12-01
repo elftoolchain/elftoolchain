@@ -196,8 +196,11 @@ ld_symver_create_verneed_section(struct ld *ld)
 		}
 	}
 
+	if (lo->lo_verneed_num == 0)
+		return;
+
 	/* Store the number of verneed entries in the sh_info field. */
-	os->os_info = lo->lo_verneed_num;
+	os->os_info_val = lo->lo_verneed_num;
 
 	/*
 	 * Write Verneed/Vernaux structures.

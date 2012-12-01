@@ -247,7 +247,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	sh.sh_size = os->os_size;
 	sh.sh_type = os->os_type;
 	sh.sh_entsize = os->os_entsize;
-	sh.sh_info = os->os_info;
+	sh.sh_info = os->os_info_val;
 
 	_add_to_shstrtab(ld, os->os_name);
 
@@ -734,7 +734,7 @@ _update_section_header(struct ld *ld)
 {
 	struct ld_strtab *st;
 	struct ld_output *lo;
-	struct ld_output_section *os;
+	struct ld_output_section *os, *_os;
 	GElf_Shdr sh;
 	
 	lo = ld->ld_output;
@@ -755,15 +755,19 @@ _update_section_header(struct ld *ld)
 		 */
 		sh.sh_name = ld_strtab_lookup(st, os->os_name);
 
-		/* Update "sh_link" field if need. */
-		if (os->os_link != NULL)
+		/* Update "sh_link" field. */
+		if (os->os_link_name != NULL) {
+			HASH_FIND_STR(lo->lo_ostbl, os->os_link_name, _os);
+			if (_os == NULL)
+				ld_fatal(ld, "Internal: can not find link"
+				    " section %s", os->os_link_name);
+			sh.sh_link = elf_ndxscn(_os->os_scn);
+		} else if (os->os_link != NULL)
 			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
 
-		/* Update "sh_info" for dynamic symbol table section. */
-		if (os->os_type == SHT_DYNSYM) {
-			assert(ld->ld_dynsym != NULL);
-			sh.sh_info = ld->ld_dynsym->sy_first_nonlocal;
-		}
+		/* Update "sh_info" field. */
+		if (os->os_info != NULL)
+			sh.sh_info = elf_ndxscn(os->os_info->os_scn);
 
 #if 0
 		printf("name=%s, shname=%#jx, offset=%#jx, size=%#jx, type=%#jx\n",

@@ -366,6 +366,7 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 		os->os_entsize = sizeof(Elf64_Sym);
 		os->os_align = 8;
 	}
+	os->os_info_val = ld->ld_dynsym->sy_first_nonlocal;
 	lo->lo_dynsym = os;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_SYMTAB,
