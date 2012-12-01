@@ -1050,8 +1050,8 @@ _load_elf_symbols_and_relocs(struct ld *ld, struct ld_input *li, Elf *e)
 	Elf_Scn *scn, *scn_sym;
 	Elf_Scn *scn_versym, *scn_verneed, *scn_verdef;
 	Elf_Data *d;
-	GElf_Shdr shdr;
 	GElf_Sym sym;
+	GElf_Shdr shdr;
 	size_t strndx;
 	int elferr, len, i;
 
@@ -1066,7 +1066,7 @@ _load_elf_symbols_and_relocs(struct ld *ld, struct ld_input *li, Elf *e)
 		if (li->li_type == LIT_DSO) {
 			if (is->is_type == SHT_DYNSYM) {
 				scn_sym = elf_getscn(e, is->is_index);
-				strndx = shdr.sh_link;
+				strndx = is->is_link;
 			}
 			if (is->is_type == SHT_SUNW_versym)
 				scn_versym = elf_getscn(e, is->is_index);
