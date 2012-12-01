@@ -28,7 +28,6 @@
 #include "ld_file.h"
 #include "ld_input.h"
 #include "ld_output.h"
-#include "ld_reloc.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
 #include "ld_script.h"
@@ -40,8 +39,7 @@ ELFTC_VCSID("$Id$");
 
 static void _load_symbols(struct ld *ld, struct ld_file *lf);
 static void _load_archive_symbols(struct ld *ld, struct ld_file *lf);
-static void _load_elf_symbols_and_relocs(struct ld *ld, struct ld_input *li,
-    Elf *e);
+static void _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e);
 static void _unload_symbols(struct ld_input *li);
 static void _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e,
     GElf_Sym *sym, size_t strndx, int i);
@@ -973,7 +971,7 @@ _extract_archive_member(struct ld *ld, struct ld_file *lf,
 	lam->lam_input = li;
 
 	/* Load the symbols of this member. */
-	_load_elf_symbols_and_relocs(ld, li, e);
+	_load_elf_symbols(ld, li, e);
 
 	elf_end(e);
 
@@ -1044,7 +1042,7 @@ _load_archive_symbols(struct ld *ld, struct ld_file *lf)
 }
 
 static void
-_load_elf_symbols_and_relocs(struct ld *ld, struct ld_input *li, Elf *e)
+_load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
 	Elf_Scn *scn, *scn_sym;
@@ -1078,10 +1076,7 @@ _load_elf_symbols_and_relocs(struct ld *ld, struct ld_input *li, Elf *e)
 			if (is->is_type == SHT_SYMTAB) {
 				scn_sym = elf_getscn(e, is->is_index);
 				strndx = is->is_link;
-			} else if (is->is_type == SHT_REL)
-				ld_reloc_read_rel(ld, is, e);
-			else if (is->is_type == SHT_RELA)
-				ld_reloc_read_rela(ld, is, e);
+			}
 		}
 	}
 
@@ -1122,7 +1117,7 @@ _load_symbols(struct ld *ld, struct ld_file *lf)
 		_load_archive_symbols(ld, lf);
 	else {
 		lf->lf_input = ld_input_alloc(ld, lf, lf->lf_name);
-		_load_elf_symbols_and_relocs(ld, lf->lf_input, lf->lf_elf);
+		_load_elf_symbols(ld, lf->lf_input, lf->lf_elf);
 	}
 }
 

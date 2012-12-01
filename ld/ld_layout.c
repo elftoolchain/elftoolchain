@@ -392,8 +392,6 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	struct ld_output *lo;
 	struct ld_script_cmd *ldc;
 
-	ld_input_link_objects(ld);
-
 	lo = ld->ld_output;
 
 	/*

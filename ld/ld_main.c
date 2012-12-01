@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_options.h"
+#include "ld_reloc.h"
 #include "ld_script.h"
 #include "ld_file.h"
 #include "ld_input.h"
@@ -97,6 +98,8 @@ restart:
 		ls->ls_rerun = 1;
 		goto restart;
 	}
+
+	ld_reloc_load(ld);
 
 	ld_output_init(ld);
 
