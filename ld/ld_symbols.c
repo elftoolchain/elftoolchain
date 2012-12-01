@@ -1208,7 +1208,7 @@ _add_to_dynsym_table(struct ld *ld, struct ld_symbol *lsb)
 	lsb->lsb_nameindex = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 	    lsb->lsb_name);
 
-	ld->ld_dynsym->sy_size++;
+	lsb->lsb_index = ld->ld_dynsym->sy_size++;
 }
 
 static void

@@ -35,7 +35,8 @@ struct ld_symbol {
 	char *lsb_longname;		/* symbol name+version (as hash key)*/
 	uint64_t lsb_size;		/* symbol size */
 	uint64_t lsb_value;		/* symbol value */
-	uint16_t lsb_shndx;		/* symbol index */
+	uint16_t lsb_shndx;		/* symbol section index */
+	uint64_t lsb_index;		/* symbol index */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
