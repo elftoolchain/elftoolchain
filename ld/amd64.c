@@ -300,12 +300,18 @@ _finalize_pltgot(struct ld *ld)
 
 		/*
 		 * Create a R_X86_64_JUMP_SLOT relocation entry for the
-		 * PLT entry.
+		 * PLT slot.
 		 */
 		rela_plt[j].r_offset = lo->lo_got->os_addr + i * 8;
 		rela_plt[j].r_info = ELF64_R_INFO(lsb->lsb_dyn_index,
 		    R_X86_64_JUMP_SLOT);
 		rela_plt[j].r_addend = 0;
+
+		/*
+		 * Set the value of the import symbol to point to the PLT
+		 * slot.
+		 */
+		lsb->lsb_value = lo->lo_plt->os_addr + (i - 2) * 16;
 
 		/*
 		 * Calculate the IP-relative offset to the GOT entry for
