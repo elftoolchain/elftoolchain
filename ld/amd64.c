@@ -199,6 +199,7 @@ _create_pltgot(struct ld *ld)
 		ld_fatal_std(ld, "strdup");
 	os->os_info = lo->lo_plt;
 	lo->lo_rel_plt = os;
+	lo->lo_rel_plt_type = DT_RELA;
 
 	if ((rela_plt_odb = calloc(1, sizeof(*rela_plt_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
