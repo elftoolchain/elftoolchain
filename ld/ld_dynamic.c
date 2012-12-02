@@ -326,6 +326,10 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	if (lo->lo_got != NULL)
 		DT_ENTRY_PTR(DT_PLTGOT, lo->lo_got->os_addr);
+	if (lo->lo_rel_plt != NULL) {
+		DT_ENTRY_VAL(DT_PLTRELSZ, lo->lo_rel_plt->os_size);
+		DT_ENTRY_PTR(DT_JMPREL, lo->lo_rel_plt->os_addr);
+	}
 
 	/*
 	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
