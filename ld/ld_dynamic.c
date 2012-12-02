@@ -174,14 +174,14 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 
 	/* DT_INIT */
 	HASH_FIND_STR(lo->lo_ostbl, init_name, _os);
-	if (_os != NULL && !os->os_empty) {
+	if (_os != NULL && !_os->os_empty) {
 		lo->lo_init = _os;
 		entries++;
 	}
 
 	/* DT_FINI */
 	HASH_FIND_STR(lo->lo_ostbl, fini_name, _os);
-	if (_os != NULL && !os->os_empty) {
+	if (_os != NULL && !_os->os_empty) {
 		lo->lo_fini = _os;
 		entries++;
 	}
