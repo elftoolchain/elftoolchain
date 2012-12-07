@@ -117,10 +117,12 @@ struct ld_output {
 	struct ld_output_section *lo_got; /* GOT section */
 	struct ld_output_section *lo_plt; /* PLT section */
 	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
+	struct ld_output_section *lo_rel_dyn;  /* Dynamic relocation section */
 	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
 	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
 	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */
 	struct ld_output_data_buffer *lo_rel_plt_odb; /* PLT reloc data */
+	struct ld_output_data_buffer *lo_rel_dyn_odb; /* dynamic reloc data */
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,

@@ -63,6 +63,9 @@ ld_dynamic_create(struct ld *ld)
 	/* Create .interp section. */
 	_create_interp(ld, lo);
 
+	/* Create dynamic relocation. */
+	ld->ld_arch->create_dynrel(ld);
+
 	/* Create PLT and GOT sections. */
 	ld->ld_arch->create_pltgot(ld);
 
@@ -96,6 +99,9 @@ ld_dynamic_finalize(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
+	/* Finalize dynamic relocation. */
+	ld->ld_arch->finalize_dynrel(ld);
+
 	/* Finalize PLT and GOT sections. */
 	ld->ld_arch->finalize_pltgot(ld);
 
@@ -111,6 +117,7 @@ ld_dynamic_create_copy_reloc(struct ld *ld)
 	struct ld_symbol *lsb, *tmp;
 	size_t a, off;
 
+	ld->ld_num_copy_reloc = 0;
 	off = 0;
 	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
 
@@ -165,6 +172,8 @@ ld_dynamic_create_copy_reloc(struct ld *ld)
 
 		off += lsb->lsb_size;
 		lsb->lsb_value = off;
+		lsb->lsb_copy_reloc = 1;
+		ld->ld_num_copy_reloc++;
 	}
 
 	if (off == 0)

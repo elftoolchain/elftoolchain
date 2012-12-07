@@ -105,6 +105,75 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 }
 
 static void
+_create_dynrel(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *odb;
+	char dynrel_name[] = ".rela.dyn";
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	HASH_FIND_STR(lo->lo_ostbl, dynrel_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, dynrel_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_RELA;
+	os->os_align = 8;
+	os->os_entsize = sizeof(Elf64_Rela);
+	os->os_flags = SHF_ALLOC;
+	if ((os->os_link_name = strdup(".dynsym")) == NULL)
+		ld_fatal_std(ld, "strdup");
+	lo->lo_rel_dyn = os;
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	odb->odb_size = ld->ld_num_copy_reloc * sizeof(Elf64_Rela);
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_RELA;
+	lo->lo_rel_dyn_odb = odb;
+
+	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	    NULL);
+}
+
+static void
+_finalize_dynrel(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_output_data_buffer *odb;
+	struct ld_symbol *lsb, *tmp;
+	Elf64_Rela *r;
+	int i;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	if (lo->lo_rel_dyn == NULL || lo->lo_rel_dyn_odb == NULL)
+		return;
+
+	odb = lo->lo_rel_dyn_odb;
+	if ((odb->odb_buf = malloc(odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	r = (Elf64_Rela *) (uintptr_t) odb->odb_buf;
+
+	i = 0;
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+		if (!lsb->lsb_copy_reloc)
+			continue;
+
+		r[i].r_offset = lsb->lsb_value;
+		r[i].r_info = ELF64_R_INFO(lsb->lsb_dyn_index, R_X86_64_COPY);
+		r[i].r_addend = 0;
+		i++;
+	}
+
+	assert((unsigned) i == ld->ld_num_copy_reloc);
+}
+
+static void
 _create_pltgot(struct ld *ld)
 {
 	struct ld_output *lo;
@@ -381,6 +450,8 @@ amd64_register(struct ld *ld)
 	amd64->get_max_page_size = _get_max_page_size;
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->process_reloc = _process_reloc;
+	amd64->create_dynrel = _create_dynrel;
+	amd64->finalize_dynrel = _finalize_dynrel;
 	amd64->create_pltgot = _create_pltgot;
 	amd64->finalize_pltgot = _finalize_pltgot;
 
