@@ -127,9 +127,6 @@ ld_layout_sections(struct ld *ld)
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
-
-	/* Finalize sections for dynamically linked output object. */
-	ld_dynamic_finalize(ld);
 }
 
 void

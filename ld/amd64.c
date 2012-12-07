@@ -130,6 +130,8 @@ _create_dynrel(struct ld *ld)
 	if ((odb = calloc(1, sizeof(*odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	odb->odb_size = ld->ld_num_copy_reloc * sizeof(Elf64_Rela);
+	if ((odb->odb_buf = malloc(odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_RELA;
 	lo->lo_rel_dyn_odb = odb;
@@ -154,8 +156,6 @@ _finalize_dynrel(struct ld *ld)
 		return;
 
 	odb = lo->lo_rel_dyn_odb;
-	if ((odb->odb_buf = malloc(odb->odb_size)) == NULL)
-		ld_fatal_std(ld, "malloc");
 
 	r = (Elf64_Rela *) (uintptr_t) odb->odb_buf;
 
@@ -208,6 +208,8 @@ _create_pltgot(struct ld *ld)
 	if ((got_odb = calloc(1, sizeof(*got_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	got_odb->odb_size = (HASH_CNT(hhimp, ld->ld_symtab_import) + 3) * 8;
+	if ((got_odb->odb_buf = malloc(got_odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
 	got_odb->odb_align = 8;
 	got_odb->odb_type = ELF_T_BYTE;
 	lo->lo_got_odb = got_odb;
@@ -241,6 +243,8 @@ _create_pltgot(struct ld *ld)
 	if ((plt_odb = calloc(1, sizeof(*plt_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	plt_odb->odb_size = (func_cnt + 1) * 16;
+	if ((plt_odb->odb_buf = malloc(plt_odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
 	plt_odb->odb_align = 1;
 	plt_odb->odb_type = ELF_T_BYTE;
 	lo->lo_plt_odb = plt_odb;
@@ -273,6 +277,8 @@ _create_pltgot(struct ld *ld)
 	if ((rela_plt_odb = calloc(1, sizeof(*rela_plt_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
 	rela_plt_odb->odb_size = func_cnt * os->os_entsize;
+	if ((rela_plt_odb->odb_buf = malloc(rela_plt_odb->odb_size)) == NULL)
+		ld_fatal_std(ld, "malloc");
 	rela_plt_odb->odb_align = os->os_align;
 	rela_plt_odb->odb_type = ELF_T_RELA;
 	lo->lo_rel_plt_odb = rela_plt_odb;
@@ -286,7 +292,7 @@ _finalize_pltgot(struct ld *ld)
 {
 	struct ld_output *lo;
 	struct ld_symbol *lsb, *_lsb;
-	Elf64_Rela *rela_plt;
+	Elf64_Rela *r;
 	uint8_t *got, *plt;
 	uint64_t u64;
 	int32_t s32, pltgot, gotpcrel;
@@ -298,19 +304,12 @@ _finalize_pltgot(struct ld *ld)
 	if (lo->lo_got_odb == NULL || lo->lo_got_odb->odb_size == 0)
 		return;
 
-	if ((got = calloc(lo->lo_got_odb->odb_size, 1)) == NULL)
-		ld_fatal_std(ld, "calloc");
-	lo->lo_got_odb->odb_buf = got;
+	got = lo->lo_got_odb->odb_buf;
 
 	plt = NULL;
 	if (lo->lo_plt_odb != NULL && lo->lo_plt_odb->odb_size != 0) {
-		if ((plt = calloc(lo->lo_plt_odb->odb_size, 1)) == NULL)
-			ld_fatal_std(ld, "calloc");
-		lo->lo_plt_odb->odb_buf = plt;
-		if ((rela_plt = calloc(lo->lo_rel_plt_odb->odb_size, 1)) ==
-		    NULL)
-			ld_fatal_std(ld, "calloc");
-		lo->lo_rel_plt_odb->odb_buf = (uint8_t *) (uintptr_t) rela_plt;
+		plt = lo->lo_plt_odb->odb_buf;
+		r = (Elf64_Rela *) (uintptr_t) lo->lo_rel_plt_odb->odb_buf;
 	}
 
 	/* TODO: fill in _DYNAMIC in the first got entry. */
@@ -372,10 +371,10 @@ _finalize_pltgot(struct ld *ld)
 		 * Create a R_X86_64_JUMP_SLOT relocation entry for the
 		 * PLT slot.
 		 */
-		rela_plt[j].r_offset = lo->lo_got->os_addr + i * 8;
-		rela_plt[j].r_info = ELF64_R_INFO(lsb->lsb_dyn_index,
+		r[j].r_offset = lo->lo_got->os_addr + i * 8;
+		r[j].r_info = ELF64_R_INFO(lsb->lsb_dyn_index,
 		    R_X86_64_JUMP_SLOT);
-		rela_plt[j].r_addend = 0;
+		r[j].r_addend = 0;
 
 		/*
 		 * Set the value of the import symbol to point to the PLT

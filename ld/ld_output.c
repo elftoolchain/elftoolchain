@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_dynamic.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
@@ -656,6 +657,9 @@ ld_output_create(struct ld *ld)
 	/* Save updated ELF header. */
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
+
+	/* Finalize sections for dynamically linked output object. */
+	ld_dynamic_finalize(ld);
 
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
