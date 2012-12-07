@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id$");
  */
 
 static const char *ld_short_opts =
-    "b:c:e:Ef:Fgh:iIl:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
+    "b:c:e:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
 
 static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
@@ -64,7 +64,7 @@ static struct ld_option ld_opts[] = {
 	{"discard-locals", 'X', ANY_DASH, NO_ARG},
 	{"dn", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"dy", KEY_DYNAMIC, ONE_DASH, NO_ARG},
-	{"dynamic-linker", 'I', ANY_DASH, NO_ARG},
+	{"dynamic-linker", 'I', ANY_DASH, REQ_ARG},
 	{"end-group", ')', ANY_DASH, NO_ARG},
 	{"entry", 'e', ANY_DASH, REQ_ARG},
 	{"error-unresolved-symbols", KEY_ERR_UNRESOLVE_SYM, ANY_DASH, NO_ARG},
@@ -296,7 +296,7 @@ _parse_long_options(struct ld *ld, struct ld_option *opts, int ac,
 	switch (opts[i].lo_arg) {
 	case NO_ARG:
 		if (equal != NULL) {
-			ld_fatal(ld, "option %s requires argument",
+			ld_fatal(ld, "option %s does not accept argument",
 			    opts[i].lo_long);
 		}
 		_process_options(ld, opts[i].lo_key, NULL);
@@ -350,6 +350,7 @@ _process_options(struct ld *ld, int key, char *arg)
 			free(ld->ld_interp);
 		if ((ld->ld_interp = strdup(arg)) == NULL)
 			ld_fatal_std(ld, "strdup");
+		break;
 	case 'l':
 		ld_path_search_library(ld, arg);
 		break;
