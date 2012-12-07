@@ -644,9 +644,12 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 
 	lo = ld->ld_output;
 
-	for (i = 1; (size_t) i < li->li_shnum; i++) {
+	for (i = 0; (size_t) i < li->li_shnum; i++) {
 
 		is = &li->li_is[i];
+
+		if (is->is_type == SHT_NULL)
+			continue;
 
 		if (strcmp(is->is_name, ".shstrtab") == 0 ||
 		    strcmp(is->is_name, ".symtab") == 0 ||

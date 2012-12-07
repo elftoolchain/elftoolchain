@@ -103,6 +103,76 @@ ld_dynamic_finalize(struct ld *ld)
 	_finalize_dynamic(ld, lo);
 }
 
+void
+ld_dynamic_create_copy_reloc(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	struct ld_symbol *lsb, *tmp;
+	size_t a, off;
+
+	off = 0;
+	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, tmp) {
+
+		li = lsb->lsb_input;
+
+		if (li == NULL || li->li_type != LIT_DSO)
+			continue;
+
+		if (lsb->lsb_type != STT_OBJECT)
+			continue;
+
+		/*
+		 * TODO: we don't have to create copy relocation
+		 * for every import object. Some import objects
+		 * are read-only, in that case we can create other
+		 * dynamic relocations for them.
+		 */
+
+		if (ld->ld_dynbss == NULL) {
+			ld->ld_dynbss = ld_input_add_internal_section(ld,
+			    ".dynbss");
+			ld->ld_dynbss->is_type = SHT_NOBITS;
+		}
+
+		/*
+		 * If the section that the import symbols belongs to
+		 * has a larger alignment requirement, we increase .dynbss
+		 * section alignment accordingly. XXX What if it is a
+		 * DSO common symbol?
+		 */
+		is = NULL;
+		if (lsb->lsb_shndx != SHN_COMMON) {
+			assert(lsb->lsb_shndx < li->li_shnum - 1);
+			is = &li->li_is[lsb->lsb_shndx];
+			if (is->is_align > ld->ld_dynbss->is_align)
+				ld->ld_dynbss->is_align = is->is_align;
+		}
+
+		/*
+		 * Calculate the alignment for this object.
+		 */
+		if (is != NULL) {
+			for (a = is->is_align; a > 1; a >>= 1) {
+				if ((lsb->lsb_value - is->is_off) % a == 0)
+					break;
+			}
+		} else
+			a = 1;
+
+		if (a > 1)
+			off = roundup(off, a);
+
+		off += lsb->lsb_size;
+		lsb->lsb_value = off;
+	}
+
+	if (off == 0)
+		return;
+
+	ld->ld_dynbss->is_size = off;
+}
+
 static void
 _create_interp(struct ld *ld, struct ld_output *lo)
 {

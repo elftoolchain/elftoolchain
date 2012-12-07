@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_dynamic.h"
 #include "ld_file.h"
 #include "ld_input.h"
 #include "ld_output.h"
@@ -292,6 +293,9 @@ ld_symbols_resolve(struct ld *ld)
 				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
 		}
 	}
+
+	/* Create copy relocations for import symbols, if need. */
+	ld_dynamic_create_copy_reloc(ld);
 }
 
 void
@@ -301,6 +305,8 @@ ld_symbols_update(struct ld *ld)
 	struct ld_symbol *lsb, *_lsb;
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_local == NULL)
+			continue;
 		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
 			_update_symbol(lsb);
 	}	
@@ -361,6 +367,8 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy local symbols from each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+		if (li->li_local == NULL)
+			continue;
 		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
 #if 0
 			li = lsb->lsb_input;

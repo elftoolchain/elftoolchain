@@ -58,6 +58,8 @@ ld_input_init(struct ld *ld)
 	    sizeof(struct ld_input_section));
 	if (li->li_is == NULL)
 		ld_fatal_std(ld, "calloc");
+
+	STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
 }
 
 struct ld_input_section *
@@ -165,7 +167,7 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 			break;
 		}
 	} else
-		li->li_type = LIT_UNKNOWN;
+		li->li_type = LIT_RELOCATABLE;
 
 	return (li);
 }
