@@ -75,10 +75,13 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 		ld_fatal(ld, "Internal: not enough space for internal "
 		    "sections");
 
-	is = &li->li_is[li->li_shnum++];
+	is = &li->li_is[li->li_shnum];
 	if ((is->is_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "calloc");
 	is->is_input = li;
+	is->is_index = li->li_shnum;
+
+	li->li_shnum++;
 
 	return (is);
 }

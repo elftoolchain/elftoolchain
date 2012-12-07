@@ -309,7 +309,7 @@ ld_symbols_update(struct ld *ld)
 			continue;
 		STAILQ_FOREACH(lsb, li->li_local, lsb_next)
 			_update_symbol(lsb);
-	}	
+	}
 
 	HASH_ITER(hh, ld->ld_symtab_def, lsb, _lsb) {
 		/* Skip defined symbols from DSOs. */
@@ -466,7 +466,7 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	assert(ld->ld_dyn_symbols != NULL);
 
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
-		if (lsb->lsb_import) {
+		if (lsb->lsb_import && lsb->lsb_type == STT_FUNC) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
 			_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
@@ -591,7 +591,7 @@ _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
 		    lsb->lsb_input->li_type == LIT_RELOCATABLE))
 			_add_to_export(ld, lsb);
 	}
-	
+
 
 	/*
 	 * If some symbol resolved to a defined DSO symbol, and the former
@@ -961,7 +961,7 @@ _print_extracted_member(struct ld *ld, struct ld_archive_member *lam,
 	char *c1, *c2;
 
 	ls = &ld->ld_state;
-	
+
 	if (!ls->ls_archive_mb_header) {
 		printf("Extracted archive members:\n\n");
 		ls->ls_archive_mb_header = 1;
