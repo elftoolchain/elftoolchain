@@ -115,6 +115,7 @@ struct ld {
 	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
 	struct ld_wildcard_match *ld_wm; /* wildcard hash table */
 	struct ld_input_section *ld_dynbss; /* .dynbss section */
+	unsigned ld_num_import_func;	/* number of import functions */
 	unsigned ld_num_copy_reloc;	/* number of copy relocation */
 	unsigned ld_common_alloc;	/* always alloc space for common sym */
 	unsigned ld_common_no_alloc;	/* never alloc space for common sym */

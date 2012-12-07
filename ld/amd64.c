@@ -208,7 +208,7 @@ _create_pltgot(struct ld *ld)
 
 	if ((got_odb = calloc(1, sizeof(*got_odb))) == NULL)
 		ld_fatal_std(ld, "calloc");
-	got_odb->odb_size = (HASH_CNT(hhimp, ld->ld_symtab_import) + 3) * 8;
+	got_odb->odb_size = (ld->ld_num_import_func + 3) * 8;
 	if ((got_odb->odb_buf = malloc(got_odb->odb_size)) == NULL)
 		ld_fatal_std(ld, "malloc");
 	got_odb->odb_align = 8;
@@ -366,7 +366,7 @@ _finalize_pltgot(struct ld *ld)
 	j = 0;
 	HASH_ITER(hhimp, ld->ld_symtab_import, lsb, _lsb) {
 		if (lsb->lsb_type != STT_FUNC)
-			goto next_symbol;
+			continue;
 
 		/*
 		 * Create a R_X86_64_JUMP_SLOT relocation entry for the
@@ -424,8 +424,8 @@ _finalize_pltgot(struct ld *ld)
 
 		/* Increase relocation entry index. */
 		j++;
-		
-next_symbol:
+
+		/* Move to next GOT entry. */
 		got += 8;
 		i++;
 	}
