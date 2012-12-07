@@ -140,7 +140,8 @@ ld_symver_create_verneed_section(struct ld *ld)
 	sz = 0;
 	lo->lo_version_index = 2; /* TODO: move this to somewhere else. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
-		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0)
+		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0 ||
+		    li->li_verdef == NULL)
 			continue;
 
 		svn = NULL;
