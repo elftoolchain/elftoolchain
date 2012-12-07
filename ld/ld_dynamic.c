@@ -170,14 +170,14 @@ ld_dynamic_create_copy_reloc(struct ld *ld)
 		if (a > 1)
 			off = roundup(off, a);
 
-		off += lsb->lsb_size;
-
 		lsb->lsb_value = off;
 		lsb->lsb_copy_reloc = 1;
 		lsb->lsb_input = ld->ld_dynbss->is_input;
 		lsb->lsb_shndx = ld->ld_dynbss->is_index;
 
 		ld->ld_num_copy_reloc++;
+
+		off += lsb->lsb_size;
 	}
 
 	if (off == 0)
