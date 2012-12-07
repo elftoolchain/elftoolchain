@@ -81,8 +81,8 @@ static void _update_symbol(struct ld_symbol *lsb);
 	} while (0)
 #define _resolve_symbol(_s, s) do {				\
 	assert((_s) != (s));					\
-	(s)->lsb_ref_dso = (_s)->lsb_ref_dso;			\
-	(s)->lsb_ref_ndso = (_s)->lsb_ref_ndso;			\
+	(s)->lsb_ref_dso |= (_s)->lsb_ref_dso;			\
+	(s)->lsb_ref_ndso |= (_s)->lsb_ref_ndso;		\
 	if ((s)->lsb_prev != NULL) {				\
 		(s)->lsb_prev->lsb_ref = (_s);			\
 		(_s)->lsb_prev = (s)->lsb_prev;			\
