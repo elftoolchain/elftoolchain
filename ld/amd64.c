@@ -135,6 +135,7 @@ _create_dynrel(struct ld *ld)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_RELA;
 	lo->lo_rel_dyn_odb = odb;
+	lo->lo_rel_dyn_type = DT_RELA;
 
 	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
 	    NULL);

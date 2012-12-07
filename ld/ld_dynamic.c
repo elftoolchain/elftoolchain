@@ -286,6 +286,9 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	entries += 4;
 
+	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
+	entries += 3;
+
 	/*
 	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
 	 * DT_VERSYM.
@@ -413,6 +416,23 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 		DT_ENTRY_VAL(DT_PLTRELSZ, lo->lo_rel_plt->os_size);
 		DT_ENTRY_VAL(DT_PLTREL, lo->lo_rel_plt_type);
 		DT_ENTRY_PTR(DT_JMPREL, lo->lo_rel_plt->os_addr);
+	}
+
+	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
+	if (lo->lo_rel_dyn != NULL) {
+		if (lo->lo_rel_dyn_type == DT_REL) {
+			DT_ENTRY_PTR(DT_REL, lo->lo_rel_dyn->os_addr);
+			DT_ENTRY_VAL(DT_RELSZ, lo->lo_rel_dyn->os_size);
+			DT_ENTRY_VAL(DT_RELENT,
+			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rel) :
+			    sizeof(Elf64_Rel));
+		} else {
+			DT_ENTRY_PTR(DT_RELA, lo->lo_rel_dyn->os_addr);
+			DT_ENTRY_VAL(DT_RELASZ, lo->lo_rel_dyn->os_size);
+			DT_ENTRY_VAL(DT_RELAENT,
+			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rela) :
+			    sizeof(Elf64_Rela));
+		}
 	}
 
 	/*
