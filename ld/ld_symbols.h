@@ -46,6 +46,8 @@ struct ld_symbol {
 	unsigned char lsb_provide;	/* provide symbol */
 	unsigned char lsb_provide_refed; /* provide symbol is referenced */
 	unsigned char lsb_import;	/* symbol is a import symbol */
+	unsigned char lsb_ref_dso;	/* symbol appeared in a DSO */
+	unsigned char lsb_ref_ndso;	/* symbol appeared in elsewhere */
 	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
