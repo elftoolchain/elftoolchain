@@ -539,6 +539,10 @@ _check_filename_constraint(struct ld_input *li,
 {
 	struct ld_file *lf;
 
+	/* Internal sections always suffice any constraint. */
+	if (li->li_name == NULL)
+		return (1);
+
 	lf = li->li_file;
 
 	if (ldoi->ldoi_ar != NULL && li->li_lam != NULL &&

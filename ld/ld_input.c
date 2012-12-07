@@ -38,6 +38,49 @@ ELFTC_VCSID("$Id$");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
+#define _MAX_INTERNAL_SECTIONS	8
+
+void
+ld_input_init(struct ld *ld)
+{
+	struct ld_input *li;
+
+	assert(STAILQ_EMPTY(&ld->ld_lilist));
+
+	/*
+	 * Create an internal pseudo input object to hold internal
+	 * input sections.
+	 */
+
+	li = ld_input_alloc(ld, NULL, NULL);
+
+	li->li_is = calloc(_MAX_INTERNAL_SECTIONS,
+	    sizeof(struct ld_input_section));
+	if (li->li_is == NULL)
+		ld_fatal_std(ld, "calloc");
+}
+
+struct ld_input_section *
+ld_input_add_internal_section(struct ld *ld, const char *name)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	if (li->li_shnum >= _MAX_INTERNAL_SECTIONS)
+		ld_fatal(ld, "Internal: not enough space for internal "
+		    "sections");
+
+	is = &li->li_is[li->li_shnum++];
+	if ((is->is_name = strdup(name)) == NULL)
+		ld_fatal_std(ld, "calloc");
+	is->is_input = li;
+
+	return (is);
+}
+
 void
 ld_input_cleanup(struct ld *ld)
 {
@@ -58,9 +101,12 @@ ld_input_cleanup(struct ld *ld)
 					free(li->li_vername[i]);
 			free(li->li_vername);
 		}
+		if (li->li_is)
+			free(li->li_is);
 		if (li->li_fullname)
 			free(li->li_fullname);
-		free(li->li_name);
+		if (li->li_name)
+			free(li->li_name);
 		free(li);
 	}
 }
@@ -98,25 +144,28 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 	if ((li = calloc(1, sizeof(*li))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	if ((li->li_name = strdup(name)) == NULL)
+	if (name != NULL && (li->li_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
 	li->li_file = lf;
 
-	switch (lf->lf_type) {
-	case LFT_ARCHIVE:
-	case LFT_RELOCATABLE:
-		li->li_type = LIT_RELOCATABLE;
-		break;
-	case LFT_DSO:
-		li->li_type = LIT_DSO;
-		break;
-	case LFT_BINARY:
-	case LFT_UNKNOWN:
-	default:
+	if (lf != NULL) {
+		switch (lf->lf_type) {
+		case LFT_ARCHIVE:
+		case LFT_RELOCATABLE:
+			li->li_type = LIT_RELOCATABLE;
+			break;
+		case LFT_DSO:
+			li->li_type = LIT_DSO;
+			break;
+		case LFT_BINARY:
+		case LFT_UNKNOWN:
+		default:
+			li->li_type = LIT_UNKNOWN;
+			break;
+		}
+	} else
 		li->li_type = LIT_UNKNOWN;
-		break;
-	}
 
 	return (li);
 }
@@ -211,6 +260,9 @@ ld_input_load(struct ld *ld, struct ld_input *li)
 	struct ld_file *lf;
 	struct ld_archive_member *lam;
 
+	if (li->li_file == NULL)
+		return;
+
 	assert(li->li_elf == NULL);
 	ls = &ld->ld_state;
 	if (li->li_file != ls->ls_file) {
@@ -239,6 +291,10 @@ ld_input_unload(struct ld *ld, struct ld_input *li)
 	struct ld_file *lf;
 
 	(void) ld;
+
+	if (li->li_file == NULL)
+		return;
+
 	assert(li->li_elf != NULL);
 	lf = li->li_file;
 	if (lf->lf_ar != NULL)
@@ -329,6 +385,9 @@ ld_input_init_common_section(struct ld *ld, struct ld_input *li)
 {
 	struct ld_input_section *is;
 	struct ld_symbol *lsb, *tmp;
+
+	if (li->li_file == NULL)
+		return;
 
 	/*
 	 * Create a pseudo section named COMMON to keep track of common symbols.

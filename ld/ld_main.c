@@ -91,6 +91,8 @@ restart:
 	ls->ls_arch_conflict = 0;
 	ls->ls_first_elf_object = 1;
 
+	ld_input_init(ld);
+
 	ld_symbols_resolve(ld);
 
 	if (ls->ls_arch_conflict) {
