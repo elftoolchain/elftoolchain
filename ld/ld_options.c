@@ -403,6 +403,13 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_OFORMAT:
 		ld_output_format(ld, arg, arg, arg);
+		break;
+	case KEY_PIE:
+		ld->ld_pie = 1;
+		break;
+	case KEY_SHARED:
+		ld->ld_dso = 1;
+		break;
 	case KEY_STATIC:
 		ls->ls_static = 1;
 		break;
