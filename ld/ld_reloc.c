@@ -164,6 +164,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 	li = is->is_input;
 
 	lre->lre_sym = li->li_symindex[sym];
+
+	ld->ld_arch->scan_reloc(ld, lre);
 }
 
 int

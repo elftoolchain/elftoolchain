@@ -57,6 +57,42 @@ _get_common_page_size(struct ld *ld)
 	return (0x1000);
 }
 
+static const char *
+_reloc2str(uint64_t r)
+{
+	static char s[32];
+
+	switch (r) {
+		case 0: return "R_X86_64_NONE";
+		case 1: return "R_X86_64_64";
+		case 2: return "R_X86_64_PC32";
+		case 3: return "R_X86_64_GOT32";
+		case 4: return "R_X86_64_PLT32";
+		case 5: return "R_X86_64_COPY";
+		case 6: return "R_X86_64_GLOB_DAT";
+		case 7: return "R_X86_64_JMP_SLOT";
+		case 8: return "R_X86_64_RELATIVE";
+		case 9: return "R_X86_64_GOTPCREL";
+		case 10: return "R_X86_64_32";
+		case 11: return "R_X86_64_32S";
+		case 12: return "R_X86_64_16";
+		case 13: return "R_X86_64_PC16";
+		case 14: return "R_X86_64_8";
+		case 15: return "R_X86_64_PC8";
+		case 16: return "R_X86_64_DTPMOD64";
+		case 17: return "R_X86_64_DTPOFF64";
+		case 18: return "R_X86_64_TPOFF64";
+		case 19: return "R_X86_64_TLSGD";
+		case 20: return "R_X86_64_TLSLD";
+		case 21: return "R_X86_64_DTPOFF32";
+		case 22: return "R_X86_64_GOTTPOFF";
+		case 23: return "R_X86_64_TPOFF32";
+	default:
+		snprintf(s, sizeof(s), "<unkown: %ju>", r);
+		return (s);
+	}
+}
+
 static int
 _is_absolute_reloc(uint64_t r)
 {
@@ -66,6 +102,199 @@ _is_absolute_reloc(uint64_t r)
 		return (1);
 
 	return (0);
+}
+
+static void
+_warn_pic(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = lre->lre_sym;
+
+	if (lsb->lsb_bind != STB_LOCAL)
+		ld_warn(ld, "relocation %s against `%s' can not be used"
+		    " by runtime linker; recompile with -fPIC",
+		    _reloc2str(lre->lre_type), lsb->lsb_name);
+	else
+		ld_warn(ld, "relocation %s can not be used by runtime linker;"
+		    " recompile with -fPIC", _reloc2str(lre->lre_type));
+}
+
+static void
+_scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb, *_lsb;
+
+	lsb = lre->lre_sym;
+
+	/*
+	 * TODO: We do not yet support "Large Models" and relevant
+	 * relocation types R_X86_64_GOT64, R_X86_64_GOTPCREL64,
+	 * R_X86_64_GOTPC64, R_X86_64_GOTPLT64 and R_X86_64_PLTOFF64.
+	 * Refer to AMD64 ELF ABI for details.
+	 */
+
+	switch (lre->lre_type) {
+	case R_X86_64_NONE:
+		break;
+
+	case R_X86_64_64:
+	case R_X86_64_32:
+	case R_X86_64_32S:
+	case R_X86_64_16:
+	case R_X86_64_8:
+
+		/*
+		 * For a local symbol, if the linker output a PIE or DSO,
+		 * we should generate a R_X86_64_RELATIVE reloc for
+		 * R_X86_64_64. We don't know how to generate dynamic reloc
+		 * for other reloc types since R_X86_64_RELATIVE is 64 bits.
+		 * We can not use them directly either because FreeBSD rtld(1)
+		 * (and probably glibc) doesn't accept absolute address
+		 * reloction other than R_X86_64_64.
+		 */
+		if (lsb->lsb_bind == STB_LOCAL) {
+			if (ld->ld_pie || ld->ld_dso) {
+				if (lre->lre_type == R_X86_64_64) {
+					printf("generate R_X86_64_RELATIVE\n");
+				} else
+					_warn_pic(ld, lre);
+			}
+			break;
+		}
+
+		/*
+		 * For a global symbol, we probably need to generate PLT entry
+		 * and/or a dynamic relocation.
+		 *
+		 * Note here, normally the compiler will generate a PC-relative
+		 * relocation for function calls. However, if the code retrieve
+		 * the address of a function and call it indirectly, an absolute
+		 * relocation will be generated instead. That's why we should
+		 * check if we need to create a PLT entry here.
+		 */
+		if (ld_reloc_require_plt(ld, lre)) {
+			/* _create_plt_entry(ld, lre); */
+		}
+
+		if (ld_reloc_require_copy_reloc(ld, lre)) {
+			printf("create copy reloc for symbol: %s\n",
+			    lsb->lsb_name);
+		} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
+			/* We only support R_X86_64_64. See above */
+			if (lre->lre_type != R_X86_64_64) {
+				_warn_pic(ld, lre);
+				break;
+			}
+			/*
+			 * Check if we can relax R_X86_64_64 to
+			 * R_X86_64_RELATIVE instead.
+			 */
+			if (ld_reloc_relative_relax(ld, lre)) {
+				printf("generate (relax) R_X86_64_RELATIVE\n");
+			} else
+				printf("create R_X86_64_64 for symbol: %s\n",
+				    lsb->lsb_name);
+		}
+
+		break;
+
+	case R_X86_64_PLT32:
+		/*
+		 * In some cases we don't really need to generate a PLT
+		 * entry, then a R_X86_64_PLT32 relocation can be relaxed
+		 * to a R_X86_64_PC32 relocation.
+		 */
+
+		if (lsb->lsb_bind == STB_LOCAL) {
+			/* Why use R_X86_64_PLT32 for a local symbol? */
+			lre->lre_type = R_X86_64_PC32;
+			break;
+		}
+
+		/*
+		 * If linker outputs an normal executable and the symbol is
+		 * defined but is not defined inside a DSO, we can generate
+		 * a R_X86_64_PC32 relocation instead.
+		 */
+		_lsb = ld_symbols_ref(lsb);
+		if (ld->ld_exec && _lsb->lsb_shndx != SHN_UNDEF &&
+		    (_lsb->lsb_input == NULL ||
+		    _lsb->lsb_input->li_type != LIT_DSO)) {
+			lre->lre_type = R_X86_64_PC32;
+			break;
+		}
+
+		/* Create an PLT entry otherwise. */
+		/* create_plt_entry(ld, lre); */
+		break;
+
+	case R_X86_64_PC64:
+	case R_X86_64_PC32:
+	case R_X86_64_PC16:
+	case R_X86_64_PC8:
+
+		/*
+		 * When these relocations apply to a global symbol, we should
+		 * check if we need to generate PLT entry and/or a dynamic
+		 * relocation.
+		 */
+		if (lsb->lsb_bind != STB_LOCAL) {
+			if (ld_reloc_require_plt(ld, lre)) {
+				/* _create_plt_entry(ld, lre); */
+			}
+
+			if (ld_reloc_require_copy_reloc(ld, lre)) {
+				printf("create copy reloc for symbol: %s\n",
+				    lsb->lsb_name);
+			} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
+				/*
+				 * We can not generate dynamic relocation for
+				 * these PC-relative relocation since they
+				 * are probably not supported by the runtime
+				 * linkers.
+				 *
+				 * Note: FreeBSD rtld(1) does support
+				 * R_X86_64_PC32.
+				 */
+				_warn_pic(ld, lre);
+			}
+		}
+		break;
+
+	case R_X86_64_GOTOFF64:
+	case R_X86_64_GOTPC32:
+		/*
+		 * These relocation types use GOT address as a base address
+		 * and instruct the linker to build a GOT.
+		 */
+		/* _create_got(ld); */
+		break;
+
+	case R_X86_64_GOT32:
+	case R_X86_64_GOTPCREL:
+		/*
+		 * These relocation types instruct the linker to build a
+		 * GOT and generate a GOT entry.
+		 */
+		/* _create_got_entry(ld, lre); */
+		break;
+
+	case R_X86_64_TLSGD:
+	case R_X86_64_TLSLD:
+	case R_X86_64_DTPOFF32:
+	case R_X86_64_DTPOFF64:
+	case R_X86_64_GOTTPOFF:
+	case R_X86_64_TPOFF32:
+	case R_X86_64_GOTPC32_TLSDESC:
+	case R_X86_64_TLSDESC_CALL:
+		/* TODO: Handle TLS. */
+		break;
+	default:
+		ld_warn(ld, "can not handle relocation %ju",
+		    lre->lre_type);
+		break;
+	}
 }
 
 static void
@@ -460,6 +689,7 @@ amd64_register(struct ld *ld)
 	amd64->interp = "/libexec/ld-elf.so.1";
 	amd64->get_max_page_size = _get_max_page_size;
 	amd64->get_common_page_size = _get_common_page_size;
+	amd64->scan_reloc = _scan_reloc;
 	amd64->process_reloc = _process_reloc;
 	amd64->is_absolute_reloc = _is_absolute_reloc;
 	amd64->create_dynrel = _create_dynrel;
