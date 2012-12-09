@@ -140,6 +140,7 @@ static struct ld_option ld_opts[] = {
 	{"warn-multiple-gp", KEY_WARN_MULTIPLE_GP, ANY_DASH, NO_ARG},
 	{"warn-once", KEY_WARN_ONCE, ANY_DASH, NO_ARG},
 	{"warn-section-align", KEY_WARN_SECTION_ALIGN, ANY_DASH, NO_ARG},
+	{"warn-shared-textrel", KEY_WARN_SHARED_TEXTREL, ANY_DASH, NO_ARG},
 	{"warn-unresolved-symbols", KEY_WARN_UNRESOLVE_SYM, ANY_DASH, NO_ARG},
 	{"whole_archive", KEY_WHOLE_ARCHIVE, ANY_DASH, NO_ARG},
 	{"wrap", KEY_WRAP, ANY_DASH, REQ_ARG},
