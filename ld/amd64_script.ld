@@ -94,7 +94,8 @@ SECTIONS {
 		KEEP(*(.dtors))
 	}
 	.jcr		: { KEEP(*(.jcr)) }
-	.got		: { *(.got.plt) *(.got) }
+	.got		: { *(.got) }
+	.got.plt	: { *(.got.plt) }
 	.data		:
 	{
 		*(.data .data.* .gnu.linkonce.d.*)
