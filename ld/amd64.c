@@ -57,6 +57,17 @@ _get_common_page_size(struct ld *ld)
 	return (0x1000);
 }
 
+static int
+_is_absolute_reloc(uint64_t r)
+{
+
+	if (r == R_X86_64_64 || r == R_X86_64_32 || r == R_X86_64_32S ||
+	    r == R_X86_64_16 || r == R_X86_64_8)
+		return (1);
+
+	return (0);
+}
+
 static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
@@ -450,6 +461,7 @@ amd64_register(struct ld *ld)
 	amd64->get_max_page_size = _get_max_page_size;
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->process_reloc = _process_reloc;
+	amd64->is_absolute_reloc = _is_absolute_reloc;
 	amd64->create_dynrel = _create_dynrel;
 	amd64->finalize_dynrel = _finalize_dynrel;
 	amd64->create_pltgot = _create_pltgot;
