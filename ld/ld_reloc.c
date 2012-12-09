@@ -166,6 +166,124 @@ _process_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 	lre->lre_sym = li->li_symindex[sym];
 }
 
+int
+ld_reloc_require_plt(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/* Only need PLT for functions. */
+	if (lsb->lsb_type != STT_FUNC)
+		return (0);
+
+	/* Create PLT for functions in DSOs. */
+	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+		return (1);
+
+	/*
+	 * If the linker outputs a DSO, PLT entry is needed if the symbol
+	 * if undefined or it can be overridden.
+	 */
+	if (ld->ld_dso &&
+	    (lsb->lsb_shndx == SHN_UNDEF || ld_symbols_overridden(ld, lsb)))
+		return (1);
+
+	/* Otherwise, we do not create PLT entry. */
+	return (0);
+}
+
+int
+ld_reloc_require_copy_reloc(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/* Functions do not need copy reloc. */
+	if (lsb->lsb_type == STT_FUNC)
+		return (0);
+
+	/*
+	 * If we are generating a normal executable and the symbol is
+	 * defined in a DSO, we need a copy reloc.
+	 */
+	if (ld->ld_exec && lsb->lsb_input != NULL &&
+	    lsb->lsb_input->li_type == LIT_DSO)
+		return (1);
+
+	return (0);
+}
+
+int
+ld_reloc_require_dynamic_reloc(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/*
+	 * If the symbol is defined in a DSO, we create specific dynamic
+	 * relocations when we create PLT, GOT or copy reloc.
+	 */
+	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+		return (0);
+
+	/*
+	 * When we are creating a DSO, we create dynamic relocation if
+	 * the symbol is undefined, or if the symbol can be overridden.
+	 */
+	if (ld->ld_dso && (lsb->lsb_shndx == SHN_UNDEF ||
+	    ld_symbols_overridden(ld, lsb)))
+		return (1);
+
+	/*
+	 * When we are creating a PIE/DSO (position-independent), if the
+	 * relocation is referencing the absolute address of a symbol,
+	 * we should create dynamic relocation.
+	 */
+	if ((ld->ld_pie || ld->ld_dso) &&
+	    ld->ld_arch->is_absolute_reloc(lre->lre_type))
+		return (1);
+
+	/* Otherwise we do not generate dynamic relocation. */
+	return (0);
+}
+
+int
+ld_reloc_relative_relax(struct ld *ld, struct ld_reloc_entry *lre)
+{
+
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/*
+	 * We only use *_RELATIVE relocation when we create PIE/DSO.
+	 */
+	if (!ld->ld_pie && !ld->ld_dso)
+		return (0);
+
+	/*
+	 * If the symbol is defined in a DSO, we can not relax the
+	 * relocation.
+	 */
+	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+		return (0);
+
+	/*
+	 * When we are creating a DSO, we can not relax dynamic relocation
+	 * to *_RELATIVE relocation if the symbol is undefined, or if the
+	 * symbol can be overridden.
+	 */
+	if (ld->ld_dso && (lsb->lsb_shndx == SHN_UNDEF ||
+	    ld_symbols_overridden(ld, lsb)))
+		return (0);
+
+	/* Otherwise it's ok to use *_RELATIVE. */
+	return (1);
+}
+
 void
 ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
     void *buf)

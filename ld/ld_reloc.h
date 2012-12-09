@@ -41,3 +41,7 @@ STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 void	ld_reloc_load(struct ld *);
 void	ld_reloc_process_input_section(struct ld *, struct ld_input_section *,
     void *);
+int	ld_reloc_require_plt(struct ld *, struct ld_reloc_entry *);
+int	ld_reloc_require_copy_reloc(struct ld *, struct ld_reloc_entry *);
+int	ld_reloc_require_dynamic_reloc(struct ld *, struct ld_reloc_entry *);
+int	ld_reloc_relative_relax(struct ld *, struct ld_reloc_entry *);
