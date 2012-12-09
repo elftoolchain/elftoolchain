@@ -386,7 +386,8 @@ sh_flags(uint64_t shf)
 }
 
 static const char *st_types[] = {
-	"STT_NOTYPE", "STT_OBJECT", "STT_FUNC", "STT_SECTION", "STT_FILE"
+	"STT_NOTYPE", "STT_OBJECT", "STT_FUNC", "STT_SECTION", "STT_FILE",
+	"STT_COMMON", "STT_TLS"
 };
 
 static const char *st_types_S[] = {
