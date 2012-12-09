@@ -46,6 +46,7 @@ struct ld_arch {
 	void (*finalize_dynrel)(struct ld *);
 	void (*create_pltgot)(struct ld *);
 	void (*finalize_pltgot)(struct ld *);
+	int (*is_absolute_reloc)(uint64_t);
 	UT_hash_handle hh;		/* hash handle */
 	struct ld_arch *alias;
 };
