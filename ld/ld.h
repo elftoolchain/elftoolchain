@@ -124,6 +124,7 @@ struct ld {
 	unsigned char ld_print_linkmap;	/* print link map */
 	unsigned char ld_stack_exec;	/* stack executable */
 	unsigned char ld_stack_exec_set; /* stack executable override */
+	unsigned char ld_exec;		/* output normal executable */
 	unsigned char ld_pie;		/* position-independent executable */
 	unsigned char ld_dso;		/* otuput shared library */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */

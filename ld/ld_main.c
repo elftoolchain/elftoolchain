@@ -84,6 +84,10 @@ main(int argc, char **argv)
 	ld_arch_init(ld);
 
 restart:
+
+	/* The linker generate an executable by default */
+	ld->ld_exec = 1;
+
 	ld_script_init(ld);
 
 	ld_options_parse(ld, argc, argv);

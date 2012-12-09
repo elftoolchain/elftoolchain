@@ -405,9 +405,11 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld_output_format(ld, arg, arg, arg);
 		break;
 	case KEY_PIE:
+		ld->ld_exec = 0;
 		ld->ld_pie = 1;
 		break;
 	case KEY_SHARED:
+		ld->ld_exec = 0;
 		ld->ld_dso = 1;
 		break;
 	case KEY_STATIC:
