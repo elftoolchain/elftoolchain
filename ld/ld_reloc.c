@@ -58,6 +58,9 @@ ld_reloc_load(struct ld *ld)
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 
+		if (li->li_type == LIT_DSO)
+			continue;
+
 		ld_input_load(ld, li);
 		e = li->li_elf;
 
