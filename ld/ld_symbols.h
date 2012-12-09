@@ -92,3 +92,4 @@ int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);
 struct ld_symbol *ld_symbols_ref(struct ld_symbol *);
+int	ld_symbols_overridden(struct ld *, struct ld_symbol *);

@@ -489,6 +489,27 @@ ld_symbols_ref(struct ld_symbol *lsb)
 	return (lsb);
 }
 
+/*
+ * Check if a symbol can be overriden (by symbols in main executable).
+ */
+int
+ld_symbols_overridden(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	/* Symbols can be overridden only when we are creating a DSO. */
+	if (!ld->ld_dso)
+		return (0);
+
+	/* Only visible symbols can be overriden. */
+	if (lsb->lsb_other != STV_DEFAULT)
+		return (0);
+
+	/* TODO: other cases. */
+
+	/* Otherwise symbol can be overridden. */
+	return (1);
+}
+
 static struct ld_symbol *
 _alloc_symbol(struct ld *ld)
 {
