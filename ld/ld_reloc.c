@@ -315,9 +315,7 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 	assert(ris->is_reloc != NULL);
 
 	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
-		lsb = lre->lre_sym;
-		while (lsb->lsb_ref != NULL)
-			lsb = lsb->lsb_ref;
+		lsb = ld_symbols_ref(lre->lre_sym);
 
 		/* Arch-specific relocation handling. */
 		ld->ld_arch->process_reloc(ld, is, lre, lsb, buf);
