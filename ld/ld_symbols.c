@@ -476,6 +476,19 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	}
 }
 
+/*
+ * Retrieve the resolved symbol.
+ */
+struct ld_symbol *
+ld_symbols_ref(struct ld_symbol *lsb)
+{
+
+	while (lsb->lsb_ref != NULL)
+		lsb = lsb->lsb_ref;
+
+	return (lsb);
+}
+
 static struct ld_symbol *
 _alloc_symbol(struct ld *ld)
 {
