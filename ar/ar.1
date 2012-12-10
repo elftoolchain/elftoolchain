@@ -1,4 +1,4 @@
-.\" Copyright (c) 2007,2009-2011 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2007,2009-2012 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,12 +23,11 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 15, 2011
+.Dd December 10, 2012
 .Os
 .Dt AR 1
 .Sh NAME
-.Nm ar ,
-.Nm ranlib
+.Nm ar
 .Nd manage archives
 .Sh SYNOPSIS
 .Nm
@@ -115,12 +114,6 @@
 .Fl M
 .Nm
 .Fl V
-.Nm ranlib
-.Op Fl D
-.Op Fl t
-.Ar archive ...
-.Nm ranlib
-.Fl V
 .Sh DESCRIPTION
 The
 .Nm
@@ -150,11 +143,6 @@ utility can create and manage an archive symbol table (see
 used to speed up link editing operations.
 If a symbol table is present in an archive, it will be
 kept up-to-date by subsequent operations on the archive.
-.Pp
-The
-.Nm ranlib
-utility is used to add an archive symbol table
-to an existing archive.
 .Sh OPTIONS
 The
 .Nm
@@ -320,7 +308,7 @@ Invoking
 with the
 .Fl s
 option alone is equivalent to invoking
-.Nm ranlib .
+.Xr ranlib 1 .
 .It Fl S
 Do not generate an archive symbol table.
 .It Fl t
@@ -330,10 +318,6 @@ list the files specified by arguments
 .Ar
 in the order in which they appear in the archive, one per line.
 If no files are specified, all files in the archive are listed.
-.Pp
-For
-.Nm ranlib ,
-the option is accepted, but is ignored.
 .It Fl T
 Use only the first fifteen characters of the archive member name or
 command line file name argument when naming archive members.
@@ -577,6 +561,7 @@ end			 * exit the utility
 .Ex -std
 .Sh SEE ALSO
 .Xr ld 1 ,
+.Xr ranlib 1 ,
 .Xr archive 3 ,
 .Xr elf 3 ,
 .Xr strftime 3 ,
@@ -612,8 +597,6 @@ In
 .An "Kai Wang" Aq kaiw@FreeBSD.org
 reimplemented
 .Nm
-and
-.Nm ranlib
 using the
 .Lb libarchive
 and the
