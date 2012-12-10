@@ -20,8 +20,7 @@ EXTRA_TARGETS=	ranlib
 
 CLEANFILES+= 	${EXTRA_TARGETS}
 
-MAN=	ar.1 ar.5
-MLINKS= ar.1 ranlib.1
+MAN=	ar.1 ranlib.1 ar.5
 
 all:	${EXTRA_TARGETS}
 
