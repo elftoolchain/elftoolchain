@@ -468,24 +468,21 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 		DT_ENTRY_PTR(DT_PLTGOT, lo->lo_got->os_addr);
 	if (lo->lo_rel_plt != NULL) {
 		DT_ENTRY_VAL(DT_PLTRELSZ, lo->lo_rel_plt->os_size);
-		DT_ENTRY_VAL(DT_PLTREL, lo->lo_rel_plt_type);
+		DT_ENTRY_VAL(DT_PLTREL,
+		    ld->ld_arch->reloc_is_rela ? DT_RELA : DT_REL);
 		DT_ENTRY_PTR(DT_JMPREL, lo->lo_rel_plt->os_addr);
 	}
 
 	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
 	if (lo->lo_rel_dyn != NULL) {
-		if (lo->lo_rel_dyn_type == DT_REL) {
+		if (!ld->ld_arch->reloc_is_rela) {
 			DT_ENTRY_PTR(DT_REL, lo->lo_rel_dyn->os_addr);
 			DT_ENTRY_VAL(DT_RELSZ, lo->lo_rel_dyn->os_size);
-			DT_ENTRY_VAL(DT_RELENT,
-			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rel) :
-			    sizeof(Elf64_Rel));
+			DT_ENTRY_VAL(DT_RELENT, ld->ld_arch->reloc_entsize);
 		} else {
 			DT_ENTRY_PTR(DT_RELA, lo->lo_rel_dyn->os_addr);
 			DT_ENTRY_VAL(DT_RELASZ, lo->lo_rel_dyn->os_size);
-			DT_ENTRY_VAL(DT_RELAENT,
-			    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Rela) :
-			    sizeof(Elf64_Rela));
+			DT_ENTRY_VAL(DT_RELAENT, ld->ld_arch->reloc_entsize);
 		}
 	}
 

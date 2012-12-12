@@ -49,8 +49,9 @@ struct ld_input_section {
 	unsigned char is_pltrel;	/* section holds PLT relocations */
 	void *is_data;			/* output section data descriptor */
 	void *is_ibuf;			/* buffer for internal sections */
-	struct ld_reloc_entry_head *is_reloc; /* reloc list */
+	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */
 	uint64_t is_num_reloc;		/* number of reloc entries */
+	struct ld_input_section *is_tis; /* relocation target */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	UT_hash_handle hh;		/* hash handle (internal section) */
 };

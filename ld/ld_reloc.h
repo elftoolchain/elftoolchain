@@ -31,6 +31,7 @@ struct ld_input_section;
 struct ld_output_section;
 
 struct ld_reloc_entry {
+	struct ld_input_section *lre_tis; /* input section to apply to */
 	struct ld_symbol *lre_sym;	/* reloc symbol */
 	uint64_t lre_type;		/* reloc type */
 	uint64_t lre_offset;		/* reloc offset */
@@ -40,8 +41,9 @@ struct ld_reloc_entry {
 
 STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 
-void	ld_reloc_create_entry(struct ld *, const char *, uint64_t,
-    struct ld_symbol *, uint64_t, int64_t);
+void	ld_reloc_create_entry(struct ld *, const char *,
+    struct ld_input_section *, uint64_t, struct ld_symbol *, uint64_t,
+    int64_t);
 void	ld_reloc_finalize_sections(struct ld *);
 void	ld_reloc_join(struct ld *, struct ld_output_section *,
     struct ld_input_section *);

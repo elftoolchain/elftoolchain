@@ -90,9 +90,20 @@ ld_reloc_load(struct ld *ld)
 			}
 
 			/*
+			 * Find out the section to which this relocation
+			 * section applies.
+			 */
+			if (is->is_info < li->li_shnum)
+				is->is_tis = &li->li_is[is->is_info];
+			else {
+				ld_warn(ld, "%s(%s): invalid relocation"
+				    " section", li->li_name, is->is_name);
+				continue;
+			}
+
+			/*
 			 * Load and process relocation entries.
 			 */
-
 			if ((is->is_reloc = malloc(sizeof(*is->is_reloc))) ==
 			    NULL)
 				ld_fatal(ld, "malloc");
@@ -171,7 +182,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	lre->lre_sym = li->li_symindex[sym];
 
-	ld->ld_arch->scan_reloc(ld, is, lre);
+	ld->ld_arch->scan_reloc(ld, is->is_tis, lre);
 }
 
 void *
@@ -238,8 +249,9 @@ ld_reloc_serialize(struct ld *ld, struct ld_output_section *os, size_t *sz)
 }
 
 void
-ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
-    struct ld_symbol *lsb, uint64_t offset, int64_t addend)
+ld_reloc_create_entry(struct ld *ld, const char *name,
+    struct ld_input_section *tis, uint64_t type, struct ld_symbol *lsb,
+    uint64_t offset, int64_t addend)
 {
 	struct ld_input_section *is;
 	struct ld_reloc_entry *lre;
@@ -278,6 +290,7 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 	if ((lre = malloc(sizeof(*lre))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
+	lre->lre_tis = tis;
 	lre->lre_type = type;
 	lre->lre_sym = lsb;
 	lre->lre_offset = offset;
@@ -292,10 +305,14 @@ void
 ld_reloc_finalize_sections(struct ld *ld)
 {
 	struct ld_input *li;
-	struct ld_input_section *is;
-	struct ld_output_section *os;
+	struct ld_input_section *is, *_is;
+	struct ld_output *lo;
+	struct ld_output_section *os, *_os;
 	struct ld_reloc_entry *lre;
 	int i;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
 
 	li = STAILQ_FIRST(&ld->ld_lilist);
 	assert(li != NULL);
@@ -313,9 +330,25 @@ ld_reloc_finalize_sections(struct ld *ld)
 		if ((os = is->is_output) == NULL)
 			continue;
 
+		/*
+		 * Set the lo->lo_rel_dyn here so that the DT_* entries
+		 * needed for dynamic relocation will be generated.
+		 *
+		 * Note that besides the PLT relocation section, we can
+		 * only have one dynamic relocation section in the output
+		 * object.
+		 */
+		if (lo->lo_rel_dyn == NULL)
+			lo->lo_rel_dyn = os;
+
 		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
-			lre->lre_offset += os->os_addr + is->is_reloff;
+			_is = lre->lre_tis;
+			assert(_is != NULL);
+			if ((_os = _is->is_output) == NULL)
+				continue;
+			lre->lre_offset += _os->os_addr + _is->is_reloff;
 		}
+
 	}
 
 	if (!ld->ld_emit_reloc)

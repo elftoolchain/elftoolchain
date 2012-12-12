@@ -41,8 +41,7 @@ static void _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb,
     uint64_t offset);
 static void _create_got_reloc(struct ld *ld, struct ld_symbol *lsb,
     uint64_t type, uint64_t offset);
-static void _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb,
-    uint64_t offset);
+static void _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend);
 static void _scan_reloc(struct ld *ld, struct ld_input_section *is,
@@ -277,7 +276,7 @@ static void
 _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 {
 
-	ld_reloc_create_entry(ld, ".rela.plt", R_X86_64_JUMP_SLOT,
+	ld_reloc_create_entry(ld, ".rela.plt", NULL, R_X86_64_JUMP_SLOT,
 	    lsb, offset, 0);
 }
 
@@ -285,15 +284,26 @@ static void
 _create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
     uint64_t offset)
 {
+	struct ld_input_section *tis;
 
-	ld_reloc_create_entry(ld, ".rela.got", type, lsb, offset, 0);
+	tis = _find_and_create_got_section(ld, 0);
+	assert(tis != NULL);
+
+	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, offset, 0);
 }
 
 static void
-_create_copy_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
+_create_copy_reloc(struct ld *ld, struct ld_symbol *lsb)
 {
+	struct ld_input_section *tis;
 
-	ld_reloc_create_entry(ld, ".rela.bss", R_X86_64_COPY, lsb, offset, 0);
+	ld_dynamic_reserve_dynbss_entry(ld, lsb);
+
+	tis = ld_input_find_internal_section(ld, ".dynbss");
+	assert(tis != NULL);
+	
+	ld_reloc_create_entry(ld, ".rela.bss", tis, R_X86_64_COPY, lsb,
+	    lsb->lsb_value, 0);
 }
 
 static void
@@ -304,17 +314,17 @@ _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
 	if (lsb->lsb_bind == STB_LOCAL) {
 		if (is->is_flags & SHF_WRITE)
 			ld_reloc_create_entry(ld, ".rela.data.rel.local",
-			    type, lsb, offset, addend);
+			    is, type, lsb, offset, addend);
 		else
 			ld_reloc_create_entry(ld, ".rela.data.rel.ro.local",
-			    type, lsb, offset, addend);
+			    is, type, lsb, offset, addend);
 	} else {
 		if (is->is_flags & SHF_WRITE)
 			ld_reloc_create_entry(ld, ".rela.data.rel",
-			    type, lsb, offset, addend);
+			    is, type, lsb, offset, addend);
 		else
 			ld_reloc_create_entry(ld, ".rela.data.rel.ro",
-			    type, lsb, offset, addend);
+			    is, type, lsb, offset, addend);
 	}
 }
 
@@ -360,11 +370,13 @@ _finalize_got_and_plt(struct ld *ld)
 	got_is = _find_and_create_gotplt_section(ld, 0);
 	assert(got_is != NULL);
 	got_os = got_is->is_output;
+	lo->lo_got = got_os;
 	got = got_is->is_ibuf;
 	assert(got != NULL);
 	rela_plt_is = ld_input_find_internal_section(ld, ".rela.plt");
 	assert(rela_plt_is != NULL);
 	rela_plt_os = rela_plt_is->is_output;
+	lo->lo_rel_plt = rela_plt_os;
 
 	/* Point sh_info field of the .rela.plt to .plt section. */
 	rela_plt_os->os_info = plt_os;
@@ -546,10 +558,9 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		}
 
 		if (ld_reloc_require_copy_reloc(ld, lre) &&
-		    !lsb->lsb_copy_reloc) {
-			ld_dynamic_reserve_dynbss_entry(ld, lsb);
-			_create_copy_reloc(ld, lsb, lre->lre_offset);
-		} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
+		    !lsb->lsb_copy_reloc)
+			_create_copy_reloc(ld, lsb);
+		else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
 			/* We only support R_X86_64_64. See above */
 			if (lre->lre_type != R_X86_64_64) {
 				_warn_pic(ld, lre);
@@ -620,10 +631,9 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 			}
 
 			if (ld_reloc_require_copy_reloc(ld, lre) &&
-			    !lsb->lsb_copy_reloc) {
-				ld_dynamic_reserve_dynbss_entry(ld, lsb);
-				_create_copy_reloc(ld, lsb, lre->lre_offset);
-			} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
+			    !lsb->lsb_copy_reloc)
+				_create_copy_reloc(ld, lsb);
+			else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
 				/*
 				 * We can not generate dynamic relocation for
 				 * these PC-relative relocation since they
