@@ -60,6 +60,8 @@ ld_dynamic_create(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
+	ld->ld_dynamic_link = 1;
+
 	/* Create .interp section. */
 	_create_interp(ld, lo);
 

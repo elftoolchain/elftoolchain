@@ -300,7 +300,7 @@ ld_reloc_finalize_sections(struct ld *ld)
 	li = STAILQ_FIRST(&ld->ld_lilist);
 	assert(li != NULL);
 
-	for (i = 0; (size_t) i < li->li_shnum; i++) {
+	for (i = 1; (size_t) i < li->li_shnum; i++) {
 		is = &li->li_is[i];
 
 		if (!is->is_dynrel || is->is_reloc == NULL)
