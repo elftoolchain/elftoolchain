@@ -58,6 +58,9 @@ ld_reloc_load(struct ld *ld)
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 
+		if (li->li_name == NULL)
+			continue;
+
 		if (li->li_type == LIT_DSO)
 			continue;
 
@@ -71,8 +74,8 @@ ld_reloc_load(struct ld *ld)
 				continue;
 
 			if ((scn = elf_getscn(e, is->is_index)) == NULL) {
-				ld_warn(ld, "elf_getscn failed: %s",
-				    elf_errmsg(-1));
+				ld_warn(ld, "%s(%s): elf_getscn failed: %s",
+				    li->li_name, is->is_name, elf_errmsg(-1));
 				continue;
 			}
 
@@ -80,8 +83,9 @@ ld_reloc_load(struct ld *ld)
 			if ((d = elf_getdata(scn, NULL)) == NULL) {
 				elferr = elf_errno();
 				if (elferr != 0)
-					ld_warn(ld, "elf_getdata failed: %s",
-					    elf_errmsg(elferr));
+					ld_warn(ld, "%s(%s): elf_getdata "
+					    "failed: %s", li->li_name,
+					    is->is_name, elf_errmsg(elferr));
 				continue;
 			}
 
@@ -239,6 +243,7 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 {
 	struct ld_input_section *is;
 	struct ld_reloc_entry *lre;
+	int len;
 
 	/*
 	 * List of internal sections to hold dynamic relocations:
@@ -253,6 +258,12 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 	if (is == NULL) {
 		is = ld_input_add_internal_section(ld, name);
 		is->is_dynrel = 1;
+		is->is_type = ld->ld_arch->reloc_is_rela ? SHT_RELA : SHT_REL;
+
+		len = strlen(name);
+		if (len > 3 && name[len - 1] == 't' && name[len - 2] == 'l' &&
+		    name[len - 3] == 'p')
+			is->is_pltrel = 1;
 	}
 
 	if (is->is_reloc == NULL) {
@@ -272,6 +283,7 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 
 	STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	is->is_num_reloc++;
+	is->is_size += ld->ld_arch->reloc_entsize;
 }
 
 void
@@ -291,6 +303,10 @@ ld_reloc_finalize_sections(struct ld *ld)
 
 		if (!is->is_dynrel || is->is_reloc == NULL ||
 		    is->is_output == NULL)
+			continue;
+
+		/* PLT relocation is handled in arch-specified code. */
+		if (is->is_pltrel)
 			continue;
 
 		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
