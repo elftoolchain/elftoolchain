@@ -136,7 +136,8 @@ ld_input_alloc_internal_section_buffers(struct ld *ld)
 	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
 		is = &li->li_is[i];
 
-		if (is->is_type == SHT_NOBITS || is->is_size == 0)
+		if (is->is_type == SHT_NOBITS || is->is_size == 0 ||
+		    is->is_dynrel)
 			continue;
 
 		if ((is->is_ibuf = malloc(is->is_size)) == NULL)
@@ -294,14 +295,15 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	assert(e != NULL);
 
 	if ((scn = elf_getscn(e, is->is_index)) == NULL)
-		ld_fatal(ld, "elf_getscn failed: %s", elf_errmsg(-1));
+		ld_fatal(ld, "%s(%s): elf_getscn failed: %s", li->li_name,
+		    is->is_name, elf_errmsg(-1));
 
 	(void) elf_errno();
 	if ((d = elf_rawdata(scn, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "elf_rawdata failed: %s",
-			    elf_errmsg(elferr));
+			ld_fatal(ld, "%s(%s): elf_rawdata failed: %s",
+			    li->li_name, is->is_name, elf_errmsg(elferr));
 		return (NULL);
 	}
 
