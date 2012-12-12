@@ -26,6 +26,9 @@
  * $Id$
  */
 
+struct ld_reloc_entry_head;
+struct ld_reloc_buffer;
+
 struct ld_input_section {
 	char *is_name;			/* section name */
 	struct ld_input *is_input;	/* containing input object */
@@ -41,10 +44,14 @@ struct ld_input_section {
 	uint64_t is_link;		/* section link */
 	uint64_t is_info;		/* section info */
 	uint64_t is_index;		/* section index */
-	unsigned is_discard;		/* dicard section */
+	unsigned char is_discard;	/* dicard section */
+	unsigned char is_dynrel;	/* section holds dynamic relocations */
 	void *is_data;			/* output section data descriptor */
+	void *is_ibuf;			/* buffer for internal sections. */
+	uint64_t is_ibuf_cap;		/* internal buffer capacity */
 	struct ld_reloc_entry_head *is_reloc; /* reloc list */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
+	UT_hash_handle hh;		/* hash handle (internal section) */
 };
 
 STAILQ_HEAD(ld_input_section_head, ld_input_section);
@@ -64,7 +71,9 @@ struct ld_input {
 	enum ld_input_type li_type;	/* input object kind */
 	struct ld_file *li_file;	/* containing file */
 	size_t li_shnum;		/* num of sections in ELF object */
+	size_t li_shnum_max;		/* max. number of internal section */
 	struct ld_input_section *li_is;	/* input section list */
+	struct ld_input_section *li_istbl; /* internal section hash table */
 	struct ld_archive_member *li_lam; /* archive member */
 	struct ld_symbol_head *li_local; /* local symbol list */
 	struct ld_symbol **li_symindex;	/* symbol index table */
@@ -83,12 +92,15 @@ void	ld_input_add_symbol(struct ld *, struct ld_input *,
     struct ld_symbol *);
 struct ld_input_section *ld_input_add_internal_section(struct ld *,
     const char *);
+struct ld_input_section *ld_input_find_internal_section(struct ld *,
+    const char *);
 struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
 void	ld_input_cleanup(struct ld *);
 char	*ld_input_get_fullname(struct ld *, struct ld_input *);
 void	ld_input_init_common_section(struct ld *, struct ld_input *);
-void	ld_input_init_sections(struct ld *, struct ld_input *, Elf *e);
+void	ld_input_init_sections(struct ld *, struct ld_input *, Elf *);
 void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);
 void	ld_input_unload(struct ld *, struct ld_input *);
+uint64_t ld_input_reserve_ibuf(struct ld_input_section *, uint64_t);
