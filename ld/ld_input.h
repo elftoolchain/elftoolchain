@@ -94,6 +94,7 @@ struct ld_input_section *ld_input_add_internal_section(struct ld *,
     const char *);
 struct ld_input_section *ld_input_find_internal_section(struct ld *,
     const char *);
+void	ld_input_alloc_internal_section_buffers(struct ld *);
 struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
 void	ld_input_cleanup(struct ld *);

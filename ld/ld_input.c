@@ -124,6 +124,27 @@ ld_input_reserve_ibuf(struct ld_input_section *is, uint64_t n)
 }
 
 void
+ld_input_alloc_internal_section_buffers(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	int i;
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+		is = &li->li_is[i];
+
+		if (is->is_type == SHT_NOBITS || is->is_size == 0)
+			continue;
+
+		if ((is->is_ibuf = malloc(is->is_size)) == NULL)
+			ld_fatal_std(ld, "malloc");
+	}
+}
+
+void
 ld_input_cleanup(struct ld *ld)
 {
 	struct ld_input *li, *_li;
