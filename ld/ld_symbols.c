@@ -659,24 +659,42 @@ static void
 _update_export(struct ld *ld, struct ld_symbol *lsb, int add)
 {
 
+	/* Only defined symbols are exportable. */
 	if (lsb->lsb_shndx == SHN_UNDEF)
 		return;
 
-	/* TODO: handle DSO. */
-	if (lsb->lsb_input != NULL &&
-	    lsb->lsb_input->li_type != LIT_RELOCATABLE)
-		return;
+	/*
+	 * If the linker creates a executable, update the export table
+	 * if the symbol is defined in a regular object and has been
+	 * referenced by a DSO.
+	 */
+	if (ld->ld_exec || ld->ld_pie) {
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type != LIT_RELOCATABLE)
+			return;
+
+		if (!lsb->lsb_ref_dso)
+			return;
+	}
 
 	/*
-	 * Update the export table if the symbol has appeared in
-	 * a DSO before.
+	 * If the linker creates a DSO, update the export table if the
+	 * symbol is defined in a regualr object and is visible to the
+	 * outside.
 	 */
-	if (lsb->lsb_ref_dso) {
-		if (add)
-			_add_to_export(ld, lsb);
-		else
-			_remove_from_export(ld, lsb);
+	if (ld->ld_dso) {
+		if (lsb->lsb_input != NULL &&
+		    lsb->lsb_input->li_type != LIT_RELOCATABLE)
+			return;
+
+		if (lsb->lsb_other != STV_DEFAULT)
+			return;
 	}
+
+	if (add)
+		_add_to_export(ld, lsb);
+	else
+		_remove_from_export(ld, lsb);
 }
 
 static int
