@@ -109,8 +109,10 @@ ld_dynamic_reserve_dynbss_entry(struct ld *ld, struct ld_symbol *lsb)
 
 	/* Create .dynbss section if it doesn't yet exist. */
 	dynbss = ld_input_find_internal_section(ld, ".dynbss");
-	if (dynbss == NULL)
+	if (dynbss == NULL) {
 		dynbss = ld_input_add_internal_section(ld, ".dynbss");
+		dynbss->is_type = SHT_NOBITS;
+	}
 
 	li = lsb->lsb_input;
 	assert(li != NULL && li->li_type == LIT_DSO);
