@@ -222,7 +222,6 @@ static void
 _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_input_section *is;
-	uint64_t off;
 
 	is = _find_and_create_got_section(ld, 1);
 
@@ -231,7 +230,7 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 		return;
 
 	/* Reserve a GOT entry. */
-	off = ld_input_reserve_ibuf(is, 1);
+	lsb->lsb_got_off = ld_input_reserve_ibuf(is, 1);
 	lsb->lsb_got = 1;
 
 	/*
@@ -239,7 +238,8 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 	 * for this symbol.
 	 */
 	if (ld->ld_dso)
-		_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT, off);
+		_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
+		    lsb->lsb_got_off);
 }
 
 static void
@@ -270,13 +270,14 @@ _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb)
 	is = _find_and_create_plt_section(ld, 1);
 
 	lsb->lsb_plt_off = ld_input_reserve_ibuf(is, 1);
+	lsb->lsb_plt = 1;
 }
 
 static void
 _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 {
 
-	ld_reloc_create_entry(ld, "rela.plt", R_X86_64_JUMP_SLOT,
+	ld_reloc_create_entry(ld, ".rela.plt", R_X86_64_JUMP_SLOT,
 	    lsb, offset, 0);
 }
 
@@ -285,14 +286,14 @@ _create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
     uint64_t offset)
 {
 
-	ld_reloc_create_entry(ld, "rela.got", type, lsb, offset, 0);
+	ld_reloc_create_entry(ld, ".rela.got", type, lsb, offset, 0);
 }
 
 static void
 _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 {
 
-	ld_reloc_create_entry(ld, "rela.bss", R_X86_64_COPY, lsb, offset, 0);
+	ld_reloc_create_entry(ld, ".rela.bss", R_X86_64_COPY, lsb, offset, 0);
 }
 
 static void
@@ -401,6 +402,13 @@ _finalize_got_and_plt(struct ld *ld)
 	WRITE_32(plt + 2, s32);
 	plt += 6;
 
+	/* Padding: 4-byte nop. (NOP [rAx+disp8]) */
+	WRITE_8(plt, 0x0f);
+	WRITE_8(plt + 1, 0x1f);
+	WRITE_8(plt + 2, 0x40);
+	WRITE_8(plt + 3, 0x0);
+	plt += 4;
+
 	/*
 	 * Walk through the sorted PLT relocations in the output section
 	 * and fill in each GOT and PLT entries.
@@ -409,6 +417,12 @@ _finalize_got_and_plt(struct ld *ld)
 	j = 0;
 	STAILQ_FOREACH(lre, rela_plt_os->os_reloc, lre_next) {
 		lsb = ld_symbols_ref(lre->lre_sym);
+
+		/*
+		 * Update the offset for the R_X86_64_JUMP_SLOT relocation
+		 * entry, pointing to the corresponding GOT entry.
+		 */
+		lre->lre_offset = got_os->os_addr + i * 8;
 
 		/*
 		 * Set the value of the dynamic symbol to the address of the
@@ -452,7 +466,7 @@ _finalize_got_and_plt(struct ld *ld)
 		 * GOT: Write the GOT entry for this function, pointing to
 		 * the push op.
 		 */
-		u64 = lo->lo_plt->os_addr + (i - 2) * 16 + 6;
+		u64 = plt_os->os_addr + (i - 2) * 16 + 6;
 		WRITE_64(got, u64);
 
 		/* Increase relocation entry index. */
@@ -684,6 +698,14 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		s32 = s + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
+	case R_X86_64_PLT32:
+		/* Symbol value has been set to the PLT offset. */
+		s32 = s + lre->lre_addend - p;
+		WRITE_32(buf + lre->lre_offset, s32);
+		break;
+	case R_X86_64_GOTPCREL:
+		s32 = lsb->lsb_got_off + lre->lre_addend - p;
+		break;
 	case R_X86_64_32:
 		u64 = s + lre->lre_addend;
 		u32 = u64 & 0xffffffff;
@@ -699,7 +721,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 	default:
-		ld_fatal(ld, "Relocation %d not supported", lre->lre_type);
+		ld_warn(ld, "Relocation %s not supported",
+		    _reloc2str(lre->lre_type));
 		break;
 	}
 }
