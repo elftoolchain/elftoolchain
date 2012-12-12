@@ -58,6 +58,7 @@ static void _create_string_table_section(struct ld *ld, const char *name,
 static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
+static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
@@ -289,6 +290,23 @@ _alloc_section_data_from_buffer(struct ld *ld, Elf_Scn *scn,
 }
 
 static void
+_alloc_section_data_from_reloc_buffer(struct ld *ld, Elf_Scn *scn,
+    void *buf, size_t sz)
+{
+	Elf_Data *d;
+
+	if ((d = elf_newdata(scn)) == NULL)
+		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
+
+	d->d_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
+	d->d_off = 0;		/* has to be the only data descriptor */
+	d->d_type = ld->ld_arch->reloc_is_rela ? ELF_T_RELA : ELF_T_REL;
+	d->d_size = sz;
+	d->d_version = EV_CURRENT;
+	d->d_buf = buf;
+}
+
+static void
 _alloc_section_data_for_symtab(struct ld *ld, struct ld_output_section *os,
     Elf_Scn *scn, struct ld_symbol_table *symtab)
 {
@@ -333,6 +351,7 @@ _copy_and_reloc_input_sections(struct ld *ld)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
+	struct ld_output_section *os;
 	Elf_Data *d;
 	int i;
 
@@ -340,18 +359,66 @@ _copy_and_reloc_input_sections(struct ld *ld)
 		ld_input_load(ld, li);
 		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
 			is = &li->li_is[i];
+
 			if (is->is_data == NULL)
 				continue;
+
 			d = is->is_data;
+
 			d->d_align = is->is_align;
 			d->d_off = is->is_reloff;
 			d->d_type = ELF_T_BYTE;
 			d->d_size = is->is_size;
 			d->d_version = EV_CURRENT;
-			d->d_buf = ld_input_get_section_rawdata(ld, is);
-			ld_reloc_process_input_section(ld, is, d->d_buf);
+
+			/*
+			 * Take different actions depending on different types
+			 * of input sections:
+			 *
+			 * For internal input sections, assign the internal
+			 * buffer directly to the data descriptor.
+			 * For relocation sections, join the relocation
+			 * records to together for later processing.
+			 * For other input sections, load the raw data from
+			 * input object and preform relocation.
+			 */
+			if (is->is_ibuf != NULL)
+				d->d_buf = is->is_ibuf;
+			else if (is->is_reloc != NULL) {
+				os = is->is_output;
+				ld_reloc_join(ld, os, is);
+			} else {
+				d->d_buf = ld_input_get_section_rawdata(ld,
+				    is);
+				ld_reloc_process_input_section(ld, is,
+				    d->d_buf);
+			}
 		}
 		ld_input_unload(ld, li);
+	}
+}
+
+static void
+_produce_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+	void *buf;
+	size_t sz;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_reloc != NULL) {
+			/*
+			 * Sort dynamic relocations to for the benefit
+			 * of the dynamic linker.
+			 */
+			if (os->os_dynrel)
+				ld_reloc_sort(ld, os);
+
+			/* Serialize relocation records. */
+			buf = ld_reloc_serialize(ld, os, &sz);
+			_alloc_section_data_from_reloc_buffer(ld, os->os_scn,
+			    buf, sz);
+		}
 	}
 }
 
@@ -661,8 +728,15 @@ ld_output_create(struct ld *ld)
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);
 
+	/* Finalize relocation sections. */
+	if (ld->ld_dynamic_link || ld->ld_emit_reloc)
+		ld_reloc_finalize_sections(ld);
+
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
+
+	/* Sort and produce relocation etnries. */
+	_produce_reloc_sections(ld, lo);
 
 	/* Finalize dynamic symbol section. */
 	if (lo->lo_dynsym != NULL) {
