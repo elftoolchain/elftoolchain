@@ -288,16 +288,23 @@ ld_symbols_resolve(struct ld *ld)
 			    ld_input_get_fullname(ld, lsb->lsb_input));
 		}
 	}
+}
+
+void
+ld_symbols_warn_undefined(struct ld *ld)
+{
+	struct ld_symbol *lsb, *_lsb;
+
+	if (ld->ld_dso)
+		return;
 
 	if (HASH_COUNT(ld->ld_symtab_undef) > 0) {
 		HASH_ITER(hh, ld->ld_symtab_undef, lsb, _lsb) {
 			if (lsb->lsb_bind != STB_WEAK)
-				ld_warn(ld, "undefined symbol: %s", lsb->lsb_name);
+				ld_warn(ld, "undefined symbol: %s",
+				    lsb->lsb_name);
 		}
 	}
-
-	/* Create copy relocations for import symbols, if need. */
-	ld_dynamic_create_copy_reloc(ld);
 }
 
 void

@@ -107,6 +107,8 @@ restart:
 
 	ld_reloc_load(ld);
 
+	ld_symbols_warn_undefined(ld);
+
 	ld_output_init(ld);
 
 	ld_layout_sections(ld);

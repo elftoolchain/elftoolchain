@@ -38,6 +38,7 @@ struct ld_symbol {
 	uint16_t lsb_shndx;		/* symbol section index */
 	uint64_t lsb_index;		/* symbol index */
 	uint64_t lsb_dyn_index;		/* dynamic symbol index */
+	uint64_t lsb_got_off;		/* got entry offset */
 	uint64_t lsb_plt_off;		/* plt entry offset */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
@@ -96,3 +97,4 @@ void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);
 struct ld_symbol *ld_symbols_ref(struct ld_symbol *);
 int	ld_symbols_overridden(struct ld *, struct ld_symbol *);
+void	ld_symbols_warn_undefined(struct ld *);
