@@ -719,7 +719,10 @@ ld_output_create(struct ld *ld)
 	eh.e_ident[EI_DATA] = lo->lo_endian;
 	eh.e_flags = 0;		/* TODO */
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
-	eh.e_type = ET_EXEC;	/* TODO */
+	if (ld->ld_dso || ld->ld_pie)
+		eh.e_type = ET_DYN;
+	else
+		eh.e_type = ET_EXEC;
 	eh.e_version = EV_CURRENT;
 
 	/* Create program headers. */
