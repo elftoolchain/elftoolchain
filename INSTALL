@@ -69,10 +69,10 @@ Prerequisites
 
             % sudo pkg_add -r py-yaml
 
-    - To build additional documentation, the ``teTeX`` package is
+    - To build additional documentation, the ``latex-pgf`` package is
       needed::
 
-            % sudo pkg_add -r teTeX
+            % sudo pkg_add -r latex-pgf
 
 :Minix 3.2.0:
     - The following packages are pre-requisites for building the
