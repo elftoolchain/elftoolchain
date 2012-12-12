@@ -209,7 +209,7 @@ _find_and_create_plt_section(struct ld *ld, int create)
 		is->is_entsize = 16;
 		is->is_align = 4;
 		is->is_type = SHT_PROGBITS;
-		is->is_flags = SHF_ALLOC | SHF_WRITE;
+		is->is_flags = SHF_ALLOC | SHF_EXECINSTR;
 
 		/* Reserve space for the initial entry. */
 		(void) ld_input_reserve_ibuf(is, 1);
