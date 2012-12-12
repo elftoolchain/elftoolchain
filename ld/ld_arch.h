@@ -38,7 +38,8 @@ struct ld_arch {
 	const char *interp;
 	uint64_t (*get_max_page_size)(struct ld *);
 	uint64_t (*get_common_page_size)(struct ld *);
-	void (*scan_reloc)(struct ld *, struct ld_reloc_entry *);
+	void (*scan_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
 	void (*create_dynrel)(struct ld *);

@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_dynamic.h"
 #include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
@@ -36,10 +37,29 @@
 
 ELFTC_VCSID("$Id$");
 
+static void _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb,
+    uint64_t offset);
+static void _create_got_reloc(struct ld *ld, struct ld_symbol *lsb,
+    uint64_t type, uint64_t offset);
+static void _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb,
+    uint64_t offset);
+static void _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend);
+static void _scan_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre);
+static struct ld_input_section *_find_and_create_got_section(struct ld *ld);
+static struct ld_input_section *_find_and_create_gotplt_section(struct ld *ld);
+static struct ld_input_section *_find_and_create_plt_section(struct ld *ld);
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
+static const char *_reloc2str(uint64_t r);
+static void _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb);
+static void _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb);
+static void _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb);
+static int _is_absolute_reloc(uint64_t r);
+static void _warn_pic(struct ld *ld, struct ld_reloc_entry *lre);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -120,12 +140,171 @@ _warn_pic(struct ld *ld, struct ld_reloc_entry *lre)
 		    " recompile with -fPIC", _reloc2str(lre->lre_type));
 }
 
-static void
-_scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
+static struct ld_input_section *
+_find_and_create_got_section(struct ld *ld)
 {
-	struct ld_symbol *lsb, *_lsb;
+	struct ld_input_section *is;
 
-	lsb = lre->lre_sym;
+	/* Check if the GOT section is already created. */
+	is = ld_input_find_internal_section(ld, ".got");
+	if (is != NULL)
+		return (is);
+
+	is = ld_input_add_internal_section(ld, ".got");
+	is->is_entsize = 8;
+	is->is_align = 8;
+	is->is_type = SHT_PROGBITS;
+	is->is_flags = SHF_ALLOC | SHF_WRITE;
+
+	return (is);
+}
+
+static struct ld_input_section *
+_find_and_create_gotplt_section(struct ld *ld)
+{
+	struct ld_input_section *is;
+
+	/* Check if the GOT (for PLT) section is already created. */
+	is = ld_input_find_internal_section(ld, ".got.plt");
+	if (is != NULL)
+		return (is);
+
+	is = ld_input_add_internal_section(ld, ".got.plt");
+	is->is_entsize = 8;
+	is->is_align = 8;
+	is->is_type = SHT_PROGBITS;
+	is->is_flags = SHF_ALLOC | SHF_WRITE;
+	
+	/* Reserve space for the initial entries. */
+	(void) ld_input_reserve_ibuf(is, 3);
+
+	return (is);
+}
+
+static struct ld_input_section *
+_find_and_create_plt_section(struct ld *ld)
+{
+	struct ld_input_section *is;
+
+	/* Check if the PLT section is already created. */
+	is = ld_input_find_internal_section(ld, ".plt");
+	if (is != NULL)
+		return (is);
+
+	is = ld_input_add_internal_section(ld, ".plt");
+	is->is_entsize = 16;
+	is->is_align = 4;
+	is->is_type = SHT_PROGBITS;
+	is->is_flags = SHF_ALLOC | SHF_WRITE;
+
+	/* Reserve space for the initial entry. */
+	(void) ld_input_reserve_ibuf(is, 1);
+	
+	return (is);
+}
+
+static void
+_reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input_section *is;
+	uint64_t off;
+
+	is = _find_and_create_got_section(ld);
+
+	/* Check if the entry already has a GOT entry. */
+	if (lsb->lsb_got)
+		return;
+
+	/* Reserve a GOT entry. */
+	off = ld_input_reserve_ibuf(is, 1);
+	lsb->lsb_got = 1;
+
+	/*
+	 * If we are building a DSO, create a R_X86_64_GLOB_DAT entry
+	 * for this symbol.
+	 */
+	if (ld->ld_dso)
+		_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT, off);
+}
+
+
+static void
+_reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input_section *is;
+	uint64_t off;
+
+	is = _find_and_create_gotplt_section(ld);
+
+	/* Reserve a GOT entry for PLT. */
+	off = ld_input_reserve_ibuf(is, 1);
+
+	/* Record a R_X86_64_JUMP_SLOT entry for this symbol. */
+	_create_plt_reloc(ld, lsb, off);
+}
+
+static void
+_reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input_section *is;
+
+	is = _find_and_create_plt_section(ld);
+
+	lsb->lsb_plt_off = ld_input_reserve_ibuf(is, 1);
+}
+
+static void
+_create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
+{
+
+	ld_reloc_create_entry(ld, "rela.plt", R_X86_64_JUMP_SLOT,
+	    lsb, offset, 0);
+}
+
+static void
+_create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
+    uint64_t offset)
+{
+
+	ld_reloc_create_entry(ld, "rela.got", type, lsb, offset, 0);
+}
+
+static void
+_create_copy_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
+{
+
+	ld_reloc_create_entry(ld, "rela.bss", R_X86_64_COPY, lsb, offset, 0);
+}
+
+static void
+_create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend)
+{
+
+	if (lsb->lsb_bind == STB_LOCAL) {
+		if (is->is_flags & SHF_WRITE)
+			ld_reloc_create_entry(ld, ".rela.data.rel.local",
+			    type, lsb, offset, addend);
+		else
+			ld_reloc_create_entry(ld, ".rela.data.rel.ro.local",
+			    type, lsb, offset, addend);
+	} else {
+		if (is->is_flags & SHF_WRITE)
+			ld_reloc_create_entry(ld, ".rela.data.rel",
+			    type, lsb, offset, addend);
+		else
+			ld_reloc_create_entry(ld, ".rela.data.rel.ro",
+			    type, lsb, offset, addend);
+	}
+}
+
+static void
+_scan_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
 
 	/*
 	 * TODO: We do not yet support "Large Models" and relevant
@@ -155,9 +334,11 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 */
 		if (lsb->lsb_bind == STB_LOCAL) {
 			if (ld->ld_pie || ld->ld_dso) {
-				if (lre->lre_type == R_X86_64_64) {
-					printf("generate R_X86_64_RELATIVE\n");
-				} else
+				if (lre->lre_type == R_X86_64_64)
+					_create_dynamic_reloc(ld, is, lsb,
+					    R_X86_64_RELATIVE, lre->lre_offset,
+					    lre->lre_addend);
+				else
 					_warn_pic(ld, lre);
 			}
 			break;
@@ -173,13 +354,15 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 * relocation will be generated instead. That's why we should
 		 * check if we need to create a PLT entry here.
 		 */
-		if (ld_reloc_require_plt(ld, lre)) {
-			/* _create_plt_entry(ld, lre); */
+		if (ld_reloc_require_plt(ld, lre) && !lsb->lsb_plt) {
+			_reserve_gotplt_entry(ld, lsb);
+			_reserve_plt_entry(ld, lsb);
 		}
 
-		if (ld_reloc_require_copy_reloc(ld, lre)) {
-			printf("create copy reloc for symbol: %s\n",
-			    lsb->lsb_name);
+		if (ld_reloc_require_copy_reloc(ld, lre) &&
+		    !lsb->lsb_copy_reloc) {
+			ld_dynamic_reserve_dynbss_entry(ld, lsb);
+			_create_copy_reloc(ld, lsb, lre->lre_offset);
 		} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
 			/* We only support R_X86_64_64. See above */
 			if (lre->lre_type != R_X86_64_64) {
@@ -190,11 +373,14 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 			 * Check if we can relax R_X86_64_64 to
 			 * R_X86_64_RELATIVE instead.
 			 */
-			if (ld_reloc_relative_relax(ld, lre)) {
-				printf("generate (relax) R_X86_64_RELATIVE\n");
-			} else
-				printf("create R_X86_64_64 for symbol: %s\n",
-				    lsb->lsb_name);
+			if (ld_reloc_relative_relax(ld, lre))
+				_create_dynamic_reloc(ld, is, lsb,
+				    R_X86_64_RELATIVE, lre->lre_offset,
+				    lre->lre_addend);
+			else
+				_create_dynamic_reloc(ld, is, lsb,
+				    R_X86_64_64, lre->lre_offset,
+				    lre->lre_addend);
 		}
 
 		break;
@@ -217,16 +403,18 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 * defined but is not defined inside a DSO, we can generate
 		 * a R_X86_64_PC32 relocation instead.
 		 */
-		_lsb = ld_symbols_ref(lsb);
-		if (ld->ld_exec && _lsb->lsb_shndx != SHN_UNDEF &&
-		    (_lsb->lsb_input == NULL ||
-		    _lsb->lsb_input->li_type != LIT_DSO)) {
+		if (ld->ld_exec && lsb->lsb_shndx != SHN_UNDEF &&
+		    (lsb->lsb_input == NULL ||
+		    lsb->lsb_input->li_type != LIT_DSO)) {
 			lre->lre_type = R_X86_64_PC32;
 			break;
 		}
 
 		/* Create an PLT entry otherwise. */
-		/* create_plt_entry(ld, lre); */
+		if (!lsb->lsb_plt) {
+			_reserve_gotplt_entry(ld, lsb);
+			_reserve_plt_entry(ld, lsb);
+		}
 		break;
 
 	case R_X86_64_PC64:
@@ -240,13 +428,15 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 * relocation.
 		 */
 		if (lsb->lsb_bind != STB_LOCAL) {
-			if (ld_reloc_require_plt(ld, lre)) {
-				/* _create_plt_entry(ld, lre); */
+			if (ld_reloc_require_plt(ld, lre) && !lsb->lsb_plt) {
+				_reserve_gotplt_entry(ld, lsb);
+				_reserve_plt_entry(ld, lsb);
 			}
 
-			if (ld_reloc_require_copy_reloc(ld, lre)) {
-				printf("create copy reloc for symbol: %s\n",
-				    lsb->lsb_name);
+			if (ld_reloc_require_copy_reloc(ld, lre) &&
+			    !lsb->lsb_copy_reloc) {
+				ld_dynamic_reserve_dynbss_entry(ld, lsb);
+				_create_copy_reloc(ld, lsb, lre->lre_offset);
 			} else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
 				/*
 				 * We can not generate dynamic relocation for
@@ -268,7 +458,7 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 * These relocation types use GOT address as a base address
 		 * and instruct the linker to build a GOT.
 		 */
-		/* _create_got(ld); */
+		(void) _find_and_create_got_section(ld);
 		break;
 
 	case R_X86_64_GOT32:
@@ -277,7 +467,8 @@ _scan_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 		 * These relocation types instruct the linker to build a
 		 * GOT and generate a GOT entry.
 		 */
-		/* _create_got_entry(ld, lre); */
+		if (!lsb->lsb_got)
+			_reserve_got_entry(ld, lsb);
 		break;
 
 	case R_X86_64_TLSGD:

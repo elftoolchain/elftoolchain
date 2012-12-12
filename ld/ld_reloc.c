@@ -165,7 +165,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	lre->lre_sym = li->li_symindex[sym];
 
-	ld->ld_arch->scan_reloc(ld, lre);
+	ld->ld_arch->scan_reloc(ld, is, lre);
 }
 
 void
