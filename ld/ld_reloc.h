@@ -27,6 +27,8 @@
  */
 
 struct ld_symbol;
+struct ld_input_section;
+struct ld_output_section;
 
 struct ld_reloc_entry {
 	struct ld_symbol *lre_sym;	/* reloc symbol */
@@ -40,6 +42,10 @@ STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 
 void	ld_reloc_create_entry(struct ld *, const char *, uint64_t,
     struct ld_symbol *, uint64_t, int64_t);
+void	ld_reloc_finalize_sections(struct ld *);
+void	ld_reloc_join(struct ld *, struct ld_output_section *,
+    struct ld_input_section *);
+void	ld_reloc_sort(struct ld *, struct ld_output_section *);
 void	ld_reloc_load(struct ld *);
 void	ld_reloc_process_input_section(struct ld *, struct ld_input_section *,
     void *);

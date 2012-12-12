@@ -271,6 +271,80 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 	lre->lre_addend = addend;
 
 	STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
+	is->is_num_reloc++;
+}
+
+void
+ld_reloc_finalize_sections(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	struct ld_output_section *os;
+	struct ld_reloc_entry *lre;
+	int i;
+
+	li = STAILQ_FIRST(&ld->ld_lilist);
+	assert(li != NULL);
+
+	for (i = 0; (size_t) i < li->li_shnum; i++) {
+		is = &li->li_is[i];
+
+		if (!is->is_dynrel || is->is_reloc == NULL ||
+		    is->is_output == NULL)
+			continue;
+
+		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
+			if ((os = is->is_output) == NULL)
+				continue;
+			lre->lre_offset += os->os_addr + is->is_reloff;
+		}
+	}
+
+	if (!ld->ld_emit_reloc)
+		return;
+
+	while ((li = STAILQ_NEXT(li, li_next)) != NULL) {
+		is = &li->li_is[i];
+
+		if (is->is_reloc == NULL || is->is_output == NULL)
+			continue;
+
+		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
+			if ((os = is->is_output) == NULL)
+				continue;
+			lre->lre_offset += os->os_addr + is->is_reloff;
+		}
+	}
+}
+
+void
+ld_reloc_join(struct ld *ld, struct ld_output_section *os,
+    struct ld_input_section *is)
+{
+
+	assert(is->is_reloc != NULL);
+
+	if (os->os_reloc == NULL) {
+		if ((os->os_reloc = malloc(sizeof(*os->os_reloc))) == NULL)
+			ld_fatal_std(ld, "malloc");
+		STAILQ_INIT(os->os_reloc);
+	}
+
+	STAILQ_CONCAT(os->os_reloc, is->is_reloc);
+	os->os_num_reloc += is->is_num_reloc;
+
+	is->is_num_reloc = 0;
+	free(is->is_reloc);
+}
+
+void
+ld_reloc_sort(struct ld *ld, struct ld_output_section *os)
+{
+
+	/* TODO: Implement reloc sorting*/
+
+	(void) ld;
+	(void) os;
 }
 
 int
