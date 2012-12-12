@@ -37,7 +37,7 @@ ELFTC_VCSID("$Id$");
  * Support routines for relocation handling.
  */
 
-static void _process_reloc(struct ld *ld, struct ld_input_section *is,
+static void _scan_reloc(struct ld *ld, struct ld_input_section *is,
     uint64_t sym, struct ld_reloc_entry *lre);
 static void _read_rel(struct ld *ld, struct ld_input_section *is,
     Elf_Data *d);
@@ -123,7 +123,7 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
-		_process_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
+		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	}
 }
@@ -148,13 +148,13 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_addend = r.r_addend;
-		_process_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
+		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	}
 }
 
 static void
-_process_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
+_scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
     struct ld_reloc_entry *lre)
 {
 	struct ld_input *li;
@@ -166,6 +166,46 @@ _process_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 	lre->lre_sym = li->li_symindex[sym];
 
 	ld->ld_arch->scan_reloc(ld, lre);
+}
+
+void
+ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
+    struct ld_symbol *lsb, uint64_t offset, int64_t addend)
+{
+	struct ld_input_section *is;
+	struct ld_reloc_entry *lre;
+
+	/*
+	 * List of internal sections to hold dynamic relocations:
+	 *
+	 * .rel.bss      contains copy relocations
+	 * .rel.plt      contains PLT (*_JMP_SLOT) relocations
+	 * .rel.got      contains GOT (*_GLOB_DATA) relocations
+	 * .rel.data.*   contains *_RELATIVE and absolute relocations
+	 */
+
+	is = ld_input_find_internal_section(ld, name);
+	if (is == NULL) {
+		is = ld_input_add_internal_section(ld, name);
+		is->is_dynrel = 1;
+	}
+
+	if (is->is_reloc == NULL) {
+		is->is_reloc = calloc(1, sizeof(*is->is_reloc));
+		if (is->is_reloc == NULL)
+			ld_fatal_std(ld, "calloc");
+		STAILQ_INIT(is->is_reloc);
+	}
+
+	if ((lre = malloc(sizeof(*lre))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	lre->lre_type = type;
+	lre->lre_sym = lsb;
+	lre->lre_offset = offset;
+	lre->lre_addend = addend;
+
+	STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 }
 
 int
