@@ -44,6 +44,7 @@ void
 ld_input_init(struct ld *ld)
 {
 	struct ld_input *li;
+	struct ld_input_section *is;
 
 	assert(STAILQ_EMPTY(&ld->ld_lilist));
 
@@ -60,6 +61,19 @@ ld_input_init(struct ld *ld)
 		ld_fatal_std(ld, "malloc");
 
 	STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
+
+	/*
+	 * Create an initial SHT_NULL section for the pseudo input object,
+	 * so all the internal sections will have valid section index.
+	 * (other than SHN_UNDEF)
+	 */
+	is = &li->li_is[li->li_shnum];
+	if ((is->is_name = strdup("")) == NULL)
+		ld_fatal_std(ld, "strdup");
+	is->is_input = li;
+	is->is_type = SHT_NULL;
+	is->is_index = li->li_shnum;
+	li->li_shnum++;
 }
 
 struct ld_input_section *
@@ -81,7 +95,7 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 
 	is = &li->li_is[li->li_shnum];
 	if ((is->is_name = strdup(name)) == NULL)
-		ld_fatal_std(ld, "calloc");
+		ld_fatal_std(ld, "strdup");
 	is->is_input = li;
 	is->is_index = li->li_shnum;
 
