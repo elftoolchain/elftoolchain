@@ -76,6 +76,7 @@ struct ld_output_section {
 	char *os_link_name;		/* link to other output section */
 	unsigned char os_empty;		/* output section is empty */
 	unsigned char os_dynrel;	/* contain dynamic relocations */
+	unsigned char os_entsize_set;	/* entsize is set */
 	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_script_sections_output *os_ldso;

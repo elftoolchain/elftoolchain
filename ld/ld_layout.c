@@ -867,6 +867,20 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 	if (is->is_align > os->os_align)
 		os->os_align = is->is_align;
 
+	/*
+	 * The entsize of the output section is determined by the
+	 * input sections it contains. If all the input sections has
+	 * the same entsize, the output section will also have that
+	 * entsize. If any input section has a different entsize,
+	 * the entsize for output section is set to 0, meaning that
+	 * it has variable entry sizes.
+	 */
+	if (!os->os_entsize_set) {
+		os->os_entsize = is->is_entsize;
+		os->os_entsize_set = 1;
+	} else if (os->os_entsize != is->is_entsize)
+		os->os_entsize = 0;
+
 	if (os->os_type == SHT_NULL)
 		os->os_type = is->is_type;
 	if (is->is_type == SHT_NOTE)

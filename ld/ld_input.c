@@ -466,7 +466,7 @@ ld_input_init_common_section(struct ld *ld, struct ld_input *li)
 		ld_fatal_std(ld, "%s: calloc", li->li_name);
 	is->is_off = 0;
 	is->is_size = 0;
-	is->is_entsize = 1;
+	is->is_entsize = 0;
 	is->is_align = 1;
 	is->is_type = SHT_NOBITS;
 	is->is_flags = SHF_ALLOC | SHF_WRITE;
