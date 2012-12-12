@@ -47,6 +47,9 @@ struct ld_arch {
 	void (*create_pltgot)(struct ld *);
 	void (*finalize_pltgot)(struct ld *);
 	int (*is_absolute_reloc)(uint64_t);
+	unsigned char reloc_is_64bit;
+	unsigned char reloc_is_rela;
+	size_t reloc_entsize;
 	UT_hash_handle hh;		/* hash handle */
 	struct ld_arch *alias;
 };
