@@ -42,10 +42,6 @@ struct ld_arch {
 	    struct ld_reloc_entry *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
-	void (*create_dynrel)(struct ld *);
-	void (*finalize_dynrel)(struct ld *);
-	void (*create_pltgot)(struct ld *);
-	void (*finalize_pltgot)(struct ld *);
 	void (*finalize_got_and_plt)(struct ld *);
 	int (*is_absolute_reloc)(uint64_t);
 	unsigned char reloc_is_64bit;
