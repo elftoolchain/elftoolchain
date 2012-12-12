@@ -259,6 +259,7 @@ ld_reloc_create_entry(struct ld *ld, const char *name, uint64_t type,
 		is = ld_input_add_internal_section(ld, name);
 		is->is_dynrel = 1;
 		is->is_type = ld->ld_arch->reloc_is_rela ? SHT_RELA : SHT_REL;
+		is->is_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
 
 		len = strlen(name);
 		if (len > 3 && name[len - 1] == 't' && name[len - 2] == 'l' &&
