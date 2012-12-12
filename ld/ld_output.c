@@ -409,6 +409,13 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 			buf = ld_reloc_serialize(ld, os, &sz);
 			_alloc_section_data_from_reloc_buffer(ld, os->os_scn,
 			    buf, sz);
+
+			/*
+			 * Link dynamic relocation sections to .dynsym
+			 * section.
+			 */
+			if (os->os_dynrel)
+				os->os_link = lo->lo_dynsym;
 		}
 	}
 }

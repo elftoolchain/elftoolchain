@@ -303,17 +303,17 @@ ld_reloc_finalize_sections(struct ld *ld)
 	for (i = 0; (size_t) i < li->li_shnum; i++) {
 		is = &li->li_is[i];
 
-		if (!is->is_dynrel || is->is_reloc == NULL ||
-		    is->is_output == NULL)
+		if (!is->is_dynrel || is->is_reloc == NULL)
 			continue;
 
 		/* PLT relocation is handled in arch-specified code. */
 		if (is->is_pltrel)
 			continue;
 
+		if ((os = is->is_output) == NULL)
+			continue;
+
 		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
-			if ((os = is->is_output) == NULL)
-				continue;
 			lre->lre_offset += os->os_addr + is->is_reloff;
 		}
 	}

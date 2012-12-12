@@ -366,6 +366,9 @@ _finalize_got_and_plt(struct ld *ld)
 	assert(rela_plt_is != NULL);
 	rela_plt_os = rela_plt_is->is_output;
 
+	/* Point sh_info field of the .rela.plt to .plt section. */
+	rela_plt_os->os_info = plt_os;
+
 	/* Fill in the value of symbol _DYNAMIC in the first GOT entry. */
 	ld_symbols_get_value(ld, dynamic_symbol, &u64);
 	WRITE_64(got, u64);
