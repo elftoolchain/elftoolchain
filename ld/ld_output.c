@@ -59,6 +59,7 @@ static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
 static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
+static void _sort_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
@@ -351,7 +352,6 @@ _copy_and_reloc_input_sections(struct ld *ld)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
-	struct ld_output_section *os;
 	Elf_Data *d;
 	int i;
 
@@ -377,17 +377,14 @@ _copy_and_reloc_input_sections(struct ld *ld)
 			 *
 			 * For internal input sections, assign the internal
 			 * buffer directly to the data descriptor.
-			 * For relocation sections, join the relocation
-			 * records to together for later processing.
+			 * For relocation sections, they should be ignored
+			 * since they are handled elsewhere.
 			 * For other input sections, load the raw data from
 			 * input object and preform relocation.
 			 */
 			if (is->is_ibuf != NULL)
 				d->d_buf = is->is_ibuf;
-			else if (is->is_reloc != NULL) {
-				os = is->is_output;
-				ld_reloc_join(ld, os, is);
-			} else {
+			else if (is->is_reloc == NULL) {
 				d->d_buf = ld_input_get_section_rawdata(ld,
 				    is);
 				ld_reloc_process_input_section(ld, is,
@@ -407,18 +404,25 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_reloc != NULL) {
-			/*
-			 * Sort dynamic relocations to for the benefit
-			 * of the dynamic linker.
-			 */
-			if (os->os_dynrel)
-				ld_reloc_sort(ld, os);
-
 			/* Serialize relocation records. */
 			buf = ld_reloc_serialize(ld, os, &sz);
 			_alloc_section_data_from_reloc_buffer(ld, os->os_scn,
 			    buf, sz);
 		}
+	}
+}
+
+static void
+_sort_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+
+	/*
+	 * Sort dynamic relocations to for the benefit of the dynamic linker.
+	 */
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_reloc != NULL && os->os_dynrel)
+			ld_reloc_sort(ld, os);
 	}
 }
 
@@ -732,14 +736,17 @@ ld_output_create(struct ld *ld)
 	if (ld->ld_dynamic_link || ld->ld_emit_reloc)
 		ld_reloc_finalize_sections(ld);
 
-	/* Copy and relocate input section data to output section. */
-	_copy_and_reloc_input_sections(ld);
-
-	/* Sort and produce relocation entries. */
-	_produce_reloc_sections(ld, lo);
+	/* Sort dynamic relocation sections. */
+	_sort_reloc_sections(ld, lo);
 
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);
+
+	/* Copy and relocate input section data to output section. */
+	_copy_and_reloc_input_sections(ld);
+
+	/* Produce relocation entries. */
+	_produce_reloc_sections(ld, lo);
 
 	/* Finalize dynamic symbol section. */
 	if (lo->lo_dynsym != NULL) {
