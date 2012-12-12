@@ -227,7 +227,6 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 		_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT, off);
 }
 
-
 static void
 _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb)
 {
@@ -887,6 +886,9 @@ amd64_register(struct ld *ld)
 	amd64->finalize_dynrel = _finalize_dynrel;
 	amd64->create_pltgot = _create_pltgot;
 	amd64->finalize_pltgot = _finalize_pltgot;
+	amd64->reloc_is_64bit = 1;
+	amd64->reloc_is_rela = 1;
+	amd64->reloc_entsize = sizeof(Elf64_Rela);
 
 	HASH_ADD_STR(ld->ld_arch_list, name, amd64);
 
