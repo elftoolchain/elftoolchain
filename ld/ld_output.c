@@ -59,7 +59,7 @@ static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
 static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
-static void _sort_reloc_sections(struct ld *ld, struct ld_output *lo);
+static void _join_and_sort_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
@@ -200,7 +200,8 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 			STAILQ_FOREACH(is, islist, is_next) {
 				if (scn == NULL)
 					scn = _create_elf_scn(ld, lo, os);
-				if (os->os_type != SHT_NOBITS)
+				if (os->os_type != SHT_NOBITS &&
+				    !os->os_dynrel)
 					_alloc_input_section_data(ld, scn, is);
 			}
 			break;
@@ -413,14 +414,34 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 }
 
 static void
-_sort_reloc_sections(struct ld *ld, struct ld_output *lo)
+_join_and_sort_reloc_sections(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_output_section *os;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
 
-	/*
-	 * Sort dynamic relocations to for the benefit of the dynamic linker.
-	 */
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+
+		if (!os->os_dynrel)
+			continue;
+
+		STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+			switch (oe->oe_type) {
+			case OET_INPUT_SECTION_LIST:
+				islist = oe->oe_islist;
+				STAILQ_FOREACH(is, islist, is_next)
+					ld_reloc_join(ld, os, is);
+				break;
+			default:
+				break;
+			}
+		}
+
+		/*
+		 * Sort dynamic relocations to for the benefit of the
+		 * dynamic linker.
+		 */
 		if (os->os_reloc != NULL && os->os_dynrel)
 			ld_reloc_sort(ld, os);
 	}
@@ -736,8 +757,8 @@ ld_output_create(struct ld *ld)
 	if (ld->ld_dynamic_link || ld->ld_emit_reloc)
 		ld_reloc_finalize_sections(ld);
 
-	/* Sort dynamic relocation sections. */
-	_sort_reloc_sections(ld, lo);
+	/* Join and sort dynamic relocation sections. */
+	_join_and_sort_reloc_sections(ld, lo);
 
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);

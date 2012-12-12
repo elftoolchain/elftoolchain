@@ -34,7 +34,6 @@
 #include "ld_output.h"
 #include "ld_layout.h"
 #include "ld_options.h"
-#include "ld_reloc.h"
 #include "ld_symbols.h"
 #include "ld_strtab.h"
 
@@ -59,7 +58,7 @@ static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
 static int _check_filename_constraint(struct ld_input *li,
     struct ld_script_sections_output_input *ldoi);
-static void _insert_input_to_output(struct ld *ld, struct ld_output *lo,
+static void _insert_input_to_output(struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
 static void _layout_input_sections(struct ld *ld, struct ld_input *li);
@@ -685,7 +684,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 			 * this section to the input section list of the
 			 * output section element.
 			 */
-			_insert_input_to_output(ld, lo, wm->wm_os, is,
+			_insert_input_to_output(lo, wm->wm_os, is,
 			    wm->wm_islist);
 			break;
 
@@ -742,7 +741,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 				}
 
 				/* Match! Insert to the input section list. */
-				_insert_input_to_output(ld, lo, os, is,
+				_insert_input_to_output(lo, os, is,
 				    oe->oe_islist);
 				goto next_input_section;
 			}
@@ -794,7 +793,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 		oe = STAILQ_FIRST(&os->os_e);
 		assert(oe != NULL &&
 		    oe->oe_type == OET_INPUT_SECTION_LIST);
-		_insert_input_to_output(ld, lo, os, is, oe->oe_islist);
+		_insert_input_to_output(lo, os, is, oe->oe_islist);
 		return;
 	}
 
@@ -812,7 +811,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 	oe = ld_output_create_element(ld, &_os->os_e,
 	    OET_INPUT_SECTION_LIST, NULL, NULL);
 	oe->oe_islist = islist;
-	_insert_input_to_output(ld, lo, _os, is, oe->oe_islist);
+	_insert_input_to_output(lo, _os, is, oe->oe_islist);
 }
 
 struct ld_output_section *
@@ -848,9 +847,8 @@ ld_layout_insert_output_section(struct ld *ld, const char *name,
 }
 
 static void
-_insert_input_to_output(struct ld *ld, struct ld_output *lo,
-    struct ld_output_section *os, struct ld_input_section *is,
-    struct ld_input_section_head *islist)
+_insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
+    struct ld_input_section *is, struct ld_input_section_head *islist)
 {
 
 	/*
@@ -876,10 +874,7 @@ _insert_input_to_output(struct ld *ld, struct ld_output *lo,
 
 	is->is_output = os;
 
-	if (os->os_dynrel)
-		ld_reloc_join(ld, os, is);
-	else
-		STAILQ_INSERT_TAIL(islist, is, is_next);
+	STAILQ_INSERT_TAIL(islist, is, is_next);
 }
 
 static void
