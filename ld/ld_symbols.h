@@ -38,6 +38,7 @@ struct ld_symbol {
 	uint16_t lsb_shndx;		/* symbol section index */
 	uint64_t lsb_index;		/* symbol index */
 	uint64_t lsb_dyn_index;		/* dynamic symbol index */
+	uint64_t lsb_plt_off;		/* plt entry offset */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
 	unsigned char lsb_bind;		/* symbol binding */
 	unsigned char lsb_type;		/* symbol type */
@@ -48,7 +49,9 @@ struct ld_symbol {
 	unsigned char lsb_import;	/* symbol is a import symbol */
 	unsigned char lsb_ref_dso;	/* symbol appeared in a DSO */
 	unsigned char lsb_ref_ndso;	/* symbol appeared in elsewhere */
-	unsigned char lsb_copy_reloc;	/* symbol need copy reloc */
+	unsigned char lsb_copy_reloc;	/* symbol has copy reloc */
+	unsigned char lsb_got;		/* symbol has got entry */
+	unsigned char lsb_plt;		/* symbol has plt entry */
 	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
