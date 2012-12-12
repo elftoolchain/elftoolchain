@@ -47,3 +47,4 @@ int	ld_reloc_require_plt(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_require_copy_reloc(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_require_dynamic_reloc(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_relative_relax(struct ld *, struct ld_reloc_entry *);
+void	*ld_reloc_serialize(struct ld *, struct ld_output_section *, size_t *);

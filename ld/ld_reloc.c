@@ -125,6 +125,7 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
+		is->is_num_reloc++;
 	}
 }
 
@@ -150,6 +151,7 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		lre->lre_addend = r.r_addend;
 		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
+		is->is_num_reloc++;
 	}
 }
 
@@ -166,6 +168,69 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 	lre->lre_sym = li->li_symindex[sym];
 
 	ld->ld_arch->scan_reloc(ld, is, lre);
+}
+
+void *
+ld_reloc_serialize(struct ld *ld, struct ld_output_section *os, size_t *sz)
+{
+	struct ld_reloc_entry *lre;
+	struct ld_symbol *lsb;
+	Elf32_Rel *r32;
+	Elf64_Rel *r64;
+	Elf32_Rela *ra32;
+	Elf64_Rela *ra64;
+	uint8_t *p;
+	void *b;
+	size_t entsize;
+	uint64_t sym;
+	unsigned char is_64;
+	unsigned char is_rela;
+
+	is_64 = ld->ld_arch->reloc_is_64bit;
+	is_rela = ld->ld_arch->reloc_is_rela;
+	entsize = ld->ld_arch->reloc_entsize;
+
+	b = malloc(ld->ld_arch->reloc_entsize * os->os_num_reloc);
+	if (b == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	p = b;
+	STAILQ_FOREACH(lre, os->os_reloc, lre_next) {
+		lsb = ld_symbols_ref(lre->lre_sym);
+		if (os->os_dynrel)
+			sym = lsb->lsb_dyn_index;
+		else
+			sym = lsb->lsb_index;
+		
+		if (is_64 && is_rela) {
+			ra64 = (Elf64_Rela *) (uintptr_t) p;
+			ra64->r_offset = lre->lre_offset;
+			ra64->r_info = ELF64_R_INFO(sym, lre->lre_type);
+			ra64->r_addend = lre->lre_addend;
+		} else if (!is_64 && !is_rela) {
+			r32 = (Elf32_Rel *) (uintptr_t) p;
+			r32->r_offset = (uint32_t) lre->lre_offset;
+			r32->r_info = (uint32_t) ELF32_R_INFO(sym,
+			    lre->lre_type);
+		} else if (!is_64 && is_rela) {
+			ra32 = (Elf32_Rela *) (uintptr_t) p;
+			ra32->r_offset = (uint32_t) lre->lre_offset;
+			ra32->r_info = (uint32_t) ELF32_R_INFO(sym,
+			    lre->lre_type);
+			ra32->r_addend = (int32_t) lre->lre_addend;
+		} else if (is_64 && !is_rela) {
+			r64 = (Elf64_Rel *) (uintptr_t) p;
+			r64->r_offset = lre->lre_offset;
+			r64->r_info = ELF64_R_INFO(sym, lre->lre_type);
+		}
+
+		p += entsize;
+	}
+
+	*sz = entsize * os->os_num_reloc;
+	assert((size_t) (p - (uint8_t *) b) == *sz);
+
+	return (b);
 }
 
 void
