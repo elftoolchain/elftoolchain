@@ -29,3 +29,4 @@
 void	ld_dynamic_create(struct ld *);
 void	ld_dynamic_finalize(struct ld *);
 void	ld_dynamic_create_copy_reloc(struct ld *);
+void	ld_dynamic_reserve_dynbss_entry(struct ld *, struct ld_symbol *);

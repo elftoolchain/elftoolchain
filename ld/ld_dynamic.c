@@ -110,6 +110,65 @@ ld_dynamic_finalize(struct ld *ld)
 }
 
 void
+ld_dynamic_reserve_dynbss_entry(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_input *li;
+	struct ld_input_section *dynbss, *is;
+	uint64_t a;
+
+	/* Create .dynbss section if it doesn't yet exist. */
+	dynbss = ld_input_find_internal_section(ld, ".dynbss");
+	if (dynbss == NULL)
+		dynbss = ld_input_add_internal_section(ld, ".dynbss");
+
+	li = lsb->lsb_input;
+	assert(li != NULL && li->li_type == LIT_DSO);
+
+	/*
+	 * TODO: we don't have to create copy relocation
+	 * for every import object. Some import objects
+	 * are read-only, in that case we can create other
+	 * dynamic relocations for them.
+	 */
+
+	/*
+	 * If the section to which the symbols belong has a larger
+	 * alignment requirement, we increase .dynbss section alignment
+	 * accordingly. XXX What if it is a DSO common symbol?
+	 */
+	is = NULL;
+	if (lsb->lsb_shndx != SHN_COMMON) {
+		assert(lsb->lsb_shndx < li->li_shnum - 1);
+		is = &li->li_is[lsb->lsb_shndx];
+		if (is->is_align > dynbss->is_align)
+			dynbss->is_align = is->is_align;
+	}
+
+	/*
+	 * Calculate the alignment for this object.
+	 */
+	if (is != NULL) {
+		for (a = is->is_align; a > 1; a >>= 1) {
+			if ((lsb->lsb_value - is->is_off) % a == 0)
+				break;
+		}
+	} else
+		a = 1;
+
+	if (a > 1)
+		dynbss->is_size = roundup(dynbss->is_size, a);
+
+	lsb->lsb_value = dynbss->is_size;
+	lsb->lsb_copy_reloc = 1;
+	lsb->lsb_input = dynbss->is_input;
+	lsb->lsb_shndx = dynbss->is_index;
+
+	ld->ld_num_copy_reloc++;
+
+	dynbss->is_size += lsb->lsb_size;
+}
+
+void
 ld_dynamic_create_copy_reloc(struct ld *ld)
 {
 	struct ld_input *li;
