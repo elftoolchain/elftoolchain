@@ -201,7 +201,8 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 void
 ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
     uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
-    unsigned char other, struct ld_output_section *preset_os)
+    unsigned char other, struct ld_input *input,
+    struct ld_output_section *preset_os)
 {
 	struct ld_symbol *lsb;
 
@@ -218,6 +219,7 @@ ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
 	lsb->lsb_other = other;
 	lsb->lsb_preset_os = preset_os;
 	lsb->lsb_ref_ndso = 1;
+	lsb->lsb_input = input;
 
 	_resolve_and_add_symbol(ld, lsb);
 }

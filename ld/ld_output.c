@@ -725,8 +725,8 @@ ld_output_create(struct ld *ld)
 	if (gelf_update_ehdr(lo->lo_elf, &eh) == 0)
 		ld_fatal(ld, "gelf_update_ehdr failed: %s", elf_errmsg(-1));
 
-	/* Finalize sections for dynamically linked output object. */
-	ld_dynamic_finalize(ld);
+	/* Allocate space for internal sections. */
+	ld_input_alloc_internal_section_buffers(ld);
 
 	/* Finalize relocation sections. */
 	if (ld->ld_dynamic_link || ld->ld_emit_reloc)
@@ -735,8 +735,11 @@ ld_output_create(struct ld *ld)
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
 
-	/* Sort and produce relocation etnries. */
+	/* Sort and produce relocation entries. */
 	_produce_reloc_sections(ld, lo);
+
+	/* Finalize sections for dynamically linked output object. */
+	ld_dynamic_finalize(ld);
 
 	/* Finalize dynamic symbol section. */
 	if (lo->lo_dynsym != NULL) {

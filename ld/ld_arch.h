@@ -46,11 +46,12 @@ struct ld_arch {
 	void (*finalize_dynrel)(struct ld *);
 	void (*create_pltgot)(struct ld *);
 	void (*finalize_pltgot)(struct ld *);
+	void (*finalize_got_and_plt)(struct ld *);
 	int (*is_absolute_reloc)(uint64_t);
 	unsigned char reloc_is_64bit;
 	unsigned char reloc_is_rela;
 	size_t reloc_entsize;
-	UT_hash_handle hh;		/* hash handle */
+	UT_hash_handle hh;
 	struct ld_arch *alias;
 };
 

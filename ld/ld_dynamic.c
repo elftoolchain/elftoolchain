@@ -63,12 +63,6 @@ ld_dynamic_create(struct ld *ld)
 	/* Create .interp section. */
 	_create_interp(ld, lo);
 
-	/* Create dynamic relocation. */
-	ld->ld_arch->create_dynrel(ld);
-
-	/* Create PLT and GOT sections. */
-	ld->ld_arch->create_pltgot(ld);
-
 	/* Create .dynamic section. */
 	_create_dynamic(ld, lo);
 
@@ -99,11 +93,8 @@ ld_dynamic_finalize(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
-	/* Finalize dynamic relocation. */
-	ld->ld_arch->finalize_dynrel(ld);
-
 	/* Finalize PLT and GOT sections. */
-	ld->ld_arch->finalize_pltgot(ld);
+	ld->ld_arch->finalize_got_and_plt(ld);
 
 	/* Finalize .dynamic section */
 	_finalize_dynamic(ld, lo);
@@ -375,7 +366,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 
 	/* Create _DYNAMIC symobl. */
 	ld_symbols_add_internal(ld, "_DYNAMIC", 0, 0, SHN_ABS, STB_LOCAL,
-	    STT_OBJECT, STV_HIDDEN, os);
+	    STT_OBJECT, STV_HIDDEN, NULL, os);
 }
 
 #define	DT_ENTRY_VAL(tag,val)					\

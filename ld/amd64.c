@@ -47,9 +47,13 @@ static void _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend);
 static void _scan_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre);
-static struct ld_input_section *_find_and_create_got_section(struct ld *ld);
-static struct ld_input_section *_find_and_create_gotplt_section(struct ld *ld);
-static struct ld_input_section *_find_and_create_plt_section(struct ld *ld);
+static struct ld_input_section *_find_and_create_got_section(struct ld *ld,
+    int create);
+static struct ld_input_section *_find_and_create_gotplt_section(struct ld *ld,
+    int create);
+static struct ld_input_section *_find_and_create_plt_section(struct ld *ld,
+    int create);
+static void _finalize_got_and_plt(struct ld *ld);
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
@@ -141,7 +145,7 @@ _warn_pic(struct ld *ld, struct ld_reloc_entry *lre)
 }
 
 static struct ld_input_section *
-_find_and_create_got_section(struct ld *ld)
+_find_and_create_got_section(struct ld *ld, int create)
 {
 	struct ld_input_section *is;
 
@@ -150,17 +154,19 @@ _find_and_create_got_section(struct ld *ld)
 	if (is != NULL)
 		return (is);
 
-	is = ld_input_add_internal_section(ld, ".got");
-	is->is_entsize = 8;
-	is->is_align = 8;
-	is->is_type = SHT_PROGBITS;
-	is->is_flags = SHF_ALLOC | SHF_WRITE;
+	if (create) {
+		is = ld_input_add_internal_section(ld, ".got");
+		is->is_entsize = 8;
+		is->is_align = 8;
+		is->is_type = SHT_PROGBITS;
+		is->is_flags = SHF_ALLOC | SHF_WRITE;
+	}
 
 	return (is);
 }
 
 static struct ld_input_section *
-_find_and_create_gotplt_section(struct ld *ld)
+_find_and_create_gotplt_section(struct ld *ld, int create)
 {
 	struct ld_input_section *is;
 
@@ -169,20 +175,27 @@ _find_and_create_gotplt_section(struct ld *ld)
 	if (is != NULL)
 		return (is);
 
-	is = ld_input_add_internal_section(ld, ".got.plt");
-	is->is_entsize = 8;
-	is->is_align = 8;
-	is->is_type = SHT_PROGBITS;
-	is->is_flags = SHF_ALLOC | SHF_WRITE;
+	if (create) {
+		is = ld_input_add_internal_section(ld, ".got.plt");
+		is->is_entsize = 8;
+		is->is_align = 8;
+		is->is_type = SHT_PROGBITS;
+		is->is_flags = SHF_ALLOC | SHF_WRITE;
 	
-	/* Reserve space for the initial entries. */
-	(void) ld_input_reserve_ibuf(is, 3);
+		/* Reserve space for the initial entries. */
+		(void) ld_input_reserve_ibuf(is, 3);
+
+		/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
+		ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0, 0,
+		    is->is_index, STB_LOCAL, STT_OBJECT, STV_HIDDEN,
+		    STAILQ_FIRST(&ld->ld_lilist), NULL);
+	}
 
 	return (is);
 }
 
 static struct ld_input_section *
-_find_and_create_plt_section(struct ld *ld)
+_find_and_create_plt_section(struct ld *ld, int create)
 {
 	struct ld_input_section *is;
 
@@ -191,14 +204,16 @@ _find_and_create_plt_section(struct ld *ld)
 	if (is != NULL)
 		return (is);
 
-	is = ld_input_add_internal_section(ld, ".plt");
-	is->is_entsize = 16;
-	is->is_align = 4;
-	is->is_type = SHT_PROGBITS;
-	is->is_flags = SHF_ALLOC | SHF_WRITE;
+	if (create) {
+		is = ld_input_add_internal_section(ld, ".plt");
+		is->is_entsize = 16;
+		is->is_align = 4;
+		is->is_type = SHT_PROGBITS;
+		is->is_flags = SHF_ALLOC | SHF_WRITE;
 
-	/* Reserve space for the initial entry. */
-	(void) ld_input_reserve_ibuf(is, 1);
+		/* Reserve space for the initial entry. */
+		(void) ld_input_reserve_ibuf(is, 1);
+	}
 	
 	return (is);
 }
@@ -209,7 +224,7 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 	struct ld_input_section *is;
 	uint64_t off;
 
-	is = _find_and_create_got_section(ld);
+	is = _find_and_create_got_section(ld, 1);
 
 	/* Check if the entry already has a GOT entry. */
 	if (lsb->lsb_got)
@@ -233,13 +248,18 @@ _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb)
 	struct ld_input_section *is;
 	uint64_t off;
 
-	is = _find_and_create_gotplt_section(ld);
+	is = _find_and_create_gotplt_section(ld, 1);
 
 	/* Reserve a GOT entry for PLT. */
 	off = ld_input_reserve_ibuf(is, 1);
 
-	/* Record a R_X86_64_JUMP_SLOT entry for this symbol. */
-	_create_plt_reloc(ld, lsb, off);
+	/*
+	 * Record a R_X86_64_JUMP_SLOT entry for this symbol. Note that
+	 * we don't need to record the offset (relative to the GOT section)
+	 * here, since the PLT relocations will be sorted later and we
+	 * will generate GOT section according to the new order.
+	 */
+	_create_plt_reloc(ld, lsb, 0);
 }
 
 static void
@@ -247,7 +267,7 @@ _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_input_section *is;
 
-	is = _find_and_create_plt_section(ld);
+	is = _find_and_create_plt_section(ld, 1);
 
 	lsb->lsb_plt_off = ld_input_reserve_ibuf(is, 1);
 }
@@ -295,6 +315,156 @@ _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
 			ld_reloc_create_entry(ld, ".rela.data.rel.ro",
 			    type, lsb, offset, addend);
 	}
+}
+
+static void
+_finalize_got_and_plt(struct ld *ld)
+{
+	struct ld_output *lo;
+	struct ld_input_section *got_is, *plt_is, *rela_plt_is;
+	struct ld_output_section *got_os, *plt_os, *rela_plt_os;
+	struct ld_reloc_entry *lre;
+	struct ld_symbol *lsb;
+	char dynamic_symbol[] = "_DYNAMIC";
+	uint8_t *got, *plt;
+	uint64_t u64;
+	int32_t s32, pltgot, gotpcrel;
+	int i, j;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * Intiailze all .got section entries to zero.
+	 */
+	got_is = _find_and_create_got_section(ld, 0);
+	if (got_is != NULL)
+		memset(got_is->is_ibuf, 0, got_is->is_size);
+
+	/*
+	 * Find the .plt section. The buffers should have been allocated
+	 * at this point.
+	 */
+	plt_is = _find_and_create_plt_section(ld, 0);
+	if (plt_is == NULL)
+		return;
+	plt_os = plt_is->is_output;
+	plt = plt_is->is_ibuf;
+	assert(plt != NULL);
+
+	/*
+	 * Find the .got.plt and .rela.plt section. If the .plt section
+	 * exists, the .got.plt and .rela.plt section should exist too.
+	 */
+	got_is = _find_and_create_gotplt_section(ld, 0);
+	assert(got_is != NULL);
+	got_os = got_is->is_output;
+	got = got_is->is_ibuf;
+	assert(got != NULL);
+	rela_plt_is = ld_input_find_internal_section(ld, ".rela.plt");
+	assert(rela_plt_is != NULL);
+	rela_plt_os = rela_plt_is->is_output;
+
+	/* Fill in the value of symbol _DYNAMIC in the first GOT entry. */
+	ld_symbols_get_value(ld, dynamic_symbol, &u64);
+	WRITE_64(got, u64);
+	got += 8;
+
+	/* Reserve the second and the third entry for the dynamic linker. */
+	got += 16;
+
+	/*
+	 * Write the initial PLT entry.
+	 */
+
+	/* Calculate the relative offset from PLT to GOT. */
+	pltgot = got_os->os_addr - plt_os->os_addr;
+
+	/*
+	 * Push the second GOT entry to the stack for the dynamic
+	 * linker. (PUSH reg/memXX [RIP+disp32]) (6 bytes for push)
+	 */
+	WRITE_8(plt, 0xff);
+	WRITE_8(plt + 1, 0x35);
+	s32 = pltgot - 6 + 8;
+	WRITE_32(plt + 2, s32);
+	plt += 6;
+	
+	/*
+	 * Jump to the address in the third GOT entry (call into
+	 * the dynamic linker). (JMP reg/memXX [RIP+disp32])
+	 * (6 bytes for jmp)
+	 */
+	WRITE_8(plt, 0xff);
+	WRITE_8(plt + 1, 0x25);
+	s32 = pltgot - 12 + 16;
+	WRITE_32(plt + 2, s32);
+	plt += 6;
+
+	/*
+	 * Walk through the sorted PLT relocations in the output section
+	 * and fill in each GOT and PLT entries.
+	 */
+	i = 3;
+	j = 0;
+	STAILQ_FOREACH(lre, rela_plt_os->os_reloc, lre_next) {
+		lsb = ld_symbols_ref(lre->lre_sym);
+
+		/*
+		 * Set the value of the dynamic symbol to the address of the
+		 * PLT slot.
+		 */
+		lsb->lsb_value = plt_os->os_addr + (i - 2) * 16;
+
+		/*
+		 * Calculate the IP-relative offset to the GOT entry for
+		 * this function. (6 bytes for jmp)
+		 */
+		gotpcrel = pltgot + i * 8 - (i - 2) * 16 - 6;
+
+		/*
+		 * PLT: Jump to the address in the GOT entry for this
+		 * function. (JMP reg/memXX [RIP+disp32])
+		 */
+		WRITE_8(plt, 0xff);
+		WRITE_8(plt + 1, 0x25);
+		WRITE_32(plt + 2, gotpcrel);
+		plt += 6;
+
+		/*
+		 * PLT: Symbol is not resolved, push the relocation index to
+		 * the stack. (PUSH imm32)
+		 */
+		WRITE_8(plt, 0x68);
+		WRITE_32(plt + 1, j);
+		plt += 5;
+
+		/*
+		 * PLT: Jump to the first PLT entry, eventually call the
+		 * dynamic linker. (JMP rel32off)
+		 */
+		WRITE_8(plt, 0xe9);
+		s32 = - (i - 1) * 16;
+		WRITE_32(plt + 1, s32);
+		plt += 5;
+
+		/*
+		 * GOT: Write the GOT entry for this function, pointing to
+		 * the push op.
+		 */
+		u64 = lo->lo_plt->os_addr + (i - 2) * 16 + 6;
+		WRITE_64(got, u64);
+
+		/* Increase relocation entry index. */
+		j++;
+
+		/* Move to next GOT entry. */
+		got += 8;
+		i++;
+	}
+
+	assert(got == (uint8_t *) got_is->is_ibuf + got_is->is_size);
+	assert(plt == (uint8_t *) plt_is->is_ibuf + plt_is->is_size);
 }
 
 static void
@@ -457,7 +627,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 * These relocation types use GOT address as a base address
 		 * and instruct the linker to build a GOT.
 		 */
-		(void) _find_and_create_got_section(ld);
+		(void) _find_and_create_got_section(ld, 1);
 		break;
 
 	case R_X86_64_GOT32:
@@ -685,7 +855,7 @@ _create_pltgot(struct ld *ld)
 
 	/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
 	ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0, 0, SHN_ABS,
-	    STB_LOCAL, STT_OBJECT, STV_HIDDEN, lo->lo_got);
+	    STB_LOCAL, STT_OBJECT, STV_HIDDEN, NULL, lo->lo_got);
 
 	/*
 	 * Create a relocation section for the PLT section.
@@ -886,6 +1056,7 @@ amd64_register(struct ld *ld)
 	amd64->finalize_dynrel = _finalize_dynrel;
 	amd64->create_pltgot = _create_pltgot;
 	amd64->finalize_pltgot = _finalize_pltgot;
+	amd64->finalize_got_and_plt = _finalize_got_and_plt;
 	amd64->reloc_is_64bit = 1;
 	amd64->reloc_is_rela = 1;
 	amd64->reloc_entsize = sizeof(Elf64_Rela);
