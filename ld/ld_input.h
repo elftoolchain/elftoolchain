@@ -47,9 +47,9 @@ struct ld_input_section {
 	unsigned char is_discard;	/* dicard section */
 	unsigned char is_dynrel;	/* section holds dynamic relocations */
 	void *is_data;			/* output section data descriptor */
-	void *is_ibuf;			/* buffer for internal sections. */
-	uint64_t is_ibuf_cap;		/* internal buffer capacity */
+	void *is_ibuf;			/* buffer for internal sections */
 	struct ld_reloc_entry_head *is_reloc; /* reloc list */
+	uint64_t is_num_reloc;		/* number of reloc entries */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	UT_hash_handle hh;		/* hash handle (internal section) */
 };
