@@ -59,6 +59,8 @@ struct ld_output_data_buffer {
 	uint64_t odb_type;		/* buffer data type */
 };
 
+struct ld_reloc_entry_head;
+
 struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */
 	char *os_name;			/* output section name */
@@ -72,13 +74,16 @@ struct ld_output_section {
 	uint64_t os_entsize;		/* output seciton entry size */
 	uint64_t os_info_val;		/* output section info */
 	char *os_link_name;		/* link to other output section */
-	unsigned os_empty;		/* output section is empty */
+	unsigned char os_empty;		/* output section is empty */
+	unsigned char os_dynrel;	/* contain dynamic relocations */
 	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
 	struct ld_output_element_head os_e; /* list of child elements */
+	struct ld_reloc_entry_head *os_reloc; /* list of relocations */
+	uint64_t os_num_reloc;		/* number of relocations */
 	STAILQ_ENTRY(ld_output_section) os_next; /* next output section */
 	UT_hash_handle hh;		/* hash handle */
 };
