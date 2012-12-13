@@ -107,7 +107,8 @@ restart:
 
 	ld_reloc_load(ld);
 
-	ld_symbols_warn_undefined(ld);
+	/* Copy relevant symbols to internal dynsym table. */
+	ld_symbols_create_dynsym(ld);
 
 	ld_output_init(ld);
 

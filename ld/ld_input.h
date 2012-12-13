@@ -98,10 +98,10 @@ struct ld_input_section *ld_input_find_internal_section(struct ld *,
     const char *);
 void	ld_input_alloc_internal_section_buffers(struct ld *);
 struct ld_input *ld_input_alloc(struct ld *, struct ld_file *, const char *);
+void	ld_input_alloc_common_symbol(struct ld *, struct ld_symbol *);
 void	*ld_input_get_section_rawdata(struct ld *, struct ld_input_section *);
 void	ld_input_cleanup(struct ld *);
 char	*ld_input_get_fullname(struct ld *, struct ld_input *);
-void	ld_input_init_common_section(struct ld *, struct ld_input *);
 void	ld_input_init_sections(struct ld *, struct ld_input *, Elf *);
 void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);

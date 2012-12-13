@@ -68,9 +68,6 @@ ld_dynamic_create(struct ld *ld)
 	/* Create .dynamic section. */
 	_create_dynamic(ld, lo);
 
-	/* Copy relevant symbols to internal dynsym table. */
-	ld_symbols_create_dynsym(ld);
-
 	/* Create .dynsym and .dynstr sections. */
 	_create_dynsym_and_dynstr_section(ld, lo);
 
@@ -245,8 +242,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/* DT_HASH, DT_STRTAB, DT_SYMTAB, DT_STRSZ and DT_SYMENT */
-	if (HASH_CNT(hhimp, ld->ld_symtab_import) > 0 ||
-	    HASH_CNT(hhexp, ld->ld_symtab_export) > 0)
+	if (ld->ld_dynsym)
 		entries += 5;
 
 	/* TODO: DT_RPATH. */

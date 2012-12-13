@@ -97,4 +97,5 @@ void	ld_symbols_resolve(struct ld *);
 void	ld_symbols_update(struct ld *);
 struct ld_symbol *ld_symbols_ref(struct ld_symbol *);
 int	ld_symbols_overridden(struct ld *, struct ld_symbol *);
-void	ld_symbols_warn_undefined(struct ld *);
+int	ld_symbols_in_dso(struct ld_symbol *);
+int	ld_symbols_in_regular(struct ld_symbol *);

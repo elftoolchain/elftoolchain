@@ -102,9 +102,7 @@ struct ld {
 	struct ld_strtab *ld_shstrtab;	/* section name table */
 	struct ld_symbol_head *ld_ext_symbols; /* -u/EXTERN symbols */
 	struct ld_symbol_head *ld_var_symbols; /* ldscript var symbols */
-	struct ld_symbol *ld_symtab_def;/* hash for defined symbols */
-	struct ld_symbol *ld_symtab_undef; /* hash for undefined symbols */
-	struct ld_symbol *ld_symtab_common; /* hash for common symbols */
+	struct ld_symbol *ld_sym;	/* internal symbol table */
 	struct ld_symbol *ld_symtab_import; /* hash for import symbols */
 	struct ld_symbol *ld_symtab_export; /* hash for export symbols */
 	struct ld_symbol_defver *ld_defver; /* default version table */

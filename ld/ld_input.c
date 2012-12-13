@@ -460,47 +460,45 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 }
 
 void
-ld_input_init_common_section(struct ld *ld, struct ld_input *li)
+ld_input_alloc_common_symbol(struct ld *ld, struct ld_symbol *lsb)
 {
+	struct ld_input *li;
 	struct ld_input_section *is;
-	struct ld_symbol *lsb, *tmp;
 
-	if (li->li_file == NULL)
-		return;
-
-	/*
-	 * Create a pseudo section named COMMON to keep track of common symbols.
-	 * Go through the common symbols hash table, if there are common symbols
-	 * belonging to this input object, increase the size of the pseudo COMMON
-	 * section accordingly.
-	 */
+	li = lsb->lsb_input;
+	if (li == NULL)
+		return;		/* unlikely */
 
 	is = &li->li_is[li->li_shnum - 1];
-	if ((is->is_name = strdup("COMMON")) == NULL)
-		ld_fatal_std(ld, "%s: calloc", li->li_name);
-	is->is_off = 0;
-	is->is_size = 0;
-	is->is_entsize = 0;
-	is->is_align = 1;
-	is->is_type = SHT_NOBITS;
-	is->is_flags = SHF_ALLOC | SHF_WRITE;
-	is->is_link = 0;
-	is->is_info = 0;
-	is->is_index = SHN_COMMON;
-	is->is_input = li;
-
-	HASH_ITER(hh, ld->ld_symtab_common, lsb, tmp) {
-		if (lsb->lsb_input != li)
-			continue;
-#if 0
-		printf("add common symbol %s to %s\n", lsb->lsb_name,
-		    li->li_name);
-#endif
-		if (lsb->lsb_size > is->is_align)
-			is->is_align = lsb->lsb_size;
-		lsb->lsb_value = is->is_size;
-		is->is_size += lsb->lsb_size;
+	if (is->is_name == NULL) {
+		/*
+		 * Create a pseudo section named COMMON to keep track of
+		 * common symbols. 
+		 */
+		if ((is->is_name = strdup("COMMON")) == NULL)
+			ld_fatal_std(ld, "%s: calloc", li->li_name);
+		is->is_off = 0;
+		is->is_size = 0;
+		is->is_entsize = 0;
+		is->is_align = 1;
+		is->is_type = SHT_NOBITS;
+		is->is_flags = SHF_ALLOC | SHF_WRITE;
+		is->is_link = 0;
+		is->is_info = 0;
+		is->is_index = SHN_COMMON;
+		is->is_input = li;
 	}
+
+	/*
+	 * Allocate space for this symbol in the pseudo COMMON section.
+	 * Properly handle the alignment. (For common symbols, symbol
+	 * value stores the required alignment)
+	 */
+	if (lsb->lsb_value > is->is_align)
+		is->is_align = lsb->lsb_value;
+	is->is_size = roundup(is->is_size, is->is_align);
+	lsb->lsb_value = is->is_size;
+	is->is_size += lsb->lsb_size;
 }
 
 static off_t

@@ -422,12 +422,6 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 	/* Lay out each input object. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 
-		/*
-		 * Build the pseudo COMMON section which holds all the
-		 * common symbols for this input object.
-		 */
-		ld_input_init_common_section(ld, li);
-
 		/* Only lay out relocatable input objects. */
 		if (li->li_type != LIT_RELOCATABLE)
 			continue;
