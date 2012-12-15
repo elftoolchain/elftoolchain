@@ -52,7 +52,7 @@ static struct ld_symver_vna *_alloc_vna(struct ld *ld, const char *name,
 static struct ld_symver_verdef *_alloc_verdef(struct ld *ld,
     struct ld_symver_verdef_head *head);
 static struct ld_symver_verneed *_alloc_verneed(struct ld *ld,
-    const char *file, struct ld_symver_verneed_head *head);
+    struct ld_input *li, struct ld_symver_verneed_head *head);
 static struct ld_symver_verdef *_load_verdef(struct ld *ld,
     struct ld_input *li, Elf_Verdef *vd);
 static void _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
@@ -167,8 +167,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 
 			/* Allocate Verneed entry. */
 			if (svn == NULL) {
-				svn = _alloc_verneed(ld, li->li_name,
-				    lo->lo_vnlist);
+				svn = _alloc_verneed(ld, li, lo->lo_vnlist);
 				svn->svn_version = VER_NEED_CURRENT;
 				svn->svn_cnt = 0;
 				svn->svn_fileindex =
@@ -442,7 +441,7 @@ _alloc_vda(struct ld *ld, const char *name, struct ld_symver_verdef *svd)
 }
 
 static struct ld_symver_verneed *
-_alloc_verneed(struct ld *ld, const char *file,
+_alloc_verneed(struct ld *ld, struct ld_input *li,
     struct ld_symver_verneed_head *head)
 {
 	struct ld_symver_verneed *svn;
@@ -451,10 +450,14 @@ _alloc_verneed(struct ld *ld, const char *file,
 	if ((svn = calloc(1, sizeof(*svn))) == NULL)
 		ld_fatal_std(ld, "calloc");
 
-	if ((bn = strrchr(file, '/')) == NULL)
-		bn = file;
-	else
-		bn++;
+	if (li->li_soname != NULL)
+		bn = li->li_soname;
+	else {
+		if ((bn = strrchr(li->li_name, '/')) == NULL)
+			bn = li->li_name;
+		else
+			bn++;
+	}
 
 	if ((svn->svn_file = strdup(bn)) == NULL)
 		ld_fatal_std(ld, "strdup");
