@@ -916,6 +916,7 @@ _calc_offset(struct ld *ld)
 	lo = ld->ld_output;
 	ls->ls_loc_counter = 0;
 	ls->ls_offset = ld_layout_calc_header_size(ld);
+	ls->ls_first_output_sec = 1;
 
 	STAILQ_FOREACH(oe, &lo->lo_oelist, oe_next) {
 		switch (oe->oe_type) {
@@ -953,10 +954,28 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	ls = &ld->ld_state;
 
 	/*
-	 * Location counter is an offset relative to the start of the
-	 * section, when it's refered inside an output section descriptor.
+	 * Position independent output object should have VMA from 0.
+	 * So if we are building a DSO or PIE, and this output section is
+	 * the first one, we should set current VMA to SIZEOF_HEADERS
+	 * and ignore all the previous assignments to the location counter.
+	 */
+	if ((ld->ld_dso || ld->ld_pie) && ls->ls_first_output_sec) {
+		ls->ls_loc_counter = ld_layout_calc_header_size(ld);
+		if (!os->os_empty)
+			ls->ls_first_output_sec = 0;
+	}
+
+	/*
+	 * Location counter stores the end VMA offset of the previous output
+	 * section. We use that value as the base VMA offset for this output
+	 * section.
 	 */
 	addr = ls->ls_loc_counter;
+
+	/*
+	 * Location counter when refered inside an output section descriptor,
+	 * is an offset relative to the start of the section.
+	 */
 	ls->ls_loc_counter = 0;
 
 	STAILQ_FOREACH(oe, &os->os_e, oe_next) {

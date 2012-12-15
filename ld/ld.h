@@ -74,12 +74,13 @@ struct ld_state {
 					/* extracted from archive group */
 	unsigned ls_search_dir;		/* search library directories */
 	uint64_t ls_loc_counter;	/* location counter */
-	uint64_t ls_offset;		/* current output section file offset */
+	uint64_t ls_offset;		/* cur. output section file offset */
 	STAILQ_HEAD(, ld_path) ls_lplist; /* search path list */
 	unsigned ls_arch_conflict;	/* input arch conflict with output */
 	unsigned ls_first_elf_object;	/* first ELF object to process */
 	unsigned ls_rerun;		/* ld(1) restarted */
 	unsigned ls_archive_mb_header;	/* extracted list header printed */
+	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
 };
 
 struct ld {
