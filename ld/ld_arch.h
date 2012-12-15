@@ -42,6 +42,8 @@ struct ld_arch {
 	    struct ld_reloc_entry *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
+	void (*finalize_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *);
 	void (*finalize_got_and_plt)(struct ld *);
 	int (*is_absolute_reloc)(uint64_t);
 	unsigned char reloc_is_64bit;

@@ -329,6 +329,32 @@ _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
 }
 
 static void
+_finalize_reloc(struct ld *ld, struct ld_input_section *tis,
+    struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	(void) ld;
+	(void) tis;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	switch (lre->lre_type) {
+	case R_X86_64_RELATIVE:
+		/*
+		 * Update the addend stored in the original relocation
+		 * to point to the new location, by adding the updated
+		 * symbol value.
+		 */
+		lre->lre_addend += lsb->lsb_value;
+		break;
+
+	default:
+		break;
+	}
+}
+
+static void
 _finalize_got_and_plt(struct ld *ld)
 {
 	struct ld_output *lo;
@@ -757,6 +783,7 @@ amd64_register(struct ld *ld)
 	amd64->scan_reloc = _scan_reloc;
 	amd64->process_reloc = _process_reloc;
 	amd64->is_absolute_reloc = _is_absolute_reloc;
+	amd64->finalize_reloc = _finalize_reloc;
 	amd64->finalize_got_and_plt = _finalize_got_and_plt;
 	amd64->reloc_is_64bit = 1;
 	amd64->reloc_is_rela = 1;

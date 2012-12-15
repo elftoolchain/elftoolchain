@@ -342,11 +342,26 @@ ld_reloc_finalize_sections(struct ld *ld)
 			lo->lo_rel_dyn = os;
 
 		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
+			/*
+			 * Found out the corresponding output section for
+			 * the input section which the relocation applies to.
+			 */
 			_is = lre->lre_tis;
 			assert(_is != NULL);
 			if ((_os = _is->is_output) == NULL)
 				continue;
+
+			/*
+			 * Update the relocation offset to make it point
+			 * to the correct place in the output section.
+			 */
 			lre->lre_offset += _os->os_addr + _is->is_reloff;
+
+			/*
+			 * Perform arch-specific dynamic relocation
+			 * finalization.
+			 */
+			ld->ld_arch->finalize_reloc(ld, _is, lre);
 		}
 
 	}
