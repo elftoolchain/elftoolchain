@@ -386,7 +386,7 @@ ld_symbols_build_symtab(struct ld *ld)
 }
 
 void
-ld_symbols_create_dynsym(struct ld *ld)
+ld_symbols_scan(struct ld *ld)
 {
 	struct ld_symbol *lsb, *tmp;
 
@@ -414,6 +414,13 @@ ld_symbols_create_dynsym(struct ld *ld)
 		 */
 		if (lsb->lsb_shndx == SHN_COMMON)
 			ld_input_alloc_common_symbol(ld, lsb);
+
+		/*
+		 * The code below handles the dynamic symbol table. If
+		 * we are doing a -static linking, we can skip.
+		 */
+		if (!ld->ld_dynamic_link)
+			continue;
 
 		/*
 		 * Following symbols should not be added to the dynamic

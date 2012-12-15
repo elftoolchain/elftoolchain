@@ -107,8 +107,12 @@ restart:
 
 	ld_reloc_load(ld);
 
-	/* Copy relevant symbols to internal dynsym table. */
-	ld_symbols_create_dynsym(ld);
+	/*
+	 * Search for undefined symbols and allocate space for common
+	 * symbols. Copy relevant symbols to the dynamic symbol table
+	 * if the linker is performing a dyanmic linking.
+	 */
+	ld_symbols_scan(ld);
 
 	ld_output_init(ld);
 

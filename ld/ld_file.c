@@ -213,6 +213,9 @@ _add_file(struct ld *ld, const char *name, enum ld_file_type type,
 			lf->lf_type = LFT_BINARY;
 	}
 
+	if (lf->lf_type == LFT_DSO)
+		ld->ld_dynamic_link = 1;
+
 	if (first)
 		TAILQ_INSERT_HEAD(&ld->ld_lflist, lf, lf_next);
 	else

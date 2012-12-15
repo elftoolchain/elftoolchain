@@ -90,7 +90,7 @@ void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
     struct ld_input *, struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
-void	ld_symbols_create_dynsym(struct ld *);
+void	ld_symbols_scan(struct ld *);
 void	ld_symbols_finalize_dynsym(struct ld *);
 int	ld_symbols_get_value(struct ld *, char *, uint64_t *);
 void	ld_symbols_resolve(struct ld *);
