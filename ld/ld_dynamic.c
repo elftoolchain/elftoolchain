@@ -100,6 +100,51 @@ ld_dynamic_finalize(struct ld *ld)
 }
 
 void
+ld_dynamic_load_dso_dynamic(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *scn, size_t strndx)
+{
+	GElf_Shdr shdr;
+	GElf_Dyn dyn;
+	Elf_Data *d;
+	int elferr, i, len;
+	const char *name;
+
+	if (strndx == SHN_UNDEF)
+		return;
+
+	if (gelf_getshdr(scn, &shdr) != &shdr) {
+		ld_warn(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+		    elf_errmsg(-1));
+		return;
+	}
+
+	(void) elf_errno();
+	if ((d = elf_getdata(scn, NULL)) == NULL) {
+		elferr = elf_errno();
+		if (elferr != 0)
+			ld_warn(ld, "%s: elf_getdata failed: %s", li->li_name,
+			    elf_errmsg(elferr));
+		return;
+	}
+
+	len = d->d_size / shdr.sh_entsize;
+	for (i = 0; i < len; i++) {
+		if (gelf_getdyn(d, i, &dyn) != &dyn) {
+			ld_warn(ld, "%s: gelf_getdyn failed: %s", li->li_name,
+			    elf_errmsg(-1));
+			continue;
+		}
+		if (dyn.d_tag == DT_SONAME) {
+			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
+			if (name != NULL &&
+			    (li->li_soname = strdup(name)) == NULL)
+				ld_fatal_std(ld, "strdup");
+			break;
+		}
+	}
+}
+
+void
 ld_dynamic_reserve_dynbss_entry(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_input *li;
@@ -499,10 +544,14 @@ _check_dso_needed(struct ld *ld, struct ld_output *lo)
 				ld->ld_dynstr = ld_strtab_alloc(ld);
 
 			/* Insert DSO name to the .dynstr string table. */
-			if ((bn = strrchr(li->li_name, '/')) == NULL)
-				bn = li->li_name;
-			else
-				bn++;
+			if (li->li_soname != NULL)
+				bn = li->li_soname;
+			else {
+				if ((bn = strrchr(li->li_name, '/')) == NULL)
+					bn = li->li_name;
+				else
+					bn++;
+			}
 			ndx = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
 			    bn);
 

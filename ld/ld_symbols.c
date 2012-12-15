@@ -368,7 +368,7 @@ ld_symbols_build_symtab(struct ld *ld)
 			_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
 			_add_to_symbol_table(ld, &_lsb);
-		} else		
+		} else
 			_add_to_symbol_table(ld, lsb);
 	}
 }
@@ -421,7 +421,7 @@ ld_symbols_scan(struct ld *ld)
 
 		/*
 		 * Add following symbols to the dynamic symbol table:
-		 * 
+		 *
 		 * 1. A symbol that is defined in a regular object and
 		 *    referenced by a DSO.
 		 *
@@ -1009,19 +1009,19 @@ static void
 _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
-	Elf_Scn *scn, *scn_sym;
+	Elf_Scn *scn_sym, *scn_dynamic;
 	Elf_Scn *scn_versym, *scn_verneed, *scn_verdef;
 	Elf_Data *d;
 	GElf_Sym sym;
 	GElf_Shdr shdr;
-	size_t strndx;
+	size_t dyn_strndx, strndx;
 	int elferr, i;
 
 	/* Load section list from input object. */
 	ld_input_init_sections(ld, li, e);
 
-	strndx = SHN_UNDEF;
-	scn = scn_sym = scn_versym = scn_verneed = scn_verdef = NULL;
+	strndx = dyn_strndx = SHN_UNDEF;
+	scn_sym = scn_versym = scn_verneed = scn_verdef = scn_dynamic = NULL;
 
 	for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
 		is = &li->li_is[i];
@@ -1029,13 +1029,16 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 			if (is->is_type == SHT_DYNSYM) {
 				scn_sym = elf_getscn(e, is->is_index);
 				strndx = is->is_link;
-			}
-			if (is->is_type == SHT_SUNW_versym)
+			} else if (is->is_type == SHT_SUNW_versym)
 				scn_versym = elf_getscn(e, is->is_index);
-			if (is->is_type == SHT_SUNW_verneed)
+			else if (is->is_type == SHT_SUNW_verneed)
 				scn_verneed = elf_getscn(e, is->is_index);
-			if (is->is_type == SHT_SUNW_verdef)
+			else if (is->is_type == SHT_SUNW_verdef)
 				scn_verdef = elf_getscn(e, is->is_index);
+			else if (is->is_type == SHT_DYNAMIC) {
+				scn_dynamic = elf_getscn(e, is->is_index);
+				dyn_strndx = is->is_link;
+			}
 		} else {
 			if (is->is_type == SHT_SYMTAB) {
 				scn_sym = elf_getscn(e, is->is_index);
@@ -1050,15 +1053,21 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	ld_symver_load_symbol_version_info(ld, li, e, scn_versym, scn_verneed,
 	    scn_verdef);
 
-	if (gelf_getshdr(scn_sym, &shdr) != &shdr)
-		ld_fatal(ld, "%s: gelf_getshdr failed: %s", li->li_name,
+	if (scn_dynamic != NULL)
+		ld_dynamic_load_dso_dynamic(ld, li, e, scn_dynamic,
+		    dyn_strndx);
+
+	if (gelf_getshdr(scn_sym, &shdr) != &shdr) {
+		ld_warn(ld, "%s: gelf_getshdr failed: %s", li->li_name,
 		    elf_errmsg(-1));
+		return;
+	}
 
 	(void) elf_errno();
 	if ((d = elf_getdata(scn_sym, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "%s: elf_getdata failed: %s", li->li_name,
+			ld_warn(ld, "%s: elf_getdata failed: %s", li->li_name,
 			    elf_errmsg(elferr));
 		/* Empty symbol table section? */
 		return;
@@ -1067,7 +1076,7 @@ _load_elf_symbols(struct ld *ld, struct ld_input *li, Elf *e)
 	li->li_symnum = d->d_size / shdr.sh_entsize;
 	for (i = 0; (uint64_t) i < li->li_symnum; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym)
-			ld_fatal(ld, "%s: gelf_getsym failed: %s", li->li_name,
+			ld_warn(ld, "%s: gelf_getsym failed: %s", li->li_name,
 			    elf_errmsg(-1));
 		_add_elf_symbol(ld, li, e, &sym, strndx, i);
 	}

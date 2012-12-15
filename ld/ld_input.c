@@ -185,6 +185,8 @@ ld_input_cleanup(struct ld *ld)
 			free(li->li_fullname);
 		if (li->li_name)
 			free(li->li_name);
+		if (li->li_soname)
+			free(li->li_soname);
 		free(li);
 	}
 }

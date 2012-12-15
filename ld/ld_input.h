@@ -69,6 +69,7 @@ struct ld_symver_verdef_head;
 struct ld_input {
 	char *li_name;			/* input object name */
 	char *li_fullname;		/* input object and archive name */
+	char *li_soname;		/* input object DT_SONAME. */
 	Elf *li_elf;			/* input object ELF descriptor */
 	enum ld_input_type li_type;	/* input object kind */
 	struct ld_file *li_file;	/* containing file */
