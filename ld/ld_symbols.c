@@ -58,25 +58,14 @@ static void _resolve_and_add_symbol(struct ld *ld, struct ld_symbol *lsb);
 static struct ld_symbol *_alloc_symbol(struct ld *ld);
 static void _free_symbol(struct ld_symbol *lsb);
 static struct ld_symbol *_find_symbol(struct ld_symbol *tbl, char *name);
-static struct ld_symbol *_find_symbol_from_import(struct ld *ld, char *name);
-static struct ld_symbol *_find_symbol_from_export(struct ld *ld, char *name);
-static void _add_to_import(struct ld *ld, struct ld_symbol *lsb);
-static void _remove_from_import(struct ld *ld, struct ld_symbol *lsb);
-static void _add_to_export(struct ld *ld, struct ld_symbol *lsb);
-static void _remove_from_export(struct ld *ld, struct ld_symbol *lsb);
-static void _update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
-    struct ld_symbol *lsb);
-static void _update_export(struct ld *ld, struct ld_symbol *lsb, int add);
 static void _update_symbol(struct ld_symbol *lsb);
 
 #define	_add_symbol(tbl, s) do {				\
 	HASH_ADD_KEYPTR(hh, (tbl), (s)->lsb_longname,		\
 	    strlen((s)->lsb_longname), (s));			\
-	_update_export(ld, (s), 1);				\
 	} while (0)
 #define _remove_symbol(tbl, s) do {				\
 	HASH_DEL((tbl), (s));					\
-	_update_export(ld, (s), 0);				\
 	} while (0)
 #define _resolve_symbol(_s, s) do {				\
 	assert((_s) != (s));					\
@@ -88,7 +77,6 @@ static void _update_symbol(struct ld_symbol *lsb);
 	}							\
 	(s)->lsb_prev = (_s);					\
 	(_s)->lsb_ref = (s);					\
-	_update_import_and_export(ld, _s, s);			\
 	} while (0)
 
 void
@@ -447,6 +435,8 @@ ld_symbols_scan(struct ld *ld)
 			_add_to_dynsym_table(ld, lsb);
 		else if (lsb->lsb_ref_ndso && ld_symbols_in_dso(lsb)) {
 			lsb->lsb_import = 1;
+			lsb->lsb_input->li_dso_refcnt++;
+			ld_symver_add_verdef_refcnt(ld, lsb);
 			_add_to_dynsym_table(ld, lsb);
 		}
 		else if (ld->ld_dso && ld_symbols_in_regular(lsb) &&
@@ -556,156 +546,6 @@ _find_symbol(struct ld_symbol *tbl, char *name)
 
 	HASH_FIND_STR(tbl, name, s);
 	return (s);
-}
-
-static struct ld_symbol *
-_find_symbol_from_import(struct ld *ld, char *name)
-{
-	struct ld_symbol *s;
-
-	HASH_FIND(hhimp, ld->ld_symtab_import, name, strlen(name), s);
-	return (s);
-}
-
-static struct ld_symbol *
-_find_symbol_from_export(struct ld *ld, char *name)
-{
-	struct ld_symbol *s;
-
-	HASH_FIND(hhexp, ld->ld_symtab_export, name, strlen(name), s);
-	return (s);
-}
-
-static void
-_add_to_import(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
-	if (_lsb != NULL)
-		return;
-	HASH_ADD_KEYPTR(hhimp, ld->ld_symtab_import, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), lsb);
-	lsb->lsb_input->li_dso_refcnt++;
-	ld_symver_increase_verdef_refcnt(ld, lsb);
-}
-
-static void
-_remove_from_import(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	_lsb = _find_symbol_from_import(ld, lsb->lsb_longname);
-	if (_lsb == NULL)
-		return;
-	HASH_DELETE(hhimp, ld->ld_symtab_import, _lsb);
-	_lsb->lsb_input->li_dso_refcnt--;
-	ld_symver_decrease_verdef_refcnt(ld, lsb);
-}
-
-static void
-_add_to_export(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	if (lsb->lsb_other == STV_HIDDEN)
-		return;
-
-	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-	if (_lsb != NULL)
-		return;
-	HASH_ADD_KEYPTR(hhexp, ld->ld_symtab_export, lsb->lsb_longname,
-	    strlen(lsb->lsb_longname), lsb);
-}
-
-static void
-_remove_from_export(struct ld *ld, struct ld_symbol *lsb)
-{
-	struct ld_symbol *_lsb;
-
-	if (lsb->lsb_other == STV_HIDDEN)
-		return;
-
-	_lsb = _find_symbol_from_export(ld, lsb->lsb_longname);
-	if (_lsb == NULL)
-		return;
-	HASH_DELETE(hhexp, ld->ld_symtab_export, _lsb);
-}
-
-static void
-_update_import_and_export(struct ld *ld, struct ld_symbol *_lsb,
-    struct ld_symbol *lsb)
-{
-
-	/*
-	 * If a DSO symbol is resolved by a defined symbol, the latter should
-	 * be added to the export list if it is *not* defined in a DSO and
-	 * if it doesn't yet exist there.
-	 *
-	 * If a defined DSO symbol is resolved by another symbol, the DSO
-	 * symbol should be removed from the import symbol table, if it exists
-	 * there.
-	 */
-	if (_lsb->lsb_input != NULL && _lsb->lsb_input->li_type == LIT_DSO) {
-		if (_lsb->lsb_shndx != SHN_UNDEF)
-			_remove_from_import(ld, _lsb);
-		if (lsb->lsb_shndx != SHN_UNDEF && (lsb->lsb_input == NULL ||
-		    lsb->lsb_input->li_type == LIT_RELOCATABLE))
-			_add_to_export(ld, lsb);
-	}
-
-
-	/*
-	 * If some symbol resolved to a defined DSO symbol, and the former
-	 * once appeared in a place other than a DSO, the DSO symbol
-	 * should be added to import symbol table, if it doesn't yet exist
-	 * there.
-	 */
-	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO &&
-	    lsb->lsb_shndx != SHN_UNDEF && lsb->lsb_ref_ndso)
-		_add_to_import(ld, lsb);
-}
-
-static void
-_update_export(struct ld *ld, struct ld_symbol *lsb, int add)
-{
-
-	/* Only defined symbols are exportable. */
-	if (lsb->lsb_shndx == SHN_UNDEF)
-		return;
-
-	/*
-	 * If the linker creates a executable, update the export table
-	 * if the symbol is defined in a regular object and has been
-	 * referenced by a DSO.
-	 */
-	if (ld->ld_exec || ld->ld_pie) {
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type != LIT_RELOCATABLE)
-			return;
-
-		if (!lsb->lsb_ref_dso)
-			return;
-	}
-
-	/*
-	 * If the linker creates a DSO, update the export table if the
-	 * symbol is defined in a regualr object and is visible to the
-	 * outside.
-	 */
-	if (ld->ld_dso) {
-		if (lsb->lsb_input != NULL &&
-		    lsb->lsb_input->li_type != LIT_RELOCATABLE)
-			return;
-
-		if (lsb->lsb_other != STV_DEFAULT)
-			return;
-	}
-
-	if (add)
-		_add_to_export(ld, lsb);
-	else
-		_remove_from_export(ld, lsb);
 }
 
 #define _prefer_new()	do {			\

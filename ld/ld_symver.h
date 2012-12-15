@@ -74,5 +74,4 @@ void	ld_symver_load_symbol_version_info(struct ld *, struct ld_input *,
     Elf *, Elf_Scn *, Elf_Scn *, Elf_Scn *);
 void	ld_symver_create_verneed_section(struct ld *);
 void	ld_symver_create_versym_section(struct ld *);
-void	ld_symver_increase_verdef_refcnt(struct ld *, struct ld_symbol *);
-void	ld_symver_decrease_verdef_refcnt(struct ld *, struct ld_symbol *);
+void	ld_symver_add_verdef_refcnt(struct ld *, struct ld_symbol *);

@@ -138,6 +138,9 @@ void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *,
     struct ld_output_element *);
+struct ld_output_element *ld_output_create_section_element(struct ld *,
+    struct ld_output_section *, enum ld_output_element_type, void *,
+    struct ld_output_element *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);

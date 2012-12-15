@@ -118,6 +118,6 @@ ld_hash_create_svr4_hash_section(struct ld *ld)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_WORD; /* enable libelf translation */
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }

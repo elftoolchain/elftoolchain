@@ -453,15 +453,15 @@ _prepare_output_section(struct ld *ld, struct ld_script_sections_output *ldso)
 	STAILQ_FOREACH(ldc, &ldso->ldso_c, ldc_next) {
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_ASSERT, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_ASSIGN:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_ASSIGN, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_DATA:
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_DATA, ldc->ldc_cmd, NULL);
 			break;
 		case LSC_SECTIONS_OUTPUT_INPUT:
@@ -469,12 +469,12 @@ _prepare_output_section(struct ld *ld, struct ld_script_sections_output *ldso)
 			if (islist == NULL)
 				ld_fatal_std(ld, "calloc");
 			STAILQ_INIT(islist);
-			oe = ld_output_create_element(ld, &os->os_e,
+			oe = ld_output_create_section_element(ld, os,
 			    OET_INPUT_SECTION_LIST, ldc->ldc_cmd, NULL);
 			oe->oe_islist = islist;
 			break;
 		case LSC_SECTIONS_OUTPUT_KEYWORD:
-			ld_output_create_element(ld, &os->os_e,
+			ld_output_create_section_element(ld, os,
 			    OET_KEYWORD, ldc->ldc_cmd, NULL);
 			break;
 		default:
@@ -802,8 +802,8 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 		ld_fatal_std(ld, "calloc");
 	STAILQ_INIT(islist);
 
-	oe = ld_output_create_element(ld, &_os->os_e,
-	    OET_INPUT_SECTION_LIST, NULL, NULL);
+	oe = ld_output_create_section_element(ld, _os, OET_INPUT_SECTION_LIST,
+	    NULL, NULL);
 	oe->oe_islist = islist;
 	_insert_input_to_output(lo, _os, is, oe->oe_islist);
 }

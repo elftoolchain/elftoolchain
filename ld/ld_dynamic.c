@@ -194,7 +194,7 @@ _create_interp(struct ld *ld, struct ld_output *lo)
 	strncpy(odb->odb_buf, interp, strlen(interp));
 	odb->odb_buf[strlen(interp)] = '\0';
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER, odb,
 	    NULL);
 }
 
@@ -280,7 +280,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_DYN;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER, odb,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER, odb,
 	    NULL);
 
 	lo->lo_dynamic_odb = odb;
@@ -445,7 +445,7 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 	os->os_info_val = ld->ld_dynsym->sy_first_nonlocal;
 	lo->lo_dynsym = os;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_SYMTAB,
+	(void) ld_output_create_section_element(ld, os, OET_SYMTAB,
 	    ld->ld_dynsym, NULL);
 
 	/*
@@ -462,7 +462,7 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 	os->os_align = 1;
 	lo->lo_dynstr = os;
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_STRTAB,
+	(void) ld_output_create_section_element(ld, os, OET_STRTAB,
 	    ld->ld_dynstr, NULL);
 
 	lo->lo_dynsym->os_link = os;

@@ -115,6 +115,27 @@ ld_output_create_element(struct ld *ld, struct ld_output_element_head *head,
 	return (oe);
 }
 
+struct ld_output_element *
+ld_output_create_section_element(struct ld *ld, struct ld_output_section *os,
+    enum ld_output_element_type type, void *entry,
+    struct ld_output_element *after)
+{
+	struct ld_output_element *oe;
+
+	oe = ld_output_create_element(ld, &os->os_e, type, entry, after);
+
+	switch (type) {
+	case OET_DATA:
+	case OET_DATA_BUFFER:
+		os->os_empty = 0;
+		break;
+	default:
+		break;
+	}
+
+	return (oe);
+}
+
 struct ld_output_section *
 ld_output_alloc_section(struct ld *ld, const char *name,
     struct ld_output_section *after)

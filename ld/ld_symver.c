@@ -256,7 +256,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 
 	assert(buf == end);
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }
 
@@ -320,12 +320,12 @@ ld_symver_create_versym_section(struct ld *ld)
 	odb->odb_align = os->os_align;
 	odb->odb_type = ELF_T_HALF; /* enable libelf translation */
 
-	(void) ld_output_create_element(ld, &os->os_e, OET_DATA_BUFFER,
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
 	    odb, NULL);
 }
 
 void
-ld_symver_increase_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
+ld_symver_add_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_symbol_defver *dv;
 	struct ld_symver_verdef *svd;
@@ -363,18 +363,6 @@ ld_symver_increase_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
 	if (svd != NULL) {
 		svd->svd_ref++;
 		lsb->lsb_vd = svd;
-	}
-}
-
-void
-ld_symver_decrease_verdef_refcnt(struct ld *ld, struct ld_symbol *lsb)
-{
-
-	(void) ld;		/* unused */
-
-	if (lsb->lsb_vd != NULL) {
-		lsb->lsb_vd->svd_ref--;
-		lsb->lsb_vd = NULL;
 	}
 }
 
