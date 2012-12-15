@@ -99,6 +99,7 @@ struct ld_output {
 	int lo_ec;			 /* output object elf class */
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
+	int lo_soname_nameindex;	 /* string index for DT_SONAME */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */

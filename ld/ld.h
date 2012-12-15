@@ -98,6 +98,7 @@ struct ld {
 	char *ld_entry;			/* entry point set by -e */
 	char *ld_scp_entry;		/* entry point set by linker script */
 	char *ld_interp;		/* dynamic linker */
+	char *ld_soname;		/* DT_SONAME */
 	struct ld_script *ld_scp;	/* linker script */
 	struct ld_state ld_state;	/* linker state */
 	struct ld_strtab *ld_shstrtab;	/* section name table */

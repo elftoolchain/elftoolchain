@@ -227,6 +227,13 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	/* DT_NEEDED */
 	entries = lo->lo_dso_needed;
 
+	/* DT_SONAME. */
+	if (ld->ld_soname != NULL) {
+		lo->lo_soname_nameindex = ld_strtab_insert_no_suffix(ld,
+		    ld->ld_dynstr, ld->ld_soname);
+		entries++;
+	}
+
 	/* DT_INIT */
 	HASH_FIND_STR(lo->lo_ostbl, init_name, _os);
 	if (_os != NULL && !_os->os_empty) {
@@ -356,6 +363,10 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	     p != NULL;
 	     p = (int *) (uintptr_t) utarray_next(lo->lo_dso_nameindex, p))
 		DT_ENTRY_VAL(DT_NEEDED, *p);
+
+	/* DT_SONAME. */
+	if (ld->ld_soname != NULL)
+		DT_ENTRY_VAL(DT_SONAME, lo->lo_soname_nameindex);
 
 	/* DT_INIT and DT_FINI */
 	if (lo->lo_init != NULL)

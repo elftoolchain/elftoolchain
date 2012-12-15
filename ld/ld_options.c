@@ -186,6 +186,7 @@ static struct ld_option ld_opts_z[] = {
 	{"systemlibrary", KEY_Z_SYSTEM_LIBRARY, ONE_DASH, NO_ARG},
 };
 
+static void _copy_optarg(struct ld *ld, char **dst, char *src);
 static void _process_options(struct ld *ld, int key, char *arg);
 static int _parse_long_options(struct ld *, struct ld_option *, int,
     int, char **, char *, enum ld_dash);
@@ -341,16 +342,13 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld->ld_common_alloc = 1;
 		break;
 	case 'e':
-		if (ld->ld_entry != NULL)
-			free(ld->ld_entry);
-		if ((ld->ld_entry = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_entry, arg);
+		break;
+	case 'h':
+		_copy_optarg(ld, &ld->ld_soname, arg);
 		break;
 	case 'I':
-		if (ld->ld_interp != NULL)
-			free(ld->ld_interp);
-		if ((ld->ld_interp = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_interp, arg);
 		break;
 	case 'l':
 		ld_path_search_library(ld, arg);
@@ -362,8 +360,7 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld->ld_print_linkmap = 1;
 		break;
 	case 'o':
-		if ((ld->ld_output_file = strdup(arg)) == NULL)
-			ld_fatal_std(ld, "strdup");
+		_copy_optarg(ld, &ld->ld_output_file, arg);
 		break;
 	case 'q':
 		ld->ld_emit_reloc = 1;
@@ -443,6 +440,16 @@ _print_version(void)
 {
 
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
+}
+
+static void
+_copy_optarg(struct ld *ld, char **dst, char *src)
+{
+
+	if (*dst != NULL)
+		free(*dst);
+	if ((*dst = strdup(src)) == NULL)
+		ld_fatal_std(ld, "strdup");
 }
 
 struct ld_wildcard *
