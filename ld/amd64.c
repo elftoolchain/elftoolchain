@@ -574,20 +574,26 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 *
 		 * Note here, normally the compiler will generate a PC-relative
 		 * relocation for function calls. However, if the code retrieve
-		 * the address of a function and call it indirectly, an absolute
-		 * relocation will be generated instead. That's why we should
-		 * check if we need to create a PLT entry here.
+		 * the address of a function and call it indirectly, assembler
+		 * will generate absolute relocation instead. That's why we
+		 * should check if we need to create a PLT entry here. Also, if
+		 * we're going to create the PLT entry, we should also set the
+		 * symbol value to the address of PLT entry just in case the
+		 * function address is used to compare with other function
+		 * addresses. (If PLT address is used, function will have
+		 * unified address in the main executable and DSOs)
 		 */
 		if (ld_reloc_require_plt(ld, lre) && !lsb->lsb_plt) {
 			_reserve_gotplt_entry(ld, lsb);
 			_reserve_plt_entry(ld, lsb);
+			lsb->lsb_func_addr = 1;
 		}
 
 		if (ld_reloc_require_copy_reloc(ld, lre) &&
 		    !lsb->lsb_copy_reloc)
 			_create_copy_reloc(ld, lsb);
 		else if (ld_reloc_require_dynamic_reloc(ld, lre)) {
-			/* We only support R_X86_64_64. See above */
+			/* We only support R_X86_64_64. (See above) */
 			if (lre->lre_type != R_X86_64_64) {
 				_warn_pic(ld, lre);
 				break;

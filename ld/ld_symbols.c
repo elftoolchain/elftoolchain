@@ -466,7 +466,10 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
 		if (lsb->lsb_import) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
-			_lsb.lsb_value = 0;
+			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
+				_lsb.lsb_value = lsb->lsb_value;
+			else
+				_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
 			_write_to_dynsym_table(ld, &_lsb);
 		} else
