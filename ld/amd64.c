@@ -840,7 +840,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
 		case TLS_RELAX_NONE:
-			s32 = lsb->lsb_got_off - p;
+			s32 = g + lre->lre_addend - p;
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_INIT_EXEC:
