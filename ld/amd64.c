@@ -356,7 +356,16 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 		if (ls->ls_got_off >= tis->is_size)
 			ld_fatal(ld, "Internal: not enough GOT entries");
 		lre->lre_offset += ls->ls_got_off;
-		lsb->lsb_got_off = lre->lre_offset;
+		/*
+		 * Note that R_X86_64_DTPMOD64 and R_X86_64_DTPOFF64 are TLS
+		 * relocations generated for the same symbol, and that only
+		 * the GOT entry for R_X86_64_DTPMOD64 is referenced by the
+		 * R_X86_64_TLSGD relocation later when applying relocation.
+		 * Thus we should not update lsb->lsb_got_off here again.
+		 */
+		if (lre->lre_type != R_X86_64_DTPOFF64) {
+			lsb->lsb_got_off = lre->lre_offset;
+		}
 		ls->ls_got_off += 8;
 		break;
 
