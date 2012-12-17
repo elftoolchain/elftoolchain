@@ -265,7 +265,7 @@ _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb)
 
 	is = _find_and_create_plt_section(ld, 1);
 
-	lsb->lsb_plt_off = ld_input_reserve_ibuf(is, 1);
+	(void) ld_input_reserve_ibuf(is, 1);
 	lsb->lsb_plt = 1;
 }
 
@@ -471,16 +471,16 @@ _finalize_got_and_plt(struct ld *ld)
 		lsb = ld_symbols_ref(lre->lre_sym);
 
 		/*
+		 * Set symbol's PLT offset to the address of this PLT entry.
+		 * The PLT offset is used in relocation processing later.
+		 */
+		lsb->lsb_plt_off = plt_os->os_addr + (i - 2) * 16;
+
+		/*
 		 * Update the offset for the R_X86_64_JUMP_SLOT relocation
 		 * entry, pointing to the corresponding GOT entry.
 		 */
 		lre->lre_offset = got_os->os_addr + i * 8;
-
-		/*
-		 * Set the value of the dynamic symbol to the address of the
-		 * PLT slot.
-		 */
-		lsb->lsb_value = plt_os->os_addr + (i - 2) * 16;
 
 		/*
 		 * Calculate the IP-relative offset to the GOT entry for
@@ -780,18 +780,19 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
 {
 	struct ld_output *lo;
-	uint64_t u64, s;
+	uint64_t u64, s, l, p, g;
 	int64_t s64;
 	uint32_t u32;
 	int32_t s32;
-	uint64_t p;
 	enum ld_tls_relax tr;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
-	s = lsb->lsb_value;
+	g = lsb->lsb_got_off;
+	l = lsb->lsb_plt_off;
 	p = lre->lre_offset + is->is_output->os_addr + is->is_reloff;
+	s = lsb->lsb_value;
 
 	switch (lre->lre_type) {
 	case R_X86_64_NONE:
@@ -802,18 +803,20 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		break;
 
 	case R_X86_64_PC32:
-		s32 = s + lre->lre_addend - p;
+		if (lsb->lsb_plt)
+			s32 = l + lre->lre_addend - p;
+		else
+			s32 = s + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
 	case R_X86_64_PLT32:
-		/* Symbol value has been set to the PLT offset. */
-		s32 = s + lre->lre_addend - p;
+		s32 = l + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
 	case R_X86_64_GOTPCREL:
-		s32 = lsb->lsb_got_off + lre->lre_addend - p;
+		s32 = g + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
