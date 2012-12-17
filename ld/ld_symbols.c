@@ -363,9 +363,12 @@ ld_symbols_build_symtab(struct ld *ld)
 		    (lsb->lsb_shndx == SHN_UNDEF || !lsb->lsb_ref_ndso))
 			continue;
 
-		if (ld_symbols_in_dso(lsb) && lsb->lsb_type == STT_FUNC) {
+		if (lsb->lsb_import) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
-			_lsb.lsb_value = 0;
+			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
+				_lsb.lsb_value = lsb->lsb_plt_off;
+			else
+				_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
 			_add_to_symbol_table(ld, &_lsb);
 		} else
@@ -467,7 +470,7 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 		if (lsb->lsb_import) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
 			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
-				_lsb.lsb_value = lsb->lsb_value;
+				_lsb.lsb_value = lsb->lsb_plt_off;
 			else
 				_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
