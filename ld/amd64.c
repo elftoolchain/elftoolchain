@@ -814,6 +814,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 
 	case R_X86_64_GOTPCREL:
 		s32 = lsb->lsb_got_off + lre->lre_addend - p;
+		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
 	case R_X86_64_32:
