@@ -464,7 +464,7 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 	assert(ld->ld_dyn_symbols != NULL);
 
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
-		if (lsb->lsb_import && lsb->lsb_type == STT_FUNC) {
+		if (lsb->lsb_import) {
 			memcpy(&_lsb, lsb, sizeof(_lsb));
 			_lsb.lsb_value = 0;
 			_lsb.lsb_shndx = SHN_UNDEF;
