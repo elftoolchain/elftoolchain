@@ -75,7 +75,8 @@ struct ld_output_section {
 	uint64_t os_info_val;		/* output section info */
 	char *os_link_name;		/* link to other output section */
 	unsigned char os_empty;		/* output section is empty */
-	unsigned char os_dynrel;	/* contain dynamic relocations */
+	unsigned char os_dynrel;	/* contains dynamic relocations */
+	unsigned char os_pltrel;	/* contains PLT relocations */
 	unsigned char os_entsize_set;	/* entsize is set */
 	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */

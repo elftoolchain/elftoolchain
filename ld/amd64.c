@@ -40,7 +40,7 @@ ELFTC_VCSID("$Id$");
 static void _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb,
     uint64_t offset);
 static void _create_got_reloc(struct ld *ld, struct ld_symbol *lsb,
-    uint64_t type, uint64_t offset);
+    uint64_t type);
 static void _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend);
@@ -58,11 +58,16 @@ static uint64_t _get_common_page_size(struct ld *ld);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 static const char *_reloc2str(uint64_t r);
-static void _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb);
+static void _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb, int num);
 static void _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb);
 static void _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb);
 static int _is_absolute_reloc(uint64_t r);
 static void _warn_pic(struct ld *ld, struct ld_reloc_entry *lre);
+static enum ld_tls_relax _tls_check_relax(struct ld *ld,
+    struct ld_reloc_entry *lre);
+static void _create_tls_gd_reloc(struct ld *ld, struct ld_symbol *lsb);
+static void _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb);
+static void _create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -218,7 +223,7 @@ _find_and_create_plt_section(struct ld *ld, int create)
 }
 
 static void
-_reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
+_reserve_got_entry(struct ld *ld, struct ld_symbol *lsb, int num)
 {
 	struct ld_input_section *is;
 
@@ -228,17 +233,9 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb)
 	if (lsb->lsb_got)
 		return;
 
-	/* Reserve a GOT entry. */
-	lsb->lsb_got_off = ld_input_reserve_ibuf(is, 1);
+	/* Reserve GOT entries. */
+	(void) ld_input_reserve_ibuf(is, num);
 	lsb->lsb_got = 1;
-
-	/*
-	 * If we are building a DSO, create a R_X86_64_GLOB_DAT entry
-	 * for this symbol.
-	 */
-	if (ld->ld_dso)
-		_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
-		    lsb->lsb_got_off);
 }
 
 static void
@@ -281,15 +278,14 @@ _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 }
 
 static void
-_create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
-    uint64_t offset)
+_create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type)
 {
 	struct ld_input_section *tis;
 
 	tis = _find_and_create_got_section(ld, 0);
 	assert(tis != NULL);
 
-	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, offset, 0);
+	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, 0, 0);
 }
 
 static void
@@ -332,21 +328,36 @@ static void
 _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
     struct ld_reloc_entry *lre)
 {
+	struct ld_state *ls;
 	struct ld_symbol *lsb;
 
-	(void) ld;
-	(void) tis;
+	ls = &ld->ld_state;
 
 	lsb = ld_symbols_ref(lre->lre_sym);
 
 	switch (lre->lre_type) {
 	case R_X86_64_RELATIVE:
 		/*
-		 * Update the addend stored in the original relocation
-		 * to point to the new location, by adding the updated
-		 * symbol value.
+		 * Update the addend stored in the original relocation to
+		 * point to the new location, by adding the updated symbol
+		 * value.
 		 */
 		lre->lre_addend += lsb->lsb_value;
+		break;
+
+	case R_X86_64_GLOB_DAT:
+	case R_X86_64_DTPMOD64:
+	case R_X86_64_DTPOFF64:
+	case R_X86_64_TPOFF64:
+		/*
+		 * Allocate GOT entries from previously reserved space for
+		 * these relocations that requires GOT slots.
+		 */
+		if (ls->ls_got_off >= tis->is_size)
+			ld_fatal(ld, "Internal: not enough GOT entries");
+		lre->lre_offset += ls->ls_got_off;
+		lsb->lsb_got_off = lre->lre_offset;
+		ls->ls_got_off += 8;
 		break;
 
 	default:
@@ -527,6 +538,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre)
 {
 	struct ld_symbol *lsb;
+	enum ld_tls_relax tr;
 
 	lsb = ld_symbols_ref(lre->lre_sym);
 
@@ -695,20 +707,67 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 * These relocation types instruct the linker to build a
 		 * GOT and generate a GOT entry.
 		 */
-		if (!lsb->lsb_got)
-			_reserve_got_entry(ld, lsb);
+		if (!lsb->lsb_got) {
+			_reserve_got_entry(ld, lsb, 1);
+			/*
+			 * If we are building a DSO, create a R_X86_64_GLOB_DAT
+			 * entry for this symbol.
+			 */
+			if (ld->ld_dso)
+				_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT);
+			
+		}
 		break;
 
-	case R_X86_64_TLSGD:
-	case R_X86_64_TLSLD:
+	case R_X86_64_TLSGD:	/* Global Dynamic */
+		tr = _tls_check_relax(ld, lre);
+		switch (tr) {
+		case TLS_RELAX_NONE:
+			_create_tls_gd_reloc(ld, lsb);
+			break;
+		case TLS_RELAX_INIT_EXEC:
+			_create_tls_ie_reloc(ld, lsb);
+			break;
+		case TLS_RELAX_LOCAL_EXEC:
+			break;
+		default:
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+			break;
+		}
+		break;
+
+	case R_X86_64_TLSLD:	/* Local Dynamic */
+		tr = _tls_check_relax(ld, lre);
+		if (tr == TLS_RELAX_NONE)
+			_create_tls_ld_reloc(ld, lsb);
+		else if (tr != TLS_RELAX_LOCAL_EXEC)
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+		break;
+
 	case R_X86_64_DTPOFF32:
-	case R_X86_64_DTPOFF64:
-	case R_X86_64_GOTTPOFF:
-	case R_X86_64_TPOFF32:
+		/* Handled by R_X86_64_TLSLD case. */
+		break;
+
+	case R_X86_64_GOTTPOFF:	/* Initial Exec */
+		tr = _tls_check_relax(ld, lre);
+		if (tr == TLS_RELAX_NONE)
+			_create_tls_ie_reloc(ld, lsb);
+		else if (tr != TLS_RELAX_LOCAL_EXEC)
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+		break;
+
+	case R_X86_64_TPOFF32:	/* Local Exec */
+		/* No further relaxation possible. */
+		break;
+
 	case R_X86_64_GOTPC32_TLSDESC:
 	case R_X86_64_TLSDESC_CALL:
-		/* TODO: Handle TLS. */
+		/* TODO. */
 		break;
+
 	default:
 		ld_warn(ld, "can not handle relocation %ju",
 		    lre->lre_type);
@@ -726,6 +785,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	uint32_t u32;
 	int32_t s32;
 	uint64_t p;
+	enum ld_tls_relax tr;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
@@ -736,21 +796,26 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	switch (lre->lre_type) {
 	case R_X86_64_NONE:
 		break;
+
 	case R_X86_64_64:
 		WRITE_64(buf + lre->lre_offset, s + lre->lre_addend);
 		break;
+
 	case R_X86_64_PC32:
 		s32 = s + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
+
 	case R_X86_64_PLT32:
 		/* Symbol value has been set to the PLT offset. */
 		s32 = s + lre->lre_addend - p;
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
+
 	case R_X86_64_GOTPCREL:
 		s32 = lsb->lsb_got_off + lre->lre_addend - p;
 		break;
+
 	case R_X86_64_32:
 		u64 = s + lre->lre_addend;
 		u32 = u64 & 0xffffffff;
@@ -758,6 +823,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			ld_fatal(ld, "R_X86_64_32 relocation failed");
 		WRITE_32(buf + lre->lre_offset, u32);
 		break;
+
 	case R_X86_64_32S:
 		s64 = s + lre->lre_addend;
 		s32 = s64 & 0xffffffff;
@@ -765,10 +831,84 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			ld_fatal(ld, "R_X86_64_32S relocation failed");
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
+
+	case R_X86_64_TLSGD:
+		tr = _tls_check_relax(ld, lre);
+		switch (tr) {
+		case TLS_RELAX_NONE:
+			s32 = lsb->lsb_got_off - p;
+			WRITE_32(buf + lre->lre_offset, s32);
+			break;
+		case TLS_RELAX_INIT_EXEC:
+		case TLS_RELAX_LOCAL_EXEC:
+			/* TODO. */
+			break;
+		default:
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+			break;
+		}
+		break;
 	default:
 		ld_warn(ld, "Relocation %s not supported",
 		    _reloc2str(lre->lre_type));
 		break;
+	}
+}
+
+static enum ld_tls_relax
+_tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/*
+	 * If we're doing -static linking, we should always use the
+	 * Local Exec model.
+	 */
+	if (!ld->ld_dynamic_link)
+		return (TLS_RELAX_LOCAL_EXEC);
+
+	/* TODO. */
+
+	return (TLS_RELAX_NONE);
+}
+
+static void
+_create_tls_gd_reloc(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	/*
+	 * Reserve 2 GOT entries and generate R_X86_64_DTPMOD64 and
+	 * R_X86_64_DTPOFF64 relocations.
+	 */
+	if (!lsb->lsb_got) {
+		_reserve_got_entry(ld, lsb, 2);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPOFF64);
+	}
+}
+
+static void
+_create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	/* Reserve 1 GOT entry and generate R_X86_64_DTPMOD64 reloation. */
+	if (!lsb->lsb_got) {
+		_reserve_got_entry(ld, lsb, 1);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
+	}
+}
+
+static void
+_create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb)
+{
+
+	/* Reserve 1 GOT entry and generate R_X86_64_TPOFF64 relocation. */
+	if (!lsb->lsb_got) {
+		_reserve_got_entry(ld, lsb, 1);
+		_create_got_reloc(ld, lsb, R_X86_64_TPOFF64);
 	}
 }
 

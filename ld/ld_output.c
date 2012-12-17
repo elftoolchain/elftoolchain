@@ -59,7 +59,8 @@ static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
 static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
-static void _join_and_sort_reloc_sections(struct ld *ld, struct ld_output *lo);
+static void _join_and_finalize_reloc_sections(struct ld *ld,
+    struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
@@ -442,7 +443,7 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 }
 
 static void
-_join_and_sort_reloc_sections(struct ld *ld, struct ld_output *lo)
+_join_and_finalize_reloc_sections(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_output_section *os;
 	struct ld_output_element *oe;
@@ -472,6 +473,9 @@ _join_and_sort_reloc_sections(struct ld *ld, struct ld_output *lo)
 		 */
 		if (os->os_reloc != NULL && os->os_dynrel)
 			ld_reloc_sort(ld, os);
+
+		/* Finalize relocations. */
+		ld_reloc_finalize_sections(ld, lo, os);
 	}
 }
 
@@ -784,12 +788,8 @@ ld_output_create(struct ld *ld)
 	/* Allocate space for internal sections. */
 	ld_input_alloc_internal_section_buffers(ld);
 
-	/* Finalize relocation sections. */
-	if (ld->ld_dynamic_link || ld->ld_emit_reloc)
-		ld_reloc_finalize_sections(ld);
-
 	/* Join and sort dynamic relocation sections. */
-	_join_and_sort_reloc_sections(ld, lo);
+	_join_and_finalize_reloc_sections(ld, lo);
 
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);

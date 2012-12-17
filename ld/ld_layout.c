@@ -857,6 +857,7 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 
 	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
 	os->os_dynrel |= is->is_dynrel;
+	os->os_pltrel |= is->is_pltrel;
 
 	if (is->is_align > os->os_align)
 		os->os_align = is->is_align;

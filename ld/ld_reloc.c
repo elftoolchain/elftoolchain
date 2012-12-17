@@ -302,84 +302,51 @@ ld_reloc_create_entry(struct ld *ld, const char *name,
 }
 
 void
-ld_reloc_finalize_sections(struct ld *ld)
+ld_reloc_finalize_sections(struct ld *ld, struct ld_output *lo,
+    struct ld_output_section *os)
 {
-	struct ld_input *li;
-	struct ld_input_section *is, *_is;
-	struct ld_output *lo;
-	struct ld_output_section *os, *_os;
+	struct ld_input_section *is;
+	struct ld_output_section *_os;
 	struct ld_reloc_entry *lre;
-	int i;
 
-	lo = ld->ld_output;
-	assert(lo != NULL);
+	if (!os->os_dynrel || os->os_reloc == NULL)
+		return;
 
-	li = STAILQ_FIRST(&ld->ld_lilist);
-	assert(li != NULL);
+	/* PLT relocation is handled in arch-specified code. */
+	if (os->os_pltrel)
+		return;
 
-	for (i = 1; (size_t) i < li->li_shnum; i++) {
-		is = &li->li_is[i];
+	/*
+	 * Set the lo->lo_rel_dyn here so that the DT_* entries needed for
+	 * dynamic relocation will be generated.
+	 *
+	 * Note that besides the PLT relocation section, we can only have one
+	 * dynamic relocation section in the output object.
+	 */
+	if (lo->lo_rel_dyn == NULL)
+		lo->lo_rel_dyn = os;
 
-		if (!is->is_dynrel || is->is_reloc == NULL)
-			continue;
-
-		/* PLT relocation is handled in arch-specified code. */
-		if (is->is_pltrel)
-			continue;
-
-		if ((os = is->is_output) == NULL)
+	STAILQ_FOREACH(lre, os->os_reloc, lre_next) {
+		/*
+		 * Found out the corresponding output section for the input
+		 * section which the relocation applies to.
+		 */
+		is = lre->lre_tis;
+		assert(is != NULL);
+		if ((_os = is->is_output) == NULL)
 			continue;
 
 		/*
-		 * Set the lo->lo_rel_dyn here so that the DT_* entries
-		 * needed for dynamic relocation will be generated.
-		 *
-		 * Note that besides the PLT relocation section, we can
-		 * only have one dynamic relocation section in the output
-		 * object.
+		 * Update the relocation offset to make it point to the
+		 * correct place in the output section.
 		 */
-		if (lo->lo_rel_dyn == NULL)
-			lo->lo_rel_dyn = os;
+		lre->lre_offset += _os->os_addr + is->is_reloff;
 
-		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
-			/*
-			 * Found out the corresponding output section for
-			 * the input section which the relocation applies to.
-			 */
-			_is = lre->lre_tis;
-			assert(_is != NULL);
-			if ((_os = _is->is_output) == NULL)
-				continue;
-
-			/*
-			 * Update the relocation offset to make it point
-			 * to the correct place in the output section.
-			 */
-			lre->lre_offset += _os->os_addr + _is->is_reloff;
-
-			/*
-			 * Perform arch-specific dynamic relocation
-			 * finalization.
-			 */
-			ld->ld_arch->finalize_reloc(ld, _is, lre);
-		}
-
-	}
-
-	if (!ld->ld_emit_reloc)
-		return;
-
-	while ((li = STAILQ_NEXT(li, li_next)) != NULL) {
-		is = &li->li_is[i];
-
-		if (is->is_reloc == NULL || is->is_output == NULL)
-			continue;
-
-		STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
-			if ((os = is->is_output) == NULL)
-				continue;
-			lre->lre_offset += os->os_addr + is->is_reloff;
-		}
+		/*
+		 * Perform arch-specific dynamic relocation
+		 * finalization.
+		 */
+		ld->ld_arch->finalize_reloc(ld, is, lre);
 	}
 }
 

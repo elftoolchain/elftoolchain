@@ -41,10 +41,17 @@ struct ld_reloc_entry {
 
 STAILQ_HEAD(ld_reloc_entry_head, ld_reloc_entry);
 
+enum ld_tls_relax {
+	TLS_RELAX_NONE,
+	TLS_RELAX_INIT_EXEC,
+	TLS_RELAX_LOCAL_EXEC
+};
+
 void	ld_reloc_create_entry(struct ld *, const char *,
     struct ld_input_section *, uint64_t, struct ld_symbol *, uint64_t,
     int64_t);
-void	ld_reloc_finalize_sections(struct ld *);
+void	ld_reloc_finalize_sections(struct ld *, struct ld_output *,
+    struct ld_output_section *);
 void	ld_reloc_join(struct ld *, struct ld_output_section *,
     struct ld_input_section *);
 void	ld_reloc_sort(struct ld *, struct ld_output_section *);
