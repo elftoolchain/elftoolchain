@@ -72,6 +72,9 @@ ${_L:R}.o:	${_Y:R}.h
 
 .include <bsd.prog.mk>
 
+# Note: include the M4 ruleset after bsd.prog.mk.
+.include "${TOP}/mk/elftoolchain.m4.mk"
+
 # Support a 'clobber' target.
 clobber:	clean	.PHONY
 

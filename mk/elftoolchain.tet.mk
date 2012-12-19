@@ -10,7 +10,7 @@
 .include "${TOP}/mk/elftoolchain.tetvars.mk"
 
 # Inform make(1) about the suffixes we use.
-.SUFFIXES: .lsb32 .lsb64 .m4 .msb32 .msb64 .yaml
+.SUFFIXES: .lsb32 .lsb64 .msb32 .msb64 .yaml
 
 TS_ROOT?=	${.CURDIR:H}
 TS_OBJROOT?=	${.OBJDIR:H}
@@ -54,8 +54,8 @@ ${_TC_SRC}:	${_TS_OBJS}
 
 # M4->C translation.
 M4FLAGS+=	-I${TS_ROOT}/common
-.m4.c:
-	m4 ${M4FLAGS} ${.IMPSRC} > ${.TARGET}
+
+.include "${TOP}/mk/elftoolchain.m4.mk"
 
 LDADD+=		${TET_OBJS} -L${TET_LIBS} -lapi
 CLEANFILES+=	tet_xres tet_captured
