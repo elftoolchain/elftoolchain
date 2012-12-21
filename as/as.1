@@ -1,0 +1,93 @@
+.\" Copyright (c) 2012 Joseph Koshy <jkoshy@users.sourceforge.net>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer
+.\"    in this position and unchanged.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\" $Id$
+.\"
+.Dd December 21, 2012
+.Os
+.Dt AS 1
+.Sh NAME
+.Nm as
+.Nd an assembler
+.Sh SYNOPSIS
+.Nm
+.Op Fl D
+.Op Fl I Ar dir
+.Op Fl J
+.Op Fl K
+.Op Fl L | Fl -keep-locals
+.Op Fl R
+.Op Fl V
+.Op Fl W | Fl -no-warn
+.Op Fl Z
+.Op Fl a Ns Oo Ar cdghlns Oc Ns Oo Ar =file Oc
+.Op Fl g | Fl -gen-debug
+.Op Fl h | Fl -help
+.Op Fl march= Ns Ar cpu Ns Oo , Ns Ar +extensions Oc
+.Op Fl mtune= Ns Ar cpu
+.Op Fl n
+.Op Fl o Ar obj
+.Op Fl q
+.Op Fl -MD Ar file
+.Op Fl -defsym Ar symbol Ns = Ns Ar value
+.Op Fl -fatal-warnings
+.Op Fl -listing-lhs-width
+.Op Fl -listing-lhs-width2
+.Op Fl -listing-rhs-width
+.Op Fl -listing-cont-lines
+.Op Fl -statistics
+.Op Fl -strip-local-absolute
+.Op Fl -target-help
+.Op Fl -version
+.Op Fl -warn
+.Op Ar
+.Sh DESCRIPTION
+The
+.Nm
+utility creates an ELF relocatable object from assembly language
+sources.
+.Pp
+If multiple source files are specified,
+.Nm
+will read each of them in the order specified.
+If no files are specified,
+.Nm
+will read from standard input.
+.Pp
+The
+.Nm
+utility understands the following options:
+.Bl -tag -width indent
+.It TBD
+To be described.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+.Xr elfcopy 1 ,
+.Xr ld 1 ,
+.Xr nm 1 ,
+.Xr strings 1 ,
+.Xr strip 1 ,
+.Xr elf 5
