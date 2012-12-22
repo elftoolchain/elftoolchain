@@ -85,36 +85,38 @@ const struct option as_option_long_options[] = {
 Usage: %s [options] file...\n\
   Assemble an ELF object.\n\n\
   Options:\n\
-  -D                       Print assembler debug messages.\n\
-  -I DIR                   Add directory to the search list.\n\
-  -J                       Suppress warnings about signed overflows.\n\
-  -K                       Warn about alterations to difference tables.\n\
-  -L | --keep-locals       Keep local symbols.\n\
-  -R                       Merge the data and text sections.\n\
-  -V                       Display the assembler version number.\n\
-  -W | --no-warn           Suppress warnings.\n\
-  -Z                       Generate the object even if there are errors.\n\
-  -a[listing-options...]   Control assembler listings.\n\
-  -g | --gen-debug         Generate debugging information.\n\
-  -h | --help              Show a help message.\n\
-  -march=CPU[,+EXT]        Generate code for cpu CPU and extension EXT.\n\
-  -mtune=CPU               Optimize for cpu CPU.\n\
-  -n                       Do not optimize code alignment.\n\
-  -o OBJ                   Write the assembled object to file OBJ.\n\
-  -q                       Suppress some warnings.\n\
-  --MD FILE                Write dependency information to FILE.\n\
-  --defsym SYMBOL=VALUE    Define symbol SYMBOL with value VALUE.\n\
-  --fatal-warnings         Treat warnings as fatal errors.\n\
-  --listing-lhs-width      Set width of the output data column.\n\
-  --listing-lhs-width2     Set the width of continuation lines.\n\
-  --listing-rhs-width      Set the max width of source lines.\n\
-  --listing-cont-lines     Set the maximum number of continuation lines.\n\
-  --statistics             Print statistics at exit.\n\
-  --strip-local-absolute   Strip local absolute symbols.\n\
-  --target-help            Show target-specific help messages.\n\
-  --version                Print a version identifier and exit.\n\
-  --warn                   Print warnings.\n\n\
-  Options: -f, -s, -w, -M, -X and --mri are accepted but are ignored.\n"
+  -D                        Print assembler debug messages.\n\
+  -I DIR                    Add directory to the search list.\n\
+  -J                        Suppress warnings about signed overflows.\n\
+  -K                        Warn about alterations to difference tables.\n\
+  -L | --keep-locals        Keep local symbols.\n\
+  -R                        Merge the data and text sections.\n\
+  -V                        Display the assembler version number.\n\
+  -W | --no-warn            Suppress warnings.\n\
+  -Z                        Generate the object even if there are errors.\n\
+  -a[listing-options...]    Control assembler listings.\n\
+  -g | --gen-debug          Generate debugging information.\n\
+  -h | --help               Show a help message.\n\
+  -march=CPU[,+EXT...]      Generate code for cpu CPU and extensions EXT.\n\
+  -mtune=CPU                Optimize for cpu CPU.\n\
+  -n                        Do not optimize code alignment.\n\
+  -o OBJ                    Write the assembled object to file OBJ.\n\
+  -q                        Suppress some warnings.\n\
+  --MD FILE                 Write dependency information to FILE.\n\
+  --defsym SYMBOL=VALUE     Define symbol SYMBOL with value VALUE.\n\
+  --fatal-warnings          Treat warnings as fatal errors.\n\
+  --listing-lhs-width=NUM   Set width of the output data column.\n\
+  --listing-lhs-width2=NUM  Set the width of continuation lines.\n\
+  --listing-rhs-width=NUM   Set the max width of source lines.\n\
+  --listing-cont-lines=NUM  Set the maximum number of continuation lines.\n\
+  --statistics              Print statistics at exit.\n\
+  --strip-local-absolute    Strip local absolute symbols.\n\
+  --target-help             Show target-specific help messages.\n\
+  --version                 Print a version identifier and exit.\n\
+  --warn                    Print warnings.\n\
+  [target options]          Target specific options.\n\n\
+  Options '-f', '-s', '-w', '-M', '-X' and '--mri' are accepted for\n\
+  compatibility with other assemblers, but are ignored.\n"
 
 void
 as_option_usage(int iserror, const char *format, ...)
