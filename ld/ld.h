@@ -81,7 +81,6 @@ struct ld_state {
 	unsigned ls_rerun;		/* ld(1) restarted */
 	unsigned ls_archive_mb_header;	/* extracted list header printed */
 	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
-	uint64_t ls_got_off;		/* currently allocated GOT space */
 	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
 };
 
@@ -117,6 +116,7 @@ struct ld {
 	struct ld_symbol_head *ld_dyn_symbols; /* dynamic symbol list */
 	struct ld_wildcard_match *ld_wm; /* wildcard hash table */
 	struct ld_input_section *ld_dynbss; /* .dynbss section */
+	struct ld_input_section *ld_got;    /* .got section */
 	unsigned char ld_common_alloc;	/* always alloc space for common sym */
 	unsigned char ld_common_no_alloc; /* never alloc space for common sym */
 	unsigned char ld_emit_reloc;	/* emit relocations */

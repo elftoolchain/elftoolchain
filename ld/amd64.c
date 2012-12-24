@@ -40,7 +40,7 @@ ELFTC_VCSID("$Id$");
 static void _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb,
     uint64_t offset);
 static void _create_got_reloc(struct ld *ld, struct ld_symbol *lsb,
-    uint64_t type);
+    uint64_t type, uint64_t offset);
 static void _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_symbol *lsb, uint64_t type, uint64_t offset, int64_t addend);
@@ -68,6 +68,7 @@ static void _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb);
 static enum ld_tls_relax _tls_check_relax(struct ld *ld,
     struct ld_reloc_entry *lre);
+static uint64_t _got_offset(struct ld *ld, struct ld_symbol *lsb);
 static int _tls_verify_gd(uint8_t *buf, uint64_t off);
 static int _tls_verify_ld(uint8_t *buf, uint64_t off);
 static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
@@ -193,7 +194,7 @@ _find_and_create_gotplt_section(struct ld *ld, int create)
 		is->is_align = 8;
 		is->is_type = SHT_PROGBITS;
 		is->is_flags = SHF_ALLOC | SHF_WRITE;
-	
+
 		/* Reserve space for the initial entries. */
 		(void) ld_input_reserve_ibuf(is, 3);
 
@@ -226,7 +227,7 @@ _find_and_create_plt_section(struct ld *ld, int create)
 		/* Reserve space for the initial entry. */
 		(void) ld_input_reserve_ibuf(is, 1);
 	}
-	
+
 	return (is);
 }
 
@@ -242,7 +243,7 @@ _reserve_got_entry(struct ld *ld, struct ld_symbol *lsb, int num)
 		return;
 
 	/* Reserve GOT entries. */
-	(void) ld_input_reserve_ibuf(is, num);
+	lsb->lsb_got_off = ld_input_reserve_ibuf(is, num);
 	lsb->lsb_got = 1;
 }
 
@@ -286,14 +287,15 @@ _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 }
 
 static void
-_create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type)
+_create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
+    uint64_t offset)
 {
 	struct ld_input_section *tis;
 
 	tis = _find_and_create_got_section(ld, 0);
 	assert(tis != NULL);
 
-	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, 0, 0);
+	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, offset, 0);
 }
 
 static void
@@ -305,7 +307,7 @@ _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb)
 
 	tis = ld_input_find_internal_section(ld, ".dynbss");
 	assert(tis != NULL);
-	
+
 	ld_reloc_create_entry(ld, ".rela.bss", tis, R_X86_64_COPY, lsb,
 	    lsb->lsb_value, 0);
 }
@@ -336,10 +338,10 @@ static void
 _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
     struct ld_reloc_entry *lre)
 {
-	struct ld_state *ls;
 	struct ld_symbol *lsb;
 
-	ls = &ld->ld_state;
+	(void) ld;
+	(void) tis;
 
 	lsb = ld_symbols_ref(lre->lre_sym);
 
@@ -356,44 +358,18 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 		lre->lre_sym = NULL;
 		break;
 
-	case R_X86_64_GLOB_DAT:
 	case R_X86_64_DTPMOD64:
-	case R_X86_64_DTPOFF64:
-	case R_X86_64_TPOFF64:
-		/*
-		 * Allocate GOT entries from previously reserved space for
-		 * these relocations that requires GOT slots.
-		 */
-		if (ls->ls_got_off >= tis->is_size)
-			ld_fatal(ld, "Internal: not enough GOT entries");
-		lre->lre_offset += ls->ls_got_off;
-		ls->ls_got_off += 8;
-
-		/*
-		 * Note that R_X86_64_DTPMOD64 and R_X86_64_DTPOFF64 are TLS
-		 * relocations generated for the same symbol, and that only
-		 * the GOT entry for R_X86_64_DTPMOD64 is referenced by the
-		 * R_X86_64_TLSGD relocation later when applying relocation.
-		 * Thus we should not update lsb->lsb_got_off here again.
-		 */
-		if (lre->lre_type != R_X86_64_DTPOFF64) {
-			lsb->lsb_got_off = lre->lre_offset;
-		}
-
 		/*
 		 * Relocation R_X86_64_DTPMOD64 generated for local dynamic
-		 * TLS model should not assoicate with a symbol. Also, it
-		 * consumes two GOT entries. (the second entry, i.e., the
-		 * offset will not be intialized by the runtime linker and
-		 * should be always 0)
+		 * TLS model should not assoicate with a symbol. 
 		 */
 		if (lre->lre_type == R_X86_64_DTPMOD64 &&
-		    lsb->lsb_tls_ld) {
+		    lsb->lsb_tls_ld)
 			lre->lre_sym = NULL;
-			ls->ls_got_off += 8;
-		}
-
 		break;
+
+	case R_X86_64_DTPOFF64:
+		
 
 	default:
 		break;
@@ -442,7 +418,7 @@ _finalize_got_and_plt(struct ld *ld)
 	got_is = _find_and_create_gotplt_section(ld, 0);
 	assert(got_is != NULL);
 	got_os = got_is->is_output;
-	lo->lo_got = got_os;
+	lo->lo_gotplt = got_os;
 	got = got_is->is_ibuf;
 	assert(got != NULL);
 	rela_plt_is = ld_input_find_internal_section(ld, ".rela.plt");
@@ -477,7 +453,7 @@ _finalize_got_and_plt(struct ld *ld)
 	s32 = pltgot - 6 + 8;
 	WRITE_32(plt + 2, s32);
 	plt += 6;
-	
+
 	/*
 	 * Jump to the address in the third GOT entry (call into
 	 * the dynamic linker). (JMP reg/memXX [RIP+disp32])
@@ -749,8 +725,8 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 			 * entry for this symbol.
 			 */
 			if (ld->ld_dso)
-				_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT);
-			
+				_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
+				    lsb->lsb_got_off);
 		}
 		break;
 
@@ -810,6 +786,23 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 	}
 }
 
+static uint64_t
+_got_offset(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_output_section *os;
+
+	assert(lsb->lsb_got);
+
+	if (ld->ld_got == NULL) {
+		ld->ld_got = _find_and_create_got_section(ld, 0);
+		assert(ld->ld_got != NULL);
+	}
+
+	os = ld->ld_got->is_output;
+
+	return (os->os_addr + ld->ld_got->is_reloff + lsb->lsb_got_off);
+}
+
 static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
@@ -825,7 +818,6 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
-	g = lsb->lsb_got_off;
 	l = lsb->lsb_plt_off;
 	p = lre->lre_offset + is->is_output->os_addr + is->is_reloff;
 	s = lsb->lsb_value;
@@ -855,7 +847,9 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		break;
 
 	case R_X86_64_GOTPCREL:
+		g = _got_offset(ld, lsb);
 		s32 = g + lre->lre_addend - p;
+		printf("g=%#jx p=%#jx s32=%d\n", g, p, s32);
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
@@ -879,10 +873,12 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
 		case TLS_RELAX_NONE:
+			g = _got_offset(ld, lsb);
 			s32 = g + lre->lre_addend - p;
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_INIT_EXEC:
+			g = _got_offset(ld, lsb);
 			_tls_relax_gd_to_ie(ld, lo, lre, p, g, buf);
 			break;
 		case TLS_RELAX_LOCAL_EXEC:
@@ -899,6 +895,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
 		case TLS_RELAX_NONE:
+			g = _got_offset(ld, lsb);
 			s32 = g + lre->lre_addend - p;
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
@@ -936,6 +933,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
 		case TLS_RELAX_NONE:
+			g = _got_offset(ld, lsb);
 			s32 = g + lre->lre_addend - p;
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
@@ -1099,8 +1097,10 @@ _create_tls_gd_reloc(struct ld *ld, struct ld_symbol *lsb)
 	 */
 	if (!lsb->lsb_got) {
 		_reserve_got_entry(ld, lsb, 2);
-		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
-		_create_got_reloc(ld, lsb, R_X86_64_DTPOFF64);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64,
+		    lsb->lsb_got_off);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPOFF64,
+		    lsb->lsb_got_off + 8);
 	}
 }
 
@@ -1111,7 +1111,8 @@ _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb)
 	/* Reserve 2 GOT entries and generate R_X86_64_DTPMOD64 reloation. */
 	if (!lsb->lsb_got) {
 		_reserve_got_entry(ld, lsb, 2);
-		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
+		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64,
+		    lsb->lsb_got_off);
 		lsb->lsb_tls_ld = 1;
 	}
 }
@@ -1123,7 +1124,8 @@ _create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb)
 	/* Reserve 1 GOT entry and generate R_X86_64_TPOFF64 relocation. */
 	if (!lsb->lsb_got) {
 		_reserve_got_entry(ld, lsb, 1);
-		_create_got_reloc(ld, lsb, R_X86_64_TPOFF64);
+		_create_got_reloc(ld, lsb, R_X86_64_TPOFF64,
+		    lsb->lsb_got_off);
 	}
 }
 

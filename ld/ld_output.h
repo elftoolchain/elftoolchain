@@ -126,7 +126,7 @@ struct ld_output {
 	struct ld_output_section *lo_verdef; /* .gnu.version.d section */
 	struct ld_output_section *lo_verneed; /* .gnu.version.r section */
 	struct ld_output_section *lo_versym; /* .gnu.version section */
-	struct ld_output_section *lo_got; /* GOT section */
+	struct ld_output_section *lo_gotplt; /* GOT(for PLT) section */
 	struct ld_output_section *lo_plt; /* PLT section */
 	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
 	struct ld_output_section *lo_rel_dyn;  /* Dynamic relocation section */
