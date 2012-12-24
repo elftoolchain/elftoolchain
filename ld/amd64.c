@@ -848,7 +848,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
-	case R_X86_64_TLSGD:
+	case R_X86_64_TLSGD:	/* Global Dynamic */
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
 		case TLS_RELAX_NONE:
@@ -867,6 +867,27 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			break;
 		}
 		break;
+
+	case R_X86_64_GOTTPOFF:	/* Initial Exec */
+		tr = _tls_check_relax(ld, lre);
+		switch (tr) {
+		case TLS_RELAX_NONE:
+			s32 = g + lre->lre_addend - p;
+			WRITE_32(buf + lre->lre_offset, s32);
+			break;
+		case TLS_RELAX_LOCAL_EXEC:
+			/* TODO. */
+			break;
+		default:
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+			break;
+		}
+		break;
+
+	case R_X86_64_TPOFF32:	/* Local Exec */
+		break;
+
 	default:
 		ld_warn(ld, "Relocation %s not supported",
 		    _reloc2str(lre->lre_type));
