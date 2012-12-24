@@ -978,12 +978,27 @@ _tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
 		return (TLS_RELAX_LOCAL_EXEC);
 
 	/*
-	 * If the linker is creating an executable, and the symbol is
+	 * If the linker is creating a DSO, we can not perform any TLS
+	 * relaxation.
+	 */
+	if (ld->ld_dso)
+		return (TLS_RELAX_NONE);
+
+	/*
+	 * The linker is creating an executable, if the symbol is
 	 * defined in a regular object, we can use the Local Exec model.
 	 */
-	if ((ld->ld_exec || ld->ld_pie) && ld_symbols_in_regular(lsb))
+	if (lsb->lsb_shndx != SHN_UNDEF && ld_symbols_in_regular(lsb))
 		return (TLS_RELAX_LOCAL_EXEC);
 
+	/*
+	 * If the TLS model is Global Dynamic, we can relax it to Initial
+	 * Exec model since the linker is creating an executable.
+	 */
+	if (lre->lre_type == R_X86_64_TLSGD)
+		return (TLS_RELAX_INIT_EXEC);
+
+	/* For all the other cases, no relaxation can be done. */
 	return (TLS_RELAX_NONE);
 }
 
