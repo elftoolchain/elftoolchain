@@ -1060,9 +1060,23 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	    os->os_addr, os->os_align);
 #endif
 
-	ls->ls_offset = os->os_off + os->os_size;
+	/*
+	 * Calculate the file offset for the next output section. Note that
+	 * only sections with type other than SHT_NOBITS consume file space.
+	 */
+	ls->ls_offset = os->os_off;
+	if (os->os_type != SHT_NOBITS)
+		ls->ls_offset += os->os_size;
 
 	/* Reset location counter to the current VMA. */
-	if (os->os_flags & SHF_ALLOC)
-		ls->ls_loc_counter = os->os_addr + os->os_size;
+	if (os->os_flags & SHF_ALLOC) {
+		ls->ls_loc_counter = os->os_addr;
+		/*
+		 * Do not allocate VMA for TLS .tbss sections. TLS sections
+		 * are only used as an initlization image and .tbss section
+		 * will not be allocated in memory.
+		 */
+		if (os->os_type != SHT_NOBITS || (os->os_flags & SHF_TLS) == 0)
+			ls->ls_loc_counter += os->os_size;
+	}
 }
