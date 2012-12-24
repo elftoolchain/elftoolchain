@@ -1062,8 +1062,14 @@ static void
 _tls_relax_gd_to_ie(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf)
 {
+	/*
+	 * Initial Exec model:
+	 *
+	 * 0x00 movq %fs:0, %rax
+	 * 0x09 addq x@gottpoff(%rip), %rax
+	 */
 	uint8_t ie[] = "\x64\x48\x8b\x04\x25\x00\x00\x00\x00"
-	    "\x48\x8b\x15\x00\x00\x00\x00";
+	    "\x48\x03\x05\x00\x00\x00\x00";
 	int32_t s32;
 
 	assert(lre->lre_type == R_X86_64_TLSGD);
@@ -1079,9 +1085,10 @@ _tls_relax_gd_to_ie(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
 	 * to Initial Exec model, the resulting R_X86_64_GOTTPOFF relocation
 	 * should be applied at ie[12]. The addend should remain the same
 	 * since instruction "leaq x@tlsgd(%rip), %rdi" and
-	 * "addq x@gottpoff(%rip), %rax" has the same length.
+	 * "addq x@gottpoff(%rip), %rax" has the same length. `p' is moved
+	 * 8 bytes forward.
 	 */
-	s32 = g + lre->lre_addend - p;
+	s32 = g + lre->lre_addend - (p + 8);
 	WRITE_32(buf + lre->lre_offset + 8, s32);
 
 	/* Ignore the next R_X86_64_PLT32 relocation for _tls_get_addr. */
