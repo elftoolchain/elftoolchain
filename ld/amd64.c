@@ -63,11 +63,14 @@ static void _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb);
 static void _reserve_plt_entry(struct ld *ld, struct ld_symbol *lsb);
 static int _is_absolute_reloc(uint64_t r);
 static void _warn_pic(struct ld *ld, struct ld_reloc_entry *lre);
-static enum ld_tls_relax _tls_check_relax(struct ld *ld,
-    struct ld_reloc_entry *lre);
 static void _create_tls_gd_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb);
 static void _create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb);
+static enum ld_tls_relax _tls_check_relax(struct ld *ld,
+    struct ld_reloc_entry *lre);
+static int _tls_verify_gd(uint8_t *buf, uint64_t off);
+static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
+    struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -853,6 +856,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_INIT_EXEC:
+			_tls_relax_gd_to_ie(ld, lo, lre, p, g, buf);
+			break;
 		case TLS_RELAX_LOCAL_EXEC:
 			/* TODO. */
 			break;
@@ -886,6 +891,54 @@ _tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
 	/* TODO. */
 
 	return (TLS_RELAX_NONE);
+}
+
+static int
+_tls_verify_gd(uint8_t *buf, uint64_t off)
+{
+	/*
+	 * Global Dynamic model:
+	 *
+	 * 0x00 .byte 0x66
+	 * 0x01 leaq x@tlsgd(%rip), %rdi
+	 * 0x08 .word 0x6666
+	 * 0x0a rex64
+	 * 0x0b call _tls_get_addr@plt
+	 */
+	uint8_t gd[] = "\x66\x48\x8d\x3d\x00\x00\x00\x00"
+	    "\x66\x66\x48\xe8\x00\x00\x00\x00";
+
+	if (memcmp(buf + off, gd, sizeof(gd) - 1) == 0)
+		return (1);
+
+	return (0);
+}
+
+static void
+_tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
+    struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf)
+{
+	uint8_t ie[] = "\x64\x48\x8b\x04\x25\x00\x00\x00\x00"
+	    "\x48\x8b\x15\x00\x00\x00\x00";
+	int32_t s32;
+
+	assert(lre->lre_type == R_X86_64_TLSGD);
+
+	if (!_tls_verify_gd(buf, lre->lre_offset))
+		ld_warn(ld, "unsupported TLS global dynamic model code");
+
+	/* Transform Global Dynamic to Initial Exec model. */
+	memcpy((uint8_t *) buf + lre->lre_offset, ie, sizeof(ie) - 1);
+
+	/*
+	 * R_X86_64_TLSGD relocation is applied at gd[5]. After it's relaxed
+	 * to Initial Dynamic, the R_X86_64_GOTTPOFF relocation is applied at
+	 * ie[12], thus the offset is +7 bytes. The addend should remain the
+	 * same since instruction "leaq x@tlsgd(%rip), %rdi" and
+	 * "addq x@gottpoff(%rip), %rax" has the same length.
+	 */
+	s32 = g + lre->lre_addend - p;
+	WRITE_32(buf + lre->lre_offset + 7, s32);
 }
 
 static void
