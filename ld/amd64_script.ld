@@ -78,7 +78,6 @@ SECTIONS {
 	PROVIDE(__fini_array_start = .);
 	.fini_array	: { *(.fini_array) }
 	PROVIDE(__fini_array_end = .);
-	.dynamic	: { *(.dynamic) }
 	.ctors		:
 	{
 		KEEP(*crtbegin*.o(.ctors))
@@ -94,6 +93,11 @@ SECTIONS {
 		KEEP(*(.dtors))
 	}
 	.jcr		: { KEEP(*(.jcr)) }
+	.data.rel.ro : {
+		*(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*)
+		*(.data.rel.ro* .gnu.linkonce.d.rel.ro.*)
+	}
+	.dynamic	: { *(.dynamic) }
 	.got		: { *(.got) }
 	.got.plt	: { *(.got.plt) }
 	.data		:
