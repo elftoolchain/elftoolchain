@@ -302,6 +302,8 @@ ld_reloc_create_entry(struct ld *ld, const char *name,
 	STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	is->is_num_reloc++;
 	is->is_size += ld->ld_arch->reloc_entsize;
+
+	lsb->lsb_dynrel = 1;
 }
 
 void

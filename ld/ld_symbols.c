@@ -433,6 +433,8 @@ ld_symbols_scan(struct ld *ld)
 		 *
 		 * 3. The linker creates a DSO and the symbol is defined
 		 *    in a regular object and is visible externally.
+		 *
+		 * 4. A symbol that is referenced by a dynamic relocation.
 		 */
 		if (lsb->lsb_ref_dso && ld_symbols_in_regular(lsb))
 			_add_to_dynsym_table(ld, lsb);
@@ -444,6 +446,8 @@ ld_symbols_scan(struct ld *ld)
 		}
 		else if (ld->ld_dso && ld_symbols_in_regular(lsb) &&
 		    lsb->lsb_other == STV_DEFAULT)
+			_add_to_dynsym_table(ld, lsb);
+		else if (lsb->lsb_dynrel)
 			_add_to_dynsym_table(ld, lsb);
 	}
 }

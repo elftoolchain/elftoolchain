@@ -50,6 +50,7 @@ struct ld_symbol {
 	unsigned char lsb_import;	/* symbol is a import symbol */
 	unsigned char lsb_ref_dso;	/* symbol appeared in a DSO */
 	unsigned char lsb_ref_ndso;	/* symbol appeared in elsewhere */
+	unsigned char lsb_dynrel;	/* symbol used by dynamic reloc */
 	unsigned char lsb_copy_reloc;	/* symbol has copy reloc */
 	unsigned char lsb_got;		/* symbol has got entry */
 	unsigned char lsb_plt;		/* symbol has plt entry */
