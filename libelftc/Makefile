@@ -28,7 +28,8 @@ CLEANFILES+=	elftc_version.c
 
 LDADD+=	-lelf
 
-MAN=	elftc_bfd_find_target.3 \
+MAN=	elftc.3 \
+	elftc_bfd_find_target.3 \
 	elftc_copyfile.3 \
 	elftc_demangle.3 \
 	elftc_set_timestamps.3 \
