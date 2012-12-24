@@ -79,6 +79,8 @@ static void _tls_relax_gd_to_le(struct ld *ld, struct ld_state *ls,
     uint8_t *buf);
 static void _tls_relax_ld_to_le(struct ld *ld, struct ld_state *ls,
     struct ld_reloc_entry *lre, uint8_t *buf);
+static void _tls_relax_ie_to_le(struct ld *ld, struct ld_output *lo,
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 static int32_t _tls_dtpoff(struct ld_output *lo, struct ld_symbol *lsb);
 static int32_t _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb);
 
@@ -940,7 +942,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_LOCAL_EXEC:
-			/* TODO. */
+			_tls_relax_ie_to_le(ld, lo, lre, lsb, buf);
 			break;
 		default:
 			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
@@ -1033,7 +1035,7 @@ _tls_verify_ld(uint8_t *buf, uint64_t off)
 	 * 0x07 call _tls_get_addr@plt
 	 */
 	uint8_t ld[] = "\x48\x8d\x3d\x00\x00\x00\x00"
-		"\xe8\x00\x00\x00\x00";
+	    "\xe8\x00\x00\x00\x00";
 
 	if (memcmp(buf + off, ld, sizeof(ld) - 1) == 0)
 		return (1);
@@ -1052,7 +1054,7 @@ _tls_relax_gd_to_ie(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
 	assert(lre->lre_type == R_X86_64_TLSGD);
 
 	if (!_tls_verify_gd(buf, lre->lre_offset - 4))
-		ld_warn(ld, "unsupported TLS global dynamic model code");
+		ld_warn(ld, "unrecognized TLS global dynamic model code");
 
 	/* Rewrite Global Dynamic to Initial Exec model. */
 	memcpy((uint8_t *) buf + lre->lre_offset - 4, ie, sizeof(ie) - 1);
@@ -1085,10 +1087,8 @@ _tls_relax_gd_to_le(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
 	    "\x48\x8d\x80\x00\x00\x00\x00";
 	int32_t s32;
 
-	ls = &ld->ld_state;
-
 	if (!_tls_verify_gd(buf, lre->lre_offset - 4))
-		ld_warn(ld, "unsupported TLS global dynamic model code");
+		ld_warn(ld, "unrecognized TLS global dynamic model code");
 
 	/* Rewrite Global Dynamic to Local Exec model. */
 	memcpy((uint8_t *) buf + lre->lre_offset - 4, le, sizeof(le) - 1);
@@ -1120,16 +1120,70 @@ _tls_relax_ld_to_le(struct ld *ld, struct ld_state *ls,
 
 	assert(lre->lre_type == R_X86_64_TLSLD);
 
-	ls = &ld->ld_state;
-
 	if (!_tls_verify_ld(buf, lre->lre_offset - 3))
-		ld_warn(ld, "unsupported TLS local dynamic model code");
+		ld_warn(ld, "unrecognized TLS local dynamic model code");
 
 	/* Rewrite Local Dynamic to Local Exec model. */
 	memcpy(buf + lre->lre_offset - 3, le_p, sizeof(le_p) - 1);
 
 	/* Ignore the next R_X86_64_PLT32 relocation for _tls_get_addr. */
 	ls->ls_ignore_next_plt = 1;
+}
+
+static void
+_tls_relax_ie_to_le(struct ld *ld, struct ld_output *lo,
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
+{
+	int32_t s32;
+	uint8_t reg;
+
+	(void) ld;
+
+	assert(lre->lre_type == R_X86_64_GOTTPOFF);
+
+	/*
+	 * Rewrite Initial Exec to Local Exec model: rewrite
+	 * "movq 0x0(%rip),%reg" to "movq 0x0,%reg". or,
+	 * "addq 0x0(%rip),%rsp" to "addq 0x0,%rsp". or,
+	 * "addq 0x0(%rip),%reg" to "leaq 0x0(%reg),%reg"
+	 */
+	reg = buf[lre->lre_offset - 1] >> 3;
+	if (buf[lre->lre_offset - 2] == 0x8b) {
+		/* movq 0x0(%rip),%reg -> movq 0x0,%reg. */
+		buf[lre->lre_offset - 2] = 0xc7;
+		buf[lre->lre_offset - 1] = 0xc0 | reg; /* Set r/m to `reg' */
+		/*
+		 * Set REX.B (high bit for r/m) if REX.R (high bit for reg)
+		 * is set.
+		 */
+		if (buf[lre->lre_offset - 3] == 0x4c)
+			buf[lre->lre_offset - 3] = 0x49;
+	} else if (reg == 4) {
+		/* addq 0x0(%rip),%rsp -> addq 0x0,%rsp */
+		buf[lre->lre_offset - 2] = 0x81;
+		buf[lre->lre_offset - 1] = 0xc0 | reg; /* Set r/m to `reg' */
+		/*
+		 * Set REX.B (high bit for r/m) if REX.R (high bit for reg)
+		 * is set.
+		 */
+		if (buf[lre->lre_offset - 3] == 0x4c)
+			buf[lre->lre_offset - 3] = 0x49;
+	} else {
+		/* addq 0x0(%rip),%reg -> leaq 0x0(%reg),%reg */
+		buf[lre->lre_offset - 2] = 0x8d;
+		/* Both reg and r/m in ModRM should be set to `reg' */
+		buf[lre->lre_offset - 1] = 0x80 | reg | (reg << 3);
+		/* Set both REX.B and REX.R if REX.R is set */
+		if (buf[lre->lre_offset - 3] == 0x4c)
+			buf[lre->lre_offset - 3] = 0x4d;
+	}
+	/*
+	 * R_X86_64_GOTTPOFF relocation is applied at ie[12]. After it's
+	 * relaxed to Local Exec model, the resulting R_X86_64_TPOFF32
+	 * should be applied at le[12]. Thus the offset remains the same.
+	 */
+	s32 = _tls_tpoff(lo, lsb);
+	WRITE_32(buf + lre->lre_offset, s32);
 }
 
 static void
