@@ -379,11 +379,16 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 
 		/*
 		 * Relocation R_X86_64_DTPMOD64 generated for local dynamic
-		 * TLS model should not assoicate with a symbol.
+		 * TLS model should not assoicate with a symbol. Also, it
+		 * consumes two GOT entries. (the second entry, i.e., the
+		 * offset will not be intialized by the runtime linker and
+		 * should be always 0)
 		 */
 		if (lre->lre_type == R_X86_64_DTPMOD64 &&
-		    lsb->lsb_tls_ld)
+		    lsb->lsb_tls_ld) {
 			lre->lre_sym = NULL;
+			ls->ls_got_off += 8;
+		}
 
 		break;
 
@@ -1050,9 +1055,9 @@ static void
 _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb)
 {
 
-	/* Reserve 1 GOT entry and generate R_X86_64_DTPMOD64 reloation. */
+	/* Reserve 2 GOT entries and generate R_X86_64_DTPMOD64 reloation. */
 	if (!lsb->lsb_got) {
-		_reserve_got_entry(ld, lsb, 1);
+		_reserve_got_entry(ld, lsb, 2);
 		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
 		lsb->lsb_tls_ld = 1;
 	}
