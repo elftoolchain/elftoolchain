@@ -368,9 +368,6 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 			lre->lre_sym = NULL;
 		break;
 
-	case R_X86_64_DTPOFF64:
-		
-
 	default:
 		break;
 	}
@@ -721,12 +718,14 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		if (!lsb->lsb_got) {
 			_reserve_got_entry(ld, lsb, 1);
 			/*
-			 * If we are building a DSO, create a R_X86_64_GLOB_DAT
-			 * entry for this symbol.
+			 * TODO: For now we always create a R_X86_64_GLOB_DAT
+			 * relocation for a GOT entry. There are cases that
+			 * the symbol's address is known at link time and
+			 * the GOT entry value can be filled in by the program
+			 * linker instead.
 			 */
-			if (ld->ld_dso)
-				_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
-				    lsb->lsb_got_off);
+			_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
+			    lsb->lsb_got_off);
 		}
 		break;
 
@@ -849,7 +848,6 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	case R_X86_64_GOTPCREL:
 		g = _got_offset(ld, lsb);
 		s32 = g + lre->lre_addend - p;
-		printf("g=%#jx p=%#jx s32=%d\n", g, p, s32);
 		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
