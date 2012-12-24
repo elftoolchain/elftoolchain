@@ -82,6 +82,7 @@ struct ld_state {
 	unsigned ls_archive_mb_header;	/* extracted list header printed */
 	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
 	uint64_t ls_got_off;		/* currently allocated GOT space */
+	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
 };
 
 struct ld {

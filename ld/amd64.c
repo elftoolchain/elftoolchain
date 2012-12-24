@@ -69,8 +69,11 @@ static void _create_tls_ie_reloc(struct ld *ld, struct ld_symbol *lsb);
 static enum ld_tls_relax _tls_check_relax(struct ld *ld,
     struct ld_reloc_entry *lre);
 static int _tls_verify_gd(uint8_t *buf, uint64_t off);
+static int _tls_verify_ld(uint8_t *buf, uint64_t off);
 static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf);
+static void _tls_relax_ld_to_le(struct ld *ld, struct ld_reloc_entry *lre,
+    void *buf);
 static int32_t _tls_dtpoff(struct ld_output *lo, struct ld_symbol *lsb);
 static int32_t _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb);
 
@@ -811,6 +814,7 @@ static void
 _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
 {
+	struct ld_state *ls;
 	struct ld_output *lo;
 	uint64_t u64, s, l, p, g;
 	int64_t s64;
@@ -843,8 +847,11 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		break;
 
 	case R_X86_64_PLT32:
-		s32 = l + lre->lre_addend - p;
-		WRITE_32(buf + lre->lre_offset, s32);
+		if (!ls->ls_ignore_next_plt) {
+			s32 = l + lre->lre_addend - p;
+			WRITE_32(buf + lre->lre_offset, s32);
+		} else
+			ls->ls_ignore_next_plt = 0;
 		break;
 
 	case R_X86_64_GOTPCREL:
@@ -896,7 +903,9 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_LOCAL_EXEC:
-			/* TODO. */
+			_tls_relax_ld_to_le(ld, lre, buf);
+			/* Ignore the next PLT32 for _tls_get_addr */
+			ls->ls_ignore_next_plt = 1;
 			break;
 		default:
 			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
@@ -960,13 +969,18 @@ _tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
 	lsb = ld_symbols_ref(lre->lre_sym);
 
 	/*
-	 * If we're doing -static linking, we should always use the
-	 * Local Exec model.
+	 * If the linker is performing -static linking, we should always
+	 * use the Local Exec model.
 	 */
 	if (!ld->ld_dynamic_link)
 		return (TLS_RELAX_LOCAL_EXEC);
 
-	/* TODO. */
+	/*
+	 * If the linker is creating an executable, and the symbol is
+	 * defined in a regular object, we can use the Local Exec model.
+	 */
+	if ((ld->ld_exec || ld->ld_pie) && ld_symbols_in_regular(lsb))
+		return (TLS_RELAX_LOCAL_EXEC);
 
 	return (TLS_RELAX_NONE);
 }
@@ -1009,6 +1023,24 @@ _tls_verify_gd(uint8_t *buf, uint64_t off)
 	return (0);
 }
 
+static int
+_tls_verify_ld(uint8_t *buf, uint64_t off)
+{
+	/*
+	 * Local Dynamic model:
+	 *
+	 * 0x00 leaq x@tlsld(%rip), %rdi
+	 * 0x07 call _tls_get_addr@plt
+	 */
+	uint8_t ld[] = "\x48\x8d\x3d\x00\x00\x00\x00"
+		"\xe8\x00\x00\x00\x00";
+
+	if (memcmp(buf + off, ld, sizeof(ld) - 1) == 0)
+		return (1);
+
+	return (0);
+}
+
 static void
 _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf)
@@ -1022,7 +1054,7 @@ _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
 	if (!_tls_verify_gd(buf, lre->lre_offset))
 		ld_warn(ld, "unsupported TLS global dynamic model code");
 
-	/* Transform Global Dynamic to Initial Exec model. */
+	/* Rewrite Global Dynamic to Initial Exec model. */
 	memcpy((uint8_t *) buf + lre->lre_offset, ie, sizeof(ie) - 1);
 
 	/*
@@ -1034,6 +1066,27 @@ _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
 	 */
 	s32 = g + lre->lre_addend - p;
 	WRITE_32(buf + lre->lre_offset + 7, s32);
+}
+
+static void
+_tls_relax_ld_to_le(struct ld *ld, struct ld_reloc_entry *lre, void *buf)
+{
+	/*
+	 * Local Exec model: (with padding)
+	 *
+	 * 0x00 .word 0x6666
+	 * 0x02 .byte 0x66
+	 * 0x03 movq %fs:0, %rax
+	 */
+	uint8_t le_p[] = "\x66\x66\x66\x64\x48\x8b\x04\x25\x00\x00\x00\x00";
+
+	assert(lre->lre_type == R_X86_64_TLSLD);
+
+	if (!_tls_verify_ld(buf, lre->lre_offset - 3))
+		ld_warn(ld, "unsupported TLS local dynamic model code");
+
+	/* Rewrite Local Dynamic to Local Exec model. */
+	memcpy((uint8_t *) buf + lre->lre_offset - 3, le_p, sizeof(le_p) - 1);
 }
 
 static void
