@@ -211,11 +211,14 @@ ld_reloc_serialize(struct ld *ld, struct ld_output_section *os, size_t *sz)
 
 	p = b;
 	STAILQ_FOREACH(lre, os->os_reloc, lre_next) {
-		lsb = ld_symbols_ref(lre->lre_sym);
-		if (os->os_dynrel)
-			sym = lsb->lsb_dyn_index;
-		else
-			sym = lsb->lsb_index;
+		if (lre->lre_sym != NULL) {
+			lsb = ld_symbols_ref(lre->lre_sym);
+			if (os->os_dynrel)
+				sym = lsb->lsb_dyn_index;
+			else
+				sym = lsb->lsb_index;
+		} else
+			sym = 0;
 		
 		if (is_64 && is_rela) {
 			ra64 = (Elf64_Rela *) (uintptr_t) p;

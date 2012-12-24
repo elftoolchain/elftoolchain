@@ -54,6 +54,7 @@ struct ld_symbol {
 	unsigned char lsb_got;		/* symbol has got entry */
 	unsigned char lsb_plt;		/* symbol has plt entry */
 	unsigned char lsb_func_addr;	/* symbol(function) has address */
+	unsigned char lsb_tls_ld;	/* local dynamic TLS symbol */
 	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */

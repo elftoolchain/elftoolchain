@@ -71,6 +71,7 @@ static enum ld_tls_relax _tls_check_relax(struct ld *ld,
 static int _tls_verify_gd(uint8_t *buf, uint64_t off);
 static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf);
+static int32_t _tls_dtpoff(struct ld_output *lo, struct ld_symbol *lsb);
 static int32_t _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb);
 
 static uint64_t
@@ -347,6 +348,9 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 		 * value.
 		 */
 		lre->lre_addend += lsb->lsb_value;
+
+		/* R_X86_64_RELATIVE should not associate with a symbol. */
+		lre->lre_sym = NULL;
 		break;
 
 	case R_X86_64_GLOB_DAT:
@@ -360,6 +364,8 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 		if (ls->ls_got_off >= tis->is_size)
 			ld_fatal(ld, "Internal: not enough GOT entries");
 		lre->lre_offset += ls->ls_got_off;
+		ls->ls_got_off += 8;
+
 		/*
 		 * Note that R_X86_64_DTPMOD64 and R_X86_64_DTPOFF64 are TLS
 		 * relocations generated for the same symbol, and that only
@@ -370,7 +376,15 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 		if (lre->lre_type != R_X86_64_DTPOFF64) {
 			lsb->lsb_got_off = lre->lre_offset;
 		}
-		ls->ls_got_off += 8;
+
+		/*
+		 * Relocation R_X86_64_DTPMOD64 generated for local dynamic
+		 * TLS model should not assoicate with a symbol.
+		 */
+		if (lre->lre_type == R_X86_64_DTPMOD64 &&
+		    lsb->lsb_tls_ld)
+			lre->lre_sym = NULL;
+
 		break;
 
 	default:
@@ -869,6 +883,41 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		}
 		break;
 
+	case R_X86_64_TLSLD:	/* Local Dynamic */
+		tr = _tls_check_relax(ld, lre);
+		switch (tr) {
+		case TLS_RELAX_NONE:
+			s32 = g + lre->lre_addend - p;
+			WRITE_32(buf + lre->lre_offset, s32);
+			break;
+		case TLS_RELAX_LOCAL_EXEC:
+			/* TODO. */
+			break;
+		default:
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+			break;
+		}
+		break;
+
+	case R_X86_64_DTPOFF32:	/* Local Dynamic (offset) */
+		tr = _tls_check_relax(ld, lre);
+		switch (tr) {
+		case TLS_RELAX_NONE:
+			s32 = _tls_dtpoff(lo, lsb);
+			WRITE_32(buf + lre->lre_offset, s32);
+			break;
+		case TLS_RELAX_LOCAL_EXEC:
+			s32 = _tls_tpoff(lo, lsb);
+			WRITE_32(buf + lre->lre_offset, s32);
+			break;
+		default:
+			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
+			    tr);
+			break;
+		}
+		break;
+
 	case R_X86_64_GOTTPOFF:	/* Initial Exec */
 		tr = _tls_check_relax(ld, lre);
 		switch (tr) {
@@ -925,6 +974,13 @@ _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb)
 	tls_off = -roundup(lo->lo_tls_size, lo->lo_tls_align);
 
 	return (tls_off + (lsb->lsb_value - lo->lo_tls_addr));
+}
+
+static int32_t
+_tls_dtpoff(struct ld_output *lo, struct ld_symbol *lsb)
+{
+
+	return (lsb->lsb_value - lo->lo_tls_addr);
 }
 
 static int
@@ -998,6 +1054,7 @@ _create_tls_ld_reloc(struct ld *ld, struct ld_symbol *lsb)
 	if (!lsb->lsb_got) {
 		_reserve_got_entry(ld, lsb, 1);
 		_create_got_reloc(ld, lsb, R_X86_64_DTPMOD64);
+		lsb->lsb_tls_ld = 1;
 	}
 }
 
