@@ -316,7 +316,7 @@ ld_layout_calc_header_size(struct ld *ld)
 	struct ld_output_section *os;
 	off_t header_size;
 	unsigned ec, w, num_phdrs;
-	int new;
+	int new, tls;
 
 	lo = ld->ld_output;
 	assert(lo != NULL);
@@ -340,6 +340,7 @@ ld_layout_calc_header_size(struct ld *ld)
 		else {
 			num_phdrs = 0;
 			new = 1;
+			tls = 0;
 			w = 0;
 			STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 				if (os->os_empty)
@@ -354,6 +355,11 @@ ld_layout_calc_header_size(struct ld *ld)
 					new = 0;
 					num_phdrs++;
 					w = os->os_flags & SHF_WRITE;
+				}
+
+				if ((os->os_flags & SHF_TLS) != 0 && !tls) {
+					tls = 1;
+					num_phdrs++;
 				}
 			}
 
@@ -855,7 +861,7 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 
 	os->os_empty = 0;
 
-	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE);
+	os->os_flags |= is->is_flags & (SHF_EXECINSTR | SHF_WRITE | SHF_TLS);
 	os->os_dynrel |= is->is_dynrel;
 	os->os_pltrel |= is->is_pltrel;
 

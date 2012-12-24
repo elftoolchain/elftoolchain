@@ -543,8 +543,10 @@ _create_phdr(struct ld *ld)
 	Elf64_Phdr *p64;
 	void *phdrs;
 	uint64_t addr, off, align, flags, filesz, memsz, phdr_addr;
+	uint64_t tls_addr, tls_off, tls_align, tls_flags;
+	uint64_t tls_filesz, tls_memsz;
 	unsigned w;
-	int i, new, first;
+	int i, new, first, tls;
 
 	/* TODO: support segments created by linker script command PHDR. */
 
@@ -620,11 +622,13 @@ _create_phdr(struct ld *ld)
 	align = ld->ld_arch->get_max_page_size(ld);
 	new = 1;
 	w = 0;
-	filesz = 0;
-	memsz = 0;
+	off = filesz = memsz = 0;
 	flags = PF_R;
-	off = 0;
 	first = 1;
+
+	tls = 0;
+	tls_off = tls_addr = tls_filesz = tls_memsz = tls_align = 0;
+	tls_flags = PF_R;	/* TLS segment is a read-only image */
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
@@ -634,6 +638,22 @@ _create_phdr(struct ld *ld)
 			new = 1;
 			continue;
 		}
+
+		if ((os->os_flags & SHF_TLS) != 0) {
+			if (tls < 0)
+				ld_warn(ld, "can not have multiple TLS "
+				    "segments");
+			else {
+				if (tls == 0) {
+					tls = 1;
+					tls_addr = os->os_addr;
+					tls_off = os->os_off;
+				}
+				if (os->os_align > tls_align)
+					tls_align = os->os_align;
+			}
+		} else if (tls > 0)
+			tls = -1;
 
 		if ((os->os_flags & SHF_WRITE) != w || new) {
 			new = 0;
@@ -658,8 +678,14 @@ _create_phdr(struct ld *ld)
 		}
 
 		memsz = os->os_addr + os->os_size - addr;
-		if (os->os_type != SHT_NOBITS)
+		if (tls > 0)
+			tls_memsz = memsz;
+
+		if (os->os_type != SHT_NOBITS) {
 			filesz = memsz;
+			if (tls > 0)
+				tls_filesz = tls_memsz;
+		}
 
 		if (os->os_flags & SHF_WRITE)
 			flags |= PF_W;
@@ -694,6 +720,16 @@ _create_phdr(struct ld *ld)
 			    os->os_size, os->os_size, PF_R, os->os_align);
 			break;
 		}
+	}
+
+	/*
+	 * Create PT_TLS segment.
+	 */
+
+	if (tls != 0) {
+		i++;
+		_WRITE_PHDR(PT_TLS, tls_off, tls_addr, tls_filesz, tls_memsz,
+		    tls_flags, tls_align);
 	}
 
 	/*
