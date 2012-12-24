@@ -71,10 +71,14 @@ static enum ld_tls_relax _tls_check_relax(struct ld *ld,
 static uint64_t _got_offset(struct ld *ld, struct ld_symbol *lsb);
 static int _tls_verify_gd(uint8_t *buf, uint64_t off);
 static int _tls_verify_ld(uint8_t *buf, uint64_t off);
-static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
-    struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf);
-static void _tls_relax_ld_to_le(struct ld *ld, struct ld_reloc_entry *lre,
-    void *buf);
+static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_state *ls,
+    struct ld_output *lo,struct ld_reloc_entry *lre, uint64_t p, uint64_t g,
+    uint8_t *buf);
+static void _tls_relax_gd_to_le(struct ld *ld, struct ld_state *ls,
+    struct ld_output *lo, struct ld_reloc_entry *lre, struct ld_symbol *lsb,
+    uint8_t *buf);
+static void _tls_relax_ld_to_le(struct ld *ld, struct ld_state *ls,
+    struct ld_reloc_entry *lre, uint8_t *buf);
 static int32_t _tls_dtpoff(struct ld_output *lo, struct ld_symbol *lsb);
 static int32_t _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb);
 
@@ -361,7 +365,7 @@ _finalize_reloc(struct ld *ld, struct ld_input_section *tis,
 	case R_X86_64_DTPMOD64:
 		/*
 		 * Relocation R_X86_64_DTPMOD64 generated for local dynamic
-		 * TLS model should not assoicate with a symbol. 
+		 * TLS model should not assoicate with a symbol.
 		 */
 		if (lre->lre_type == R_X86_64_DTPMOD64 &&
 		    lsb->lsb_tls_ld)
@@ -814,6 +818,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	int32_t s32;
 	enum ld_tls_relax tr;
 
+	ls = &ld->ld_state;
+
 	lo = ld->ld_output;
 	assert(lo != NULL);
 
@@ -877,10 +883,10 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			break;
 		case TLS_RELAX_INIT_EXEC:
 			g = _got_offset(ld, lsb);
-			_tls_relax_gd_to_ie(ld, lo, lre, p, g, buf);
+			_tls_relax_gd_to_ie(ld, ls, lo, lre, p, g, buf);
 			break;
 		case TLS_RELAX_LOCAL_EXEC:
-			/* TODO. */
+			_tls_relax_gd_to_le(ld, ls, lo, lre, lsb, buf);
 			break;
 		default:
 			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
@@ -898,9 +904,7 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 			WRITE_32(buf + lre->lre_offset, s32);
 			break;
 		case TLS_RELAX_LOCAL_EXEC:
-			_tls_relax_ld_to_le(ld, lre, buf);
-			/* Ignore the next PLT32 for _tls_get_addr */
-			ls->ls_ignore_next_plt = 1;
+			_tls_relax_ld_to_le(ld, ls, lre, buf);
 			break;
 		default:
 			ld_fatal(ld, "Internal: invalid TLS relaxation %d",
@@ -1038,7 +1042,7 @@ _tls_verify_ld(uint8_t *buf, uint64_t off)
 }
 
 static void
-_tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
+_tls_relax_gd_to_ie(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf)
 {
 	uint8_t ie[] = "\x64\x48\x8b\x04\x25\x00\x00\x00\x00"
@@ -1047,25 +1051,63 @@ _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
 
 	assert(lre->lre_type == R_X86_64_TLSGD);
 
-	if (!_tls_verify_gd(buf, lre->lre_offset))
+	if (!_tls_verify_gd(buf, lre->lre_offset - 4))
 		ld_warn(ld, "unsupported TLS global dynamic model code");
 
 	/* Rewrite Global Dynamic to Initial Exec model. */
-	memcpy((uint8_t *) buf + lre->lre_offset, ie, sizeof(ie) - 1);
+	memcpy((uint8_t *) buf + lre->lre_offset - 4, ie, sizeof(ie) - 1);
 
 	/*
-	 * R_X86_64_TLSGD relocation is applied at gd[5]. After it's relaxed
-	 * to Initial Dynamic, the R_X86_64_GOTTPOFF relocation is applied at
-	 * ie[12], thus the offset is +7 bytes. The addend should remain the
-	 * same since instruction "leaq x@tlsgd(%rip), %rdi" and
+	 * R_X86_64_TLSGD relocation is applied at gd[4]. After it's relaxed
+	 * to Initial Exec model, the resulting R_X86_64_GOTTPOFF relocation
+	 * should be applied at ie[12]. The addend should remain the same
+	 * since instruction "leaq x@tlsgd(%rip), %rdi" and
 	 * "addq x@gottpoff(%rip), %rax" has the same length.
 	 */
 	s32 = g + lre->lre_addend - p;
-	WRITE_32(buf + lre->lre_offset + 7, s32);
+	WRITE_32(buf + lre->lre_offset + 8, s32);
+
+	/* Ignore the next R_X86_64_PLT32 relocation for _tls_get_addr. */
+	ls->ls_ignore_next_plt = 1;
 }
 
 static void
-_tls_relax_ld_to_le(struct ld *ld, struct ld_reloc_entry *lre, void *buf)
+_tls_relax_gd_to_le(struct ld *ld, struct ld_state *ls, struct ld_output *lo,
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
+{
+	/*
+	 * Local Exec model:
+	 *
+	 * 0x00 movq %fs:0, %rax
+	 * 0x09 leaq x@tpoff(%rax), %rax
+	 */
+	uint8_t le[] = "\x64\x48\x8b\x04\x25\x00\x00\x00\x00"
+	    "\x48\x8d\x80\x00\x00\x00\x00";
+	int32_t s32;
+
+	ls = &ld->ld_state;
+
+	if (!_tls_verify_gd(buf, lre->lre_offset - 4))
+		ld_warn(ld, "unsupported TLS global dynamic model code");
+
+	/* Rewrite Global Dynamic to Local Exec model. */
+	memcpy((uint8_t *) buf + lre->lre_offset - 4, le, sizeof(le) - 1);
+
+	/*
+	 * R_X86_64_TLSGD relocation is applied at gd[4]. After it's relaxed
+	 * to Local Exec model, the resulting R_X86_64_TPOFF32 should be
+	 * applied at le[12].
+	 */
+	s32 = _tls_tpoff(lo, lsb);
+	WRITE_32(buf + lre->lre_offset + 8, s32);
+
+	/* Ignore the next R_X86_64_PLT32 relocation for _tls_get_addr. */
+	ls->ls_ignore_next_plt = 1;
+}
+
+static void
+_tls_relax_ld_to_le(struct ld *ld, struct ld_state *ls,
+    struct ld_reloc_entry *lre, uint8_t *buf)
 {
 	/*
 	 * Local Exec model: (with padding)
@@ -1078,11 +1120,16 @@ _tls_relax_ld_to_le(struct ld *ld, struct ld_reloc_entry *lre, void *buf)
 
 	assert(lre->lre_type == R_X86_64_TLSLD);
 
+	ls = &ld->ld_state;
+
 	if (!_tls_verify_ld(buf, lre->lre_offset - 3))
 		ld_warn(ld, "unsupported TLS local dynamic model code");
 
 	/* Rewrite Local Dynamic to Local Exec model. */
-	memcpy((uint8_t *) buf + lre->lre_offset - 3, le_p, sizeof(le_p) - 1);
+	memcpy(buf + lre->lre_offset - 3, le_p, sizeof(le_p) - 1);
+
+	/* Ignore the next R_X86_64_PLT32 relocation for _tls_get_addr. */
+	ls->ls_ignore_next_plt = 1;
 }
 
 static void
