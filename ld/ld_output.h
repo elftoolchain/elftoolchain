@@ -108,6 +108,9 @@ struct ld_output {
 	unsigned lo_verneed_num;	 /* num of verneed entries */
 	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
 	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */
+	uint64_t lo_tls_size;		 /* TLS segment size */
+	uint64_t lo_tls_align;		 /* TLS segment align */
+	uint64_t lo_tls_addr;		 /* TLS segment VMA */
 	UT_array *lo_dso_nameindex;	 /* array of DSO name indices */
 	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */

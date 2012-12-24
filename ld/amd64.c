@@ -71,6 +71,7 @@ static enum ld_tls_relax _tls_check_relax(struct ld *ld,
 static int _tls_verify_gd(uint8_t *buf, uint64_t off);
 static void _tls_relax_gd_to_ie(struct ld *ld, struct ld_output *lo,
     struct ld_reloc_entry *lre, uint64_t p, uint64_t g, uint8_t *buf);
+static int32_t _tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb);
 
 static uint64_t
 _get_max_page_size(struct ld *ld)
@@ -886,6 +887,8 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 		break;
 
 	case R_X86_64_TPOFF32:	/* Local Exec */
+		s32 = _tls_tpoff(lo, lsb);
+		WRITE_32(buf + lre->lre_offset, s32);
 		break;
 
 	default:
@@ -912,6 +915,16 @@ _tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
 	/* TODO. */
 
 	return (TLS_RELAX_NONE);
+}
+
+static int32_t
+_tls_tpoff(struct ld_output *lo, struct ld_symbol *lsb)
+{
+	int32_t tls_off;
+
+	tls_off = -roundup(lo->lo_tls_size, lo->lo_tls_align);
+
+	return (tls_off + (lsb->lsb_value - lo->lo_tls_addr));
 }
 
 static int

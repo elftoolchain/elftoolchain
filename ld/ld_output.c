@@ -649,9 +649,11 @@ _create_phdr(struct ld *ld)
 					tls_addr = os->os_addr;
 					tls_off = os->os_off;
 				}
+
 				if (os->os_align > tls_align)
 					tls_align = os->os_align;
 			}
+
 		} else if (tls > 0)
 			tls = -1;
 
@@ -728,6 +730,9 @@ _create_phdr(struct ld *ld)
 
 	if (tls != 0) {
 		i++;
+		lo->lo_tls_size = tls_memsz;
+		lo->lo_tls_align = tls_align;
+		lo->lo_tls_addr = tls_addr;
 		_WRITE_PHDR(PT_TLS, tls_off, tls_addr, tls_filesz, tls_memsz,
 		    tls_flags, tls_align);
 	}
