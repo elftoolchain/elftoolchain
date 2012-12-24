@@ -66,7 +66,6 @@ SECTIONS {
 	.gcc_except_table   : { *(.gcc_except_table) }
 	. = ALIGN (CONSTANT(MAXPAGESIZE)) - ((CONSTANT(MAXPAGESIZE) - .) & (CONSTANT(MAXPAGESIZE) - 1));
 	. = DATA_SEGMENT_ALIGN (CONSTANT(MAXPAGESIZE), CONSTANT(COMMONPAGESIZE));
-	. = ALIGN(64 / 8);
 	.tdata		: { *(.tdata .tdata.* .gnu.linkonce.td.*) }
 	.tbss		: { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
 	PROVIDE(__preinit_array_start = .);
