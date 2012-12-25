@@ -66,8 +66,8 @@ Function
 creates a new, empty string table.
 The argument
 .Ar sizehint
-provides a hint about the number of the maximum number of strings that
-will be held in the string table.
+provides a hint about the expected number of bytes of string data in
+the table.
 If the argument
 .Ar sizehint
 is zero, an implementation-defined default will be used instead.
@@ -88,11 +88,11 @@ This section must be of type
 .Dv SHT_STRTAB .
 The argument
 .Ar sizehint
-provides a hint about the maximum number of strings that will be held
-in the string table.
-If the value of the
+provides a hint about expected number of bytes of string data in the
+table.
+If the value of
 .Ar sizehint
-argument is zero, an implementation-default will be used instead.
+is zero, an implementation-default will be used instead.
 .Pp
 Function
 .Fn elftc_string_table_image
