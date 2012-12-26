@@ -43,7 +43,16 @@ MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 	elftc_string_table_create.3 elftc_string_table_destroy.3 \
 	elftc_string_table_create.3 elftc_string_table_image.3 \
 	elftc_string_table_create.3 elftc_string_table_insert.3 \
-	elftc_string_table_create.3 elftc_string_table_lookup.3
+	elftc_string_table_create.3 elftc_string_table_lookup.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_create_nested.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_delete_name.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_delete_entry.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_destroy.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_from_section.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_insert.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_iterate.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_lookup.3 \
+	elftc_symbol_table_create.3 elftc_symbol_table_to_image.3
 
 .if	!make(clean) && !make(clobber)
 .BEGIN:	.SILENT
