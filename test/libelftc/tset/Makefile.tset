@@ -1,0 +1,8 @@
+# $Id$
+
+# All the test cases in this test suite need -lelftc.
+DPADD+=		${LIBELFTC}
+LDADD+=		-lelftc
+
+# Test cases do not supply manual pages.
+NOMAN=	noman
