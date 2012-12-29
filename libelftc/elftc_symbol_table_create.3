@@ -29,6 +29,7 @@
 .Sh NAME
 .Nm elftc_elf_symbol_table_from_section ,
 .Nm elftc_elf_symbol_table_to_image ,
+.Nm elftc_symbol_table_count ,
 .Nm elftc_symbol_table_create ,
 .Nm elftc_symbol_table_create_nested ,
 .Nm elftc_symbol_table_delete_name ,
@@ -52,6 +53,8 @@ typedef struct _Elftc_Symbol {
 	uintptr_t	sym_value;
 } Elftc_Symbol;
 .Ed
+.Ft size_t
+.Fn elftc_symbol_table_count "Elftc_Symbol_Table *table"
 .Ft "Elftc_Symbol_Table *"
 .Fo elftc_symbol_table_create
 .Fa "size_t entrysize"
@@ -148,6 +151,10 @@ Regular symbol tables use symbols that are subtypes of
 as described in the section
 .Sx "Structure of a Symbol Table Entry"
 below.
+.Pp
+Function
+.Fn elftc_symbol_table_count
+returns the number of entries currently in the symbol table.
 .Pp
 Function
 .Fn elftc_symbol_table_create
@@ -471,6 +478,11 @@ is to be freed by the application using
 .Xr free 3 .
 .El
 .Sh RETURN VALUES
+Function
+.Fn elftc_symbol_table_count
+returns a count of the number of symbol table entries as an unsigned
+value.
+.Pp
 Functions
 .Fn elftc_symbol_table_create ,
 .Fn elftc_symbol_table_create_nested
@@ -522,4 +534,4 @@ structures on success, or returns NULL in case of an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr elf 3 ,
-.Xr elftc 3 ,
+.Xr elftc 3
