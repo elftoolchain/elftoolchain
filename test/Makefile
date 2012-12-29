@@ -10,6 +10,7 @@ SUBDIR+=	tet
 
 # Build tests for libraries.
 SUBDIR+=	libelf
+SUBDIR+=	libelftc
 SUBDIR+=	libdwarf
 
 # Build tests for tools.
