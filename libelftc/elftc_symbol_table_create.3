@@ -23,12 +23,11 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 25, 2012
+.Dd December 29, 2012
 .Os
 .Dt ELFTC_SYMBOL_TABLE_CREATE 3
 .Sh NAME
 .Nm elftc_elf_symbol_table_from_section ,
-.Nm elftc_elf_symbol_table_to_image ,
 .Nm elftc_symbol_table_count ,
 .Nm elftc_symbol_table_create ,
 .Nm elftc_symbol_table_create_nested ,
@@ -39,6 +38,7 @@
 .Nm elftc_symbol_table_iterate ,
 .Nm elftc_symbol_table_lookup ,
 .Nm elftc_symbol_table_lookup_value ,
+.Nm elftc_symbol_table_replace ,
 .Nm elftc_symbol_table_sort ,
 .Nm elftc_symbol_table_step
 .Nd symbol table management routines
@@ -101,6 +101,12 @@ typedef struct _Elftc_Symbol {
 .Fa "int searchflags"
 .Fc
 .Ft int
+.Fo elftc_symbol_table_replace
+.Fa "Elftc_Symbol_Table *table"
+.Fa "Elftc_Symbol *sym1"
+.Fa "Elftc_Symbol *sym2"
+.Fc
+.Ft int
 .Fo elftc_symbol_table_sort
 .Fa "Elftc_Symbol_Table *table"
 .Fa "int (*cmpfn)(Elftc_Symbol *s1, Elftc_Symbol *s2)"
@@ -123,28 +129,26 @@ typedef struct _Elftc_Elf_Symbol {
 .Fa "Elf_Scn *symscn"
 .Fa "Elf_Scn *strscn"
 .Fc
-.Ft "Gelf_Sym *"
-.Fo elftc_elf_symbol_table_to_image
-.Fa "Elftc_Symbol_Table *table"
-.Fa "size_t *nentries"
-.Fa "Elftc_String_Table **strtab"
-.Fc
 .Sh DESCRIPTION
 This manual page documents convenience routines for handling symbol
 tables.
 Two flavors of symbol tables are supported:
-.Bl -bullet
+.Bl -bullet -compact
 .It
 .Dq Regular
 symbol tables supporting insertion, deletion and lookup of entries by
 name or by value, sorting of entries, and stepping through entries in
-sorted order.
+the table's current traversal order.
 .It
 .Dq ELF-centric
 symbol tables support additional operations for conversions to and
 from the symbol table format understood by
 .Lb libelf .
 .El
+The default traversal order for a symbol table is the order in which
+entries were inserted into it.
+This traversal order may be changed using function
+.Fn elftc_symbol_table_sort .
 .Ss Operations on Regular Symbol Tables
 Regular symbol tables use symbols that are subtypes of
 .Vt Elftc_Symbol ,
@@ -278,6 +282,11 @@ returns the symbol entry that has a
 field that is closest to the value specified in argument
 .Ar value .
 The argument
+.Ar table
+should point to a symbol table, that has been sorted
+by a prior call to
+.Fn elftc_symbol_table_sort .
+The argument
 .Ar searchflags
 can be a combination of the following flags:
 .Bl -tag -width indent -compact -offset indent
@@ -297,6 +306,18 @@ and
 are specified, then this function will return the symbol that is
 closest to the argument
 .Ar value .
+.Pp
+Function
+.Fn elftc_symbol_table_replace
+moves the symbol table entry pointed to by argument
+.Ar sym2
+into the traversal position for the entry pointed to by
+.Ar sym1 ,
+and implicitly deletes the entry pointed to by argument
+.Ar sym1 .
+Argument
+.Ar table
+should point to a valid symbol table.
 .Pp
 Function
 .Fn elftc_symbol_table_sort
@@ -326,9 +347,7 @@ Function
 is used to step to the next symbol in a sorted symbol table.
 Argument
 .Ar table
-should point to a symbol table which has been sorted by a
-prior call to
-.Fn elftc_symbol_table_sort .
+should point to a symbol table.
 The argument
 .Ar cursym
 specifies the current symbol.
@@ -339,19 +358,19 @@ specifies the direction to step:
 .It Dv ELFTC_STEP_NEXT
 Return the symbol which follows the argument
 .Ar cursym
-in the current sort order.
+in the current traversal order.
 If argument
 .Ar cursym
 is NULL, return the first symbol in the current
-sort order.
+traversal order.
 .It Dv ELFTC_STEP_PREVIOUS
 Return the symbol which precedes the argument
 .Ar cursym
-in the current sort order.
+in the current traversal order.
 If argument
 .Ar cursym
 is NULL, return the last symbol in the current
-sort order.
+traversal order.
 .El
 .Ss Operations on ELF-centric symbol tables
 ELF-centric symbol tables use symbols that are subtypes of
@@ -379,21 +398,6 @@ should reference an ELF section of type
 .Dv SHT_STRTAB
 containing the string table associated wit section
 .Ar symscn .
-.Pp
-Function
-.Fn elftc_elf_symbol_table_to_image
-returns the contents of a symbol table as an array of
-.Vt Gelf_Sym
-elements.
-Argument
-.Ar table
-specifies the symbol table to be processed.
-This table should contain symbol entries that are a sub-type of
-.Vt Elftc_Elf_Symbol .
-Argument
-.Ar nentries
-points to location that will be updated with the number of entries
-being returned.
 .Ss Structure of a Symbol Table Entry
 The symbol tables managed by
 .Lb libelftc
@@ -468,15 +472,9 @@ do not recurse into parent symbol tables.
 .Ss Memory Management
 The
 .Lb libelftc
-manages its memory allocations except for the exceptions noted
-below:
-.Bl -bullet
-.It
-The return value of function
-.Fn elftc_elf_symbol_table_to_image
-is to be freed by the application using
-.Xr free 3 .
-.El
+manages its memory allocations.
+Applications should not free the pointers returned by the
+API documented in this manual page.
 .Sh RETURN VALUES
 Function
 .Fn elftc_symbol_table_count
@@ -496,6 +494,7 @@ Functions
 .Fn elftc_symbol_table_delete_name ,
 .Fn elftc_symbol_table_delete_name
 .Fn elftc_symbol_table_destroy ,
+.Fn elftc_symbol_table_replace
 and
 .Fn elftc_symbol_table_sort
 return a non-zero value on success, or return zero in case of an error.
@@ -514,9 +513,8 @@ The function
 return a pointer to a structure that is a subtype of
 .Vt Elftc_Symbol
 on success.
-The function returns NULL if a sort order has not been defined for the
-symbol table, or if there are no more elements in the specified step
-direction.
+The function returns NULL if there are no more elements in the
+specified traversal direction.
 .Pp
 The function
 .Fn elftc_symbol_table_iterate
@@ -525,12 +523,6 @@ returns
 if the symbol table was successfully traversed, or
 .Dv ELFTC_ITERATE_ABORT
 in case the iteration function aborted the traversal.
-.Pp
-Function
-.Fn elftc_symbol_table_to_image
-returns a pointer a memory area containing an array of
-.Vt Gelf_Sym
-structures on success, or returns NULL in case of an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr elf 3 ,
