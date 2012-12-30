@@ -58,6 +58,7 @@ static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
 static void _calc_reloc_section_offset(struct ld *ld, struct ld_output *lo);
+static void _calc_shdr_offset(struct ld *ld);
 static int _check_filename_constraint(struct ld_input *li,
     struct ld_script_sections_output_input *ldoi);
 static void _insert_input_to_output(struct ld *ld, struct ld_output *lo,
@@ -127,8 +128,18 @@ ld_layout_sections(struct ld *ld)
 	/* Initialise sections for dyanmically linked output object. */
 	ld_dynamic_create(ld);
 
+	/* Create ELF sections. */
+	ld_output_create_elf_sections(ld);
+
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
+
+	/* Calculate symbol values and indices of the output object. */
+	ld_symbols_update(ld);
+
+	/* Print out link map if requested. */
+	if (ld->ld_print_linkmap)
+		ld_layout_print_linkmap(ld);
 }
 
 void
@@ -1005,7 +1016,14 @@ _calc_offset(struct ld *ld)
 		}
 	}
 
-	/* Lay out relocation sections after normal input sections. */
+	/* Lay out section header table after normal input sections. */
+	_calc_shdr_offset(ld);
+
+	/* Create .shstrtab section and put it after section header table. */
+	ld_output_create_string_table_section(ld, ".shstrtab",
+	    ld->ld_shstrtab, NULL);
+
+	/* Lay out relocation sections. */
 	if (ld->ld_reloc || ld->ld_emit_reloc)
 		_calc_reloc_section_offset(ld, lo);
 }
@@ -1164,4 +1182,35 @@ _calc_reloc_section_offset(struct ld *ld, struct ld_output *lo)
 			ls->ls_offset = _os->os_off + _os->os_size;
 		}
 	}
+}
+
+static void
+_calc_shdr_offset(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	uint64_t shoff;
+	int n;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	if (lo->lo_ec == ELFCLASS32)
+		shoff = roundup(ls->ls_offset, 4);
+	else
+		shoff = roundup(ls->ls_offset, 8);
+
+	ls->ls_offset = shoff;
+
+	n = 0;
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+		if (os->os_scn != NULL)
+			n++;
+	}
+
+	/* TODO: n + 2 if ld(1) will not create symbol table. */
+	ls->ls_offset += gelf_fsize(lo->lo_elf, ELF_T_SHDR, n + 4, EV_CURRENT);
+
+	lo->lo_shoff = shoff;
 }

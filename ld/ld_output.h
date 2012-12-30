@@ -112,6 +112,7 @@ struct ld_output {
 	unsigned lo_verneed_num;	 /* num of verneed entries */
 	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
 	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */
+	uint64_t lo_shoff;		 /* section header table offset */
 	uint64_t lo_tls_size;		 /* TLS segment size */
 	uint64_t lo_tls_align;		 /* TLS segment align */
 	uint64_t lo_tls_addr;		 /* TLS segment VMA */
@@ -151,6 +152,9 @@ struct ld_output_element *ld_output_create_element(struct ld *,
 struct ld_output_element *ld_output_create_section_element(struct ld *,
     struct ld_output_section *, enum ld_output_element_type, void *,
     struct ld_output_element *);
+void	ld_output_create_elf_sections(struct ld *);
+void	ld_output_create_string_table_section(struct ld *, const char *,
+    struct ld_strtab *, Elf_Scn *);
 void	ld_output_format(struct ld *, char *, char *, char *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);
