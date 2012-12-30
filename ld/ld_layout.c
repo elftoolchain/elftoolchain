@@ -57,14 +57,14 @@ struct ld_wildcard_match {
 static void _calc_offset(struct ld *ld);
 static void _calc_output_section_offset(struct ld *ld,
     struct ld_output_section *os);
+static void _calc_reloc_section_offset(struct ld *ld, struct ld_output *lo);
 static int _check_filename_constraint(struct ld_input *li,
     struct ld_script_sections_output_input *ldoi);
-static void _insert_input_to_output(struct ld_output *lo,
+static void _insert_input_to_output(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os, struct ld_input_section *is,
     struct ld_input_section_head *islist);
 static void _layout_input_sections(struct ld *ld, struct ld_input *li);
 static void _layout_orphan_section(struct ld *ld, struct ld_input_section *is);
-static void _layout_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _layout_sections(struct ld *ld, struct ld_script_sections *ldss);
 static void _parse_output_section_descriptor(struct ld *ld,
     struct ld_output_section *os);
@@ -129,13 +129,6 @@ ld_layout_sections(struct ld *ld)
 
 	/* Calculate section offsets of the output object. */
 	_calc_offset(ld);
-
-	/*
-	 * Layout relocations section if the linker is performing an
-	 * relocatable link or option -emit-relocs is specified.
-	 */
-	if (ld->ld_reloc || ld->ld_emit_reloc)
-		_layout_reloc_sections(ld, lo);
 }
 
 void
@@ -699,7 +692,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 			 * this section to the input section list of the
 			 * output section element.
 			 */
-			_insert_input_to_output(lo, wm->wm_os, is,
+			_insert_input_to_output(ld, lo, wm->wm_os, is,
 			    wm->wm_islist);
 			break;
 
@@ -756,7 +749,7 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 				}
 
 				/* Match! Insert to the input section list. */
-				_insert_input_to_output(lo, os, is,
+				_insert_input_to_output(ld, lo, os, is,
 				    oe->oe_islist);
 				goto next_input_section;
 			}
@@ -808,7 +801,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 		oe = STAILQ_FIRST(&os->os_e);
 		assert(oe != NULL &&
 		    oe->oe_type == OET_INPUT_SECTION_LIST);
-		_insert_input_to_output(lo, os, is, oe->oe_islist);
+		_insert_input_to_output(ld, lo, os, is, oe->oe_islist);
 		return;
 	}
 
@@ -826,7 +819,7 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 	oe = ld_output_create_section_element(ld, _os, OET_INPUT_SECTION_LIST,
 	    NULL, NULL);
 	oe->oe_islist = islist;
-	_insert_input_to_output(lo, _os, is, oe->oe_islist);
+	_insert_input_to_output(ld, lo, _os, is, oe->oe_islist);
 }
 
 struct ld_output_section *
@@ -862,9 +855,13 @@ ld_layout_insert_output_section(struct ld *ld, const char *name,
 }
 
 static void
-_insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
-    struct ld_input_section *is, struct ld_input_section_head *islist)
+_insert_input_to_output(struct ld *ld, struct ld_output *lo,
+    struct ld_output_section *os, struct ld_input_section *is,
+    struct ld_input_section_head *islist)
 {
+	struct ld_output_section *_os;
+	char *name;
+	int len;
 
 	/*
 	 * TODO: Since we now only support "-static" linking, assume all
@@ -905,6 +902,54 @@ _insert_input_to_output(struct ld_output *lo, struct ld_output_section *os,
 	is->is_output = os;
 
 	STAILQ_INSERT_TAIL(islist, is, is_next);
+
+	/*
+	 * Lay out relocation section for this input section if the linker
+	 * creates relocatable output object or if -emit-relocs option is
+	 * sepcified.
+	 */
+	if ((ld->ld_reloc || ld->ld_emit_reloc) && is->is_ris != NULL &&
+	    is->is_ris->is_num_reloc > 0) {
+		if (os->os_r == NULL) {
+			/*
+			 * Create relocation section for output sections.
+			 */
+			if (ld->ld_arch->reloc_is_rela) {
+				len = strlen(os->os_name) + 6;
+				if ((name = malloc(len)) == NULL)
+					ld_fatal_std(ld, "malloc");
+				snprintf(name, len, ".rela%s", os->os_name);
+			} else {
+				len = strlen(os->os_name) + 5;
+				if ((name = malloc(len)) == NULL)
+					ld_fatal_std(ld, "malloc");
+				snprintf(name, len, ".rel%s", os->os_name);
+			}
+			_os = ld_output_alloc_section(ld, name, NULL, os);
+			_os->os_rel = 1;
+
+			/*
+			 * Fill in entry size, alignment and type for output
+			 * relocation sections.
+			 */
+			_os->os_entsize = ld->ld_arch->reloc_entsize;
+			_os->os_type = ld->ld_arch->reloc_is_rela ? SHT_RELA :
+			    SHT_REL;
+			_os->os_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
+
+			/* Setup sh_link and sh_info. */
+			if ((_os->os_link_name = strdup(".symtab")) == NULL)
+				ld_fatal_std(ld, "strdup");
+			_os->os_info = os;
+
+			/* Relocation sections are not allocated in memory. */
+			_os->os_addr = 0;
+		} else
+			_os = os->os_r;
+
+		_os->os_size += is->is_ris->is_num_reloc * _os->os_entsize;
+	}
+
 }
 
 static void
@@ -959,6 +1004,10 @@ _calc_offset(struct ld *ld)
 			break;
 		}
 	}
+
+	/* Lay out relocation sections after normal input sections. */
+	if (ld->ld_reloc || ld->ld_emit_reloc)
+		_calc_reloc_section_offset(ld, lo);
 }
 
 static void
@@ -972,6 +1021,10 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	struct ld_symbol_table *sy;
 	struct ld_strtab *st;
 	uint64_t addr;
+
+	/* Relocation sections are handled separately. */
+	if (os->os_rel)
+		return;
 
 	ls = &ld->ld_state;
 
@@ -1097,75 +1150,18 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 }
 
 static void
-_layout_reloc_sections(struct ld *ld, struct ld_output *lo)
+_calc_reloc_section_offset(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_state *ls;
 	struct ld_output_section *os, *_os;
-	struct ld_output_element *oe;
-	struct ld_input_section_head *islist;
-	struct ld_input_section *is;
-	char *name;
-	int len, num_reloc;
 
 	ls = &ld->ld_state;
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
-
-		/*
-		 * Join together input relocation sections for each
-		 * output section.
-		 */
-		num_reloc = 0;
-		STAILQ_FOREACH(oe, &os->os_e, oe_next) {
-			if (oe->oe_type != OET_INPUT_SECTION_LIST)
-				continue;
-			islist = oe->oe_islist;
-			STAILQ_FOREACH(is, islist, is_next) {
-				if (is->is_ris == NULL)
-					continue;
-				num_reloc += is->is_ris->is_num_reloc;
-			}
+		if (os->os_r != NULL) {
+			_os = os->os_r;
+			_os->os_off = roundup(ls->ls_offset, _os->os_align);
+			ls->ls_offset = _os->os_off + _os->os_size;
 		}
-
-		if (num_reloc == 0)
-			continue;
-
-		/*
-		 * Create relocation section for output sections.
-		 */
-		if (ld->ld_arch->reloc_is_rela) {
-			len = strlen(os->os_name) + 6;
-			if ((name = malloc(len)) == NULL)
-				ld_fatal_std(ld, "malloc");
-			snprintf(name, len, ".rela%s", os->os_name);
-		} else {
-			len = strlen(os->os_name) + 5;
-			if ((name = malloc(len)) == NULL)
-				ld_fatal_std(ld, "malloc");
-			snprintf(name, len, ".rel%s", os->os_name);
-		}
-		_os = ld_output_alloc_section(ld, name, NULL, os);
-		_os->os_rel = 1;
-
-		/*
-		 * Fill in size, alignment and type for output relocation
-		 * sections.
-		 */
-		_os->os_entsize = ld->ld_arch->reloc_entsize;
-		_os->os_type = ld->ld_arch->reloc_is_rela ? SHT_RELA : SHT_REL;
-		_os->os_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
-		_os->os_size = _os->os_entsize * num_reloc;
-
-		/* Setup sh_link and sh_info. */
-		if ((_os->os_link_name = strdup(".symtab")) == NULL)
-			ld_fatal_std(ld, "strdup");
-		_os->os_info = os;
-
-		/* Relocation sections are not allocated in memory. */
-		_os->os_addr = 0;
-
-		/* Lay out relocation sections after normal input sections. */
-		_os->os_off = roundup(ls->ls_offset, _os->os_align);
-		ls->ls_offset = _os->os_off + _os->os_size;
 	}
 }
