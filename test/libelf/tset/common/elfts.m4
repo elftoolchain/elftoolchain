@@ -78,8 +78,3 @@ define(`TP_SET_VERSION',`do {
 	} while (0)')
 
 divert(_DIVNUM)popdef(`_DIVNUM')
-
-define(`MAKE_EM',
-    `ifelse($1,32,
-        ifelse($2,msb,EM_SPARC,EM_386),
-        ifelse($2,msb,EM_SPARCV9,EM_X86_64))')

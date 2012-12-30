@@ -43,6 +43,10 @@
 
 include(`elfts.m4')
 define(`TS_OFFSET_SHDR',512)
+define(`MAKE_EM',
+    `ifelse($1,32,
+        ifelse($2,msb,EM_SPARC,EM_386),
+        ifelse($2,msb,EM_SPARCV9,EM_X86_64))')
 
 /*
  * Tests for the `elf_update' API.
