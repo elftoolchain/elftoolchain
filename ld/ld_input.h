@@ -27,7 +27,6 @@
  */
 
 struct ld_reloc_entry_head;
-struct ld_reloc_buffer;
 
 struct ld_input_section {
 	char *is_name;			/* section name */
@@ -52,6 +51,7 @@ struct ld_input_section {
 	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */
 	uint64_t is_num_reloc;		/* number of reloc entries */
 	struct ld_input_section *is_tis; /* relocation target */
+	struct ld_input_section *is_ris; /* relocation section */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	UT_hash_handle hh;		/* hash handle (internal section) */
 };

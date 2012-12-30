@@ -93,9 +93,10 @@ ld_reloc_load(struct ld *ld)
 			 * Find out the section to which this relocation
 			 * section applies.
 			 */
-			if (is->is_info < li->li_shnum)
+			if (is->is_info < li->li_shnum) {
 				is->is_tis = &li->li_is[is->is_info];
-			else {
+				li->li_is[is->is_info].is_ris = is;
+			} else {
 				ld_warn(ld, "%s(%s): invalid relocation"
 				    " section", li->li_name, is->is_name);
 				continue;
@@ -219,7 +220,7 @@ ld_reloc_serialize(struct ld *ld, struct ld_output_section *os, size_t *sz)
 				sym = lsb->lsb_index;
 		} else
 			sym = 0;
-		
+
 		if (is_64 && is_rela) {
 			ra64 = (Elf64_Rela *) (uintptr_t) p;
 			ra64->r_offset = lre->lre_offset;
@@ -373,6 +374,7 @@ ld_reloc_join(struct ld *ld, struct ld_output_section *os,
 
 	is->is_num_reloc = 0;
 	free(is->is_reloc);
+	is->is_reloc = NULL;
 }
 
 void
@@ -517,14 +519,18 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		return;
 
 	li = is->is_input;
-	ris = NULL;
-	for (i = 0; (uint64_t) i < li->li_shnum; i++) {
-		if (li->li_is[i].is_type != SHT_REL &&
-		    li->li_is[i].is_type != SHT_RELA)
-			continue;
-		if (li->li_is[i].is_info == is->is_index) {
-			ris = &li->li_is[i];
-			break;
+	if (is->is_ris != NULL)
+		ris = is->is_ris;
+	else {
+		ris = NULL;
+		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+			if (li->li_is[i].is_type != SHT_REL &&
+			    li->li_is[i].is_type != SHT_RELA)
+				continue;
+			if (li->li_is[i].is_info == is->is_index) {
+				ris = &li->li_is[i];
+				break;
+			}
 		}
 	}
 

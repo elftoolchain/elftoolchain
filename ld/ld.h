@@ -126,7 +126,8 @@ struct ld {
 	unsigned char ld_stack_exec_set; /* stack executable override */
 	unsigned char ld_exec;		/* output normal executable */
 	unsigned char ld_pie;		/* position-independent executable */
-	unsigned char ld_dso;		/* otuput shared library */
+	unsigned char ld_dso;		/* output shared library */
+	unsigned char ld_reloc;		/* output relocatable object */
 	unsigned char ld_dynamic_link;	/* perform dynamic linking */
 	STAILQ_HEAD(ld_input_head, ld_input) ld_lilist; /* input object list */
 	TAILQ_HEAD(ld_file_head, ld_file) ld_lflist; /* input file list */

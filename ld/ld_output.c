@@ -50,6 +50,8 @@ static void _add_to_shstrtab(struct ld *ld, const char *name);
 static void _copy_and_reloc_input_sections(struct ld *ld);
 static Elf_Scn *_create_elf_scn(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os);
+static void _create_elf_section_header(struct ld *ld,
+    struct ld_output_section *os);
 static void _create_elf_section(struct ld *ld, struct ld_output_section *os);
 static void _create_elf_sections(struct ld *ld);
 static void _create_phdr(struct ld *ld);
@@ -59,7 +61,9 @@ static void _create_symbol_table(struct ld *ld);
 static uint64_t _find_entry_point(struct ld *ld);
 static uint64_t _insert_shdr(struct ld *ld);
 static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
-static void _join_and_finalize_reloc_sections(struct ld *ld,
+static void _join_and_finalize_dynamic_reloc_sections(struct ld *ld,
+    struct ld_output *lo);
+static void _join_and_finalize_normal_reloc_sections(struct ld *ld,
     struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
@@ -139,7 +143,7 @@ ld_output_create_section_element(struct ld *ld, struct ld_output_section *os,
 
 struct ld_output_section *
 ld_output_alloc_section(struct ld *ld, const char *name,
-    struct ld_output_section *after)
+    struct ld_output_section *after, struct ld_output_section *ros)
 {
 	struct ld_output *lo;
 	struct ld_output_section *os;
@@ -169,6 +173,9 @@ ld_output_alloc_section(struct ld *ld, const char *name,
 		    OET_OUTPUT_SECTION, os, after->os_pe);
 	}
 
+	if (ros != NULL)
+		ros->os_r = os;
+
 	return (os);
 }
 
@@ -190,6 +197,29 @@ _create_elf_scn(struct ld *ld, struct ld_output *lo,
 }
 
 static void
+_create_elf_section_header(struct ld *ld, struct ld_output_section *os)
+{
+	GElf_Shdr sh;
+
+	if (gelf_getshdr(os->os_scn, &sh) == NULL)
+		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
+
+	sh.sh_flags = os->os_flags;
+	sh.sh_addr = os->os_addr;
+	sh.sh_addralign = os->os_align;
+	sh.sh_offset = os->os_off;
+	sh.sh_size = os->os_size;
+	sh.sh_type = os->os_type;
+	sh.sh_entsize = os->os_entsize;
+	sh.sh_info = os->os_info_val;
+
+	_add_to_shstrtab(ld, os->os_name);
+
+	if (!gelf_update_shdr(os->os_scn, &sh))
+		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+}
+
+static void
 _create_elf_section(struct ld *ld, struct ld_output_section *os)
 {
 	struct ld_output *lo;
@@ -198,7 +228,6 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 	struct ld_input_section_head *islist;
 	Elf_Data *d;
 	Elf_Scn *scn;
-	GElf_Shdr sh;
 
 	lo = ld->ld_output;
 	assert(lo->lo_elf != NULL);
@@ -225,6 +254,16 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 				if (os->os_type != SHT_NOBITS &&
 				    !os->os_dynrel)
 					_alloc_input_section_data(ld, scn, is);
+			}
+			if ((ld->ld_reloc || ld->ld_emit_reloc) &&
+			    os->os_r != NULL) {
+				/* Create Scn for relocation section. */
+				if (os->os_r->os_scn == NULL) {
+					os->os_r->os_scn = _create_elf_scn(ld,
+					    lo, os->os_r);
+					_create_elf_section_header(ld,
+					    os->os_r);
+				}
 			}
 			break;
 		case OET_KEYWORD:
@@ -263,22 +302,7 @@ _create_elf_section(struct ld *ld, struct ld_output_section *os)
 		d->d_buf = NULL;
 	}
 
-	if (gelf_getshdr(scn, &sh) == NULL)
-		ld_fatal(ld, "gelf_getshdr failed: %s", elf_errmsg(-1));
-
-	sh.sh_flags = os->os_flags;
-	sh.sh_addr = os->os_addr;
-	sh.sh_addralign = os->os_align;
-	sh.sh_offset = os->os_off;
-	sh.sh_size = os->os_size;
-	sh.sh_type = os->os_type;
-	sh.sh_entsize = os->os_entsize;
-	sh.sh_info = os->os_info_val;
-
-	_add_to_shstrtab(ld, os->os_name);
-
-	if (!gelf_update_shdr(scn, &sh))
-		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+	_create_elf_section_header(ld, os);
 }
 
 static void
@@ -443,7 +467,7 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 }
 
 static void
-_join_and_finalize_reloc_sections(struct ld *ld, struct ld_output *lo)
+_join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_output_section *os;
 	struct ld_output_element *oe;
@@ -467,15 +491,46 @@ _join_and_finalize_reloc_sections(struct ld *ld, struct ld_output *lo)
 			}
 		}
 
-		/*
-		 * Sort dynamic relocations to for the benefit of the
-		 * dynamic linker.
-		 */
+		/* Sort dynamic relocations for the runtime linker. */
 		if (os->os_reloc != NULL && os->os_dynrel)
 			ld_reloc_sort(ld, os);
 
 		/* Finalize relocations. */
 		ld_reloc_finalize_sections(ld, lo, os);
+	}
+}
+
+static void
+_join_and_finalize_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
+{
+	struct ld_output_section *os;
+	struct ld_output_element *oe;
+	struct ld_input_section *is;
+	struct ld_input_section_head *islist;
+
+	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
+
+		if (os->os_r == NULL)
+			continue;
+
+		STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+			switch (oe->oe_type) {
+			case OET_INPUT_SECTION_LIST:
+				islist = oe->oe_islist;
+				STAILQ_FOREACH(is, islist, is_next) {
+					if (is->is_ris == NULL)
+						continue;
+					ld_reloc_join(ld, os->os_r,
+					    is->is_ris);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+
+		/* Finalize relocations. */
+		ld_reloc_finalize_sections(ld, lo, os->os_r);
 	}
 }
 
@@ -513,7 +568,7 @@ _find_entry_point(struct ld *ld)
 		if (ld_symbols_get_value(ld, ld->ld_entry, &entry) < 0)
 			ld_fatal(ld, "symbol %s is undefined", ld->ld_entry);
 		return (entry);
-	} 
+	}
 
 	if (ld->ld_scp->lds_entry_point != NULL) {
 		if (ld_symbols_get_value(ld, ld->ld_scp->lds_entry_point,
@@ -616,7 +671,7 @@ _create_phdr(struct ld *ld)
 	}
 
 	/*
-	 * Create PT_LOAD segments. 
+	 * Create PT_LOAD segments.
 	 */
 
 	align = ld->ld_arch->get_max_page_size(ld);
@@ -830,13 +885,21 @@ ld_output_create(struct ld *ld)
 	ld_input_alloc_internal_section_buffers(ld);
 
 	/* Join and sort dynamic relocation sections. */
-	_join_and_finalize_reloc_sections(ld, lo);
+	_join_and_finalize_dynamic_reloc_sections(ld, lo);
 
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);
 
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
+
+	/*
+	 * Join and finalize normal relocation sections if the linker is
+	 * creating a relocatable object or if option -emit-relocs is
+	 * specified.
+	 */
+	if (ld->ld_reloc || ld->ld_emit_reloc)
+		_join_and_finalize_normal_reloc_sections(ld, lo);
 
 	/* Produce relocation entries. */
 	_produce_reloc_sections(ld, lo);
@@ -917,7 +980,7 @@ _update_section_header(struct ld *ld)
 	struct ld_output *lo;
 	struct ld_output_section *os, *_os;
 	GElf_Shdr sh;
-	
+
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
 	assert(st != NULL && st->st_buf != NULL);
@@ -938,11 +1001,17 @@ _update_section_header(struct ld *ld)
 
 		/* Update "sh_link" field. */
 		if (os->os_link_name != NULL) {
-			HASH_FIND_STR(lo->lo_ostbl, os->os_link_name, _os);
-			if (_os == NULL)
-				ld_fatal(ld, "Internal: can not find link"
-				    " section %s", os->os_link_name);
-			sh.sh_link = elf_ndxscn(_os->os_scn);
+			if (!strcmp(os->os_link_name, ".symtab"))
+				sh.sh_link = lo->lo_symtab_shndx;
+			else {
+				HASH_FIND_STR(lo->lo_ostbl, os->os_link_name,
+				    _os);
+				if (_os == NULL)
+					ld_fatal(ld, "Internal: can not find"
+					    " link section %s",
+					    os->os_link_name);
+				sh.sh_link = elf_ndxscn(_os->os_scn);
+			}
 		} else if (os->os_link != NULL)
 			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
 
@@ -986,6 +1055,7 @@ _create_symbol_table(struct ld *ld)
 
 	scn_symtab = _create_elf_scn(ld, lo, NULL);
 	scn_strtab = _create_elf_scn(ld, lo, NULL);
+	lo->lo_symtab_shndx = elf_ndxscn(scn_symtab);
 	strndx = elf_ndxscn(scn_strtab);
 
 	if (gelf_getshdr(scn_symtab, &sh) == NULL)

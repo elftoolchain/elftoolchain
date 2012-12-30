@@ -80,6 +80,7 @@ struct ld_output_section {
 	unsigned char os_entsize_set;	/* entsize is set */
 	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */
+	struct ld_output_section *os_r;	   /* relocation section */
 	struct ld_script_sections_output *os_ldso;
 					/* output section descriptor */
 	struct ld_output_element *os_pe;    /* parent element */
@@ -111,6 +112,7 @@ struct ld_output {
 	uint64_t lo_tls_size;		 /* TLS segment size */
 	uint64_t lo_tls_align;		 /* TLS segment align */
 	uint64_t lo_tls_addr;		 /* TLS segment VMA */
+	size_t lo_symtab_shndx;		 /* .symtab section index */
 	UT_array *lo_dso_nameindex;	 /* array of DSO name indices */
 	struct ld_symver_verneed_head *lo_vnlist; /* Verneed list */
 	struct ld_output_element_head lo_oelist; /* output element list */
@@ -138,7 +140,7 @@ struct ld_output {
 };
 
 struct ld_output_section *ld_output_alloc_section(struct ld *, const char *,
-    struct ld_output_section *);
+    struct ld_output_section *, struct ld_output_section *);
 void	ld_output_create(struct ld *);
 struct ld_output_element *ld_output_create_element(struct ld *,
     struct ld_output_element_head *, enum ld_output_element_type, void *,
