@@ -365,6 +365,9 @@ _process_options(struct ld *ld, int key, char *arg)
 	case 'q':
 		ld->ld_emit_reloc = 1;
 		break;
+	case 'r':
+		ld->ld_reloc = 1;
+		break;
 	case 'T':
 		ld_script_parse(arg);
 		break;

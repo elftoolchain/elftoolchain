@@ -845,12 +845,15 @@ ld_output_create(struct ld *ld)
 	eh.e_machine = elftc_bfd_target_machine(ld->ld_otgt);
 	if (ld->ld_dso || ld->ld_pie)
 		eh.e_type = ET_DYN;
+	else if (ld->ld_reloc)
+		eh.e_type = ET_REL;
 	else
 		eh.e_type = ET_EXEC;
 	eh.e_version = EV_CURRENT;
 
 	/* Create program headers. */
-	_create_phdr(ld);
+	if (!ld->ld_reloc)
+		_create_phdr(ld);
 
 	/* Set program header table offset. */
 	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);

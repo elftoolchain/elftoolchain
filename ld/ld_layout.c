@@ -339,6 +339,12 @@ ld_layout_calc_header_size(struct ld *ld)
 	else
 		header_size += sizeof(Elf64_Ehdr);
 
+	/* Do not generate segments for relocatable output. */
+	if (ld->ld_reloc) {
+		lo->lo_phdr_num = 0;
+		return (header_size);
+	}
+
 	if (!STAILQ_EMPTY(&ld->ld_scp->lds_p)) {
 		num_phdrs = 0;
 		STAILQ_FOREACH(ldsp, &ld->ld_scp->lds_p, ldsp_next)
