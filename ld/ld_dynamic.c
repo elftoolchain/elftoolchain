@@ -199,6 +199,7 @@ ld_dynamic_reserve_dynbss_entry(struct ld *ld, struct ld_symbol *lsb)
 	lsb->lsb_copy_reloc = 1;
 	lsb->lsb_input = dynbss->is_input;
 	lsb->lsb_shndx = dynbss->is_index;
+	lsb->lsb_is = dynbss;
 
 	dynbss->is_size += lsb->lsb_size;
 }

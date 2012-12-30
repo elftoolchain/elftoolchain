@@ -139,6 +139,7 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
+		lre->lre_tis = is->is_tis;
 		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
@@ -165,6 +166,7 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_addend = r.r_addend;
+		lre->lre_tis = is->is_tis;
 		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
@@ -217,7 +219,7 @@ ld_reloc_serialize(struct ld *ld, struct ld_output_section *os, size_t *sz)
 			if (os->os_dynrel)
 				sym = lsb->lsb_dyn_index;
 			else
-				sym = lsb->lsb_index;
+				sym = lsb->lsb_out_index;
 		} else
 			sym = 0;
 
@@ -308,7 +310,43 @@ ld_reloc_create_entry(struct ld *ld, const char *name,
 }
 
 void
-ld_reloc_finalize_sections(struct ld *ld, struct ld_output *lo,
+ld_reloc_finalize(struct ld *ld, struct ld_output_section *os)
+{
+	struct ld_input_section *is;
+	struct ld_output_section *_os;
+	struct ld_reloc_entry *lre;
+
+	if (os->os_dynrel || os->os_reloc == NULL)
+		return;
+
+	if (!ld->ld_reloc && !ld->ld_emit_reloc)
+		return;
+
+	STAILQ_FOREACH(lre, os->os_reloc, lre_next) {
+		/*
+		 * Found out the corresponding output section for the input
+		 * section which the relocation applies to.
+		 */
+		is = lre->lre_tis;
+		assert(is != NULL);
+		if ((_os = is->is_output) == NULL)
+			continue;
+
+		/*
+		 * Update the relocation offset to make it point to the
+		 * correct place in the output section. For -emit-relocs
+		 * option, the section VMA is used. For relocatable output
+		 * object, the section offset is used.
+		 */
+		if (ld->ld_reloc)
+			lre->lre_offset += _os->os_off + is->is_reloff;
+		else
+			lre->lre_offset += _os->os_addr + is->is_reloff;
+	}
+}
+
+void
+ld_reloc_finalize_dynamic(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os)
 {
 	struct ld_input_section *is;

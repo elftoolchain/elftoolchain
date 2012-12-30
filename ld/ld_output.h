@@ -60,6 +60,7 @@ struct ld_output_data_buffer {
 };
 
 struct ld_reloc_entry_head;
+struct ld_symbol;
 
 struct ld_output_section {
 	Elf_Scn *os_scn;		/* output section descriptor */
@@ -78,6 +79,7 @@ struct ld_output_section {
 	unsigned char os_dynrel;	/* contains dynamic relocations */
 	unsigned char os_pltrel;	/* contains PLT relocations */
 	unsigned char os_entsize_set;	/* entsize is set */
+	struct ld_symbol *os_secsym;	/* assoicated STT_SECTION symbol */
 	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_output_section *os_r;	   /* relocation section */

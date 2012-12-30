@@ -496,7 +496,7 @@ _join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
 			ld_reloc_sort(ld, os);
 
 		/* Finalize relocations. */
-		ld_reloc_finalize_sections(ld, lo, os);
+		ld_reloc_finalize_dynamic(ld, lo, os);
 	}
 }
 
@@ -530,7 +530,7 @@ _join_and_finalize_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
 		}
 
 		/* Finalize relocations. */
-		ld_reloc_finalize_sections(ld, lo, os->os_r);
+		ld_reloc_finalize(ld, os->os_r);
 	}
 }
 
@@ -893,6 +893,16 @@ ld_output_create(struct ld *ld)
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
 
+	/* Finalize dynamic symbol section. */
+	if (lo->lo_dynsym != NULL) {
+		ld_symbols_finalize_dynsym(ld);
+		_alloc_section_data_for_symtab(ld, lo->lo_dynsym,
+		    lo->lo_dynsym->os_scn, ld->ld_dynsym);
+	}
+
+	/* Generate symbol table. */
+	_create_symbol_table(ld);
+
 	/*
 	 * Join and finalize normal relocation sections if the linker is
 	 * creating a relocatable object or if option -emit-relocs is
@@ -904,18 +914,8 @@ ld_output_create(struct ld *ld)
 	/* Produce relocation entries. */
 	_produce_reloc_sections(ld, lo);
 
-	/* Finalize dynamic symbol section. */
-	if (lo->lo_dynsym != NULL) {
-		ld_symbols_finalize_dynsym(ld);
-		_alloc_section_data_for_symtab(ld, lo->lo_dynsym,
-		    lo->lo_dynsym->os_scn, ld->ld_dynsym);
-	}
-
 	/* Generate section name string table section (.shstrtab). */
 	_create_string_table_section(ld, ".shstrtab", ld->ld_shstrtab, NULL);
-
-	/* Generate symbol table. */
-	_create_symbol_table(ld);
 
 	/*
 	 * Update "sh_name", "sh_link" and "sh_info" fields of each section

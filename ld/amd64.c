@@ -206,8 +206,7 @@ _find_and_create_gotplt_section(struct ld *ld, int create)
 
 		/* Create _GLOBAL_OFFSET_TABLE_ symbol. */
 		ld_symbols_add_internal(ld, "_GLOBAL_OFFSET_TABLE_", 0, 0,
-		    is->is_index, STB_LOCAL, STT_OBJECT, STV_HIDDEN,
-		    STAILQ_FIRST(&ld->ld_lilist), NULL);
+		    is->is_index, STB_LOCAL, STT_OBJECT, STV_HIDDEN, is, NULL);
 	}
 
 	return (is);

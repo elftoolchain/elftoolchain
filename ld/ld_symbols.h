@@ -38,6 +38,7 @@ struct ld_symbol {
 	uint16_t lsb_shndx;		/* symbol section index */
 	uint64_t lsb_index;		/* symbol index */
 	uint64_t lsb_dyn_index;		/* dynamic symbol index */
+	uint64_t lsb_out_index;		/* symbol index (in output) */
 	uint64_t lsb_got_off;		/* got entry offset */
 	uint64_t lsb_plt_off;		/* plt entry offset */
 	struct ld_script_variable *lsb_var; /* associated ldscript variable */
@@ -60,6 +61,7 @@ struct ld_symbol {
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
 	struct ld_input *lsb_input;	/* containing input object */
+	struct ld_input_section *lsb_is; /* containing input section */
 	struct ld_output_section *lsb_preset_os; /* Preset output section */
 	UT_hash_handle hh;		/* hash handle */
 	UT_hash_handle hhimp;		/* hash handle (import) */
@@ -90,7 +92,7 @@ void	ld_symbols_add_variable(struct ld *, struct ld_script_variable *,
     unsigned, unsigned);
 void	ld_symbols_add_internal(struct ld *, const char *, uint64_t, uint64_t,
     uint16_t, unsigned char, unsigned char, unsigned char,
-    struct ld_input *, struct ld_output_section *);
+    struct ld_input_section *, struct ld_output_section *);
 void	ld_symbols_build_symtab(struct ld *);
 void	ld_symbols_cleanup(struct ld *);
 void	ld_symbols_scan(struct ld *);

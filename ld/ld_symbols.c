@@ -186,7 +186,7 @@ ld_symbols_add_variable(struct ld *ld, struct ld_script_variable *ldv,
 void
 ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
     uint64_t value, uint16_t shndx, unsigned char bind, unsigned char type,
-    unsigned char other, struct ld_input *input,
+    unsigned char other, struct ld_input_section *is,
     struct ld_output_section *preset_os)
 {
 	struct ld_symbol *lsb;
@@ -204,7 +204,8 @@ ld_symbols_add_internal(struct ld *ld, const char *name, uint64_t size,
 	lsb->lsb_other = other;
 	lsb->lsb_preset_os = preset_os;
 	lsb->lsb_ref_ndso = 1;
-	lsb->lsb_input = input;
+	lsb->lsb_input = (is == NULL) ? NULL : is->is_input;
+	lsb->lsb_is = is;
 
 	_resolve_and_add_symbol(ld, lsb);
 }
@@ -301,11 +302,9 @@ void
 ld_symbols_build_symtab(struct ld *ld)
 {
 	struct ld_output *lo;
-	struct ld_output_section *os;
+	struct ld_output_section *os, *_os;
 	struct ld_input *li;
-#if 0
 	struct ld_input_section *is;
-#endif
 	struct ld_symbol *lsb, *tmp, _lsb;
 
 	lo = ld->ld_output;
@@ -327,14 +326,35 @@ ld_symbols_build_symtab(struct ld *ld)
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_empty)
 			continue;
-		_lsb.lsb_name = NULL;
-		_lsb.lsb_size = 0;
-		_lsb.lsb_value = os->os_addr;
-		_lsb.lsb_shndx = elf_ndxscn(os->os_scn);
-		_lsb.lsb_bind = STB_LOCAL;
-		_lsb.lsb_type = STT_SECTION;
-		_lsb.lsb_other = 0;
-		_add_to_symbol_table(ld, &_lsb);
+		if (os->os_secsym != NULL)
+			continue;
+		os->os_secsym = calloc(1, sizeof(*os->os_secsym));
+		if (os->os_secsym == NULL)
+			ld_fatal_std(ld, "calloc");
+		os->os_secsym->lsb_name = NULL;
+		os->os_secsym->lsb_size = 0;
+		os->os_secsym->lsb_value = os->os_addr;
+		os->os_secsym->lsb_shndx = elf_ndxscn(os->os_scn);
+		os->os_secsym->lsb_bind = STB_LOCAL;
+		os->os_secsym->lsb_type = STT_SECTION;
+		os->os_secsym->lsb_other = 0;
+		_add_to_symbol_table(ld, os->os_secsym);
+
+		/* Create STT_SECTION symbols for relocation sections. */
+		if (os->os_r != NULL) {
+			_os = os->os_r;
+			_os->os_secsym = calloc(1, sizeof(*_os->os_secsym));
+			if (_os->os_secsym == NULL)
+				ld_fatal_std(ld, "calloc");
+			_os->os_secsym->lsb_name = NULL;
+			_os->os_secsym->lsb_size = 0;
+			_os->os_secsym->lsb_value = _os->os_addr;
+			_os->os_secsym->lsb_shndx = elf_ndxscn(_os->os_scn);
+			_os->os_secsym->lsb_bind = STB_LOCAL;
+			_os->os_secsym->lsb_type = STT_SECTION;
+			_os->os_secsym->lsb_other = 0;
+			_add_to_symbol_table(ld, _os->os_secsym);
+		}
 	}
 
 	/* Copy local symbols from each input object. */
@@ -342,17 +362,28 @@ ld_symbols_build_symtab(struct ld *ld)
 		if (li->li_local == NULL)
 			continue;
 		STAILQ_FOREACH(lsb, li->li_local, lsb_next) {
-#if 0
-			li = lsb->lsb_input;
-			is = &li->li_is[lsb->lsb_shndx];
-			if (is->is_output == NULL) {
-				printf("discard symbol: %s\n", lsb->lsb_name);
-				continue;
-			}
-#endif
 			if (lsb->lsb_type != STT_SECTION &&
 			    lsb->lsb_index != 0)
 				_add_to_symbol_table(ld, lsb);
+
+			/*
+			 * Set the symbol index of the STT_SECTION symbols
+			 * to the index of the section symbol for the
+			 * corresponding output section. The updated
+			 * symbol index will be used by the relocation
+			 * serialization function If the linker generates
+			 * relocatable object or option -emit-relocs is
+			 * specified.
+			 */
+			if (lsb->lsb_type == STT_SECTION) {
+				is = lsb->lsb_is;
+				if (is->is_output != NULL) {
+					os = is->is_output;
+					assert(os->os_secsym != NULL);
+					lsb->lsb_out_index =
+					    os->os_secsym->lsb_out_index;
+				}
+			}
 		}
 	}
 
@@ -364,15 +395,14 @@ ld_symbols_build_symtab(struct ld *ld)
 			continue;
 
 		if (lsb->lsb_import) {
-			memcpy(&_lsb, lsb, sizeof(_lsb));
 			if (lsb->lsb_type == STT_FUNC && lsb->lsb_func_addr)
-				_lsb.lsb_value = lsb->lsb_plt_off;
+				lsb->lsb_value = lsb->lsb_plt_off;
 			else
-				_lsb.lsb_value = 0;
-			_lsb.lsb_shndx = SHN_UNDEF;
-			_add_to_symbol_table(ld, &_lsb);
-		} else
-			_add_to_symbol_table(ld, lsb);
+				lsb->lsb_value = 0;
+			lsb->lsb_shndx = SHN_UNDEF;
+		}
+
+		_add_to_symbol_table(ld, lsb);
 	}
 }
 
@@ -834,6 +864,15 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	lsb->lsb_input = li;
 	lsb->lsb_ver = NULL;
 
+	if (lsb->lsb_shndx != SHN_UNDEF && lsb->lsb_shndx != SHN_ABS) {
+		if (lsb->lsb_shndx == SHN_COMMON)
+			lsb->lsb_is = &li->li_is[li->li_shnum - 1];
+		else {
+			assert(lsb->lsb_shndx < li->li_shnum - 1);
+			lsb->lsb_is = &li->li_is[lsb->lsb_shndx];
+		}
+	}
+
 	if (li->li_type == LIT_DSO)
 		lsb->lsb_ref_dso = 1;
 	else
@@ -1128,7 +1167,6 @@ _free_symbol(struct ld_symbol *lsb)
 static void
 _update_symbol(struct ld_symbol *lsb)
 {
-	struct ld_input *li;
 	struct ld_input_section *is;
 	struct ld_output_section *os;
 
@@ -1142,12 +1180,8 @@ _update_symbol(struct ld_symbol *lsb)
 		return;
 
 	if (lsb->lsb_input != NULL) {
-		li = lsb->lsb_input;
-		if (lsb->lsb_shndx == SHN_COMMON)
-			is = &li->li_is[li->li_shnum - 1];
-		else
-			is = &li->li_is[lsb->lsb_shndx];
-		if ((os = is->is_output) == NULL)
+		is = lsb->lsb_is;
+		if (is == NULL || (os = is->is_output) == NULL)
 			return;
 		lsb->lsb_value += os->os_addr + is->is_reloff;
 		lsb->lsb_shndx = elf_ndxscn(os->os_scn);
@@ -1300,6 +1334,7 @@ _add_to_symbol_table(struct ld *ld, struct ld_symbol *lsb)
 	if (symtab->sy_first_nonlocal == 0 && lsb->lsb_bind != STB_LOCAL)
 		symtab->sy_first_nonlocal = symtab->sy_size;
 
+	lsb->lsb_out_index = symtab->sy_size;
 	symtab->sy_size++;
 }
 
