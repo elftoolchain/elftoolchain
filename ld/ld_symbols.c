@@ -391,9 +391,14 @@ ld_symbols_build_symtab(struct ld *ld)
 
 	/* Copy resolved global symbols from hash table. */
 	HASH_ITER(hh, ld->ld_sym, lsb, tmp) {
+
 		/* Skip undefined/unreferenced symbols from DSO. */
 		if (ld_symbols_in_dso(lsb) &&
 		    (lsb->lsb_shndx == SHN_UNDEF || !lsb->lsb_ref_ndso))
+			continue;
+
+		/* Skip "provide" symbols that are not referenced. */
+		if (lsb->lsb_provide && lsb->lsb_prev == NULL)
 			continue;
 
 		if (lsb->lsb_import) {
