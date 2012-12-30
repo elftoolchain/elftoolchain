@@ -571,10 +571,11 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 		 * Update the relocation offset to make it point to the
 		 * correct place in the output section. For -emit-relocs
 		 * option, the section VMA is used. For relocatable output
-		 * object, the section offset is used.
+		 * object, the section relative offset is added to the
+		 * relocation offset.
 		 */
 		if (ld->ld_reloc)
-			lre->lre_offset += os->os_off + is->is_reloff;
+			lre->lre_offset += is->is_reloff;
 		else if (ld->ld_emit_reloc)
 			lre->lre_offset += os->os_addr + is->is_reloff;
 	}

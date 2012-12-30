@@ -1060,7 +1060,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 	 * alignment.
 	 */
 
-	if (os->os_flags & SHF_ALLOC) {
+	if ((os->os_flags & SHF_ALLOC) != 0 && !ld->ld_reloc) {
 		if (os->os_ldso == NULL || os->os_ldso->ldso_vma == NULL)
 			os->os_addr = roundup(addr, os->os_align);
 	} else
@@ -1088,7 +1088,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 		ls->ls_loc_counter = os->os_addr;
 		/*
 		 * Do not allocate VMA for TLS .tbss sections. TLS sections
-		 * are only used as an initlization image and .tbss section
+		 * are only used as an initialization image and .tbss section
 		 * will not be allocated in memory.
 		 */
 		if (os->os_type != SHT_NOBITS || (os->os_flags & SHF_TLS) == 0)
