@@ -1145,6 +1145,7 @@ _layout_reloc_sections(struct ld *ld, struct ld_output *lo)
 			snprintf(name, len, ".rel%s", os->os_name);
 		}
 		_os = ld_output_alloc_section(ld, name, NULL, os);
+		_os->os_rel = 1;
 
 		/*
 		 * Fill in size, alignment and type for output relocation

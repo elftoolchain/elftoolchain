@@ -328,6 +328,8 @@ ld_symbols_build_symtab(struct ld *ld)
 			continue;
 		if (os->os_secsym != NULL)
 			continue;
+		if (os->os_rel)
+			continue;
 		os->os_secsym = calloc(1, sizeof(*os->os_secsym));
 		if (os->os_secsym == NULL)
 			ld_fatal_std(ld, "calloc");
@@ -341,7 +343,7 @@ ld_symbols_build_symtab(struct ld *ld)
 		_add_to_symbol_table(ld, os->os_secsym);
 
 		/* Create STT_SECTION symbols for relocation sections. */
-		if (os->os_r != NULL) {
+		if (os->os_r != NULL && !ld->ld_reloc) {
 			_os = os->os_r;
 			_os->os_secsym = calloc(1, sizeof(*_os->os_secsym));
 			if (_os->os_secsym == NULL)

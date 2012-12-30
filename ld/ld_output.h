@@ -78,6 +78,7 @@ struct ld_output_section {
 	unsigned char os_empty;		/* output section is empty */
 	unsigned char os_dynrel;	/* contains dynamic relocations */
 	unsigned char os_pltrel;	/* contains PLT relocations */
+	unsigned char os_rel;		/* contains normal relocations */
 	unsigned char os_entsize_set;	/* entsize is set */
 	struct ld_symbol *os_secsym;	/* assoicated STT_SECTION symbol */
 	struct ld_output_section *os_link; /* link to other output section */
