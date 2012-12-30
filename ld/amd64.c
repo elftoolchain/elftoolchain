@@ -55,6 +55,8 @@ static struct ld_input_section *_find_and_create_plt_section(struct ld *ld,
 static void _finalize_got_and_plt(struct ld *ld);
 static uint64_t _get_max_page_size(struct ld *ld);
 static uint64_t _get_common_page_size(struct ld *ld);
+static void _adjust_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 static void _process_reloc(struct ld *ld, struct ld_input_section *is,
     struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf);
 static const char *_reloc2str(uint64_t r);
@@ -962,6 +964,30 @@ _process_reloc(struct ld *ld, struct ld_input_section *is,
 	}
 }
 
+static void
+_adjust_reloc(struct ld *ld, struct ld_input_section *is,
+    struct ld_reloc_entry *lre, struct ld_symbol *lsb, uint8_t *buf)
+{
+	struct ld_input_section *_is;
+
+	(void) ld;
+	(void) is;
+	(void) buf;
+
+	/* Only need to adjust relocation against section symbols. */
+	if (lsb->lsb_type != STT_SECTION)
+		return;
+
+	if ((_is = lsb->lsb_is) == NULL || _is->is_output == NULL)
+		return;
+
+	/*
+	 * Update the relocation addend to point to the new location
+	 * in the output object.
+	 */
+	lre->lre_addend += _is->is_reloff;
+}
+
 static enum ld_tls_relax
 _tls_check_relax(struct ld *ld, struct ld_reloc_entry *lre)
 {
@@ -1265,6 +1291,7 @@ amd64_register(struct ld *ld)
 	amd64->get_common_page_size = _get_common_page_size;
 	amd64->scan_reloc = _scan_reloc;
 	amd64->process_reloc = _process_reloc;
+	amd64->adjust_reloc = _adjust_reloc;
 	amd64->is_absolute_reloc = _is_absolute_reloc;
 	amd64->finalize_reloc = _finalize_reloc;
 	amd64->finalize_got_and_plt = _finalize_got_and_plt;

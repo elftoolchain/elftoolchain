@@ -63,8 +63,7 @@ static uint64_t _insert_shdr(struct ld *ld);
 static void _produce_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _join_and_finalize_dynamic_reloc_sections(struct ld *ld,
     struct ld_output *lo);
-static void _join_and_finalize_normal_reloc_sections(struct ld *ld,
-    struct ld_output *lo);
+static void _join_normal_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
@@ -501,7 +500,7 @@ _join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
 }
 
 static void
-_join_and_finalize_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
+_join_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_output_section *os;
 	struct ld_output_element *oe;
@@ -528,9 +527,6 @@ _join_and_finalize_normal_reloc_sections(struct ld *ld, struct ld_output *lo)
 				break;
 			}
 		}
-
-		/* Finalize relocations. */
-		ld_reloc_finalize(ld, os->os_r);
 	}
 }
 
@@ -890,9 +886,6 @@ ld_output_create(struct ld *ld)
 	/* Finalize sections for dynamically linked output object. */
 	ld_dynamic_finalize(ld);
 
-	/* Copy and relocate input section data to output section. */
-	_copy_and_reloc_input_sections(ld);
-
 	/* Finalize dynamic symbol section. */
 	if (lo->lo_dynsym != NULL) {
 		ld_symbols_finalize_dynsym(ld);
@@ -903,13 +896,15 @@ ld_output_create(struct ld *ld)
 	/* Generate symbol table. */
 	_create_symbol_table(ld);
 
+	/* Copy and relocate input section data to output section. */
+	_copy_and_reloc_input_sections(ld);
+
 	/*
-	 * Join and finalize normal relocation sections if the linker is
-	 * creating a relocatable object or if option -emit-relocs is
-	 * specified.
+	 * Join normal relocation sections if the linker is creating a
+	 * relocatable object or if option -emit-relocs is specified.
 	 */
 	if (ld->ld_reloc || ld->ld_emit_reloc)
-		_join_and_finalize_normal_reloc_sections(ld, lo);
+		_join_normal_reloc_sections(ld, lo);
 
 	/* Produce relocation entries. */
 	_produce_reloc_sections(ld, lo);

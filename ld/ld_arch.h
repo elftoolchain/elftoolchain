@@ -40,6 +40,8 @@ struct ld_arch {
 	uint64_t (*get_common_page_size)(struct ld *);
 	void (*scan_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *);
+	void (*adjust_reloc)(struct ld *, struct ld_input_section *,
+	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
 	void (*process_reloc)(struct ld *, struct ld_input_section *,
 	    struct ld_reloc_entry *, struct ld_symbol *, uint8_t *);
 	void (*finalize_reloc)(struct ld *, struct ld_input_section *,

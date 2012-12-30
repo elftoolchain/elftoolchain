@@ -310,42 +310,6 @@ ld_reloc_create_entry(struct ld *ld, const char *name,
 }
 
 void
-ld_reloc_finalize(struct ld *ld, struct ld_output_section *os)
-{
-	struct ld_input_section *is;
-	struct ld_output_section *_os;
-	struct ld_reloc_entry *lre;
-
-	if (os->os_dynrel || os->os_reloc == NULL)
-		return;
-
-	if (!ld->ld_reloc && !ld->ld_emit_reloc)
-		return;
-
-	STAILQ_FOREACH(lre, os->os_reloc, lre_next) {
-		/*
-		 * Found out the corresponding output section for the input
-		 * section which the relocation applies to.
-		 */
-		is = lre->lre_tis;
-		assert(is != NULL);
-		if ((_os = is->is_output) == NULL)
-			continue;
-
-		/*
-		 * Update the relocation offset to make it point to the
-		 * correct place in the output section. For -emit-relocs
-		 * option, the section VMA is used. For relocatable output
-		 * object, the section offset is used.
-		 */
-		if (ld->ld_reloc)
-			lre->lre_offset += _os->os_off + is->is_reloff;
-		else
-			lre->lre_offset += _os->os_addr + is->is_reloff;
-	}
-}
-
-void
 ld_reloc_finalize_dynamic(struct ld *ld, struct ld_output *lo,
     struct ld_output_section *os)
 {
@@ -549,12 +513,15 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 {
 	struct ld_input *li;
 	struct ld_input_section *ris;
+	struct ld_output_section *os;
 	struct ld_reloc_entry *lre;
 	struct ld_symbol *lsb;
 	int i;
 
 	if (is->is_type == SHT_REL || is->is_type == SHT_RELA)
 		return;
+
+	os = is->is_output;
 
 	li = is->is_input;
 	if (is->is_ris != NULL)
@@ -580,7 +547,34 @@ ld_reloc_process_input_section(struct ld *ld, struct ld_input_section *is,
 	STAILQ_FOREACH(lre, ris->is_reloc, lre_next) {
 		lsb = ld_symbols_ref(lre->lre_sym);
 
-		/* Arch-specific relocation handling. */
-		ld->ld_arch->process_reloc(ld, is, lre, lsb, buf);
+		/*
+		 * Arch-specific relocation handling for non-relocatable
+		 * output object.
+		 */
+		if (!ld->ld_reloc)
+			ld->ld_arch->process_reloc(ld, is, lre, lsb, buf);
+
+		/*
+		 * Arch-specific relocation handling for relocatable output
+		 * object and -emit-relocs option.
+		 *
+		 * Note that for SHT_REL relocation sections, relocation
+		 * addend (in-place) is not adjusted since it will overwrite
+		 * the already applied relocation.
+		 */
+		if (ld->ld_reloc ||
+		    (ld->ld_emit_reloc && ld->ld_arch->reloc_is_rela))
+			ld->ld_arch->adjust_reloc(ld, is, lre, lsb, buf);
+
+		/*
+		 * Update the relocation offset to make it point to the
+		 * correct place in the output section. For -emit-relocs
+		 * option, the section VMA is used. For relocatable output
+		 * object, the section offset is used.
+		 */
+		if (ld->ld_reloc)
+			lre->lre_offset += os->os_off + is->is_reloff;
+		else if (ld->ld_emit_reloc)
+			lre->lre_offset += os->os_addr + is->is_reloff;
 	}
 }
