@@ -39,13 +39,14 @@ ${PROG}:	${TS_DATA}
 .if defined(GENERATE_TEST_SCAFFOLDING)
 _TC_SRC=	${.OBJDIR}/tc.c				# Test driver.
 _TC_SCN=	tet_scen				# Scenario file.
+_TC_SCRIPTS=	${TOP}/test/tet/bin
 
 SRCS+=		${_TC_SRC}
 CLEANFILES+=	${_TC_SRC} ${_TC_SCN}
 
 # Generate the driver file "tc.c" from the objects comprising the test case.
 _TS_OBJS=	${_C_SRCS:S/.c$/.o/g} ${_M4_SRCS:S/.m4$/.o/g}
-_MUNGE_TS=	${TS_ROOT}/bin/munge-ts
+_MUNGE_TS=	${_TC_SCRIPTS}/munge-ts
 ${_TC_SRC}:	${_TS_OBJS}
 	${_MUNGE_TS} -o ${.TARGET} -p ${.CURDIR:H:T}/${.CURDIR:T:R}/${PROG} \
 	-s ${_TC_SCN} ${.ALLSRC}
