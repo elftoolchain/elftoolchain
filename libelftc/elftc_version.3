@@ -1,4 +1,4 @@
-.\" Copyright (c) 2011 Joseph Koshy.  All rights reserved.
+.\" Copyright (c) 2011,2012 Joseph Koshy.  All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 24, 2011
+.Dd December 30, 2012
 .Os
 .Dt ELFTC_VERSION 3
 .Sh NAME
@@ -33,7 +33,7 @@
 .Lb libelftc
 .Sh SYNOPSIS
 .In libelftc.h
-.Ft int
+.Ft const char *
 .Fn elftc_version void
 .Sh DESCRIPTION
 Function
@@ -69,10 +69,10 @@ To retrieve and print the current toolchain version identifier, use:
 .Pp
 On the HEAD branch of the project's sources, when checked out using
 Subversion and compiled on a NetBSD host, this would print:
-.D1 Dq Elftoolchain HEAD NetBSD svn- Ns Em NUMBER
+.D1 Dq elftoolchain HEAD NetBSD svn: Ns Em REVINFO
 where
-.Em NUMBER
-would be the current revision number for the project source tree.
+.Em REVINFO
+would be the current revision information for the project source tree.
 .Sh ERRORS
 Function
 .Fn elftc_program_version
