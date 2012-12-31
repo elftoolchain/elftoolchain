@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 24, 2012
+.Dd December 31, 2012
 .Os
 .Dt ELFTC_STRING_TABLE_CREATE 3
 .Sh NAME
@@ -33,6 +33,7 @@
 .Nm elftc_string_table_image ,
 .Nm elftc_string_table_insert ,
 .Nm elftc_string_table_lookup ,
+.Nm elftc_string_table_remove
 .Nd convenience routines for handling ELF string tables
 .Sh SYNOPSIS
 .In libelftc.h
@@ -47,13 +48,18 @@
 .Fa "Elftc_String_Table *table"
 .Fa "size_t *size"
 .Fc
-.Ft size_t
+.Ft "const char *"
 .Fo elftc_string_table_insert
 .Fa "Elftc_String_Table *table"
 .Fa "const char *string"
 .Fc
-.Ft size_t
+.Ft "const char *"
 .Fo elftc_string_table_lookup
+.Fa "Elftc_String_Table *table"
+.Fa "const char *string"
+.Fc
+.Ft int
+.Fo elftc_string_table_remove
 .Fa "Elftc_String_Table *table"
 .Fa "const char *string"
 .Fc
@@ -77,7 +83,7 @@ Function
 destroys the previously allocated string table specified by
 argument
 .Ar table ,
-and frees internal resources allocated for it.
+and frees the internal resources allocated for it.
 .Pp
 Function
 .Fn elftc_string_table_from_section
@@ -96,15 +102,12 @@ is zero, an implementation-default will be used instead.
 .Pp
 Function
 .Fn elftc_string_table_image
-returns a pointer to the file representation of the contents
-of the string table specified by argument
+returns a pointer to the ELF representation of the contents of the
+string table specified by argument
 .Ar table .
-The size of the file representation of the string table is stored
-in the location pointed to by argument
+The size of the ELF representation of the string table is stored in
+the location pointed to by argument
 .Ar size .
-The returned pointer may become invalid by subsequent operations on
-the string table, such as calls to function
-.Fn elftc_string_table_insert .
 .Pp
 Function
 .Fn elftc_string_table_insert
@@ -112,40 +115,63 @@ inserts the NUL-terminated string pointed to by argument
 .Ar string
 into the string table specified by argument
 .Ar table ,
-and returns an relative offset to the beginning of stored string in
-the string table's file representation.
+and returns a pointer to the interned contents of argument
+.Ar string .
+Multiple insertions of the same content will return the same pointer
+value.
 .Pp
 Function
 .Fn elftc_string_table_lookup
-looks up the string pointed to by argument
+looks up the string referenced by argument
 .Ar string
 in the string table specified by argument
+.Ar table
+and if found, returns a pointer to its interned representation.
+.Pp
+Function
+.Fn elftc_string_table_remove
+removes the string pointed by argument
+.Ar string
+from the string table referenced by argument
 .Ar table ,
-and returns its associated offset.
+if present in the string table.
 .Ss Memory Management
 The
 .Lb libelftc
 library manages its own memory allocations.
-The application should not free the memory areas referenced by the
-pointers returned by functions
-.Fn elftc_string_table_create ,
-.Fn elftc_string_table_from_section
-and
+The application should not free the pointers returned by the string
+table functions except as noted below:
+.Bl -bullet
+.It
+The application should use
+.Xr free 3
+to release the memory arena returned by function
 .Fn elftc_string_table_image .
+.El
 .Sh RETURN VALUES
 Functions
-.Fn elftc_string_table_create ,
-.Fn elftc_string_table_from_section
+.Fn elftc_string_table_create
 and
-.Fn elftc_string_table_image
-return a non-NULL pointer on success, or return NULL in case of an
-error.
+.Fn elftc_string_table_from_section
+return a valid pointer to an opaque structure of type
+.Vt Elftc_String_Table
+on success, or NULL in case of an error.
 .Pp
-Function
+The function
+.Fn elftc_string_table_image
+returns a pointer to an in-memory representation of an ELF string
+table on success, or NULL in case of an error.
+.Pp
+Functions
 .Fn elftc_string_table_insert
 and
 .Fn elftc_string_table_lookup
-return a positive value on success, or zero in case of an error.
+return a valid pointer to an interned string on success, or NULL in
+case of an error.
+.Pp
+Function
+.Fn elftc_string_table_remove
+returns a positive value on success, or zero in case of an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr elf 3 ,
