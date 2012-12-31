@@ -565,6 +565,37 @@ ld_output_create_elf_sections(struct ld *ld)
 	}
 }
 
+void
+ld_output_emit_gnu_stack_section(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+
+	ls = &ld->ld_state;
+	lo = ld->ld_output;
+
+	os = ld_output_alloc_section(ld, ".note.GNU-stack", NULL, NULL);
+	os->os_empty = 0;
+	os->os_addr = 0;
+	os->os_type = SHT_PROGBITS;
+	os->os_align = 1;
+	os->os_entsize = 0;
+	os->os_off = ls->ls_offset;
+	os->os_size = 0;
+	if (ld->ld_stack_exec)
+		os->os_flags = SHF_EXECINSTR;
+
+	(void) _create_elf_scn(ld, lo, os);
+
+	_add_to_shstrtab(ld, ".note.GNU-stack");
+
+	/*
+	 * .note.GNU-stack is an empty section so we don't allocate any
+	 * Elf_Data descriptors.
+	 */
+}
+
 static uint64_t
 _find_entry_point(struct ld *ld)
 {

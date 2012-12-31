@@ -875,8 +875,7 @@ _insert_input_to_output(struct ld *ld, struct ld_output *lo,
 	int len;
 
 	/*
-	 * TODO: Since we now only support "-static" linking, assume all
-	 * input relocation sections has been processed and consumed.
+	 * Relocation sections is handled separately.
 	 */
 	if ((is->is_type == SHT_REL || is->is_type == SHT_RELA) &&
 	    !is->is_dynrel)
@@ -1015,6 +1014,10 @@ _calc_offset(struct ld *ld)
 			break;
 		}
 	}
+
+	/* Emit .note.GNU-stack section for reloctable output object. */
+	if (ld->ld_gen_gnustack && ld->ld_reloc)
+		ld_output_emit_gnu_stack_section(ld);
 
 	/* Lay out section header table after normal input sections. */
 	_calc_shdr_offset(ld);

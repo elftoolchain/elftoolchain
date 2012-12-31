@@ -450,8 +450,8 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 
 		if (strcmp(is->is_name, ".note.GNU-stack") == 0) {
 			ld->ld_gen_gnustack = 1;
-			if (!ld->ld_stack_exec_set)
-				ld->ld_stack_exec |= is->is_size;
+			if (is->is_flags & SHF_EXECINSTR)
+				ld->ld_stack_exec = 1;
 			is->is_discard = 1;
 		}
 	}
