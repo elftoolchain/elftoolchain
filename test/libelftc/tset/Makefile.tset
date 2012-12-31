@@ -4,5 +4,7 @@
 DPADD+=		${LIBELFTC}
 LDADD+=		-lelftc
 
+GENERATE_TEST_SCAFFOLDING=	yes
+
 # Test cases do not supply manual pages.
 NOMAN=	noman
