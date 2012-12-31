@@ -397,6 +397,13 @@ ld_symbols_build_symtab(struct ld *ld)
 		    (lsb->lsb_shndx == SHN_UNDEF || !lsb->lsb_ref_ndso))
 			continue;
 
+		/*
+		 * Skip linker script defined symbols when creating
+		 * relocatable output object.
+		 */
+		if (lsb->lsb_input == NULL && ld->ld_reloc)
+			continue;
+
 		/* Skip "provide" symbols that are not referenced. */
 		if (lsb->lsb_provide && lsb->lsb_prev == NULL)
 			continue;
