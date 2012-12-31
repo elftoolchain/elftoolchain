@@ -1,3 +1,6 @@
 # $Id$
 
 all
+	^elftc_version
+
+elftc_version	:include:/tset/elftc_version/tet_scen
