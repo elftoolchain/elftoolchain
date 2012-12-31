@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id$");
  */
 
 static const char *ld_short_opts =
-    "b:c:e:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
+    "b:c:de:Ef:Fgh:iI:l:L:m:MnNo:O::qrR:sStT:xXyY:u:vV()";
 
 static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},

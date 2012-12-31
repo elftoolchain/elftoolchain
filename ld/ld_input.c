@@ -471,6 +471,14 @@ ld_input_alloc_common_symbol(struct ld *ld, struct ld_symbol *lsb)
 	if (li == NULL)
 		return;		/* unlikely */
 
+	/*
+	 * Do not allocate memory for common symbols when the linker
+	 * creates a relocatable output object, unless option -d is
+	 * specified.
+	 */
+	if (ld->ld_reloc && !ld->ld_common_alloc)
+		return;
+
 	is = &li->li_is[li->li_shnum - 1];
 	if (is->is_name == NULL) {
 		/*
