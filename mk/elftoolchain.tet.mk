@@ -15,6 +15,8 @@
 TS_ROOT?=	${.CURDIR:H}
 TS_OBJROOT?=	${.OBJDIR:H}
 
+TS_BASE=	${TOP}/test/tet
+
 TET_LIBS=	${TET_ROOT}/lib/tet3
 TET_OBJS=	${TET_LIBS}/tcm.o
 
@@ -39,14 +41,13 @@ ${PROG}:	${TS_DATA}
 .if defined(GENERATE_TEST_SCAFFOLDING)
 _TC_SRC=	${.OBJDIR}/tc.c				# Test driver.
 _TC_SCN=	tet_scen				# Scenario file.
-_TC_SCRIPTS=	${TOP}/test/tet/bin
 
 SRCS+=		${_TC_SRC}
 CLEANFILES+=	${_TC_SRC} ${_TC_SCN}
 
 # Generate the driver file "tc.c" from the objects comprising the test case.
 _TS_OBJS=	${_C_SRCS:S/.c$/.o/g} ${_M4_SRCS:S/.m4$/.o/g}
-_MUNGE_TS=	${_TC_SCRIPTS}/munge-ts
+_MUNGE_TS=	${TS_BASE}/bin/munge-ts
 ${_TC_SRC}:	${_TS_OBJS}
 	${_MUNGE_TS} -o ${.TARGET} -p ${.CURDIR:H:T}/${.CURDIR:T:R}/${PROG} \
 	-s ${_TC_SCN} ${.ALLSRC}
@@ -54,7 +55,7 @@ ${_TC_SRC}:	${_TS_OBJS}
 .endif
 
 # M4->C translation.
-M4FLAGS+=	-I${TS_ROOT}/common
+M4FLAGS+=	-I${TS_ROOT}/common -I${TS_BASE}/common
 
 .include "${TOP}/mk/elftoolchain.m4.mk"
 
