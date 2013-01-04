@@ -66,6 +66,7 @@ char	*cpp_demangle_gnu3(const char *_org);
 bool	is_cpp_mangled_ARM(const char *_org);
 bool	is_cpp_mangled_gnu2(const char *_org);
 bool	is_cpp_mangled_gnu3(const char *_org);
+unsigned int	libelftc_hash_string(const char *);
 void	vector_str_dest(struct vector_str *_vec);
 int	vector_str_find(const struct vector_str *_vs, const char *_str,
     size_t _len);
