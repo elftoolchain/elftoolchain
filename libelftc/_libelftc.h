@@ -56,8 +56,13 @@ struct vector_str {
 };
 
 #define BUFFER_GROWFACTOR	1.618
-#define VECTOR_DEF_CAPACITY	8
+
+#define	ELFTC_FAILURE		0
 #define	ELFTC_ISDIGIT(C) 	(isdigit((C) & 0xFF))
+#define	ELFTC_SUCCESS		1
+
+#define VECTOR_DEF_CAPACITY	8
+
 
 __BEGIN_DECLS
 char	*cpp_demangle_ARM(const char *_org);
