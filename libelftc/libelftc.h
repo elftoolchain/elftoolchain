@@ -32,7 +32,10 @@
 
 #include <sys/stat.h>
 
+#include <libelf.h>
+
 typedef struct _Elftc_Bfd_Target Elftc_Bfd_Target;
+typedef struct _Elftc_String_Table Elftc_String_Table;
 
 /* Target types. */
 typedef enum {
@@ -66,6 +69,18 @@ int		elftc_copyfile(int _srcfd,  int _dstfd);
 int		elftc_demangle(const char *_mangledname, char *_buffer,
     size_t _bufsize, unsigned int _flags);
 int		elftc_set_timestamps(const char *_filename, struct stat *_sb);
+Elftc_String_Table	*elftc_string_table_create(int _hint);
+void		elftc_string_table_destroy(Elftc_String_Table *_table);
+Elftc_String_Table	*elftc_string_table_from_section(Elf_Scn *_scn,
+    int _hint);
+char		*elftc_string_table_image(Elftc_String_Table *_table,
+    size_t *_sz);
+const char	*elftc_string_table_insert(Elftc_String_Table *_table,
+    const char *_string, size_t *_index);
+const char	*elftc_string_table_lookup(Elftc_String_Table *_table,
+    const char *_string, size_t *_index);
+int		elftc_string_table_remove(Elftc_String_Table *_table,
+    const char *_string);
 const char	*elftc_version(void);
 __END_DECLS
 
