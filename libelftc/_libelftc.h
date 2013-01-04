@@ -59,21 +59,25 @@ struct vector_str {
 #define VECTOR_DEF_CAPACITY	8
 #define	ELFTC_ISDIGIT(C) 	(isdigit((C) & 0xFF))
 
-void	vector_str_dest(struct vector_str *);
-int	vector_str_find(const struct vector_str *v, const char *o, size_t l);
-char	*vector_str_get_flat(const struct vector_str *v, size_t *l);
-bool	vector_str_init(struct vector_str *);
-bool	vector_str_pop(struct vector_str *);
-bool	vector_str_push(struct vector_str *, const char *, size_t);
-bool	vector_str_push_vector_head(struct vector_str *dst,
-	    struct vector_str *org);
-char	*vector_str_substr(const struct vector_str *v, size_t begin, size_t end,
-	    size_t *r_len);
-char	*cpp_demangle_gnu3(const char *);
-bool	is_cpp_mangled_gnu3(const char *);
-char	*cpp_demangle_gnu2(const char *);
-bool	is_cpp_mangled_gnu2(const char *);
-char	*cpp_demangle_ARM(const char *);
-bool	is_cpp_mangled_ARM(const char *);
+__BEGIN_DECLS
+char	*cpp_demangle_ARM(const char *_org);
+char	*cpp_demangle_gnu2(const char *_org);
+char	*cpp_demangle_gnu3(const char *_org);
+bool	is_cpp_mangled_ARM(const char *_org);
+bool	is_cpp_mangled_gnu2(const char *_org);
+bool	is_cpp_mangled_gnu3(const char *_org);
+void	vector_str_dest(struct vector_str *_vec);
+int	vector_str_find(const struct vector_str *_vs, const char *_str,
+    size_t _len);
+char	*vector_str_get_flat(const struct vector_str *_vs, size_t *_len);
+bool	vector_str_init(struct vector_str *_vs);
+bool	vector_str_pop(struct vector_str *_vs);
+bool	vector_str_push(struct vector_str *_vs, const char *_str,
+    size_t _len);
+bool	vector_str_push_vector_head(struct vector_str *_dst,
+    struct vector_str *_org);
+char	*vector_str_substr(const struct vector_str *_vs, size_t _begin,
+    size_t _end, size_t *_rlen);
+__END_DECLS
 
 #endif	/* __LIBELFTC_H */
