@@ -76,6 +76,13 @@
  * SUCH DAMAGE.
  */
 
+#ifndef	SLIST_FOREACH_SAFE
+#define	SLIST_FOREACH_SAFE(var, head, field, tvar)			\
+	for ((var) = SLIST_FIRST((head));				\
+	    (var) && ((tvar) = SLIST_NEXT((var), field), 1);		\
+	    (var) = (tvar))
+#endif
+
 #ifndef	STAILQ_CONCAT
 #define	STAILQ_CONCAT(head1, head2) do {			\
 	if (!STAILQ_EMPTY((head2))) {				\
