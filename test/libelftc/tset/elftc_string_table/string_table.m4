@@ -55,6 +55,8 @@ static const char *test_strings[] = {
 
 const int nteststrings = sizeof(test_strings) / sizeof(test_strings[0]);
 
+#define	UNKNOWN_STRING	"Don't Panic!"
+
 /*
  * Verify that strings are inserted at the expected offsets, and that
  * the returned value is equivalent to the original string.
@@ -63,13 +65,13 @@ void
 tcInsertReturnValues(void)
 {
 	int	result;
-	const char **s, *str;
+	const char **s;
 	unsigned int expectedindex, hashindex;
 	Elftc_String_Table *table;
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Verify return values from lookup().");
+	TP_ANNOUNCE("Insertion returns the expected offsets.");
 
 	if ((table = elftc_string_table_create(0)) == NULL) {
 		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
@@ -80,13 +82,7 @@ tcInsertReturnValues(void)
 	expectedindex = 1;
 	/* Insert test strings. */
 	for (s = test_strings; *s != NULL; s++) {
-		str = elftc_string_table_insert(table, *s, &hashindex);
-		if (str == NULL || strcmp(str, *s)) {
-			TP_FAIL("return value is incorrect (%p) \"%s\".", str,
-				str ? str : "");
-			goto done;
-		}
-
+		hashindex = elftc_string_table_insert(table, *s);
 		if (hashindex != expectedindex) {
 			TP_FAIL("incorrect hash index: expected %d, actual %d",
 				expectedindex, hashindex);
@@ -112,17 +108,16 @@ done:
 void
 tcInsertDuplicate(void)
 {
+	const char **s;
 	int	n, result;
-	const char **s, **savedptrs, *str;
-	unsigned int hindex, *hashrecord;
 	Elftc_String_Table *table;
+	unsigned int hindex, *hashrecord;
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Verify return from multiple insertions.");
+	TP_ANNOUNCE("Multiple insertions return the same offset value.");
 
 	hashrecord = NULL;
-	savedptrs = NULL;
 
 	if ((table = elftc_string_table_create(0)) == NULL) {
 		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
@@ -135,26 +130,13 @@ tcInsertDuplicate(void)
 		goto done;
 	}
 
-	if ((savedptrs = malloc(nteststrings*sizeof(char *))) == NULL) {
-		TP_UNRESOLVED("memory allocation failed.");
-		goto done;
-	}
-
 	/* Insert test strings. */
 	for (n = 0, s = test_strings; *s != NULL; s++, n++)
-		savedptrs[n] = elftc_string_table_insert(table, *s,
-		    &hashrecord[n]);
+		hashrecord[n] = elftc_string_table_insert(table, *s);
 
 	/* Re-insert, and verify the returned pointers and offsets. */
 	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
-		str = elftc_string_table_insert(table, *s, &hindex);
-
-		if (str == NULL || str != savedptrs[n]) {
-			TP_FAIL("Lookup of \"%s\" returned (%p) \"%s\" "
-			    "& (%p) \"%s\".", *s, str, str, savedptrs[n],
-			    savedptrs[n]);
-			goto done;
-		}
+		hindex = elftc_string_table_insert(table, *s);
 
 		if (hindex != hashrecord[n]) {
 			TP_FAIL("incorrect hash index: expected %d, actual %d",
@@ -169,7 +151,6 @@ done:
 	if (table)
 		(void) elftc_string_table_destroy(table);
 	free(hashrecord);
-	free(savedptrs);
 
 	tet_result(result);
 }
@@ -189,7 +170,8 @@ tcLookupReturn(void)
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Verify lookup() after insertion.");
+	TP_ANNOUNCE("A lookup after an insertion returns the correct "
+	    "string.");
 
 	if ((table = elftc_string_table_create(0)) == NULL) {
 		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
@@ -199,21 +181,23 @@ tcLookupReturn(void)
 
 	/* Insert test strings. */
 	for (s = test_strings; *s != NULL; s++)
-		str = elftc_string_table_insert(table, *s, NULL);
+		(void) elftc_string_table_insert(table, *s);
 
 	expectedindex = 1;
 	for (s = test_strings; *s != NULL; s++) {
-		str = elftc_string_table_lookup(table, *s, &hashindex);
-
-		if (str == NULL || strcmp(str, *s)) {
-			TP_UNRESOLVED("Lookup of \"%s\" returned \"%s\".", *s,
-			    str);
-			goto done;
-		}
+		hashindex = elftc_string_table_lookup(table, *s);
 
 		if (hashindex != expectedindex) {
 			TP_FAIL("incorrect hash index: expected %d, actual %d",
 				expectedindex, hashindex);
+			goto done;
+		}
+
+		str = elftc_string_table_to_string(table, hashindex);
+
+		if (str == NULL || strcmp(str, *s)) {
+			TP_FAIL("Lookup of \"%s\" returned \"%s\".", *s,
+			    str);
 			goto done;
 		}
 
@@ -243,7 +227,8 @@ tcLookupDuplicate(void)
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Check multiple invocations of lookup.");
+	TP_ANNOUNCE("Multiple invocations of lookup on a valid string "
+	    "return the same value.");
 
 	hashrecord = NULL;
 
@@ -260,22 +245,25 @@ tcLookupDuplicate(void)
 
 	/* Insert test strings. */
 	for (n = 0, s = test_strings; *s != NULL; s++, n++)
-		(void) elftc_string_table_insert(table, *s, &hashrecord[n]);
+		hashrecord[n] = elftc_string_table_insert(table, *s);
 
 	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
-		str1 = elftc_string_table_lookup(table, *s, &hindex1);
-		str2 = elftc_string_table_lookup(table, *s, &hindex2);
+		hindex1 = elftc_string_table_lookup(table, *s);
+		hindex2 = elftc_string_table_lookup(table, *s);
 
+		if (hindex1 != hindex2 || hindex1 != hashrecord[n]) {
+			TP_FAIL("incorrect hash index: expected %d, "
+			    "actual %d & %d", hashrecord[n], hindex1,
+			    hindex2);
+			goto done;
+		}
+
+		str1 = elftc_string_table_to_string(table, hindex1);
+		str2 = elftc_string_table_to_string(table, hindex2);
 		if (str1 == NULL || str2 == NULL || str1 != str2 ||
 		    strcmp(str1, *s)) {
 			TP_FAIL("Lookup of \"%s\" returned \"%s\" & \"%s\".",
 			    *s, str1, str2);
-			goto done;
-		}
-
-		if (hindex1 != hindex2 || hindex1 != hashrecord[n]) {
-			TP_FAIL("incorrect hash index: expected %d, actual %d & %d",
-				hashrecord[n], hindex1, hindex2);
 			goto done;
 		}
 	}
@@ -297,13 +285,13 @@ done:
 void
 tcDeletionCheck(void)
 {
-	const char **s, *str;
-	int hindex, n, result, status;
+	const char **s;
 	Elftc_String_Table *table;
+	int hindex, n, result, status;
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Verify deletion of strings.");
+	TP_ANNOUNCE("Lookup after deletion should fail.");
 
 	if ((table = elftc_string_table_create(0)) == NULL) {
 		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
@@ -313,7 +301,7 @@ tcDeletionCheck(void)
 
 	/* Insert test strings. */
 	for (n = 0, s = test_strings; *s != NULL; s++, n++)
-		(void) elftc_string_table_insert(table, *s, NULL);
+		(void) elftc_string_table_insert(table, *s);
 
 	/* Delete strings, and look them up. */
 	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
@@ -323,9 +311,8 @@ tcDeletionCheck(void)
 			goto done;
 		}
 
-		hindex = 0;
-		str = elftc_string_table_lookup(table, *s, &hindex);
-		if (str != NULL || hindex != 0) {
+		hindex = elftc_string_table_lookup(table, *s);
+		if (hindex != 0) {
 			TP_FAIL("Lookup of \"%s\" succeeded unexpectedly.");
 			goto done;
 		}
@@ -345,10 +332,154 @@ done:
  * Verify that a deleted string is re-inserted at the old index.
  */
 
+void
+tcDeletionInsertion(void)
+{
+	const char **s;
+	unsigned int *hashrecord;
+	Elftc_String_Table *table;
+	int hindex, n, result, status;
+
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("Re-insertion of a string after deletion should "
+	    "return the prior offset.");
+
+	hashrecord = NULL;
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	if ((hashrecord = malloc(nteststrings*sizeof(*hashrecord))) == NULL) {
+		TP_UNRESOLVED("memory allocation failed.");
+		goto done;
+	}
+
+	/* Insert test strings. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++)
+		hashrecord[n] = elftc_string_table_insert(table, *s);
+
+	/* Delete strings ... */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
+		status = elftc_string_table_remove(table, *s);
+		if (status == 0) {
+			TP_UNRESOLVED("Deletion of \"%s\" failed.", *s);
+			goto done;
+		}
+	}
+
+	/* and re-insert them, and check. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
+		hindex = elftc_string_table_insert(table, *s);
+
+		if (hindex != hashrecord[n]) {
+			TP_FAIL("Re-insertion at a different offset: "
+			    "old %d, new %p", hashrecord[n], hindex);
+			goto done;
+		}
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+	if (hashrecord)
+		free(hashrecord);
+
+	tet_result(result);
+
+}
+
 /*
  * Verify that the 2nd deletion of the string fails.
  */
 
+void
+tcDoubleDeletion(void)
+{
+	const char **s;
+	int n, result, status;
+	Elftc_String_Table *table;
+
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("Double deletion of a string should fail.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	/* Insert test strings. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++)
+		(void) elftc_string_table_insert(table, *s);
+
+	/* Delete strings twice. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++) {
+		status = elftc_string_table_remove(table, *s);
+		if (status == 0) {
+			TP_FAIL("First deletion of \"%s\" failed.", *s);
+			goto done;
+		}
+		status = elftc_string_table_remove(table, *s);
+		if (status != 0) {
+			TP_FAIL("Second deletion of \"%s\" succeeded.", *s);
+			goto done;
+		}
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+
+	tet_result(result);
+
+}
+
 /*
  * Verify that deletion of an unknown string fails.
  */
+
+void
+tcUnknownDeletion(void)
+{
+	const char **s;
+	int n, result, status;
+	Elftc_String_Table *table;
+
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("Deletion of an unknown should fail.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	/* Insert test strings. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++)
+		(void) elftc_string_table_insert(table, *s);
+
+	status = elftc_string_table_remove(table, UNKNOWN_STRING);
+	if (status != 0) {
+		TP_FAIL("Deletion of an unknown string succeeded.");
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+
+	tet_result(result);
+
+}
