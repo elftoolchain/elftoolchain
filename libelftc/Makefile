@@ -8,6 +8,7 @@ SRCS=	elftc_bfdtarget.c			\
 	elftc_copyfile.c			\
 	elftc_demangle.c			\
 	elftc_set_timestamps.c			\
+	elftc_string_table.c			\
 	elftc_version.c				\
 	libelftc_bfdtarget.c			\
 	libelftc_dem_arm.c			\
