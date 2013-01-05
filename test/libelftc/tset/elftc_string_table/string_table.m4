@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <libelftc.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "tet_api.h"
@@ -456,7 +457,7 @@ tcUnknownDeletion(void)
 
 	result = TET_UNRESOLVED;
 
-	TP_ANNOUNCE("Deletion of an unknown should fail.");
+	TP_ANNOUNCE("Deletion of an unknown string should fail.");
 
 	if ((table = elftc_string_table_create(0)) == NULL) {
 		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
@@ -482,4 +483,97 @@ done:
 
 	tet_result(result);
 
+}
+
+/*
+ * Ensure that string indices remain constant after the underlying
+ * string pool is resized/moved.
+ */
+
+#define	TC_STRING_SIZE	64
+#define	TC_INSERT_SIZE	20
+
+void
+tcIndicesAfterRebase(void)
+{
+	int j, n, result;
+	const char *str1, *str2;
+	char buf[TC_STRING_SIZE];
+	Elftc_String_Table *table;
+	unsigned int offset1, offset2, expectedoffset;
+
+	n = 0;
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("Indices are consistent after a pool resize.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	/* Insert test strings. */
+#define	TC_BUILD_STRING(buf, n) do {				\
+		(void) snprintf(buf, sizeof(buf), "%-*.*d",	\
+		    TC_INSERT_SIZE - 1, TC_INSERT_SIZE - 1, n);	\
+	} while (0)
+
+	TC_BUILD_STRING(buf, n);
+
+	offset1 = elftc_string_table_insert(table, buf);
+	str1 = elftc_string_table_to_string(table, offset1);
+
+	if (offset1 == 0 || str1 == NULL) {
+		TP_UNRESOLVED("Initialization failed.");
+		goto done;
+	}
+
+	n++;
+
+	/*
+	 * Insert unique strings till we detect a move of the initial
+	 * string.
+	 */
+	do {
+
+		TC_BUILD_STRING(buf, n);
+
+		if ((offset2 = elftc_string_table_insert(table, buf)) == 0) {
+			TP_UNRESOLVED("String insertion failed at %d", n);
+			goto done;
+		}
+
+		if ((str2 = elftc_string_table_to_string(table, offset1)) ==
+		    NULL) {
+			TP_UNRESOLVED("String looked failed at %d", n);
+			goto done;
+		}
+
+		n++;
+	} while (str2 == str1);
+
+	/*
+	 * Verify the offset for each string inserted so far.
+	 */
+	expectedoffset = 1;
+	for (j = 0; j < n; j++) {
+		TC_BUILD_STRING(buf, j);
+		offset1 = elftc_string_table_lookup(table, buf);
+		if (offset1 != expectedoffset) {
+			TP_FAIL("Offset mismatch: string #%d, "
+			    "expected %d, actual %d", j, expectedoffset,
+			    offset1);
+			goto done;
+		}
+		expectedoffset += TC_INSERT_SIZE;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+
+	tet_result(result);
 }
