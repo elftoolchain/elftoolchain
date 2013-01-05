@@ -75,12 +75,14 @@ Elftc_String_Table	*elftc_string_table_from_section(Elf_Scn *_scn,
     int _hint);
 char		*elftc_string_table_image(Elftc_String_Table *_table,
     size_t *_sz);
-const char	*elftc_string_table_insert(Elftc_String_Table *_table,
-    const char *_string, size_t *_index);
-const char	*elftc_string_table_lookup(Elftc_String_Table *_table,
-    const char *_string, size_t *_index);
+size_t		elftc_string_table_insert(Elftc_String_Table *_table,
+    const char *_string);
+size_t		elftc_string_table_lookup(Elftc_String_Table *_table,
+    const char *_string);
 int		elftc_string_table_remove(Elftc_String_Table *_table,
     const char *_string);
+const char	*elftc_string_table_to_string(Elftc_String_Table *_table,
+    size_t offset);
 const char	*elftc_version(void);
 __END_DECLS
 
