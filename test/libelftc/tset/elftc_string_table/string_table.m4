@@ -29,9 +29,10 @@
 /*
  * include(`elfts.m4')
  */
-
+#include <sys/types.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <libelftc.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -54,7 +55,22 @@ static const char *test_strings[] = {
 	NULL
 };
 
-const int nteststrings = sizeof(test_strings) / sizeof(test_strings[0]);
+static const int nteststrings = sizeof(test_strings) / sizeof(test_strings[0]);
+
+static char test_image[] = {
+	0,
+	'M', 'a', 'r', 'k', ' ', 'E', 'l', 'f', 0,
+	'S', 'c', 'a', 'n', 'n', 'e', 'r', 's', ' ',
+	'L', 'i', 'v', 'e', ' ', 'i', 'n', ' ', 'V', 'a', 'i', 'n', 0,
+	'T', 'h', 'e', ' ', 'D', 'e', 'a', 'd', ' ',
+	'L', 'a', 'd', 'y', ' ', 'o', 'f', ' ', 'C', 'l', 'o', 'w', 'n', ' ',
+	'T', 'o', 'w', 'n', 0,
+	'T', 'h', 'e', ' ', 'L', 'a', 'd', 'y', ' ', 'W', 'h', 'o', ' ',
+	'S', 'a', 'i', 'l', 'e', 'd', ' ', 't', 'h', 'e', ' ',
+	'"', 'T', 'h', 'e',  'S', 'o', 'u', 'l', '"', 0,
+	'N', 'o', ',', ' ', 'N', 'o', ',', ' ', 'N', 'o', 't', ' ',
+	'R', 'o', 'g', 'o', 'v', '!', 0
+};
 
 #define	UNKNOWN_STRING	"Don't Panic!"
 
@@ -780,7 +796,7 @@ tcImagePartiallyDeleted(void)
 	size_t expectedsize, imagesz;
 	const char *image, **s, **savedstr;
 
-	TP_ANNOUNCE("Insertion returns the expected image.");
+	TP_ANNOUNCE("Insertion+deletion returns the expected image.");
 
 	savedstr = NULL;
 
@@ -839,5 +855,129 @@ done:
 	if (table)
 		(void) elftc_string_table_destroy(table);
 	free(savedstr);
+	tet_result(result);
+}
+
+/*
+ * Verify that initialization from a ELF string table works.
+ */
+
+void
+tcFromSection(void)
+{
+	Elf *e;
+	Elf_Data *d;
+	Elf_Scn *scn;
+	int fd, result;
+	const char *image;
+	Elf32_Ehdr *eh;
+	Elf32_Shdr *shdr;
+	Elftc_String_Table *table;
+	size_t imagesz, scnindex;
+
+	table = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_ANNOUNCE("Loading a table form an ELF section works correctly.");
+
+	fd = -1;
+	e = NULL;
+	scn = NULL;
+	d = NULL;
+
+	/*
+	 * Create the ELF section.
+	 */
+	if ((fd = open("/dev/null", O_RDONLY)) < 0) {
+		TP_UNRESOLVED("File open failed.");
+		goto done;
+	}
+
+	if (elf_version(EV_CURRENT) == EV_NONE) {
+		TP_UNRESOLVED("libelf initialization failed.");
+		goto done;
+	}
+
+	if ((e = elf_begin(fd, ELF_C_WRITE, NULL)) == NULL) {
+		TP_UNRESOLVED("Elf open failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((eh = elf32_getehdr(e)) == NULL) {
+		TP_UNRESOLVED("Elf open failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	eh->e_ident[EI_DATA] = ELFDATA2LSB;
+	eh->e_machine = EM_386;
+	eh->e_version = EV_CURRENT;
+
+	if ((scn = elf_newscn(e)) == NULL) {
+		TP_UNRESOLVED("Elf newscn failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	scnindex = elf_ndxscn(scn);
+
+	if ((shdr = elf32_getshdr(scn)) == NULL) {
+		TP_UNRESOLVED("Elf getshdr failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	shdr->sh_type = SHT_STRTAB;
+
+	if ((d = elf_newdata(scn)) == NULL) {
+		TP_UNRESOLVED("Elf newdata failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	d->d_buf = test_image;
+	d->d_size = sizeof(test_image);
+
+	if (elf_update(e, ELF_C_NULL) < 0) {
+		TP_UNRESOLVED("elf_update failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	if ((scn = elf_getscn(e, scnindex)) == NULL) {
+		TP_UNRESOLVED("Elf getscn failed: %s",
+		    elf_errmsg(-1));
+		goto done;
+	}
+
+	/* Create a string table from the contents. */
+	if ((table = elftc_string_table_from_section(scn, 0)) == NULL) {
+		TP_FAIL("from_section call failed.");
+		goto done;
+	}
+
+	/* Retrieve the image. */
+	if ((image = elftc_string_table_image(table, &imagesz)) == NULL) {
+		TP_FAIL("from_section call failed.");
+		goto done;
+	}
+
+	/* Check the retrieved image against the original. */
+	if (imagesz != sizeof(test_image) ||
+	    memcmp(image, test_image, imagesz) != 0) {
+		TP_FAIL("image compare failed.");
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+	if (e)
+		elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
 	tet_result(result);
 }
