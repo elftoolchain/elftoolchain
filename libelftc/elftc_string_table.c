@@ -29,6 +29,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <gelf.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -101,8 +102,7 @@ static int
 elftc_string_table_add_to_pool(Elftc_String_Table *st, const char *string)
 {
 	char *newpool;
-	int len, newsize;
-	unsigned int stlen;
+	int len, newsize, stlen;
 
 	len = strlen(string) + 1; /* length, including the trailing NUL */
 	stlen = ELFTC_STRING_TABLE_LENGTH(st);
@@ -177,11 +177,58 @@ elftc_string_table_destroy(Elftc_String_Table *st)
 Elftc_String_Table *
 elftc_string_table_from_section(Elf_Scn *scn, int sizehint)
 {
-	(void) scn;
-	(void) sizehint;
+	int len;
+	Elf_Data *d;
+	GElf_Shdr sh;
+	const char *s, *end;
+	Elftc_String_Table *st;
 
-	errno = ENOTSUP;
-	return NULL;
+	/* Verify the type of the section passed in. */
+	if (gelf_getshdr(scn, &sh) == NULL ||
+	    sh.sh_type != SHT_STRTAB) {
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	if ((d = elf_getdata(scn, NULL)) == NULL ||
+	    d->d_size == 0) {
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	if ((st = elftc_string_table_create(sizehint)) == NULL)
+		return (NULL);
+
+	s = d->d_buf;
+
+	/*
+	 * Verify that the first byte of the data buffer is '\0'.
+	 */
+	if (*s != '\0') {
+		errno = EINVAL;
+		goto fail;
+	}
+
+	end = s + d->d_size;
+
+	/*
+	 * Skip the first '\0' and insert the strings in the buffer,
+	 * in order.
+	 */
+	for (s += 1; s < end; s += len) {
+		if (elftc_string_table_insert(st, s) == 0)
+			goto fail;
+
+		len = strlen(s) + 1; /* Include space for the trailing NUL. */
+	}
+
+	return (st);
+
+fail:
+	if (st)
+		(void) elftc_string_table_destroy(st);
+
+	return (NULL);
 }
 
 const char *
@@ -313,7 +360,7 @@ elftc_string_table_remove(Elftc_String_Table *st, const char *string)
 	if (ste == NULL || (idx = ste->ste_idx) < 0)
 		return (ELFTC_FAILURE);
 
-	assert(idx > 0 && idx < ELFTC_STRING_TABLE_LENGTH(st));
+	assert(idx > 0 && idx < (int) ELFTC_STRING_TABLE_LENGTH(st));
 
 	ste->ste_idx = (- idx);
 
