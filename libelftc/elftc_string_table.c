@@ -188,7 +188,7 @@ elftc_string_table_from_section(Elf_Scn *scn, int sizehint)
 	return NULL;
 }
 
-char *
+const char *
 elftc_string_table_image(Elftc_String_Table *st, size_t *size)
 {
 	(void) st;

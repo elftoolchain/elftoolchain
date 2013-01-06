@@ -73,7 +73,7 @@ Elftc_String_Table	*elftc_string_table_create(int _hint);
 void		elftc_string_table_destroy(Elftc_String_Table *_table);
 Elftc_String_Table	*elftc_string_table_from_section(Elf_Scn *_scn,
     int _hint);
-char		*elftc_string_table_image(Elftc_String_Table *_table,
+const char	*elftc_string_table_image(Elftc_String_Table *_table,
     size_t *_sz);
 size_t		elftc_string_table_insert(Elftc_String_Table *_table,
     const char *_string);
