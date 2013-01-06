@@ -112,8 +112,10 @@ Function
 returns a pointer to the ELF representation of the contents of the
 string table specified by argument
 .Ar table .
-The size of the ELF representation of the string table is stored in
-the location pointed to by argument
+If argument
+.Ar size
+is not NULL, the size of the ELF representation of the string table is
+stored in the location pointed to by argument
 .Ar size .
 The function
 .Fn elftc_string_table_image
