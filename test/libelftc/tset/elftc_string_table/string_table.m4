@@ -337,9 +337,9 @@ void
 tcDeletionInsertion(void)
 {
 	const char **s;
-	unsigned int *hashrecord;
+	unsigned int *hashrecord, hindex;
 	Elftc_String_Table *table;
-	int hindex, n, result, status;
+	int n, result, status;
 
 	result = TET_UNRESOLVED;
 
@@ -575,5 +575,269 @@ done:
 	if (table)
 		(void) elftc_string_table_destroy(table);
 
+	tet_result(result);
+}
+
+void
+tcEmptyImage(void)
+{
+	int result;
+	size_t tblsz;
+	const char *image;
+	Elftc_String_Table *table;
+
+	TP_ANNOUNCE("Check the image for an empty table.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	tblsz = 0;
+	image = elftc_string_table_image(table, &tblsz);
+	if (image == NULL) {
+		TP_FAIL("Null image returned.");
+		goto done;
+	}
+
+	if (*image != 0 || tblsz != 1) {
+		TP_FAIL("Incorrect image parameters: [0]=%d, sz=%d",
+		    *image, tblsz);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+
+	tet_result(result);
+}
+
+void
+tcImageDeleted(void)
+{
+	const char **s;
+	int n, result;
+	size_t tblsz;
+	const char *image;
+	Elftc_String_Table *table;
+
+	TP_ANNOUNCE("Check the image for an empty table.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	/* Insert, then delete a set of strings. */
+	for (n = 0, s = test_strings; *s != NULL; s++, n++)
+		if (elftc_string_table_insert(table, *s) == 0) {
+			TP_UNRESOLVED("String insertion of \"%s\" failed.",
+			    *s);
+			goto done;
+		}
+
+	for (n = 0, s = test_strings; *s != NULL; s++, n++)
+		if (elftc_string_table_remove(table, *s) == 0) {
+			TP_UNRESOLVED("String deletion of \"%s\" failed.",
+			    *s);
+			goto done;
+		}
+
+	/* Check for an empty table. */
+	tblsz = 0;
+	image = elftc_string_table_image(table, &tblsz);
+	if (image == NULL) {
+		TP_FAIL("Null image returned.");
+		goto done;
+	}
+
+	if (*image != 0 || tblsz != 1) {
+		TP_FAIL("Incorrect image parameters: [0]=%d, sz=%d",
+		    *image, tblsz);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+
+	tet_result(result);
+}
+
+static int
+validate_string_table(int nstrings, const char *image, size_t imagesz,
+    const char **strings)
+{
+	int n, result, *seen;
+	const char *s, *end;
+
+	if (*image != '\0')
+		return (0);
+
+	if (nstrings == 0)
+		return (1);
+
+	if ((seen = calloc(nstrings, sizeof(int))) == NULL)
+		return (0);
+
+	/*
+	 * Each string in the image should be in strings[],
+	 * and vice-versa.
+	 */
+	s = image + 1;
+	end = image + imagesz;
+	while (s < end) {
+		/* Look for this string in the strings[] array. */
+		for (n = 0; n < nstrings; n++)
+			if (strcmp(s, strings[n]) == 0) {
+				seen[n] = 1;
+				break;
+			}
+		if (n == nstrings) /* Not in the strings[] array. */
+			goto fail;
+
+		s += strlen(s) + 1;
+	}
+
+	/* Verify all strings in the array were seen. */
+	for (n = 0; n < nstrings; n++)
+		if (seen[n] == 0)
+			goto fail;
+
+	free(seen);
+
+	return (1);
+
+fail:
+	free(seen);
+	return (0);
+}
+
+void
+tcImageInsertOnly(void)
+{
+	int result;
+	const char **s;
+	const char *image;
+	Elftc_String_Table *table;
+	size_t expectedsize, imagesz;
+
+	TP_ANNOUNCE("Insertion returns the expected image.");
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+	expectedsize = 1;
+	for (s = test_strings; *s != NULL; s++) {
+		expectedsize += strlen(*s) + 1;
+		if(elftc_string_table_insert(table, *s) == 0) {
+			TP_UNRESOLVED("String insertion failed for \"%s\".",
+			    *s);
+			goto done;
+		}
+	}
+
+	imagesz = 0;
+	image = elftc_string_table_image(table, &imagesz);
+
+	if (image == NULL || imagesz != expectedsize) {
+		TP_FAIL("Incorrect image parameters: [0]=%d, sz=%d != %d",
+		    *image, imagesz, expectedsize);
+		goto done;
+	}
+
+	if (!validate_string_table(nteststrings - 1, image, imagesz,
+		test_strings)) {
+		TP_FAIL("Image mismatch.");
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+	tet_result(result);
+}
+
+void
+tcImagePartiallyDeleted(void)
+{
+	int n, nstr, result;
+	Elftc_String_Table *table;
+	size_t expectedsize, imagesz;
+	const char *image, **s, **savedstr;
+
+	TP_ANNOUNCE("Insertion returns the expected image.");
+
+	savedstr = NULL;
+
+	if ((table = elftc_string_table_create(0)) == NULL) {
+		TP_UNRESOLVED("elftc_string_table_create() failed: %s",
+		    strerror(errno));
+		goto done;
+	}
+
+	expectedsize = 1;
+	for (nstr = 0, s = test_strings; *s != NULL; s++, nstr++) {
+		expectedsize += strlen(*s) + 1;
+		if(elftc_string_table_insert(table, *s) == 0) {
+			TP_UNRESOLVED("String insertion failed for \"%s\".",
+			    *s);
+			goto done;
+		}
+	}
+
+	if ((savedstr = malloc(sizeof(*savedstr) * nstr)) == NULL) {
+		TP_UNRESOLVED("Memory allocation failed.");
+		goto done;
+	}
+
+	for (nstr = n = 0, s = test_strings; *s != NULL; s++, n++) {
+		if ((n & 1) == 0) {
+			savedstr[nstr++] = *s;
+			continue;
+		}
+
+		expectedsize -= (strlen(*s) + 1);
+		if (elftc_string_table_remove(table, *s) == 0) {
+			TP_UNRESOLVED("String removal failed for \"%s\".",
+			    *s);
+			goto done;
+		}
+	}
+
+	imagesz = 0;
+	image = elftc_string_table_image(table, &imagesz);
+
+	if (image == NULL || imagesz != expectedsize) {
+		TP_FAIL("Incorrect image parameters: [0]=%d, sz=%d != %d",
+		    *image, imagesz, expectedsize);
+		goto done;
+	}
+
+	if (!validate_string_table(nstr, image, imagesz, savedstr)) {
+		TP_FAIL("Image mismatch.");
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (table)
+		(void) elftc_string_table_destroy(table);
+	free(savedstr);
 	tet_result(result);
 }
