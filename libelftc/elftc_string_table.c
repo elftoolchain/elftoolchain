@@ -47,12 +47,8 @@ struct _Elftc_String_Table_Entry {
 	SLIST_ENTRY(_Elftc_String_Table_Entry) ste_next;
 };
 
-#define	ELFTC_STRING_TABLE_COMPACTION_FLAG			\
-	(~ELFTC_STRING_TABLE_LENGTH_MASK)
-#define	ELFTC_STRING_TABLE_LENGTH_MASK				\
-	(~((unsigned int) 0) >> 1)
-#define	ELFTC_STRING_TABLE_LENGTH(st)				\
-	((st)->st_len & ELFTC_STRING_TABLE_LENGTH_MASK)
+#define	ELFTC_STRING_TABLE_COMPACTION_FLAG	0x1
+#define	ELFTC_STRING_TABLE_LENGTH(st)		((st)->st_len >> 1)
 #define	ELFTC_STRING_TABLE_CLEAR_COMPACTION_FLAG(st) do {		\
 		(st)->st_len &= ~ELFTC_STRING_TABLE_COMPACTION_FLAG;	\
 	} while (0)
@@ -63,7 +59,7 @@ struct _Elftc_String_Table_Entry {
 		(st)->st_len =					\
 		    ((st)->st_len &				\
 			ELFTC_STRING_TABLE_COMPACTION_FLAG) |	\
-		    ((len) & ELFTC_STRING_TABLE_LENGTH_MASK);	\
+		    ((len) << 1);				\
 	} while (0)
 
 struct _Elftc_String_Table {
@@ -191,11 +187,71 @@ elftc_string_table_from_section(Elf_Scn *scn, int sizehint)
 const char *
 elftc_string_table_image(Elftc_String_Table *st, size_t *size)
 {
-	(void) st;
-	(void) size;
+	char *r, *s, *end;
+	struct _Elftc_String_Table_Entry *ste;
+	struct _Elftc_String_Table_Bucket *head;
+	int copied, hashindex, offset, length, newsize;
 
-	errno = ENOTSUP;
-	return NULL;
+	/*
+	 * For the common case of a string table has not seen
+	 * a string deletion, we can just export the current
+	 * pool.
+	 */
+	if ((st->st_len & ELFTC_STRING_TABLE_COMPACTION_FLAG) == 0) {
+		if (size)
+			*size = ELFTC_STRING_TABLE_LENGTH(st);
+		return (st->st_string_pool);
+	}
+
+	/*
+	 * Otherwise, compact the string table in-place.
+	 */
+	assert(*st->st_string_pool == '\0');
+
+	newsize = 1;
+	end = st->st_string_pool + ELFTC_STRING_TABLE_LENGTH(st);
+
+	for (r = s = st->st_string_pool + 1;
+	     s < end;
+	     s += length, r += copied) {
+
+		copied = 0;
+		length = strlen(s) + 1;
+
+		ste = elftc_string_table_find_hash_entry(st, s,
+		    &hashindex);
+		head = &st->st_buckets[hashindex];
+
+		assert(ste != NULL);
+
+		/* Ignore deleted strings. */
+		if (ste->ste_idx < 0) {
+			SLIST_REMOVE(head, ste, _Elftc_String_Table_Entry,
+			    ste_next);
+			continue;
+		}
+
+		/* Move 'live' strings up. */
+		offset = newsize;
+		newsize += length;
+		copied = length;
+
+		if (r == s)	/* Nothing removed yet. */
+			continue;
+
+		memmove(r, s, copied);
+
+		/* Update the index for this entry. */
+		ste->ste_idx = offset;
+	}
+
+	ELFTC_STRING_TABLE_CLEAR_COMPACTION_FLAG(st);
+	ELFTC_STRING_TABLE_UPDATE_LENGTH(st, newsize);
+
+	if (size)
+		*size = newsize;
+
+	return (st->st_string_pool);
 }
 
 size_t
