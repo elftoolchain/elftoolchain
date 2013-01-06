@@ -228,6 +228,7 @@ elftc_string_table_image(Elftc_String_Table *st, size_t *size)
 		if (ste->ste_idx < 0) {
 			SLIST_REMOVE(head, ste, _Elftc_String_Table_Entry,
 			    ste_next);
+			free(ste);
 			continue;
 		}
 
