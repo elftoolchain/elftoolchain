@@ -34,7 +34,7 @@
 
 #include <sys/types.h>
 
-#include <stdint.h>
+#include <limits.h>
 
 #include "_libelftc.h"
 
@@ -45,16 +45,12 @@ ELFTC_VCSID("$Id$");
  * hash function.
  */
 
-#ifdef	__GNUC__
-#define	LIBELFTC_INT_SIZE	__SIZEOF_INT__
-#endif
-
-#if	LIBELFTC_INT_SIZE == 8
-#define	FNV_PRIME		1099511628211ULL
-#define	FNV_OFFSET		14695981039346656037ULL
-#elif	LIBELFTC_INT_SIZE == 4
+#if	INT_MAX == 2147483647UL
 #define	FNV_PRIME		16777619UL
 #define FNV_OFFSET		2166136261UL
+#elif	INT_MAX == 18446744073709551615ULL
+#define	FNV_PRIME		1099511628211ULL
+#define	FNV_OFFSET		14695981039346656037ULL
 #else
 #error	sizeof(int) is unknown.
 #endif
