@@ -14,6 +14,9 @@ SUBDIR += libdwarf
 # Build additional APIs.
 SUBDIR += libelftc
 
+# Build the tools needed for the rest of the build.
+SUBDIR += isa
+
 # Build tools after the libraries.
 SUBDIR += addr2line
 SUBDIR += ar
