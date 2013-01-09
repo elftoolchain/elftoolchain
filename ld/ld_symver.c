@@ -300,6 +300,8 @@ ld_symver_create_verdef_section(struct ld *ld)
 		os->os_align = 8;
 	os->os_link = lo->lo_dynstr;
 
+	lo->lo_verdef = os;
+
 	/*
 	 * Calculate verdef section size: .gnu.version_d section consists
 	 * of one file version entry and several symbol version definition

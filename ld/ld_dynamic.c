@@ -322,8 +322,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	entries += 3;
 
 	/*
-	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
-	 * DT_VERSYM.
+	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and DT_VERSYM.
 	 */
 	entries += 5;
 
@@ -469,12 +468,15 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/*
-	 * TODO: DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
-	 * DT_VERSYM.
+	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and DT_VERSYM.
 	 */
+	if (lo->lo_verdef != NULL) {
+		DT_ENTRY_PTR(DT_VERDEF, lo->lo_verdef->os_addr);
+		DT_ENTRY_VAL(DT_VERDEFNUM, lo->lo_verdef_num);
+	}
 	if (lo->lo_verneed != NULL) {
 		DT_ENTRY_PTR(DT_VERNEED, lo->lo_verneed->os_addr);
-		DT_ENTRY_PTR(DT_VERNEEDNUM, lo->lo_verneed_num);
+		DT_ENTRY_VAL(DT_VERNEEDNUM, lo->lo_verneed_num);
 	}
 	if (lo->lo_versym != NULL)
 		DT_ENTRY_PTR(DT_VERSYM, lo->lo_versym->os_addr);
