@@ -109,6 +109,7 @@ struct ld_output {
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */
 	unsigned lo_version_index;	 /* current symver index */
+	unsigned lo_verdef_num;		 /* num of verdef entries */
 	unsigned lo_verneed_num;	 /* num of verneed entries */
 	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
 	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */

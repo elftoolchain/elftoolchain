@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 #include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
+#include "ld_script.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
 #include "ld_strtab.h"
@@ -138,7 +139,6 @@ ld_symver_create_verneed_section(struct ld *ld)
 	 * Build Verneed/Vernaux structures.
 	 */
 	sz = 0;
-	lo->lo_version_index = 2; /* TODO: move this to somewhere else. */
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 		if (li->li_type != LIT_DSO || li->li_dso_refcnt == 0 ||
 		    li->li_verdef == NULL)
@@ -233,7 +233,7 @@ ld_symver_create_verneed_section(struct ld *ld)
 		buf2 = buf + sizeof(Elf_Verneed);
 		vna = NULL;
 		STAILQ_FOREACH(sna, &svn->svn_aux, sna_next) {
-			vna = (Elf32_Vernaux *) (uintptr_t) buf2;
+			vna = (Elf_Vernaux *) (uintptr_t) buf2;
 			vna->vna_hash = sna->sna_hash;
 			vna->vna_flags = 0; /* TODO: VER_FLG_WEAK? */
 			vna->vna_other = sna->sna_other;
@@ -252,6 +252,149 @@ ld_symver_create_verneed_section(struct ld *ld)
 	/* Set last Verneed entry's vn_next to 0 */
 	if (vn != NULL)
 		vn->vn_next = 0;
+
+	assert(buf == end);
+
+	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER,
+	    odb, NULL);
+}
+
+void
+ld_symver_create_verdef_section(struct ld *ld)
+{
+	struct ld_script *lds;
+	struct ld_output *lo;
+	struct ld_output_section *os;
+	struct ld_output_data_buffer *odb;
+	struct ld_script_version_node *ldvn;
+	char verdef_name[] = ".gnu.version_d";
+	Elf_Verdef *vd;
+	Elf_Verdaux *vda;
+	uint8_t *buf, *end;
+	char *soname;
+	size_t sz;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+	assert(lo->lo_dynstr != NULL);
+
+	lds = ld->ld_scp;
+	if (STAILQ_EMPTY(&lds->lds_vn))
+		return;
+
+	/*
+	 * Create .gnu.version_d section.
+	 */
+	HASH_FIND_STR(lo->lo_ostbl, verdef_name, os);
+	if (os == NULL)
+		os = ld_layout_insert_output_section(ld, verdef_name,
+		    SHF_ALLOC);
+	os->os_type = SHT_GNU_verdef;
+	os->os_flags = SHF_ALLOC;
+	os->os_entsize = 0;
+	if (lo->lo_ec == ELFCLASS32)
+		os->os_align = 4;
+	else
+		os->os_align = 8;
+	os->os_link = lo->lo_dynstr;
+
+	/*
+	 * Calculate verdef section size: .gnu.version_d section consists
+	 * of one file version entry and several symbol version definition
+	 * entries (with corresponding) auxiliary entries.
+	 */
+	lo->lo_verdef_num = 1;
+	sz = sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		sz += sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+		if (ldvn->ldvn_dep != NULL)
+			sz += sizeof(Elf_Verdaux);
+		lo->lo_verdef_num++;
+	}
+
+	/* Store the number of verdef entries in the sh_info field. */
+	os->os_info_val = lo->lo_verdef_num;
+
+	/* Allocate buffer for Verdef/Verdaux entries. */
+	if ((buf = malloc(sz)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	end = buf + sz;
+
+	if ((odb = calloc(1, sizeof(*odb))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	odb->odb_buf = buf;
+	odb->odb_size = sz;
+	odb->odb_align = os->os_align;
+	odb->odb_type = ELF_T_VDEF; /* enable libelf translation */
+
+	/*
+	 * Set file version name to `soname' if it is provided,
+	 * otherwise set version name to output file name.
+	 */
+	if (ld->ld_soname != NULL)
+		soname = ld->ld_soname;
+	else {
+		if ((soname = strrchr(ld->ld_output_file, '/')) == NULL)
+			soname = ld->ld_output_file;
+		else
+			soname++;
+	}
+
+	/* Write file version entry. */
+	vd = (Elf_Verdef *) (uintptr_t) buf;
+	vd->vd_version = VER_DEF_CURRENT;
+	vd->vd_flags |= VER_FLG_BASE;
+	vd->vd_ndx = 1;
+	vd->vd_cnt = 1;
+	vd->vd_hash = elf_hash(soname);
+	vd->vd_aux = sizeof(Elf_Verdef);
+	vd->vd_next = sizeof(Elf_Verdef) + sizeof(Elf_Verdaux);
+	buf += sizeof(Elf_Verdef);
+
+	/* Write file version auxiliary entry. */
+	vda = (Elf_Verdaux *) (uintptr_t) buf;
+	vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+	    soname);
+	vda->vda_next = 0;
+	buf += sizeof(Elf_Verdaux);
+	
+	/* Write symbol version definition entries. */
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		vd = (Elf_Verdef *) (uintptr_t) buf;
+		vd->vd_version = VER_DEF_CURRENT;
+		vd->vd_flags = 0;
+		vd->vd_ndx = lo->lo_version_index++;
+		vd->vd_cnt = (ldvn->ldvn_dep == NULL) ? 1 : 2;
+		vd->vd_hash = elf_hash(ldvn->ldvn_name);
+		vd->vd_aux = sizeof(Elf_Verdef);
+		if (STAILQ_NEXT(ldvn, ldvn_next) == NULL)
+			vd->vd_next = 0;
+		else
+			vd->vd_next = sizeof(Elf_Verdef) + 
+			    ((ldvn->ldvn_dep == NULL) ? 1 : 2) *
+				sizeof(Elf_Verdaux);
+		buf += sizeof(Elf_Verdef);
+
+		/* Write version name auxiliary entry. */
+		vda = (Elf_Verdaux *) (uintptr_t) buf;
+		vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+		    ldvn->ldvn_name);
+		vda->vda_next = ldvn->ldvn_dep == NULL ? 0 :
+		    sizeof(Elf_Verdaux);
+		buf += sizeof(Elf_Verdaux);
+
+		if (ldvn->ldvn_dep == NULL)
+			continue;
+		
+		/* Write version dependency auxiliary entry. */
+		vda = (Elf_Verdaux *) (uintptr_t) buf;
+		vda->vda_name = ld_strtab_insert_no_suffix(ld, ld->ld_dynstr,
+		    ldvn->ldvn_dep);
+		vda->vda_next = 0;
+		buf += sizeof(Elf_Verdaux);
+	}
 
 	assert(buf == end);
 

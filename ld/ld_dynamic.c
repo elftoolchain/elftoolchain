@@ -74,6 +74,14 @@ ld_dynamic_create(struct ld *ld)
 	/* Create .hash section. */
 	ld_hash_create_svr4_hash_section(ld);
 
+	/*
+	 * Create .gnu.version_d section if the linker creats a shared
+	 * library and version script is provided.
+	 */
+	lo->lo_version_index = 2;
+	if (ld->ld_dso)
+		ld_symver_create_verdef_section(ld);
+
 	/* Create .gnu.version_r section. */
 	ld_symver_create_verneed_section(ld);
 

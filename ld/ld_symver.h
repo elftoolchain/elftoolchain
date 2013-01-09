@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,7 @@ STAILQ_HEAD(ld_symver_verdef_head, ld_symver_verdef);
 
 void	ld_symver_load_symbol_version_info(struct ld *, struct ld_input *,
     Elf *, Elf_Scn *, Elf_Scn *, Elf_Scn *);
+void	ld_symver_create_verdef_section(struct ld *);
 void	ld_symver_create_verneed_section(struct ld *);
 void	ld_symver_create_versym_section(struct ld *);
 void	ld_symver_add_verdef_refcnt(struct ld *, struct ld_symbol *);
