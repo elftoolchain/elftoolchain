@@ -45,7 +45,7 @@ static struct ld_option ld_opts[] = {
 	{"aarchive", KEY_STATIC, ONE_DASH, NO_ARG},
 	{"adefault", KEY_DYNAMIC, ONE_DASH, NO_ARG},
 	{"ashared", KEY_DYNAMIC, ONE_DASH, NO_ARG},
-	{"accept-unknown-input-arch", KEY_ACCPET_UNKNOWN, ANY_DASH, NO_ARG},
+	{"accept-unknown-input-arch", KEY_ACCEPT_UNKNOWN, ANY_DASH, NO_ARG},
 	{"allow-multiple-definition", KEY_Z_MULDEFS, ANY_DASH, NO_ARG},
 	{"allow-shlib-undefined", KEY_ALLOW_SHLIB_UNDEF, ANY_DASH, NO_ARG},
 	{"assert", KEY_ASSERT, ANY_DASH, NO_ARG},
