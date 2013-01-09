@@ -39,9 +39,15 @@ ELFTC_VCSID("$Id$");
 struct yy_buffer_state;
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 
+#ifndef	YY_BUF_SIZE
+#define	YY_BUF_SIZE 16384
+#endif
+
 extern int yylex(void);
 extern int yyparse(void);
+extern YY_BUFFER_STATE yy_create_buffer(FILE *file, int size);
 extern YY_BUFFER_STATE yy_scan_string(char *yy_str);
+extern void yy_switch_to_buffer(YY_BUFFER_STATE b);
 extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern int lineno;
 extern FILE *yyin;
@@ -1192,13 +1198,17 @@ _init_script(void)
 void
 ld_script_parse(const char *name)
 {
+	YY_BUFFER_STATE b;
 
 	_init_script();
 
 	if ((yyin = fopen(name, "r")) == NULL)
 		ld_fatal_std(ld, "fopen %s name failed", name);
+	b = yy_create_buffer(yyin, YY_BUF_SIZE);
+	yy_switch_to_buffer(b);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse linker script %s", name);
+	yy_delete_buffer(b);
 }
 
 void
@@ -1210,6 +1220,7 @@ ld_script_parse_internal(void)
 
 	assert(ld->ld_arch != NULL && ld->ld_arch->script != NULL);
 	b = yy_scan_string(ld->ld_arch->script);
+	yy_switch_to_buffer(b);
 	if (yyparse() < 0)
 		ld_fatal(ld, "unable to parse internal linker script");
 	yy_delete_buffer(b);
