@@ -76,3 +76,4 @@ void	ld_symver_create_verdef_section(struct ld *);
 void	ld_symver_create_verneed_section(struct ld *);
 void	ld_symver_create_versym_section(struct ld *);
 void	ld_symver_add_verdef_refcnt(struct ld *, struct ld_symbol *);
+uint16_t ld_symver_search_version_script(struct ld *, struct ld_symbol *);

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -475,10 +475,11 @@ ld_symbols_scan(struct ld *ld)
 		 * 2. A symbol that is defined in a DSO and referenced
 		 *    by a regular object.
 		 *
-		 * 3. The linker creates a DSO and the symbol is defined
+		 * 3. A symbol that is referenced by a dynamic relocation.
+		 *
+		 * 4. The linker creates a DSO and the symbol is defined
 		 *    in a regular object and is visible externally.
 		 *
-		 * 4. A symbol that is referenced by a dynamic relocation.
 		 */
 		if (lsb->lsb_ref_dso && ld_symbols_in_regular(lsb))
 			_add_to_dynsym_table(ld, lsb);
@@ -487,11 +488,12 @@ ld_symbols_scan(struct ld *ld)
 			lsb->lsb_input->li_dso_refcnt++;
 			ld_symver_add_verdef_refcnt(ld, lsb);
 			_add_to_dynsym_table(ld, lsb);
-		}
-		else if (ld->ld_dso && ld_symbols_in_regular(lsb) &&
-		    lsb->lsb_other == STV_DEFAULT)
+		} else if (lsb->lsb_dynrel)
 			_add_to_dynsym_table(ld, lsb);
-		else if (lsb->lsb_dynrel)
+		else if (ld->ld_dso && ld_symbols_in_regular(lsb) &&
+		    lsb->lsb_other == STV_DEFAULT &&
+		    ld_symver_search_version_script(ld, lsb) != 0)
+
 			_add_to_dynsym_table(ld, lsb);
 	}
 }

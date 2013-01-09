@@ -60,7 +60,6 @@ static void _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verdef);
 static void _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verneed);
-static uint16_t _search_version_script(struct ld *ld, struct ld_symbol *lsb);
 
 void
 ld_symver_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
@@ -468,7 +467,7 @@ ld_symver_create_versym_section(struct ld *ld)
 		else if (lsb->lsb_vd != NULL)
 			buf[i] = lsb->lsb_vd->svd_ndx_output;
 		else if (ld->ld_dso && ld_symbols_in_regular(lsb))
-			buf[i] = _search_version_script(ld, lsb);
+			buf[i] = ld_symver_search_version_script(ld, lsb);
 		else {
 			buf[i] = 1; /* Version is *global* */
 		}
@@ -776,20 +775,30 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf_Verdef *vd)
 	return (svd);
 }
 
-static uint16_t
-_search_version_script(struct ld *ld, struct ld_symbol *lsb)
+uint16_t
+ld_symver_search_version_script(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_script *lds;
 	struct ld_script_version_node *ldvn;
 	struct ld_script_version_entry *ldve, *ldve_g;
 	uint16_t ndx, ret_ndx, ret_ndx_g;
 
+	/* If the symbol version index was known, return it directly. */
+	if (lsb->lsb_vndx_known)
+		return (lsb->lsb_vndx);
+
+	/* The symbol version index will be known after searching. */
+	lsb->lsb_vndx_known = 1;
+
 	lds = ld->ld_scp;
 
 	/* If there isn't a version script, the default version is *global* */
-	if (STAILQ_EMPTY(&lds->lds_vn))
+	if (STAILQ_EMPTY(&lds->lds_vn)) {
+		lsb->lsb_vndx = 1;
 		return (1);
+	}
 
+	/* Search for a match in the version patterns. */
 	ndx = 2;
 	ldve_g = NULL;
 	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
@@ -813,8 +822,10 @@ _search_version_script(struct ld *ld, struct ld_symbol *lsb)
 						ldve_g = ldve;
 						ret_ndx_g = ret_ndx;
 					}
-				} else
+				} else {
+					lsb->lsb_vndx = ret_ndx;
 					return (ret_ndx);
+				}
 			}
 		}
 		if (ldvn->ldvn_name != NULL)
@@ -822,12 +833,15 @@ _search_version_script(struct ld *ld, struct ld_symbol *lsb)
 	}
 
 	/* There is no exact match, check if there is a globbing match. */
-	if (ldve_g != NULL)
+	if (ldve_g != NULL) {
+		lsb->lsb_vndx = ret_ndx_g;
 		return (ret_ndx_g);
+	}
 
 	/*
 	 * Symbol doesn't match any version definition, set version
 	 * to *global*.
 	 */
+	lsb->lsb_vndx = 1;
 	return (1);
 }

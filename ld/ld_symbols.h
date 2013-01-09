@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,8 @@ struct ld_symbol {
 	unsigned char lsb_plt;		/* symbol has plt entry */
 	unsigned char lsb_func_addr;	/* symbol(function) has address */
 	unsigned char lsb_tls_ld;	/* local dynamic TLS symbol */
+	unsigned char lsb_vndx_known;	/* version index is known */
+	uint16_t lsb_vndx;		/* version index */
 	struct ld_symver_verdef *lsb_vd; /* version definition */
 	struct ld_symbol *lsb_prev;	/* symbol resolved by this symbol */
 	struct ld_symbol *lsb_ref;	/* this symbol resolves to ... */
