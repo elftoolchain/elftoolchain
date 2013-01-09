@@ -134,7 +134,7 @@ static struct ld_option ld_opts[] = {
 	{"unresolved-symbols", KEY_UNRESOLVED_SYMBOLS, ANY_DASH, REQ_ARG},
 	{"verbose" , 'v', ANY_DASH, NO_ARG},
 	{"version", KEY_VERSION, ANY_DASH, NO_ARG},
-	{"version_script", KEY_VERSION_SCRIPT, ANY_DASH, REQ_ARG},
+	{"version-script", KEY_VERSION_SCRIPT, ANY_DASH, REQ_ARG},
 	{"warn-common", KEY_WARN_COMMON, ANY_DASH, NO_ARG},
 	{"warn-constructors", KEY_WARN_CONSTRUCTORS, ANY_DASH, NO_ARG},
 	{"warn-multiple-gp", KEY_WARN_MULTIPLE_GP, ANY_DASH, NO_ARG},
@@ -422,6 +422,9 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case KEY_FILE:
 		ld_file_add(ld, arg, LFT_UNKNOWN);
+		break;
+	case KEY_VERSION_SCRIPT:
+		ld_script_parse(arg);
 		break;
 	case KEY_Z_EXEC_STACK:
 		ld->ld_gen_gnustack = 1;
