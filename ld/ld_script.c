@@ -619,6 +619,8 @@ ld_script_version_alloc_entry(struct ld *ld, char *sym, void *extern_block)
 {
 	struct ld_state *ls;
 	struct ld_script_version_entry *ldve;
+	int ignore;
+	char *p;
 
 	ls = &ld->ld_state;
 
@@ -629,6 +631,28 @@ ld_script_version_alloc_entry(struct ld *ld, char *sym, void *extern_block)
 	ldve->ldve_local = ls->ls_version_local;
 	ldve->ldve_list = extern_block;
 
+	if (ldve->ldve_sym == NULL)
+		return (ldve);
+
+	ignore = 0;
+	for (p = ldve->ldve_sym; *p != '\0'; p++) {
+		switch (*p) {
+		case '\\':
+			/* Ignore the next char */
+			ignore = 1;
+			break;
+		case '?':
+		case '*':
+		case '[':
+			if (!ignore) {
+				ldve->ldve_glob = 1;
+				goto done;
+			} else
+				ignore = 0;
+		}
+	}
+
+done:
 	return (ldve);
 }
 

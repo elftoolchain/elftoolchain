@@ -781,8 +781,8 @@ _search_version_script(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_script *lds;
 	struct ld_script_version_node *ldvn;
-	struct ld_script_version_entry *ldve;
-	uint16_t ndx;
+	struct ld_script_version_entry *ldve, *ldve_g;
+	uint16_t ndx, ret_ndx, ret_ndx_g;
 
 	lds = ld->ld_scp;
 
@@ -791,21 +791,39 @@ _search_version_script(struct ld *ld, struct ld_symbol *lsb)
 		return (1);
 
 	ndx = 2;
+	ldve_g = NULL;
 	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
 		STAILQ_FOREACH(ldve, ldvn->ldvn_e, ldve_next) {
 			assert(ldve->ldve_sym != NULL);
 			if (fnmatch(ldve->ldve_sym, lsb->lsb_name, 0) == 0) {
 				if (ldve->ldve_local)
-					return (0);
+					ret_ndx = 0;
 				else if (ldvn->ldvn_name != NULL)
-					return (ndx);
+					ret_ndx = ndx;
 				else
-					return (1);
+					ret_ndx = 1;
+
+				/*
+				 * If the version name is a globbing pattern,
+				 * we only consider it is a match when there
+				 * doesn't exist a exact match.
+				 */
+				if (ldve->ldve_glob) {
+					if (ldve_g == NULL) {
+						ldve_g = ldve;
+						ret_ndx_g = ret_ndx;
+					}
+				} else
+					return (ret_ndx);
 			}
 		}
 		if (ldvn->ldvn_name != NULL)
 			ndx++;
 	}
+
+	/* There is no exact match, check if there is a globbing match. */
+	if (ldve_g != NULL)
+		return (ret_ndx_g);
 
 	/*
 	 * Symbol doesn't match any version definition, set version

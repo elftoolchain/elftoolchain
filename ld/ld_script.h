@@ -215,6 +215,7 @@ struct ld_script_version_entry {
 	enum ld_script_version_lang ldve_lang; /* version entry lanauage */
 	char *ldve_sym; /* symbol wildcard */
 	unsigned char ldve_local; /* symbol scope */
+	unsigned char ldve_glob;  /* ldve_sym contains glob chars. */
 	STAILQ_ENTRY(ld_script_version_entry) ldve_next;
 
 	/* Following fields are only used during script parsing. */
