@@ -60,6 +60,8 @@ static void _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verdef);
 static void _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *verneed);
+static uint16_t _search_version_script(struct ld *ld, struct ld_symbol *lsb);
+
 void
 ld_symver_load_symbol_version_info(struct ld *ld, struct ld_input *li, Elf *e,
     Elf_Scn *versym, Elf_Scn *verneed, Elf_Scn *verdef)
@@ -444,12 +446,30 @@ ld_symver_create_versym_section(struct ld *ld)
 	buf[0] = 0;		/* special index 0 symbol */
 	i = 1;
 	STAILQ_FOREACH(lsb, ld->ld_dyn_symbols, lsb_dyn) {
+		/*
+		 * Assign version index according to the following rules:
+		 *
+		 * 1. If the symbol is local, the version is *local*.
+		 *
+		 * 2. If the symbol is defined in shared libraries and there
+		 *    exists a version definition for this symbol, use the
+		 *    version defined by the shared library.
+		 *
+		 * 3. If the symbol is defined in regular objects and the
+		 *    linker creates a shared library, use the version
+		 *    defined in the version script, if provided.
+		 *
+		 * 4. Otherwise, the version is *global*.
+		 */
 		if (lsb->lsb_bind == STB_LOCAL)
 			buf[i] = 0; /* Version is *local* */
 		else if (lsb->lsb_vd != NULL)
 			buf[i] = lsb->lsb_vd->svd_ndx_output;
-		else
+		else if (ld->ld_dso && ld_symbols_in_regular(lsb))
+			buf[i] = _search_version_script(ld, lsb);
+		else {
 			buf[i] = 1; /* Version is *global* */
+		}
 		i++;
 	}
 	assert((size_t) i == ld->ld_dynsym->sy_size);
@@ -630,7 +650,8 @@ _alloc_verdef(struct ld *ld, struct ld_symver_verdef_head *head)
 }
 
 static void
-_load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verneed)
+_load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *verneed)
 {
 	Elf_Data *d_vn;
 	Elf_Verneed *vn;
@@ -678,7 +699,8 @@ _load_verneed_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verne
 }
 
 static void
-_load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef)
+_load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e,
+    Elf_Scn *verdef)
 {
 	struct ld_symver_verdef *svd;
 	Elf_Data *d_vd;
@@ -715,7 +737,8 @@ _load_verdef_section(struct ld *ld, struct ld_input *li, Elf *e, Elf_Scn *verdef
 			vda = (Elf_Verdaux *) (uintptr_t) buf2;
 			name = elf_strptr(e, sh_vd.sh_link, vda->vda_name);
 			if (name != NULL) {
-				_add_version_name(ld, li, (int) vd->vd_ndx, name);
+				_add_version_name(ld, li, (int) vd->vd_ndx,
+				    name);
 				(void) _alloc_vda(ld, name, svd);
 			}
 			if (vda->vda_next == 0)
@@ -749,4 +772,42 @@ _load_verdef(struct ld *ld, struct ld_input *li, Elf_Verdef *vd)
 	svd->svd_hash = vd->vd_hash;
 
 	return (svd);
+}
+
+static uint16_t
+_search_version_script(struct ld *ld, struct ld_symbol *lsb)
+{
+	struct ld_script *lds;
+	struct ld_script_version_node *ldvn;
+	struct ld_script_version_entry *ldve;
+	uint16_t ndx;
+
+	lds = ld->ld_scp;
+
+	/* If there isn't a version script, the default version is *global* */
+	if (STAILQ_EMPTY(&lds->lds_vn))
+		return (1);
+
+	ndx = 2;
+	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
+		STAILQ_FOREACH(ldve, ldvn->ldvn_e, ldve_next) {
+			assert(ldve->ldve_sym != NULL);
+			if (fnmatch(ldve->ldve_sym, lsb->lsb_name, 0) == 0) {
+				if (ldve->ldve_local)
+					return (0);
+				else if (ldvn->ldvn_name != NULL)
+					return (ndx);
+				else
+					return (1);
+			}
+		}
+		if (ldvn->ldvn_name != NULL)
+			ndx++;
+	}
+
+	/*
+	 * Symbol doesn't match any version definition, set version
+	 * to *global*.
+	 */
+	return (1);
 }
