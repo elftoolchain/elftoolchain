@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,6 +82,7 @@ struct ld_state {
 	unsigned ls_archive_mb_header;	/* extracted list header printed */
 	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
 	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
+	unsigned ls_version_local;	/* version entry is local */
 };
 
 struct ld {

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -377,6 +377,7 @@ ld_script_init(struct ld *ld)
 	STAILQ_INIT(&ld->ld_scp->lds_n);
 	STAILQ_INIT(&ld->ld_scp->lds_p);
 	STAILQ_INIT(&ld->ld_scp->lds_r);
+	STAILQ_INIT(&ld->ld_scp->lds_vn);
 
 	ld_script_parse_internal();
 }
@@ -585,6 +586,105 @@ ld_script_region_alias(struct ld *ld, char *alias, char *region)
 
 	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_a, ldra, ldra_next);
 }
+
+void
+ld_script_version_add_node(struct ld *ld, char *ver, void *head, char *depend)
+{
+	struct ld_script_version_node *ldvn;
+
+	if ((ldvn = calloc(1, sizeof(*ldvn))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	
+	ldvn->ldvn_name = ver;
+	if (ldvn->ldvn_name == NULL) {
+		/*
+		 * Version name can be omitted only when this is the only
+		 * node in the version script.
+		 */
+		if (ld->ld_scp->lds_vn_name_omitted ||
+		    !STAILQ_EMPTY(&ld->ld_scp->lds_vn))
+			ld_fatal(ld, "version script can only have one "
+			    "version node that is without a version name");
+		ld->ld_scp->lds_vn_name_omitted = 1;
+	}
+
+	ldvn->ldvn_dep = depend;
+	ldvn->ldvn_e = head;
+
+	STAILQ_INSERT_TAIL(&ld->ld_scp->lds_vn, ldvn, ldvn_next);
+}
+
+struct ld_script_version_entry *
+ld_script_version_alloc_entry(struct ld *ld, char *sym, void *extern_block)
+{
+	struct ld_state *ls;
+	struct ld_script_version_entry *ldve;
+
+	ls = &ld->ld_state;
+
+	if ((ldve = calloc(1, sizeof(*ldve))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	ldve->ldve_sym = sym;
+	ldve->ldve_local = ls->ls_version_local;
+	ldve->ldve_list = extern_block;
+
+	return (ldve);
+}
+
+void *
+ld_script_version_link_entry(struct ld *ld,
+    struct ld_script_version_entry_head *head,
+    struct ld_script_version_entry *ldve)
+{
+
+	if (ldve == NULL)
+		return (head);
+
+	if (head == NULL) {
+		if ((head = calloc(1, sizeof(*head))) == NULL)
+			ld_fatal_std(ld, "calloc");
+		STAILQ_INIT(head);
+	}
+
+	if (ldve->ldve_list != NULL) {
+		STAILQ_CONCAT(head, ldve->ldve_list);
+		free(ldve->ldve_list);
+		free(ldve);
+	} else
+		STAILQ_INSERT_TAIL(head, ldve, ldve_next);
+
+	return (head);
+}
+
+void
+ld_script_version_set_lang(struct ld * ld,
+    struct ld_script_version_entry_head *head, char *lang)
+{
+	struct ld_script_version_entry *ldve;
+	enum ld_script_version_lang vl;
+
+	vl = VL_C;
+
+	if (!strcasecmp(lang, "c"))
+		vl = VL_C;
+	else if (!strcasecmp(lang, "c++"))
+		vl = VL_CPP;
+	else if (!strcasecmp(lang, "java"))
+		vl = VL_JAVA;
+	else
+		ld_warn(ld, "unrecognized language `%s' in version script",
+		    lang);
+
+	STAILQ_FOREACH(ldve, head, ldve_next) {
+		/* Do not overwrite lang set by inner extern blocks. */
+		if (!ldve->ldve_lang_set) {
+			ldve->ldve_lang = vl;
+			ldve->ldve_lang_set = 1;
+		}
+	}
+}
+    
 
 static void
 _input_file_add(struct ld *ld, struct ld_script_input_file *ldif)

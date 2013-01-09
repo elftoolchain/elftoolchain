@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,12 +203,42 @@ struct ld_script_variable {
 	UT_hash_handle hh;		/* hash handle */
 };
 
+enum ld_script_version_lang {
+	VL_C = 0,
+	VL_CPP,
+	VL_JAVA
+};
+
+struct ld_script_version_entry_head;
+
+struct ld_script_version_entry {
+	enum ld_script_version_lang ldve_lang; /* version entry lanauage */
+	char *ldve_sym; /* symbol wildcard */
+	unsigned char ldve_local; /* symbol scope */
+	STAILQ_ENTRY(ld_script_version_entry) ldve_next;
+
+	/* Following fields are only used during script parsing. */
+	struct ld_script_version_entry_head *ldve_list; /* extern block */
+	unsigned char ldve_lang_set; /* lang is set  */
+};
+
+STAILQ_HEAD(ld_script_version_entry_head, ld_script_version_entry);
+
+struct ld_script_version_node {
+	char *ldvn_name; /* version name */
+	char *ldvn_dep; /* version dependency */
+	struct ld_script_version_entry_head *ldvn_e; /* version entries */
+	STAILQ_ENTRY(ld_script_version_node) ldvn_next;
+};
+
 struct ld_script {
 	char *lds_entry_point;		/* entry point symbol */
 	STAILQ_HEAD(, ld_script_phdr) lds_p; /* phdr table */
 	STAILQ_HEAD(, ld_script_region_alias) lds_a; /* region aliases list */
 	STAILQ_HEAD(, ld_script_region) lds_r; /* memory region list */
 	STAILQ_HEAD(, ld_script_nocrossref) lds_n; /* nocrossref list */
+	STAILQ_HEAD(, ld_script_version_node) lds_vn; /* version node list */
+	unsigned char lds_vn_name_omitted; /* version node w/o name exists */
 	struct ld_script_cmd_head lds_c; /* other ldscript cmd list */
 	struct ld_script_variable *lds_v; /* variable table */
 };
@@ -245,3 +275,10 @@ void	ld_script_process_assign(struct ld *, struct ld_script_assign *);
 void	ld_script_process_entry(struct ld *, char *);
 void	ld_script_region_alias(struct ld *, char *, char *);
 int64_t ld_script_variable_value(struct ld *, char *);
+void	ld_script_version_add_node(struct ld *, char *, void *, char *);
+struct ld_script_version_entry *ld_script_version_alloc_entry(struct ld *,
+    char *, void *);
+void	*ld_script_version_link_entry(struct ld *,
+    struct ld_script_version_entry_head *, struct ld_script_version_entry *);
+void	ld_script_version_set_lang(struct ld *,
+    struct ld_script_version_entry_head *, char *);

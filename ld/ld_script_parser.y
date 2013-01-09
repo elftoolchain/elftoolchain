@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,6 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %token T_SYSLIB
 %token T_TARGET
 %token T_TRUNCATE
-%token T_VERSION
 %token T_VER_EXTERN
 %token T_VER_GLOBAL
 %token T_VER_LOCAL
@@ -242,6 +241,11 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 %type <str> symbolic_constant
 %type <str> wildcard
 %type <wildcard> wildcard_sort
+%type <version_entry> version_entry
+%type <version_entry_head> version_block
+%type <version_entry_head> version_entry_list
+%type <version_entry_head> extern_block
+%type <str> version_dependency
 
 %union {
 	struct ld_exp *exp;
@@ -256,6 +260,8 @@ static struct ld_script_cmd_head ldss_c, ldso_c;
 	struct ld_script_sections_output_input *input_section;
 	struct ld_script_sections_overlay *overlay_desc;
 	struct ld_script_sections_overlay_section *overlay_section;
+	struct ld_script_version_entry *version_entry;
+	struct ld_script_version_entry_head *version_entry_head;
 	struct ld_wildcard *wildcard;
 	char *str;
 	int64_t num;
@@ -523,7 +529,7 @@ ldscript_command
 	| sections_command
 	| startup_command { $$ = NULL; }
 	| target_command { $$ = NULL; }
-	| version_script_node ';' { $$ = NULL; }
+	| version_script_node { $$ = NULL; }
 	| ';' { $$ = NULL; }
 	;
 
@@ -1016,32 +1022,63 @@ target_command
 	;
 
 version_script_node
-	: ident extern_block version_dependency
-	| ident version_block version_dependency
+	: ident extern_block version_dependency ';' {
+		ld_script_version_add_node(ld, $1, $2, $3);
+	}
+	| ident version_block version_dependency ';' {
+		ld_script_version_add_node(ld, $1, $2, $3);
+	}
+	| extern_block version_dependency ';' {
+		ld_script_version_add_node(ld, NULL, $1, $2);
+	}
+	| version_block version_dependency ';' {
+		ld_script_version_add_node(ld, NULL, $1, $2);
+	}
 	;
 
 extern_block
-	: T_VER_EXTERN T_STRING version_block
+	: T_VER_EXTERN T_STRING version_block {
+		ld_script_version_set_lang(ld, $3, $2);
+		$$ = $3;
+	}
 	;
 
 version_block
-	: '{' version_definition_list '}'
+	: '{' version_entry_list '}' {
+		$$ = $2;
+		ld->ld_state.ls_version_local = 0;
+	}
 	;
 
-version_definition_list
-	: version_definition
-	| version_definition_list version_definition
+version_entry_list
+	: version_entry {
+		$$ = ld_script_version_link_entry(ld, NULL, $1);
+	}
+	| version_entry_list version_entry {
+		$$ = ld_script_version_link_entry(ld, $1, $2);
+	}
 	;
 
-version_definition
-	: T_VER_GLOBAL
-	| T_VER_LOCAL
-	| wildcard ';'
+version_entry
+	: T_VER_GLOBAL {
+		ld->ld_state.ls_version_local = 0;
+		$$ = NULL;
+	}
+	| T_VER_LOCAL {
+		ld->ld_state.ls_version_local = 1;
+		$$ = NULL;
+	}
+	| wildcard ';' {
+		$$ = ld_script_version_alloc_entry(ld, $1, NULL);
+	}
+	| extern_block ';' {
+		$$ = ld_script_version_alloc_entry(ld, NULL, $1);
+	}
 	;
 
 version_dependency
 	: ident
-	|
+	| { $$ = NULL; }
 	;
 
 ident
@@ -1055,7 +1092,7 @@ variable
 	;
 
 wildcard
-	: ident 
+	: ident
 	| T_WILDCARD
 	| '*' { $$ = strdup("*"); }
 	| '?' { $$ = strdup("?"); }

@@ -1,6 +1,6 @@
 %{
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,7 +130,6 @@ SUBALIGN			{ return (T_SUBALIGN); }
 SYSLIB				{ return (T_SYSLIB); }
 TARGET				{ return (T_TARGET); }
 TRUNCATE			{ return (T_TRUNCATE); }
-VERSION				{ return (T_VERSION); }
 extern				{ return (T_VER_EXTERN); }
 global:				{ return (T_VER_GLOBAL); }
 l				{ return (T_LENGTH); }
