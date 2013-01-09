@@ -230,8 +230,12 @@ ld_symbols_resolve(struct ld *ld)
 	struct ld_file *lf;
 	struct ld_symbol *lsb, *_lsb;
 
-	if (TAILQ_EMPTY(&ld->ld_lflist))
-		ld_fatal(ld, "no input files");
+	if (TAILQ_EMPTY(&ld->ld_lflist)) {
+		if (ld->ld_print_version)
+			exit(EXIT_SUCCESS);
+		else
+			ld_fatal(ld, "no input files");
+	}
 
 	ls = &ld->ld_state;
 	lf = TAILQ_FIRST(&ld->ld_lflist);

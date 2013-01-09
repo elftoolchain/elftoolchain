@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,7 +190,7 @@ static void _copy_optarg(struct ld *ld, char **dst, char *src);
 static void _process_options(struct ld *ld, int key, char *arg);
 static int _parse_long_options(struct ld *, struct ld_option *, int,
     int, char **, char *, enum ld_dash);
-static void _print_version(void);
+static void _print_version(struct ld *ld);
 
 void
 ld_options_parse(struct ld* ld, int argc, char **argv)
@@ -376,7 +376,7 @@ _process_options(struct ld *ld, int key, char *arg)
 		break;
 	case 'v':
 	case 'V':
-		_print_version();
+		_print_version(ld);
 		break;
 	case '(':
 		ls->ls_group_level++;
@@ -442,10 +442,11 @@ _process_options(struct ld *ld, int key, char *arg)
 }
 
 static void
-_print_version(void)
+_print_version(struct ld *ld)
 {
 
 	(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(), elftc_version());
+	ld->ld_print_version = 1;
 }
 
 static void
