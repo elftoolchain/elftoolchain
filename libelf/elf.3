@@ -251,7 +251,7 @@ This value must be non-zero and a power of two.
 .It Vt "void *d_buf"
 A pointer to data in memory.
 .It Vt "uint64_t d_off"
-The offset with the containing section where this descriptors data
+The offset with the containing section where this descriptor's data
 would be placed.
 This field will be computed by the library unless the application
 requests full control of the ELF object's layout.
@@ -429,7 +429,7 @@ Add a new section descriptor to an ELF descriptor.
 .It Fn elf_nextscn
 Iterate through the sections in an ELF object.
 .It Fn elf_rawdata
-Retrieve untranslated data for an ELF sectino.
+Retrieve untranslated data for an ELF section.
 .It Fn elf_rawfile
 Return a pointer to the untranslated file contents for an ELF object.
 .It Fn elf32_getehdr , Fn elf64_getehdr
