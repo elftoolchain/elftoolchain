@@ -56,22 +56,22 @@ static struct option isa_long_options[] = {
 };
 
 static const char *isa_usage_message = "\
-usage: %s [options]... [command]\n\
+usage: %s [options] [command] [specfiles]...\n\
     Process an instruction set specification.\n\
 \n\
 Supported values for 'command' are:\n\
     decode	Build an instruction stream decoder.\n\
     encode	Build an instruction stream encoder.\n\
-    query	Retrieve information about an instruction set.\n\
+    query	(default) Retrieve information about an instruction set.\n\
 \n\
 Supported global options are:\n\
     -a ARCH | --arch ARCH    Process instruction specifications for ARCH.\n\
     -c CPU  | --cpu CPU      Process instruction specifications for CPU.\n\
-    -n | --dry-run           Exit after checking inputs for errors.\n\
+    -n      | --dry-run      Exit after checking inputs for errors.\n\
     -s FILE | --spec FILE    Read instruction specifications from FILE.\n\
-    -q | --quiet             Suppress warning messages.\n\
-    -v | --verbose	     Be verbose.\n\
-    -V | --version	     Display a version identifier and exit.\n\
+    -q      | --quiet        Suppress warning messages.\n\
+    -v      | --verbose      Be verbose.\n\
+    -V      | --version      Display a version identifier and exit.\n\
 \n\
 Supported options for command 'decode' are:\n\
     -i FILE | --input FILE   Read source to be expanded from FILE.\n\
@@ -85,7 +85,7 @@ Supported options for command 'query' are:\n\
     -L | --list-instructions Generate a list of all known instructions.\n\
     -N NUM | --ntests NUM    Specify the number of test sequences generated.\n\
     -R N   | --random-seed N Use N as the random number generator seed.\n\
-    -T | --test              Generate test sequences.\n\
+    -T     | --test          Generate test sequences.\n\
 ";
 
 void
@@ -115,7 +115,7 @@ main(int argc, char **argv)
 	int option, option_index;
 
 	for (option_index = -1;
-	     (option = getopt_long(argc, argv, "CDEL:M:m:o:p:R:V",
+	     (option = getopt_long(argc, argv, "a:c:i:no:p:qs:vLN:R:TV",
 		 isa_long_options, &option_index)) != -1;
 	     option_index = -1) {
 		switch (option) {
