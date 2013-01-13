@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 18, 2012
+.Dd January 13, 2013
 .Os
 .Dt ISA 1
 .Sh NAME
@@ -32,21 +32,22 @@
 .Nd instruction set analyser
 .Sh SYNOPSIS
 .Nm
-.Op Fl a Ar architecture | Fl -arch Ar architecture
-.Op Fl c Ar cpu | Fl -cpu Ar cpu
-.Op Fl i Ar filename | Fl -input Ar filename
+.Op Fl a Ar architecture | Fl -arch Ns = Ns Ar architecture
+.Op Fl c Ar cpu | Fl -cpu Ns = Ns Ar cpu
+.Op Fl i Ar filename | Fl -input Ns = Ns Ar filename
 .Op Fl n | Fl -dry-run
-.Op Fl o Ar filename | Fl -output Ar filename
-.Op Fl p Ar string | Fl -prefix Ar string
-.Op Fl s Ar filename | Fl -spec Ar filename
+.Op Fl o Ar filename | Fl -output Ns = Ns Ar filename
+.Op Fl p Ar string | Fl -prefix Ns = Ns Ar string
+.Op Fl s Ar filename | Fl -spec Ns = Ns Ar filename
 .Op Fl q | Fl -quiet
 .Op Fl v | Fl -verbose
 .Op Fl L | Fl -list-instructions
-.Op Fl N Ar number | Fl -ntests Ar number
-.Op Fl R Ar number | Fl -random-seed Ar number
+.Op Fl N Ar number | Fl -ntests Ns = Ns Ar number
+.Op Fl R Ar number | Fl -random-seed Ns = Ns Ar number
 .Op Fl T | Fl -test
 .Op Fl V | Fl -version
-.Ar command
+.Op Ar command
+.Ar
 .Sh DESCRIPTION
 The
 .Nm
@@ -57,8 +58,8 @@ The
 .Nm
 utility supports three operational modes, as specified by the command
 line argument
-.Ar command:
-.Bl -tag -offset indent
+.Ar command :
+.Bl -tag -offset indent -compact
 .It Cm decode
 Build an instruction stream decoder.
 .It Cm encode
@@ -66,6 +67,9 @@ Build an instruction stream encoder.
 .It Cm query
 Retrieve information about an instruction set. 
 .El
+If no command mode is specified, a default of
+.Cm query
+will be used.
 .Pp
 The
 .Nm
@@ -80,7 +84,7 @@ utility will look for these specifications in the locations
 specified by the environment variable
 .Ev ISAPATH ,
 in addition to a built-in search location.
-.It Fl c Ar cpu | Fl -cpu Ar cpu
+.It Fl c Ar cpu | Fl -cpu Ns = Ns Ar cpu
 Generate encoders and decoders for the specific instruction set
 variant supported by CPU
 .Ar cpu .
@@ -89,7 +93,7 @@ If the argument
 .Ar cpu
 starts with a minus, the CPU specified will be removed from list of
 CPUs to be supported.
-.It Fl i Ar filename | Fl -input Ar filename
+.It Fl i Ar filename | Fl -input Ns = Ns Ar filename
 When generating a decoder, read the source to be expanded from the
 file named in the argument
 .Ar filename .
@@ -98,20 +102,20 @@ If an input file is not specified, the
 utility will read from its standard input.
 .It Fl n | Fl -dry-run
 Exit without creating any output after checking inputs for errors.
-.It Fl o Ar filename | Fl -output Ar filename
+.It Fl o Ar filename | Fl -output Ns = Ns Ar filename
 When generating encoders and decoders, send the output to the file
 specified by the argument
 .Ar filename .
 If an output file is not specified, the
 .Nm
 utility will write to its standard output.
-.It Fl p string | Fl -prefix string
+.It Fl p Ar string | Fl -prefix Ns = Ns Ar string
 When in encode mode, use the string in argument
 .Ar string
 as a prefix for generated symbols.
 .It Fl q | Fl -quiet
 Suppress warning messages.
-.It Fl s Ar filename | Fl -spec Ar filename
+.It Fl s Ar filename | Fl -spec Ns = Ns Ar filename
 Read an instruction set specification from the file named by argument
 .Ar filename .
 This option may be specified multiple times, in which case the
@@ -123,12 +127,12 @@ Increase the verbosity level.
 This option may be specified multiple times.
 .It Fl L | Fl -list-instructions
 When in query mode, generate a list of all known instructions.
-.It Fl N Ar number | Fl -ntests Ar number
+.It Fl N Ar number | Fl -ntests Ns = Ns Ar number
 When in query mode, specify the number of test sequences to be
 generated if the
 .Fl -T | Fl -test
 option was specified.
-.It Fl R Ar number | Fl -random-seed Ar number
+.It Fl R Ar number | Fl -random-seed Ns = Ns Ar number
 Use the argument
 .Ar number
 as the seed for pseudorandom number generation.
@@ -163,8 +167,8 @@ The default location for instruction set specifications.
 .Sh HISTORY
 The
 .Nm
-utility is scheduled to appear in a future version of the Elftoolchain
-project sources.
+utility is scheduled to appear in a future release from the
+Elftoolchain project.
 .\" TODO Reword the above when the target release is finalized.
 .Sh AUTHORS
 The
