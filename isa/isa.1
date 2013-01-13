@@ -34,6 +34,7 @@
 .Nm
 .Op Fl a Ar architecture | Fl -arch Ns = Ns Ar architecture
 .Op Fl c Ar cpu | Fl -cpu Ns = Ns Ar cpu
+.Op Fl h | Fl -help
 .Op Fl i Ar filename | Fl -input Ns = Ns Ar filename
 .Op Fl n | Fl -dry-run
 .Op Fl o Ar filename | Fl -output Ns = Ns Ar filename
@@ -93,6 +94,8 @@ If the argument
 .Ar cpu
 starts with a minus, the CPU specified will be removed from list of
 CPUs to be supported.
+.It Fl h | Fl -help
+Print a help message and exit.
 .It Fl i Ar filename | Fl -input Ns = Ns Ar filename
 When generating a decoder, read the source to be expanded from the
 file named in the argument

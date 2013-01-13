@@ -41,6 +41,7 @@ static struct option isa_long_options[] = {
 	{ "arch",  required_argument, NULL, 'a' },
 	{ "cpu", required_argument, NULL, 'c' },
 	{ "dry-run", no_argument, NULL, 'n' },
+	{ "help", no_argument, NULL, 'h' },
 	{ "input", required_argument, NULL, 'i' },
 	{ "list-instructions", no_argument, NULL, 'L' },
 	{ "ntests", required_argument, NULL, 'N' },
@@ -89,10 +90,11 @@ Supported options for command 'query' are:\n\
 ";
 
 void
-isa_usage(void)
+isa_usage(int iserror)
 {
-	(void) fprintf(stderr, isa_usage_message, ELFTC_GETPROGNAME());
-	exit(1);
+	(void) fprintf(iserror ? stderr : stdout, isa_usage_message,
+	    ELFTC_GETPROGNAME());
+	exit(iserror != 0);
 }
 
 void
@@ -115,10 +117,13 @@ main(int argc, char **argv)
 	int option, option_index;
 
 	for (option_index = -1;
-	     (option = getopt_long(argc, argv, "a:c:i:no:p:qs:vLN:R:TV",
+	     (option = getopt_long(argc, argv, "a:c:hi:no:p:qs:vLN:R:TV",
 		 isa_long_options, &option_index)) != -1;
 	     option_index = -1) {
 		switch (option) {
+		case 'h':
+			isa_usage(0);
+			break;
 		case 'V':
 			(void) printf("%s (%s)\n", ELFTC_GETPROGNAME(),
 			    elftc_version());
@@ -133,7 +138,7 @@ main(int argc, char **argv)
 			    isa_long_options);
 			break;
 		default:
-			isa_usage();
+			isa_usage(1);
 			break;
 		}
 	}
