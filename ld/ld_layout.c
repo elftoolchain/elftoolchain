@@ -807,6 +807,20 @@ _layout_orphan_section(struct ld *ld, struct ld_input_section *is)
 	    !is->is_dynrel)
 		return;
 
+	/*
+	 * When garbage collection is enabled (option `-gc-sections'
+	 * specified), remove sections that are not used.
+	 */
+	if (ld->ld_gc) {
+		if ((is->is_flags & SHF_ALLOC) != 0 && !is->is_refed) {
+			if (ld->ld_gc_print)
+				ld_info(ld, "Remove unused ection `%s' in "
+				    "file %s", is->is_name,
+				    ld_input_get_fullname(ld, is->is_input));
+			return;
+		}
+	}
+
 	HASH_FIND_STR(lo->lo_ostbl, is->is_name, os);
 	if (os != NULL) {
 		oe = STAILQ_FIRST(&os->os_e);

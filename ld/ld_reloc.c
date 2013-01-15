@@ -120,6 +120,38 @@ ld_reloc_load(struct ld *ld)
 	}
 }
 
+void
+ld_reloc_deferred_scan(struct ld *ld)
+{
+	struct ld_input *li;
+	struct ld_input_section *is;
+	struct ld_reloc_entry *lre;
+	int i;
+
+	if (ld->ld_reloc)
+		return;
+
+	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
+
+		if (li->li_name == NULL || li->li_type == LIT_DSO)
+			continue;
+
+		for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
+			is = &li->li_is[i];
+
+			if (is->is_type != SHT_REL && is->is_type != SHT_RELA)
+				continue;
+
+			if (is->is_reloc == NULL)
+				continue;
+
+			STAILQ_FOREACH(lre, is->is_reloc, lre_next) {
+				ld->ld_arch->scan_reloc(ld, is->is_tis, lre);
+			}
+		}
+	}
+}
+
 static void
 _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
@@ -185,7 +217,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	lre->lre_sym = li->li_symindex[sym];
 
-	if (!ld->ld_reloc)
+	if (!ld->ld_reloc && !ld->ld_gc)
 		ld->ld_arch->scan_reloc(ld, is->is_tis, lre);
 }
 

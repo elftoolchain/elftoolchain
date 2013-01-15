@@ -50,6 +50,7 @@ enum ld_tls_relax {
 void	ld_reloc_create_entry(struct ld *, const char *,
     struct ld_input_section *, uint64_t, struct ld_symbol *, uint64_t,
     int64_t);
+void	ld_reloc_deferred_scan(struct ld *);
 void	ld_reloc_finalize(struct ld *, struct ld_output_section *);
 void	ld_reloc_finalize_dynamic(struct ld *, struct ld_output *,
     struct ld_output_section *);

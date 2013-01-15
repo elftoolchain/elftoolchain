@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,6 +106,16 @@ restart:
 	}
 
 	ld_reloc_load(ld);
+
+	/*
+	 * Perform section garbage collection if command line option
+	 * -gc-sections is specified. Perform deferred relocation scan
+	 * after garbage sections are found.
+	 */
+	if (ld->ld_gc) {
+		ld_reloc_gc_sections(ld);
+		ld_reloc_deferred_scan(ld);
+	}
 
 	/*
 	 * Search for undefined symbols and allocate space for common
