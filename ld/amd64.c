@@ -291,6 +291,8 @@ _create_plt_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t offset)
 
 	ld_reloc_create_entry(ld, ".rela.plt", NULL, R_X86_64_JUMP_SLOT,
 	    lsb, offset, 0);
+
+	lsb->lsb_dynrel = 1;
 }
 
 static void
@@ -303,6 +305,9 @@ _create_got_reloc(struct ld *ld, struct ld_symbol *lsb, uint64_t type,
 	assert(tis != NULL);
 
 	ld_reloc_create_entry(ld, ".rela.got", tis, type, lsb, offset, 0);
+
+	if (type != R_X86_64_RELATIVE)
+		lsb->lsb_dynrel = 1;
 }
 
 static void
@@ -317,6 +322,8 @@ _create_copy_reloc(struct ld *ld, struct ld_symbol *lsb)
 
 	ld_reloc_create_entry(ld, ".rela.bss", tis, R_X86_64_COPY, lsb,
 	    lsb->lsb_value, 0);
+
+	lsb->lsb_dynrel = 1;
 }
 
 static void
@@ -339,6 +346,9 @@ _create_dynamic_reloc(struct ld *ld, struct ld_input_section *is,
 			ld_reloc_create_entry(ld, ".rela.data.rel.ro",
 			    is, type, lsb, offset, addend);
 	}
+
+	if (type != R_X86_64_RELATIVE)
+		lsb->lsb_dynrel = 1;
 }
 
 static void
