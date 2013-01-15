@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -432,10 +432,45 @@ ld_reloc_require_copy_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 	 * If we are generating a normal executable and the symbol is
 	 * defined in a DSO, we need a copy reloc.
 	 */
-	if (ld->ld_exec && lsb->lsb_input != NULL &&
-	    lsb->lsb_input->li_type == LIT_DSO)
+	if (ld->ld_exec && ld_symbols_in_dso(lsb))
 		return (1);
 
+	return (0);
+}
+
+int
+ld_reloc_require_glob_dat(struct ld *ld, struct ld_reloc_entry *lre)
+{
+	struct ld_symbol *lsb;
+
+	lsb = ld_symbols_ref(lre->lre_sym);
+
+	/*
+	 * If the symbol is undefined or if it's defined in a DSO,
+	 * GLOB_DAT relocation is required.
+	 */
+	if (lsb->lsb_shndx == SHN_UNDEF || ld_symbols_in_dso(lsb))
+		return (1);
+
+	/*
+	 * If the linker creates a DSO and the symbol can be overridden
+	 * GLOB_DAT relocation is required.
+	 */
+	if (ld->ld_dso && ld_symbols_overridden(ld, lsb))
+		return (1);
+
+	/*
+	 * If the linker creates a DSO and the symbol visibility is
+	 * STV_PROTECTED, GLOB_DAT relocation is required for function
+	 * address comparsion to work.
+	 */
+	if (ld->ld_dso && lsb->lsb_other == STV_PROTECTED)
+		return (1);
+
+	/*
+	 * Otherwise GLOB_DAT relocation is not required, RELATIVE
+	 * relocation can be used instead.
+	 */
 	return (0);
 }
 
@@ -450,7 +485,7 @@ ld_reloc_require_dynamic_reloc(struct ld *ld, struct ld_reloc_entry *lre)
 	 * If the symbol is defined in a DSO, we create specific dynamic
 	 * relocations when we create PLT, GOT or copy reloc.
 	 */
-	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+	if (ld_symbols_in_dso(lsb))
 		return (0);
 
 	/*
@@ -492,7 +527,7 @@ ld_reloc_relative_relax(struct ld *ld, struct ld_reloc_entry *lre)
 	 * If the symbol is defined in a DSO, we can not relax the
 	 * relocation.
 	 */
-	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+	if (ld_symbols_in_dso(lsb))
 		return (0);
 
 	/*

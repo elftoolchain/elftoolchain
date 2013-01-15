@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -384,7 +384,7 @@ static void
 _finalize_got_and_plt(struct ld *ld)
 {
 	struct ld_output *lo;
-	struct ld_input_section *got_is, *plt_is, *rela_plt_is;
+	struct ld_input_section *got_is, *rela_got_is, *plt_is, *rela_plt_is;
 	struct ld_output_section *got_os, *plt_os, *rela_plt_os;
 	struct ld_reloc_entry *lre;
 	struct ld_symbol *lsb;
@@ -403,6 +403,22 @@ _finalize_got_and_plt(struct ld *ld)
 	got_is = _find_and_create_got_section(ld, 0);
 	if (got_is != NULL)
 		memset(got_is->is_ibuf, 0, got_is->is_size);
+
+	/*
+	 * Search for GOT relocations that requires filling in symbol
+	 * value.
+	 */
+	rela_got_is = ld_input_find_internal_section(ld, ".rela.got");
+	if (rela_got_is != NULL && rela_got_is->is_reloc != NULL) {
+		STAILQ_FOREACH(lre, rela_got_is->is_reloc, lre_next) {
+			if (lre->lre_type == R_X86_64_RELATIVE) {
+				lsb = lre->lre_sym;
+				got = (uint8_t *) got_is->is_ibuf +
+				    lsb->lsb_got_off;
+				WRITE_64(got, lsb->lsb_value);
+			}
+		}
+	}
 
 	/*
 	 * Find the .plt section. The buffers should have been allocated
@@ -482,7 +498,7 @@ _finalize_got_and_plt(struct ld *ld)
 	 */
 	i = 3;
 	j = 0;
-	STAILQ_FOREACH(lre, rela_plt_os->os_reloc, lre_next) {
+	STAILQ_FOREACH(lre, rela_plt_is->is_reloc, lre_next) {
 		lsb = ld_symbols_ref(lre->lre_sym);
 
 		/*
@@ -731,8 +747,12 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 			 * the GOT entry value can be filled in by the program
 			 * linker instead.
 			 */
-			_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
-			    lsb->lsb_got_off);
+			if (ld_reloc_require_glob_dat(ld, lre))
+				_create_got_reloc(ld, lsb, R_X86_64_GLOB_DAT,
+				    lsb->lsb_got_off);
+			else
+				_create_got_reloc(ld, lsb, R_X86_64_RELATIVE,
+				    lsb->lsb_got_off);
 		}
 		break;
 

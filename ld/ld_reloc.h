@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,5 +62,6 @@ void	ld_reloc_process_input_section(struct ld *, struct ld_input_section *,
 int	ld_reloc_require_plt(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_require_copy_reloc(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_require_dynamic_reloc(struct ld *, struct ld_reloc_entry *);
+int	ld_reloc_require_glob_dat(struct ld *, struct ld_reloc_entry *);
 int	ld_reloc_relative_relax(struct ld *, struct ld_reloc_entry *);
 void	*ld_reloc_serialize(struct ld *, struct ld_output_section *, size_t *);

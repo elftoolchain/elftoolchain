@@ -100,9 +100,6 @@ ld_dynamic_finalize(struct ld *ld)
 	if (lo->lo_dso_needed == 0)
 		return;
 
-	/* Finalize PLT and GOT sections. */
-	ld->ld_arch->finalize_got_and_plt(ld);
-
 	/* Finalize .dynamic section */
 	_finalize_dynamic(ld, lo);
 }
