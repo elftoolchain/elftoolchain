@@ -394,11 +394,17 @@ _process_options(struct ld *ld, int key, char *arg)
 	case KEY_DYNAMIC:
 		ls->ls_static = 0;
 		break;
+	case KEY_GC_SECTIONS:
+		ld->ld_gc = 1;
+		break;
 	case KEY_NO_AS_NEEDED:
 		ls->ls_as_needed = 0;
 		break;
 	case KEY_NO_DEFINE_COMMON:
 		ld->ld_common_no_alloc = 1;
+		break;
+	case KEY_NO_GC_SECTIONS:
+		ld->ld_gc = 0;
 		break;
 	case KEY_NO_PRINT_GC_SECTIONS:
 		ld->ld_gc_print = 0;
