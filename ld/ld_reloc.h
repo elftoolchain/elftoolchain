@@ -53,6 +53,7 @@ void	ld_reloc_create_entry(struct ld *, const char *,
 void	ld_reloc_finalize(struct ld *, struct ld_output_section *);
 void	ld_reloc_finalize_dynamic(struct ld *, struct ld_output *,
     struct ld_output_section *);
+void	ld_reloc_gc_sections(struct ld *);
 void	ld_reloc_join(struct ld *, struct ld_output_section *,
     struct ld_input_section *);
 void	ld_reloc_sort(struct ld *, struct ld_output_section *);

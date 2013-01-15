@@ -55,6 +55,7 @@
 #include "_elftc.h"
 
 struct ld_file;
+struct ld_input_section_head;
 struct ld_path;
 struct ld_symbol;
 struct ld_symbol_head;
@@ -83,6 +84,8 @@ struct ld_state {
 	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
 	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
 	unsigned ls_version_local;	/* version entry is local */
+	struct ld_input_section_head *ls_gc;
+					/* garbage collection search list */
 };
 
 struct ld {

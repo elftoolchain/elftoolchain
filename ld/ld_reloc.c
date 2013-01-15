@@ -29,6 +29,7 @@
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_reloc.h"
+#include "ld_script.h"
 #include "ld_symbols.h"
 
 ELFTC_VCSID("$Id$");
@@ -43,6 +44,8 @@ static void _read_rel(struct ld *ld, struct ld_input_section *is,
     Elf_Data *d);
 static void _read_rela(struct ld *ld, struct ld_input_section *is,
     Elf_Data *d);
+static void _add_to_gc_search_list(struct ld_state *ls,
+    struct ld_input_section *is);
 
 void
 ld_reloc_load(struct ld *ld)
@@ -58,10 +61,7 @@ ld_reloc_load(struct ld *ld)
 
 	STAILQ_FOREACH(li, &ld->ld_lilist, li_next) {
 
-		if (li->li_name == NULL)
-			continue;
-
-		if (li->li_type == LIT_DSO)
+		if (li->li_name == NULL || li->li_type == LIT_DSO)
 			continue;
 
 		ld_input_load(ld, li);
@@ -187,6 +187,85 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	if (!ld->ld_reloc)
 		ld->ld_arch->scan_reloc(ld, is->is_tis, lre);
+}
+
+static void
+_add_to_gc_search_list(struct ld_state *ls, struct ld_input_section *is)
+{
+
+	assert(is != NULL);
+
+	/* Only add allocated sections. */
+	if ((is->is_flags & SHF_ALLOC) == 0)
+		return;
+
+	/*
+	 * Do not add sections that are already exist in the search list,
+	 * or sections that don't have assoicated relocations.
+	 */
+	if (is->is_refed || is->is_ris == NULL || is->is_ris->is_reloc == NULL)
+		return;
+
+	STAILQ_INSERT_TAIL(ls->ls_gc, is, is_gc_next);
+}
+
+void
+ld_reloc_gc_sections(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_symbol *lsb;
+	struct ld_input_section *is;
+	struct ld_reloc_entry *lre;
+	char *entry;
+
+	/*
+	 * Initialise search list. Initial search list consists of sections
+	 * contains the entry and extern symbols.
+	 */
+	ls = &ld->ld_state;
+	if ((ls->ls_gc = calloc(1, sizeof(*ls->ls_gc))) == NULL)
+		ld_fatal_std(ld, "calloc");
+	STAILQ_INIT(ls->ls_gc);
+
+	/*
+	 * Add the section that contains the entry symbol to the initial
+	 * search list.
+	 */
+	entry = ld->ld_entry != NULL ? ld->ld_entry :
+	    ld->ld_scp->lds_entry_point;
+	if (entry != NULL) {
+		HASH_FIND_STR(ld->ld_sym, entry, lsb);
+		if (lsb != NULL && lsb->lsb_is != NULL)
+			_add_to_gc_search_list(ls, lsb->lsb_is);
+	}
+
+	/*
+	 * Add sections that contain the symbols specified by command line
+	 * option `-u' (extern symbols) to the initial search list.
+	 */
+	if (ld->ld_ext_symbols != NULL) {
+		STAILQ_FOREACH(lsb, ld->ld_ext_symbols, lsb_next) {
+			if (lsb->lsb_is != NULL)
+				_add_to_gc_search_list(ls, lsb->lsb_is);
+		}
+	}
+
+	/*
+	 * Breadth-first search for sections referenced by relocations
+	 * assoicated with the initial sections. The search is recusive,
+	 * the relocations assoicated with the found sections are again
+	 * used to search for more referenced sections.
+	 */
+	STAILQ_FOREACH(is, ls->ls_gc, is_gc_next) {
+		assert(is->is_ris != NULL);
+		STAILQ_FOREACH(lre, is->is_ris->is_reloc, lre_next) {
+			if (lre->lre_sym == NULL)
+				continue;
+			lsb = ld_symbols_ref(lre->lre_sym);
+			if (lsb->lsb_is != NULL)
+				_add_to_gc_search_list(ls, lsb->lsb_is);
+		}
+	}
 }
 
 void *

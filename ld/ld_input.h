@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ struct ld_input_section {
 	unsigned char is_discard;	/* dicard section */
 	unsigned char is_dynrel;	/* section holds dynamic relocations */
 	unsigned char is_pltrel;	/* section holds PLT relocations */
+	unsigned char is_refed;		/* should not be gc'ed */
 	void *is_data;			/* output section data descriptor */
 	void *is_ibuf;			/* buffer for internal sections */
 	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */
@@ -53,6 +54,7 @@ struct ld_input_section {
 	struct ld_input_section *is_tis; /* relocation target */
 	struct ld_input_section *is_ris; /* relocation section */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
+	STAILQ_ENTRY(ld_input_section) is_gc_next; /* next gc search */
 	UT_hash_handle hh;		/* hash handle (internal section) */
 };
 
