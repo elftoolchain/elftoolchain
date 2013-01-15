@@ -648,8 +648,8 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 * to a R_X86_64_PC32 relocation.
 		 */
 
-		if (lsb->lsb_bind == STB_LOCAL) {
-			/* Why use R_X86_64_PLT32 for a local symbol? */
+		if (lsb->lsb_bind == STB_LOCAL ||
+		    !ld_reloc_require_plt(ld, lre)) {
 			lre->lre_type = R_X86_64_PC32;
 			break;
 		}

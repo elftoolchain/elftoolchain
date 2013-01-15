@@ -402,7 +402,7 @@ ld_reloc_require_plt(struct ld *ld, struct ld_reloc_entry *lre)
 		return (0);
 
 	/* Create PLT for functions in DSOs. */
-	if (lsb->lsb_input != NULL && lsb->lsb_input->li_type == LIT_DSO)
+	if (ld_symbols_in_dso(lsb))
 		return (1);
 
 	/*

@@ -562,6 +562,13 @@ ld_symbols_overridden(struct ld *ld, struct ld_symbol *lsb)
 	if (lsb->lsb_other != STV_DEFAULT)
 		return (0);
 
+	/*
+	 * Symbols converted to local by version script can not be
+	 * overridden.
+	 */
+	if (ld_symver_search_version_script(ld, lsb) == 0)
+		return (0);
+
 	/* TODO: other cases. */
 
 	/* Otherwise symbol can be overridden. */
