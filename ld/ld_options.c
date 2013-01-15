@@ -96,6 +96,7 @@ static struct ld_option ld_opts[] = {
 	{"no-gc-sections", KEY_NO_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"no-keep-memorg", KEY_NO_KEEP_MEMORY, ANY_DASH, NO_ARG},
 	{"no-omagic", KEY_NO_OMAGIC, ANY_DASH, NO_ARG},
+	{"no-print-gc-sections", KEY_NO_PRINT_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"no-undefined", KEY_Z_DEFS, ANY_DASH, NO_ARG},
 	{"no-undefined-version", KEY_NO_UNDEF_VERSION, ANY_DASH, NO_ARG},
 	{"no-whole-archive", KEY_NO_WHOLE_ARCHIVE, ANY_DASH, NO_ARG},
@@ -106,6 +107,7 @@ static struct ld_option ld_opts[] = {
 	{"output", 'o', TWO_DASH, REQ_ARG},
 	{"pic-executable", KEY_PIE, ANY_DASH, NO_ARG},
 	{"pie", KEY_PIE, ONE_DASH, NO_ARG},
+	{"print-gc-sections", KEY_PRINT_GC_SECTIONS, ANY_DASH, NO_ARG},
 	{"print-map", 'M', ANY_DASH, NO_ARG},
 	{"qmagic", KEY_QMAGIC, ANY_DASH, NO_ARG},
 	{"relax", KEY_RELAX, ANY_DASH, NO_ARG},
@@ -398,6 +400,9 @@ _process_options(struct ld *ld, int key, char *arg)
 	case KEY_NO_DEFINE_COMMON:
 		ld->ld_common_no_alloc = 1;
 		break;
+	case KEY_NO_PRINT_GC_SECTIONS:
+		ld->ld_gc_print = 0;
+		break;
 	case KEY_NO_WHOLE_ARCHIVE:
 		ls->ls_whole_archive = 0;
 		break;
@@ -408,6 +413,9 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld->ld_exec = 0;
 		ld->ld_pie = 1;
 		ld->ld_dynamic_link = 1;
+		break;
+	case KEY_PRINT_GC_SECTIONS:
+		ld->ld_gc_print = 1;
 		break;
 	case KEY_SHARED:
 		ld->ld_exec = 0;

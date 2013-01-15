@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@ enum ld_key {
 	KEY_NO_GC_SECTIONS,
 	KEY_NO_KEEP_MEMORY,
 	KEY_NO_OMAGIC,
+	KEY_NO_PRINT_GC_SECTIONS,
 	KEY_NO_SHLIB_UNDEF,
 	KEY_NO_STDLIB,
 	KEY_NO_UNDEF_VERSION,
@@ -82,6 +83,7 @@ enum ld_key {
 	KEY_SECTION_START,
 	KEY_OFORMAT,
 	KEY_PIE,
+	KEY_PRINT_GC_SECTIONS,
 	KEY_QMAGIC,
 	KEY_QY,
 	KEY_RELAX,
