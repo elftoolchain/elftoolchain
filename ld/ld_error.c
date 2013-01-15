@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,4 +80,16 @@ ld_warn(struct ld *ld, const char *fmt, ...)
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 	fputc('\n', stderr);
+}
+
+void
+ld_info(struct ld *ld, const char *fmt, ...)
+{
+	va_list ap;
+
+	fprintf(stdout, "%s: ", ld->ld_progname);
+	va_start(ap, fmt);
+	vfprintf(stdout, fmt, ap);
+	va_end(ap);
+	fputc('\n', stdout);
 }
