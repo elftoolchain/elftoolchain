@@ -10,7 +10,7 @@ LDADD=	-lelftc
 
 ISA=
 
-MAN=	isa.1
+MAN=	isa.1 isa.5
 
 check-specifications:	.PHONY
 .for f in ${ISA}
