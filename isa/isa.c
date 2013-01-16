@@ -270,7 +270,7 @@ main(int argc, char **argv)
 	 * Create the canonical list of specification files to
 	 * be processed.
 	 */
-	while (optind < argc) {
+	for (;optind < argc; optind++) {
 		if ((isa_opt = isa_make_option(argv[optind])) == NULL)
 			goto error;
 		SLIST_INSERT_HEAD(&config.isa_specs, isa_opt,
