@@ -801,6 +801,7 @@ ld_symver_search_version_script(struct ld *ld, struct ld_symbol *lsb)
 	/* Search for a match in the version patterns. */
 	ndx = 2;
 	ldve_g = NULL;
+	ret_ndx_g = 0;
 	STAILQ_FOREACH(ldvn, &lds->lds_vn, ldvn_next) {
 		STAILQ_FOREACH(ldve, ldvn->ldvn_e, ldve_next) {
 			assert(ldve->ldve_sym != NULL);
