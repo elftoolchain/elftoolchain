@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,29 @@
 			READ_32LE(P, V);		\
 	} while (0)
 
+#define	READ_64(P,V)					\
+	do {						\
+		if (lo->lo_endian == ELFDATA2MSB)	\
+			READ_64BE(P, V);		\
+		else					\
+			READ_64LE(P, V);		\
+	} while (0)
+
 #define READ_32BE(P,V)							\
 	do {								\
 		(V) = ((unsigned)(P)[0] << 24) | ((P)[1] << 16) |	\
 		    ((P)[2] << 8) | (P)[3];				\
+	} while (0)
+
+#define	READ_64BE(P,V)					\
+	do {						\
+		(V) = ((uint64_t)(P)[0] << 56) |	\
+		    ((uint64_t)(P)[1] << 48) |		\
+		    ((uint64_t)(P)[2] << 40) |		\
+		    ((uint64_t)(P)[3] << 32) | 		\
+		    ((uint64_t)(P)[4] << 24) |		\
+		    ((uint64_t)(P)[5] << 16) |		\
+		    ((uint64_t)(P)[6] << 8) | (P)[7];	\
 	} while (0)
 
 #define READ_32LE(P,V)							\
@@ -46,10 +65,22 @@
 		    ((P)[1] << 8) | (P)[0];				\
 	} while (0)
 
+#define	READ_64LE(P,V)							\
+	do {								\
+		(V) = ((uint64_t)(P)[7] << 56) |	\
+		    ((uint64_t)(P)[6] << 48) |		\
+		    ((uint64_t)(P)[5] << 40) |		\
+		    ((uint64_t)(P)[4] << 32) | 		\
+		    ((uint64_t)(P)[3] << 24) |		\
+		    ((uint64_t)(P)[2] << 16) |		\
+		    ((uint64_t)(P)[1] << 8) | (P)[0];	\
+	} while (0)
+
 #define	WRITE_8(P,V)					\
 	do {						\
 		*(P) = (V) & 0xff;			\
 	} while (0)
+
 #define	WRITE_16(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
@@ -57,6 +88,7 @@
 		else					\
 			WRITE_16LE(P, V);		\
 	} while (0)
+
 #define	WRITE_32(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
@@ -64,6 +96,7 @@
 		else					\
 			WRITE_32LE(P, V);		\
 	} while (0)
+
 #define	WRITE_64(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
@@ -71,11 +104,13 @@
 		else					\
 			WRITE_64LE(P, V);		\
 	} while (0)
+
 #define	WRITE_16BE(P,V)					\
 	do {						\
 		(P)[0] = ((V) >> 8) & 0xff;             \
 		(P)[1] = (V) & 0xff;                    \
 	} while (0)
+
 #define	WRITE_32BE(P,V)					\
 	do {						\
 		(P)[0] = ((V) >> 24) & 0xff;            \
@@ -83,16 +118,19 @@
 		(P)[2] = ((V) >> 8) & 0xff;             \
 		(P)[3] = (V) & 0xff;                    \
 	} while (0)
+
 #define	WRITE_64BE(P,V)					\
 	do {						\
 		WRITE_32BE((P),(V) >> 32);		\
 		WRITE_32BE((P) + 4, (V) & 0xffffffffU);	\
 	} while (0)
+
 #define	WRITE_16LE(P,V)					\
 	do {						\
 		(P)[0] = (V) & 0xff;			\
 		(P)[1] = ((V) >> 8) & 0xff;		\
 	} while (0)
+
 #define	WRITE_32LE(P,V)					\
 	do {						\
 		(P)[0] = (V) & 0xff;			\
@@ -100,6 +138,7 @@
 		(P)[2] = ((V) >> 16) & 0xff;		\
 		(P)[3] = ((V) >> 24) & 0xff;		\
 	} while (0)
+
 #define	WRITE_64LE(P,V)					\
 	do {						\
 		WRITE_32LE((P), (V) & 0xffffffffU);	\
