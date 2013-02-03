@@ -26,6 +26,14 @@
  * $Id$
  */
 
+#define	READ_16(P,V)					\
+	do {						\
+		if (lo->lo_endian == ELFDATA2MSB)	\
+			READ_16BE(P, V);		\
+		else					\
+			READ_16LE(P, V);		\
+	} while (0)
+
 #define	READ_32(P,V)					\
 	do {						\
 		if (lo->lo_endian == ELFDATA2MSB)	\
@@ -40,6 +48,11 @@
 			READ_64BE(P, V);		\
 		else					\
 			READ_64LE(P, V);		\
+	} while (0)
+
+#define READ_16BE(P,V)					\
+	do {						\
+		(V) = ((P)[0] << 8) | (P)[1];		\
 	} while (0)
 
 #define READ_32BE(P,V)							\
@@ -57,6 +70,11 @@
 		    ((uint64_t)(P)[4] << 24) |		\
 		    ((uint64_t)(P)[5] << 16) |		\
 		    ((uint64_t)(P)[6] << 8) | (P)[7];	\
+	} while (0)
+
+#define READ_16LE(P,V)					\
+	do {						\
+		(V) = ((P)[1] << 8) | (P)[0];		\
 	} while (0)
 
 #define READ_32LE(P,V)							\
