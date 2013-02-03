@@ -394,6 +394,9 @@ _process_options(struct ld *ld, int key, char *arg)
 	case KEY_DYNAMIC:
 		ls->ls_static = 0;
 		break;
+	case KEY_EH_FRAME_HDR:
+		ld->ld_ehframe_hdr = 1;
+		break;
 	case KEY_GC_SECTIONS:
 		ld->ld_gc = 1;
 		break;
