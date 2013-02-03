@@ -39,8 +39,8 @@ GENSRCS=	amd64_script.c i386_script.c
 
 CLEANFILES+=	y.tab.h ${GENSRCS}
 
-DPADD=	${LIBELFTC} ${LIBELF}
-LDADD=	-lelftc -lelf
+DPADD=	${LIBELFTC} ${LIBELF} ${LIBDWARF}
+LDADD=	-lelftc -ldwarf -lelf
 
 CFLAGS+= -I. -I${.CURDIR}
 

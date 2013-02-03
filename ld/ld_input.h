@@ -27,6 +27,7 @@
  */
 
 struct ld_reloc_entry_head;
+struct ld_ehframe_fde_head;
 
 struct ld_input_section {
 	char *is_name;			/* section name */
@@ -53,6 +54,7 @@ struct ld_input_section {
 	uint64_t is_num_reloc;		/* number of reloc entries */
 	struct ld_input_section *is_tis; /* relocation target */
 	struct ld_input_section *is_ris; /* relocation section */
+	struct ld_ehframe_fde_head *is_fde; /* list of FDE */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	STAILQ_ENTRY(ld_input_section) is_gc_next; /* next gc search */
 	UT_hash_handle hh;		/* hash handle (internal section) */

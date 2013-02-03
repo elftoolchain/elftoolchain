@@ -126,7 +126,7 @@ ld_layout_sections(struct ld *ld)
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
 
-	/* Optimize .eh_frame section. */
+	/* Scan and optimize .eh_frame section. */
 	ld_ehframe_scan(ld);
 
 	/* Initialise sections for dyanmically linked output object. */

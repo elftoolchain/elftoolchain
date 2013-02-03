@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,6 +113,7 @@ struct ld_output {
 	unsigned lo_verneed_num;	 /* num of verneed entries */
 	unsigned lo_rel_plt_type;	 /* type of PLT relocation */
 	unsigned lo_rel_dyn_type;	 /* type of dynamic relocation */
+	unsigned lo_fde_num;		 /* num of FDE in .eh_frame */
 	uint64_t lo_shoff;		 /* section header table offset */
 	uint64_t lo_tls_size;		 /* TLS segment size */
 	uint64_t lo_tls_align;		 /* TLS segment align */

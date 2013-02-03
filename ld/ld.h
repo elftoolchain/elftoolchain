@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "dwarf.h"
 #define oom() ld_fatal(ld, "out of memory")
 #include "utarray.h"
 #define uthash_fatal(msg) ld_fatal(ld, msg)
@@ -62,6 +63,7 @@ struct ld_symbol_head;
 struct ld_output_data_buffer;
 struct ld_wildcard_match;
 struct ld_ehframe_cie_head;
+struct ld_ehframe_fde_head;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -123,6 +125,7 @@ struct ld {
 	struct ld_input_section *ld_dynbss; /* .dynbss section */
 	struct ld_input_section *ld_got;    /* .got section */
 	struct ld_ehframe_cie_head *ld_cie; /* ehframe CIE list */
+	struct ld_ehframe_fde_head *ld_fde; /* ehframe FDE list */
 	unsigned char ld_common_alloc;	/* always alloc space for common sym */
 	unsigned char ld_common_no_alloc; /* never alloc space for common sym */
 	unsigned char ld_emit_reloc;	/* emit relocations */

@@ -26,6 +26,7 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_ehframe.h"
 #include "ld_options.h"
 #include "ld_reloc.h"
 #include "ld_script.h"
@@ -123,6 +124,10 @@ restart:
 	 * if the linker is performing a dyanmic linking.
 	 */
 	ld_symbols_scan(ld);
+
+	/* Create .eh_frame_hdr section. */
+	if (ld->ld_ehframe_hdr)
+		ld_ehframe_create_hdr(ld);
 
 	ld_output_init(ld);
 

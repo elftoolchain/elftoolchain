@@ -27,3 +27,5 @@
  */
 
 void	ld_ehframe_scan(struct ld *);
+void	ld_ehframe_create_hdr(struct ld *);
+void	ld_ehframe_finalize_hdr(struct ld *);

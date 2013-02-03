@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013 Kai Wang
+ * Copyright (c) 2009-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,30 @@ struct ld_ehframe_cie {
 	uint64_t cie_off_orig;	/* orignial offset (before optimze) */
 	uint64_t cie_size;	/* CIE size (include length field) */
 	uint8_t *cie_content;	/* CIE content */
+	uint8_t cie_fde_encode; /* FDE PC start/range encode. */
 	struct ld_ehframe_cie *cie_dup; /* duplicate entry */
 	STAILQ_ENTRY(ld_ehframe_cie) cie_next;
 };
 
 STAILQ_HEAD(ld_ehframe_cie_head, ld_ehframe_cie);
 
+struct ld_ehframe_fde {
+	struct ld_ehframe_cie *fde_cie; /* associated CIE */
+	uint64_t fde_off;	/* offset in section */
+	uint64_t fde_off_pcbegin; /* section offset of "PC Begin" field */
+	int32_t fde_pcrel;	/* relative offset to "PC Begin" */
+	int32_t fde_datarel;	/* relative offset to FDE entry */
+	STAILQ_ENTRY(ld_ehframe_fde) fde_next;
+};
+
+STAILQ_HEAD(ld_ehframe_fde_head, ld_ehframe_fde);
+
+static int64_t _decode_sleb128(uint8_t **dp);
+static uint64_t _decode_uleb128(uint8_t **dp);
 static void _process_ehframe_section(struct ld *ld, struct ld_output *lo,
     struct ld_input_section *is);
+static int _read_encoded(struct ld *ld, struct ld_output *lo, uint64_t *val,
+    uint8_t *data, uint8_t encode, uint64_t pc);
 
 void
 ld_ehframe_scan(struct ld *ld)
@@ -98,6 +114,185 @@ ld_ehframe_scan(struct ld *ld)
 			ehframe_off += is->is_size;
 		}
 	}
+
+	/* Calculate the size of .eh_frame_hdr section. */
+	if (ld->ld_ehframe_hdr) {
+		is = ld_input_find_internal_section(ld, ".eh_frame_hdr");
+		assert(is != NULL);
+		if (lo->lo_fde_num > 0)
+			is->is_size += 4 + lo->lo_fde_num * 8;
+		if ((is->is_ibuf = malloc(is->is_size)) == NULL)
+			ld_fatal_std(ld, "malloc");
+	}
+}
+
+void
+ld_ehframe_create_hdr(struct ld *ld)
+{
+	struct ld_input_section *is;
+
+	is = ld_input_add_internal_section(ld, ".eh_frame_hdr");
+	is->is_type = SHT_PROGBITS;
+	is->is_size = 8;	/* initial size */
+	is->is_align = 4;
+	is->is_entsize = 0;
+}
+
+void
+ld_ehframe_finalize_hdr(struct ld *ld)
+{
+	struct ld_input_section *is, *hdr_is;
+	struct ld_input_section_head *islist;
+	struct ld_output *lo;
+	struct ld_output_section *os, *hdr_os;
+	struct ld_output_element *oe;
+	struct ld_ehframe_fde *fde, *_fde;
+	char ehframe_name[] = ".eh_frame";
+	uint64_t pcbegin;
+	int32_t pcrel;
+	uint8_t *p, *end;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	hdr_is = ld_input_find_internal_section(ld, ".eh_frame_hdr");
+	assert(hdr_is != NULL);
+	hdr_os = hdr_is->is_output;
+
+	if (hdr_is->is_discard || hdr_os == NULL)
+		return;
+
+	p = hdr_is->is_ibuf;
+	end = p + hdr_is->is_size;
+
+	/* Find .eh_frame output section. */
+	HASH_FIND_STR(lo->lo_ostbl, ehframe_name, os);
+	assert(os != NULL);
+
+	/* .eh_frame_hdr version */
+	*p++ = 1;
+
+	/*
+	 * eh_frame_ptr_enc: encoding format for eh_frame_ptr field.
+	 * Usually a signed 4-byte PC relateive offset is used here.
+	 */
+	*p++ = DW_EH_PE_pcrel | DW_EH_PE_sdata4;
+
+	/*
+	 * fde_count_enc: encoding format for fde_count field. Unsigned
+	 * 4 byte encoding should be used here. Note that If the binary
+	 * search table is not present, DW_EH_PE_omit should be used
+	 * instead.
+	 */
+	*p++ = lo->lo_fde_num == 0 ? DW_EH_PE_omit : DW_EH_PE_udata4;
+
+	/*
+	 * table_enc: encoding format for the binary search table entry.
+	 * Signed 4 byte table relative offset is used here. Note that
+	 * if the binary search table is not present, DW_EH_PE_omit should
+	 * be used instaed.
+	 */
+	*p++ = lo->lo_fde_num == 0 ? DW_EH_PE_omit :
+	    (DW_EH_PE_datarel | DW_EH_PE_sdata4);
+
+	/* Write 4 byte PC relative offset to the .eh_frame section. */
+	pcrel = os->os_addr - hdr_os->os_addr - 4;
+	WRITE_32(p, pcrel);
+	p += 4;
+
+	/* Write the total number of FDE's. */
+	WRITE_32(p, lo->lo_fde_num);
+	p += 4;
+
+	/* Allocate global FDE list. */
+	if (ld->ld_fde == NULL) {
+		if ((ld->ld_fde = calloc(1, sizeof(ld->ld_fde))) == NULL)
+			ld_fatal_std(ld, "calloc");
+		STAILQ_INIT(ld->ld_fde);
+	}
+
+	/* Link together the FDE's from each input object. */
+	STAILQ_FOREACH(oe, &os->os_e, oe_next) {
+		if (oe->oe_type != OET_INPUT_SECTION_LIST)
+			continue;
+
+		islist = oe->oe_islist;
+		STAILQ_FOREACH(is, islist, is_next) {
+			if (is->is_fde == NULL || STAILQ_EMPTY(is->is_fde))
+				continue;
+			STAILQ_FOREACH_SAFE(fde, is->is_fde, fde_next, _fde) {
+				(void) _read_encoded(ld, lo, &pcbegin,
+				    (uint8_t *) is->is_ibuf +
+				    fde->fde_off_pcbegin,
+				    fde->fde_cie->cie_fde_encode, os->os_addr);
+				fde->fde_pcrel = pcbegin - hdr_os->os_addr;
+				fde->fde_datarel = os->os_addr +
+				    is->is_reloff + fde->fde_off -
+				    hdr_os->os_addr;
+				STAILQ_REMOVE(is->is_fde, fde, ld_ehframe_fde,
+				    fde_next);
+				STAILQ_INSERT_TAIL(ld->ld_fde, fde, fde_next);
+			}
+		}
+	}
+
+	/* TODO: sort FDE list. */
+
+	/* Write binary search table. */
+	STAILQ_FOREACH(fde, ld->ld_fde, fde_next) {
+		WRITE_32(p, fde->fde_pcrel);
+		p += 4;
+		WRITE_32(p, fde->fde_datarel);
+		p += 4;
+	}
+
+	assert(p == end);
+}
+
+static void
+_parse_cie_augment(struct ld *ld, struct ld_ehframe_cie *cie, uint8_t *aug_p,
+    uint8_t *augdata_p, uint64_t auglen)
+{
+	uint64_t dummy;
+	uint8_t encode, *augdata_end;
+	int len;
+
+	assert(aug_p != NULL && *aug_p == 'z');
+
+	augdata_end = augdata_p + auglen;
+
+	/*
+	 * Here we're only interested in the presence of augment 'R'
+	 * and associated CIE augment data, which describes the
+	 * encoding scheme of FDE PC begin and range.
+	 */
+	aug_p++;
+	while (*aug_p != '\0') {
+		switch (*aug_p) {
+		case 'L':
+			/* Skip one augment in augment data. */
+			augdata_p++;
+			break;
+		case 'P':
+			/* Skip two augments in augment data. */
+			encode = *augdata_p++;
+			len = _read_encoded(ld, ld->ld_output, &dummy,
+			    augdata_p, encode, 0);
+			augdata_p += len;
+			break;
+		case 'R':
+			cie->cie_fde_encode = *augdata_p++;
+			break;
+		default:
+			ld_warn(ld, "unsupported eh_frame augmentation `%c'",
+			    *aug_p);
+			return;
+		}
+		aug_p++;
+	}
+
+	if (augdata_p > augdata_end)
+		ld_warn(ld, "invalid eh_frame augmentation");
 }
 
 static void
@@ -107,10 +302,11 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 	struct ld_input *li;
 	struct ld_ehframe_cie *cie, *_cie;
 	struct ld_ehframe_cie_head cie_h;
+	struct ld_ehframe_fde *fde;
 	struct ld_reloc_entry *lre;
-	uint64_t length, es, off, off_orig, remain, shrink;
+	uint64_t length, es, off, off_orig, remain, shrink, auglen;
 	uint32_t cie_id, cie_pointer, length_size;
-	uint8_t *p, *et;
+	uint8_t *p, *et, cie_version, *augment;
 
 	li = is->is_input;
 
@@ -150,12 +346,12 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 		/* Read CIE ID/Pointer field. */
 		READ_32(p, cie_id);
 		p += 4;
-	
+
 		if (cie_id == 0) {
 
 			/* This is a Common Information Entry (CIE). */
-			if ((cie = malloc(sizeof(*cie))) == NULL)
-				ld_fatal_std(ld, "malloc");
+			if ((cie = calloc(1, sizeof(*cie))) == NULL)
+				ld_fatal_std(ld, "calloc");
 			cie->cie_off = off;
 			cie->cie_off_orig = off_orig;
 			cie->cie_size = es;
@@ -186,8 +382,40 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 			} else {
 				/*
 				 * This is a new CIE entry which should be
-				 * kept.
+				 * kept. Read its augmentation which is
+				 * used to parse assoicated FDE's later.
 				 */
+				cie_version = *p++;
+				if (cie_version != 1) {
+					ld_warn(ld, "unsupported CIE version");
+					goto ignore_cie;
+				}
+				augment = p;
+				if (*p != 'z') {
+					ld_warn(ld, "unsupported CIE "
+					    "augmentation");
+					goto ignore_cie;
+				}
+				while (*p++ != '\0')
+					;
+
+				/* Skip EH Data field. */
+				if (strstr((char *)augment, "eh") != NULL)
+					p += lo->lo_ec == ELFCLASS32 ? 4 : 8;
+
+				/* Skip CAF and DAF. */
+				(void) _decode_uleb128(&p);
+				(void) _decode_sleb128(&p);
+
+				/* Skip RA. */
+				p++;
+
+				/* Parse augmentation data. */
+				auglen = _decode_uleb128(&p);
+				_parse_cie_augment(ld, cie, augment, p,
+				    auglen);
+
+			ignore_cie:
 				p = et + es;
 			}
 
@@ -214,12 +442,29 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 				goto next_entry;
 			}
 
+			/* Allocate new FDE entry. */
+			if ((fde = calloc(1, sizeof(*fde))) == NULL)
+				ld_fatal_std(ld, "calloc");
+			fde->fde_off = off;
+			fde->fde_off_pcbegin = off + length_size + 4;
+			if (is->is_fde == NULL) {
+				is->is_fde = calloc(1, sizeof(*is->is_fde));
+				if (is->is_fde == NULL)
+					ld_fatal_std(ld, "calloc");
+				STAILQ_INIT(is->is_fde);
+			}
+			STAILQ_INSERT_TAIL(is->is_fde, fde, fde_next);
+			lo->lo_fde_num++;
+
 			/* Calculate the new CIE pointer value. */
-			if (cie->cie_dup != NULL)
+			if (cie->cie_dup != NULL) {
 				cie_pointer = off + length_size +
 				    is->is_reloff - cie->cie_dup->cie_off;
-			else
+				fde->fde_cie = cie->cie_dup;
+			} else {
 				cie_pointer = off + length_size - cie->cie_off;
+				fde->fde_cie = cie;
+			}
 
 			/* Rewrite CIE pointer value. */
 			if (cie_id != cie_pointer) {
@@ -262,4 +507,139 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 
 	/* Update the size of input .eh_frame section */
 	is->is_size -= shrink;
+}
+
+static int
+_read_encoded(struct ld *ld, struct ld_output *lo, uint64_t *val,
+    uint8_t *data, uint8_t encode, uint64_t pc)
+{
+	int16_t s16;
+	int32_t s32;
+	uint8_t application, *begin;
+	int len;
+
+	if (encode == DW_EH_PE_omit)
+		return (0);
+
+	application = encode & 0xf0;
+	encode &= 0x0f;
+
+	len = 0;
+	begin = data;
+
+	switch (encode) {
+	case DW_EH_PE_absptr:
+		if (lo->lo_ec == ELFCLASS32)
+			READ_32(data, *val);
+		else
+			READ_64(data, *val);
+		break;
+	case DW_EH_PE_uleb128:
+		*val = _decode_uleb128(&data);
+		len = data - begin;
+		break;
+	case DW_EH_PE_udata2:
+		READ_16(data, *val);
+		len = 2;
+		break;
+	case DW_EH_PE_udata4:
+		READ_32(data, *val);
+		len = 4;
+		break;
+	case DW_EH_PE_udata8:
+		READ_64(data, *val);
+		len = 8;
+		break;
+	case DW_EH_PE_sleb128:
+		*val = _decode_sleb128(&data);
+		len = data - begin;
+		break;
+	case DW_EH_PE_sdata2:
+		READ_16(data, s16);
+		*val = s16;
+		len = 2;
+		break;
+	case DW_EH_PE_sdata4:
+		READ_32(data, s32);
+		*val = s32;
+		len = 4;
+		break;
+	case DW_EH_PE_sdata8:
+		READ_64(data, *val);
+		len = 8;
+		break;
+	default:
+		ld_warn(ld, "unsupported eh_frame encoding");
+		break;
+	}
+
+	if (application == DW_EH_PE_pcrel) {
+		/*
+		 * Value is relative to .eh_frame section virtual addr.
+		 */
+		switch (encode) {
+		case DW_EH_PE_uleb128:
+		case DW_EH_PE_udata2:
+		case DW_EH_PE_udata4:
+		case DW_EH_PE_udata8:
+			*val += pc;
+			break;
+		case DW_EH_PE_sleb128:
+		case DW_EH_PE_sdata2:
+		case DW_EH_PE_sdata4:
+		case DW_EH_PE_sdata8:
+			*val = pc + (int64_t) *val;
+			break;
+		default:
+			/* DW_EH_PE_absptr is absolute value. */
+			break;
+		}
+	}
+
+	/* XXX Applications other than DW_EH_PE_pcrel are not handled. */
+
+	return (len);
+}
+
+static int64_t
+_decode_sleb128(uint8_t **dp)
+{
+	int64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+		ret |= ((b & 0x7f) << shift);
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	if (shift < 32 && (b & 0x40) != 0)
+		ret |= (-1 << shift);
+
+	*dp = src;
+
+	return (ret);
+}
+
+static uint64_t
+_decode_uleb128(uint8_t **dp)
+{
+	uint64_t ret = 0;
+	uint8_t b;
+	int shift = 0;
+
+	uint8_t *src = *dp;
+
+	do {
+		b = *src++;
+		ret |= ((b & 0x7f) << shift);
+		shift += 7;
+	} while ((b & 0x80) != 0);
+
+	*dp = src;
+
+	return (ret);
 }

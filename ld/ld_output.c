@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_dynamic.h"
+#include "ld_ehframe.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_layout.h"
@@ -910,6 +911,10 @@ ld_output_create(struct ld *ld)
 
 	/* Copy and relocate input section data to output section. */
 	_copy_and_reloc_input_sections(ld);
+
+	/* Finalize .eh_frame_hdr section. */
+	if (ld->ld_ehframe_hdr)
+		ld_ehframe_finalize_hdr(ld);
 
 	/*
 	 * Join normal relocation sections if the linker is creating a
