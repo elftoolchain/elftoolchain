@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -443,9 +443,13 @@ _copy_and_reloc_input_sections(struct ld *ld)
 			 * For other input sections, load the raw data from
 			 * input object and preform relocation.
 			 */
-			if (is->is_ibuf != NULL)
+			if (is->is_ibuf != NULL) {
 				d->d_buf = is->is_ibuf;
-			else if (is->is_reloc == NULL) {
+				/* .eh_frame section needs relocation */
+				if (strcmp(is->is_name, ".eh_frame") == 0)
+					ld_reloc_process_input_section(ld, is,
+					    d->d_buf);
+			} else if (is->is_reloc == NULL) {
 				d->d_buf = ld_input_get_section_rawdata(ld,
 				    is);
 				ld_reloc_process_input_section(ld, is,

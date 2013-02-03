@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_dynamic.h"
+#include "ld_ehframe.h"
 #include "ld_exp.h"
 #include "ld_file.h"
 #include "ld_script.h"
@@ -124,6 +125,9 @@ ld_layout_sections(struct ld *ld)
 
 	if (!sections_cmd_exist)
 		_layout_sections(ld, NULL);
+
+	/* Optimize .eh_frame section. */
+	ld_ehframe_scan(ld);
 
 	/* Initialise sections for dyanmically linked output object. */
 	ld_dynamic_create(ld);
