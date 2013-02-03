@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2011,2012 Kai Wang
+ * Copyright (c) 2011-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -318,7 +318,7 @@ ld_input_get_section_rawdata(struct ld *ld, struct ld_input_section *is)
 	if ((d = elf_rawdata(scn, NULL)) == NULL) {
 		elferr = elf_errno();
 		if (elferr != 0)
-			ld_fatal(ld, "%s(%s): elf_rawdata failed: %s",
+			ld_warn(ld, "%s(%s): elf_rawdata failed: %s",
 			    li->li_name, is->is_name, elf_errmsg(elferr));
 		return (NULL);
 	}
@@ -388,6 +388,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 {
 	struct ld_input_section *is;
 	Elf_Scn *scn;
+	Elf_Data *d;
 	const char *name;
 	GElf_Shdr sh;
 	size_t shstrndx, ndx;
@@ -454,6 +455,30 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 				ld->ld_stack_exec = 1;
 			is->is_discard = 1;
 		}
+
+		/*
+		 * .eh_frame section is specially treated. The content of
+		 * input .eh_frame section is preloaded for output .eh_frame
+		 * optimization.
+		 */
+		if (strcmp(is->is_name, ".eh_frame") == 0) {
+			if ((d = elf_rawdata(scn, NULL)) == NULL) {
+				elferr = elf_errno();
+				if (elferr != 0)
+					ld_warn(ld, "%s(%s): elf_rawdata "
+					    "failed: %s", li->li_name,
+					    is->is_name, elf_errmsg(elferr));
+				continue;
+			}
+
+			if (d->d_buf == NULL || d->d_size == 0)
+				continue;
+
+			if ((is->is_ibuf = malloc(d->d_size)) == NULL)
+				ld_fatal_std(ld, "malloc");
+
+			memcpy(is->is_ibuf, d->d_buf, d->d_size);
+		}
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -483,7 +508,7 @@ ld_input_alloc_common_symbol(struct ld *ld, struct ld_symbol *lsb)
 	if (is->is_name == NULL) {
 		/*
 		 * Create a pseudo section named COMMON to keep track of
-		 * common symbols. 
+		 * common symbols.
 		 */
 		if ((is->is_name = strdup("COMMON")) == NULL)
 			ld_fatal_std(ld, "%s: calloc", li->li_name);
