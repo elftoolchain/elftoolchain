@@ -417,6 +417,10 @@ ld_reloc_create_entry(struct ld *ld, const char *name,
 	STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 	is->is_num_reloc++;
 	is->is_size += ld->ld_arch->reloc_entsize;
+
+	/* Keep track of the total number of *_RELATIVE relocations. */
+	if (ld->ld_arch->is_relative_reloc(type))
+		ld->ld_state.ls_relative_reloc++;
 }
 
 void

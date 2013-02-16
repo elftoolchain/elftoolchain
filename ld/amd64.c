@@ -149,6 +149,16 @@ _is_absolute_reloc(uint64_t r)
 	return (0);
 }
 
+static int
+_is_relative_reloc(uint64_t r)
+{
+
+	if (r == R_X86_64_RELATIVE)
+		return (1);
+
+	return (0);
+}
+
 static void
 _warn_pic(struct ld *ld, struct ld_reloc_entry *lre)
 {
@@ -1323,6 +1333,7 @@ amd64_register(struct ld *ld)
 	amd64->process_reloc = _process_reloc;
 	amd64->adjust_reloc = _adjust_reloc;
 	amd64->is_absolute_reloc = _is_absolute_reloc;
+	amd64->is_relative_reloc = _is_relative_reloc;
 	amd64->finalize_reloc = _finalize_reloc;
 	amd64->finalize_got_and_plt = _finalize_got_and_plt;
 	amd64->reloc_is_64bit = 1;

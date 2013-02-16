@@ -87,6 +87,7 @@ struct ld_state {
 	unsigned ls_first_output_sec;	/* flag indicates 1st output section */
 	unsigned ls_ignore_next_plt;	/* ignore next PLT relocation */
 	unsigned ls_version_local;	/* version entry is local */
+	uint64_t ls_relative_reloc;	/* number of *_RELATIVE relocations */
 	struct ld_input_section_head *ls_gc;
 					/* garbage collection search list */
 };

@@ -313,7 +313,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	if (!ld->ld_dso)
 		entries++;
 
-	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
+	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	entries += 4;
 
 	/* DT_REL/DT_RELA, DT_RELSZ/DT_RELASZ and DT_RELENT/DT_RELAENT */
@@ -323,6 +323,10 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and DT_VERSYM.
 	 */
 	entries += 5;
+
+	/* DT_RELCOUNT/DT_RELACOUNT. */
+	if (ld->ld_state.ls_relative_reloc > 0)
+		entries++;
 
 	/* DT_NULL. TODO: Reserve multiple DT_NULL entries for DT_RPATH? */
 	entries++;
@@ -467,7 +471,8 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/*
-	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and DT_VERSYM.
+	 * DT_VERNEED, DT_VERNEEDNUM, DT_VERDEF, DT_VERDEFNUM and
+	 * DT_VERSYM.
 	 */
 	if (lo->lo_verdef != NULL) {
 		DT_ENTRY_PTR(DT_VERDEF, lo->lo_verdef->os_addr);
@@ -479,6 +484,11 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 	if (lo->lo_versym != NULL)
 		DT_ENTRY_PTR(DT_VERSYM, lo->lo_versym->os_addr);
+
+	/* DT_RELCOUNT/DT_RELACOUNT. */
+	if (ld->ld_state.ls_relative_reloc > 0)
+		DT_ENTRY_VAL(ld->ld_arch->reloc_is_rela ? DT_RELACOUNT :
+		    DT_RELCOUNT, ld->ld_state.ls_relative_reloc);
 
 	/* Fill in the space left with DT_NULL entries */
 	DT_ENTRY_NULL;

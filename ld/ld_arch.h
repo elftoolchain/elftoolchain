@@ -48,6 +48,7 @@ struct ld_arch {
 	    struct ld_reloc_entry *);
 	void (*finalize_got_and_plt)(struct ld *);
 	int (*is_absolute_reloc)(uint64_t);
+	int (*is_relative_reloc)(uint64_t);
 	unsigned char reloc_is_64bit;
 	unsigned char reloc_is_rela;
 	size_t reloc_entsize;
