@@ -81,6 +81,7 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
+	int i;
 
 	li = STAILQ_FIRST(&ld->ld_lilist);
 	assert(li != NULL);
@@ -91,6 +92,12 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 		    li->li_shnum_max * sizeof(struct ld_input_section));
 		if (li->li_is == NULL)
 			ld_fatal_std(ld, "realloc");
+		HASH_CLEAR(hh, li->li_istbl);
+		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
+			is = &li->li_is[i];
+			HASH_ADD_KEYPTR(hh, li->li_istbl, is->is_name,
+			    strlen(is->is_name), is);
+		}
 	}
 
 	is = &li->li_is[li->li_shnum];
