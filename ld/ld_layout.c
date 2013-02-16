@@ -975,7 +975,7 @@ _insert_input_to_output(struct ld *ld, struct ld_output *lo,
 			_os->os_align = ld->ld_arch->reloc_is_64bit ? 8 : 4;
 
 			/* Setup sh_link and sh_info. */
-			if ((_os->os_link_name = strdup(".symtab")) == NULL)
+			if ((_os->os_link = strdup(".symtab")) == NULL)
 				ld_fatal_std(ld, "strdup");
 			_os->os_info = os;
 

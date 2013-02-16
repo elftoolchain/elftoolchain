@@ -276,6 +276,10 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 
 	lo->lo_dynamic = os;
 
+	/* .dynamic section should link to .dynstr section. */
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
+
 	/* DT_NEEDED */
 	entries = lo->lo_dso_needed;
 
@@ -542,7 +546,8 @@ _create_dynsym_and_dynstr_section(struct ld *ld, struct ld_output *lo)
 	(void) ld_output_create_section_element(ld, os, OET_STRTAB,
 	    ld->ld_dynstr, NULL);
 
-	lo->lo_dynsym->os_link = os;
+	if ((lo->lo_dynsym->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
 }
 
 static void

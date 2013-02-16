@@ -70,6 +70,9 @@ ld_hash_create_svr4_hash_section(struct ld *ld)
 	else
 		os->os_align = 8;
 
+	if ((os->os_link = strdup(".dynsym")) == NULL)
+		ld_fatal_std(ld, "strdup");
+
 	lo->lo_hash = os;
 
 	assert(ld->ld_dynsym != NULL && ld->ld_dynsym->sy_size > 0);

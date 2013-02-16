@@ -74,14 +74,13 @@ struct ld_output_section {
 	uint64_t os_type;		/* output section type */
 	uint64_t os_entsize;		/* output seciton entry size */
 	uint64_t os_info_val;		/* output section info */
-	char *os_link_name;		/* link to other output section */
 	unsigned char os_empty;		/* output section is empty */
 	unsigned char os_dynrel;	/* contains dynamic relocations */
 	unsigned char os_pltrel;	/* contains PLT relocations */
 	unsigned char os_rel;		/* contains normal relocations */
 	unsigned char os_entsize_set;	/* entsize is set */
+	char *os_link;			/* link to other output section */
 	struct ld_symbol *os_secsym;	/* assoicated STT_SECTION symbol */
-	struct ld_output_section *os_link; /* link to other output section */
 	struct ld_output_section *os_info; /* info refer to other section */
 	struct ld_output_section *os_r;	   /* relocation section */
 	struct ld_script_sections_output *os_ldso;

@@ -479,8 +479,10 @@ _produce_reloc_sections(struct ld *ld, struct ld_output *lo)
 			 * Link dynamic relocation sections to .dynsym
 			 * section.
 			 */
-			if (os->os_dynrel)
-				os->os_link = lo->lo_dynsym;
+			if (os->os_dynrel) {
+				if ((os->os_link = strdup(".dynsym")) == NULL)
+					ld_fatal_std(ld, "strdup");
+			}
 		}
 	}
 }
@@ -989,20 +991,17 @@ _update_section_header(struct ld *ld)
 		sh.sh_entsize = os->os_entsize;
 
 		/* Update "sh_link" field. */
-		if (os->os_link_name != NULL) {
-			if (!strcmp(os->os_link_name, ".symtab"))
+		if (os->os_link != NULL) {
+			if (!strcmp(os->os_link, ".symtab"))
 				sh.sh_link = lo->lo_symtab_shndx;
 			else {
-				HASH_FIND_STR(lo->lo_ostbl, os->os_link_name,
-				    _os);
+				HASH_FIND_STR(lo->lo_ostbl, os->os_link, _os);
 				if (_os == NULL)
 					ld_fatal(ld, "Internal: can not find"
-					    " link section %s",
-					    os->os_link_name);
+					    " link section %s", os->os_link);
 				sh.sh_link = elf_ndxscn(_os->os_scn);
 			}
-		} else if (os->os_link != NULL)
-			sh.sh_link = elf_ndxscn(os->os_link->os_scn);
+		}
 
 		/* Update "sh_info" field. */
 		if (os->os_info != NULL)

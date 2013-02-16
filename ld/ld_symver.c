@@ -132,7 +132,9 @@ ld_symver_create_verneed_section(struct ld *ld)
 		os->os_align = 4;
 	else
 		os->os_align = 8;
-	os->os_link = lo->lo_dynstr;
+
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_verneed = os;
 
@@ -297,7 +299,9 @@ ld_symver_create_verdef_section(struct ld *ld)
 		os->os_align = 4;
 	else
 		os->os_align = 8;
-	os->os_link = lo->lo_dynstr;
+
+	if ((os->os_link = strdup(".dynstr")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_verdef = os;
 
@@ -433,7 +437,9 @@ ld_symver_create_versym_section(struct ld *ld)
 	os->os_flags = SHF_ALLOC;
 	os->os_entsize = 2;
 	os->os_align = 2;
-	os->os_link = lo->lo_dynsym;
+
+	if ((os->os_link = strdup(".dynsym")) == NULL)
+		ld_fatal_std(ld, "strdup");
 
 	lo->lo_versym = os;
 
