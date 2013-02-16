@@ -697,7 +697,7 @@ _create_phdr(struct ld *ld)
 	addr = os->os_addr - os->os_off;
 
 	/* Create PT_PHDR segment for dynamically linked output object */
-	if (lo->lo_dso_needed > 0) {
+	if (lo->lo_dso_needed > 0 && !ld->ld_dso) {
 		i++;
 		off = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
 		phdr_addr = addr + off;

@@ -386,9 +386,15 @@ ld_layout_calc_header_size(struct ld *ld)
 				}
 			}
 
-			/* PT_PHDR and PT_DYNAMIC for dynamic linking */
-			if (lo->lo_dso_needed > 0)
-				num_phdrs += 2;
+			/*
+			 * PT_PHDR and PT_DYNAMIC for dynamic linking. But
+			 * do not create PT_PHDR for shared libraries.
+			 */
+			if (lo->lo_dso_needed > 0) {
+				num_phdrs++;
+				if (!ld->ld_dso)
+					num_phdrs++;
+			}
 
 			if (lo->lo_interp != NULL)
 				num_phdrs++;
