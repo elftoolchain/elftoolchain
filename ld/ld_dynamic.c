@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -310,7 +310,8 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	 * it to find all the loaded DSOs. (thus .dynamic has to be
 	 * writable)
 	 */
-	entries++;
+	if (!ld->ld_dso)
+		entries++;
 
 	/* TODO: DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	entries += 4;
@@ -439,7 +440,8 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	}
 
 	/* DT_DEBUG */
-	DT_ENTRY_VAL(DT_DEBUG, 0);
+	if (!ld->ld_dso)
+		DT_ENTRY_VAL(DT_DEBUG, 0);
 
 	/* DT_PLTGOT, DT_PLTRELSZ, DT_PLTREL and DT_JMPREL. */
 	if (lo->lo_gotplt != NULL)
