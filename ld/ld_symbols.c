@@ -505,7 +505,11 @@ ld_symbols_scan(struct ld *ld)
 void
 ld_symbols_finalize_dynsym(struct ld *ld)
 {
+	struct ld_output *lo;
 	struct ld_symbol *lsb, _lsb;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
 
 	/* Create an initial symbol at the beginning of symbol table. */
 	_lsb.lsb_name = NULL;
@@ -532,6 +536,8 @@ ld_symbols_finalize_dynsym(struct ld *ld)
 		} else
 			_write_to_dynsym_table(ld, lsb);
 	}
+
+	lo->lo_dynsym->os_info_val = ld->ld_dynsym->sy_first_nonlocal;
 }
 
 /*
