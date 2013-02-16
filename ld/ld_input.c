@@ -38,7 +38,7 @@ ELFTC_VCSID("$Id$");
 static off_t _offset_sort(struct ld_archive_member *a,
     struct ld_archive_member *b);
 
-#define _INIT_NUM_INTERNAL_SECTIONS	8
+#define _MAX_INTERNAL_SECTIONS		16
 
 void
 ld_input_init(struct ld *ld)
@@ -55,10 +55,10 @@ ld_input_init(struct ld *ld)
 
 	li = ld_input_alloc(ld, NULL, NULL);
 
-	li->li_shnum_max = _INIT_NUM_INTERNAL_SECTIONS;
-	li->li_is = malloc(li->li_shnum_max * sizeof(struct ld_input_section));
+	li->li_is = calloc(_MAX_INTERNAL_SECTIONS,
+	    sizeof(struct ld_input_section));
 	if (li->li_is == NULL)
-		ld_fatal_std(ld, "malloc");
+		ld_fatal_std(ld, "calloc");
 
 	STAILQ_INSERT_TAIL(&ld->ld_lilist, li, li_next);
 
@@ -81,24 +81,13 @@ ld_input_add_internal_section(struct ld *ld, const char *name)
 {
 	struct ld_input *li;
 	struct ld_input_section *is;
-	int i;
 
 	li = STAILQ_FIRST(&ld->ld_lilist);
 	assert(li != NULL);
 
-	if (li->li_shnum >= li->li_shnum_max) {
-		li->li_shnum_max *= 2;
-		li->li_is = realloc(li->li_is,
-		    li->li_shnum_max * sizeof(struct ld_input_section));
-		if (li->li_is == NULL)
-			ld_fatal_std(ld, "realloc");
-		HASH_CLEAR(hh, li->li_istbl);
-		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
-			is = &li->li_is[i];
-			HASH_ADD_KEYPTR(hh, li->li_istbl, is->is_name,
-			    strlen(is->is_name), is);
-		}
-	}
+	if (li->li_shnum >= _MAX_INTERNAL_SECTIONS)
+		ld_fatal(ld, "Internal: not enough buffer for internal "
+		    "sections");
 
 	is = &li->li_is[li->li_shnum];
 	if ((is->is_name = strdup(name)) == NULL)

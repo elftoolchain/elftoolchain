@@ -78,7 +78,6 @@ struct ld_input {
 	enum ld_input_type li_type;	/* input object kind */
 	struct ld_file *li_file;	/* containing file */
 	size_t li_shnum;		/* num of sections in ELF object */
-	size_t li_shnum_max;		/* max. number of internal section */
 	struct ld_input_section *li_is;	/* input section list */
 	struct ld_input_section *li_istbl; /* internal section hash table */
 	struct ld_archive_member *li_lam; /* archive member */
