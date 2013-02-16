@@ -121,8 +121,6 @@ ld_ehframe_scan(struct ld *ld)
 		assert(is != NULL);
 		if (lo->lo_fde_num > 0)
 			is->is_size += 4 + lo->lo_fde_num * 8;
-		if ((is->is_ibuf = malloc(is->is_size)) == NULL)
-			ld_fatal_std(ld, "malloc");
 	}
 }
 
