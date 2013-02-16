@@ -48,6 +48,7 @@ struct ld_input_section {
 	unsigned char is_dynrel;	/* section holds dynamic relocations */
 	unsigned char is_pltrel;	/* section holds PLT relocations */
 	unsigned char is_refed;		/* should not be gc'ed */
+	unsigned char is_need_reloc;	/* need apply relocation */
 	void *is_data;			/* output section data descriptor */
 	void *is_ibuf;			/* buffer for internal sections */
 	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */

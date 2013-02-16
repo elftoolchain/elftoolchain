@@ -422,7 +422,7 @@ _copy_and_reloc_input_sections(struct ld *ld)
 		for (i = 0; (uint64_t) i < li->li_shnum; i++) {
 			is = &li->li_is[i];
 
-			if (is->is_data == NULL)
+			if (is->is_discard || !is->is_need_reloc)
 				continue;
 
 			d = is->is_data;

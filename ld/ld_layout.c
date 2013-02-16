@@ -914,6 +914,10 @@ _insert_input_to_output(struct ld *ld, struct ld_output *lo,
 	os->os_dynrel |= is->is_dynrel;
 	os->os_pltrel |= is->is_pltrel;
 
+	if (!is->is_dynrel && !is->is_pltrel && is->is_type != SHT_NOBITS &&
+	    is->is_size != 0)
+		is->is_need_reloc = 1;
+
 	if (is->is_align > os->os_align)
 		os->os_align = is->is_align;
 
