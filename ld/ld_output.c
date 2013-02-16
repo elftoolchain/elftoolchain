@@ -840,6 +840,17 @@ _create_phdr(struct ld *ld)
 	}
 
 	/*
+	 * Create PT_GNU_EH_FRAME segment.
+	 */
+	if (ld->ld_ehframe_hdr) {
+		i++;
+		os = lo->lo_ehframe_hdr;
+		assert(os != NULL);
+		_WRITE_PHDR(PT_GNU_EH_FRAME, os->os_off, os->os_addr,
+		    os->os_size, os->os_size, PF_R, 4);
+	}
+
+	/*
 	 * Create PT_GNU_STACK segment.
 	 */
 
@@ -867,10 +878,6 @@ ld_output_create(struct ld *ld)
 
 	if (gelf_getehdr(lo->lo_elf, &eh) == NULL)
 		ld_fatal(ld, "gelf_getehdr failed: %s", elf_errmsg(-1));
-
-	/* Create program headers. */
-	if (!ld->ld_reloc)
-		_create_phdr(ld);
 
 	/* Set program header table offset. */
 	eh.e_phoff = gelf_fsize(lo->lo_elf, ELF_T_EHDR, 1, EV_CURRENT);
@@ -928,6 +935,10 @@ ld_output_create(struct ld *ld)
 
 	/* Update section headers for the output sections. */
 	_update_section_header(ld);
+
+	/* Create program headers. */
+	if (!ld->ld_reloc)
+		_create_phdr(ld);
 
 	/* Finally write out the output ELF object. */
 	if (elf_update(lo->lo_elf, ELF_C_WRITE) < 0)

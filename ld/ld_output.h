@@ -138,6 +138,7 @@ struct ld_output {
 	struct ld_output_section *lo_plt; /* PLT section */
 	struct ld_output_section *lo_rel_plt; /* PLT relocation section */
 	struct ld_output_section *lo_rel_dyn;  /* Dynamic relocation section */
+	struct ld_output_section *lo_ehframe_hdr; /* .eh_frame_hdr section */
 	struct ld_output_data_buffer *lo_dynamic_odb; /* .dynamic buffer */
 	struct ld_output_data_buffer *lo_got_odb; /* GOT section data */
 	struct ld_output_data_buffer *lo_plt_odb; /* PLT section data */

@@ -156,6 +156,7 @@ ld_ehframe_finalize_hdr(struct ld *ld)
 	hdr_is = ld_input_find_internal_section(ld, ".eh_frame_hdr");
 	assert(hdr_is != NULL);
 	hdr_os = hdr_is->is_output;
+	lo->lo_ehframe_hdr = hdr_os;
 
 	if (hdr_is->is_discard || hdr_os == NULL)
 		return;

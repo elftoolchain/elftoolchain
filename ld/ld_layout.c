@@ -402,6 +402,9 @@ ld_layout_calc_header_size(struct ld *ld)
 			if (lo->lo_phdr_note)
 				num_phdrs++;
 
+			if (ld->ld_ehframe_hdr)
+				num_phdrs++;
+
 			if (ld->ld_gen_gnustack)
 				num_phdrs++;
 		}
