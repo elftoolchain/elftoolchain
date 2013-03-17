@@ -34,6 +34,8 @@
 
 ELFTC_VCSID("$Id$");
 
+static struct ld *_ld;
+
 /*
  * Support routines for relocation handling.
  */
@@ -46,6 +48,8 @@ static void _read_rela(struct ld *ld, struct ld_input_section *is,
     Elf_Data *d);
 static void _add_to_gc_search_list(struct ld_state *ls,
     struct ld_input_section *is);
+static uint64_t _reloc_addr(struct ld_reloc_entry *lre);
+static int _cmp_reloc(struct ld_reloc_entry *a, struct ld_reloc_entry *b);
 
 void
 ld_reloc_load(struct ld *ld)
@@ -493,14 +497,71 @@ ld_reloc_join(struct ld *ld, struct ld_output_section *os,
 	is->is_reloc = NULL;
 }
 
+static uint64_t
+_reloc_addr(struct ld_reloc_entry *lre)
+{
+
+	return (lre->lre_tis->is_output->os_addr + lre->lre_tis->is_reloff +
+	    lre->lre_offset);
+}
+
+static int
+_cmp_reloc(struct ld_reloc_entry *a, struct ld_reloc_entry *b)
+{
+	struct ld *ld;
+
+	ld = _ld;
+
+	/*
+	 * Sort dynamic relocation entries to make the runtime linker
+	 * run faster. *_RELATIVE relocations should be sorted to the
+	 * front. Between two *_RELATIVE relocations, the one with
+	 * lower address should appear first. For other relocations
+	 * we sort them by assoicated dynamic symbol index, then
+	 * by relocation type.
+	 */
+
+	if (ld->ld_arch->is_relative_reloc(a->lre_type) &&
+	    !ld->ld_arch->is_relative_reloc(b->lre_type))
+		return (-1);
+
+	if (!ld->ld_arch->is_relative_reloc(a->lre_type) &&
+	    ld->ld_arch->is_relative_reloc(b->lre_type))
+		return (1);
+
+	if (ld->ld_arch->is_relative_reloc(a->lre_type) &&
+	    ld->ld_arch->is_relative_reloc(b->lre_type)) {
+		if (_reloc_addr(a) < _reloc_addr(b))
+			return (-1);
+		else if (_reloc_addr(a) > _reloc_addr(b))
+			return (1);
+		else
+			return (0);
+	}
+
+	if (a->lre_sym->lsb_dyn_index < b->lre_sym->lsb_dyn_index)
+		return (-1);
+	else if (a->lre_sym->lsb_dyn_index > b->lre_sym->lsb_dyn_index)
+		return (1);
+
+	if (a->lre_type < b->lre_type)
+		return (-1);
+	else if (a->lre_type > b->lre_type)
+		return (1);
+
+	return (0);
+}
+
 void
 ld_reloc_sort(struct ld *ld, struct ld_output_section *os)
 {
 
-	/* TODO: Implement reloc sorting*/
+	_ld = ld;
 
-	(void) ld;
-	(void) os;
+	if (os->os_reloc == NULL)
+		return;
+
+	STAILQ_SORT(os->os_reloc, ld_reloc_entry, lre_next, _cmp_reloc);
 }
 
 int

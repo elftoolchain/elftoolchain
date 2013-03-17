@@ -513,7 +513,7 @@ _join_and_finalize_dynamic_reloc_sections(struct ld *ld, struct ld_output *lo)
 		}
 
 		/* Sort dynamic relocations for the runtime linker. */
-		if (os->os_reloc != NULL && os->os_dynrel)
+		if (os->os_reloc != NULL && os->os_dynrel && !os->os_pltrel)
 			ld_reloc_sort(ld, os);
 
 		/* Finalize relocations. */
