@@ -426,6 +426,12 @@ _process_options(struct ld *ld, int key, char *arg)
 	case KEY_PRINT_GC_SECTIONS:
 		ld->ld_gc_print = 1;
 		break;
+	case KEY_RPATH:
+		ld_path_add_multiple(ld, optarg, LPT_RPATH);
+		break;
+	case KEY_RPATH_LINK:
+		ld_path_add_multiple(ld, optarg, LPT_RPATH_LINK);
+		break;
 	case KEY_SHARED:
 		ld->ld_exec = 0;
 		ld->ld_dso = 1;

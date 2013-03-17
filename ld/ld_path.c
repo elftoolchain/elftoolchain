@@ -62,6 +62,17 @@ ld_path_add(struct ld *ld, char *path, enum ld_path_type lpt)
 }
 
 void
+ld_path_add_multiple(struct ld *ld, char *str, enum ld_path_type lpt)
+{
+	char *p;
+
+	while ((p = strsep(&str, ":")) != NULL) {
+		if (*p != '\0')
+			ld_path_add(ld, p, lpt);
+	}
+}
+
+void
 ld_path_cleanup(struct ld *ld)
 {
 	struct ld_state *ls;
@@ -71,6 +82,18 @@ ld_path_cleanup(struct ld *ld)
 
 	STAILQ_FOREACH_SAFE(lp, &ls->ls_lplist, lp_next, _lp) {
 		STAILQ_REMOVE(&ls->ls_lplist, lp, ld_path, lp_next);
+		free(lp->lp_path);
+		free(lp);
+	}
+
+	STAILQ_FOREACH_SAFE(lp, &ls->ls_rplist, lp_next, _lp) {
+		STAILQ_REMOVE(&ls->ls_rplist, lp, ld_path, lp_next);
+		free(lp->lp_path);
+		free(lp);
+	}
+
+	STAILQ_FOREACH_SAFE(lp, &ls->ls_rllist, lp_next, _lp) {
+		STAILQ_REMOVE(&ls->ls_rllist, lp, ld_path, lp_next);
 		free(lp->lp_path);
 		free(lp);
 	}
