@@ -713,7 +713,7 @@ region_alias_command
 
 search_dir_command
 	: T_SEARCH_DIR '(' ident ')' {
-		ld_path_add(ld, $3);
+		ld_path_add(ld, $3, LPT_L);
 		free($3);
 	}
 	;

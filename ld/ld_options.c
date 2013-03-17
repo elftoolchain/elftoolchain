@@ -356,7 +356,7 @@ _process_options(struct ld *ld, int key, char *arg)
 		ld_path_search_library(ld, arg);
 		break;
 	case 'L':
-		ld_path_add(ld, arg);
+		ld_path_add(ld, arg, LPT_L);
 		break;
 	case 'M':
 		ld->ld_print_linkmap = 1;

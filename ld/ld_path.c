@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 #include "ld_path.h"
 
 void
-ld_path_add(struct ld *ld, char *path)
+ld_path_add(struct ld *ld, char *path, enum ld_path_type lpt)
 {
 	struct ld_state *ls;
 	struct ld_path *lp;
@@ -45,7 +45,20 @@ ld_path_add(struct ld *ld, char *path)
 	if ((lp->lp_path = strdup(path)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
-	STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
+	switch (lpt) {
+	case LPT_L:
+		STAILQ_INSERT_TAIL(&ls->ls_lplist, lp, lp_next);
+		break;
+	case LPT_RPATH:
+		STAILQ_INSERT_TAIL(&ls->ls_rplist, lp, lp_next);
+		break;
+	case LPT_RPATH_LINK:
+		STAILQ_INSERT_TAIL(&ls->ls_rllist, lp, lp_next);
+		break;
+	default:
+		ld_fatal(ld, "Internal: invalid path type %d", lpt);
+		break;
+	}
 }
 
 void

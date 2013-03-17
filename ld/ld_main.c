@@ -58,6 +58,8 @@ _init(void)
 	TAILQ_INIT(&ld->ld_lflist);
 	STAILQ_INIT(&ld->ld_lilist);
 	STAILQ_INIT(&ld->ld_state.ls_lplist);
+	STAILQ_INIT(&ld->ld_state.ls_rplist);
+	STAILQ_INIT(&ld->ld_state.ls_rllist);
 }
 
 static void
