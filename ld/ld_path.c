@@ -30,6 +30,37 @@
 #include "ld_file.h"
 #include "ld_path.h"
 
+static char *_search_file(struct ld *ld, struct ld_path *lp, const char *file);
+
+static char *
+_search_file(struct ld *ld, struct ld_path *lp, const char *file)
+{
+	struct dirent *dp;
+	DIR *dirp;
+	char *fp;
+
+	assert(lp != NULL && lp->lp_path != NULL && file != NULL);
+
+	if ((dirp = opendir(lp->lp_path)) == NULL) {
+		ld_warn(ld, "opendir failed: %s", strerror(errno));
+		return (NULL);
+	}
+
+	fp = NULL;
+	while ((dp = readdir(dirp)) != NULL) {
+		if (!strcmp(dp->d_name, file)) {
+			if ((fp = malloc(PATH_MAX + 1)) == NULL)
+				ld_fatal_std(ld, "malloc");
+			snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
+			    dp->d_name);
+			break;
+		}
+	}
+	(void) closedir(dirp);
+
+	return (fp);
+}
+
 void
 ld_path_add(struct ld *ld, char *path, enum ld_path_type lpt)
 {
@@ -133,37 +164,22 @@ ld_path_search_file(struct ld *ld, struct ld_file *lf)
 {
 	struct ld_state *ls;
 	struct ld_path *lp;
-	struct dirent *dp;
-	char fp[PATH_MAX + 1];
-	DIR *dirp;
+	char *fp;
 	int found;
 
 	assert(lf != NULL);
 	ls = &ld->ld_state;
 
-	fp[0] = '\0';
 	found = 0;
 	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
-		assert(lp->lp_path != NULL);
-		if ((dirp = opendir(lp->lp_path)) == NULL) {
-			ld_warn(ld, "opendir failed: %s", strerror(errno));
-			continue;
+		if ((fp = _search_file(ld, lp, lf->lf_name)) != NULL) {
+			free(lf->lf_name);
+			lf->lf_name = fp;
+			found = 1;
+			break;
 		}
-
-		while ((dp = readdir(dirp)) != NULL) {
-			if (!strcmp(dp->d_name, lf->lf_name)) {
-				snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
-				    dp->d_name);
-				free(lf->lf_name);
-				if ((lf->lf_name = strdup(fp)) == NULL)
-					ld_fatal_std(ld, "strdup");
-				found = 1;
-				goto done;
-			}
-		}
-		(void) closedir(dirp);
 	}
-done:
+
 	if (!found)
 		ld_fatal(ld, "cannot find %s", lf->lf_name);
 }
