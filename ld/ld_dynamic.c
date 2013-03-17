@@ -266,7 +266,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	if (os == NULL)
 		os = ld_layout_insert_output_section(ld, dynamic_name,
 		    SHF_ALLOC | SHF_WRITE);
-	os->os_type = SHT_PROGBITS;
+	os->os_type = SHT_DYNAMIC;
 	os->os_flags = SHF_ALLOC | SHF_WRITE;
 	if (lo->lo_ec == ELFCLASS32) {
 		os->os_entsize = 8;
