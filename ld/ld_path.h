@@ -43,3 +43,4 @@ void	ld_path_cleanup(struct ld *);
 char	*ld_path_join_rpath(struct ld *);
 void	ld_path_search_file(struct ld *, struct ld_file *);
 void	ld_path_search_library(struct ld *, const char *);
+void	ld_path_search_dso_needed(struct ld *, struct ld_file *, const char *);

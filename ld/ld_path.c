@@ -30,18 +30,18 @@
 #include "ld_file.h"
 #include "ld_path.h"
 
-static char *_search_file(struct ld *ld, struct ld_path *lp, const char *file);
+static char *_search_file(struct ld *ld, const char *path, const char *file);
 
 static char *
-_search_file(struct ld *ld, struct ld_path *lp, const char *file)
+_search_file(struct ld *ld, const char *path, const char *file)
 {
 	struct dirent *dp;
 	DIR *dirp;
 	char *fp;
 
-	assert(lp != NULL && lp->lp_path != NULL && file != NULL);
+	assert(path != NULL && file != NULL);
 
-	if ((dirp = opendir(lp->lp_path)) == NULL) {
+	if ((dirp = opendir(path)) == NULL) {
 		ld_warn(ld, "opendir failed: %s", strerror(errno));
 		return (NULL);
 	}
@@ -51,8 +51,8 @@ _search_file(struct ld *ld, struct ld_path *lp, const char *file)
 		if (!strcmp(dp->d_name, file)) {
 			if ((fp = malloc(PATH_MAX + 1)) == NULL)
 				ld_fatal_std(ld, "malloc");
-			snprintf(fp, sizeof(fp), "%s/%s", lp->lp_path,
-			    dp->d_name);
+			fp[0] = '\0';
+			snprintf(fp, PATH_MAX + 1, "%s/%s", path, dp->d_name);
 			break;
 		}
 	}
@@ -172,7 +172,8 @@ ld_path_search_file(struct ld *ld, struct ld_file *lf)
 
 	found = 0;
 	STAILQ_FOREACH(lp, &ls->ls_lplist, lp_next) {
-		if ((fp = _search_file(ld, lp, lf->lf_name)) != NULL) {
+		if ((fp = _search_file(ld, lp->lp_path, lf->lf_name)) !=
+		    NULL) {
 			free(lf->lf_name);
 			lf->lf_name = fp;
 			found = 1;
@@ -242,4 +243,53 @@ done:
 		} else
 			ld_fatal(ld, "cannot find -l%s", name);
 	}
+}
+
+void
+ld_path_search_dso_needed(struct ld *ld, struct ld_file *lf, const char *name)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	struct ld_file *_lf;
+	char *fp;
+
+	ls = &ld->ld_state;
+
+	/*
+	 * First check if we've seen this shared library or if it's
+	 * already listed in the input file list.
+	 */
+	TAILQ_FOREACH(_lf, &ld->ld_lflist, lf_next) {
+		if (!strcmp(_lf->lf_name, name) ||
+		    !strcmp(basename(_lf->lf_name), name))
+			return;
+	}
+
+	/* Search -rpath-link directories. */
+	STAILQ_FOREACH(lp, &ls->ls_rllist, lp_next) {
+		if ((fp = _search_file(ld, lp->lp_path, name)) != NULL)
+			goto done;
+	}
+
+	/* Search -rpath directories. */
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next) {
+		if ((fp = _search_file(ld, lp->lp_path, name)) != NULL)
+			goto done;
+	}
+
+	/* TODO: search additional directories and environment variables. */
+
+	/* Search /lib and /usr/lib. */
+	if ((fp = _search_file(ld, "/lib", name)) != NULL)
+		goto done;
+	if ((fp = _search_file(ld, "/usr/lib", name)) != NULL)
+		goto done;
+
+	/* Not found. */
+	ld_warn(ld, "cannot find needed shared library: %s", name);
+	return;
+
+done:
+	ld_file_add_after(ld, fp, LFT_DSO, lf);
+	free(fp);
 }

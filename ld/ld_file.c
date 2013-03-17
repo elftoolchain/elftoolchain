@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2010-2012 Kai Wang
+ * Copyright (c) 2010-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ ELFTC_VCSID("$Id$");
  */
 
 static void _add_file(struct ld *ld, const char *name, enum ld_file_type type,
-    int first);
+    int first, struct ld_file *after);
 
 void
 ld_file_cleanup(struct ld *ld)
@@ -63,14 +63,22 @@ void
 ld_file_add(struct ld *ld, const char *name, enum ld_file_type type)
 {
 
-	_add_file(ld, name, type, 0);
+	_add_file(ld, name, type, 0, NULL);
 }
 
 void
 ld_file_add_first(struct ld *ld, const char *name, enum ld_file_type type)
 {
 
-	_add_file(ld, name, type, 1);
+	_add_file(ld, name, type, 1, NULL);
+}
+
+void
+ld_file_add_after(struct ld *ld, const char *name, enum ld_file_type type,
+    struct ld_file *after)
+{
+
+	_add_file(ld, name, type, 0, after);
 }
 
 void
@@ -172,7 +180,7 @@ ld_file_unload(struct ld *ld, struct ld_file *lf)
 
 static void
 _add_file(struct ld *ld, const char *name, enum ld_file_type type,
-    int first)
+    int first, struct ld_file *after)
 {
 	struct ld_state *ls;
 	struct ld_file *lf;
@@ -216,7 +224,9 @@ _add_file(struct ld *ld, const char *name, enum ld_file_type type,
 	if (lf->lf_type == LFT_DSO)
 		ld->ld_dynamic_link = 1;
 
-	if (first)
+	if (after != NULL)
+		TAILQ_INSERT_AFTER(&ld->ld_lflist, after, lf, lf_next);
+	else if (first)
 		TAILQ_INSERT_HEAD(&ld->ld_lflist, lf, lf_next);
 	else
 		TAILQ_INSERT_TAIL(&ld->ld_lflist, lf, lf_next);

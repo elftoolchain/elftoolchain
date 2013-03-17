@@ -141,11 +141,20 @@ ld_dynamic_load_dso_dynamic(struct ld *ld, struct ld_input *li, Elf *e,
 			    elf_errmsg(-1));
 			continue;
 		}
-		if (dyn.d_tag == DT_SONAME) {
+		switch (dyn.d_tag) {
+		case DT_SONAME:
 			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
 			if (name != NULL &&
 			    (li->li_soname = strdup(name)) == NULL)
 				ld_fatal_std(ld, "strdup");
+			break;
+		case DT_NEEDED:
+			name = elf_strptr(e, strndx, dyn.d_un.d_ptr);
+			if (name != NULL)
+				ld_path_search_dso_needed(ld, li->li_file,
+				    name);
+			break;
+		default:
 			break;
 		}
 	}
