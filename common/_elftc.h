@@ -200,6 +200,70 @@ struct name {							\
 } while (/*CONSTCOND*/0)
 #endif
 
+/*
+ * The STAILQ_SORT macro is adapted from Simon Tatham's O(n*log(n))
+ * mergesort algorithm.
+ */
+#ifndef	STAILQ_SORT
+#define	STAILQ_SORT(head, type, field, cmp) do {			\
+	STAILQ_HEAD(, type) _la, _lb;					\
+	struct type *_p, *_q, *_e;					\
+	int _i, _sz, _nmerges, _psz, _qsz;				\
+									\
+	_sz = 1;							\
+	do {								\
+		_nmerges = 0;						\
+		STAILQ_INIT(&_lb);					\
+		while (!STAILQ_EMPTY((head))) {				\
+			_nmerges++;					\
+			STAILQ_INIT(&_la);				\
+			_psz = 0;					\
+			for (_i = 0; _i < _sz && !STAILQ_EMPTY((head));	\
+			     _i++) {					\
+				_e = STAILQ_FIRST((head));		\
+				if (_e == NULL)				\
+					break;				\
+				_psz++;					\
+				STAILQ_REMOVE_HEAD((head), field);	\
+				STAILQ_INSERT_TAIL(&_la, _e, field);	\
+			}						\
+			_p = STAILQ_FIRST(&_la);			\
+			_qsz = _sz;					\
+			_q = STAILQ_FIRST((head));			\
+			while (_psz > 0 || (_qsz > 0 && _q != NULL)) {	\
+				if (_psz == 0) {			\
+					_e = _q;			\
+					_q = STAILQ_NEXT(_q, field);	\
+					STAILQ_REMOVE_HEAD((head),	\
+					    field);			\
+					_qsz--;				\
+				} else if (_qsz == 0 || _q == NULL) {	\
+					_e = _p;			\
+					_p = STAILQ_NEXT(_p, field);	\
+					STAILQ_REMOVE_HEAD(&_la, field);\
+					_psz--;				\
+				} else if (cmp(_p, _q) <= 0) {		\
+					_e = _p;			\
+					_p = STAILQ_NEXT(_p, field);	\
+					STAILQ_REMOVE_HEAD(&_la, field);\
+					_psz--;				\
+				} else {				\
+					_e = _q;			\
+					_q = STAILQ_NEXT(_q, field);	\
+					STAILQ_REMOVE_HEAD((head),	\
+					    field);			\
+					_qsz--;				\
+				}					\
+				STAILQ_INSERT_TAIL(&_lb, _e, field);	\
+			}						\
+		}							\
+		(head)->stqh_first = _lb.stqh_first;			\
+		(head)->stqh_last = _lb.stqh_last;			\
+		_sz *= 2;						\
+	} while (_nmerges > 1);						\
+} while (/*CONSTCOND*/0)
+#endif
+
 #ifndef	TAILQ_FOREACH_SAFE
 #define TAILQ_FOREACH_SAFE(var, head, field, tvar)                      \
 	for ((var) = TAILQ_FIRST((head));                               \
