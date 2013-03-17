@@ -104,6 +104,7 @@ struct ld_output {
 	int lo_endian;			 /* outout object endianess */
 	int lo_osabi;			 /* output object osabi */
 	int lo_soname_nameindex;	 /* string index for DT_SONAME */
+	int lo_rpath_nameindex;		 /* string index for DT_RPATH */
 	unsigned lo_phdr_num;		 /* num of phdrs */
 	unsigned lo_phdr_note;		 /* create PT_NOTE */
 	unsigned lo_dso_needed;		 /* num of DSO referenced */

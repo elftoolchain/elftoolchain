@@ -32,6 +32,7 @@
 #include "ld_input.h"
 #include "ld_layout.h"
 #include "ld_output.h"
+#include "ld_path.h"
 #include "ld_symbols.h"
 #include "ld_symver.h"
 #include "ld_strtab.h"
@@ -258,6 +259,7 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	char dynamic_name[] = ".dynamic";
 	char init_name[] = ".init";
 	char fini_name[] = ".fini";
+	char *rpath;
 	int entries;
 
 	HASH_FIND_STR(lo->lo_ostbl, dynamic_name, os);
@@ -308,7 +310,13 @@ _create_dynamic(struct ld *ld, struct ld_output *lo)
 	if (ld->ld_dynsym)
 		entries += 5;
 
-	/* TODO: DT_RPATH. */
+	/* DT_RPATH. */
+	if (!STAILQ_EMPTY(&ld->ld_state.ls_rplist)) {
+		rpath = ld_path_join_rpath(ld);
+		lo->lo_rpath_nameindex = ld_strtab_insert_no_suffix(ld,
+		    ld->ld_dynstr, rpath);
+		entries++;
+	}
 
 	/*
 	 * DT_DEBUG. dynamic linker changes this at runtime, gdb uses
@@ -447,6 +455,10 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 		    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Sym) :
 		    sizeof(Elf64_Sym));
 	}
+
+	/* DT_RPATH */
+	if (!STAILQ_EMPTY(&ld->ld_state.ls_rplist))
+		DT_ENTRY_VAL(DT_RPATH, lo->lo_rpath_nameindex);
 
 	/* DT_DEBUG */
 	if (!ld->ld_dso)

@@ -99,6 +99,35 @@ ld_path_cleanup(struct ld *ld)
 	}
 }
 
+char *
+ld_path_join_rpath(struct ld *ld)
+{
+	struct ld_state *ls;
+	struct ld_path *lp;
+	char *s;
+	int len;
+
+	ls = &ld->ld_state;
+
+	if (STAILQ_EMPTY(&ls->ls_rplist))
+		return (NULL);
+
+	len = 0;
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next)
+		len += strlen(lp->lp_path) + 1;
+
+	if ((s = malloc(len)) == NULL)
+		ld_fatal_std(ld, "malloc");
+
+	STAILQ_FOREACH(lp, &ls->ls_rplist, lp_next) {
+		strcat(s, lp->lp_path);
+		if (lp != STAILQ_LAST(&ls->ls_rplist, ld_path, lp_next))
+			strcat(s, ":");
+	}
+
+	return (s);
+}
+
 void
 ld_path_search_file(struct ld *ld, struct ld_file *lf)
 {
