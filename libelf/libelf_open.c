@@ -172,6 +172,15 @@ _libelf_open_object(int fd, Elf_Cmd c, int reporterror)
 	m = NULL;
 	flags = 0;
 	if (S_ISREG(mode)) {
+
+		/*
+		 * Reject zero length files.
+		 */
+		if (fsize == 0) {
+			LIBELF_SET_ERROR(ARGUMENT, 0);
+			return (NULL);
+		}
+
 #if	ELFTC_HAVE_MMAP
 		/*
 		 * Always map regular files in with 'PROT_READ'
