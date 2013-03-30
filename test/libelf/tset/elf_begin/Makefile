@@ -4,7 +4,7 @@ TOP=	../../../..
 
 TS_SRCS=	begin.m4
 TS_DATA=	check_elf.msb32 check_elf.lsb32 check_elf.msb64 \
-		check_elf.lsb64 a.ar a-bsd.ar a.o
+		check_elf.lsb64 a.ar a-bsd.ar a.o zero
 CLEANFILES+=	a.c
 
 a.c:	.SILENT
@@ -16,5 +16,8 @@ a.ar:	a.o .SILENT
 a-bsd.ar: a.o .SILENT
 	rm -f ${.TARGET}
 	${ELFTOOLCHAIN_AR} -F bsd -crv ${.TARGET} ${.ALLSRC} > /dev/null
+
+zero: .SILENT
+	rm -f ${.TARGET}; touch ${.TARGET}
 
 .include "${TOP}/mk/elftoolchain.tet.mk"

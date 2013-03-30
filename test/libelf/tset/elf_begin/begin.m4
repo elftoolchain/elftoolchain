@@ -164,6 +164,51 @@ tcNonRegular$1(void)
 FN(`DeviceFile', `/dev/null', `device file')
 FN(`Directory', `.', `directory')
 
+/*
+ * Verify that for command modes ELF_C_READ and ELF_C_RDWR, opening
+ * a zero sized regular file fails with ELF_E_ARGUMENT.
+ */
+
+undefine(`FN',`ZERO')
+define(`ZERO',`"zero"')
+define(`FN',`
+void
+tcZero$1(void)
+{
+	Elf *e;
+	int error, fd, result;
+
+	e = NULL;
+	fd = -1;
+	result = TET_FAIL;
+
+	TP_ANNOUNCE("opening an zero-sized file in mode ELF_C_$1 fails "
+	            "with ELF_E_ARGUMENT.");
+
+	TP_SET_VERSION();
+
+	if ((fd = open(ZERO, O_RDONLY)) < 0) {
+		TP_UNRESOLVED("open \"$2\" failed: %s", strerror(errno));
+		goto done;
+	}
+
+	e = elf_begin(fd, ELF_C_$1, NULL);
+
+	if (e == NULL && (error = elf_errno()) == ELF_E_ARGUMENT)
+		result = TET_PASS;	/* Verify the error. */
+
+ done:
+	if (e)
+		elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}')
+
+FN(`READ')
+FN(`RDWR')
+
 #define	TEMPLATE	"TCXXXXXX"
 #define	FILENAME_SIZE	16
 char	filename[FILENAME_SIZE];
