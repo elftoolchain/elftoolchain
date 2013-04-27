@@ -66,22 +66,22 @@ is not NULL, it will be used to store error information in case
 of an error.
 .Sh RETURN VALUES
 On success, function
-.Fn dwarf_new_die
+.Fn dwarf_add_die_to_debug
 returns
 .Dv DW_DLV_OK .
 In case of an error, function
-.Fn dwarf_new_die
+.Fn dwarf_add_die_to_debug
 returns
 .Dv DW_DLV_NOCOUNT
 and sets the argument
 .Ar err .
 .Sh ERRORS
 Function
-.Fn dwarf_new_die
+.Fn dwarf_add_die_to_debug
 can fail with:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
 .It Bq Er DW_DLE_ARGUMENT
-Either argument
+Either of the arguments
 .Ar dbg
 or
 .Ar first_die
