@@ -85,19 +85,20 @@ WARNS?=	6
 
 LDADD+=		-lelf
 
-MAN=	dwarf_add_AT_comp_dir.3				\
+MAN=	dwarf.3                                         \
+	dwarf_add_arange.3				\
+	dwarf_add_AT_comp_dir.3				\
 	dwarf_add_AT_const_value_string.3		\
 	dwarf_add_AT_dataref.3				\
 	dwarf_add_AT_flag.3				\
 	dwarf_add_AT_location_expr.3			\
 	dwarf_add_AT_name.3				\
 	dwarf_add_AT_producer.3				\
-	dwarf_add_AT_reference.3			\
 	dwarf_add_AT_ref_address.3			\
+	dwarf_add_AT_reference.3			\
 	dwarf_add_AT_signed_const.3			\
 	dwarf_add_AT_string.3				\
 	dwarf_add_AT_targ_address.3			\
-	dwarf_add_arange.3				\
 	dwarf_add_die_to_debug.3			\
 	dwarf_add_directory_decl.3			\
 	dwarf_add_expr_addr.3				\
@@ -139,7 +140,6 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_formsig8.3				\
 	dwarf_formstring.3				\
 	dwarf_formudata.3				\
-	dwarf_get_AT_name.3				\
 	dwarf_get_abbrev.3				\
 	dwarf_get_abbrev_children_flag.3		\
 	dwarf_get_abbrev_code.3				\
@@ -147,8 +147,9 @@ MAN=	dwarf_add_AT_comp_dir.3				\
 	dwarf_get_abbrev_tag.3				\
 	dwarf_get_address_size.3			\
 	dwarf_get_arange.3				\
-	dwarf_get_aranges.3				\
 	dwarf_get_arange_info.3				\
+	dwarf_get_aranges.3				\
+	dwarf_get_AT_name.3				\
 	dwarf_get_cie_index.3				\
 	dwarf_get_cie_info.3				\
 	dwarf_get_cie_of_fde.3				\
