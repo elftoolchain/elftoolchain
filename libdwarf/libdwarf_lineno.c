@@ -613,6 +613,8 @@ _dwarf_get_minlen(Dwarf_P_Debug dbg)
 	assert(dbg != NULL);
 
 	switch (dbg->dbgp_isa) {
+	case DW_ISA_ARM:
+		return (2);
 	case DW_ISA_X86:
 	case DW_ISA_X86_64:
 		return (1);
@@ -668,7 +670,7 @@ _dwarf_lineno_gen(Dwarf_P_Debug dbg, Dwarf_Error *error)
 	offset = ds->ds_size;
 	RCHECK(WRITE_VALUE(li->li_hdrlen, 4));
 
-	/* Write minimum instruction length. FIXME should be arch-specific. */
+	/* Write minimum instruction length. */
 	RCHECK(WRITE_VALUE(li->li_minlen, 1));
 
 	/*
