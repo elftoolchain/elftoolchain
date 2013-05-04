@@ -362,6 +362,18 @@ _ELF_DEFINE_EF(EF_ARM_LE8,          0x00400000UL,			\
 	"file contains LE-8 code")					\
 _ELF_DEFINE_EF(EF_ARM_EABIMASK,     0xFF000000UL,			\
 	"mask for ARM EABI version number (0 denotes GNU or unknown)")	\
+_ELF_DEFINE_EF(EF_ARM_EABI_UNKNOWN, 0x00000000UL,			\
+	"Unknown or GNU ARM EABI version number")			\
+_ELF_DEFINE_EF(EF_ARM_EABI_VER1,    0x01000000UL,			\
+	"ARM EABI version 1")						\
+_ELF_DEFINE_EF(EF_ARM_EABI_VER2,    0x02000000UL,			\
+	"ARM EABI version 2")						\
+_ELF_DEFINE_EF(EF_ARM_EABI_VER3,    0x03000000UL,			\
+	"ARM EABI version 3")						\
+_ELF_DEFINE_EF(EF_ARM_EABI_VER4,    0x04000000UL,			\
+	"ARM EABI version 4")						\
+_ELF_DEFINE_EF(EF_ARM_EABI_VER5,    0x05000000UL,			\
+	"ARM EABI version 5")						\
 _ELF_DEFINE_EF(EF_ARM_INTERWORK,    0x00000004UL,			\
 	"GNU EABI extension")						\
 _ELF_DEFINE_EF(EF_ARM_APCS_26,      0x00000008UL,			\
