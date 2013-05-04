@@ -440,6 +440,16 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		is->is_input = li;
 
 		/*
+		 * Section groups should not appear in the output executable
+		 * or shared library.
+		 */
+		if (is->is_type == SHT_GROUP) {
+			is->is_discard = 1;
+			li->li_sg_exist = 1;
+			continue;
+		}
+
+		/*
 		 * Check for informational sections which should not
 		 * be included in the output object, process them
 		 * and mark them as discarded if need.
@@ -450,10 +460,11 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 			if (is->is_flags & SHF_EXECINSTR)
 				ld->ld_stack_exec = 1;
 			is->is_discard = 1;
+			continue;
 		}
 
 		/*
-		 * .eh_frame section is specially treated. The content of
+		 * .eh_frame section is especially treated. The content of
 		 * input .eh_frame section is preloaded for output .eh_frame
 		 * optimization.
 		 */
@@ -480,6 +491,66 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 	if (elferr != 0)
 		ld_fatal(ld, "%s: elf_nextscn failed: %s", li->li_name,
 		    elf_errmsg(elferr));
+}
+
+void
+ld_input_process_section_group(struct ld *ld, struct ld_input *li, Elf *e)
+{
+	struct ld_input_section *is;
+	struct ld_section_group *sg;
+	Elf_Scn *scn;
+	Elf_Data *d;
+	const char *name;
+	uint32_t *w;
+	int elferr, i, j;
+
+	for (i = 0; (uint64_t) i < li->li_shnum - 1; i++) {
+		is = &li->li_is[i];
+		if (is->is_type != SHT_GROUP)
+			continue;
+
+		if ((scn = elf_getscn(e, (size_t) i)) == NULL) {
+			ld_warn(ld, "%s(%s): elf_getscn failed: %s",
+			    li->li_name, is->is_name, elf_errmsg(-1));
+			continue;
+		}
+
+		if ((d = elf_getdata(scn, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				ld_warn(ld, "%s(%s): elf_getdata "
+				    "failed: %s", li->li_name,
+				    is->is_name, elf_errmsg(elferr));
+			continue;
+		}
+
+		if (d->d_buf == NULL || d->d_size == 0)
+			continue;
+
+		w = d->d_buf;
+		if ((*w & GRP_COMDAT) == 0)
+			continue;
+
+		/* Assume sh_link field points to the only .symtab section */
+		if (li->li_symindex == NULL || is->is_info >= li->li_symnum)
+			continue;
+		
+		name = li->li_symindex[is->is_info]->lsb_name;
+		if (name == NULL)
+			continue;
+
+		if ((sg = calloc(1, sizeof(*sg))) == NULL)
+			ld_fatal_std(ld, "%s: calloc", li->li_name);
+		if ((sg->sg_name = strdup(name)) == NULL)
+			ld_fatal_std(ld, "%s: strdup", li->li_name);
+		HASH_ADD_KEYPTR(hhi, li->li_sg, sg->sg_name,
+		    strlen(sg->sg_name), sg);
+
+		for (j = 1; (size_t) j < d->d_size / 4; j++) {
+			if (w[j] < li->li_shnum - 1)
+				li->li_is[w[j]].is_sg = sg;
+		}
+	}
 }
 
 void

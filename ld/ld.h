@@ -64,6 +64,7 @@ struct ld_output_data_buffer;
 struct ld_wildcard_match;
 struct ld_ehframe_cie_head;
 struct ld_ehframe_fde_head;
+struct ld_section_group;
 
 #define	LD_MAX_NESTED_GROUP	16
 
@@ -129,6 +130,7 @@ struct ld {
 	struct ld_input_section *ld_got;    /* .got section */
 	struct ld_ehframe_cie_head *ld_cie; /* ehframe CIE list */
 	struct ld_ehframe_fde_head *ld_fde; /* ehframe FDE list */
+	struct ld_section_group *ld_sg;	/* included section groups */
 	unsigned char ld_common_alloc;	/* always alloc space for common sym */
 	unsigned char ld_common_no_alloc; /* never alloc space for common sym */
 	unsigned char ld_emit_reloc;	/* emit relocations */
