@@ -273,7 +273,9 @@ _dwarf_info_pro_cleanup(Dwarf_P_Debug dbg)
 	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_WRITE);
 
 	cu = STAILQ_FIRST(&dbg->dbg_cu);
-	STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
-	_dwarf_abbrev_cleanup(cu);
-	free(cu);
+	if (cu != NULL) {
+		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+		_dwarf_abbrev_cleanup(cu);
+		free(cu);
+	}
 }
