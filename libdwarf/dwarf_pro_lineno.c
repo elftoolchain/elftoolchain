@@ -162,7 +162,7 @@ dwarf_add_directory_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Error *error)
 		return (DW_DLV_NOCOUNT);
 	}
 
-	return (li->li_inclen++);
+	return (++li->li_inclen);
 }
 
 Dwarf_Unsigned
@@ -194,5 +194,5 @@ dwarf_add_file_decl(Dwarf_P_Debug dbg, char *name, Dwarf_Unsigned dirndx,
 	lf->lf_size = size;
 	STAILQ_INSERT_TAIL(&li->li_lflist, lf, lf_next);
 
-	return (li->li_lflen++);
+	return (++li->li_lflen);
 }
