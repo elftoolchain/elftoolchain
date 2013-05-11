@@ -551,48 +551,47 @@ _dwarf_lineno_gen_program(Dwarf_P_Debug dbg, Dwarf_P_Section ds,
 		addr0 = (ln->ln_addr - address) / li->li_minlen;
 		line0 = ln->ln_lineno - line;
 
+		if (addr0 == 0 && line0 == 0)
+			continue;
+
 		/*
-		 * Generate DW_LNS_advance_line if line delta is out of
-		 * range.
+		 * Check if line delta is with the range and if the special
+		 * opcode can be used.
 		 */
 		assert(li->li_lbase <= 0);
-		if (line0 < li->li_lbase ||
-		    line0 > li->li_lbase + li->li_lrange - 1) {
+		if (line0 >= li->li_lbase &&
+		    line0 <= li->li_lbase + li->li_lrange - 1) {
+			spc = (line0 - li->li_lbase) +
+			    (li->li_lrange * addr0) + li->li_opbase;
+			if (spc <= 255) {
+				RCHECK(WRITE_VALUE(spc, 1));
+				basic_block = 0;
+				goto next_line;
+			}
+		}
+
+		/* Generate DW_LNS_advance_line for line number change. */
+		if (line0 != 0) {
 			RCHECK(WRITE_VALUE(DW_LNS_advance_line, 1));
 			RCHECK(WRITE_SLEB128(line0));
-			line0 = 0;
 		}
 
-		/*
-		 * Check if it can be fit in the special ops.
-		 */
-		spc = (line0 - li->li_lbase) + (li->li_lrange * addr0) +
-		    li->li_opbase;
-		if (spc <= 255) {
-			RCHECK(WRITE_VALUE(spc, 1));
-			basic_block = 0;
-			goto next_line;
+		if (addr0 > 0) {
+			/* See if it can be handled by DW_LNS_const_add_pc. */
+			spc = (line0 - li->li_lbase) +
+			    (li->li_lrange * (addr0 - maddr)) + li->li_opbase;
+			if (spc <= 255) {
+				RCHECK(WRITE_VALUE(DW_LNS_const_add_pc, 1));
+				RCHECK(WRITE_VALUE(spc, 1));
+				basic_block = 0;
+			} else {
+				/* Otherwise we use DW_LNS_advance_pc. */
+				RCHECK(WRITE_VALUE(DW_LNS_advance_pc, 1));
+				RCHECK(WRITE_ULEB128(addr0));
+				RCHECK(WRITE_VALUE(DW_LNS_copy, 1));
+				basic_block = 0;
+			}
 		}
-
-		/*
-		 * See if this can be handled by DW_LNS_const_add_pc.
-		 */
-		spc = (line0 - li->li_lbase) +
-		    (li->li_lrange * (addr0 - maddr)) + li->li_opbase;
-		if (spc <= 255) {
-			RCHECK(WRITE_VALUE(DW_LNS_const_add_pc, 1));
-			RCHECK(WRITE_VALUE(spc, 1));
-			basic_block = 0;
-			goto next_line;
-		}
-
-		/*
-		 * Otherwise we have to use DW_LNS_advance_pc.
-		 */
-		RCHECK(WRITE_VALUE(DW_LNS_advance_pc, 1));
-		RCHECK(WRITE_ULEB128(addr0));
-		RCHECK(WRITE_VALUE(DW_LNS_copy, 1));
-		basic_block = 0;
 
 	next_line:
 		address = ln->ln_addr;
