@@ -450,5 +450,6 @@ _dwarf_die_pro_cleanup(Dwarf_P_Debug dbg)
 			    at_next);
 			free(at);
 		}
+		free(die);
 	}
 }

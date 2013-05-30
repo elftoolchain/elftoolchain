@@ -253,6 +253,7 @@ _dwarf_producer_deinit(Dwarf_P_Debug dbg)
 	_dwarf_frame_pro_cleanup(dbg);
 	_dwarf_arange_pro_cleanup(dbg);
 	_dwarf_macinfo_pro_cleanup(dbg);
+	_dwarf_strtab_cleanup(dbg);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_pubs);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_weaks);
 	_dwarf_nametbl_pro_cleanup(&dbg->dbgp_funcs);

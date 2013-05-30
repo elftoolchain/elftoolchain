@@ -456,6 +456,7 @@ _dwarf_reloc_cleanup(Dwarf_P_Debug dbg)
 	STAILQ_FOREACH_SAFE(drs, &dbg->dbgp_drslist, drs_next, tdrs) {
 		STAILQ_REMOVE(&dbg->dbgp_drslist, drs, _Dwarf_Rel_Section,
 		    drs_next);
+		free(drs->drs_drd);
 		STAILQ_FOREACH_SAFE(dre, &drs->drs_dre, dre_next, tdre) {
 			STAILQ_REMOVE(&drs->drs_dre, dre, _Dwarf_Rel_Entry,
 			    dre_next);
