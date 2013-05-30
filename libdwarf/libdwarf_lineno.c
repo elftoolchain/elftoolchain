@@ -152,6 +152,7 @@ _dwarf_lineno_run_program(Dwarf_CU cu, Dwarf_LineInfo li, uint8_t *p,
 			case DW_LNE_end_sequence:
 				p++;
 				end_sequence = 1;
+				APPEND_ROW;
 				RESET_REGISTERS;
 				break;
 			case DW_LNE_set_address:
