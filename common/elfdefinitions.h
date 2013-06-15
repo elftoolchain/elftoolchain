@@ -796,10 +796,21 @@ _ELF_DEFINE_EM(EM_RL78,             197, "Renesas RL78 family")		\
 _ELF_DEFINE_EM(EM_VIDEOCORE5,       198, "Broadcom VideoCore V processor") \
 _ELF_DEFINE_EM(EM_78KOR,            199, "Renesas 78KOR family")	\
 _ELF_DEFINE_EM(EM_56800EX,          200,				\
-	"Freescale 56800EX Digital Signal Controller")	\
+	"Freescale 56800EX Digital Signal Controller")			\
 _ELF_DEFINE_EM(EM_BA1,              201, "Beyond BA1 CPU architecture")	\
 _ELF_DEFINE_EM(EM_BA2,              202, "Beyond BA2 CPU architecture")	\
-_ELF_DEFINE_EM(EM_XCORE,            203, "XMOS xCORE processor family")
+_ELF_DEFINE_EM(EM_XCORE,            203, "XMOS xCORE processor family") \
+_ELF_DEFINE_EM(EM_MCHP_PIC,         204, "Microchip 8-bit PIC(r) family") \
+_ELF_DEFINE_EM(EM_INTEL205,         205, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_INTEL206,         206, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_INTEL207,         207, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_INTEL208,         208, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_INTEL209,         209, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_KM32,             210, "KM211 KM32 32-bit processor") \
+_ELF_DEFINE_EM(EM_KMX32,            211, "KM211 KMX32 32-bit processor") \
+_ELF_DEFINE_EM(EM_KMX16,            212, "KM211 KMX16 16-bit processor") \
+_ELF_DEFINE_EM(EM_KMX8,             213, "KM211 KMX8 8-bit processor")  \
+_ELF_DEFINE_EM(EM_KVARC,            214, "KM211 KMX32 KVARC processor")
 
 #undef	_ELF_DEFINE_EM
 #define	_ELF_DEFINE_EM(N, V, DESCR)	N = V ,
