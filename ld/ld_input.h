@@ -31,8 +31,7 @@ struct ld_ehframe_fde_head;
 
 struct ld_section_group {
 	char *sg_name;
-	unsigned char sg_discard;
-	UT_hash_handle hh, hhi;
+	UT_hash_handle hh;
 };
 
 struct ld_input_section {
@@ -62,7 +61,6 @@ struct ld_input_section {
 	struct ld_input_section *is_tis; /* relocation target */
 	struct ld_input_section *is_ris; /* relocation section */
 	struct ld_ehframe_fde_head *is_fde; /* list of FDE */
-	struct ld_section_group *is_sg;	/* section group */
 	STAILQ_ENTRY(ld_input_section) is_next; /* next section */
 	STAILQ_ENTRY(ld_input_section) is_gc_next; /* next gc search */
 	UT_hash_handle hh;		/* hash handle (internal section) */
@@ -98,8 +96,6 @@ struct ld_input {
 	size_t li_versym_sz;		/* symbol version array size */
 	int li_dso_refcnt;		/* symbol reference count (DSO) */
 	struct ld_symver_verdef_head *li_verdef; /* version definition */
-	struct ld_section_group *li_sg;	/* section groups. */
-	unsigned char li_sg_exist;	/* section group exist. */
 	STAILQ_ENTRY(ld_input) li_next;	/* next input object */
 };
 
@@ -120,5 +116,4 @@ void	ld_input_init_sections(struct ld *, struct ld_input *, Elf *);
 void	ld_input_link_objects(struct ld *);
 void	ld_input_load(struct ld *, struct ld_input *);
 void	ld_input_unload(struct ld *, struct ld_input *);
-void	ld_input_process_section_group(struct ld *, struct ld_input *, Elf *);
 uint64_t ld_input_reserve_ibuf(struct ld_input_section *, uint64_t);
