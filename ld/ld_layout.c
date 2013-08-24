@@ -680,6 +680,10 @@ _layout_input_sections(struct ld *ld, struct ld_input *li)
 		if (is->is_type == SHT_NULL)
 			continue;
 
+		/* Ignore discarded section groups. */
+		if (is->is_discard)
+			continue;
+
 		if (strcmp(is->is_name, ".shstrtab") == 0 ||
 		    strcmp(is->is_name, ".symtab") == 0 ||
 		    strcmp(is->is_name, ".strtab") == 0)
