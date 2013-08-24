@@ -161,6 +161,7 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
 	struct ld_reloc_entry *lre;
 	GElf_Rel r;
+	uint64_t sym;
 	int i, len;
 
 	assert(is->is_reloc != NULL);
@@ -171,12 +172,15 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			ld_warn(ld, "gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
+		sym = GELF_R_SYM(r.r_info);
+		if (is->is_input->li_symindex[sym] == NULL)
+			continue;
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_tis = is->is_tis;
-		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
+		_scan_reloc(ld, is, sym, lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
 	}
@@ -187,6 +191,7 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
 	struct ld_reloc_entry *lre;
 	GElf_Rela r;
+	uint64_t sym;
 	int i, len;
 
 	assert(is->is_reloc != NULL);
@@ -197,13 +202,16 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			ld_warn(ld, "gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
+		sym = GELF_R_SYM(r.r_info);
+		if (is->is_input->li_symindex[sym] == NULL)
+			continue;
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
 		lre->lre_offset = r.r_offset;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_addend = r.r_addend;
 		lre->lre_tis = is->is_tis;
-		_scan_reloc(ld, is, GELF_R_SYM(r.r_info), lre);
+		_scan_reloc(ld, is, sym, lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
 	}
