@@ -475,6 +475,7 @@ _finalize_got_and_plt(struct ld *ld)
 	got += 8;
 
 	/* Reserve the second and the third entry for the dynamic linker. */
+	memset(got, 0, 16);
 	got += 16;
 
 	/*
