@@ -879,9 +879,34 @@ _add_elf_symbol(struct ld *ld, struct ld_input *li, Elf *e, GElf_Sym *sym,
 	struct ld_symbol_defver *dv;
 	char *name;
 	int j, len, ndx;
+	unsigned char st_bind;
 
 	if ((name = elf_strptr(e, strndx, sym->st_name)) == NULL)
 		return;
+
+	/*
+	 * First check if the section this symbol refers to is belong
+	 * to a section group that has been removed.
+	 */
+	st_bind = GELF_ST_BIND(sym->st_info);
+	if (sym->st_shndx != SHN_UNDEF && sym->st_shndx != SHN_COMMON &&
+	    sym->st_shndx != SHN_ABS && sym->st_shndx < li->li_shnum - 1 &&
+	    li->li_is[sym->st_shndx].is_discard) {
+		st_bind = GELF_ST_BIND(sym->st_info);
+		if (st_bind == STB_GLOBAL || st_bind == STB_WEAK) {
+			/*
+			 * For symbol with STB_GLOBAL or STB_WEAK binding,
+			 * we convert it to an undefined symbol.
+			 */
+			sym->st_shndx = SHN_UNDEF;
+		} else {
+			/*
+			 * Local symbols are discarded, if the section they
+			 * refer to are removed.
+			 */
+			return;
+		}
+	}
 
 	lsb = _alloc_symbol(ld);
 
@@ -1192,6 +1217,9 @@ _unload_symbols(struct ld_input *li)
 static void
 _free_symbol(struct ld_symbol *lsb)
 {
+
+	if (lsb == NULL)
+		return;
 
 	free(lsb->lsb_name);
 	free(lsb->lsb_longname);
