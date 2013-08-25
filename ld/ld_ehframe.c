@@ -64,6 +64,95 @@ static int _read_encoded(struct ld *ld, struct ld_output *lo, uint64_t *val,
     uint8_t *data, uint8_t encode, uint64_t pc);
 
 void
+ld_ehframe_adjust(struct ld *ld, struct ld_input_section *is)
+{
+	struct ld_output *lo;
+	uint8_t *p, *d, *end, *s;
+	uint64_t length, length_size, remain, adjust;
+	uint32_t cie_id;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * If the .eh_frame section is unchanged, we don't need to
+	 * do much.
+	 */
+	assert(is->is_ehframe != NULL);
+	if (is->is_shrink == 0) {
+		is->is_ehframe = NULL;
+		return;
+	}
+
+	/*
+	 * Otherwise the section is shrinked becase some FDE's are
+	 * discarded. We copy the section content to a buffer while
+	 * skipping those discarded FDE's.
+	 */
+
+	if ((is->is_ibuf = malloc(is->is_size - is->is_shrink)) == NULL)
+		ld_fatal_std(ld, "malloc");
+	d = is->is_ibuf;
+	end = d + is->is_size - is->is_shrink;
+	p = is->is_ehframe;
+	adjust = 0;
+	remain = is->is_size;
+	while (remain > 0) {
+
+		s = p;
+
+		/* Read CIE/FDE length field. */
+		READ_32(p, length);
+		p += 4;
+		if (length == 0xffffffff) {
+			READ_64(p, length);
+			p += 8;
+			length_size = 8;
+		} else
+			length_size = 4;
+
+		/* Check for terminator */
+		if (length == 0) {
+			memset(d, 0, 4);
+			d += 4;
+			break;
+		}
+
+		/* Read CIE ID/Pointer field. */
+		READ_32(p, cie_id);
+
+		/* Clear adjustment if CIE is found. */
+		if (cie_id == 0)
+			adjust = 0;
+
+		/* Check for our special mark. */
+		if (cie_id != 0xFFFFFFFF) {
+			if (cie_id != 0) {
+				/* Adjust FDE pointer. */
+				assert(cie_id > adjust);
+				cie_id -= adjust;
+				WRITE_32(p, cie_id);
+			}
+			memcpy(d, s, length + length_size);
+			d += length + length_size;
+		} else {
+			/* Discard FDE and increate adjustment. */
+			adjust += length + length_size;
+		}
+
+		/* Next entry. */
+		p += length;
+		remain -= length + length_size;
+	}
+
+	is->is_size -= is->is_shrink;
+	is->is_shrink = 0;
+	assert(d == end);
+	free(is->is_ehframe);
+	is->is_ehframe = NULL;
+}
+
+void
 ld_ehframe_scan(struct ld *ld)
 {
 	struct ld_output *lo;

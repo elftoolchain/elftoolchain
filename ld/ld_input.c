@@ -411,7 +411,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 	if (elf_getshdrstrndx(e, &shstrndx) < 0)
 		ld_fatal(ld, "%s: elf_getshdrstrndx: %s", li->li_name,
 		    elf_errmsg(-1));
-	
+
 	(void) elf_errno();
 	scn = NULL;
 	while ((scn = elf_nextscn(e, scn)) != NULL) {
@@ -444,6 +444,7 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		is->is_link = sh.sh_link;
 		is->is_info = sh.sh_info;
 		is->is_index = elf_ndxscn(scn);
+		is->is_shrink = 0;
 		is->is_input = li;
 
 		/*
@@ -536,9 +537,8 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 		}
 
 		/*
-		 * .eh_frame section is especially treated. The content of
-		 * input .eh_frame section is preloaded for output .eh_frame
-		 * optimization.
+		 * The content of input .eh_frame section is preloaded for
+		 * output .eh_frame optimization.
 		 */
 		if (strcmp(is->is_name, ".eh_frame") == 0) {
 			if ((d = elf_rawdata(scn, NULL)) == NULL) {
@@ -553,10 +553,11 @@ ld_input_init_sections(struct ld *ld, struct ld_input *li, Elf *e)
 			if (d->d_buf == NULL || d->d_size == 0)
 				continue;
 
-			if ((is->is_ibuf = malloc(d->d_size)) == NULL)
+			if ((is->is_ehframe = malloc(d->d_size)) == NULL)
 				ld_fatal_std(ld, "malloc");
 
-			memcpy(is->is_ibuf, d->d_buf, d->d_size);
+			memcpy(is->is_ehframe, d->d_buf, d->d_size);
+			is->is_ibuf = is->is_ehframe;
 		}
 	}
 	elferr = elf_errno();

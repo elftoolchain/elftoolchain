@@ -42,6 +42,7 @@ struct ld_input_section {
 	uint64_t is_reloff;		/* relative offset in output section */
 	uint64_t is_addr;		/* section vma */
 	uint64_t is_size;		/* section file size */
+	uint64_t is_shrink;		/* section shrinked bytes */
 	uint64_t is_entsize;		/* seciton entry size */
 	uint64_t is_align;		/* section align */
 	uint64_t is_type;		/* section type */
@@ -56,6 +57,7 @@ struct ld_input_section {
 	unsigned char is_need_reloc;	/* need apply relocation */
 	void *is_data;			/* output section data descriptor */
 	void *is_ibuf;			/* buffer for internal sections */
+	void *is_ehframe;		/* temp buffer for ehframe section. */
 	struct ld_reloc_entry_head *is_reloc; /* list of relocation entries */
 	uint64_t is_num_reloc;		/* number of reloc entries */
 	struct ld_input_section *is_tis; /* relocation target */

@@ -26,11 +26,13 @@
 
 #include "ld.h"
 #include "ld_arch.h"
+#include "ld_ehframe.h"
 #include "ld_input.h"
 #include "ld_output.h"
 #include "ld_reloc.h"
 #include "ld_script.h"
 #include "ld_symbols.h"
+#include "ld_utils.h"
 
 ELFTC_VCSID("$Id$");
 
@@ -40,6 +42,8 @@ static struct ld *_ld;
  * Support routines for relocation handling.
  */
 
+static int _discard_reloc(struct ld *ld, struct ld_input_section *is,
+    uint64_t sym, uint64_t off, uint64_t *reloc_adjust);
 static void _scan_reloc(struct ld *ld, struct ld_input_section *is,
     uint64_t sym, struct ld_reloc_entry *lre);
 static void _read_rel(struct ld *ld, struct ld_input_section *is,
@@ -118,6 +122,9 @@ ld_reloc_load(struct ld *ld)
 				_read_rel(ld, is, d);
 			else
 				_read_rela(ld, is, d);
+
+			if (!strcmp(is->is_tis->is_name, ".eh_frame"))
+				ld_ehframe_adjust(ld, is->is_tis);
 		}
 
 		ld_input_unload(ld, li);
@@ -156,16 +163,75 @@ ld_reloc_deferred_scan(struct ld *ld)
 	}
 }
 
+static int
+_discard_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
+    uint64_t off, uint64_t *reloc_adjust)
+{
+	struct ld_output *lo;
+	uint8_t *p;
+	uint64_t length;
+	uint32_t cie_id;
+
+	lo = ld->ld_output;
+	assert(lo != NULL);
+
+	/*
+	 * Relocation entry should be discarded if the symbol it refers
+	 * to was discarded.
+	 */
+	if (is->is_input->li_symindex[sym] != NULL)
+		return (0);
+
+	if (strcmp(is->is_tis->is_name, ".eh_frame"))
+		return (1);
+
+	/*
+	 * If we discard a relocation entry for a FDE in the .eh_frame
+	 * section, we need also to remove the FDE entry and adjust the
+	 * relocation offset of the following relocation entries for
+	 * the .eh_frame section.
+	 */
+
+	assert(is->is_tis->is_ehframe != NULL);
+	p = is->is_tis->is_ehframe;
+	p += off - 8;		/* XXX extended length unsupported */
+
+	/* Read CIE/FDE length field. */
+	READ_32(p, length);
+	p += 4;
+
+	/* Check for terminator. (Shouldn't happen) */
+	if (length == 0)
+		return (1);
+
+	/* Read CIE ID/Pointer field. */
+	READ_32(p, cie_id);
+	if (cie_id == 0)
+		return (1);	/* Shouldn't happen */
+
+	/* Set CIE ID to 0xFFFFFFFF to mark this FDE to be discarded */
+	WRITE_32(p, 0xFFFFFFFF);
+
+	/* Update relocation offset adjustment. */
+	*reloc_adjust += length + 4;
+
+	/* Reduce the size of the .eh_frame section. */
+	is->is_tis->is_shrink += length + 4;
+
+	return (1);
+}
+
 static void
 _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
 	struct ld_reloc_entry *lre;
 	GElf_Rel r;
-	uint64_t sym;
+	uint64_t reloc_adjust, sym;
 	int i, len;
 
 	assert(is->is_reloc != NULL);
 
+	reloc_adjust = 0;
 	len = d->d_size / is->is_entsize;
 	for (i = 0; i < len; i++) {
 		if (gelf_getrel(d, i, &r) != &r) {
@@ -173,17 +239,19 @@ _read_rel(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			continue;
 		}
 		sym = GELF_R_SYM(r.r_info);
-		if (is->is_input->li_symindex[sym] == NULL)
+		if (_discard_reloc(ld, is, sym, r.r_offset, &reloc_adjust))
 			continue;
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
-		lre->lre_offset = r.r_offset;
+		assert(r.r_offset >= reloc_adjust);
+		lre->lre_offset = r.r_offset - reloc_adjust;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_tis = is->is_tis;
 		_scan_reloc(ld, is, sym, lre);
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
 	}
+	is->is_tis->is_shrink = reloc_adjust;
 }
 
 static void
@@ -191,11 +259,12 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 {
 	struct ld_reloc_entry *lre;
 	GElf_Rela r;
-	uint64_t sym;
+	uint64_t reloc_adjust, sym;
 	int i, len;
 
 	assert(is->is_reloc != NULL);
 
+	reloc_adjust = 0;
 	len = d->d_size / is->is_entsize;
 	for (i = 0; i < len; i++) {
 		if (gelf_getrela(d, i, &r) != &r) {
@@ -203,11 +272,12 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 			continue;
 		}
 		sym = GELF_R_SYM(r.r_info);
-		if (is->is_input->li_symindex[sym] == NULL)
+		if (_discard_reloc(ld, is, sym, r.r_offset, &reloc_adjust))
 			continue;
 		if ((lre = calloc(1, sizeof(*lre))) == NULL)
 			ld_fatal(ld, "calloc");
-		lre->lre_offset = r.r_offset;
+		assert(r.r_offset >= reloc_adjust);
+		lre->lre_offset = r.r_offset - reloc_adjust;
 		lre->lre_type = GELF_R_TYPE(r.r_info);
 		lre->lre_addend = r.r_addend;
 		lre->lre_tis = is->is_tis;
@@ -215,6 +285,7 @@ _read_rela(struct ld *ld, struct ld_input_section *is, Elf_Data *d)
 		STAILQ_INSERT_TAIL(is->is_reloc, lre, lre_next);
 		is->is_num_reloc++;
 	}
+	is->is_tis->is_shrink = reloc_adjust;
 }
 
 static void
