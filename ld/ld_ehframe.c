@@ -62,6 +62,7 @@ static void _process_ehframe_section(struct ld *ld, struct ld_output *lo,
     struct ld_input_section *is);
 static int _read_encoded(struct ld *ld, struct ld_output *lo, uint64_t *val,
     uint8_t *data, uint8_t encode, uint64_t pc);
+static int _cmp_fde(struct ld_ehframe_fde *a, struct ld_ehframe_fde *b);
 
 void
 ld_ehframe_adjust(struct ld *ld, struct ld_input_section *is)
@@ -324,7 +325,8 @@ ld_ehframe_finalize_hdr(struct ld *ld)
 		}
 	}
 
-	/* TODO: sort FDE list. */
+	/* Sort the binary search table in an increasing order by pcrel. */
+	STAILQ_SORT(ld->ld_fde, ld_ehframe_fde, fde_next, _cmp_fde);
 
 	/* Write binary search table. */
 	STAILQ_FOREACH(fde, ld->ld_fde, fde_next) {
@@ -335,6 +337,18 @@ ld_ehframe_finalize_hdr(struct ld *ld)
 	}
 
 	assert(p == end);
+}
+
+static int
+_cmp_fde(struct ld_ehframe_fde *a, struct ld_ehframe_fde *b)
+{
+
+	if (a->fde_pcrel < b->fde_pcrel)
+		return (-1);
+	else if (a->fde_pcrel == b->fde_pcrel)
+		return (0);
+	else
+		return (1);
 }
 
 static void
