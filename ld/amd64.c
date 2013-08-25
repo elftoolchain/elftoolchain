@@ -647,9 +647,19 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 		 * addresses. (If PLT address is used, function will have
 		 * unified address in the main executable and DSOs)
 		 */
-		if (ld_reloc_require_plt(ld, lre) && !lsb->lsb_plt) {
-			_reserve_gotplt_entry(ld, lsb);
-			_reserve_plt_entry(ld, lsb);
+		if (ld_reloc_require_plt(ld, lre)) {
+			if (!lsb->lsb_plt) {
+				_reserve_gotplt_entry(ld, lsb);
+				_reserve_plt_entry(ld, lsb);
+			}
+			/*
+			 * Note here even if we have generated PLT for this
+			 * function before, we still need to set this flag.
+			 * It's possible that we first see the relative
+			 * relocation then this absolute relocation, in
+			 * other words, the same function can be called in
+			 * different ways.
+			 */
 			lsb->lsb_func_addr = 1;
 		}
 
