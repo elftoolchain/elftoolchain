@@ -25,6 +25,7 @@
  */
 
 #include "ld.h"
+#include "ld_arch.h"
 #include "ld_ehframe.h"
 #include "ld_input.h"
 #include "ld_output.h"
@@ -402,6 +403,7 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
     struct ld_input_section *is)
 {
 	struct ld_input *li;
+	struct ld_output_section *os;
 	struct ld_ehframe_cie *cie, *_cie;
 	struct ld_ehframe_cie_head cie_h;
 	struct ld_ehframe_fde *fde;
@@ -411,6 +413,7 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 	uint8_t *p, *et, cie_version, *augment;
 
 	li = is->is_input;
+	os = is->is_output;
 
 	STAILQ_INIT(&cie_h);
 
@@ -603,6 +606,11 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 				    cie->cie_off_orig + cie->cie_size) {
 					STAILQ_REMOVE(is->is_ris->is_reloc,
 					    lre, ld_reloc_entry, lre_next);
+					is->is_ris->is_num_reloc--;
+					is->is_ris->is_size -= 
+					    ld->ld_arch->reloc_entsize;
+					os->os_r->os_size -=
+					    ld->ld_arch->reloc_entsize;
 					break;
 				}
 

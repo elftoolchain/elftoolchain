@@ -183,7 +183,7 @@ _discard_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 		return (0);
 
 	if (strcmp(is->is_tis->is_name, ".eh_frame"))
-		return (1);
+		goto discard_reloc;
 
 	/*
 	 * If we discard a relocation entry for a FDE in the .eh_frame
@@ -202,12 +202,12 @@ _discard_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	/* Check for terminator. (Shouldn't happen) */
 	if (length == 0)
-		return (1);
+		goto discard_reloc;
 
 	/* Read CIE ID/Pointer field. */
 	READ_32(p, cie_id);
 	if (cie_id == 0)
-		return (1);	/* Shouldn't happen */
+		goto discard_reloc;	/* Shouldn't happen */
 
 	/* Set CIE ID to 0xFFFFFFFF to mark this FDE to be discarded */
 	WRITE_32(p, 0xFFFFFFFF);
@@ -217,6 +217,11 @@ _discard_reloc(struct ld *ld, struct ld_input_section *is, uint64_t sym,
 
 	/* Reduce the size of the .eh_frame section. */
 	is->is_tis->is_shrink += length + 4;
+
+discard_reloc:
+
+	/* Reduce the size of the relocation section accordingly */
+	is->is_size -= ld->ld_arch->reloc_entsize;
 
 	return (1);
 }
