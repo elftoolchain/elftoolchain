@@ -62,18 +62,34 @@ static void _join_normal_reloc_sections(struct ld *ld, struct ld_output *lo);
 static void _update_section_header(struct ld *ld);
 
 void
+ld_output_early_init(struct ld *ld)
+{
+	struct ld_output *lo;
+
+	if (ld->ld_output == NULL) {
+		if ((lo = calloc(1, sizeof(*lo))) == NULL)
+			ld_fatal_std(ld, "calloc");
+
+		STAILQ_INIT(&lo->lo_oelist);
+		STAILQ_INIT(&lo->lo_oslist);
+		ld->ld_output = lo;
+	} else
+		lo = ld->ld_output;
+
+	assert(ld->ld_otgt != NULL);
+	lo->lo_ec = elftc_bfd_target_class(ld->ld_otgt);
+	lo->lo_endian = elftc_bfd_target_byteorder(ld->ld_otgt);
+}
+
+void
 ld_output_init(struct ld *ld)
 {
 	struct ld_output *lo;
 	const char *fn;
 	GElf_Ehdr eh;
 
-	if ((lo = calloc(1, sizeof(*lo))) == NULL)
-		ld_fatal_std(ld, "calloc");
-
-	STAILQ_INIT(&lo->lo_oelist);
-	STAILQ_INIT(&lo->lo_oslist);
-	ld->ld_output = lo;
+	lo = ld->ld_output;
+	assert(lo != NULL);
 
 	if (ld->ld_output_file == NULL)
 		fn = "a.out";
@@ -88,10 +104,6 @@ ld_output_init(struct ld *ld)
 		ld_fatal(ld, "elf_begin failed: %s", elf_errmsg(-1));
 
 	elf_flagelf(lo->lo_elf, ELF_C_SET, ELF_F_LAYOUT);
-
-	assert(ld->ld_otgt != NULL);
-	lo->lo_ec = elftc_bfd_target_class(ld->ld_otgt);
-	lo->lo_endian = elftc_bfd_target_byteorder(ld->ld_otgt);
 
 	if (gelf_newehdr(lo->lo_elf, lo->lo_ec) == NULL)
 		ld_fatal(ld, "gelf_newehdr failed: %s", elf_errmsg(-1));

@@ -95,6 +95,8 @@ restart:
 
 	ld_options_parse(ld, argc, argv);
 
+	ld_output_early_init(ld);
+
 	ls->ls_arch_conflict = 0;
 	ls->ls_first_elf_object = 1;
 

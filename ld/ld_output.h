@@ -160,5 +160,6 @@ void	ld_output_create_string_table_section(struct ld *, const char *,
     struct ld_strtab *, Elf_Scn *);
 void	ld_output_emit_gnu_stack_section(struct ld *);
 void	ld_output_format(struct ld *, char *, char *, char *);
+void	ld_output_early_init(struct ld *);
 void	ld_output_init(struct ld *);
 void	ld_output_write(struct ld *);
