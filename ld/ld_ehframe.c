@@ -609,8 +609,9 @@ _process_ehframe_section(struct ld *ld, struct ld_output *lo,
 					is->is_ris->is_num_reloc--;
 					is->is_ris->is_size -= 
 					    ld->ld_arch->reloc_entsize;
-					os->os_r->os_size -=
-					    ld->ld_arch->reloc_entsize;
+					if (os->os_r != NULL)
+						os->os_r->os_size -=
+						    ld->ld_arch->reloc_entsize;
 					break;
 				}
 
