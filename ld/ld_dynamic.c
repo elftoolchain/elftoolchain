@@ -459,7 +459,7 @@ _finalize_dynamic(struct ld *ld, struct ld_output *lo)
 	if (lo->lo_dynsym != NULL && lo->lo_dynstr != NULL) {
 		DT_ENTRY_PTR(DT_STRTAB, lo->lo_dynstr->os_addr);
 		DT_ENTRY_PTR(DT_SYMTAB, lo->lo_dynsym->os_addr);
-		DT_ENTRY_VAL(DT_STRSZ, ld->ld_dynstr->st_size);
+		DT_ENTRY_VAL(DT_STRSZ, ld_strtab_getsize(ld->ld_dynstr));
 		DT_ENTRY_VAL(DT_SYMENT,
 		    lo->lo_ec == ELFCLASS32 ? sizeof(Elf32_Sym) :
 		    sizeof(Elf64_Sym));
@@ -574,7 +574,7 @@ static void
 _check_dso_needed(struct ld *ld, struct ld_output *lo)
 {
 	struct ld_input *li;
-	const char *bn;
+	char *bn;
 	int ndx;
 
 	lo->lo_dso_needed = 0;
@@ -587,7 +587,7 @@ _check_dso_needed(struct ld *ld, struct ld_output *lo)
 			lo->lo_dso_needed++;
 
 			if (ld->ld_dynstr == NULL)
-				ld->ld_dynstr = ld_strtab_alloc(ld);
+				ld->ld_dynstr = ld_strtab_alloc(ld, 0);
 
 			/* Insert DSO name to the .dynstr string table. */
 			if (li->li_soname != NULL)

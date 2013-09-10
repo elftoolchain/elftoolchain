@@ -1157,7 +1157,7 @@ _calc_output_section_offset(struct ld *ld, struct ld_output_section *os)
 		case OET_STRTAB:
 			assert(ls->ls_loc_counter == 0);
 			st = oe->oe_entry;
-			ls->ls_loc_counter = st->st_size;
+			ls->ls_loc_counter = ld_strtab_getsize(st);
 			break;
 		default:
 			break;

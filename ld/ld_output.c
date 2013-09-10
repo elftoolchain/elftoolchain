@@ -406,8 +406,12 @@ _alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
     struct ld_strtab *strtab)
 {
 	Elf_Data *d;
+	void *buf;
+	size_t sz;
 
-	if (strtab->st_buf == NULL || strtab->st_size == 0)
+	buf = ld_strtab_getbuf(ld, strtab);
+	sz = ld_strtab_getsize(strtab);
+	if (buf == NULL || sz == 0)
 		return;
 
 	if ((d = elf_newdata(scn)) == NULL)
@@ -416,9 +420,9 @@ _alloc_section_data_for_strtab(struct ld *ld, Elf_Scn *scn,
 	d->d_align = 1;
 	d->d_off = 0;
 	d->d_type = ELF_T_BYTE;
-	d->d_size = strtab->st_size;
+	d->d_size = sz;
 	d->d_version = EV_CURRENT;
-	d->d_buf = strtab->st_buf;
+	d->d_buf = buf;
 }
 
 static void
@@ -964,7 +968,7 @@ _add_to_shstrtab(struct ld *ld, const char *name)
 {
 
 	if (ld->ld_shstrtab == NULL) {
-		ld->ld_shstrtab = ld_strtab_alloc(ld);
+		ld->ld_shstrtab = ld_strtab_alloc(ld, 1);
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".symtab");
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".strtab");
 		ld_strtab_insert(ld, ld->ld_shstrtab, ".shstrtab");
@@ -983,7 +987,7 @@ _update_section_header(struct ld *ld)
 
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
-	assert(st != NULL && st->st_buf != NULL);
+	assert(st != NULL);
 
 	STAILQ_FOREACH(os, &lo->lo_oslist, os_next) {
 		if (os->os_scn == NULL)
@@ -1049,7 +1053,7 @@ _create_symbol_table(struct ld *ld)
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
 	st = ld->ld_shstrtab;
-	assert(st != NULL && st->st_buf != NULL);
+	assert(st != NULL);
 
 	/*
 	 * Create .symtab section.
@@ -1104,9 +1108,9 @@ ld_output_create_string_table_section(struct ld *ld, const char *name,
 	struct ld_output *lo;
 	Elf_Data *d;
 	GElf_Shdr sh;
+	size_t sz;
 
-	assert(st != NULL && st->st_buf != NULL);
-	assert(name != NULL);
+	assert(st != NULL && name != NULL);
 
 	ls = &ld->ld_state;
 	lo = ld->ld_output;
@@ -1128,11 +1132,13 @@ ld_output_create_string_table_section(struct ld *ld, const char *name,
 	sh.sh_addr = 0;
 	sh.sh_addralign = 1;
 	sh.sh_offset = ls->ls_offset;
-	sh.sh_size = st->st_size;
+	sh.sh_size = ld_strtab_getsize(st);
 	sh.sh_type = SHT_STRTAB;
 
 	if (!gelf_update_shdr(scn, &sh))
 		ld_fatal(ld, "gelf_update_shdr failed: %s", elf_errmsg(-1));
+
+	sz = ld_strtab_getsize(st);
 
 	if ((d = elf_newdata(scn)) == NULL)
 		ld_fatal(ld, "elf_newdata failed: %s", elf_errmsg(-1));
@@ -1140,9 +1146,9 @@ ld_output_create_string_table_section(struct ld *ld, const char *name,
 	d->d_align = 1;
 	d->d_off = 0;
 	d->d_type = ELF_T_BYTE;
-	d->d_size = st->st_size;
+	d->d_size = sz;
 	d->d_version = EV_CURRENT;
-	d->d_buf = st->st_buf;
+	d->d_buf = ld_strtab_getbuf(ld, st);
 
-	ls->ls_offset += st->st_size;
+	ls->ls_offset += sz;
 }

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Kai Wang
+ * Copyright (c) 2012,2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,41 @@ ELFTC_VCSID("$Id$");
 
 #define	_DEFAULT_STRTAB_SIZE	512
 
+struct ld_str {
+	char *s;
+	size_t off, len;
+	UT_hash_handle hh;
+};
+
+struct ld_strtab {
+	struct ld_str *st_pool;
+	char *st_buf;
+	size_t st_cap;
+	size_t st_size;
+	unsigned char st_suffix;
+};
+
+
 static void _resize_strtab(struct ld *ld, struct ld_strtab *st,
     size_t newsize);
 
 struct ld_strtab *
-ld_strtab_alloc(struct ld *ld)
+ld_strtab_alloc(struct ld *ld, unsigned char suffix)
 {
 	struct ld_strtab *st;
 
-	if ((st = malloc(sizeof(*st))) == NULL)
-		ld_fatal_std(ld, "malloc");
-	st->st_size = 0;
-	st->st_cap = _DEFAULT_STRTAB_SIZE;
-	if ((st->st_buf = calloc(1, st->st_cap)) == NULL)
+	if ((st = calloc(1, sizeof(*st))) == NULL)
 		ld_fatal_std(ld, "calloc");
-
-	ld_strtab_insert(ld, st, "");
+	
+	st->st_size = 0;
+	if (suffix) {
+		st->st_suffix = 1;
+		st->st_cap = _DEFAULT_STRTAB_SIZE;
+		if ((st->st_buf = calloc(1, st->st_cap)) == NULL)
+			ld_fatal_std(ld, "calloc");
+		ld_strtab_insert(ld, st, "");
+	} else
+		st->st_size = 1;
 
 	return (st);
 }
@@ -54,22 +73,99 @@ ld_strtab_alloc(struct ld *ld)
 void
 ld_strtab_free(struct ld_strtab *st)
 {
+	struct ld_str *str, *tmp;
 
 	if (st == NULL)
 		return;
 
 	free(st->st_buf);
 	free(st);
+
+	if (st->st_pool != NULL) {
+		HASH_ITER(hh, st->st_pool, str, tmp) {
+			HASH_DELETE(hh, st->st_pool, str);
+			free(str->s);
+			free(str);
+		}
+	}
+}
+
+char *
+ld_strtab_getbuf(struct ld *ld, struct ld_strtab *st)
+{
+	struct ld_str *str, *tmp;
+	char *p, *end;
+
+	assert(st != NULL);
+
+	if (st->st_suffix)
+		return (st->st_buf);
+
+	if (st->st_buf == NULL) {
+		if ((st->st_buf = malloc(st->st_size)) == NULL)
+			ld_fatal_std(ld, "malloc");
+		/* Flatten the string hash table. */
+		p = st->st_buf;
+		end = p + st->st_size;
+		*p++ = '\0';
+		HASH_ITER(hh, st->st_pool, str, tmp) {
+			memcpy(p, str->s, str->len);
+			p[str->len] = '\0';
+			p += str->len + 1;
+		}
+		assert(p == end);
+	}
+
+	return (st->st_buf);
+}
+
+size_t
+ld_strtab_getsize(struct ld_strtab *st)
+{
+
+	return (st->st_size);
 }
 
 static void
 _resize_strtab(struct ld *ld, struct ld_strtab *st, size_t newsize)
 {
 
-	assert(st != NULL);
+	assert(st != NULL && st->st_suffix);
 	if ((st->st_buf = realloc(st->st_buf, newsize)) == NULL)
 		ld_fatal_std(ld, "realloc");
 	st->st_cap = newsize;
+}
+
+size_t
+ld_strtab_insert_no_suffix(struct ld *ld, struct ld_strtab *st, char *s)
+{
+	struct ld_str *str;
+
+	assert(st != NULL && st->st_suffix == 0);
+
+	if (s == NULL)
+		return (0);
+
+	if (*s == '\0')
+		return (0);
+
+	HASH_FIND_STR(st->st_pool, s, str);
+	if (str != NULL)
+		return (str->off);
+
+	if ((str = calloc(1, sizeof(*str))) == NULL)
+		ld_fatal_std(ld, "calloc");
+
+	if ((str->s = strdup(s)) == NULL)
+		ld_fatal_std(ld, "strdup");
+
+	str->len = strlen(s);
+	HASH_ADD_KEYPTR(hh, st->st_pool, str->s, str->len, str);
+
+	str->off = st->st_size;
+	st->st_size += str->len + 1;
+
+	return (str->off);
 }
 
 void
@@ -80,7 +176,7 @@ ld_strtab_insert(struct ld *ld, struct ld_strtab *st, const char *s)
 	size_t len, slen;
 	int append;
 
-	assert(st != NULL && st->st_buf != NULL);
+	assert(st != NULL && st->st_buf != NULL && st->st_suffix);
 
 	if (s == NULL)
 		return;
@@ -115,41 +211,13 @@ ld_strtab_insert(struct ld *ld, struct ld_strtab *st, const char *s)
 	st->st_size += slen + 1;
 }
 
-int
-ld_strtab_insert_no_suffix(struct ld *ld, struct ld_strtab *st, const char *s)
-{
-	char *b;
-	size_t slen;
-	int p;
-
-	if (s == NULL)
-		return (0);
-
-	slen = strlen(s);
-	for (b = st->st_buf; b < st->st_buf + st->st_size; b += strlen(b) + 1) {
-		if (strlen(b) != slen)
-			continue;
-		if (strcmp(b, s) == 0)
-			return (b - st->st_buf);
-	}
-
-	while (st->st_size + slen + 1 >= st->st_cap)
-		_resize_strtab(ld, st, st->st_cap * 2);
-
-	b = st->st_buf;
-	p = st->st_size;
-	strncpy(&b[p], s, slen);
-	b[p + slen] = '\0';
-	st->st_size += slen + 1;
-
-	return (p);
-}
-
-int
+size_t
 ld_strtab_lookup(struct ld_strtab *st, const char *s)
 {
 	const char *b, *c, *r;
 	size_t len, slen;
+
+	assert(st != NULL && st->st_buf != NULL && st->st_suffix);
 
 	if (s == NULL)
 		return (0);
