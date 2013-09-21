@@ -107,7 +107,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 	memset(&atref, 0, sizeof(atref));
 	atref.at_die = die;
 	atref.at_attrib = ad->ad_attrib;
-	atref.at_form = ad->ad_form;
+	atref.at_form = indirect ? form : ad->ad_form;
 	atref.at_indirect = indirect;
 	atref.at_ld = NULL;
 
