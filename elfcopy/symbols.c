@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2011 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,7 +178,8 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 	if (ecp->strip == STRIP_UNNEEDED)
 		return (1);
 
-	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info))
+	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info) &&
+	    !is_debug_symbol(s->st_info))
 		return (1);
 
 	if (ecp->strip == STRIP_DEBUG && is_debug_symbol(s->st_info))
