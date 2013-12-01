@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2011 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1099,7 +1099,7 @@ strip_main(struct elfcopy *ecp, int argc, char **argv)
 		}
 	}
 
-	if (ecp->strip == 0)
+	if (ecp->strip == 0 && ((ecp->flags & DISCARD_LOCAL) == 0))
 		ecp->strip = STRIP_ALL;
 	if (optind == argc)
 		strip_usage();
