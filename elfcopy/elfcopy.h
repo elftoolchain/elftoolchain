@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2010,2012 Kai Wang
+ * Copyright (c) 2007-2013 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -214,6 +214,7 @@ struct elfcopy {
 #define	SEC_PRINT	0x00400000U
 #define	SEC_REMOVE	0x00800000U
 #define	SEC_COPY	0x01000000U
+#define	DISCARD_LLABEL	0x02000000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */

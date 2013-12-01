@@ -57,6 +57,7 @@ struct strbuf {
 static int	is_debug_symbol(unsigned char st_info);
 static int	is_global_symbol(unsigned char st_info);
 static int	is_local_symbol(unsigned char st_info);
+static int	is_local_label(const char *name);
 static int	is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s);
 static int	is_remove_symbol(struct elfcopy *ecp, size_t sc, int i,
 		    GElf_Sym *s, const char *name);
@@ -107,6 +108,17 @@ is_local_symbol(unsigned char st_info)
 {
 
 	if (GELF_ST_BIND(st_info) == STB_LOCAL)
+		return (1);
+
+	return (0);
+}
+
+static int
+is_local_label(const char *name)
+{
+
+	/* Compiler generated local symbols that start with .L */
+	if (name[0] == '.' && name[1] == 'L')
 		return (1);
 
 	return (0);
@@ -180,6 +192,10 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 
 	if ((ecp->flags & DISCARD_LOCAL) && is_local_symbol(s->st_info) &&
 	    !is_debug_symbol(s->st_info))
+		return (1);
+
+	if ((ecp->flags & DISCARD_LLABEL) && is_local_symbol(s->st_info) &&
+	    !is_debug_symbol(s->st_info) && is_local_label(name))
 		return (1);
 
 	if (ecp->strip == STRIP_DEBUG && is_debug_symbol(s->st_info))
