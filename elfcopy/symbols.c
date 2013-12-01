@@ -356,9 +356,12 @@ generate_symbols(struct elfcopy *ecp)
 	if (elferr != 0)
 		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
 		    elf_errmsg(elferr));
-	/* FIXME don't panic if can't find .strtab */
-	if (symndx == 0)
-		errx(EXIT_FAILURE, "can't find .strtab section");
+
+	/* Symbol table should exist if this function is called. */
+	if (symndx == 0) {
+		warnx("can't find .strtab section");
+		return (0);
+	}
 
 	/* Locate .symtab of input object. */
 	is = NULL;
