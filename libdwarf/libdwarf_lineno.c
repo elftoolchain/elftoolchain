@@ -369,10 +369,13 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 		goto fail_cleanup;
 	}
 
-	if ((li->li_incdirs = malloc(length * sizeof(char *))) == NULL) {
-		ret = DW_DLE_MEMORY;
-		DWARF_SET_ERROR(dbg, error, ret);
-		goto fail_cleanup;
+	if (length != 0) {
+		if ((li->li_incdirs = malloc(length * sizeof(char *))) ==
+		    NULL) {
+			ret = DW_DLE_MEMORY;
+			DWARF_SET_ERROR(dbg, error, ret);
+			goto fail_cleanup;
+		}
 	}
 
 	/* Fill in include dir array. */

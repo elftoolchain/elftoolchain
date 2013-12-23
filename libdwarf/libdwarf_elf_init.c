@@ -238,6 +238,9 @@ _dwarf_elf_init(Dwarf_Debug dbg, Elf *elf, Dwarf_Error *error)
 
 	e->eo_seccnt = n;
 
+	if (n == 0)
+		return (DW_DLE_NONE);
+
 	if ((e->eo_data = calloc(n, sizeof(Dwarf_Elf_Data))) == NULL ||
 	    (e->eo_shdr = calloc(n, sizeof(GElf_Shdr))) == NULL) {
 		DWARF_SET_ERROR(NULL, error, DW_DLE_MEMORY);

@@ -127,19 +127,23 @@ _dwarf_ranges_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t off,
 	}
 
 	rl->rl_rglen = cnt;
-	if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
-	    NULL) {
-		free(rl);
-		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
-		return (DW_DLE_MEMORY);
-	}
+	if (cnt != 0) {
+		if ((rl->rl_rgarray = calloc(cnt, sizeof(Dwarf_Ranges))) ==
+		    NULL) {
+			free(rl);
+			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
+			return (DW_DLE_MEMORY);
+		}
 
-	ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray, NULL);
-	if (ret != DW_DLE_NONE) {
-		free(rl->rl_rgarray);
-		free(rl);
-		return (ret);
-	}
+		ret = _dwarf_ranges_parse(dbg, cu, ds, off, rl->rl_rgarray,
+		    NULL);
+		if (ret != DW_DLE_NONE) {
+			free(rl->rl_rgarray);
+			free(rl);
+			return (ret);
+		}
+	} else
+		rl->rl_rgarray = NULL;
 
 	STAILQ_INSERT_TAIL(&dbg->dbg_rllist, rl, rl_next);
 	*ret_rl = rl;

@@ -145,18 +145,23 @@ _dwarf_loclist_add(Dwarf_Debug dbg, Dwarf_CU cu, uint64_t lloff,
 	 * of indirect) to make the loclist API be compatible with SGI libdwarf.
 	 */
 	ll->ll_ldlen = ldlen;
-	if ((ll->ll_ldlist = calloc(ldlen, sizeof(Dwarf_Locdesc *))) == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
-		ret = DW_DLE_MEMORY;
-		goto fail_cleanup;
-	}
-	for (i = 0; (uint64_t) i < ldlen; i++) {
-		if ((ll->ll_ldlist[i] = calloc(1, sizeof(Dwarf_Locdesc))) == NULL) {
+	if (ldlen != 0) {
+		if ((ll->ll_ldlist = calloc(ldlen, sizeof(Dwarf_Locdesc *))) ==
+		    NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;
 		}
-	}
+		for (i = 0; (uint64_t) i < ldlen; i++) {
+			if ((ll->ll_ldlist[i] =
+			    calloc(1, sizeof(Dwarf_Locdesc))) == NULL) {
+				DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
+				ret = DW_DLE_MEMORY;
+				goto fail_cleanup;
+			}
+		}
+	} else
+		ll->ll_ldlist = NULL;
 
 	lloff = ll->ll_offset;
 
