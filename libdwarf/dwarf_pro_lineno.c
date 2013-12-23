@@ -45,7 +45,7 @@ dwarf_add_line_entry(Dwarf_P_Debug dbg, Dwarf_Unsigned file,
 
 	ln = STAILQ_LAST(&li->li_lnlist, _Dwarf_Line, ln_next);
 
-	if (ln->ln_addr > off) {
+	if (ln == NULL || ln->ln_addr > off) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
 		return (DW_DLV_NOCOUNT);
 	}
