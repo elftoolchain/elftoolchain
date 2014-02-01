@@ -79,11 +79,13 @@ elftc_copyfile(int ifd, int ofd)
 	 * If mmap() is not available, or if the mmap() operation
 	 * failed, allocate a buffer, and read in input data.
 	 */
-	if (buf == NULL) {
+	if (buf_mmapped == false) {
 		if ((buf = malloc(sb.st_size)) == NULL)
 			return (-1);
-		if (read(ifd, buf, sb.st_size) != sb.st_size)
+		if (read(ifd, buf, sb.st_size) != sb.st_size) {
+			free(buf);
 			return (-1);
+		}
 	}
 
 	/*
