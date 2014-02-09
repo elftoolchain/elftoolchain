@@ -137,8 +137,8 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	/* Build arange array. */
 	if (dbg->dbg_arange_cnt > 0) {
-		if  ((dbg->dbg_arange_array = malloc(dbg->dbg_arange_cnt *
-		    sizeof(struct _Dwarf_Arange))) == NULL) {
+		if ((dbg->dbg_arange_array = malloc(dbg->dbg_arange_cnt *
+		    sizeof(Dwarf_Arange))) == NULL) {
 			DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 			ret = DW_DLE_MEMORY;
 			goto fail_cleanup;

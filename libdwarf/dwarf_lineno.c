@@ -75,8 +75,8 @@ dwarf_srclines(Dwarf_Die die, Dwarf_Line **linebuf, Dwarf_Signed *linecount,
 		return (DW_DLV_OK);
 	}
 
-	if ((li->li_lnarray = malloc(*linecount *
-	    sizeof(struct _Dwarf_Line))) == NULL) {
+	if ((li->li_lnarray = malloc(*linecount * sizeof(Dwarf_Line))) ==
+	    NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLV_ERROR);
 	}
