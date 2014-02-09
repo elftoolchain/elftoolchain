@@ -38,7 +38,7 @@ ELFTC_VCSID("$Id$");
  * Retrieve a human readable translation for an error message.
  */
 
-const char *_libelf_errors[] = {
+static const char *_libelf_errors[] = {
 #define	DEFINE_ERROR(N,S)	[ELF_E_##N] = S
 	DEFINE_ERROR(NONE,	"No Error"),
 	DEFINE_ERROR(ARCHIVE,	"Malformed ar(1) archive"),
