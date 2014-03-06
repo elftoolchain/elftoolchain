@@ -76,7 +76,7 @@ ${_L:R}.o:	${_Y:R}.h
 .include "${TOP}/mk/elftoolchain.m4.mk"
 
 # Support a 'clobber' target.
-clobber:	clean	.PHONY
+clobber:	clean os-specific-clobber .PHONY
 
 .if defined(DEBUG)
 CFLAGS:=	${CFLAGS:N-O*} -g

@@ -19,4 +19,8 @@ OS_HOST != uname -s
 .include "${.CURDIR}/os.${OS_HOST}.mk"
 .endif
 
+# Supply an OS-specific "clobber" rule, if one was not specified.
+.if !target(os-specific-clobber)
+os-specific-clobber: .PHONY
+.endif
 .endif

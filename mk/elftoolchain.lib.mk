@@ -11,7 +11,7 @@
 .include <bsd.lib.mk>
 
 # Support a 'clobber' target.
-clobber:	clean	.PHONY
+clobber:	clean os-specific-clobber .PHONY
 
 # Adjust CFLAGS
 CFLAGS+=	-I.			# OBJDIR
