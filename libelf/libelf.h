@@ -129,7 +129,7 @@ typedef struct {
 	/*
 	 * Members that are not part of the public API.
 	 */
-	int		ar_flags;
+	unsigned int	ar_flags;
 } Elf_Arhdr;
 
 /*
