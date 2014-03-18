@@ -44,7 +44,7 @@ _libelf_sum(unsigned long c, const unsigned char *s, size_t size)
 	return (c);
 }
 
-unsigned long
+long
 _libelf_checksum(Elf *e, int elfclass)
 {
 	size_t shn;

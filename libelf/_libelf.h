@@ -209,7 +209,7 @@ Elf	*_libelf_ar_open_member(int _fd, Elf_Cmd _c, Elf *_ar);
 int	_libelf_ar_get_member(char *_s, size_t _sz, int _base, size_t *_ret);
 Elf_Arsym *_libelf_ar_process_bsd_symtab(Elf *_ar, size_t *_dst);
 Elf_Arsym *_libelf_ar_process_svr4_symtab(Elf *_ar, size_t *_dst);
-unsigned long _libelf_checksum(Elf *_e, int _elfclass);
+long	 _libelf_checksum(Elf *_e, int _elfclass);
 void	*_libelf_ehdr(Elf *_e, int _elfclass, int _allocate);
 int	_libelf_falign(Elf_Type _t, int _elfclass);
 size_t	_libelf_fsize(Elf_Type _t, int _elfclass, unsigned int _version,
