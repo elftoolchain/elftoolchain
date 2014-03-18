@@ -71,14 +71,14 @@ extern struct _libelf_globals _libelf;
  * Flags for library internal use.  These use the upper 16 bits of the
  * `e_flags' field.
  */
-#define	LIBELF_F_API_MASK	0x00FFFF  /* Flags defined by the API. */
-#define	LIBELF_F_AR_HEADER	0x010000  /* translated header available */
-#define	LIBELF_F_AR_VARIANT_SVR4 0x020000 /* BSD style ar(1) archive */
-#define	LIBELF_F_DATA_MALLOCED	0x040000 /* whether data was malloc'ed */
-#define	LIBELF_F_RAWFILE_MALLOC	0x080000 /* whether e_rawfile was malloc'ed */
-#define	LIBELF_F_RAWFILE_MMAP	0x100000 /* whether e_rawfile was mmap'ed */
-#define	LIBELF_F_SHDRS_LOADED	0x200000 /* whether all shdrs were read in */
-#define	LIBELF_F_SPECIAL_FILE	0x400000 /* non-regular file */
+#define	LIBELF_F_API_MASK	0x00FFFFU  /* Flags defined by the API. */
+#define	LIBELF_F_AR_HEADER	0x010000U  /* translated header available */
+#define	LIBELF_F_AR_VARIANT_SVR4 0x020000U /* BSD style ar(1) archive */
+#define	LIBELF_F_DATA_MALLOCED	0x040000U /* whether data was malloc'ed */
+#define	LIBELF_F_RAWFILE_MALLOC	0x080000U /* whether e_rawfile was malloc'ed */
+#define	LIBELF_F_RAWFILE_MMAP	0x100000U /* whether e_rawfile was mmap'ed */
+#define	LIBELF_F_SHDRS_LOADED	0x200000U /* whether all shdrs were read in */
+#define	LIBELF_F_SPECIAL_FILE	0x400000U /* non-regular file */
 
 struct _Elf {
 	int		e_activations;	/* activation count */
