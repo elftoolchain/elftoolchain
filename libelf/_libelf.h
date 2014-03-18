@@ -162,21 +162,36 @@ enum {
 	ELF_TOMEMORY
 };
 
-#define	LIBELF_COPY_U32(DST,SRC,NAME)	do {		\
-		if ((SRC)->NAME > UINT_MAX) {		\
-			LIBELF_SET_ERROR(RANGE, 0);	\
-			return (0);			\
-		}					\
-		(DST)->NAME = (SRC)->NAME;		\
+
+/*
+ * The LIBELF_COPY macros are used to copy fields from a GElf_*
+ * structure to their 32-bit counterparts, while checking for out of
+ * range values.
+ *
+ * - LIBELF_COPY_32  :: copy the lower 32 bits of a 64 bit word.
+ * - LIBELF_COPY_U32 :: copy an unsigned 32 bit field.
+ * - LIBELF_COPY_S32 :: copy a signed 32 bit field.
+ */
+
+#define	LIBELF_COPY_32(DST, SRC, NAME) do { 			\
+		(DST)->NAME = (SRC)->NAME & 0xFFFFFFFFU;	\
 	} while (0)
 
-#define	LIBELF_COPY_S32(DST,SRC,NAME)	do {		\
-		if ((SRC)->NAME > INT_MAX ||		\
-		    (SRC)->NAME < INT_MIN) {		\
-			LIBELF_SET_ERROR(RANGE, 0);	\
-			return (0);			\
-		}					\
-		(DST)->NAME = (SRC)->NAME;		\
+#define	LIBELF_COPY_U32(DST, SRC, NAME)	do {			\
+		if ((SRC)->NAME > UINT32_MAX) {			\
+			LIBELF_SET_ERROR(RANGE, 0);		\
+			return (0);				\
+		}						\
+		LIBELF_COPY_32(DST, SRC, NAME);			\
+	} while (0)
+
+#define	LIBELF_COPY_S32(DST, SRC, NAME)	do {			\
+		if ((SRC)->NAME > INT32_MAX ||			\
+		    (SRC)->NAME < INT32_MIN) {			\
+			LIBELF_SET_ERROR(RANGE, 0);		\
+			return (0);				\
+		}						\
+		LIBELF_COPY_32(DST, SRC, NAME);			\
 	} while (0)
 
 
