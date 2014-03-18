@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009,2010 Kai Wang
+ * Copyright (c) 2009-2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -4524,6 +4524,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Bool v_bool;
 	Dwarf_Error de;
 	const char *tag_str, *attr_str, *ate_str;
+	char unk_tag[32], unk_attr[32];
 	char *v_str;
 	uint8_t *b;
 	int i, j, abc, ret;
@@ -4547,8 +4548,8 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		goto cont_search;
 	}
 	if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
-		warnx("dwarf_get_TAG_name failed");
-		goto cont_search;
+		snprintf(unk_tag, sizeof(unk_tag), "[Unknown Tag: %#x]", tag);
+		tag_str = unk_tag;
 	}
 
 	printf("Abbrev Number: %d (%s)\n", abc, tag_str);
@@ -4570,8 +4571,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			continue;
 		}
 		if (dwarf_get_AT_name(attr, &attr_str) != DW_DLV_OK) {
-			warnx("dwarf_get_AT_name failed");
-			continue;
+			snprintf(unk_attr, sizeof(unk_attr),
+			    "[Unknown AT: %#x]", attr);
+			attr_str = unk_attr;
 		}
 		printf("     %-18s: ", attr_str);
 		switch (form) {
@@ -4680,7 +4682,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			    DW_DLV_OK)
 				break;
 			if (dwarf_get_ATE_name(ate, &ate_str) != DW_DLV_OK)
-				break;
+				ate_str = "DW_ATE_UNKNOWN";
 			printf("\t(%s)", &ate_str[strlen("DW_ATE_")]);
 			break;
 		default:
@@ -4788,6 +4790,7 @@ dump_dwarf_abbrev(struct readelf *re)
 	Dwarf_Half tag, attr;
 	Dwarf_Error de;
 	const char *tag_str, *attr_str, *form_str;
+	char unk_tag[32], unk_attr[32], unk_form[32];
 	int i, j, ret;
 
 	printf("\nContents of section .debug_abbrev:\n\n");
@@ -4810,8 +4813,9 @@ dump_dwarf_abbrev(struct readelf *re)
 				goto next_abbrev;
 			}
 			if (dwarf_get_TAG_name(tag, &tag_str) != DW_DLV_OK) {
-				warnx("dwarf_get_TAG_name failed");
-				goto next_abbrev;
+				snprintf(unk_tag, sizeof(unk_tag),
+				    "[Unknown Tag: %#x]", tag);
+				tag_str = unk_tag;
 			}
 			if (dwarf_get_abbrev_children_flag(ab, &flag, &de) !=
 			    DW_DLV_OK) {
@@ -4830,13 +4834,16 @@ dump_dwarf_abbrev(struct readelf *re)
 				}
 				if (dwarf_get_AT_name(attr, &attr_str) !=
 				    DW_DLV_OK) {
-					warnx("dwarf_get_AT_name failed");
-					continue;
+					snprintf(unk_attr, sizeof(unk_attr),
+					    "[Unknown AT: %#x]", attr);
+					attr_str = unk_attr;
 				}
 				if (dwarf_get_FORM_name(form, &form_str) !=
 				    DW_DLV_OK) {
-					warnx("dwarf_get_FORM_name failed");
-					continue;
+					snprintf(unk_form, sizeof(unk_form),
+					    "[Unknown Form: %#x]",
+					    (Dwarf_Half) form);
+					form_str = unk_form;
 				}
 				printf("    %-18s %s\n", attr_str, form_str);
 			}
@@ -5132,6 +5139,7 @@ dump_dwarf_macinfo(struct readelf *re)
 	Dwarf_Macro_Details *md;
 	Dwarf_Error de;
 	const char *mi_str;
+	char unk_mi[32];
 	int i;
 
 #define	_MAX_MACINFO_ENTRY	65535
@@ -5147,9 +5155,9 @@ dump_dwarf_macinfo(struct readelf *re)
 				break;
 			if (dwarf_get_MACINFO_name(md[i].dmd_type, &mi_str) !=
 			    DW_DLV_OK) {
-				warnx("dwarf_get_MACINFO_name failed: %s",
-				    dwarf_errmsg(de));
-				continue;
+				snprintf(unk_mi, sizeof(unk_mi),
+				    "[Unknown MACINFO: %#x]", md[i].dmd_type);
+				mi_str = unk_mi;
 			}
 			printf(" %s", mi_str);
 			switch (md[i].dmd_type) {
@@ -5183,6 +5191,7 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 	Dwarf_Small op;
 	Dwarf_Error de;
 	const char *op_str;
+	char unk_op[32];
 	int i;
 
 	if (dwarf_expand_frame_instructions(cie, insts, len, &oplist,
@@ -5198,9 +5207,9 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 		else
 			op = oplist[i].fp_extended_op;
 		if (dwarf_get_CFA_name(op, &op_str) != DW_DLV_OK) {
-			warnx("dwarf_get_CFA_name failed: %s",
-			    dwarf_errmsg(de));
-			continue;
+			snprintf(unk_op, sizeof(unk_op), "[Unknown CFA: %#x]",
+			    op);
+			op_str = unk_op;
 		}
 		printf("  %s", op_str);
 		switch (op) {
@@ -5657,6 +5666,7 @@ dump_dwarf_loclist(struct readelf *re)
 	Dwarf_Loc *lr;
 	struct loc_at *la;
 	const char *op_str;
+	char unk_op[32];
 	int i, j, ret;
 
 	printf("\nContents of section .debug_loc:\n");
@@ -5713,9 +5723,9 @@ dump_dwarf_loclist(struct readelf *re)
 				lr = &llbuf[i]->ld_s[j];
 				if (dwarf_get_OP_name(lr->lr_atom, &op_str) !=
 				    DW_DLV_OK) {
-					warnx("dwarf_get_OP_name failed: %s",
-					    dwarf_errmsg(de));
-					continue;
+					snprintf(unk_op, sizeof(unk_op),
+					    "[Unknown OP: %#x]", lr->lr_atom);
+					op_str = unk_op;
 				}
 
 				printf("%s", op_str);
