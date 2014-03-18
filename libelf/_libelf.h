@@ -168,21 +168,16 @@ enum {
  * structure to their 32-bit counterparts, while checking for out of
  * range values.
  *
- * - LIBELF_COPY_32  :: copy the lower 32 bits of a 64 bit word.
  * - LIBELF_COPY_U32 :: copy an unsigned 32 bit field.
  * - LIBELF_COPY_S32 :: copy a signed 32 bit field.
  */
-
-#define	LIBELF_COPY_32(DST, SRC, NAME) do { 			\
-		(DST)->NAME = (SRC)->NAME & 0xFFFFFFFFU;	\
-	} while (0)
 
 #define	LIBELF_COPY_U32(DST, SRC, NAME)	do {			\
 		if ((SRC)->NAME > UINT32_MAX) {			\
 			LIBELF_SET_ERROR(RANGE, 0);		\
 			return (0);				\
 		}						\
-		LIBELF_COPY_32(DST, SRC, NAME);			\
+		(DST)->NAME = (SRC)->NAME & 0xFFFFFFFFU;	\
 	} while (0)
 
 #define	LIBELF_COPY_S32(DST, SRC, NAME)	do {			\
@@ -191,7 +186,7 @@ enum {
 			LIBELF_SET_ERROR(RANGE, 0);		\
 			return (0);				\
 		}						\
-		LIBELF_COPY_32(DST, SRC, NAME);			\
+		(DST)->NAME = (int32_t) (SRC)->NAME;		\
 	} while (0)
 
 
