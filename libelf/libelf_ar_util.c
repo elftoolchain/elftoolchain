@@ -41,11 +41,12 @@ ELFTC_VCSID("$Id$");
  * number in the specified base.
  */
 int
-_libelf_ar_get_number(const char *s, size_t sz, int base, size_t *ret)
+_libelf_ar_get_number(const unsigned char *s, size_t sz, unsigned int base,
+    size_t *ret)
 {
-	int c, v;
 	size_t r;
-	const char *e;
+	unsigned int c, v;
+	const unsigned char *e;
 
 	assert(base <= 10);
 
@@ -79,9 +80,9 @@ _libelf_ar_get_number(const char *s, size_t sz, int base, size_t *ret)
 char *
 _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 {
-	char c, *s;
+	unsigned char c, *s;
 	size_t len, offset;
-	const char *buf, *p, *q, *r;
+	const unsigned char *buf, *p, *q, *r;
 	const size_t bufsize = sizeof(arh->ar_name);
 
 	assert(arh != NULL);
@@ -120,7 +121,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 
 		for (; p < r && *p != '/'; p++)
 			;
-		len = p - q + 1; /* space for the trailing NUL */
+		len = (size_t) (p - q + 1); /* space for the trailing NUL */
 
 		if ((s = malloc(len)) == NULL) {
 			LIBELF_SET_ERROR(RESOURCE, 0);
@@ -183,7 +184,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 				q--;
 		}
 
-		len = q - buf + 2; /* Add space for a trailing NUL. */
+		len = (size_t) (q - buf + 2); /* Space for a trailing NUL. */
 	} else {
 		/* The buffer only had blanks. */
 		buf = "";

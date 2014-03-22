@@ -46,11 +46,11 @@
 	 LIBELF_AR_BSD_EXTENDED_NAME_PREFIX_SIZE) == 0)
 
 
-char	*_libelf_ar_get_string(const char *_buf, size_t _sz, int _rawname,
-    int _svr4names);
+char	*_libelf_ar_get_string(const char *_buf, size_t _sz,
+    unsigned int _rawname, int _svr4names);
 char	*_libelf_ar_get_raw_name(const struct ar_hdr *_arh);
 char	*_libelf_ar_get_translated_name(const struct ar_hdr *_arh, Elf *_ar);
-int	_libelf_ar_get_number(const char *_buf, size_t _sz, int _base,
-    size_t *_ret);
+int	_libelf_ar_get_number(const unsigned char *_buf, size_t _sz,
+    unsigned int _base, size_t *_ret);
 
 #endif	/* __LIBELF_AR_H_ */
