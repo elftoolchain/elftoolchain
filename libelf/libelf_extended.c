@@ -69,9 +69,9 @@ _libelf_setshnum(Elf *e, void *eh, int ec, size_t shnum)
 	}
 
 	if (ec == ELFCLASS32)
-		((Elf32_Ehdr *) eh)->e_shnum = shnum;
+		((Elf32_Ehdr *) eh)->e_shnum = shnum & 0xFFFFU;
 	else
-		((Elf64_Ehdr *) eh)->e_shnum = shnum;
+		((Elf64_Ehdr *) eh)->e_shnum = shnum & 0xFFFFU;
 
 
 	return (1);
@@ -99,9 +99,9 @@ _libelf_setshstrndx(Elf *e, void *eh, int ec, size_t shstrndx)
 	}
 
 	if (ec == ELFCLASS32)
-		((Elf32_Ehdr *) eh)->e_shstrndx = shstrndx;
+		((Elf32_Ehdr *) eh)->e_shstrndx = shstrndx & 0xFFFFU;
 	else
-		((Elf64_Ehdr *) eh)->e_shstrndx = shstrndx;
+		((Elf64_Ehdr *) eh)->e_shstrndx = shstrndx & 0xFFFFU;
 
 	return (1);
 }
@@ -128,9 +128,9 @@ _libelf_setphnum(Elf *e, void *eh, int ec, size_t phnum)
 	}
 
 	if (ec == ELFCLASS32)
-		((Elf32_Ehdr *) eh)->e_phnum = phnum;
+		((Elf32_Ehdr *) eh)->e_phnum = phnum & 0xFFFFU;
 	else
-		((Elf64_Ehdr *) eh)->e_phnum = phnum;
+		((Elf64_Ehdr *) eh)->e_phnum = phnum & 0xFFFFU;
 
 	return (1);
 }
