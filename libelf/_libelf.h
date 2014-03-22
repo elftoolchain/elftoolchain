@@ -206,7 +206,7 @@ Elf_Arsym *_libelf_ar_process_bsd_symtab(Elf *_ar, size_t *_dst);
 Elf_Arsym *_libelf_ar_process_svr4_symtab(Elf *_ar, size_t *_dst);
 long	 _libelf_checksum(Elf *_e, int _elfclass);
 void	*_libelf_ehdr(Elf *_e, int _elfclass, int _allocate);
-int	_libelf_falign(Elf_Type _t, int _elfclass);
+unsigned int _libelf_falign(Elf_Type _t, int _elfclass);
 size_t	_libelf_fsize(Elf_Type _t, int _elfclass, unsigned int _version,
     size_t count);
 int	(*_libelf_get_translator(Elf_Type _t, int _direction, int _elfclass))
@@ -215,7 +215,7 @@ void	*_libelf_getphdr(Elf *_e, int _elfclass);
 void	*_libelf_getshdr(Elf_Scn *_scn, int _elfclass);
 void	_libelf_init_elf(Elf *_e, Elf_Kind _kind);
 int	_libelf_load_section_headers(Elf *e, void *ehdr);
-int	_libelf_malign(Elf_Type _t, int _elfclass);
+unsigned int _libelf_malign(Elf_Type _t, int _elfclass);
 Elf	*_libelf_memory(unsigned char *_image, size_t _sz, int _reporterror);
 size_t	_libelf_msize(Elf_Type _t, int _elfclass, unsigned int _version);
 void	*_libelf_newphdr(Elf *_e, int _elfclass, size_t _count);
