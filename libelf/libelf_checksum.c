@@ -90,11 +90,11 @@ _libelf_checksum(Elf *e, int elfclass)
 		d = NULL;
 		while ((d = elf_rawdata(scn, d)) != NULL)
 			checksum = _libelf_sum(checksum,
-			    (unsigned char *) d->d_buf, d->d_size);
+			    (unsigned char *) d->d_buf, (size_t) d->d_size);
 	}
 
 	/*
 	 * Return a 16-bit checksum compatible with Solaris.
 	 */
-	return (((checksum >> 16) & 0xFFFFUL) + (checksum & 0xFFFFUL));
+	return (long) (((checksum >> 16) & 0xFFFFUL) + (checksum & 0xFFFFUL));
 }

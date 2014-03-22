@@ -74,7 +74,7 @@ _libelf_load_extended(Elf *e, int ec, uint64_t shoff, uint16_t phnum,
 		return (0);
 	}
 
-	e->e_u.e_elf.e_nscn = GET_SHDR_MEMBER(sh_size);
+	e->e_u.e_elf.e_nscn = (size_t) GET_SHDR_MEMBER(sh_size);
 	e->e_u.e_elf.e_nphdr = (phnum != PN_XNUM) ? phnum :
 	    GET_SHDR_MEMBER(sh_info);
 	e->e_u.e_elf.e_strndx = (strndx != SHN_XINDEX) ? strndx :
@@ -92,7 +92,7 @@ _libelf_load_extended(Elf *e, int ec, uint64_t shoff, uint16_t phnum,
 		eh->e_ident[EI_MAG3] = ELFMAG3;				\
 		eh->e_ident[EI_CLASS] = ELFCLASS##SZ;			\
 		eh->e_ident[EI_DATA]  = ELFDATANONE;			\
-		eh->e_ident[EI_VERSION] = LIBELF_PRIVATE(version);	\
+		eh->e_ident[EI_VERSION] = LIBELF_PRIVATE(version) & 0xFFU; \
 		eh->e_machine = EM_NONE;				\
 		eh->e_type    = ELF_K_NONE;				\
 		eh->e_version = LIBELF_PRIVATE(version);		\
