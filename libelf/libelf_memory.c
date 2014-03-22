@@ -39,7 +39,7 @@ ELFTC_VCSID("$Id$");
  */
 
 Elf *
-_libelf_memory(char *image, size_t sz, int reporterror)
+_libelf_memory(unsigned char *image, size_t sz, int reporterror)
 {
 	Elf *e;
 	int e_class;
