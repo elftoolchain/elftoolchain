@@ -73,11 +73,11 @@ _libelf_read_special_file(int fd, size_t *fsz)
 		}
 
 		do {
-			readsz = bufsz - datasz;
+			assert(bufsz - datasz > 0);
 			t = buf + datasz;
-			if ((readsz = read(fd, t, readsz)) <= 0)
+			if ((readsz = read(fd, t, bufsz - datasz)) <= 0)
 				break;
-			datasz += readsz;
+			datasz += (size_t) readsz;
 		} while (datasz < bufsz);
 
 	} while (readsz > 0);
