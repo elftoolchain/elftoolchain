@@ -51,7 +51,8 @@ _libelf_load_section_headers(Elf *e, void *ehdr)
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
 	Elf_Scn *scn;
-	int (*xlator)(char *_d, size_t _dsz, char *_s, size_t _c, int _swap);
+	int (*xlator)(unsigned char *_d, size_t _dsz, unsigned char *_s,
+	    size_t _c, int _swap);
 
 	assert(e != NULL);
 	assert(ehdr != NULL);

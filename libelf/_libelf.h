@@ -210,7 +210,8 @@ unsigned int _libelf_falign(Elf_Type _t, int _elfclass);
 size_t	_libelf_fsize(Elf_Type _t, int _elfclass, unsigned int _version,
     size_t count);
 int	(*_libelf_get_translator(Elf_Type _t, int _direction, int _elfclass))
-	    (char *_dst, size_t dsz, char *_src, size_t _cnt, int _byteswap);
+	    (unsigned char *_dst, size_t dsz, unsigned char *_src,
+	     size_t _cnt, int _byteswap);
 void	*_libelf_getphdr(Elf *_e, int _elfclass);
 void	*_libelf_getshdr(Elf_Scn *_scn, int _elfclass);
 void	_libelf_init_elf(Elf *_e, Elf_Kind _kind);

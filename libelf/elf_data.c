@@ -42,7 +42,8 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 	size_t count, fsz, msz;
 	struct _Libelf_Data *d;
 	uint64_t sh_align, sh_offset, sh_size;
-	int (*xlate)(char *_d, size_t _dsz, char *_s, size_t _c, int _swap);
+	int (*xlate)(unsigned char *_d, size_t _dsz, unsigned char *_s,
+	    size_t _c, int _swap);
 
 	d = (struct _Libelf_Data *) ed;
 
