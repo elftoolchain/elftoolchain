@@ -48,7 +48,7 @@ struct _libelf_globals {
 	int		libelf_error;
 	int		libelf_fillchar;
 	unsigned int	libelf_version;
-	char		libelf_msg[LIBELF_MSG_SIZE];
+	unsigned char	libelf_msg[LIBELF_MSG_SIZE];
 };
 
 extern struct _libelf_globals _libelf;
@@ -89,7 +89,7 @@ struct _Elf {
 	unsigned int	e_flags;	/* ELF_F_* & LIBELF_F_* flags */
 	Elf_Kind	e_kind;		/* ELF_K_* */
 	Elf		*e_parent; 	/* non-NULL for archive members */
-	char		*e_rawfile;	/* uninterpreted bytes */
+	unsigned char	*e_rawfile;	/* uninterpreted bytes */
 	size_t		e_rawsize;	/* size of uninterpreted bytes */
 	unsigned int	e_version;	/* file version */
 
@@ -99,16 +99,16 @@ struct _Elf {
 	 */
 	union {
 		Elf_Arhdr	*e_arhdr;	/* translated header */
-		char		*e_rawhdr;	/* untranslated header */
+		unsigned char	*e_rawhdr;	/* untranslated header */
 	} e_hdr;
 
 	union {
 		struct {		/* ar(1) archives */
 			off_t	e_next;	/* set by elf_rand()/elf_next() */
 			int	e_nchildren;
-			char	*e_rawstrtab;	/* file name strings */
+			unsigned char *e_rawstrtab; /* file name strings */
 			size_t	e_rawstrtabsz;
-			char	*e_rawsymtab;	/* symbol table */
+			unsigned char *e_rawsymtab;	/* symbol table */
 			size_t	e_rawsymtabsz;
 			Elf_Arsym *e_symtab;
 			size_t	e_symtabsz;

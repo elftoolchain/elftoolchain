@@ -87,8 +87,8 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 
 	assert(arh != NULL);
 	assert(ar->e_kind == ELF_K_AR);
-	assert((const char *) arh >= ar->e_rawfile &&
-	    (const char *) arh < ar->e_rawfile + ar->e_rawsize);
+	assert((const unsigned char *) arh >= ar->e_rawfile &&
+	    (const unsigned char *) arh < ar->e_rawfile + ar->e_rawsize);
 
 	buf = arh->ar_name;
 
@@ -230,8 +230,8 @@ _libelf_ar_open(Elf *e, int reporterror)
 {
 	size_t sz;
 	int scanahead;
-	char *s, *end;
 	struct ar_hdr arh;
+	unsigned char *s, *end;
 
 	_libelf_init_elf(e, ELF_K_AR);
 
