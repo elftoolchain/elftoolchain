@@ -41,15 +41,16 @@ ELFTC_VCSID("$Id$");
  * number in the specified base.
  */
 int
-_libelf_ar_get_number(const unsigned char *s, size_t sz, unsigned int base,
+_libelf_ar_get_number(const char *src, size_t sz, unsigned int base,
     size_t *ret)
 {
 	size_t r;
 	unsigned int c, v;
-	const unsigned char *e;
+	const unsigned char *e, *s;
 
 	assert(base <= 10);
 
+	s = (const unsigned char *) src;
 	e = s + sz;
 
 	/* skip leading blanks */
@@ -80,7 +81,8 @@ _libelf_ar_get_number(const unsigned char *s, size_t sz, unsigned int base,
 char *
 _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 {
-	unsigned char c, *s;
+	char *s;
+	unsigned char c;
 	size_t len, offset;
 	const unsigned char *buf, *p, *q, *r;
 	const size_t bufsize = sizeof(arh->ar_name);
@@ -90,7 +92,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 	assert((const unsigned char *) arh >= ar->e_rawfile &&
 	    (const unsigned char *) arh < ar->e_rawfile + ar->e_rawsize);
 
-	buf = arh->ar_name;
+	buf = (const unsigned char *) arh->ar_name;
 
 	/*
 	 * Check for extended naming.
@@ -105,8 +107,8 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		 * the archive string table where the actual name
 		 * resides.
 		 */
-		if (_libelf_ar_get_number(buf + 1, bufsize - 1, 10,
-			&offset) == 0) {
+		if (_libelf_ar_get_number((const char *) (buf + 1),
+			bufsize - 1, 10, &offset) == 0) {
 			LIBELF_SET_ERROR(ARCHIVE, 0);
 			return (NULL);
 		}
@@ -128,14 +130,14 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 			return (NULL);
 		}
 
-		(void) strncpy(s, q, len - 1);
+		(void) strncpy(s, (const char *) q, len - 1);
 		s[len - 1] = '\0';
 
 		return (s);
 	} else if (IS_EXTENDED_BSD_NAME(buf)) {
 		r = buf + LIBELF_AR_BSD_EXTENDED_NAME_PREFIX_SIZE;
 
-		if (_libelf_ar_get_number(r, bufsize -
+		if (_libelf_ar_get_number((const char *) r, bufsize -
 			LIBELF_AR_BSD_EXTENDED_NAME_PREFIX_SIZE, 10,
 			&len) == 0) {
 			LIBELF_SET_ERROR(ARCHIVE, 0);
@@ -154,9 +156,9 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		/*
 		 * The file name follows the archive header.
 		 */
-		q = (const char *) (arh + 1);
+		q = (const unsigned char *) (arh + 1);
 
-		(void) strncpy(s, q, len);
+		(void) strncpy(s, (const char *) q, len);
 		s[len] = '\0';
 
 		return (s);
@@ -187,7 +189,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		len = (size_t) (q - buf + 2); /* Space for a trailing NUL. */
 	} else {
 		/* The buffer only had blanks. */
-		buf = "";
+		buf = (const unsigned char *) "";
 		len = 1;
 	}
 
@@ -196,7 +198,7 @@ _libelf_ar_get_translated_name(const struct ar_hdr *arh, Elf *ar)
 		return (NULL);
 	}
 
-	(void) strncpy(s, buf, len - 1);
+	(void) strncpy(s, (const char *) buf, len - 1);
 	s[len - 1] = '\0';
 
 	return (s);
@@ -265,7 +267,7 @@ _libelf_ar_open(Elf *e, int reporterror)
 		(void) memcpy(&(ARH), (S), sizeof((ARH)));		\
 		if ((ARH).ar_fmag[0] != '`' || (ARH).ar_fmag[1] != '\n') \
 			goto error;					\
-		if (_libelf_ar_get_number((ARH).ar_size,		\
+		if (_libelf_ar_get_number((char *) (ARH).ar_size,	\
 		    sizeof((ARH).ar_size), 10, &(SZ)) == 0)		\
 			goto error;					\
 	} while (0)

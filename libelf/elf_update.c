@@ -708,7 +708,7 @@ _libelf_resync_elf(Elf *e, struct _Elf_Extent_List *extents)
  */
 
 static off_t
-_libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
+_libelf_write_scn(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
 	off_t rc;
@@ -830,7 +830,7 @@ _libelf_write_scn(Elf *e, char *nf, struct _Elf_Extent *ex)
  */
 
 static off_t
-_libelf_write_ehdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+_libelf_write_ehdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
 	void *ehdr;
@@ -871,7 +871,7 @@ _libelf_write_ehdr(Elf *e, char *nf, struct _Elf_Extent *ex)
  */
 
 static off_t
-_libelf_write_phdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+_libelf_write_phdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
 	void *ehdr;
@@ -928,7 +928,7 @@ _libelf_write_phdr(Elf *e, char *nf, struct _Elf_Extent *ex)
  */
 
 static off_t
-_libelf_write_shdr(Elf *e, char *nf, struct _Elf_Extent *ex)
+_libelf_write_shdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 {
 	int ec;
 	void *ehdr;
@@ -1004,9 +1004,9 @@ static off_t
 _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 {
 	off_t nrc, rc;
-	char *newfile;
 	Elf_Scn *scn, *tscn;
 	struct _Elf_Extent *ex;
+	unsigned char *newfile;
 
 	assert(e->e_kind == ELF_K_ELF);
 	assert(e->e_cmd == ELF_C_RDWR || e->e_cmd == ELF_C_WRITE);

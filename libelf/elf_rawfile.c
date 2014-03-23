@@ -35,8 +35,8 @@ ELFTC_VCSID("$Id$");
 char *
 elf_rawfile(Elf *e, size_t *sz)
 {
-	char *ptr;
 	size_t size;
+	unsigned char *ptr;
 
 	size = e ? e->e_rawsize : 0;
 	ptr = NULL;
@@ -49,5 +49,5 @@ elf_rawfile(Elf *e, size_t *sz)
 	if (sz)
 		*sz = size;
 
-	return (ptr);
+	return ((char *) ptr);
 }

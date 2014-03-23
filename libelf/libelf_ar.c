@@ -110,8 +110,8 @@ Elf_Arhdr *
 _libelf_ar_gethdr(Elf *e)
 {
 	Elf *parent;
-	char *namelen;
 	Elf_Arhdr *eh;
+	char *namelen;
 	size_t n, nlen;
 	struct ar_hdr *arh;
 
@@ -192,7 +192,7 @@ _libelf_ar_gethdr(Elf *e)
 	}
 
 	e->e_flags &= ~LIBELF_F_AR_HEADER;
-	e->e_hdr.e_rawhdr = (char *) arh;
+	e->e_hdr.e_rawhdr = (unsigned char *) arh;
 
 	return (NULL);
 }
@@ -201,10 +201,10 @@ Elf *
 _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 {
 	Elf *e;
-	char *member, *namelen;
-	size_t nsz, sz;
 	off_t next;
+	size_t nsz, sz;
 	struct ar_hdr *arh;
+	char *member, *namelen;
 
 	assert(elf->e_kind == ELF_K_AR);
 
@@ -249,12 +249,12 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 		member = (char *) (arh + 1);
 
 
-	if ((e = elf_memory((char *) member, sz)) == NULL)
+	if ((e = elf_memory(member, sz)) == NULL)
 		return (NULL);
 
 	e->e_fd = fd;
 	e->e_cmd = c;
-	e->e_hdr.e_rawhdr = (char *) arh;
+	e->e_hdr.e_rawhdr = (unsigned char *) arh;
 
 	elf->e_u.e_ar.e_nchildren++;
 	e->e_parent = elf;

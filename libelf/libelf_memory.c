@@ -89,7 +89,7 @@ _libelf_memory(unsigned char *image, size_t sz, int reporterror)
 			e->e_version = e_version;
 		}
 	} else if (sz >= SARMAG &&
-	    strncmp(image, ARMAG, (size_t) SARMAG) == 0)
+	    strncmp((const char *) image, ARMAG, (size_t) SARMAG) == 0)
 		return (_libelf_ar_open(e, reporterror));
 
 	return (e);

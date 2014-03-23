@@ -44,13 +44,13 @@ ELFTC_VCSID("$Id$");
 int
 _libelf_load_section_headers(Elf *e, void *ehdr)
 {
-	int ec, swapbytes;
-	size_t fsz, i, shnum;
+	Elf_Scn *scn;
 	uint64_t shoff;
-	char *src;
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
-	Elf_Scn *scn;
+	int ec, swapbytes;
+	unsigned char *src;
+	size_t fsz, i, shnum;
 	int (*xlator)(unsigned char *_d, size_t _dsz, unsigned char *_s,
 	    size_t _c, int _swap);
 
@@ -105,8 +105,8 @@ _libelf_load_section_headers(Elf *e, void *ehdr)
 		if ((scn = _libelf_allocate_scn(e, i)) == NULL)
 			return (0);
 
-		(*xlator)((char *) &scn->s_shdr, sizeof(scn->s_shdr), src,
-		    (size_t) 1, swapbytes);
+		(*xlator)((unsigned char *) &scn->s_shdr, sizeof(scn->s_shdr),
+		    src, (size_t) 1, swapbytes);
 
 		if (ec == ELFCLASS32) {
 			scn->s_offset = scn->s_rawoff =

@@ -43,5 +43,5 @@ elf_memory(char *image, size_t sz)
 		return (NULL);
 	}
 
-	return (_libelf_memory(image, sz, 1));
+	return (_libelf_memory((unsigned char *) image, sz, 1));
 }
