@@ -76,7 +76,7 @@ elf_errmsg(int error)
 	if (error < ELF_E_NONE || error >= ELF_E_NUM)
 		return _libelf_errors[ELF_E_NUM];
 	if (oserr) {
-		(void) snprintf(LIBELF_PRIVATE(msg),
+		(void) snprintf((char *) LIBELF_PRIVATE(msg),
 		    sizeof(LIBELF_PRIVATE(msg)), "%s: %s",
 		    _libelf_errors[error], strerror(oserr));
 		return (const char *)&LIBELF_PRIVATE(msg);
