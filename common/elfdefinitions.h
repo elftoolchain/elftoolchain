@@ -819,7 +819,8 @@ enum {
 	EM__LAST__
 };
 
-/* Older synonyms. */
+/* Other synonyms. */
+#define	EM_AMD64		EM_X86_64
 #define	EM_ARC_A5		EM_ARC_COMPACT
 
 /*
