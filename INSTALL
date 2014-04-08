@@ -114,6 +114,26 @@ Prerequisites
     - Building additional documentation is not currently supported
       under OpenBSD.
 
+:OpenBSD 5.4:
+    - The following packages are pre-requisites for building the
+      sources on OpenBSD 5.4:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``libarchive``          An archive access library.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+          # pkg_add libarchive
+
+    - The test suites cannot currently be built under OpenBSD.
+
+    - Building additional documentation is not currently supported
+      under OpenBSD.
+
 :NetBSD 5.0.2:
     - The core libraries and utilities should build out of the box
       on a stock install of NetBSD.
