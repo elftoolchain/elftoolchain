@@ -1,8 +1,8 @@
 # $Id$
 
 # All the test cases in this test suite need -lelftc.
-DPADD+=		${LIBELFTC}
-LDADD+=		-lelftc
+DPADD+=		${LIBELFTC} ${LIBELF}
+LDADD+=		-lelftc -lelf
 
 GENERATE_TEST_SCAFFOLDING=	yes
 
