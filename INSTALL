@@ -19,6 +19,7 @@ operating systems.
   NetBSD_             v5.0.2     i386
   OpenBSD_            v5.0       i386
   Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
+  Ubuntu_ GNU/Linux   12.04LTS   i386 & x86_64
   =================   ========   =======================
 
 .. _DragonFly BSD: http://www.dragonflybsd.org/
@@ -194,18 +195,17 @@ Prerequisites
 
           % sudo apt-get install pgf
 
-:Ubuntu GNU/Linux 11.10:
+:Ubuntu GNU/Linux 12.04:
     - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux 11.10:
+      sources on Ubuntu GNU/Linux 12.04:
 
       ===================     =====================================
       **Package**             **Description**
       ===================     =====================================
       ``bison``               Parser generator.
+      ``build-essential``     Basic build tools.
       ``flex``                Lexical analyser.
-      ``gcc``                 C compiler.
       ``libarchive-dev``      Archive access library.
-      ``libexpat1-dev``       An XML processing library.
       ``m4``                  Macro processor.
       ``pmake``               A ``make`` that uses BSD-make syntax.
       ``python-yaml``         A YAML library for Python.
@@ -215,7 +215,7 @@ Prerequisites
       The following command line may be used to install the necessary
       pre-requisites::
 
-          % sudo apt-get install bison flex gcc libarchive-dev \
+          % sudo apt-get install bison build-essential flex libarchive-dev \
             m4 pmake
 
     - To build and run the test suite:
@@ -227,10 +227,10 @@ Prerequisites
       #. The following additional packages need to be installed, as
          listed in the example command line below::
 
-            % sudo apt-get install libexpat1-dev python-yaml sharutils
+            % sudo apt-get install python-yaml sharutils
 
     - Builds of additional documentation are not currently supported
-      under Ubuntu GNU/Linux 11.10.
+      under Ubuntu GNU/Linux 12.04.
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
