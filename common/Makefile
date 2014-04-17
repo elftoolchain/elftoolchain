@@ -12,4 +12,7 @@ all depend obj:
 clean clobber:
 	rm -f ${CLEANFILES}
 
+cleandepend:
+	rm -f .depend
+
 .include "${TOP}/mk/elftoolchain.inc.mk"
