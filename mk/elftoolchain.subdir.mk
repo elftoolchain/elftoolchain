@@ -12,8 +12,8 @@ clobber test:: _SUBDIR
 SUBDIR_TARGETS+=	clobber test
 .elif ${OS_HOST} == OpenBSD
 clobber test:: _SUBDIRUSE
-.else		# NetBSD
-TARGETS+=	clobber test
+.else		# NetBSD, pmake on Linux
+TARGETS+=	cleandepend clobber test
 .endif
 
 .include <bsd.subdir.mk>
