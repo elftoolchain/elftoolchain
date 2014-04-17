@@ -300,7 +300,7 @@ generate_symbols(struct elfcopy *ecp)
 	GElf_Sym	 sym;
 	Elf_Data*	 id;
 	Elf_Scn		*is;
-	size_t		 ishstrndx, namelen, ndx, nsyms, sc, symndx;
+	size_t		 ishstrndx, namelen, ndx, sc, symndx;
 	int		 ec, elferr, i;
 
 	if (elf_getshstrndx(ecp->ein, &ishstrndx) == 0)
@@ -320,7 +320,6 @@ generate_symbols(struct elfcopy *ecp)
 	st_buf->lcap = 64;
 	st_buf->lsz = 1;	/* '\0' at start. */
 	st_buf->gsz = 0;
-	nsyms = 0;
 
 	ecp->symtab->sz = 0;
 	ecp->strtab->sz = 0;
