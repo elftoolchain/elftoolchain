@@ -1,6 +1,7 @@
 # $Id$
 
-# All the test cases in this test suite need -lelftc.
+# All the test cases in this test suite need -lelftc.  In addition,
+# a few need -lelf.
 DPADD+=		${LIBELFTC} ${LIBELF}
 LDADD+=		-lelftc -lelf
 

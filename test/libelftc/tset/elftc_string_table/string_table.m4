@@ -33,6 +33,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libelf.h>
 #include <libelftc.h>
 #include <stdlib.h>
 #include <stdio.h>
