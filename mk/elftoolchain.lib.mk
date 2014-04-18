@@ -13,6 +13,9 @@
 # Support a 'clobber' target.
 clobber:	clean os-specific-clobber .PHONY
 
+# Remove '.depend' files on a "make clean".
+CLEANFILES+=	.depend
+
 # Adjust CFLAGS
 CFLAGS+=	-I.			# OBJDIR
 CFLAGS+=	-I${.CURDIR}		# Sources
