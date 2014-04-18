@@ -2,6 +2,8 @@
 # $Id$
 #
 
+TOP=		../../..
+
 SUBDIR+=	common		# must be first
 
 SUBDIR+=	abi
@@ -55,4 +57,4 @@ SUBDIR+=	gelf_getehdr
 SUBDIR+=	gelf_newehdr
 SUBDIR+=	gelf_xlate
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"

@@ -2,6 +2,8 @@
 # $Id$
 #
 
+TOP=		../../..
+
 SUBDIR+=	dwarf_init
 SUBDIR+=	dwarf_next_cu_header
 SUBDIR+=	dwarf_get_address_size
@@ -22,4 +24,4 @@ SUBDIR+=	dwarf_pubnames
 SUBDIR+=	dwarf_macinfo
 SUBDIR+=	dwarf_ranges
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"

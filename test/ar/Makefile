@@ -17,4 +17,4 @@ clobber:	clean
 
 SUBDIR=		plugin
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"

@@ -1,7 +1,8 @@
 # $Id$
 
+TOP=		../../..
 SUBDIR=
 SUBDIR+=	elftc_string_table
 SUBDIR+=	elftc_version
 
-.include <bsd.subdir.mk>
+.include "${TOP}/mk/elftoolchain.subdir.mk"
