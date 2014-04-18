@@ -41,7 +41,7 @@ clean:
 clobber:
 	rm -rf ${TET_ROOT} ${TET_BUILD_MARKER} ${TET_PATCH_MARKER}
 
-depend test:	.SILENT
+cleandepend depend test:	.SILENT
 	true
 
 .else
