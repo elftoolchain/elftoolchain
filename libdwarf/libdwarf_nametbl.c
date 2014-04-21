@@ -103,7 +103,7 @@ _dwarf_nametbl_init(Dwarf_Debug dbg, Dwarf_NameSec *namesec, Dwarf_Section *ds,
 		nt->nt_cu_length = dbg->read(ds->ds_data, &offset, dwarf_size);
 
 		if (!dbg->dbg_info_loaded) {
-			ret = _dwarf_info_load(dbg, 1, error);
+			ret = _dwarf_info_load(dbg, 1, 1, error);
 			if (ret != DW_DLE_NONE)
 				goto fail_cleanup;
 		}

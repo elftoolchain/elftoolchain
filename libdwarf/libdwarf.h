@@ -735,6 +735,10 @@ int		dwarf_next_cu_header(Dwarf_Debug, Dwarf_Unsigned *,
 int		dwarf_next_cu_header_b(Dwarf_Debug, Dwarf_Unsigned *,
 		    Dwarf_Half *, Dwarf_Off *, Dwarf_Half *, Dwarf_Half *,
 		    Dwarf_Half *, Dwarf_Unsigned *, Dwarf_Error *);
+int		dwarf_next_cu_header_c(Dwarf_Debug, Dwarf_Bool,
+		    Dwarf_Unsigned *, Dwarf_Half *, Dwarf_Off *, Dwarf_Half *,
+		    Dwarf_Half *, Dwarf_Half *, Dwarf_Sig8 *, Dwarf_Unsigned *,
+		    Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_object_finish(Dwarf_Debug, Dwarf_Error *);
 int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);

@@ -29,11 +29,12 @@
 ELFTC_VCSID("$Id$");
 
 int
-dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
-    Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
-    Dwarf_Half *cu_pointer_size, Dwarf_Half *cu_offset_size,
-    Dwarf_Half *cu_extension_size, Dwarf_Unsigned *cu_next_offset,
-    Dwarf_Error *error)
+dwarf_next_cu_header_c(Dwarf_Debug dbg, Dwarf_Bool is_info,
+    Dwarf_Unsigned *cu_length, Dwarf_Half *cu_version,
+    Dwarf_Off *cu_abbrev_offset, Dwarf_Half *cu_pointer_size,
+    Dwarf_Half *cu_offset_size, Dwarf_Half *cu_extension_size,
+    Dwarf_Sig8 *type_signature, Dwarf_Unsigned *type_offset,
+    Dwarf_Unsigned *cu_next_offset, Dwarf_Error *error)
 {
 	Dwarf_CU cu;
 	int ret;
@@ -43,10 +44,17 @@ dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
 		return (DW_DLV_ERROR);
 	}
 
-	if (dbg->dbg_cu_current == NULL)
-		ret = _dwarf_info_first_cu(dbg, error);
-	else
-		ret = _dwarf_info_next_cu(dbg, error);
+	if (is_info) {
+		if (dbg->dbg_cu_current == NULL)
+			ret = _dwarf_info_first_cu(dbg, error);
+		else
+			ret = _dwarf_info_next_cu(dbg, error);
+	} else {
+		if (dbg->dbg_tu_current == NULL)
+			ret = _dwarf_info_first_tu(dbg, error);
+		else
+			ret = _dwarf_info_next_tu(dbg, error);
+	}
 
 	if (ret == DW_DLE_NO_ENTRY) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
@@ -54,11 +62,19 @@ dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
 	} else if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 
-	if (dbg->dbg_cu_current == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
-		return (DW_DLV_NO_ENTRY);
+	if (is_info) {
+		if (dbg->dbg_cu_current == NULL) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
+		cu = dbg->dbg_cu_current;
+	} else {
+		if (dbg->dbg_tu_current == NULL) {
+			DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+			return (DW_DLV_NO_ENTRY);
+		}
+		cu = dbg->dbg_tu_current;
 	}
-	cu = dbg->dbg_cu_current;
 
 	if (cu_length)
 		*cu_length = cu->cu_length;
@@ -81,9 +97,30 @@ dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
 			*cu_extension_size = 4;
 	}
 	if (cu_next_offset)
-		*cu_next_offset	= dbg->dbg_cu_current->cu_next_offset;
+		*cu_next_offset	= cu->cu_next_offset;
+
+	if (is_info) {
+		if (type_signature)
+			*type_signature = cu->cu_type_sig;
+		if (type_offset)
+			*type_offset = cu->cu_type_offset;
+	}
 
 	return (DW_DLV_OK);
+}
+
+
+int
+dwarf_next_cu_header_b(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
+    Dwarf_Half *cu_version, Dwarf_Off *cu_abbrev_offset,
+    Dwarf_Half *cu_pointer_size, Dwarf_Half *cu_offset_size,
+    Dwarf_Half *cu_extension_size, Dwarf_Unsigned *cu_next_offset,
+    Dwarf_Error *error)
+{
+
+	return (dwarf_next_cu_header_c(dbg, 1, cu_length, cu_version,
+	    cu_abbrev_offset, cu_pointer_size, cu_offset_size,
+	    cu_extension_size, NULL, NULL, cu_next_offset, error));
 }
 
 int

@@ -67,7 +67,7 @@ _dwarf_arange_init(Dwarf_Debug dbg, Dwarf_Error *error)
 		return (DW_DLE_NONE);
 
 	if (!dbg->dbg_info_loaded) {
-		ret = _dwarf_info_load(dbg, 1, error);
+		ret = _dwarf_info_load(dbg, 1, 1, error);
 		if (ret != DW_DLE_NONE)
 			return (ret);
 	}

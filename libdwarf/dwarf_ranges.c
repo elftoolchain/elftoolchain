@@ -63,7 +63,7 @@ dwarf_get_ranges(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Ranges **ranges,
 	}
 
 	if (!dbg->dbg_info_loaded) {
-		if (_dwarf_info_load(dbg, 1, error) != DW_DLE_NONE)
+		if (_dwarf_info_load(dbg, 1, 1, error) != DW_DLE_NONE)
 			return (DW_DLV_ERROR);
 	}
 
