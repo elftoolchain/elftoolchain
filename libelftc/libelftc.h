@@ -32,10 +32,11 @@
 
 #include <sys/stat.h>
 
+#include <libelf.h>
+
 /*
  * Types meant to be opaque to the consumers of these APIs.
  */
-typedef struct _Elf_Scn Elf_Scn;
 typedef struct _Elftc_Bfd_Target Elftc_Bfd_Target;
 typedef struct _Elftc_String_Table Elftc_String_Table;
 
