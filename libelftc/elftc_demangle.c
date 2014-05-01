@@ -29,7 +29,6 @@
 #include <sys/param.h>
 #include <assert.h>
 #include <errno.h>
-#include <libelf.h>
 #include <libelftc.h>
 #include <stdlib.h>
 #include <string.h>
