@@ -47,7 +47,6 @@ typedef struct _Dwarf_ArangeSet	*Dwarf_ArangeSet;
 typedef struct _Dwarf_Attribute	*Dwarf_Attribute;
 typedef struct _Dwarf_Attribute *Dwarf_P_Attribute;
 typedef struct _Dwarf_AttrDef	*Dwarf_AttrDef;
-typedef struct _Dwarf_CU	*Dwarf_CU;
 typedef struct _Dwarf_Cie	*Dwarf_Cie;
 typedef struct _Dwarf_Cie	*Dwarf_P_Cie;
 typedef struct _Dwarf_Debug	*Dwarf_Debug;

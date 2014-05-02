@@ -89,6 +89,7 @@ extern struct _libdwarf_globals _libdwarf;
 			goto gen_fail;					\
 	} while(0)
 
+typedef struct _Dwarf_CU *Dwarf_CU;
 
 struct _Dwarf_AttrDef {
 	uint64_t	ad_attrib;		/* DW_AT_XXX */
