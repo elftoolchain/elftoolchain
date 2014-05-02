@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
- * Copyright (c) 2009-2011 Kai Wang
+ * Copyright (c) 2009-2011,2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -626,6 +626,8 @@ int		dwarf_get_cu_die_offset(Dwarf_Arange, Dwarf_Off *,
 		    Dwarf_Error *);
 int		dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug,
 		    Dwarf_Off, Dwarf_Off *, Dwarf_Error *);
+int		dwarf_get_cu_die_offset_given_cu_header_offset_b(Dwarf_Debug,
+		    Dwarf_Off, Dwarf_Bool, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_get_elf(Dwarf_Debug, Elf **, Dwarf_Error *);
 int		dwarf_get_fde_at_pc(Dwarf_Fde *, Dwarf_Addr, Dwarf_Fde *,
 		    Dwarf_Addr *, Dwarf_Addr *, Dwarf_Error *);
@@ -744,6 +746,8 @@ int		dwarf_object_init(Dwarf_Obj_Access_Interface *, Dwarf_Handler,
 		    Dwarf_Ptr, Dwarf_Debug *, Dwarf_Error *);
 int		dwarf_offdie(Dwarf_Debug, Dwarf_Off, Dwarf_Die *,
 		    Dwarf_Error *);
+int		dwarf_offdie_b(Dwarf_Debug, Dwarf_Off, Dwarf_Bool, Dwarf_Die *,
+		    Dwarf_Error *);
 Dwarf_Unsigned	dwarf_producer_finish(Dwarf_P_Debug, Dwarf_Error *);
 Dwarf_P_Debug	dwarf_producer_init(Dwarf_Unsigned, Dwarf_Callback_Func,
 		    Dwarf_Handler, Dwarf_Ptr, Dwarf_Error *);
@@ -769,6 +773,8 @@ int		dwarf_set_reloc_application(int);
 Dwarf_Ptr	dwarf_seterrarg(Dwarf_Debug, Dwarf_Ptr);
 Dwarf_Handler	dwarf_seterrhand(Dwarf_Debug, Dwarf_Handler);
 int		dwarf_siblingof(Dwarf_Debug, Dwarf_Die, Dwarf_Die *, Dwarf_Error *);
+int		dwarf_siblingof_b(Dwarf_Debug, Dwarf_Die, Dwarf_Die *, Dwarf_Bool,
+		    Dwarf_Error *);
 int		dwarf_srcfiles(Dwarf_Die, char ***, Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_srclang(Dwarf_Die, Dwarf_Unsigned *, Dwarf_Error *);
 int		dwarf_srclines(Dwarf_Die, Dwarf_Line **, Dwarf_Signed *,

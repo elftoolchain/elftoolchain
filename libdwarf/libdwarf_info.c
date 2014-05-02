@@ -170,6 +170,7 @@ _dwarf_info_load(Dwarf_Debug dbg, Dwarf_Bool load_all, Dwarf_Bool is_info,
 		}
 
 		cu->cu_dbg = dbg;
+		cu->cu_is_info = is_info;
 		cu->cu_offset = offset;
 
 		length = dbg->read(ds->ds_data, &offset, 4);

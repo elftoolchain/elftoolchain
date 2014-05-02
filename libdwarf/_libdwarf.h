@@ -340,6 +340,7 @@ struct _Dwarf_CU {
 	int		cu_pass2;	/* Two pass DIE traverse. */
 	Dwarf_LineInfo	cu_lineinfo;	/* Ptr to Dwarf_LineInfo. */
 	Dwarf_Abbrev	cu_abbrev_hash; /* Abbrev hash table. */
+	Dwarf_Bool	cu_is_info;	/* Compilation/type unit flag. */
 	STAILQ_ENTRY(_Dwarf_CU) cu_next; /* Next compilation unit. */
 };
 
