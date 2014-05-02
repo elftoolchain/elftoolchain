@@ -398,3 +398,12 @@ dwarf_get_address_size(Dwarf_Debug dbg, Dwarf_Half *addr_size,
 
 	return (DW_DLV_OK);
 }
+
+Dwarf_Bool
+dwarf_get_die_infotypes_flag(Dwarf_Die die)
+{
+
+	assert(die != NULL);
+
+	return (die->die_cu->cu_is_info);
+}

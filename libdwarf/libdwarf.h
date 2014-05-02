@@ -628,6 +628,7 @@ int		dwarf_get_cu_die_offset_given_cu_header_offset(Dwarf_Debug,
 		    Dwarf_Off, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_get_cu_die_offset_given_cu_header_offset_b(Dwarf_Debug,
 		    Dwarf_Off, Dwarf_Bool, Dwarf_Off *, Dwarf_Error *);
+Dwarf_Bool	dwarf_get_die_infotypes_flag(Dwarf_Die);
 int		dwarf_get_elf(Dwarf_Debug, Elf **, Dwarf_Error *);
 int		dwarf_get_fde_at_pc(Dwarf_Fde *, Dwarf_Addr, Dwarf_Fde *,
 		    Dwarf_Addr *, Dwarf_Addr *, Dwarf_Error *);
