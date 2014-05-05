@@ -42,6 +42,7 @@ SRCS=	\
 	dwarf_pubtypes.c	\
 	dwarf_ranges.c		\
 	dwarf_reloc.c		\
+	dwarf_sections.c	\
 	dwarf_seterror.c	\
 	dwarf_str.c		\
 	dwarf_types.c		\
