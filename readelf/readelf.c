@@ -4521,7 +4521,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Addr v_addr;
 	Dwarf_Half tag, attr, form;
 	Dwarf_Block *v_block;
-	Dwarf_Bool v_bool;
+	Dwarf_Bool v_bool, is_info;
 	Dwarf_Error de;
 	const char *tag_str, *attr_str, *ate_str;
 	char unk_tag[32], unk_attr[32];
@@ -4701,7 +4701,8 @@ cont_search:
 		dump_dwarf_die(re, ret_die, level + 1);
 
 	/* Search sibling. */
-	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
+	is_info = dwarf_get_die_infotypes_flag(die);
+	ret = dwarf_siblingof_b(re->dbg, die, &ret_die, is_info, &de);
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
@@ -4711,7 +4712,7 @@ cont_search:
 }
 
 static void
-dump_dwarf_info(struct readelf *re)
+dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 {
 	struct section *s;
 	Dwarf_Die die;
@@ -4719,65 +4720,83 @@ dump_dwarf_info(struct readelf *re)
 	Dwarf_Half tag, version, pointer_size;
 	Dwarf_Off cu_offset, cu_length;
 	Dwarf_Off aboff;
-	Elf_Data *d;
-	int i, elferr, ret;
+	Dwarf_Unsigned typeoff;
+	Dwarf_Sig8 sig8;
+	Dwarf_Unsigned sig;
+	uint8_t *p;
+	const char *sn;
+	int i, ret;
 
-	printf("\nDump of debug contents of section .debug_info:\n");
+	sn = is_info ? ".debug_info" : ".debug_types";
 
 	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
-		if (s->name != NULL && !strcmp(s->name, ".debug_info"))
+		if (s->name != NULL && !strcmp(s->name, sn))
 			break;
 	}
 	if ((size_t) i >= re->shnum)
 		return;
 
-	(void) elf_errno();
-	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			warnx("elf_getdata failed: %s", elf_errmsg(-1));
-		return;
-	}
-	if (d->d_size <= 0)
-		return;
+	do {
+		printf("\nDump of debug contents of section %s:\n", sn);
 
-	while ((ret = dwarf_next_cu_header(re->dbg, NULL, &version, &aboff,
-	    &pointer_size, NULL, &de)) == DW_DLV_OK) {
-		die = NULL;
-		while (dwarf_siblingof(re->dbg, die, &die, &de) == DW_DLV_OK) {
-			if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
-				warnx("dwarf_tag failed: %s",
-				    dwarf_errmsg(de));
-				return;
+		while ((ret = dwarf_next_cu_header_c(re->dbg, is_info, NULL,
+		    &version, &aboff, &pointer_size, NULL, NULL, &sig8,
+		    &typeoff, NULL, &de)) == DW_DLV_OK) {
+			die = NULL;
+			while (dwarf_siblingof_b(re->dbg, die, &die, is_info,
+			    &de) == DW_DLV_OK) {
+				if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+					warnx("dwarf_tag failed: %s",
+					    dwarf_errmsg(de));
+					continue;
+				}
+				/* XXX: What about DW_TAG_partial_unit? */
+				if ((is_info && tag == DW_TAG_compile_unit) ||
+				    (!is_info && tag == DW_TAG_type_unit))
+					break;
 			}
-			/* XXX: What about DW_TAG_partial_unit? */
-			if (tag == DW_TAG_compile_unit)
-				break;
-		}
-		if (die == NULL) {
-			warnx("could not find DW_TAG_compile_unit die");
-			return;
-		}
+			if (die == NULL && is_info) {
+				warnx("could not find DW_TAG_compile_unit "
+				    "die");
+				continue;
+			} else if (die == NULL && !is_info) {
+				warnx("could not find DW_TAG_type_unit die");
+				continue;
+			}
 
-		if (dwarf_die_CU_offset_range(die, &cu_offset, &cu_length,
-		    &de) != DW_DLV_OK) {
-			warnx("dwarf_die_CU_offset failed: %s",
-			    dwarf_errmsg(de));
-			continue;
+			if (dwarf_die_CU_offset_range(die, &cu_offset,
+			    &cu_length, &de) != DW_DLV_OK) {
+				warnx("dwarf_die_CU_offset failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+
+			if (!is_info) {
+				p = (uint8_t *)(uintptr_t) &sig8.signature[0];
+				sig = re->dw_decode(&p, 8);
+			}
+
+			printf("  Type Unit @ %jd:\n", (intmax_t) cu_offset);
+			printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
+			printf("    Version:\t\t%u\n", version);
+			printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
+			printf("    Pointer Size:\t%u\n", pointer_size);
+			if (!is_info) {
+				printf("    Signature:\t\t0x%016jx\n",
+				    (uintmax_t) sig);
+				printf("    Type Offset:\t0x%jx\n",
+				    (uintmax_t) typeoff);
+			}
+
+			dump_dwarf_die(re, die, 0);
 		}
-
-		printf("  Compilation Unit @ %jd:\n", (intmax_t) cu_offset);
-		printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
-		printf("    Version:\t\t%u\n", version);
-		printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
-		printf("    Pointer Size:\t%u\n", pointer_size);
-
-		dump_dwarf_die(re, die, 0);
-	}
-	if (ret == DW_DLV_ERROR)
-		warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
+		if (is_info)
+			break;
+	} while (dwarf_next_types_section(re->dbg, &de) == DW_DLV_OK);
 }
 
 static void
@@ -6257,8 +6276,10 @@ dump_dwarf(struct readelf *re)
 		dump_dwarf_line(re);
 	if (re->dop & DW_LL)
 		dump_dwarf_line_decoded(re);
-	if (re->dop & DW_I)
-		dump_dwarf_info(re);
+	if (re->dop & DW_I) {
+		dump_dwarf_info(re, 0);
+		dump_dwarf_info(re, 1);
+	}
 	if (re->dop & DW_P)
 		dump_dwarf_pubnames(re);
 	if (re->dop & DW_R)
