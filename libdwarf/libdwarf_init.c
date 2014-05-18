@@ -213,6 +213,7 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Handler errhand,
 	dbg->dbg_errarg = errarg;
 
 	STAILQ_INIT(&dbg->dbg_cu);
+	STAILQ_INIT(&dbg->dbg_tu);
 	STAILQ_INIT(&dbg->dbg_rllist);
 	STAILQ_INIT(&dbg->dbg_aslist);
 	STAILQ_INIT(&dbg->dbg_mslist);
