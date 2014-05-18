@@ -101,7 +101,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 	}
 
 	/* Try to find the optional DWARF4 .debug_types section. */
-	dbg->dbg_types_sec = _dwarf_find_section(dbg, ".debug_types");
+	dbg->dbg_types_sec = _dwarf_find_next_types_section(dbg, NULL);
 
 	/* Initialise call frame API related parameters. */
 	_dwarf_frame_params_init(dbg);

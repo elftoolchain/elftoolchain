@@ -212,13 +212,34 @@ _dwarf_find_section(Dwarf_Debug dbg, const char *name)
 	Dwarf_Section *ds;
 	Dwarf_Half i;
 
-	assert(name != NULL);
+	assert(dbg != NULL && name != NULL);
 
 	for (i = 0; i < dbg->dbg_seccnt; i++) {
 		ds = &dbg->dbg_section[i];
 		if (ds->ds_name != NULL && !strcmp(ds->ds_name, name))
 			return (ds);
 	}
+
+	return (NULL);
+}
+
+Dwarf_Section *
+_dwarf_find_next_types_section(Dwarf_Debug dbg, Dwarf_Section *ds)
+{
+
+	assert(dbg != NULL);
+
+	if (ds == NULL)
+		return (_dwarf_find_section(dbg, ".debug_types"));
+
+	assert(ds->ds_name != NULL);
+
+	do {
+		ds++;
+		if (ds->ds_name != NULL &&
+		    !strcmp(ds->ds_name, ".debug_types"))
+			return (ds);
+	} while (ds->ds_name != NULL);
 
 	return (NULL);
 }

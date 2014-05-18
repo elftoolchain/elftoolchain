@@ -266,8 +266,18 @@ _dwarf_info_cleanup(Dwarf_Debug dbg)
 		free(cu);
 	}
 
+	_dwarf_type_unit_cleanup(dbg);
+}
+
+void
+_dwarf_type_unit_cleanup(Dwarf_Debug dbg)
+{
+	Dwarf_CU cu, tcu;
+
+	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
+
 	STAILQ_FOREACH_SAFE(cu, &dbg->dbg_tu, cu_next, tcu) {
-		STAILQ_REMOVE(&dbg->dbg_cu, cu, _Dwarf_CU, cu_next);
+		STAILQ_REMOVE(&dbg->dbg_tu, cu, _Dwarf_CU, cu_next);
 		_dwarf_abbrev_cleanup(cu);
 		free(cu);
 	}

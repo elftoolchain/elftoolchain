@@ -541,6 +541,7 @@ int		_dwarf_elf_get_section_info(void *, Dwarf_Half,
 		    Dwarf_Obj_Access_Section *, int *);
 void		_dwarf_expr_cleanup(Dwarf_P_Debug);
 int		_dwarf_expr_into_block(Dwarf_P_Expr, Dwarf_Error *);
+Dwarf_Section	*_dwarf_find_next_types_section(Dwarf_Debug, Dwarf_Section *);
 Dwarf_Section	*_dwarf_find_section(Dwarf_Debug, const char *);
 void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
@@ -645,6 +646,7 @@ void		_dwarf_strtab_cleanup(Dwarf_Debug);
 int		_dwarf_strtab_gen(Dwarf_P_Debug, Dwarf_Error *);
 char		*_dwarf_strtab_get_table(Dwarf_Debug);
 int		_dwarf_strtab_init(Dwarf_Debug, Dwarf_Error *);
+void		_dwarf_type_unit_cleanup(Dwarf_Debug);
 void		_dwarf_write_block(void *, uint64_t *, uint8_t *, uint64_t);
 int		_dwarf_write_block_alloc(uint8_t **, uint64_t *, uint64_t *,
 		    uint8_t *, uint64_t, Dwarf_Error *);

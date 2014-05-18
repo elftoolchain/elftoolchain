@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
+ * Copyright (c) 2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,7 +100,7 @@ dwarf_next_cu_header_c(Dwarf_Debug dbg, Dwarf_Bool is_info,
 	if (cu_next_offset)
 		*cu_next_offset	= cu->cu_next_offset;
 
-	if (is_info) {
+	if (!is_info) {
 		if (type_signature)
 			*type_signature = cu->cu_type_sig;
 		if (type_offset)
@@ -133,4 +134,28 @@ dwarf_next_cu_header(Dwarf_Debug dbg, Dwarf_Unsigned *cu_length,
 	return (dwarf_next_cu_header_b(dbg, cu_length, cu_version,
 	    cu_abbrev_offset, cu_pointer_size, NULL, NULL, cu_next_offset,
 	    error));
+}
+
+int
+dwarf_next_types_section(Dwarf_Debug dbg, Dwarf_Error *error)
+{
+
+	/* Free resource allocated for current .debug_types section. */
+	_dwarf_type_unit_cleanup(dbg);
+	dbg->dbg_types_loaded = 0;
+	dbg->dbg_types_off = 0;
+
+	/* Reset type unit pointer. */
+	dbg->dbg_tu_current = NULL;
+
+	/* Search for the next .debug_types section. */
+	dbg->dbg_types_sec = _dwarf_find_next_types_section(dbg,
+	    dbg->dbg_types_sec);
+
+	if (dbg->dbg_types_sec == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
+		return (DW_DLV_NO_ENTRY);
+	}
+
+	return (DW_DLV_OK);
 }
