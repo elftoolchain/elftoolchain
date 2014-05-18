@@ -81,6 +81,7 @@ Dwarf_Die
 _dwarf_die_find(Dwarf_Die die, Dwarf_Unsigned off)
 {
 	Dwarf_Debug dbg;
+	Dwarf_Section *ds;
 	Dwarf_CU cu;
 	Dwarf_Die die1;
 	Dwarf_Error de;
@@ -88,9 +89,10 @@ _dwarf_die_find(Dwarf_Die die, Dwarf_Unsigned off)
 
 	cu = die->die_cu;
 	dbg = die->die_dbg;
+	ds = cu->cu_is_info ? dbg->dbg_info_sec : dbg->dbg_types_sec;
 
-	ret = _dwarf_die_parse(dbg, dbg->dbg_info_sec, cu, cu->cu_dwarf_size,
-	    off, cu->cu_next_offset, &die1, 0, &de);
+	ret = _dwarf_die_parse(dbg, ds, cu, cu->cu_dwarf_size, off,
+	    cu->cu_next_offset, &die1, 0, &de);
 
 	if (ret == DW_DLE_NONE)
 		return (die1);

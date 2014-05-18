@@ -33,6 +33,7 @@ int
 dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 {
 	Dwarf_Debug dbg;
+	Dwarf_Section *ds;
 	Dwarf_CU cu;
 	int ret;
 
@@ -48,9 +49,9 @@ dwarf_child(Dwarf_Die die, Dwarf_Die *ret_die, Dwarf_Error *error)
 
 	dbg = die->die_dbg;
 	cu = die->die_cu;
-	ret = _dwarf_die_parse(die->die_dbg, dbg->dbg_info_sec, cu,
-	    cu->cu_dwarf_size, die->die_next_off, cu->cu_next_offset,
-	    ret_die, 0, error);
+	ds = cu->cu_is_info ? dbg->dbg_info_sec : dbg->dbg_types_sec;
+	ret = _dwarf_die_parse(die->die_dbg, ds, cu, cu->cu_dwarf_size,
+	    die->die_next_off, cu->cu_next_offset, ret_die, 0, error);
 
 	if (ret == DW_DLE_NO_ENTRY) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
@@ -67,6 +68,7 @@ dwarf_siblingof_b(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 {
 	Dwarf_CU cu;
 	Dwarf_Attribute at;
+	Dwarf_Section *ds;
 	uint64_t offset;
 	int ret, search_sibling;
 
@@ -75,6 +77,7 @@ dwarf_siblingof_b(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 		return (DW_DLV_ERROR);
 	}
 
+	ds = is_info ? dbg->dbg_info_sec : dbg->dbg_types_sec;
 	cu = is_info ? dbg->dbg_cu_current : dbg->dbg_tu_current;
 
 	if (cu == NULL) {
@@ -84,8 +87,8 @@ dwarf_siblingof_b(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 
 	/* Application requests the first DIE in this CU. */
 	if (die == NULL)
-		return (dwarf_offdie(dbg, cu->cu_1st_offset, ret_die,
-		    error));
+		return (dwarf_offdie_b(dbg, cu->cu_1st_offset, is_info,
+		    ret_die, error));
 
 	/*
 	 * Check if the `is_info' flag matches the debug section the
@@ -119,9 +122,8 @@ dwarf_siblingof_b(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 		}
 	}
 
-	ret = _dwarf_die_parse(die->die_dbg, dbg->dbg_info_sec, cu,
-	    cu->cu_dwarf_size, offset, cu->cu_next_offset, ret_die,
-	    search_sibling, error);
+	ret = _dwarf_die_parse(die->die_dbg, ds, cu, cu->cu_dwarf_size, offset,
+	    cu->cu_next_offset, ret_die, search_sibling, error);
 	
 	if (ret == DW_DLE_NO_ENTRY) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
@@ -142,13 +144,13 @@ dwarf_siblingof(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Die *ret_die,
 }
 
 static int
-_dwarf_search_die_within_cu(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Off offset,
-    Dwarf_Die *ret_die, Dwarf_Error *error)
+_dwarf_search_die_within_cu(Dwarf_Debug dbg, Dwarf_Section *s, Dwarf_CU cu,
+    Dwarf_Off offset, Dwarf_Die *ret_die, Dwarf_Error *error)
 {
 
 	assert(dbg != NULL && cu != NULL && ret_die != NULL);
 
-	return (_dwarf_die_parse(dbg, dbg->dbg_info_sec, cu, cu->cu_dwarf_size,
+	return (_dwarf_die_parse(dbg, s, cu, cu->cu_dwarf_size,
 	    offset, cu->cu_next_offset, ret_die, 0, error));
 }
 
@@ -156,7 +158,7 @@ int
 dwarf_offdie_b(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Bool is_info,
     Dwarf_Die *ret_die, Dwarf_Error *error)
 {
-
+	Dwarf_Section *ds;
 	Dwarf_CU cu;
 	int ret;
 
@@ -165,11 +167,13 @@ dwarf_offdie_b(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Bool is_info,
 		return (DW_DLV_ERROR);
 	}
 
-	/* First search the current CU. */
+	ds = is_info ? dbg->dbg_info_sec : dbg->dbg_types_sec;
 	cu = is_info ? dbg->dbg_cu_current : dbg->dbg_tu_current;
+
+	/* First search the current CU. */
 	if (cu != NULL) {
 		if (offset > cu->cu_offset && offset < cu->cu_next_offset) {
-			ret = _dwarf_search_die_within_cu(dbg, cu, offset,
+			ret = _dwarf_search_die_within_cu(dbg, ds, cu, offset,
 			    ret_die, error);
 			if (ret == DW_DLE_NO_ENTRY) {
 				DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
@@ -190,7 +194,7 @@ dwarf_offdie_b(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Bool is_info,
 			if (offset < cu->cu_offset ||
 			    offset > cu->cu_next_offset)
 				continue;
-			ret = _dwarf_search_die_within_cu(dbg, cu, offset,
+			ret = _dwarf_search_die_within_cu(dbg, ds, cu, offset,
 			    ret_die, error);
 			if (ret == DW_DLE_NO_ENTRY) {
 				DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
@@ -204,7 +208,7 @@ dwarf_offdie_b(Dwarf_Debug dbg, Dwarf_Off offset, Dwarf_Bool is_info,
 			if (offset < cu->cu_offset ||
 			    offset > cu->cu_next_offset)
 				continue;
-			ret = _dwarf_search_die_within_cu(dbg, cu, offset,
+			ret = _dwarf_search_die_within_cu(dbg, ds, cu, offset,
 			    ret_die, error);
 			if (ret == DW_DLE_NO_ENTRY) {
 				DWARF_SET_ERROR(dbg, error, DW_DLE_NO_ENTRY);
