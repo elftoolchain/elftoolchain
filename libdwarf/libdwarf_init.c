@@ -69,7 +69,8 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 
 	dbg->dbg_seccnt = cnt;
 
-	if ((dbg->dbg_section = calloc(cnt, sizeof(Dwarf_Section))) == NULL) {
+	if ((dbg->dbg_section = calloc(cnt + 1, sizeof(Dwarf_Section))) ==
+	    NULL) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_MEMORY);
 		return (DW_DLE_MEMORY);
 	}
@@ -90,6 +91,7 @@ _dwarf_consumer_init(Dwarf_Debug dbg, Dwarf_Error *error)
 			return (ret);
 		}
 	}
+	dbg->dbg_section[cnt].ds_name = NULL;
 
 	if (_dwarf_find_section(dbg, ".debug_abbrev") == NULL ||
 	    ((dbg->dbg_info_sec = _dwarf_find_section(dbg, ".debug_info")) ==
