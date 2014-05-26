@@ -4515,7 +4515,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
 	Dwarf_Off dieoff, cuoff, culen;
-	Dwarf_Unsigned ate, v_udata;
+	Dwarf_Unsigned ate, v_udata, v_sig;
 	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
@@ -4523,8 +4523,8 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Block *v_block;
 	Dwarf_Bool v_bool, is_info;
 	Dwarf_Sig8 v_sig8;
-	Dwarf_Unsigned v_sig;
 	Dwarf_Error de;
+	Dwarf_Ptr v_expr;
 	const char *tag_str, *attr_str, *ate_str;
 	char unk_tag[32], unk_attr[32];
 	char *v_str;
@@ -4683,11 +4683,25 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju byte block:", v_block->bl_len);
+			printf("%ju byte block:", (uintmax_t) v_block->bl_len);
 			b = v_block->bl_data;
 			for (j = 0; (Dwarf_Unsigned) j < v_block->bl_len; j++)
 				printf(" %x", b[j]);
 			break;
+
+		case DW_FORM_exprloc:
+			if (dwarf_formexprloc(attr_list[i], &v_udata, &v_expr,
+			    &de) != DW_DLV_OK) {
+				warnx("dwarf_formexprloc failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			printf("%ju byte block:", (uintmax_t) v_udata);
+			b = v_expr;
+			for (j = 0; (Dwarf_Unsigned) j < v_udata; j++)
+				printf(" %x", b[j]);
+			break;
+
 		case DW_FORM_ref_sig8:
 			if (dwarf_formsig8(attr_list[i], &v_sig8, &de) !=
 			    DW_DLV_OK) {
