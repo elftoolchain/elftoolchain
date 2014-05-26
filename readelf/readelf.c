@@ -4717,7 +4717,7 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 	struct section *s;
 	Dwarf_Die die;
 	Dwarf_Error de;
-	Dwarf_Half tag, version, pointer_size;
+	Dwarf_Half tag, version, pointer_size, off_size;
 	Dwarf_Off cu_offset, cu_length;
 	Dwarf_Off aboff;
 	Dwarf_Unsigned typeoff;
@@ -4742,7 +4742,7 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 		printf("\nDump of debug contents of section %s:\n", sn);
 
 		while ((ret = dwarf_next_cu_header_c(re->dbg, is_info, NULL,
-		    &version, &aboff, &pointer_size, NULL, NULL, &sig8,
+		    &version, &aboff, &pointer_size, &off_size, NULL, &sig8,
 		    &typeoff, NULL, &de)) == DW_DLV_OK) {
 			die = NULL;
 			while (dwarf_siblingof_b(re->dbg, die, &die, is_info,
@@ -4773,13 +4773,18 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 				continue;
 			}
 
+			cu_length -= off_size == 4 ? 4 : 12;
+
+			sig = 0;
 			if (!is_info) {
 				p = (uint8_t *)(uintptr_t) &sig8.signature[0];
 				sig = re->dw_decode(&p, 8);
 			}
 
-			printf("  Type Unit @ %jd:\n", (intmax_t) cu_offset);
-			printf("    Length:\t\t%jd\n", (intmax_t) cu_length);
+			printf("\n  Type Unit @ offset 0x%jx:\n",
+			    (uintmax_t) cu_offset);
+			printf("    Length:\t\t%#jx (%d-bit)\n",
+			    (uintmax_t) cu_length, off_size == 4 ? 32 : 64);
 			printf("    Version:\t\t%u\n", version);
 			printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
 			printf("    Pointer Size:\t%u\n", pointer_size);
