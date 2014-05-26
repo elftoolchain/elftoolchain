@@ -4655,6 +4655,10 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			printf("%jd", (intmax_t) v_bool);
 			break;
 
+		case DW_FORM_flag_present:
+			putchar('1');
+			break;
+
 		case DW_FORM_string:
 		case DW_FORM_strp:
 			if (dwarf_formstring(attr_list[i], &v_str, &de) !=
