@@ -4586,7 +4586,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("<%jx>", (uintmax_t) v_off);
+			printf("<0x%jx>", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_ref1:
@@ -4601,7 +4601,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				continue;
 			}
 			v_off += cuoff;
-			printf("<%jx>", (uintmax_t) v_off);
+			printf("<0x%jx>", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_addr:
@@ -4798,7 +4798,8 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 			printf("    Length:\t\t%#jx (%d-bit)\n",
 			    (uintmax_t) cu_length, off_size == 4 ? 32 : 64);
 			printf("    Version:\t\t%u\n", version);
-			printf("    Abbrev Offset:\t%ju\n", (uintmax_t) aboff);
+			printf("    Abbrev Offset:\t0x%jx\n",
+			    (uintmax_t) aboff);
 			printf("    Pointer Size:\t%u\n", pointer_size);
 			if (!is_info) {
 				printf("    Signature:\t\t0x%016jx\n",
