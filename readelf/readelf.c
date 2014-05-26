@@ -4522,11 +4522,13 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Half tag, attr, form;
 	Dwarf_Block *v_block;
 	Dwarf_Bool v_bool, is_info;
+	Dwarf_Sig8 v_sig8;
+	Dwarf_Unsigned v_sig;
 	Dwarf_Error de;
 	const char *tag_str, *attr_str, *ate_str;
 	char unk_tag[32], unk_attr[32];
 	char *v_str;
-	uint8_t *b;
+	uint8_t *b, *p;
 	int i, j, abc, ret;
 
 	if (dwarf_dieoffset(die, &dieoff, &de) != DW_DLV_OK) {
@@ -4675,6 +4677,16 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			for (j = 0; (Dwarf_Unsigned) j < v_block->bl_len; j++)
 				printf(" %x", b[j]);
 			break;
+		case DW_FORM_ref_sig8:
+			if (dwarf_formsig8(attr_list[i], &v_sig8, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formsig8 failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+			p = (uint8_t *)(uintptr_t) &v_sig8.signature[0];
+			v_sig = re->dw_decode(&p, 8);
+			printf("signature: 0x%jx", (uintmax_t) v_sig);
 		}
 		switch (attr) {
 		case DW_AT_encoding:
