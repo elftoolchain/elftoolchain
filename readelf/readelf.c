@@ -4515,7 +4515,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
 	Dwarf_Off dieoff, cuoff, culen;
-	Dwarf_Unsigned ate, v_udata, v_sig;
+	Dwarf_Unsigned ate, lang, v_udata, v_sig;
 	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
 	Dwarf_Addr v_addr;
@@ -4525,7 +4525,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 	Dwarf_Sig8 v_sig8;
 	Dwarf_Error de;
 	Dwarf_Ptr v_expr;
-	const char *tag_str, *attr_str, *ate_str;
+	const char *tag_str, *attr_str, *ate_str, *lang_str;
 	char unk_tag[32], unk_attr[32];
 	char *v_str;
 	uint8_t *b, *p;
@@ -4722,6 +4722,16 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				ate_str = "DW_ATE_UNKNOWN";
 			printf("\t(%s)", &ate_str[strlen("DW_ATE_")]);
 			break;
+
+		case DW_AT_language:
+			if (dwarf_attrval_unsigned(die, attr, &lang, &de) !=
+			    DW_DLV_OK)
+				break;
+			if (dwarf_get_LANG_name(lang, &lang_str) != DW_DLV_OK)
+				break;
+			printf("\t(%s)", &lang_str[strlen("DW_LANG_")]);
+			break;
+
 		default:
 			break;
 		}
