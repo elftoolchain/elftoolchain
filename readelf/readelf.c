@@ -4629,7 +4629,10 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("%ju", (uintmax_t) v_udata);
+			if (attr == DW_AT_high_pc)
+				printf("0x%jx", (uintmax_t) v_udata);
+			else
+				printf("%ju", (uintmax_t) v_udata);
 			break;
 
 		case DW_FORM_sdata:
