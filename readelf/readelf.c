@@ -4580,13 +4580,17 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		printf("     %-18s: ", attr_str);
 		switch (form) {
 		case DW_FORM_ref_addr:
+		case DW_FORM_sec_offset:
 			if (dwarf_global_formref(attr_list[i], &v_off, &de) !=
 			    DW_DLV_OK) {
 				warnx("dwarf_global_formref failed: %s",
 				    dwarf_errmsg(de));
 				continue;
 			}
-			printf("<0x%jx>", (uintmax_t) v_off);
+			if (form == DW_FORM_ref_addr)
+				printf("<0x%jx>", (uintmax_t) v_off);
+			else
+				printf("0x%jx", (uintmax_t) v_off);
 			break;
 
 		case DW_FORM_ref1:
