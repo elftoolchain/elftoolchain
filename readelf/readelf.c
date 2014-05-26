@@ -4732,6 +4732,25 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			printf("\t(%s)", &lang_str[strlen("DW_LANG_")]);
 			break;
 
+		case DW_AT_location:
+		case DW_AT_string_length:
+		case DW_AT_return_addr:
+		case DW_AT_data_member_location:
+		case DW_AT_frame_base:
+		case DW_AT_segment:
+		case DW_AT_static_link:
+		case DW_AT_use_location:
+		case DW_AT_vtable_elem_location:
+			switch (form) {
+			case DW_FORM_data4:
+			case DW_FORM_data8:
+			case DW_FORM_sec_offset:
+				printf("\t(location list)");
+				break;
+			default:
+				break;
+			}
+
 		default:
 			break;
 		}
