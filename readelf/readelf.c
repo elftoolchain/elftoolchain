@@ -5671,9 +5671,12 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 	Dwarf_Unsigned off;
 	Dwarf_Signed attr_count;
 	Dwarf_Half attr, form;
+	Dwarf_Bool is_info;
 	Dwarf_Error de;
 	struct loc_at *la, *nla;
 	int i, ret;
+
+	is_info = dwarf_get_die_infotypes_flag(die);
 
 	if ((ret = dwarf_attrlist(die, &attr_list, &attr_count, &de)) !=
 	    DW_DLV_OK) {
@@ -5700,12 +5703,23 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 			warnx("dwarf_whatform failed: %s", dwarf_errmsg(de));
 			continue;
 		}
-		if (form != DW_FORM_data4 && form != DW_FORM_data8)
+		if (form == DW_FORM_data4 || form == DW_FORM_data8) {
+			if (dwarf_formudata(attr_list[i], &off, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_formudata failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+		} else if (form == DW_FORM_sec_offset) {
+			if (dwarf_global_formref(attr_list[i], &off, &de) !=
+			    DW_DLV_OK) {
+				warnx("dwarf_global_formref failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+		} else
 			continue;
-		if (dwarf_formudata(attr_list[i], &off, &de) != DW_DLV_OK) {
-			warnx("dwarf_formudata failed: %s", dwarf_errmsg(de));
-			continue;
-		}
+
 		TAILQ_FOREACH(la, &lalist, la_next) {
 			if (off == la->la_off)
 				break;
@@ -5738,7 +5752,7 @@ cont_search:
 		search_loclist_at(re, ret_die, lowpc);
 
 	/* Search sibling. */
-	ret = dwarf_siblingof(re->dbg, die, &ret_die, &de);
+	ret = dwarf_siblingof_b(re->dbg, die, &ret_die, is_info, &de);
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
@@ -5762,6 +5776,7 @@ dump_dwarf_loclist(struct readelf *re)
 
 	printf("\nContents of section .debug_loc:\n");
 
+	/* Search .debug_info section. */
 	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
 	    NULL, &de)) == DW_DLV_OK) {
 		die = NULL;
@@ -5774,8 +5789,8 @@ dump_dwarf_loclist(struct readelf *re)
 		/* XXX: What about DW_TAG_partial_unit? */
 		lowpc = 0;
 		if (tag == DW_TAG_compile_unit) {
-			if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lowpc,
-			    &de) != DW_DLV_OK)
+			if (dwarf_attrval_unsigned(die, DW_AT_low_pc,
+				&lowpc, &de) != DW_DLV_OK)
 				lowpc = 0;
 		}
 
@@ -5784,6 +5799,38 @@ dump_dwarf_loclist(struct readelf *re)
 	}
 	if (ret == DW_DLV_ERROR)
 		warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
+
+	/* Search .debug_types section. */
+	do {
+		while ((ret = dwarf_next_cu_header_c(re->dbg, 0, NULL, NULL,
+		    NULL, NULL, NULL, NULL, NULL, NULL, NULL, &de)) ==
+		    DW_DLV_OK) {
+			die = NULL;
+			if (dwarf_siblingof(re->dbg, die, &die, &de) !=
+			    DW_DLV_OK)
+				continue;
+			if (dwarf_tag(die, &tag, &de) != DW_DLV_OK) {
+				warnx("dwarf_tag failed: %s",
+				    dwarf_errmsg(de));
+				continue;
+			}
+
+			lowpc = 0;
+			if (tag == DW_TAG_type_unit) {
+				if (dwarf_attrval_unsigned(die, DW_AT_low_pc,
+				    &lowpc, &de) != DW_DLV_OK)
+					lowpc = 0;
+			}
+
+			/*
+			 * Search attributes for reference to .debug_loc
+			 * section.
+			 */
+			search_loclist_at(re, die, lowpc);
+		}
+		if (ret == DW_DLV_ERROR)
+			warnx("dwarf_next_cu_header: %s", dwarf_errmsg(de));
+	} while (dwarf_next_types_section(re->dbg, &de) == DW_DLV_OK);
 
 	if (TAILQ_EMPTY(&lalist))
 		return;
