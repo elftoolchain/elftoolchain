@@ -6033,9 +6033,12 @@ dump_dwarf_loclist(struct readelf *re)
 					printf(": %#jx", (uintmax_t)
 					    lr->lr_number);
 					break;
+
+				default:
+					break;
 				}
 				if (j < llbuf[i]->ld_cents - 1)
-					printf(", ");
+					printf("; ");
 			}
 			putchar(')');
 
