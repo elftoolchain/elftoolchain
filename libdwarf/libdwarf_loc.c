@@ -296,7 +296,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		/* All other operations cause an error. */
 		default:
 			count = -1;
-			break;
+			goto done;
 		}
 
 		if (lbuf != NULL) {
@@ -307,6 +307,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		count++;
 	}
 
+done:
 	return (count);
 }
 
