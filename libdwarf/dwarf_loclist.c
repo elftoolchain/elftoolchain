@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2009 Kai Wang
+ * Copyright (c) 2009,2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,30 +236,49 @@ dwarf_loclist_from_expr(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
     Dwarf_Unsigned bytes_len, Dwarf_Locdesc **llbuf, Dwarf_Signed *listlen,
     Dwarf_Error *error)
 {
-	Dwarf_Locdesc *ld;
-	int ret;
 
-	if (dbg == NULL || bytes_in == NULL || bytes_len == 0 ||
-	    llbuf == NULL || listlen == NULL) {
-		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
-		return (DW_DLV_ERROR);
-	}
-
-	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len,
-	    dbg->dbg_pointer_size, error);
-	if (ret != DW_DLE_NONE)
-		return (DW_DLV_ERROR);
-
-	*llbuf = ld;
-	*listlen = 1;
-
-	return (DW_DLV_OK);
+	return (dwarf_loclist_from_expr_a(dbg, bytes_in, bytes_len,
+	    dbg->dbg_pointer_size, llbuf, listlen, error));
 }
 
 int
 dwarf_loclist_from_expr_a(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
     Dwarf_Unsigned bytes_len, Dwarf_Half addr_size, Dwarf_Locdesc **llbuf,
     Dwarf_Signed *listlen, Dwarf_Error *error)
+{
+	Dwarf_Half offset_size;
+	Dwarf_Small version;
+
+	/*
+	 * Obtain offset size and DWARF version from the current
+	 * Compilation Unit or Type Unit. These values are needed
+	 * for correctly parsing DW_OP_GNU_implicit_pointer operator.
+	 *
+	 * Note that dwarf_loclist_from_expr_b() should be used instead
+	 * if the application knows correct values for offset size
+	 * and DWARF version.
+	 */
+	if (dbg->dbg_cu_current) {
+		offset_size = dbg->dbg_cu_current->cu_length_size == 4 ? 4 : 8;
+		version = dbg->dbg_cu_current->cu_version;
+	} else if (dbg->dbg_tu_current) {
+		offset_size = dbg->dbg_tu_current->cu_length_size == 4 ? 4 : 8;
+		version = dbg->dbg_tu_current->cu_version;
+	} else {
+		/* Default values if no CU/TU context. */
+		offset_size = 4;
+		version = 2;	/* DWARF2 */
+	}
+
+	return (dwarf_loclist_from_expr_b(dbg, bytes_in, bytes_len, addr_size,
+	    offset_size, version, llbuf, listlen, error));
+}
+
+int
+dwarf_loclist_from_expr_b(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
+    Dwarf_Unsigned bytes_len, Dwarf_Half addr_size, Dwarf_Half offset_size,
+    Dwarf_Small version, Dwarf_Locdesc **llbuf, Dwarf_Signed *listlen,
+    Dwarf_Error *error)
 {
 	Dwarf_Locdesc *ld;
 	int ret;
@@ -275,8 +294,13 @@ dwarf_loclist_from_expr_a(Dwarf_Debug dbg, Dwarf_Ptr bytes_in,
 		return (DW_DLV_ERROR);
 	}
 
+	if (offset_size != 4 && offset_size != 8) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
 	ret = _dwarf_loc_fill_locexpr(dbg, &ld, bytes_in, bytes_len, addr_size,
-	    error);
+	    offset_size, version, error);
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 

@@ -734,6 +734,10 @@ int		dwarf_loclist_from_expr(Dwarf_Debug, Dwarf_Ptr, Dwarf_Unsigned,
 int		dwarf_loclist_from_expr_a(Dwarf_Debug, Dwarf_Ptr,
 		    Dwarf_Unsigned, Dwarf_Half, Dwarf_Locdesc **,
 		    Dwarf_Signed *, Dwarf_Error *);
+int		dwarf_loclist_from_expr_b(Dwarf_Debug, Dwarf_Ptr,
+		    Dwarf_Unsigned, Dwarf_Half, Dwarf_Half,
+		    Dwarf_Small, Dwarf_Locdesc **, Dwarf_Signed *,
+		    Dwarf_Error *);
 int		dwarf_loclist_n(Dwarf_Attribute, Dwarf_Locdesc ***,
 		    Dwarf_Signed *, Dwarf_Error *);
 int		dwarf_lowpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);

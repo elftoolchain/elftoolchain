@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2007 John Birrell (jb@freebsd.org)
+ * Copyright (c) 2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +39,14 @@ ELFTC_VCSID("$Id$");
  */
 static int
 _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
-    uint8_t *p, int len)
+    uint8_t offset_size, uint8_t version, uint8_t *p, int len)
 {
 	int count;
 	uint64_t operand1;
 	uint64_t operand2;
-	uint8_t *ps, *pe;
+	uint8_t *ps, *pe, s;
+
+	(void) version;
 
 	count = 0;
 	ps = p;
@@ -169,6 +172,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_call_frame_cfa:
 		case DW_OP_stack_value:
 		case DW_OP_GNU_push_tls_address:
+		case DW_OP_GNU_uninit:
 			break;
 
 		/* Operations with 1-byte operands. */
@@ -207,6 +211,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_plus_uconst:
 		case DW_OP_regx:
 		case DW_OP_piece:
+		case DW_OP_GNU_deref_type:
 			operand1 = _dwarf_decode_uleb128(&p);
 			break;
 
@@ -281,16 +286,21 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			operand1 = dbg->decode(&p, pointer_size);
 			break;
 
-		/*
-		 * XXX Opcode DW_OP_call_ref has an operand with size
-		 * "dwarf_size". Here we use dbg->dbg_offset_size
-		 * as "dwarf_size" to be compatible with SGI libdwarf.
-		 * However note that dbg->dbg_offset_size is just
-		 * a "guess" value so the parsing result of
-		 * DW_OP_call_ref might not be correct at all. XXX
-		 */
+		/* Offset size operand. */
 		case DW_OP_call_ref:
-			operand1 = dbg->decode(&p, dbg->dbg_offset_size);
+			operand1 = dbg->decode(&p, offset_size);
+			break;
+
+		/*
+		 * The first byte is address byte length, followed by
+		 * the address value. If the length is 0, the address
+		 * size is the same as target pointer size.
+		 */
+		case DW_OP_GNU_encoded_addr:
+			s = *p++;
+			if (s == 0)
+				s = pointer_size;
+			operand1 = dbg->decode(&p, s);
 			break;
 
 		/* All other operations cause an error. */
@@ -562,7 +572,8 @@ _dwarf_loc_expr_add_atom(Dwarf_Debug dbg, uint8_t *out, uint8_t *end,
 
 int
 _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
-    uint64_t in_len, uint8_t pointer_size, Dwarf_Error *error)
+    uint64_t in_len, uint8_t pointer_size, uint8_t offset_size,
+    uint8_t version, Dwarf_Error *error)
 {
 	int num;
 
@@ -571,8 +582,8 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 	assert(in_len > 0);
 
 	/* Compute the number of locations. */
-	if ((num = _dwarf_loc_fill_loc(dbg, NULL, pointer_size, in, in_len)) <
-	    0) {
+	if ((num = _dwarf_loc_fill_loc(dbg, NULL, pointer_size, offset_size,
+	    version, in, in_len)) < 0) {
 		DWARF_SET_ERROR(dbg, error, DW_DLE_LOC_EXPR_BAD);
 		return (DW_DLE_LOC_EXPR_BAD);
 	}
@@ -586,14 +597,16 @@ _dwarf_loc_fill_locdesc(Dwarf_Debug dbg, Dwarf_Locdesc *llbuf, uint8_t *in,
 		return (DW_DLE_MEMORY);
 	}
 
-	(void) _dwarf_loc_fill_loc(dbg, llbuf, pointer_size, in, in_len);
+	(void) _dwarf_loc_fill_loc(dbg, llbuf, pointer_size, offset_size,
+	    version, in, in_len);
 
 	return (DW_DLE_NONE);
 }
 
 int
 _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
-    uint64_t in_len, uint8_t pointer_size, Dwarf_Error *error)
+    uint64_t in_len, uint8_t pointer_size, uint8_t offset_size,
+    uint8_t version, Dwarf_Error *error)
 {
 	Dwarf_Locdesc *llbuf;
 	int ret;
@@ -607,7 +620,7 @@ _dwarf_loc_fill_locexpr(Dwarf_Debug dbg, Dwarf_Locdesc **ret_llbuf, uint8_t *in,
 	llbuf->ld_s = NULL;
 
 	ret = _dwarf_loc_fill_locdesc(dbg, llbuf, in, in_len, pointer_size,
-	    error);
+	    offset_size, version, error);
 	if (ret != DW_DLE_NONE) {
 		free(llbuf);
 		return (ret);
@@ -636,7 +649,8 @@ _dwarf_loc_add(Dwarf_Die die, Dwarf_Attribute at, Dwarf_Error *error)
 	assert(dbg != NULL);
 
 	ret = _dwarf_loc_fill_locexpr(dbg, &at->at_ld, at->u[1].u8p,
-	    at->u[0].u64, cu->cu_pointer_size, error);
+	    at->u[0].u64, cu->cu_pointer_size, cu->cu_length_size == 4 ? 4 : 8,
+	    cu->cu_version, error);
 
 	return (ret);
 }

@@ -75,6 +75,7 @@ _dwarf_loclist_add_locdesc(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Section *ds,
 		if (ld != NULL) {
 			ret = _dwarf_loc_fill_locdesc(dbg, ld[i],
 			    ds->ds_data + *off, len, cu->cu_pointer_size,
+			    cu->cu_length_size == 4 ? 4 : 8, cu->cu_version,
 			    error);
 			if (ret != DW_DLE_NONE)
 				return (ret);
