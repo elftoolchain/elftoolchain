@@ -46,8 +46,6 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 	uint64_t operand2;
 	uint8_t *ps, *pe, s;
 
-	(void) version;
-
 	count = 0;
 	ps = p;
 	pe = p + len;
@@ -168,6 +166,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_ne:
 
 		case DW_OP_nop:
+		case DW_OP_push_object_address:
 		case DW_OP_form_tls_address:
 		case DW_OP_call_frame_cfa:
 		case DW_OP_stack_value:
@@ -197,6 +196,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_call4:
 		case DW_OP_const4u:
 		case DW_OP_const4s:
+		case DW_OP_GNU_parameter_ref:
 			operand1 = dbg->decode(&p, 4);
 			break;
 
@@ -212,6 +212,8 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		case DW_OP_regx:
 		case DW_OP_piece:
 		case DW_OP_GNU_deref_type:
+		case DW_OP_GNU_convert:
+		case DW_OP_GNU_reinterpret:
 			operand1 = _dwarf_decode_uleb128(&p);
 			break;
 
@@ -257,6 +259,7 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 		 * Oeration with two unsigned LEB128 operands.
 		 */
 		case DW_OP_bit_piece:
+		case DW_OP_GNU_regval_type:
 			operand1 = _dwarf_decode_uleb128(&p);
 			operand2 = _dwarf_decode_uleb128(&p);
 			break;
@@ -272,10 +275,14 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 
 		/*
 		 * Operation with an unsigned LEB128 operand
-		 * followed by a block. Store a pointer to the
-		 * block in the operand2.
+		 * representing the size of a block, followed
+		 * by the block content.
+		 *
+		 * Store the size of the block in the operand1
+		 * and a pointer to the block in the operand2.
 		 */
 		case DW_OP_implicit_value:
+		case DW_OP_GNU_entry_value:
 			operand1 = _dwarf_decode_uleb128(&p);
 			operand2 = (Dwarf_Unsigned) (uintptr_t) p;
 			p += operand1;
@@ -283,6 +290,8 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 
 		/* Target address size operand. */
 		case DW_OP_addr:
+		case DW_OP_GNU_addr_index:
+		case DW_OP_GNU_const_index:
 			operand1 = dbg->decode(&p, pointer_size);
 			break;
 
@@ -301,6 +310,33 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 			if (s == 0)
 				s = pointer_size;
 			operand1 = dbg->decode(&p, s);
+			break;
+
+		/*
+		 * Operand1: DIE offset (size depending on DWARF version)
+		 * DWARF2: pointer size
+		 * DWARF{3,4}: offset size
+		 *
+		 * Operand2: SLEB128
+		 */
+		case DW_OP_GNU_implicit_pointer:
+			if (version == 2)
+				operand1 = dbg->decode(&p, pointer_size);
+			else
+				operand1 = dbg->decode(&p, offset_size);
+			operand2 = _dwarf_decode_sleb128(&p);
+			break;
+
+		/*
+		 * Operand1: DIE offset (ULEB128)
+		 * Operand2: pointer to a block. The block's first byte
+		 * is its size.
+		 */
+		case DW_OP_GNU_const_type:
+			operand1 = _dwarf_decode_uleb128(&p);
+			operand2 = (Dwarf_Unsigned) (uintptr_t) p;
+			s = *p++;
+			p += s;
 			break;
 
 		/* All other operations cause an error. */
