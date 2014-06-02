@@ -139,8 +139,17 @@ dwarf_lowpc(Dwarf_Die die, Dwarf_Addr *ret_lowpc, Dwarf_Error *error)
 int
 dwarf_highpc(Dwarf_Die die, Dwarf_Addr *ret_highpc, Dwarf_Error *error)
 {
+
+	return (dwarf_highpc_b(die, ret_highpc, NULL, NULL, error));
+}
+
+int
+dwarf_highpc_b(Dwarf_Die die, Dwarf_Addr *ret_highpc, Dwarf_Half *ret_form,
+    enum Dwarf_Form_Class *ret_class, Dwarf_Error *error)
+{
 	Dwarf_Attribute at;
 	Dwarf_Debug dbg;
+	Dwarf_CU cu;
 
 	dbg = die != NULL ? die->die_dbg : NULL;
 
@@ -155,6 +164,17 @@ dwarf_highpc(Dwarf_Die die, Dwarf_Addr *ret_highpc, Dwarf_Error *error)
 	}
 
 	*ret_highpc = at->u[0].u64;
+
+	if (ret_form != NULL) {
+		*ret_form = at->at_form;
+	}
+
+	if (ret_class != NULL) {
+		cu = die->die_cu;
+		*ret_class = dwarf_get_form_class(cu->cu_version,
+		    DW_AT_high_pc, cu->cu_length_size == 4 ? 4 : 8,
+		    at->at_form);
+	}
 
 	return (DW_DLV_OK);
 }

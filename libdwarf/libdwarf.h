@@ -712,6 +712,8 @@ int		dwarf_hasattr(Dwarf_Die, Dwarf_Half, Dwarf_Bool *,
 int		dwarf_hasform(Dwarf_Attribute, Dwarf_Half, Dwarf_Bool *,
 		    Dwarf_Error *);
 int		dwarf_highpc(Dwarf_Die, Dwarf_Addr *, Dwarf_Error *);
+int		dwarf_highpc_b(Dwarf_Die, Dwarf_Addr *, Dwarf_Half *,
+		    enum Dwarf_Form_Class *, Dwarf_Error *);
 int		dwarf_init(int, int, Dwarf_Handler, Dwarf_Ptr, Dwarf_Debug *,
 		    Dwarf_Error *);
 int		dwarf_line_srcfileno(Dwarf_Line, Dwarf_Unsigned *,
