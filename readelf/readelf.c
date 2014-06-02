@@ -145,6 +145,9 @@ struct readelf {
 	Elf		 *elf;		/* underlying ELF descriptor. */
 	Elf		 *ar;		/* archive ELF descriptor. */
 	Dwarf_Debug	  dbg;		/* DWARF handle. */
+	Dwarf_Half	  cu_psize;	/* DWARF CU pointer size. */
+	Dwarf_Half	  cu_osize;	/* DWARF CU offset size. */
+	Dwarf_Half	  cu_ver;	/* DWARF CU version. */
 	GElf_Ehdr	  ehdr;		/* ELF header. */
 	int		  ec;		/* ELF class. */
 	size_t		  shnum;	/* #sections. */
@@ -254,6 +257,30 @@ static void dump_arm_attributes(struct readelf *re, uint8_t *p, uint8_t *pe);
 static void dump_attributes(struct readelf *re);
 static uint8_t *dump_compatibility_tag(uint8_t *p);
 static void dump_dwarf(struct readelf *re);
+static void dump_dwarf_abbrev(struct readelf *re);
+static void dump_dwarf_aranges(struct readelf *re);
+static void dump_dwarf_block(struct readelf *re, uint8_t *b,
+    Dwarf_Unsigned len);
+static void dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level);
+static void dump_dwarf_frame(struct readelf *re, int alt);
+static void dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts,
+    Dwarf_Unsigned len, Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc,
+    Dwarf_Debug dbg);
+static int dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc,
+    Dwarf_Unsigned func_len, Dwarf_Half cie_ra);
+static void dump_dwarf_frame_section(struct readelf *re, struct section *s,
+    int alt);
+static void dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info);
+static void dump_dwarf_macinfo(struct readelf *re);
+static void dump_dwarf_line(struct readelf *re);
+static void dump_dwarf_line_decoded(struct readelf *re);
+static void dump_dwarf_loc(Dwarf_Loc *lr);
+static void dump_dwarf_loclist(struct readelf *re);
+static void dump_dwarf_pubnames(struct readelf *re);
+static void dump_dwarf_ranges(struct readelf *re);
+static void dump_dwarf_ranges_foreach(struct readelf *re, Dwarf_Die die,
+    Dwarf_Addr base);
+static void dump_dwarf_str(struct readelf *re);
 static void dump_eflags(struct readelf *re, uint64_t e_flags);
 static void dump_elf(struct readelf *re);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
@@ -284,6 +311,7 @@ static void dump_verneed(struct readelf *re, int dump);
 static void dump_versym(struct readelf *re);
 static struct dumpop *find_dumpop(struct readelf *re, size_t si, const char *sn,
     int op, int t);
+static char *get_regoff_str(Dwarf_Half reg, Dwarf_Addr off);
 static const char *get_string(struct readelf *re, int strtab, size_t off);
 static const char *get_symbol_name(struct readelf *re, int symtab, int i);
 static uint64_t get_symbol_value(struct readelf *re, int symtab, int i);
@@ -298,8 +326,12 @@ static const char *ppc_abi_vector(uint64_t vec);
 static const char *r_type(unsigned int mach, unsigned int type);
 static void readelf_usage(void);
 static void readelf_version(void);
+static void search_loclist_at(struct readelf *re, Dwarf_Die die,
+    Dwarf_Unsigned lowpc);
 static void search_ver(struct readelf *re);
 static const char *section_type(unsigned int mach, unsigned int stype);
+static void set_cu_context(struct readelf *re, Dwarf_Half psize,
+    Dwarf_Half osize, Dwarf_Half ver);
 static const char *st_bind(unsigned int sbind);
 static const char *st_shndx(unsigned int shndx);
 static const char *st_type(unsigned int stype);
@@ -4687,6 +4719,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			b = v_block->bl_data;
 			for (j = 0; (Dwarf_Unsigned) j < v_block->bl_len; j++)
 				printf(" %x", b[j]);
+			printf("\t(");
+			dump_dwarf_block(re, v_block->bl_data, v_block->bl_len);
+			putchar(')');
 			break;
 
 		case DW_FORM_exprloc:
@@ -4700,6 +4735,9 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			b = v_expr;
 			for (j = 0; (Dwarf_Unsigned) j < v_udata; j++)
 				printf(" %x", b[j]);
+			printf("\t(");
+			dump_dwarf_block(re, v_expr, v_udata);
+			putchar(')');
 			break;
 
 		case DW_FORM_ref_sig8:
@@ -4778,6 +4816,16 @@ cont_search:
 }
 
 static void
+set_cu_context(struct readelf *re, Dwarf_Half psize, Dwarf_Half osize,
+    Dwarf_Half ver)
+{
+
+	re->cu_psize = psize;
+	re->cu_osize = osize;
+	re->cu_ver = ver;
+}
+
+static void
 dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 {
 	struct section *s;
@@ -4810,6 +4858,7 @@ dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info)
 		while ((ret = dwarf_next_cu_header_c(re->dbg, is_info, NULL,
 		    &version, &aboff, &pointer_size, &off_size, NULL, &sig8,
 		    &typeoff, NULL, &de)) == DW_DLV_OK) {
+			set_cu_context(re, pointer_size, off_size, version);
 			die = NULL;
 			while (dwarf_siblingof_b(re->dbg, die, &die, is_info,
 			    &de) == DW_DLV_OK) {
@@ -5658,6 +5707,9 @@ struct loc_at {
 	Dwarf_Attribute la_at;
 	Dwarf_Unsigned la_off;
 	Dwarf_Unsigned la_lowpc;
+	Dwarf_Half la_cu_psize;
+	Dwarf_Half la_cu_osize;
+	Dwarf_Half la_cu_ver;
 	TAILQ_ENTRY(loc_at) la_next;
 };
 
@@ -5729,6 +5781,9 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 				nla->la_at = attr_list[i];
 				nla->la_off = off;
 				nla->la_lowpc = lowpc;
+				nla->la_cu_psize = re->cu_psize;
+				nla->la_cu_osize = re->cu_osize;
+				nla->la_cu_ver = re->cu_ver;
 				TAILQ_INSERT_BEFORE(la, nla, la_next);
 				break;
 			}
@@ -5760,25 +5815,232 @@ cont_search:
 }
 
 static void
+dump_dwarf_loc(Dwarf_Loc *lr)
+{
+	const char *op_str;
+	char unk_op[32];
+
+	if (dwarf_get_OP_name(lr->lr_atom, &op_str) !=
+	    DW_DLV_OK) {
+		snprintf(unk_op, sizeof(unk_op),
+		    "[Unknown OP: %#x]", lr->lr_atom);
+		op_str = unk_op;
+	}
+
+	printf("%s", op_str);
+
+	switch (lr->lr_atom) {
+	case DW_OP_deref:
+	case DW_OP_reg0:
+	case DW_OP_reg1:
+	case DW_OP_reg2:
+	case DW_OP_reg3:
+	case DW_OP_reg4:
+	case DW_OP_reg5:
+	case DW_OP_reg6:
+	case DW_OP_reg7:
+	case DW_OP_reg8:
+	case DW_OP_reg9:
+	case DW_OP_reg10:
+	case DW_OP_reg11:
+	case DW_OP_reg12:
+	case DW_OP_reg13:
+	case DW_OP_reg14:
+	case DW_OP_reg15:
+	case DW_OP_reg16:
+	case DW_OP_reg17:
+	case DW_OP_reg18:
+	case DW_OP_reg19:
+	case DW_OP_reg20:
+	case DW_OP_reg21:
+	case DW_OP_reg22:
+	case DW_OP_reg23:
+	case DW_OP_reg24:
+	case DW_OP_reg25:
+	case DW_OP_reg26:
+	case DW_OP_reg27:
+	case DW_OP_reg28:
+	case DW_OP_reg29:
+	case DW_OP_reg30:
+	case DW_OP_reg31:
+	case DW_OP_lit0:
+	case DW_OP_lit1:
+	case DW_OP_lit2:
+	case DW_OP_lit3:
+	case DW_OP_lit4:
+	case DW_OP_lit5:
+	case DW_OP_lit6:
+	case DW_OP_lit7:
+	case DW_OP_lit8:
+	case DW_OP_lit9:
+	case DW_OP_lit10:
+	case DW_OP_lit11:
+	case DW_OP_lit12:
+	case DW_OP_lit13:
+	case DW_OP_lit14:
+	case DW_OP_lit15:
+	case DW_OP_lit16:
+	case DW_OP_lit17:
+	case DW_OP_lit18:
+	case DW_OP_lit19:
+	case DW_OP_lit20:
+	case DW_OP_lit21:
+	case DW_OP_lit22:
+	case DW_OP_lit23:
+	case DW_OP_lit24:
+	case DW_OP_lit25:
+	case DW_OP_lit26:
+	case DW_OP_lit27:
+	case DW_OP_lit28:
+	case DW_OP_lit29:
+	case DW_OP_lit30:
+	case DW_OP_lit31:
+	case DW_OP_dup:
+	case DW_OP_drop:
+	case DW_OP_over:
+	case DW_OP_swap:
+	case DW_OP_rot:
+	case DW_OP_xderef:
+	case DW_OP_abs:
+	case DW_OP_and:
+	case DW_OP_div:
+	case DW_OP_minus:
+	case DW_OP_mod:
+	case DW_OP_mul:
+	case DW_OP_neg:
+	case DW_OP_not:
+	case DW_OP_or:
+	case DW_OP_plus:
+	case DW_OP_shl:
+	case DW_OP_shr:
+	case DW_OP_shra:
+	case DW_OP_xor:
+	case DW_OP_eq:
+	case DW_OP_ge:
+	case DW_OP_gt:
+	case DW_OP_le:
+	case DW_OP_lt:
+	case DW_OP_ne:
+	case DW_OP_nop:
+		break;
+
+	case DW_OP_const1u:
+	case DW_OP_const1s:
+	case DW_OP_pick:
+	case DW_OP_deref_size:
+	case DW_OP_xderef_size:
+	case DW_OP_const2u:
+	case DW_OP_const2s:
+	case DW_OP_bra:
+	case DW_OP_skip:
+	case DW_OP_const4u:
+	case DW_OP_const4s:
+	case DW_OP_const8u:
+	case DW_OP_const8s:
+	case DW_OP_constu:
+	case DW_OP_plus_uconst:
+	case DW_OP_regx:
+	case DW_OP_piece:
+		printf(": %ju", (uintmax_t)
+		    lr->lr_number);
+		break;
+
+	case DW_OP_consts:
+	case DW_OP_breg0:
+	case DW_OP_breg1:
+	case DW_OP_breg2:
+	case DW_OP_breg3:
+	case DW_OP_breg4:
+	case DW_OP_breg5:
+	case DW_OP_breg6:
+	case DW_OP_breg7:
+	case DW_OP_breg8:
+	case DW_OP_breg9:
+	case DW_OP_breg10:
+	case DW_OP_breg11:
+	case DW_OP_breg12:
+	case DW_OP_breg13:
+	case DW_OP_breg14:
+	case DW_OP_breg15:
+	case DW_OP_breg16:
+	case DW_OP_breg17:
+	case DW_OP_breg18:
+	case DW_OP_breg19:
+	case DW_OP_breg20:
+	case DW_OP_breg21:
+	case DW_OP_breg22:
+	case DW_OP_breg23:
+	case DW_OP_breg24:
+	case DW_OP_breg25:
+	case DW_OP_breg26:
+	case DW_OP_breg27:
+	case DW_OP_breg28:
+	case DW_OP_breg29:
+	case DW_OP_breg30:
+	case DW_OP_breg31:
+	case DW_OP_fbreg:
+		printf(": %jd", (intmax_t)
+		    lr->lr_number);
+		break;
+
+	case DW_OP_bregx:
+		printf(": %ju %jd",
+		    (uintmax_t) lr->lr_number,
+		    (intmax_t) lr->lr_number2);
+		break;
+
+	case DW_OP_addr:
+		printf(": %#jx", (uintmax_t)
+		    lr->lr_number);
+		break;
+
+	default:
+		break;
+	}
+}
+
+static void
+dump_dwarf_block(struct readelf *re, uint8_t *b, Dwarf_Unsigned len)
+{
+	Dwarf_Locdesc *llbuf;
+	Dwarf_Signed listlen;
+	Dwarf_Error de;
+	int i;
+
+	if (dwarf_loclist_from_expr_b(re->dbg, b, len, re->cu_psize,
+	    re->cu_osize, re->cu_ver, &llbuf, &listlen, &de) != DW_DLV_OK) {
+		warnx("dwarf_loclist_form_expr_b: %s", dwarf_errmsg(de));
+		return;
+	}
+
+	for (i = 0; (Dwarf_Half) i < llbuf->ld_cents; i++) {
+		dump_dwarf_loc(&llbuf->ld_s[i]);
+		if (i < llbuf->ld_cents - 1)
+			printf("; ");
+	}
+
+	dwarf_dealloc(re->dbg, llbuf->ld_s, DW_DLA_LOC_BLOCK);
+	dwarf_dealloc(re->dbg, llbuf, DW_DLA_LOCDESC);
+}
+
+static void
 dump_dwarf_loclist(struct readelf *re)
 {
 	Dwarf_Die die;
 	Dwarf_Locdesc **llbuf;
 	Dwarf_Unsigned lowpc;
 	Dwarf_Signed lcnt;
-	Dwarf_Half tag;
+	Dwarf_Half tag, version, pointer_size, off_size;
 	Dwarf_Error de;
-	Dwarf_Loc *lr;
 	struct loc_at *la;
-	const char *op_str;
-	char unk_op[32];
 	int i, j, ret;
 
 	printf("\nContents of section .debug_loc:\n");
 
 	/* Search .debug_info section. */
-	while ((ret = dwarf_next_cu_header(re->dbg, NULL, NULL, NULL, NULL,
-	    NULL, &de)) == DW_DLV_OK) {
+	while ((ret = dwarf_next_cu_header_b(re->dbg, NULL, &version, NULL,
+	    &pointer_size, &off_size, NULL, NULL, &de)) == DW_DLV_OK) {
+		set_cu_context(re, pointer_size, off_size, version);
 		die = NULL;
 		if (dwarf_siblingof(re->dbg, die, &die, &de) != DW_DLV_OK)
 			continue;
@@ -5802,9 +6064,10 @@ dump_dwarf_loclist(struct readelf *re)
 
 	/* Search .debug_types section. */
 	do {
-		while ((ret = dwarf_next_cu_header_c(re->dbg, 0, NULL, NULL,
-		    NULL, NULL, NULL, NULL, NULL, NULL, NULL, &de)) ==
-		    DW_DLV_OK) {
+		while ((ret = dwarf_next_cu_header_c(re->dbg, 0, NULL,
+		    &version, NULL, &pointer_size, &off_size, NULL, NULL,
+		    NULL, NULL, &de)) == DW_DLV_OK) {
+			set_cu_context(re, pointer_size, off_size, version);
 			die = NULL;
 			if (dwarf_siblingof(re->dbg, die, &die, &de) !=
 			    DW_DLV_OK)
@@ -5843,6 +6106,8 @@ dump_dwarf_loclist(struct readelf *re)
 			warnx("dwarf_loclist_n failed: %s", dwarf_errmsg(de));
 			continue;
 		}
+		set_cu_context(re, la->la_cu_psize, la->la_cu_osize,
+		    la->la_cu_ver);
 		for (i = 0; i < lcnt; i++) {
 			printf("    %8.8jx ", la->la_off);
 			if (llbuf[i]->ld_lopc == 0 && llbuf[i]->ld_hipc == 0) {
@@ -5858,185 +6123,7 @@ dump_dwarf_loclist(struct readelf *re)
 
 			putchar('(');
 			for (j = 0; (Dwarf_Half) j < llbuf[i]->ld_cents; j++) {
-				lr = &llbuf[i]->ld_s[j];
-				if (dwarf_get_OP_name(lr->lr_atom, &op_str) !=
-				    DW_DLV_OK) {
-					snprintf(unk_op, sizeof(unk_op),
-					    "[Unknown OP: %#x]", lr->lr_atom);
-					op_str = unk_op;
-				}
-
-				printf("%s", op_str);
-
-				switch (lr->lr_atom) {
-				/* Operations with no operands. */
-				case DW_OP_deref:
-				case DW_OP_reg0:
-				case DW_OP_reg1:
-				case DW_OP_reg2:
-				case DW_OP_reg3:
-				case DW_OP_reg4:
-				case DW_OP_reg5:
-				case DW_OP_reg6:
-				case DW_OP_reg7:
-				case DW_OP_reg8:
-				case DW_OP_reg9:
-				case DW_OP_reg10:
-				case DW_OP_reg11:
-				case DW_OP_reg12:
-				case DW_OP_reg13:
-				case DW_OP_reg14:
-				case DW_OP_reg15:
-				case DW_OP_reg16:
-				case DW_OP_reg17:
-				case DW_OP_reg18:
-				case DW_OP_reg19:
-				case DW_OP_reg20:
-				case DW_OP_reg21:
-				case DW_OP_reg22:
-				case DW_OP_reg23:
-				case DW_OP_reg24:
-				case DW_OP_reg25:
-				case DW_OP_reg26:
-				case DW_OP_reg27:
-				case DW_OP_reg28:
-				case DW_OP_reg29:
-				case DW_OP_reg30:
-				case DW_OP_reg31:
-				case DW_OP_lit0:
-				case DW_OP_lit1:
-				case DW_OP_lit2:
-				case DW_OP_lit3:
-				case DW_OP_lit4:
-				case DW_OP_lit5:
-				case DW_OP_lit6:
-				case DW_OP_lit7:
-				case DW_OP_lit8:
-				case DW_OP_lit9:
-				case DW_OP_lit10:
-				case DW_OP_lit11:
-				case DW_OP_lit12:
-				case DW_OP_lit13:
-				case DW_OP_lit14:
-				case DW_OP_lit15:
-				case DW_OP_lit16:
-				case DW_OP_lit17:
-				case DW_OP_lit18:
-				case DW_OP_lit19:
-				case DW_OP_lit20:
-				case DW_OP_lit21:
-				case DW_OP_lit22:
-				case DW_OP_lit23:
-				case DW_OP_lit24:
-				case DW_OP_lit25:
-				case DW_OP_lit26:
-				case DW_OP_lit27:
-				case DW_OP_lit28:
-				case DW_OP_lit29:
-				case DW_OP_lit30:
-				case DW_OP_lit31:
-				case DW_OP_dup:
-				case DW_OP_drop:
-				case DW_OP_over:
-				case DW_OP_swap:
-				case DW_OP_rot:
-				case DW_OP_xderef:
-				case DW_OP_abs:
-				case DW_OP_and:
-				case DW_OP_div:
-				case DW_OP_minus:
-				case DW_OP_mod:
-				case DW_OP_mul:
-				case DW_OP_neg:
-				case DW_OP_not:
-				case DW_OP_or:
-				case DW_OP_plus:
-				case DW_OP_shl:
-				case DW_OP_shr:
-				case DW_OP_shra:
-				case DW_OP_xor:
-				case DW_OP_eq:
-				case DW_OP_ge:
-				case DW_OP_gt:
-				case DW_OP_le:
-				case DW_OP_lt:
-				case DW_OP_ne:
-				case DW_OP_nop:
-					break;
-
-				case DW_OP_const1u:
-				case DW_OP_const1s:
-				case DW_OP_pick:
-				case DW_OP_deref_size:
-				case DW_OP_xderef_size:
-				case DW_OP_const2u:
-				case DW_OP_const2s:
-				case DW_OP_bra:
-				case DW_OP_skip:
-				case DW_OP_const4u:
-				case DW_OP_const4s:
-				case DW_OP_const8u:
-				case DW_OP_const8s:
-				case DW_OP_constu:
-				case DW_OP_plus_uconst:
-				case DW_OP_regx:
-				case DW_OP_piece:
-					printf(": %ju", (uintmax_t)
-					    lr->lr_number);
-					break;
-
-				case DW_OP_consts:
-				case DW_OP_breg0:
-				case DW_OP_breg1:
-				case DW_OP_breg2:
-				case DW_OP_breg3:
-				case DW_OP_breg4:
-				case DW_OP_breg5:
-				case DW_OP_breg6:
-				case DW_OP_breg7:
-				case DW_OP_breg8:
-				case DW_OP_breg9:
-				case DW_OP_breg10:
-				case DW_OP_breg11:
-				case DW_OP_breg12:
-				case DW_OP_breg13:
-				case DW_OP_breg14:
-				case DW_OP_breg15:
-				case DW_OP_breg16:
-				case DW_OP_breg17:
-				case DW_OP_breg18:
-				case DW_OP_breg19:
-				case DW_OP_breg20:
-				case DW_OP_breg21:
-				case DW_OP_breg22:
-				case DW_OP_breg23:
-				case DW_OP_breg24:
-				case DW_OP_breg25:
-				case DW_OP_breg26:
-				case DW_OP_breg27:
-				case DW_OP_breg28:
-				case DW_OP_breg29:
-				case DW_OP_breg30:
-				case DW_OP_breg31:
-				case DW_OP_fbreg:
-					printf(": %jd", (intmax_t)
-					    lr->lr_number);
-					break;
-
-				case DW_OP_bregx:
-					printf(": %ju %jd",
-					    (uintmax_t) lr->lr_number,
-					    (intmax_t) lr->lr_number2);
-					break;
-
-				case DW_OP_addr:
-					printf(": %#jx", (uintmax_t)
-					    lr->lr_number);
-					break;
-
-				default:
-					break;
-				}
+				dump_dwarf_loc(&llbuf[i]->ld_s[j]);
 				if (j < llbuf[i]->ld_cents - 1)
 					printf("; ");
 			}
