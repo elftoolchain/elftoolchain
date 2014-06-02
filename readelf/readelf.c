@@ -6588,7 +6588,7 @@ static struct {
 	{"Ranges", 'R', DW_RR},
 	{"macro", 'm', DW_M},
 	{"frames", 'f', DW_F},
-	{"", 'F', DW_FF},
+	{"frames-interp", 'F', DW_FF},
 	{"str", 's', DW_S},
 	{"loc", 'o', DW_O},
 	{NULL, 0, 0}
