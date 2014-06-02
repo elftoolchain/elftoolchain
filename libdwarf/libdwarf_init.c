@@ -219,7 +219,6 @@ _dwarf_init(Dwarf_Debug dbg, Dwarf_Unsigned pro_flags, Dwarf_Handler errhand,
 	STAILQ_INIT(&dbg->dbg_rllist);
 	STAILQ_INIT(&dbg->dbg_aslist);
 	STAILQ_INIT(&dbg->dbg_mslist);
-	TAILQ_INIT(&dbg->dbg_loclist);
 
 	if (dbg->dbg_mode == DW_DLC_READ || dbg->dbg_mode == DW_DLC_RDWR) {
 		ret = _dwarf_consumer_init(dbg, error);
@@ -276,7 +275,6 @@ _dwarf_consumer_deinit(Dwarf_Debug dbg)
 	assert(dbg != NULL && dbg->dbg_mode == DW_DLC_READ);
 
 	_dwarf_info_cleanup(dbg);
-	_dwarf_loclist_cleanup(dbg);
 	_dwarf_ranges_cleanup(dbg);
 	_dwarf_frame_cleanup(dbg);
 	_dwarf_arange_cleanup(dbg);

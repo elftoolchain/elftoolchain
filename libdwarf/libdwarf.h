@@ -59,7 +59,6 @@ typedef struct _Dwarf_FrameSec	*Dwarf_FrameSec;
 typedef struct _Dwarf_Line	*Dwarf_Line;
 typedef struct _Dwarf_LineFile	*Dwarf_LineFile;
 typedef struct _Dwarf_LineInfo	*Dwarf_LineInfo;
-typedef struct _Dwarf_Loclist	*Dwarf_Loclist;
 typedef struct _Dwarf_MacroSet	*Dwarf_MacroSet;
 typedef struct _Dwarf_NamePair	*Dwarf_NamePair;
 typedef struct _Dwarf_NamePair	*Dwarf_Func;

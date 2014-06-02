@@ -148,14 +148,6 @@ struct _Dwarf_Die {
 	STAILQ_ENTRY(_Dwarf_Die) die_pro_next; /* Next die in pro-die list. */
 };
 
-struct _Dwarf_Loclist {
-	Dwarf_Locdesc 	**ll_ldlist;	/* Array of Locdesc pointer. */
-	int 		ll_ldlen;	/* Number of Locdesc. */
-	Dwarf_Unsigned	ll_offset;	/* Offset in .debug_loc section. */
-	Dwarf_Unsigned	ll_length;	/* Length (in bytes) of the loclist. */
-	TAILQ_ENTRY(_Dwarf_Loclist) ll_next; /* Next loclist in list. */
-};
-
 struct _Dwarf_P_Expr_Entry {
 	Dwarf_Loc	ee_loc;		/* Location expression. */
 	Dwarf_Unsigned	ee_sym;		/* Optional related reloc sym index. */
@@ -418,7 +410,6 @@ struct _Dwarf_Debug {
 	STAILQ_HEAD(, _Dwarf_CU) dbg_tu;/* List of type units. */
 	Dwarf_CU	dbg_cu_current; /* Ptr to the current CU. */
 	Dwarf_CU	dbg_tu_current; /* Ptr to the current TU. */
-	TAILQ_HEAD(, _Dwarf_Loclist) dbg_loclist; /* List of location list. */
 	Dwarf_NameSec	dbg_globals;	/* Ptr to pubnames lookup section. */
 	Dwarf_NameSec	dbg_pubtypes;	/* Ptr to pubtypes lookup section. */
 	Dwarf_NameSec	dbg_weaks;	/* Ptr to weaknames lookup section. */
@@ -587,11 +578,8 @@ int		_dwarf_loc_expr_add_atom(Dwarf_Debug, uint8_t *, uint8_t *,
 		    Dwarf_Small, Dwarf_Unsigned, Dwarf_Unsigned, int *,
 		    Dwarf_Error *);
 int		_dwarf_loclist_find(Dwarf_Debug, Dwarf_CU, uint64_t,
-		    Dwarf_Loclist *, Dwarf_Error *);
-void		_dwarf_loclist_cleanup(Dwarf_Debug);
-void		_dwarf_loclist_free(Dwarf_Loclist);
-int		_dwarf_loclist_add(Dwarf_Debug, Dwarf_CU, uint64_t,
-		    Dwarf_Loclist *, Dwarf_Error *);
+		    Dwarf_Locdesc ***, Dwarf_Signed *, Dwarf_Unsigned *,
+		    Dwarf_Error *);
 void		_dwarf_macinfo_cleanup(Dwarf_Debug);
 int		_dwarf_macinfo_gen(Dwarf_P_Debug, Dwarf_Error *);
 int		_dwarf_macinfo_init(Dwarf_Debug, Dwarf_Error *);
