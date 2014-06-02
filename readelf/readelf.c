@@ -6003,12 +6003,12 @@ static void
 dump_dwarf_block(struct readelf *re, uint8_t *b, Dwarf_Unsigned len)
 {
 	Dwarf_Locdesc *llbuf;
-	Dwarf_Signed listlen;
+	Dwarf_Signed lcnt;
 	Dwarf_Error de;
 	int i;
 
 	if (dwarf_loclist_from_expr_b(re->dbg, b, len, re->cu_psize,
-	    re->cu_osize, re->cu_ver, &llbuf, &listlen, &de) != DW_DLV_OK) {
+	    re->cu_osize, re->cu_ver, &llbuf, &lcnt, &de) != DW_DLV_OK) {
 		warnx("dwarf_loclist_form_expr_b: %s", dwarf_errmsg(de));
 		return;
 	}
@@ -6133,6 +6133,12 @@ dump_dwarf_loclist(struct readelf *re)
 				printf(" (start == end)");
 			putchar('\n');
 		}
+		for (i = 0; i < lcnt; i++) {
+			dwarf_dealloc(re->dbg, llbuf[i]->ld_s,
+			    DW_DLA_LOC_BLOCK);
+			dwarf_dealloc(re->dbg, llbuf[i], DW_DLA_LOCDESC);
+		}
+		dwarf_dealloc(re->dbg, llbuf, DW_DLA_LIST);
 	}
 }
 
