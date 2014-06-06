@@ -105,6 +105,7 @@ dwarf_loclist_n(Dwarf_Attribute at, Dwarf_Locdesc ***llbuf,
 		case DW_FORM_block1:
 		case DW_FORM_block2:
 		case DW_FORM_block4:
+		case DW_FORM_exprloc:
 			if (at->at_ld == NULL) {
 				ret = _dwarf_loc_add(at->at_die, at, error);
 				if (ret != DW_DLE_NONE)
