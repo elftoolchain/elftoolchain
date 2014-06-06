@@ -4546,7 +4546,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 {
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
-	Dwarf_Off dieoff, cuoff, culen;
+	Dwarf_Off dieoff, cuoff, culen, attroff;
 	Dwarf_Unsigned ate, lang, v_udata, v_sig;
 	Dwarf_Signed attr_count, v_sdata;
 	Dwarf_Off v_off;
@@ -4568,7 +4568,7 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 		goto cont_search;
 	}
 
-	printf("<%d><%jx>: ", level, (uintmax_t) dieoff);
+	printf(" <%d><%jx>: ", level, (uintmax_t) dieoff);
 
 	if (dwarf_die_CU_offset_range(die, &cuoff, &culen, &de) != DW_DLV_OK) {
 		warnx("dwarf_die_CU_offset_range failed: %s",
@@ -4609,7 +4609,12 @@ dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level)
 			    "[Unknown AT: %#x]", attr);
 			attr_str = unk_attr;
 		}
-		printf("     %-18s: ", attr_str);
+		if (dwarf_attroffset(attr_list[i], &attroff, &de) !=
+		    DW_DLV_OK) {
+			warnx("dwarf_attroffset failed: %s", dwarf_errmsg(de));
+			attroff = 0;
+		}
+		printf("    <%jx>   %-18s: ", (uintmax_t) attroff, attr_str);
 		switch (form) {
 		case DW_FORM_ref_addr:
 		case DW_FORM_sec_offset:
