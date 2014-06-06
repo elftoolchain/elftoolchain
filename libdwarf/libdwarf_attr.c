@@ -162,7 +162,7 @@ _dwarf_attr_init(Dwarf_Debug dbg, Dwarf_Section *ds, uint64_t *offsetp,
 		if (cu->cu_version == 2)
 			atref.u[0].u64 = dbg->read(ds->ds_data, offsetp,
 			    cu->cu_pointer_size);
-		else if (cu->cu_version == 3)
+		else
 			atref.u[0].u64 = dbg->read(ds->ds_data, offsetp,
 			    dwarf_size);
 		break;
