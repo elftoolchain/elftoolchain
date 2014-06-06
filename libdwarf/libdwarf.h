@@ -517,6 +517,7 @@ int		dwarf_attr(Dwarf_Die, Dwarf_Half, Dwarf_Attribute *,
 		    Dwarf_Error *);
 int		dwarf_attrlist(Dwarf_Die, Dwarf_Attribute **,
 		    Dwarf_Signed *, Dwarf_Error *);
+int		dwarf_attroffset(Dwarf_Attribute, Dwarf_Off *, Dwarf_Error *);
 int		dwarf_attrval_flag(Dwarf_Die, Dwarf_Half, Dwarf_Bool *,
 		    Dwarf_Error *);
 int		dwarf_attrval_signed(Dwarf_Die, Dwarf_Half, Dwarf_Signed *,

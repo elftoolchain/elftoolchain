@@ -114,6 +114,23 @@ dwarf_hasattr(Dwarf_Die die, Dwarf_Half attr, Dwarf_Bool *ret_bool,
 }
 
 int
+dwarf_attroffset(Dwarf_Attribute at, Dwarf_Off *ret_off, Dwarf_Error *error)
+{
+	Dwarf_Debug dbg;
+
+	dbg = at != NULL ? at->at_die->die_dbg : NULL;
+
+	if (at == NULL || ret_off == NULL) {
+		DWARF_SET_ERROR(dbg, error, DW_DLE_ARGUMENT);
+		return (DW_DLV_ERROR);
+	}
+
+	*ret_off = at->at_offset;
+
+	return (DW_DLV_OK);
+}
+
+int
 dwarf_lowpc(Dwarf_Die die, Dwarf_Addr *ret_lowpc, Dwarf_Error *error)
 {
 	Dwarf_Attribute at;
