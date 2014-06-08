@@ -263,11 +263,11 @@ static void dump_dwarf_block(struct readelf *re, uint8_t *b,
     Dwarf_Unsigned len);
 static void dump_dwarf_die(struct readelf *re, Dwarf_Die die, int level);
 static void dump_dwarf_frame(struct readelf *re, int alt);
-static void dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts,
-    Dwarf_Unsigned len, Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc,
-    Dwarf_Debug dbg);
-static int dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc,
-    Dwarf_Unsigned func_len, Dwarf_Half cie_ra);
+static void dump_dwarf_frame_inst(struct readelf *re, Dwarf_Cie cie,
+    uint8_t *insts, Dwarf_Unsigned len, Dwarf_Unsigned caf, Dwarf_Signed daf,
+    Dwarf_Addr pc, Dwarf_Debug dbg);
+static int dump_dwarf_frame_regtable(struct readelf *re, Dwarf_Fde fde,
+    Dwarf_Addr pc, Dwarf_Unsigned func_len, Dwarf_Half cie_ra);
 static void dump_dwarf_frame_section(struct readelf *re, struct section *s,
     int alt);
 static void dump_dwarf_info(struct readelf *re, Dwarf_Bool is_info);
@@ -313,7 +313,8 @@ static const char *dwarf_reg(unsigned int mach, unsigned int reg);
 static const char *dwarf_regname(struct readelf *re, unsigned int num);
 static struct dumpop *find_dumpop(struct readelf *re, size_t si,
     const char *sn, int op, int t);
-static char *get_regoff_str(Dwarf_Half reg, Dwarf_Addr off);
+static char *get_regoff_str(struct readelf *re, Dwarf_Half reg,
+    Dwarf_Addr off);
 static const char *get_string(struct readelf *re, int strtab, size_t off);
 static const char *get_symbol_name(struct readelf *re, int symtab, int i);
 static uint64_t get_symbol_value(struct readelf *re, int symtab, int i);
@@ -5462,8 +5463,9 @@ dump_dwarf_macinfo(struct readelf *re)
 }
 
 static void
-dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
-    Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc, Dwarf_Debug dbg)
+dump_dwarf_frame_inst(struct readelf *re, Dwarf_Cie cie, uint8_t *insts,
+    Dwarf_Unsigned len, Dwarf_Unsigned caf, Dwarf_Signed daf, Dwarf_Addr pc,
+    Dwarf_Debug dbg)
 {
 	Dwarf_Frame_Op *oplist;
 	Dwarf_Signed opcnt, delta;
@@ -5502,11 +5504,13 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 		case DW_CFA_offset_extended:
 		case DW_CFA_offset_extended_sf:
 			delta = oplist[i].fp_offset * daf;
-			printf(": r%u at cfa%+jd", oplist[i].fp_register,
+			printf(": r%u (%s) at cfa%+jd", oplist[i].fp_register,
+			    dwarf_regname(re, oplist[i].fp_register),
 			    (intmax_t) delta);
 			break;
 		case DW_CFA_restore:
-			printf(": r%u", oplist[i].fp_register);
+			printf(": r%u (%s)", oplist[i].fp_register,
+			    dwarf_regname(re, oplist[i].fp_register));
 			break;
 		case DW_CFA_set_loc:
 			pc = oplist[i].fp_offset;
@@ -5520,15 +5524,18 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 			    (uintmax_t) pc);
 			break;
 		case DW_CFA_def_cfa:
-			printf(": r%u ofs %ju", oplist[i].fp_register,
+			printf(": r%u (%s) ofs %ju", oplist[i].fp_register,
+			    dwarf_regname(re, oplist[i].fp_register),
 			    (uintmax_t) oplist[i].fp_offset);
 			break;
 		case DW_CFA_def_cfa_sf:
-			printf(": r%u ofs %jd", oplist[i].fp_register,
+			printf(": r%u (%s) ofs %jd", oplist[i].fp_register,
+			    dwarf_regname(re, oplist[i].fp_register),
 			    (intmax_t) (oplist[i].fp_offset * daf));
 			break;
 		case DW_CFA_def_cfa_register:
-			printf(": r%u", oplist[i].fp_register);
+			printf(": r%u (%s)", oplist[i].fp_register,
+			    dwarf_regname(re, oplist[i].fp_register));
 			break;
 		case DW_CFA_def_cfa_offset:
 			printf(": %ju", (uintmax_t) oplist[i].fp_offset);
@@ -5546,7 +5553,7 @@ dump_dwarf_frame_inst(Dwarf_Cie cie, uint8_t *insts, Dwarf_Unsigned len,
 }
 
 static char *
-get_regoff_str(Dwarf_Half reg, Dwarf_Addr off)
+get_regoff_str(struct readelf *re, Dwarf_Half reg, Dwarf_Addr off)
 {
 	static char rs[16];
 
@@ -5555,19 +5562,19 @@ get_regoff_str(Dwarf_Half reg, Dwarf_Addr off)
 	else if (reg == DW_FRAME_CFA_COL)
 		snprintf(rs, sizeof(rs), "c%+jd", (intmax_t) off);
 	else
-		snprintf(rs, sizeof(rs), "r%u%+jd", reg, (intmax_t) off);
+		snprintf(rs, sizeof(rs), "%s%+jd", dwarf_regname(re, reg),
+		    (intmax_t) off);
 
 	return (rs);
 }
 
 static int
-dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
-    Dwarf_Half cie_ra)
+dump_dwarf_frame_regtable(struct readelf *re, Dwarf_Fde fde, Dwarf_Addr pc,
+    Dwarf_Unsigned func_len, Dwarf_Half cie_ra)
 {
 	Dwarf_Regtable rt;
 	Dwarf_Addr row_pc, end_pc, pre_pc, cur_pc;
 	Dwarf_Error de;
-	char rn[16];
 	char *vec;
 	int i;
 
@@ -5604,10 +5611,9 @@ dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
 		if (BIT_ISSET(vec, i)) {
 			if ((Dwarf_Half) i == cie_ra)
 				printf("ra   ");
-			else {
-				snprintf(rn, sizeof(rn), "r%d", i);
-				printf("%-5s", rn);
-			}
+			else
+				printf("%-5s",
+				    dwarf_regname(re, (unsigned int) i));
 		}
 	}
 	putchar('\n');
@@ -5626,12 +5632,12 @@ dump_dwarf_frame_regtable(Dwarf_Fde fde, Dwarf_Addr pc, Dwarf_Unsigned func_len,
 			continue;
 		pre_pc = row_pc;
 		printf("%08jx ", (uintmax_t) row_pc);
-		printf("%-8s ", get_regoff_str(RT(0).dw_regnum,
+		printf("%-8s ", get_regoff_str(re, RT(0).dw_regnum,
 		    RT(0).dw_offset));
 		for (i = 1; i < DW_REG_TABLE_SIZE; i++) {
 			if (BIT_ISSET(vec, i)) {
-				printf("%-5s", get_regoff_str(RT(i).dw_regnum,
-				    RT(i).dw_offset));
+				printf("%-5s", get_regoff_str(re,
+				    RT(i).dw_regnum, RT(i).dw_offset));
 			}
 		}
 		putchar('\n');
@@ -5735,7 +5741,7 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				printf("  Return address column:\t%ju\n",
 				    (uintmax_t) cie_ra);
 				putchar('\n');
-				dump_dwarf_frame_inst(cie, cie_inst,
+				dump_dwarf_frame_inst(re, cie, cie_inst,
 				    cie_instlen, cie_caf, cie_daf, 0,
 				    re->dbg);
 				putchar('\n');
@@ -5748,7 +5754,7 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 				    (uintmax_t) cie_caf,
 				    (uintmax_t) cie_daf,
 				    (uintmax_t) cie_ra);
-				dump_dwarf_frame_regtable(fde, low_pc, 1,
+				dump_dwarf_frame_regtable(re, fde, low_pc, 1,
 				    cie_ra);
 				putchar('\n');
 			}
@@ -5760,10 +5766,10 @@ dump_dwarf_frame_section(struct readelf *re, struct section *s, int alt)
 			cie_offset),
 		    (uintmax_t) low_pc, (uintmax_t) (low_pc + func_len));
 		if (!alt)
-			dump_dwarf_frame_inst(cie, fde_inst, fde_instlen,
+			dump_dwarf_frame_inst(re, cie, fde_inst, fde_instlen,
 			    cie_caf, cie_daf, low_pc, re->dbg);
 		else
-			dump_dwarf_frame_regtable(fde, low_pc, func_len,
+			dump_dwarf_frame_regtable(re, fde, low_pc, func_len,
 			    cie_ra);
 		putchar('\n');
 	}
