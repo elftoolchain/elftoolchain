@@ -309,8 +309,10 @@ static void dump_ver(struct readelf *re);
 static void dump_verdef(struct readelf *re, int dump);
 static void dump_verneed(struct readelf *re, int dump);
 static void dump_versym(struct readelf *re);
-static struct dumpop *find_dumpop(struct readelf *re, size_t si, const char *sn,
-    int op, int t);
+static const char *dwarf_reg(unsigned int mach, unsigned int reg);
+static const char *dwarf_regname(struct readelf *re, unsigned int num);
+static struct dumpop *find_dumpop(struct readelf *re, size_t si,
+    const char *sn, int op, int t);
 static char *get_regoff_str(Dwarf_Half reg, Dwarf_Addr off);
 static const char *get_string(struct readelf *re, int strtab, size_t off);
 static const char *get_symbol_name(struct readelf *re, int symtab, int i);
@@ -2214,6 +2216,124 @@ ppc_abi_vector(uint64_t vec)
 	default:
 		snprintf(s_vec, sizeof(s_vec), "Unknown(%ju)", (uintmax_t) vec);
 		return (s_vec);
+	}
+}
+
+static const char *
+dwarf_reg(unsigned int mach, unsigned int reg)
+{
+
+	switch (mach) {
+	case EM_386:
+		switch (reg) {
+		case 0: return "eax";
+		case 1: return "ecx";
+		case 2: return "edx";
+		case 3: return "ebx";
+		case 4: return "esp";
+		case 5: return "ebp";
+		case 6: return "esi";
+		case 7: return "edi";
+		case 8: return "eip";
+		case 9: return "eflags";
+		case 11: return "st0";
+		case 12: return "st1";
+		case 13: return "st2";
+		case 14: return "st3";
+		case 15: return "st4";
+		case 16: return "st5";
+		case 17: return "st6";
+		case 18: return "st7";
+		case 21: return "xmm0";
+		case 22: return "xmm1";
+		case 23: return "xmm2";
+		case 24: return "xmm3";
+		case 25: return "xmm4";
+		case 26: return "xmm5";
+		case 27: return "xmm6";
+		case 28: return "xmm7";
+		case 29: return "mm0";
+		case 30: return "mm1";
+		case 31: return "mm2";
+		case 32: return "mm3";
+		case 33: return "mm4";
+		case 34: return "mm5";
+		case 35: return "mm6";
+		case 36: return "mm7";
+		case 37: return "fcw";
+		case 38: return "fsw";
+		case 39: return "mxcsr";
+		case 40: return "es";
+		case 41: return "cs";
+		case 42: return "ss";
+		case 43: return "ds";
+		case 44: return "fs";
+		case 45: return "gs";
+		case 48: return "tr";
+		case 49: return "ldtr";
+		default: return (NULL);
+		}
+	case EM_X86_64:
+		switch (reg) {
+		case 0: return "rax";
+		case 1: return "rdx";
+		case 2: return "rcx";
+		case 3: return "rbx";
+		case 4: return "rsi";
+		case 5: return "rdi";
+		case 6: return "rbp";
+		case 7: return "rsp";
+		case 16: return "rip";
+		case 17: return "xmm0";
+		case 18: return "xmm1";
+		case 19: return "xmm2";
+		case 20: return "xmm3";
+		case 21: return "xmm4";
+		case 22: return "xmm5";
+		case 23: return "xmm6";
+		case 24: return "xmm7";
+		case 25: return "xmm8";
+		case 26: return "xmm9";
+		case 27: return "xmm10";
+		case 28: return "xmm11";
+		case 29: return "xmm12";
+		case 30: return "xmm13";
+		case 31: return "xmm14";
+		case 32: return "xmm15";
+		case 33: return "st0";
+		case 34: return "st1";
+		case 35: return "st2";
+		case 36: return "st3";
+		case 37: return "st4";
+		case 38: return "st5";
+		case 39: return "st6";
+		case 40: return "st7";
+		case 41: return "mm0";
+		case 42: return "mm1";
+		case 43: return "mm2";
+		case 44: return "mm3";
+		case 45: return "mm4";
+		case 46: return "mm5";
+		case 47: return "mm6";
+		case 48: return "mm7";
+		case 49: return "rflags";
+		case 50: return "es";
+		case 51: return "cs";
+		case 52: return "ss";
+		case 53: return "ds";
+		case 54: return "fs";
+		case 55: return "gs";
+		case 58: return "fs.base";
+		case 59: return "gs.base";
+		case 62: return "tr";
+		case 63: return "ldtr";
+		case 64: return "mxcsr";
+		case 65: return "fcw";
+		case 66: return "fsw";
+		default: return (NULL);
+		}
+	default:
+		return (NULL);
 	}
 }
 
@@ -4197,6 +4317,20 @@ dump_arch_specific_info(struct readelf *re)
 	}
 }
 
+static const char *
+dwarf_regname(struct readelf *re, unsigned int num)
+{
+	static char rx[32];
+	const char *rn;
+
+	if ((rn = dwarf_reg(re->ehdr.e_machine, num)) != NULL)
+		return (rn);
+
+	snprintf(rx, sizeof(rx), "r%u", num);
+
+	return (rx);
+}
+
 static void
 dump_dwarf_line(struct readelf *re)
 {
@@ -5840,7 +5974,6 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 	printf("%s", op_str);
 
 	switch (lr->lr_atom) {
-	case DW_OP_deref:
 	case DW_OP_reg0:
 	case DW_OP_reg1:
 	case DW_OP_reg2:
@@ -5873,6 +6006,10 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 	case DW_OP_reg29:
 	case DW_OP_reg30:
 	case DW_OP_reg31:
+		printf(" (%s)", dwarf_regname(re, lr->lr_atom - DW_OP_reg0));
+		break;
+
+	case DW_OP_deref:
 	case DW_OP_lit0:
 	case DW_OP_lit1:
 	case DW_OP_lit2:
@@ -5962,6 +6099,10 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 		break;
 
 	case DW_OP_consts:
+		printf(": %jd", (intmax_t)
+		    lr->lr_number);
+		break;
+
 	case DW_OP_breg0:
 	case DW_OP_breg1:
 	case DW_OP_breg2:
@@ -5994,14 +6135,20 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 	case DW_OP_breg29:
 	case DW_OP_breg30:
 	case DW_OP_breg31:
+		printf(" (%s): %jd",
+		    dwarf_regname(re, lr->lr_atom - DW_OP_breg0),
+		    (intmax_t) lr->lr_number);
+		break;
+
 	case DW_OP_fbreg:
 		printf(": %jd", (intmax_t)
 		    lr->lr_number);
 		break;
 
 	case DW_OP_bregx:
-		printf(": %ju %jd",
+		printf(": %ju (%s) %jd",
 		    (uintmax_t) lr->lr_number,
+		    dwarf_regname(re, (unsigned int) lr->lr_number),
 		    (intmax_t) lr->lr_number2);
 		break;
 
@@ -6039,8 +6186,8 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 		break;
 
 	case DW_OP_GNU_regval_type:
-		/* TODO: show reg name */
-		printf(": %ju <0x%jx>", (uintmax_t) lr->lr_number,
+		printf(": %ju (%s) <0x%jx>", (uintmax_t) lr->lr_number,
+		    dwarf_regname(re, (unsigned int) lr->lr_number),
 		    (uintmax_t) lr->lr_number2);
 		break;
 
