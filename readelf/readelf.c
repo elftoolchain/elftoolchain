@@ -6084,18 +6084,14 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 		break;
 
 	case DW_OP_const1u:
-	case DW_OP_const1s:
 	case DW_OP_pick:
 	case DW_OP_deref_size:
 	case DW_OP_xderef_size:
 	case DW_OP_const2u:
-	case DW_OP_const2s:
 	case DW_OP_bra:
 	case DW_OP_skip:
 	case DW_OP_const4u:
-	case DW_OP_const4s:
 	case DW_OP_const8u:
-	case DW_OP_const8s:
 	case DW_OP_constu:
 	case DW_OP_plus_uconst:
 	case DW_OP_regx:
@@ -6104,6 +6100,10 @@ dump_dwarf_loc(struct readelf *re, Dwarf_Loc *lr)
 		    lr->lr_number);
 		break;
 
+	case DW_OP_const1s:
+	case DW_OP_const2s:
+	case DW_OP_const4s:
+	case DW_OP_const8s:
 	case DW_OP_consts:
 		printf(": %jd", (intmax_t)
 		    lr->lr_number);
