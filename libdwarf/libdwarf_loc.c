@@ -176,28 +176,37 @@ _dwarf_loc_fill_loc(Dwarf_Debug dbg, Dwarf_Locdesc *lbuf, uint8_t pointer_size,
 
 		/* Operations with 1-byte operands. */
 		case DW_OP_const1u:
-		case DW_OP_const1s:
 		case DW_OP_pick:
 		case DW_OP_deref_size:
 		case DW_OP_xderef_size:
 			operand1 = *p++;
 			break;
 
+		case DW_OP_const1s:
+			operand1 = (int8_t) *p++;
+			break;
+
 		/* Operations with 2-byte operands. */
 		case DW_OP_call2:
 		case DW_OP_const2u:
-		case DW_OP_const2s:
 		case DW_OP_bra:
 		case DW_OP_skip:
 			operand1 = dbg->decode(&p, 2);
 			break;
 
+		case DW_OP_const2s:
+			operand1 = (int16_t) dbg->decode(&p, 2);
+			break;
+
 		/* Operations with 4-byte operands. */
 		case DW_OP_call4:
 		case DW_OP_const4u:
-		case DW_OP_const4s:
 		case DW_OP_GNU_parameter_ref:
 			operand1 = dbg->decode(&p, 4);
+			break;
+
+		case DW_OP_const4s:
+			operand1 = (int32_t) dbg->decode(&p, 4);
 			break;
 
 		/* Operations with 8-byte operands. */
