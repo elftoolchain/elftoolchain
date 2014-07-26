@@ -2365,12 +2365,12 @@ typedef struct {
 /* 64 bit PHDR entry. */
 typedef struct {
 	Elf64_Word	p_type;	     /* Type of segment. */
-	Elf64_Word	p_flags;     /* File offset to segment. */
-	Elf64_Off	p_offset;    /* Virtual address in memory. */
-	Elf64_Addr	p_vaddr;     /* Physical address (if relevant). */
-	Elf64_Addr	p_paddr;     /* Size of segment in file. */
-	Elf64_Xword	p_filesz;    /* Size of segment in memory. */
-	Elf64_Xword	p_memsz;     /* Segment flags. */
+	Elf64_Word	p_flags;     /* Segment flags. */
+	Elf64_Off	p_offset;    /* File offset to segment. */
+	Elf64_Addr	p_vaddr;     /* Virtual address in memory. */
+	Elf64_Addr	p_paddr;     /* Physical address (if relevant). */
+	Elf64_Xword	p_filesz;    /* Size of segment in file. */
+	Elf64_Xword	p_memsz;     /* Size of segment in memory. */
 	Elf64_Xword	p_align;     /* Alignment constraints. */
 } Elf64_Phdr;
 
