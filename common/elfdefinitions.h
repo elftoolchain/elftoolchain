@@ -2113,11 +2113,11 @@ typedef struct {
 
 /* 64-bit entry. */
 typedef struct {
-	Elf64_Word l_name;
-	Elf64_Word l_time_stamp;
-	Elf64_Word l_checksum;
-	Elf64_Word l_version;
-	Elf64_Word l_flags;
+	Elf64_Word l_name;	     /* The name of a shared object. */
+	Elf64_Word l_time_stamp;     /* 32-bit timestamp. */
+	Elf64_Word l_checksum;	     /* Checksum of visible symbols, sizes. */
+	Elf64_Word l_version;	     /* Interface version string index. */
+	Elf64_Word l_flags;	     /* Flags (LL_*). */
 } Elf64_Lib;
 
 #define	_ELF_DEFINE_LL_FLAGS()			\
@@ -2454,11 +2454,11 @@ typedef struct {
 
 typedef struct {
 	Elf64_Word	st_name;     /* index of symbol's name */
-	unsigned char	st_info;     /* value for the symbol */
-	unsigned char	st_other;    /* size of associated data */
-	Elf64_Half	st_shndx;    /* type and binding attributes */
-	Elf64_Addr	st_value;    /* visibility */
-	Elf64_Xword	st_size;     /* index of related section */
+	unsigned char	st_info;     /* type and binding attributes */
+	unsigned char	st_other;    /* visibility */
+	Elf64_Half	st_shndx;    /* index of related section */
+	Elf64_Addr	st_value;    /* value for the symbol */
+	Elf64_Xword	st_size;     /* size of associated data */
 } Elf64_Sym;
 
 #define ELF32_ST_BIND(I)	((I) >> 4)
