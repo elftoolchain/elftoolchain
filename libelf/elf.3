@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 14, 2011
+.Dd July 28, 2014
 .Os
 .Dt ELF 3
 .Sh NAME
@@ -407,6 +407,12 @@ Same as
 .Dv SHT_GNU_versym .
 .Xc
 .El
+.Pp
+Section types in the range
+.Ns [ Dv SHT_LOOS ,
+.Dv SHT_HIUSER ]
+are otherwise considered to be of type
+.Dv ELF_T_BYTE .
 .TE
 .Ss Functional Grouping
 This section contains a brief overview of the available functionality
