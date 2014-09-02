@@ -312,6 +312,7 @@ MLINKS+= \
 	dwarf_lineno.3	dwarf_line_srcfileno.3		\
 	dwarf_loclist.3	dwarf_loclist_n.3		\
 	dwarf_loclist_from_expr.3 dwarf_loclist_from_expr_a.3 \
+	dwarf_loclist_from_expr.3 dwarf_loclist_from_expr_b.3 \
 	dwarf_next_cu_header.3 dwarf_next_cu_header_b.3	\
 	dwarf_next_cu_header.3 dwarf_next_cu_header_c.3	\
 	dwarf_producer_init.3 dwarf_producer_init_b.3	\
