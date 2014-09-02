@@ -296,6 +296,7 @@ MLINKS+= \
 	dwarf_highpc.3	dwarf_bitoffset.3		\
 	dwarf_highpc.3	dwarf_bitsize.3			\
 	dwarf_highpc.3	dwarf_bytesize.3		\
+	dwarf_highpc.3	dwarf_highpc_b.3		\
 	dwarf_highpc.3	dwarf_lowpc.3			\
 	dwarf_highpc.3	dwarf_srclang.3			\
 	dwarf_lineno.3	dwarf_lineaddr.3		\
