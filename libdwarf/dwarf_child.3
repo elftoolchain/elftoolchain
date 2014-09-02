@@ -1,4 +1,4 @@
-.\" Copyright (c) 2010 Kai Wang
+.\" Copyright (c) 2010,2014 Kai Wang
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -24,13 +24,14 @@
 .\"
 .\" $Id$
 .\"
-.Dd November 9, 2011
+.Dd July 19, 2014
 .Os
 .Dt DWARF_CHILD 3
 .Sh NAME
 .Nm dwarf_child ,
 .Nm dwarf_siblingof ,
-.Nm dwarf_offdie
+.Nm dwarf_offdie ,
+.Nm dwarf_offdie_b
 .Nd retrieve DWARF Debugging Information Entry descriptors
 .Sh LIBRARY
 .Lb libdwarf
@@ -49,6 +50,14 @@
 .Fo dwarf_offdie
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Off offset"
+.Fa "Dwarf_Die *ret_die"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_offdie_b
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Off offset"
+.Fa "Dwarf_Bool is_info"
 .Fa "Dwarf_Die *ret_die"
 .Fa "Dwarf_Error *err"
 .Fc
@@ -99,6 +108,30 @@ in the
 .Dq .debug_info
 section of the object associated with argument
 .Ar dbg .
+The returned descriptor is written to the location pointed to by argument
+.Ar ret_die .
+.Pp
+Function
+.Fn dwarf_offdie_b
+is identical to the function
+.Fn dwarf_offdie
+except that it can retrieve the debugging information entry descriptor at
+global offset
+.Ar offset
+in both
+.Dq .debug_info
+and
+.Dq .debug_types
+sections of the object associated with argument
+.Ar dbg .
+If argument
+.Ar is_info
+is non-zero, the function will retrieve debugging information entry from the
+.Dq .debug_info
+section, otherwise the function will retrieve debugging information entry
+from the
+.Dq .debug_types
+section.
 The returned descriptor is written to the location pointed to by argument
 .Ar ret_die .
 .Ss Memory Management
