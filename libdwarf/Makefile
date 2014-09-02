@@ -193,6 +193,7 @@ MAN=	dwarf.3                                         \
 	dwarf_new_expr.3				\
 	dwarf_new_fde.3					\
 	dwarf_next_cu_header.3				\
+	dwarf_next_types_section.3			\
 	dwarf_object_init.3				\
 	dwarf_producer_init.3				\
 	dwarf_producer_set_isa.3			\
