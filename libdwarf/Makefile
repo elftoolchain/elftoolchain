@@ -116,6 +116,7 @@ MAN=	dwarf.3                                         \
 	dwarf_add_weakname.3				\
 	dwarf_attr.3					\
 	dwarf_attrlist.3				\
+	dwarf_attroffset.3				\
 	dwarf_attrval_signed.3				\
 	dwarf_child.3					\
 	dwarf_dealloc.3					\
