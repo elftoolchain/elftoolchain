@@ -178,6 +178,7 @@ MAN=	dwarf.3                                         \
 	dwarf_get_relocation_info.3			\
 	dwarf_get_relocation_info_count.3		\
 	dwarf_get_section_bytes.3			\
+	dwarf_get_section_max_offsets.3			\
 	dwarf_get_str.3					\
 	dwarf_get_types.3				\
 	dwarf_get_vars.3				\
@@ -280,6 +281,7 @@ MLINKS+= \
 	dwarf_get_pubtypes.3	dwarf_pubtype_name_offsets.3 \
 	dwarf_get_pubtypes.3	dwarf_pubtypename.3	\
 	dwarf_get_ranges.3	dwarf_get_ranges_a.3	\
+	dwarf_get_section_max_offsets.3 dwarf_get_section_max_offsets_b.3 \
 	dwarf_get_types.3	dwarf_type_die_offset.3	\
 	dwarf_get_types.3	dwarf_type_cu_offset.3	\
 	dwarf_get_types.3	dwarf_type_name_offsets.3 \
