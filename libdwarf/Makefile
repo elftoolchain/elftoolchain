@@ -238,6 +238,7 @@ MLINKS+= \
 	dwarf_dieoffset.3	dwarf_die_CU_offset.3	\
 	dwarf_dieoffset.3	dwarf_die_CU_offset_range.3 \
 	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset.3 \
+	dwarf_dieoffset.3	dwarf_get_cu_die_offset_given_cu_header_offset_b.3 \
 	dwarf_finish.3		dwarf_object_finish.3	\
 	dwarf_formref.3	dwarf_global_formref.3		\
 	dwarf_formudata.3	dwarf_formsdata.3	\
