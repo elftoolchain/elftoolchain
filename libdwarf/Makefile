@@ -156,6 +156,7 @@ MAN=	dwarf.3                                         \
 	dwarf_get_cie_info.3				\
 	dwarf_get_cie_of_fde.3				\
 	dwarf_get_cu_die_offset.3			\
+	dwarf_get_die_infotypes_flag.3			\
 	dwarf_get_elf.3					\
 	dwarf_get_fde_at_pc.3				\
 	dwarf_get_fde_info_for_all_regs.3		\
