@@ -48,7 +48,7 @@ static struct dwarf_tp dwarf_tp_array[] = {
 };
 static int result = TET_UNRESOLVED;
 #include "driver.c"
-#include "die_traverse.c"
+#include "die_traverse2.c"
 
 static void
 _dwarf_attrlist(Dwarf_Die die)
@@ -90,7 +90,8 @@ tp_dwarf_attrlist(void)
 
 	TS_DWARF_INIT(dbg, fd, de);
 
-	TS_DWARF_DIE_TRAVERSE(dbg, _dwarf_attrlist);
+	TS_DWARF_DIE_TRAVERSE2(dbg, 1, _dwarf_attrlist);
+	TS_DWARF_DIE_TRAVERSE2(dbg, 0, _dwarf_attrlist);
 
 	if (result == TET_UNRESOLVED)
 		result = TET_PASS;
