@@ -47,6 +47,14 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Ft int
+.Fo dwarf_siblingof_b
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Die *ret_die"
+.Fa "Dwarf_Bool is_info"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
 .Fo dwarf_offdie
 .Fa "Dwarf_Debug dbg"
 .Fa "Dwarf_Off offset"
@@ -99,6 +107,32 @@ This function and function
 .Fn dwarf_child
 may be used together to traverse the tree of debugging information
 entry descriptors for a compilation unit.
+.Pp
+Function
+.Fn dwarf_siblingof_b
+is identical to the function
+.Fn dwarf_siblingof
+except that it can retrieve the sibling descriptor from the
+current compilation unit or type unit.
+If argument
+.Ar is_info
+is non-zero, the function is identical to the function
+.Fn dwarf_siblingof .
+If argument
+.Ar is_info
+is zero, the descriptor refered by argument
+.Ar die
+should assoicate with a debugging information entry in the
+type unit.
+The function will store the sibling of the descriptor in the location
+pointed to by argument
+.Ar ret_die .
+If arugment
+.Ar is_info
+is zero and argument
+.Ar die
+is NULL, the first debugging information entry descriptor for the
+current type unit will be returned.
 .Pp
 Function
 .Fn dwarf_offdie

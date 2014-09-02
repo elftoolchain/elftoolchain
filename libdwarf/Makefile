@@ -224,6 +224,7 @@ MLINKS+= \
 	dwarf_child.3	dwarf_offdie.3			\
 	dwarf_child.3	dwarf_offdie_b.3		\
 	dwarf_child.3	dwarf_siblingof.3		\
+	dwarf_child.3	dwarf_siblingof_b.3		\
 	dwarf_dealloc.3	dwarf_fde_cie_list_dealloc.3	\
 	dwarf_dealloc.3	dwarf_funcs_dealloc.3		\
 	dwarf_dealloc.3	dwarf_globals_dealloc.3		\
