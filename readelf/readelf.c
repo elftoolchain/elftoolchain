@@ -5866,6 +5866,7 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 	Dwarf_Attribute *attr_list;
 	Dwarf_Die ret_die;
 	Dwarf_Unsigned off;
+	Dwarf_Off ref;
 	Dwarf_Signed attr_count;
 	Dwarf_Half attr, form;
 	Dwarf_Bool is_info;
@@ -5908,12 +5909,13 @@ search_loclist_at(struct readelf *re, Dwarf_Die die, Dwarf_Unsigned lowpc)
 				continue;
 			}
 		} else if (form == DW_FORM_sec_offset) {
-			if (dwarf_global_formref(attr_list[i], &off, &de) !=
+			if (dwarf_global_formref(attr_list[i], &ref, &de) !=
 			    DW_DLV_OK) {
 				warnx("dwarf_global_formref failed: %s",
 				    dwarf_errmsg(de));
 				continue;
 			}
+			off = ref;
 		} else
 			continue;
 
