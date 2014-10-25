@@ -905,7 +905,6 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 	uint8_t *p, *pe;
 	uint8_t high2, low6;
 	uint64_t reg, reg2, uoff, soff, blen;
-	int ret;
 
 #define	SET_BASE_OP(x)						\
 	do {							\
@@ -970,7 +969,6 @@ _dwarf_frame_convert_inst(Dwarf_Debug dbg, uint8_t *insts, Dwarf_Unsigned len,
 		}							\
 	} while(0)
 
-	ret = DW_DLE_NONE;
 	*count = 0;
 
 	p = insts;
