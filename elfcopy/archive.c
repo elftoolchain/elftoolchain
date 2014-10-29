@@ -350,12 +350,11 @@ ac_detect_ar(int ifd)
 	r = -1;
 	if ((a = archive_read_new()) == NULL)
 		return (0);
-	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	if (archive_read_open_fd(a, ifd, 10240) == ARCHIVE_OK)
 		r = archive_read_next_header(a, &entry);
 	archive_read_close(a);
-	archive_read_finish(a);
+	archive_read_free(a);
 
 	return (r == ARCHIVE_OK);
 }
@@ -386,7 +385,6 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 		err(EXIT_FAILURE, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
 		errx(EXIT_FAILURE, "%s", archive_error_string(a));
-	archive_read_support_compression_none(a);
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, ifd, 10240));
 	for(;;) {
@@ -435,7 +433,7 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 		}
 	}
 	AC(archive_read_close(a));
-	ACV(archive_read_finish(a));
+	ACV(archive_read_free(a));
 }
 
 static void
@@ -449,7 +447,6 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	if ((a = archive_write_new()) == NULL)
 		errx(EXIT_FAILURE, "%s", archive_error_string(a));
 	archive_write_set_format_ar_svr4(a);
-	archive_write_set_compression_none(a);
 	AC(archive_write_open_fd(a, ofd));
 
 	/* Write the archive symbol table, even if it's empty. */
@@ -491,7 +488,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	}
 
 	AC(archive_write_close(a));
-	ACV(archive_write_finish(a));
+	ACV(archive_write_free(a));
 }
 
 static void
