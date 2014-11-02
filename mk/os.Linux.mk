@@ -1,6 +1,14 @@
 # $Id$
 #
-# Build recipes for Debian GNU/Linux based operating systems.
+# Build recipes for GNU/Linux based operating systems.
+
+OS_DISTRIBUTION         != lsb_release -s -i || echo unknown
+OS_DISTRIBUTION_VERSION != lsb_release -s -r || echo unknown
+
+.if ${OS_DISTRIBUTION} == "unknown" || \
+    ${OS_DISTRIBUTION_VERSION} == "unknown"
+.error ERROR: Unknown host OS distribution.
+.endif
 
 MKDOC?=		yes	# Build documentation.
 MKLINT?=	no
