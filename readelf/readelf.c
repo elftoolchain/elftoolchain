@@ -3373,7 +3373,7 @@ dump_gnu_hash(struct readelf *re, struct section *s)
 	Elf_Data	*d;
 	uint32_t	*buf;
 	uint32_t	*bucket, *chain;
-	uint32_t	 nbucket, nchain, symndx, maskwords, shift2;
+	uint32_t	 nbucket, nchain, symndx, maskwords;
 	uint32_t	*bl, *c, maxl, total;
 	int		 elferr, dynsymcount, i, j;
 
@@ -3393,7 +3393,6 @@ dump_gnu_hash(struct readelf *re, struct section *s)
 	nbucket = buf[0];
 	symndx = buf[1];
 	maskwords = buf[2];
-	shift2 = buf[3];
 	buf += 4;
 	ds = &re->sl[s->link];
 	dynsymcount = ds->sz / ds->entsize;
@@ -4347,9 +4346,7 @@ dump_dwarf_line(struct readelf *re)
 	int64_t sdelta;
 	uint8_t *p, *pe;
 	int8_t lbase;
-	int is_stmt, basic_block, end_sequence;
-	int prologue_end, epilogue_begin;
-	int i, dwarf_size, elferr, ret;
+	int i, is_stmt, dwarf_size, elferr, ret;
 
 	printf("\nDump of debug contents of section .debug_line:\n");
 
@@ -4465,10 +4462,6 @@ dump_dwarf_line(struct readelf *re)
 		line	       = 1;				\
 		column	       = 0;				\
 		is_stmt	       = defstmt;			\
-		basic_block    = 0;				\
-		end_sequence   = 0;				\
-		prologue_end   = 0;				\
-		epilogue_begin = 0;				\
 	} while(0)
 
 #define	LINE(x) (lbase + (((x) - opbase) % lrange))
@@ -4493,7 +4486,6 @@ dump_dwarf_line(struct readelf *re)
 				switch (*p) {
 				case DW_LNE_end_sequence:
 					p++;
-					end_sequence = 1;
 					RESET_REGISTERS;
 					printf("End of Sequence\n");
 					break;
@@ -4524,9 +4516,6 @@ dump_dwarf_line(struct readelf *re)
 				 */
 				switch(*p++) {
 				case DW_LNS_copy:
-					basic_block = 0;
-					prologue_end = 0;
-					epilogue_begin = 0;
 					printf("  Copy\n");
 					break;
 				case DW_LNS_advance_pc:
@@ -4559,7 +4548,6 @@ dump_dwarf_line(struct readelf *re)
 					printf("  Set is_stmt to %d\n", is_stmt);
 					break;
 				case DW_LNS_set_basic_block:
-					basic_block = 1;
 					printf("  Set basic block flag\n");
 					break;
 				case DW_LNS_const_add_pc:
@@ -4578,11 +4566,9 @@ dump_dwarf_line(struct readelf *re)
 					    (uintmax_t) address);
 					break;
 				case DW_LNS_set_prologue_end:
-					prologue_end = 1;
 					printf("  Set prologue end flag\n");
 					break;
 				case DW_LNS_set_epilogue_begin:
-					epilogue_begin = 1;
 					printf("  Set epilogue begin flag\n");
 					break;
 				case DW_LNS_set_isa:
@@ -4602,9 +4588,6 @@ dump_dwarf_line(struct readelf *re)
 				 */
 				line += LINE(*p);
 				address += ADDRESS(*p);
-				basic_block = 0;
-				prologue_end = 0;
-				epilogue_begin = 0;
 				printf("  Special opcode %u: advance Address "
 				    "by %ju to %#jx and Line by %jd to %ju\n",
 				    *p - opbase, (uintmax_t) ADDRESS(*p),
