@@ -539,8 +539,8 @@ dwarf_expand_frame_instructions(Dwarf_Cie cie, Dwarf_Ptr instruction,
 		return (DW_DLV_ERROR);
 	}
 
-	ret = _dwarf_frame_get_fop(dbg, instruction, len, ret_oplist, ret_opcnt,
-	    error);
+	ret = _dwarf_frame_get_fop(dbg, cie->cie_addrsize, instruction, len,
+	    ret_oplist, ret_opcnt, error);
 	if (ret != DW_DLE_NONE)
 		return (DW_DLV_ERROR);
 

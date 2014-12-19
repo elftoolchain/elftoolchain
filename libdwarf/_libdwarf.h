@@ -258,6 +258,8 @@ struct _Dwarf_Cie {
 	Dwarf_Half	cie_version;	/* CIE version. */
 	uint8_t		*cie_augment;	/* CIE augmentation (UTF-8). */
 	Dwarf_Unsigned	cie_ehdata;	/* Optional EH Data. */
+	uint8_t		cie_addrsize;	/* Address size. (DWARF4) */
+	uint8_t		cie_segmentsize; /* Segment size. (DWARF4) */
 	Dwarf_Unsigned	cie_caf;	/* Code alignment factor. */
 	Dwarf_Signed	cie_daf;	/* Data alignment factor. */
 	Dwarf_Unsigned	cie_ra;		/* Return address register. */
@@ -538,8 +540,9 @@ void		_dwarf_frame_cleanup(Dwarf_Debug);
 int		_dwarf_frame_fde_add_inst(Dwarf_P_Fde, Dwarf_Small,
 		    Dwarf_Unsigned, Dwarf_Unsigned, Dwarf_Error *);
 int		_dwarf_frame_gen(Dwarf_P_Debug, Dwarf_Error *);
-int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t *, Dwarf_Unsigned,
-		    Dwarf_Frame_Op **, Dwarf_Signed *, Dwarf_Error *);
+int		_dwarf_frame_get_fop(Dwarf_Debug, uint8_t, uint8_t *,
+		    Dwarf_Unsigned, Dwarf_Frame_Op **, Dwarf_Signed *,
+		    Dwarf_Error *);
 int		_dwarf_frame_get_internal_table(Dwarf_Fde, Dwarf_Addr,
 		    Dwarf_Regtable3 **, Dwarf_Addr *, Dwarf_Error *);
 int		_dwarf_frame_interal_table_init(Dwarf_Debug, Dwarf_Error *);
