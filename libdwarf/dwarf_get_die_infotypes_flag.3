@@ -24,12 +24,12 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 25, 2014
+.Dd December 20, 2014
 .Os
-.Dt DWARF_DIEOFFSET 3
+.Dt DWARF_GET_DIE_INFOTYPES_FLAG 3
 .Sh NAME
 .Nm dwarf_get_die_infotypes_flag
-.Nd return flag indicating the original DWARF section of DIE
+.Nd indicate the originating DWARF section for a DIE
 .Sh LIBRARY
 .Lb libdwarf
 .Sh SYNOPSIS
@@ -41,22 +41,31 @@
 .Sh DESCRIPTION
 Function
 .Fn dwarf_get_die_infotypes_flag
-returns a flag indicating the original DWARF section of the debugging information
-entry referenced by
-argument
+returns a flag indicating the originating DWARF section for the
+debugging information entry referenced by argument
 .Ar die .
+.Pp
+Argument
+.Ar die
+should reference a valid debugging information entry descriptor.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_die_infotypes_flag
-returns a non-zero value if
+returns a non-zero value if argument
 .Ar die
-originates from the
+originates in the
 .Dq .debug_info
-section. It returns zero if
+section.
+.Pp
+It returns zero if argument
 .Ar die
-originates from the
+originates in the
 .Dq .debug_types
 section.
+.Sh ERRORS
+Function
+.Fn dwarf_get_die_infotypes_flag
+always succeeds.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_next_cu_header_c 3 ,
