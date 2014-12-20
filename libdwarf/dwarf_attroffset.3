@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 23, 2014
+.Dd December 20, 2014
 .Os
 .Dt DWARF_ATTROFFSET 3
 .Sh NAME
@@ -46,35 +46,39 @@ Function
 retrieves the section-relative offset of the attribute descriptor
 referenced by argument
 .Ar at .
+.Pp
 Argument
 .Ar ret_off
 should point to a location that is to hold the returned
 section-relative offset.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is non-NULL, it is used to return an error descriptor in case of an
+error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_attroffset
 returns
 .Dv DW_DLV_OK .
+.Pp
 In case of an error, it returns
 .Dv DW_DLV_ERROR
-and set argument
+and sets argument
 .Ar err .
 .Sh COMPATIBILITY
-This function is an extension added by this implementation of the
-DWARF(3) API.
+This function is an extension to the
+.Xr DWARF 3
+API.
 .Sh ERRORS
 The
 .Fn dwarf_attroffset
 function may fail with the following errors:
 .Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
-Either arguments
-.Va at
+.It Bq Er DW_DLE_ARGUMENT
+Either of the arguments
+.Ar at
 or
-.Va ret_off
+.Ar ret_off
 was NULL.
 .El
 .Sh SEE ALSO
