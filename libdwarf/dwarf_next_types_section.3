@@ -56,15 +56,15 @@ of an error.
 .Pp
 When a DWARF debug context is allocated using
 .Xr dwarf_init 3 ,
-an internal pointer assoicated with the context will point to the
-fisrt
+an internal pointer associated with the context will point to the
+first
 .Dq \&.debug_types
-section found in the debug object.
-When the application code calls function
+section present in the debug object.
+When the application calls function
 .Fn dwarf_next_types_section ,
-the internal pointer will move to the next
+this internal pointer will move to the next
 .Dq \&.debug_types
-section if available.
+section present.
 On stepping past the last
 .Dq \&.debug_types
 section left in the debug context, function
@@ -77,7 +77,7 @@ section in the debug context.
 .Pp
 Application code should call function
 .Xr dwarf_next_cu_header_c 3
-to iterate though the type units assoicated with the current
+to iterate though the type units associated with the current
 .Dq \&.debug_types
 section.
 .Sh RETURN VALUES
@@ -85,17 +85,19 @@ On success, function
 .Fn dwarf_next_types_section
 returns
 .Dv DW_DLV_OK .
+.Pp
 In case of an error, it returns
 .Dv DW_DLV_ERROR
-and set argument
+and sets argument
 .Ar err .
 When there are no more
 .Dq \&.debug_types
 sections left to traverse, it returns
 .Dv DW_DLV_NO_ENTRY .
 .Sh COMPATIBILITY
-This function is an extension added by this implementation of the
-DWARF(3) API.
+This function is an extension to the
+.Xr DWARF 3
+API.
 .Sh ERRORS
 The
 .Fn dwarf_next_types_section
