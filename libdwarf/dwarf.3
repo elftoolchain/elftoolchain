@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd September 17, 2011
+.Dd December 20, 2014
 .Os
 .Dt DWARF 3
 .Sh NAME
@@ -217,6 +217,8 @@ attribute.
 Retrieve an attribute descriptor.
 .It Fn dwarf_attrlist
 Retrieve attribute descriptors for a debugging information entry.
+.It Fn dwarf_attroffset
+Retrieve the section-relative offset of an attribute descriptor.
 .It Fn dwarf_attrval_flag
 Retrieve a
 .Dv DW_AT_FORM_flag
@@ -513,6 +515,10 @@ and
 .Bl -tag -compact
 .It Fn dwarf_get_pubtypes , Fn dwarf_get_types
 Retrieve descriptors for user-defined types.
+.It Fn dwarf_next_types_section
+Step through
+.Dq \&.debug_types
+sections in a debug context.
 .It Fn dwarf_pubtype_cu_offset , Fn dwarf_type_cu_offset
 Return the offset for the compilation unit for a type.
 .It Fn dwarf_pubtype_die_offset , Fn dwarf_type_die_offset
@@ -699,9 +705,16 @@ addition to the per-debug context handlers supported by the SGI/GNU
 API, see the subsection
 .Sx Error Handling
 above.
+.El
+.Ss Extensions
+The following APIs are extensions specific to this implementation:
+.Bl -bullet -compact
 .It
-The following API is an extension:
-.Fn dwarf_producer_set_isa .
+.Fn dwarf_attroffset
+.It
+.Fn dwarf_next_types_section
+.It
+.Fn dwarf_producer_set_isa
 .El
 .Sh SEE ALSO
 .Xr elf 3
