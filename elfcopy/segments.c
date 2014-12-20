@@ -72,12 +72,14 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 	 */
 	loadable = 0;
 	STAILQ_FOREACH(seg, &ecp->v_seg, seg_list) {
-		if (s->off < seg->off)
+		if (s->off < seg->off || (s->vma < seg->addr && !s->pseudo))
 			continue;
 		if (s->off + s->sz > seg->off + seg->fsz &&
 		    s->type != SHT_NOBITS)
 			continue;
 		if (s->off + s->sz > seg->off + seg->msz)
+			continue;
+		if (s->vma + s->sz > seg->addr + seg->msz)
 			continue;
 
 		insert_to_inseg_list(seg, s);
