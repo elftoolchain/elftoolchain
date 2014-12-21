@@ -372,6 +372,14 @@ create_scn(struct elfcopy *ecp)
 			    is_remove_reloc_sec(ecp, ish.sh_info))
 				continue;
 
+		/*
+		 * Section groups should be removed if symbol table will
+		 * be removed. (section group's signature stored in symbol
+		 * table)
+		 */
+		if (ish.sh_type == SHT_GROUP && ecp->strip == STRIP_ALL)
+			continue;
+
 		/* Get section flags set by user. */
 		sec_flags = get_section_flags(ecp, name);
 
