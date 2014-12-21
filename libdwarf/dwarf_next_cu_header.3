@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 14, 2014
+.Dd December 21, 2014
 .Os
 .Dt DWARF_NEXT_CU_HEADER 3
 .Sh NAME
@@ -74,13 +74,28 @@
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
-These functions are used to step through compilation or tpye units
+These functions are used to step through compilation or type units
 associated with a DWARF debug context, optionally returning information
 about the unit.
 .Pp
 Function
 .Fn dwarf_next_cu_header_c
 is the API recommended for new application code.
+Function
+.Fn dwarf_next_cu_header
+and
+.Fn dwarf_next_cu_header_b
+can only operate on compilation units associated with the
+.Dq \&.debug_info
+section.
+They are less general than function
+.Fn dwarf_next_cu_header_c ,
+and are deprecated for use by new application code.
+.Pp
+Argument
+.Ar dbg
+should reference a DWARF debug context allocated using
+.Xr dwarf_init 3 .
 If argument
 .Ar is_info
 is set to 1,
@@ -93,11 +108,6 @@ is set to 0,
 the function returns information for type units found in the
 .Dq \&.debug_types
 sections.
-.Pp
-Argument
-.Ar dbg
-should reference a DWARF debug context allocated using
-.Xr dwarf_init 3 .
 Argument
 .Ar cu_length
 should point to a location that will be set to the
@@ -156,17 +166,6 @@ should point to a location that will hold an error descriptor in case
 of an error.
 .Pp
 Function
-.Fn dwarf_next_cu_header
-and
-.Fn dwarf_next_cu_header_b
-can only operate on compilation units associated with the
-.Dq \&.debug_info
-section.
-They are less general than function
-.Fn dwarf_next_cu_header_c ,
-and are deprecated for use by new application code.
-.Pp
-Function
 .Fn dwarf_next_cu_header_b
 is identical to function
 .Fn dwarf_next_cu_header_c
@@ -215,7 +214,7 @@ function
 .Fn dwarf_next_cu_header_c
 returns
 .Dv DW_DLV_NO_ENTRY
-and reset its internal state.
+and resets its internal state.
 The next call to the function will restart from the first compilation
 unit in the section.
 .Ss Iterating Through Type Units in a Debug Context
@@ -240,9 +239,11 @@ function
 .Fn dwarf_next_cu_header_c
 returns
 .Dv DW_DLV_NO_ENTRY
-and reset its internal state.
+and resets its internal state.
 The next call to the function will restart from the first type
-unit in the section.
+unit in the
+.Dq \&.debug_types
+section.
 .Pp
 If the debug object contains multiple
 .Dq \&.debug_types
@@ -250,17 +251,17 @@ sections, the function
 .Fn dwarf_next_types_section
 can be called to move the internal pointer to the next
 .Dq \&.debug_types
-section. As a result,
-The subsequent calls of the function
+section.
+As a result, subsequent calls of the function
 .Fn dwarf_next_cu_header_c
 will operate on the new
 .Dq \&.debug_types
-section instead.
+section.
 Function
 .Fn dwarf_next_types_section
 returns
 .Dv DW_DLV_NO_ENTRY
-when there is no more
+when there are no more
 .Dq \&.debug_types
 sections left in the debug object.
 .Sh RETURN VALUES
