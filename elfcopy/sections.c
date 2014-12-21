@@ -1201,12 +1201,10 @@ init_shstrtab(struct elfcopy *ecp)
 	s->type = SHT_STRTAB;
 	s->vma = 0;
 
-	if (s->buf == NULL) {
-		insert_to_strtab(s, "");
-		insert_to_strtab(s, ".symtab");
-		insert_to_strtab(s, ".strtab");
-		insert_to_strtab(s, ".shstrtab");
-	}
+	insert_to_strtab(s, "");
+	insert_to_strtab(s, ".symtab");
+	insert_to_strtab(s, ".strtab");
+	insert_to_strtab(s, ".shstrtab");
 }
 
 void
