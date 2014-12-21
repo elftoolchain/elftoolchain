@@ -2,8 +2,6 @@
 
 TOP=	../../..
 
-.include "${TOP}/mk/elftoolchain.os.mk"
-
 PROG=	ardiff
 
 NOMAN=
