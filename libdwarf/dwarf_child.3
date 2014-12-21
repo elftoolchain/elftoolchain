@@ -24,14 +24,15 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 19, 2014
+.Dd December 21, 2014
 .Os
 .Dt DWARF_CHILD 3
 .Sh NAME
 .Nm dwarf_child ,
-.Nm dwarf_siblingof ,
 .Nm dwarf_offdie ,
-.Nm dwarf_offdie_b
+.Nm dwarf_offdie_b ,
+.Nm dwarf_siblingof ,
+.Nm dwarf_siblingof_b
 .Nd retrieve DWARF Debugging Information Entry descriptors
 .Sh LIBRARY
 .Lb libdwarf
@@ -39,21 +40,6 @@
 .In libdwarf.h
 .Ft int
 .Fn dwarf_child "Dwarf_Die die" "Dwarf_Die *ret_die" "Dwarf_Error *err"
-.Ft int
-.Fo dwarf_siblingof
-.Fa "Dwarf_Debug dbg"
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Die *ret_die"
-.Fa "Dwarf_Error *err"
-.Fc
-.Ft int
-.Fo dwarf_siblingof_b
-.Fa "Dwarf_Debug dbg"
-.Fa "Dwarf_Die die"
-.Fa "Dwarf_Die *ret_die"
-.Fa "Dwarf_Bool is_info"
-.Fa "Dwarf_Error *err"
-.Fc
 .Ft int
 .Fo dwarf_offdie
 .Fa "Dwarf_Debug dbg"
@@ -67,6 +53,21 @@
 .Fa "Dwarf_Off offset"
 .Fa "Dwarf_Bool is_info"
 .Fa "Dwarf_Die *ret_die"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_siblingof
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Die *ret_die"
+.Fa "Dwarf_Error *err"
+.Fc
+.Ft int
+.Fo dwarf_siblingof_b
+.Fa "Dwarf_Debug dbg"
+.Fa "Dwarf_Die die"
+.Fa "Dwarf_Die *ret_die"
+.Fa "Dwarf_Bool is_info"
 .Fa "Dwarf_Error *err"
 .Fc
 .Sh DESCRIPTION
@@ -112,26 +113,28 @@ Function
 .Fn dwarf_siblingof_b
 is identical to the function
 .Fn dwarf_siblingof
-except that it can retrieve the sibling descriptor from the
+except that it can retrieve the sibling descriptor from either the
 current compilation unit or type unit.
 If argument
 .Ar is_info
-is non-zero, the function is identical to the function
+is non-zero, the function behaves identically to function
 .Fn dwarf_siblingof .
 If argument
 .Ar is_info
-is zero, the descriptor refered by argument
+is zero, the descriptor referred by argument
 .Ar die
-should assoicate with a debugging information entry in the
+should be associated with a debugging information entry in the
 type unit.
 The function will store the sibling of the descriptor in the location
 pointed to by argument
 .Ar ret_die .
-If arugment
+If argument
 .Ar is_info
 is zero and argument
 .Ar die
-is NULL, the first debugging information entry descriptor for the
+is
+.Dv NULL ,
+the first debugging information entry descriptor for the
 current type unit will be returned.
 .Pp
 Function
@@ -152,7 +155,7 @@ is identical to the function
 except that it can retrieve the debugging information entry descriptor at
 global offset
 .Ar offset
-in both
+from either of the
 .Dq .debug_info
 and
 .Dq .debug_types
@@ -160,10 +163,11 @@ sections of the object associated with argument
 .Ar dbg .
 If argument
 .Ar is_info
-is non-zero, the function will retrieve debugging information entry from the
+is non-zero, the function will retrieve the debugging information
+entry from the
 .Dq .debug_info
-section, otherwise the function will retrieve debugging information entry
-from the
+section, otherwise the function will retrieve the debugging
+information entry from the
 .Dq .debug_types
 section.
 The returned descriptor is written to the location pointed to by argument
@@ -195,14 +199,18 @@ argument
 if it is not NULL.
 .It Bq Er DW_DLV_NO_ENTRY
 For functions
-.Fn dwarf_child
+.Fn dwarf_child ,
+.Fn dwarf_siblingof
 and
-.Fn dwarf_siblingof ,
+.Fn dwarf_siblingof_b ,
 the descriptor denoted by argument
 .Ar die
 did not have a child or sibling.
-For function
-.Fn dwarf_offdie ,
+.Pp
+For functions
+.Fn dwarf_offdie
+and
+.Fn dwarf_offdie_b ,
 there was no debugging information entry at the offset specified by
 argument
 .Ar offset .

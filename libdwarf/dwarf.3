@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd December 20, 2014
+.Dd December 21, 2014
 .Os
 .Dt DWARF 3
 .Sh NAME
@@ -337,9 +337,9 @@ Indicate the originating section for a debugging information entry.
 Return the highest PC value for a debugging information entry.
 .It Fn dwarf_lowpc
 Return the lowest PC value for a debugging information entry.
-.It Fn dwarf_offdie
+.It Fn dwarf_offdie , Fn dwarf_offdie_b
 Retrieve a debugging information entry given an offset.
-.It Fn dwarf_siblingof
+.It Fn dwarf_siblingof , Fn dwarf_siblingof_b
 Retrieve the sibling descriptor for a debugging information entry.
 .It Fn dwarf_srclang
 Retrive the source language attribute for a debugging information
