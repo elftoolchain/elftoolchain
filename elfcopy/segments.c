@@ -83,8 +83,7 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 			continue;
 
 		insert_to_inseg_list(seg, s);
-		if (seg->type == PT_LOAD)
-			s->seg = seg;
+		s->seg = seg;
 		s->lma = seg->addr + (s->off - seg->off);
 		loadable = 1;
 	}

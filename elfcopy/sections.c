@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2007-2011 Kai Wang
+ * Copyright (c) 2007-2011,2014 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ static int	is_compress_section(struct elfcopy *ecp, const char *name);
 static int	is_debug_section(const char *name);
 static int	is_modify_section(struct elfcopy *ecp, const char *name);
 static int	is_print_section(struct elfcopy *ecp, const char *name);
+static int	is_tls_section(struct section *s);
 static int	lookup_string(struct section *t, const char *s);
 static void	modify_section(struct elfcopy *ecp, struct section *s);
 static void	pad_section(struct elfcopy *ecp, struct section *s);
@@ -204,6 +205,19 @@ get_section_flags(struct elfcopy *ecp, const char *name)
 	sac = lookup_sec_act(ecp, name, 0);
 	if (sac != NULL && sac->flags)
 		return sac->flags;
+
+	return (0);
+}
+
+static int
+is_tls_section(struct section *s)
+{
+
+	if (s->seg == NULL)
+		return (0);
+
+	if (s->seg->type == PT_TLS)
+		return (1);
 
 	return (0);
 }
@@ -485,7 +499,10 @@ insert_shtab(struct elfcopy *ecp, int tail)
 	if ((shtab = calloc(1, sizeof(*shtab))) == NULL)
 		errx(EXIT_FAILURE, "calloc failed");
 	if (!tail) {
-		/* shoff of input object is used as a hint. */
+		/*
+		 * "shoff" of input object is used as a hint for section
+		 * resync later.
+		 */
 		if (gelf_getehdr(ecp->ein, &ieh) == NULL)
 			errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 			    elf_errmsg(-1));
@@ -763,6 +780,14 @@ resync_sections(struct elfcopy *ecp)
 			off = s->off;
 			first = 0;
 		}
+
+		/*
+		 * Ignore TLS sections. We don't need to adjust the
+		 * file offset or VMA for TLS sections. Only its size
+		 * matters.
+		 */
+		if (is_tls_section(s))
+			continue;
 
 		/* Align section offset. */
 		if (off <= s->off) {
