@@ -115,6 +115,7 @@ struct segment;
 /* Internal data structure for sections. */
 struct section {
 	struct segment	*seg;	/* containing segment */
+	struct segment	*seg_tls; /* tls segment */
 	const char	*name;	/* section name */
 	char		*newname; /* new section name */
 	Elf_Scn		*is;	/* input scn */

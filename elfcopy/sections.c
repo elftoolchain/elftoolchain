@@ -49,7 +49,6 @@ static int	is_compress_section(struct elfcopy *ecp, const char *name);
 static int	is_debug_section(const char *name);
 static int	is_modify_section(struct elfcopy *ecp, const char *name);
 static int	is_print_section(struct elfcopy *ecp, const char *name);
-static int	is_tls_section(struct section *s);
 static int	lookup_string(struct section *t, const char *s);
 static void	modify_section(struct elfcopy *ecp, struct section *s);
 static void	pad_section(struct elfcopy *ecp, struct section *s);
@@ -205,19 +204,6 @@ get_section_flags(struct elfcopy *ecp, const char *name)
 	sac = lookup_sec_act(ecp, name, 0);
 	if (sac != NULL && sac->flags)
 		return sac->flags;
-
-	return (0);
-}
-
-static int
-is_tls_section(struct section *s)
-{
-
-	if (s->seg == NULL)
-		return (0);
-
-	if (s->seg->type == PT_TLS)
-		return (1);
 
 	return (0);
 }
@@ -786,7 +772,7 @@ resync_sections(struct elfcopy *ecp)
 		 * content. We don't need to adjust their file offset or
 		 * VMA, only the size matters.
 		 */
-		if (is_tls_section(s) && s->type == SHT_NOBITS &&
+		if (s->seg_tls != NULL && s->type == SHT_NOBITS &&
 		    s->off == 0)
 			continue;
 
