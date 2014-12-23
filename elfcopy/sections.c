@@ -1050,6 +1050,17 @@ copy_data(struct section *s)
 		od->d_size	= id->d_size;
 		od->d_version	= id->d_version;
 	}
+
+	/*
+	 * Alignment Fixup. libelf does not allow the alignment for
+	 * Elf_Data descriptor to be set to 0. In this case we workaround
+	 * it by setting the alignment to 1.
+	 *
+	 * According to the ELF ABI, alignment 0 and 1 has the same
+	 * meaning: the section has no alignment constraints.
+	 */
+	if (od->d_align == 0)
+		od->d_align = 1;
 }
 
 struct section *
