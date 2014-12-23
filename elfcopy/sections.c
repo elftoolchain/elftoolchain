@@ -782,11 +782,12 @@ resync_sections(struct elfcopy *ecp)
 		}
 
 		/*
-		 * Ignore TLS sections. We don't need to adjust the
-		 * file offset or VMA for TLS sections. Only its size
-		 * matters.
+		 * Ignore TLS sections with load address 0 and without
+		 * content. We don't need to adjust their file offset or
+		 * VMA, only the size matters.
 		 */
-		if (is_tls_section(s))
+		if (is_tls_section(s) && s->type == SHT_NOBITS &&
+		    s->off == 0)
 			continue;
 
 		/* Align section offset. */
