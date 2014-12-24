@@ -153,7 +153,8 @@ _dwarf_info_load(Dwarf_Debug dbg, Dwarf_Bool load_all, Dwarf_Bool is_info,
 			return (ret);
 		offset = dbg->dbg_info_off;
 		ds = dbg->dbg_info_sec;
-		assert(ds != NULL);
+		if (ds == NULL)
+			return (DW_DLE_NO_ENTRY);
 	} else {
 		if (dbg->dbg_types_loaded)
 			return (ret);

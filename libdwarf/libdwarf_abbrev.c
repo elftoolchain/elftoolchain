@@ -180,7 +180,9 @@ _dwarf_abbrev_find(Dwarf_CU cu, uint64_t entry, Dwarf_Abbrev *abp,
 
 	/* Load and search the abbrev table. */
 	ds = _dwarf_find_section(cu->cu_dbg, ".debug_abbrev");
-	assert(ds != NULL);
+	if (ds == NULL)
+		return (DW_DLE_NO_ENTRY);
+
 	offset = cu->cu_abbrev_offset_cur;
 	while (offset < ds->ds_size) {
 		ret = _dwarf_abbrev_parse(cu->cu_dbg, cu, &offset, &ab, error);
