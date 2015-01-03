@@ -3591,13 +3591,8 @@ dump_notes_content(struct readelf *re, const char *buf, size_t sz, off_t off)
 		    (uintmax_t) note->n_descsz);
 		printf("      %s\n", note_type(re->ehdr.e_ident[EI_OSABI],
 		    re->ehdr.e_type, note->n_type));
-		buf += sizeof(Elf_Note);
-		if (re->ec == ELFCLASS32)
-			buf += roundup2(note->n_namesz, 4) +
-			    roundup2(note->n_descsz, 4);
-		else
-			buf += roundup2(note->n_namesz, 8) +
-			    roundup2(note->n_descsz, 8);
+		buf += sizeof(Elf_Note) + roundup2(note->n_namesz, 4) +
+		    roundup2(note->n_descsz, 4);
 	}
 }
 
