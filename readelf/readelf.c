@@ -6609,10 +6609,8 @@ load_sections(struct readelf *re)
 		return;
 	}
 
-	if ((scn = elf_getscn(re->elf, 0)) == NULL) {
-		warnx("elf_getscn failed: %s", elf_errmsg(-1));
+	if ((scn = elf_getscn(re->elf, 0)) == NULL)
 		return;
-	}
 
 	(void) elf_errno();
 	do {
