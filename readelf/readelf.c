@@ -3169,6 +3169,10 @@ dump_rel(struct readelf *re, struct section *s, Elf_Data *d)
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
+		if (s->link >= re->shnum) {
+			warnx("invalid section link index %u", s->link);
+			continue;
+		}
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
 		if (re->ec == ELFCLASS32) {
@@ -3219,6 +3223,10 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 	for (i = 0; i < len; i++) {
 		if (gelf_getrela(d, i, &r) != &r) {
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
+			continue;
+		}
+		if (s->link >= re->shnum) {
+			warnx("invalid section link index %u", s->link);
 			continue;
 		}
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
