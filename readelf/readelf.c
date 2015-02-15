@@ -4242,14 +4242,22 @@ dump_attributes(struct readelf *re)
 		len = d->d_size - 1;
 		p++;
 		while (len > 0) {
+			if (len < 4) {
+				warnx("truncated attribute section length");
+				break;
+			}
 			seclen = re->dw_decode(&p, 4);
 			if (seclen > len) {
 				warnx("invalid attribute section length");
 				break;
 			}
 			len -= seclen;
-			printf("Attribute Section: %s\n", (char *) p);
 			nlen = strlen((char *) p) + 1;
+			if (nlen + 4 > seclen) {
+				warnx("invalid attribute section name");
+				break;
+			}
+			printf("Attribute Section: %s\n", (char *) p);
 			p += nlen;
 			seclen -= nlen + 4;
 			while (seclen > 0) {
