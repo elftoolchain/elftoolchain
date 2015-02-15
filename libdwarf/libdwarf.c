@@ -31,5 +31,5 @@ ELFTC_VCSID("$Id$");
 struct _libdwarf_globals _libdwarf = {
 	.errhand	= NULL,
 	.errarg		= NULL,
-	.applyrela	= 1
+	.applyreloc	= 1
 };
