@@ -1577,7 +1577,9 @@ note_type_linux_core(unsigned int nt)
 	case 0x304: return "NT_S390_CTRS (s390 control registers)";
 	case 0x305: return "NT_S390_PREFIX (s390 prefix register)";
 	case 0x400: return "NT_ARM_VFP (arm VFP registers)";
+	case 0x46494c45UL: return "NT_FILE (mapped files)";
 	case 0x46E62B7FUL: return "NT_PRXFPREG (Linux user_xfpregs structure)";
+	case 0x53494749UL: return "NT_SIGINFO (siginfo_t data)";
 	default: return (note_type_unknown(nt));
 	}
 }
