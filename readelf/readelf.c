@@ -1617,7 +1617,8 @@ note_type_unknown(unsigned int nt)
 {
 	static char s_nt[32];
 
-	snprintf(s_nt, sizeof(s_nt), "<unknown: %u>", nt);
+	snprintf(s_nt, sizeof(s_nt),
+	    nt >= 0x100 ? "<unknown: 0x%x>" : "<unknown: %u>", nt);
 	return (s_nt);
 }
 
