@@ -90,7 +90,8 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 		else
 			bsdar->options &= ~AR_BSD;
 
-		name = archive_entry_pathname(entry);
+		if ((name = archive_entry_pathname(entry)) == NULL)
+			break;
 
 		/* Skip pseudo members. */
 		if (bsdar_is_pseudomember(bsdar, name))
