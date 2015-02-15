@@ -49,6 +49,7 @@ int	yylex(void);
 
 %}
 
+%option nounput
 %option noyywrap
 
 %%
