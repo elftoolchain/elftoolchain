@@ -315,6 +315,8 @@ _dwarf_lineno_init(Dwarf_Die die, uint64_t offset, Dwarf_Error *error)
 	li->li_hdrlen = dbg->read(ds->ds_data, &offset, dwarf_size);
 	hdroff = offset;
 	li->li_minlen = dbg->read(ds->ds_data, &offset, 1);
+	if (li->li_version == 4)
+		li->li_maxop = dbg->read(ds->ds_data, &offset, 1);
 	li->li_defstmt = dbg->read(ds->ds_data, &offset, 1);
 	li->li_lbase = dbg->read(ds->ds_data, &offset, 1);
 	li->li_lrange = dbg->read(ds->ds_data, &offset, 1);
