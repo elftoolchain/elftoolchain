@@ -26,7 +26,7 @@
  * $Id$
  */
 
-#ifdef	__DragonFly__
+#if defined(__APPLE__) || defined(__DragonFly__)
 
 #if	defined(__amd64__)
 #define	LIBELF_ARCH		EM_X86_64

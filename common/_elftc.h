@@ -294,7 +294,8 @@ struct name {							\
 #define	ELFTC_VCSID(ID)		__FBSDID(ID)
 #endif
 
-#if defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
+#if defined(__APPLE__) || defined(__GLIBC__) || defined(__GNU__) || \
+    defined(__linux__)
 #if defined(__GNUC__)
 #define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
 #else
@@ -330,8 +331,8 @@ struct name {							\
 
 #ifndef	ELFTC_GETPROGNAME
 
-#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__minix) || \
-    defined(__NetBSD__)
+#if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || \
+    defined(__minix) || defined(__NetBSD__)
 
 #include <stdlib.h>
 
@@ -367,6 +368,21 @@ extern const char *__progname;
 /**
  ** Per-OS configuration.
  **/
+
+#if defined(__APPLE__)
+
+#include <machine/endian.h>
+#define	roundup2	roundup
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#define	ELFTC_HAVE_MMAP				1
+#define	ELFTC_HAVE_STRMODE			1
+
+#endif /* __APPLE__ */
+
 
 #if defined(__DragonFly__)
 
