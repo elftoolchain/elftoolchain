@@ -57,6 +57,7 @@ enum options
 	ECP_GLOBALIZE_SYMBOLS,
 	ECP_KEEP_SYMBOLS,
 	ECP_KEEP_GLOBAL_SYMBOLS,
+	ECP_LOCALIZE_HIDDEN,
 	ECP_LOCALIZE_SYMBOLS,
 	ECP_NO_CHANGE_WARN,
 	ECP_ONLY_DEBUG,
@@ -134,6 +135,7 @@ static struct option elfcopy_longopts[] =
 	{"keep-global-symbol", required_argument, NULL, 'G'},
 	{"keep-global-symbols", required_argument, NULL,
 	 ECP_KEEP_GLOBAL_SYMBOLS},
+	{"localize-hidden", no_argument, NULL, ECP_LOCALIZE_HIDDEN},
 	{"localize-symbol", required_argument, NULL, 'L'},
 	{"localize-symbols", required_argument, NULL, ECP_LOCALIZE_SYMBOLS},
 	{"no-adjust-warnings", no_argument, NULL, ECP_NO_CHANGE_WARN},
@@ -348,6 +350,7 @@ create_elf(struct elfcopy *ecp)
 	if (ecp->strip == STRIP_DEBUG ||
 	    ecp->strip == STRIP_UNNEEDED ||
 	    ecp->flags & WEAKEN_ALL ||
+	    ecp->flags & LOCALIZE_HIDDEN ||
 	    ecp->flags & DISCARD_LOCAL ||
 	    ecp->flags & DISCARD_LLABEL ||
 	    ecp->prefix_sym != NULL ||
@@ -870,6 +873,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_KEEP_GLOBAL_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_KEEPG);
 			break;
+		case ECP_LOCALIZE_HIDDEN:
+			ecp->flags |= LOCALIZE_HIDDEN;
+			break;
 		case ECP_LOCALIZE_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_LOCALIZE);
 			break;
@@ -1379,6 +1385,8 @@ Usage: %s [options] infile [outfile]\n\
                                section by VAL.\n\
   --gap-fill=VAL               Fill the gaps between sections with bytes\n\
                                of value VAL.\n\
+  --localize-hidden            Make all hidden symbols local to the output\n\
+                               file.\n\
   --no-adjust-warning| --no-change-warnings\n\
                                Do not issue warnings for non-existent\n\
                                sections.\n\

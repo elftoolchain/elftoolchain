@@ -216,6 +216,7 @@ struct elfcopy {
 #define	SEC_REMOVE	0x00800000U
 #define	SEC_COPY	0x01000000U
 #define	DISCARD_LLABEL	0x02000000U
+#define	LOCALIZE_HIDDEN	0x04000000U
 
 	int		 flags;		/* elfcopy run control flags. */
 	int64_t		 change_addr;	/* Section address adjustment. */

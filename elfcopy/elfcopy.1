@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd October 03, 2011
+.Dd February 24, 2015
 .Os
 .Dt ELFCOPY 1
 .Sh NAME
@@ -64,6 +64,7 @@
 .Op Fl -change-section-lma Ar section Ns {+|-|=} Ns Ar val
 .Op Fl -change-section-vma Ar section Ns {+|-|=} Ns Ar val
 .Op Fl -gap-fill Ns = Ns Ar val
+.Op Fl -localize-hidden
 .Op Fl -no-adjust-warnings | Fl -no-change-warnings
 .Op Fl -only-keep-debug
 .Op Fl -pad-to Ns = Ns Ar address
@@ -224,6 +225,9 @@ of the virtual memory address.
 Fill the gaps between sections with the byte value specified by
 the argument
 .Ar val .
+.It Fl -localize-hidden
+Make all hidden symbols local to the output file.
+This includes symbols with internal visiblity.
 .It Fl -no-adjust-warnings | Fl -no-change-warnings
 Do not issue a warning if the section specified by the options
 .Fl -change-section-address ,

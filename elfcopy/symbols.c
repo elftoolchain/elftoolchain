@@ -129,6 +129,17 @@ is_local_symbol(unsigned char st_info)
 }
 
 static int
+is_hidden_symbol(unsigned char st_other)
+{
+
+	if (GELF_ST_VISIBILITY(st_other) == STV_HIDDEN ||
+	    GELF_ST_VISIBILITY(st_other) == STV_INTERNAL)
+		return (1);
+
+	return (0);
+}
+
+static int
 is_local_label(const char *name)
 {
 
@@ -455,6 +466,11 @@ generate_symbols(struct elfcopy *ecp)
 			if (ecp->flags & KEEP_GLOBAL &&
 			    sym.st_shndx != SHN_UNDEF &&
 			    lookup_symop_list(ecp, name, SYMOP_KEEPG) == NULL)
+				sym.st_info = GELF_ST_INFO(STB_LOCAL,
+				    GELF_ST_TYPE(sym.st_info));
+			if (ecp->flags & LOCALIZE_HIDDEN &&
+			    sym.st_shndx != SHN_UNDEF &&
+			    is_hidden_symbol(sym.st_other))
 				sym.st_info = GELF_ST_INFO(STB_LOCAL,
 				    GELF_ST_TYPE(sym.st_info));
 		} else {
