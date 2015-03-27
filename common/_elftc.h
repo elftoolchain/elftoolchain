@@ -341,7 +341,7 @@ struct name {							\
 #endif	/* __DragonFly__ || __FreeBSD__ || __minix || __NetBSD__ */
 
 
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(__linux__)
 
 /*
  * GLIBC based systems have a global 'char *' pointer referencing
@@ -351,7 +351,7 @@ extern const char *program_invocation_short_name;
 
 #define	ELFTC_GETPROGNAME()	program_invocation_short_name
 
-#endif	/* __GLIBC__ */
+#endif	/* __GLIBC__ || __linux__ */
 
 
 #if defined(__OpenBSD__)
@@ -397,7 +397,7 @@ extern const char *__progname;
 
 #endif
 
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(__linux__)
 
 #include <endian.h>
 
@@ -417,7 +417,7 @@ extern const char *__progname;
 
 #define	roundup2	roundup
 
-#endif	/* __GLIBC__ */
+#endif	/* __GLIBC__ || __linux__ */
 
 
 #if defined(__FreeBSD__)
