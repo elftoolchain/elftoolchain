@@ -26,7 +26,6 @@
  * $Id$
  */
 
-#include <sys/cdefs.h>
 #include <sys/mman.h>
 #include <sys/param.h>
 #include <sys/queue.h>

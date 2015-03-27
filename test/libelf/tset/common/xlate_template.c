@@ -36,7 +36,6 @@
  */
 
 #include <sys/param.h>
-#include <sys/cdefs.h>
 
 #define	__XCONCAT(x,y)	__CONCAT(x,y)
 #ifndef	__XSTRING

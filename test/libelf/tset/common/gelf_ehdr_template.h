@@ -50,8 +50,6 @@
  * #include "gelf_getehdr_template.c"
  */
 
-#include <sys/cdefs.h>
-
 IC_REQUIRES_VERSION_INIT();
 
 /*

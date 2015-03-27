@@ -42,8 +42,6 @@ ifdef(`TS_EHDRFUNC',`',`errprint(`TS_EHDRFUNC was not defined')m4exit(1)')
 ifdef(`TS_EHDRSZ',`',`errprint(`TS_EHDRSZ was not defined')m4exit(1)')
 define(`TS_OTHERSIZE',`ifelse(TS_EHDRSZ,32,64,32)')
 
-#include <sys/cdefs.h>
-
 define(`TS_ICFUNC',`elf'TS_EHDRSZ`'TS_EHDRFUNC)
 define(`TS_EHDR',`Elf'TS_EHDRSZ`_Ehdr')
 define(`TS_ICNAME',TS_ICFUNC)

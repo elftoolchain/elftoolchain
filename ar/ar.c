@@ -58,8 +58,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <archive.h>

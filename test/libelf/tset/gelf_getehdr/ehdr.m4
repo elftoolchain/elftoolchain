@@ -28,8 +28,6 @@
 
 include(`elfts.m4')
 
-#include <sys/cdefs.h>
-
 #include <gelf.h>
 #include <libelf.h>
 #include <stdint.h>

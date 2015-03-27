@@ -36,8 +36,6 @@
  * #include "phdr_template.c"
  */
 
-#include <sys/cdefs.h>
-
 /* Variations of __CONCAT and __STRING which expand their arguments. */
 #define __XCONCAT(x,y)	__CONCAT(x,y)
 #ifndef __XSTRING

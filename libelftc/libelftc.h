@@ -62,7 +62,9 @@ typedef enum {
 /* Demangling behaviour control. */
 #define ELFTC_DEM_NOPARAM	0x00010000U
 
-__BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 Elftc_Bfd_Target	*elftc_bfd_find_target(const char *_tgt_name);
 Elftc_Bfd_Target_Flavor	 elftc_bfd_target_flavor(Elftc_Bfd_Target *_tgt);
 unsigned int	elftc_bfd_target_byteorder(Elftc_Bfd_Target *_tgt);
@@ -87,6 +89,8 @@ int		elftc_string_table_remove(Elftc_String_Table *_table,
 const char	*elftc_string_table_to_string(Elftc_String_Table *_table,
     size_t offset);
 const char	*elftc_version(void);
-__END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* _LIBELFTC_H_ */

@@ -26,8 +26,6 @@
  * $Id$
  */
 
-#include <sys/cdefs.h>
-
 #include <libelf.h>
 #include <stdint.h>
 #include <string.h>

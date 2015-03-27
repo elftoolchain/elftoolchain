@@ -444,7 +444,9 @@ enum Dwarf_ISA {
 };
 
 /* Function prototype definitions. */
-__BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 Dwarf_P_Attribute dwarf_add_AT_comp_dir(Dwarf_P_Die, char *, Dwarf_Error *);
 Dwarf_P_Attribute dwarf_add_AT_const_value_signedint(Dwarf_P_Die, Dwarf_Signed,
 		    Dwarf_Error *);
@@ -831,6 +833,8 @@ int		dwarf_whatattr(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform(Dwarf_Attribute, Dwarf_Half *, Dwarf_Error *);
 int		dwarf_whatform_direct(Dwarf_Attribute, Dwarf_Half *,
 		    Dwarf_Error *);
-__END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* !_LIBDWARF_H_ */
