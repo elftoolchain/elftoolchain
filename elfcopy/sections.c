@@ -47,6 +47,7 @@ static void	insert_to_strtab(struct section *t, const char *s);
 static int	is_append_section(struct elfcopy *ecp, const char *name);
 static int	is_compress_section(struct elfcopy *ecp, const char *name);
 static int	is_debug_section(const char *name);
+static int	is_dwo_section(const char *name);
 static int	is_modify_section(struct elfcopy *ecp, const char *name);
 static int	is_print_section(struct elfcopy *ecp, const char *name);
 static int	lookup_string(struct section *t, const char *s);
@@ -72,6 +73,11 @@ is_remove_section(struct elfcopy *ecp, const char *name)
 		else
 			return (0);
 	}
+
+	if (ecp->strip == STRIP_DWO && is_dwo_section(name))
+		return (1);
+	if (ecp->strip == STRIP_NONDWO && !is_dwo_section(name))
+		return (1);
 
 	if (is_debug_section(name)) {
 		if (ecp->strip == STRIP_ALL ||
@@ -230,6 +236,16 @@ is_debug_section(const char *name)
 			return (1);
 	}
 
+	return (0);
+}
+
+static int
+is_dwo_section(const char *name)
+{
+	size_t len;
+
+	if ((len = strlen(name)) > 4 && strcmp(name + len - 4, ".dwo") == 0)
+		return (1);
 	return (0);
 }
 

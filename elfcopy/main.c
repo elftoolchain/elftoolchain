@@ -61,6 +61,7 @@ enum options
 	ECP_LOCALIZE_SYMBOLS,
 	ECP_NO_CHANGE_WARN,
 	ECP_ONLY_DEBUG,
+	ECP_ONLY_DWO,
 	ECP_PAD_TO,
 	ECP_PREFIX_ALLOC,
 	ECP_PREFIX_SEC,
@@ -73,6 +74,7 @@ enum options
 	ECP_SET_START,
 	ECP_SREC_FORCE_S3,
 	ECP_SREC_LEN,
+	ECP_STRIP_DWO,
 	ECP_STRIP_SYMBOLS,
 	ECP_STRIP_UNNEEDED,
 	ECP_WEAKEN_ALL,
@@ -125,6 +127,7 @@ static struct option elfcopy_longopts[] =
 	{"change-warnings", no_argument, NULL, ECP_CHANGE_WARN},
 	{"discard-all", no_argument, NULL, 'x'},
 	{"discard-locals", no_argument, NULL, 'X'},
+	{"extract-dwo", no_argument, NULL, ECP_ONLY_DWO},
 	{"gap-fill", required_argument, NULL, ECP_GAP_FILL},
 	{"globalize-symbol", required_argument, NULL, ECP_GLOBALIZE_SYMBOL},
 	{"globalize-symbols", required_argument, NULL, ECP_GLOBALIZE_SYMBOLS},
@@ -159,6 +162,7 @@ static struct option elfcopy_longopts[] =
 	{"srec-len", required_argument, NULL, ECP_SREC_LEN},
 	{"strip-all", no_argument, NULL, 'S'},
 	{"strip-debug", no_argument, 0, 'g'},
+	{"strip-dwo", no_argument, NULL, ECP_STRIP_DWO},
 	{"strip-symbol", required_argument, NULL, 'N'},
 	{"strip-symbols", required_argument, NULL, ECP_STRIP_SYMBOLS},
 	{"strip-unneeded", no_argument, NULL, ECP_STRIP_UNNEEDED},
@@ -885,6 +889,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_ONLY_DEBUG:
 			ecp->strip = STRIP_NONDEBUG;
 			break;
+		case ECP_ONLY_DWO:
+			ecp->strip = STRIP_NONDWO;
+			break;
 		case ECP_PAD_TO:
 			ecp->pad_to = (uint64_t) strtoull(optarg, NULL, 0);
 			break;
@@ -944,6 +951,9 @@ elfcopy_main(struct elfcopy *ecp, int argc, char **argv)
 		case ECP_SREC_LEN:
 			ecp->flags |= SREC_FORCE_LEN;
 			ecp->srec_len = strtoul(optarg, NULL, 0);
+			break;
+		case ECP_STRIP_DWO:
+			ecp->strip = STRIP_DWO;
 			break;
 		case ECP_STRIP_SYMBOLS:
 			parse_symlist_file(ecp, optarg, SYMOP_STRIP);

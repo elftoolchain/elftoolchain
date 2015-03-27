@@ -190,7 +190,9 @@ struct elfcopy {
 		STRIP_NONE = 0,
 		STRIP_ALL,
 		STRIP_DEBUG,
+		STRIP_DWO,
 		STRIP_NONDEBUG,
+		STRIP_NONDWO,
 		STRIP_UNNEEDED
 	} strip;
 
