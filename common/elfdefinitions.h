@@ -171,7 +171,7 @@ _ELF_DEFINE_DT(DT_MOVEENT,          0x6FFFFDFAUL,			\
 	"size of DT_MOVETAB entries")					\
 _ELF_DEFINE_DT(DT_MOVESZ,           0x6FFFFDFBUL,			\
 	"total size of the MOVETAB table")				\
-_ELF_DEFINE_DT(DT_FEATURE_1,        0x6FFFFDFCUL, "feature values")	\
+_ELF_DEFINE_DT(DT_FEATURE,          0x6FFFFDFCUL, "feature values")	\
 _ELF_DEFINE_DT(DT_POSFLAG_1,        0x6FFFFDFDUL,			\
 	"dynamic position flags")					\
 _ELF_DEFINE_DT(DT_SYMINSZ,          0x6FFFFDFEUL,			\
