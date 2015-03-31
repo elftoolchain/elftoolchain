@@ -379,7 +379,7 @@ cmp_value(const void *lp, const void *rp)
 		/* Both defined */
 		if (l->sym->st_value == r->sym->st_value)
 			return (strcmp(l->name, r->name));
-		return (l->sym->st_value - r->sym->st_value);
+		return (l->sym->st_value > r->sym->st_value ? 1 : -1);
 	case 1:
 		/* One undefined */
 		return (l_is_undef == 0 ? 1 : -1);
