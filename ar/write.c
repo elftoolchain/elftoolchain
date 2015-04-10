@@ -69,7 +69,7 @@ static void	write_objs(struct bsdar *bsdar);
 /*
  * Create an object from a file, and return the created object
  * descriptor.  Return NULL if either an error occurs, or if the '-u'
- * option was specifed and the member is not newer than the existing
+ * option was specified and the member is not newer than the existing
  * one in the archive.
  */
 static struct ar_obj *
@@ -426,7 +426,7 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 	if (mode == 'A') {
 		/*
 		 * Read objects from the target archive of the
-		 * 'ADDLIB' command.  If there are members spcified in
+		 * 'ADDLIB' command.  If there are members specified in
 		 * 'argv', read those members only, otherwise the
 		 * entire archive will be read.
 		 */
@@ -447,7 +447,7 @@ ar_write_archive(struct bsdar *bsdar, int mode)
 
 		/*
 		 * If we cannot find the position specified by the
-		 * user, sliently insert objects at the tail of the
+		 * user, silently insert objects at the tail of the
 		 * list.
 		 */
 		if (pos == NULL)

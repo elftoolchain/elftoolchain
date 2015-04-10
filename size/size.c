@@ -600,7 +600,7 @@ handle_elf(char const *name)
 			    arhdr->ar_name);
 			continue;
 		}
-		/* Core dumps are handled seperately */
+		/* Core dumps are handled separately */
 		if (elfhdr.e_shnum == 0 && elfhdr.e_type == ET_CORE) {
 			exit_code = handle_core(name, elf, &elfhdr);
 			(void) elf_end(elf);
