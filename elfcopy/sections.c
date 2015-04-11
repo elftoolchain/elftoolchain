@@ -1223,6 +1223,13 @@ update_shdr(struct elfcopy *ecp, int update_link)
 		    osh.sh_info != 0)
 			osh.sh_info = ecp->secndx[osh.sh_info];
 
+		/*
+		 * sh_info of SHT_GROUP section needs to point to the correct
+		 * string in the symbol table.
+		 */
+		if (s->type == SHT_GROUP && (ecp->flags & SYMTAB_EXIST))
+			osh.sh_info = ecp->symndx[osh.sh_info];
+
 		if (!gelf_update_shdr(s->os, &osh))
 			errx(EXIT_FAILURE, "gelf_update_shdr() failed: %s",
 			    elf_errmsg(-1));
