@@ -33,7 +33,7 @@ $1 ~ "Data:"  {
 $1 ~ "Machine:" {
         if (match($0, "Intel.*386")) {
             elfarch = "EM_386";
-        } else if (match($0, ".*X86-64")) {
+        } else if (match($0, ".*[xX]86-64")) {
             elfarch = "EM_X86_64";
         } else {
             elfarch = "unknown";
