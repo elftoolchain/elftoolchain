@@ -4378,13 +4378,22 @@ dump_mips_options(struct readelf *re, struct section *s)
 	p = d->d_buf;
 	pe = p + d->d_size;
 	while (p < pe) {
+		if (pe - p < 8) {
+			warnx("Truncated MIPS option header");
+			return;
+		}
 		kind = re->dw_decode(&p, 1);
 		size = re->dw_decode(&p, 1);
 		sndx = re->dw_decode(&p, 2);
 		info = re->dw_decode(&p, 4);
+		if (size < 8 || size - 8 > pe - p) {
+			warnx("Malformed MIPS option header");
+			return;
+		}
+		size -= 8;
 		switch (kind) {
 		case ODK_REGINFO:
-			dump_mips_odk_reginfo(re, p, size - 8);
+			dump_mips_odk_reginfo(re, p, size);
 			break;
 		case ODK_EXCEPTIONS:
 			printf(" EXCEPTIONS FPU_MIN: %#x\n",
@@ -4435,7 +4444,7 @@ dump_mips_options(struct readelf *re, struct section *s)
 		default:
 			break;
 		}
-		p += size - 8;
+		p += size;
 	}
 }
 
