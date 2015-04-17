@@ -2673,7 +2673,7 @@ dump_phdr(struct readelf *re)
 {
 	const char	*rawfile;
 	GElf_Phdr	 phdr;
-	size_t		 phnum;
+	size_t		 phnum, size;
 	int		 i, j;
 
 #define	PH_HDR	"Type", "Offset", "VirtAddr", "PhysAddr", "FileSiz",	\
@@ -2726,8 +2726,12 @@ dump_phdr(struct readelf *re)
 			    "                 0x%16.16jx 0x%16.16jx  %c%c%c"
 			    "    %#jx\n", PH_CT);
 		if (phdr.p_type == PT_INTERP) {
-			if ((rawfile = elf_rawfile(re->elf, NULL)) == NULL) {
+			if ((rawfile = elf_rawfile(re->elf, &size)) == NULL) {
 				warnx("elf_rawfile failed: %s", elf_errmsg(-1));
+				continue;
+			}
+			if (phdr.p_offset >= size) {
+				warnx("invalid program header offset");
 				continue;
 			}
 			printf("      [Requesting program interpreter: %s]\n",
