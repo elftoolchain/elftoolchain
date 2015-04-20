@@ -933,12 +933,11 @@ main(int ac, char **av)
 		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	for (i = 0; i < ac; i++)
-		if (av[i] != NULL) {
-			ed->filename = av[i];
-			ed->archive = NULL;
-			elf_print_object(ed);
-		}
+	for (i = 0; i < ac; i++) {
+		ed->filename = av[i];
+		ed->archive = NULL;
+		elf_print_object(ed);
+	}
 
 	exit(EXIT_SUCCESS);
 }

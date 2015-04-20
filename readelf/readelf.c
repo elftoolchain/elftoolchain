@@ -7471,11 +7471,10 @@ main(int argc, char **argv)
 		errx(EXIT_FAILURE, "ELF library initialization failed: %s",
 		    elf_errmsg(-1));
 
-	for (i = 0; i < argc; i++)
-		if (argv[i] != NULL) {
-			re->filename = argv[i];
-			dump_object(re);
-		}
+	for (i = 0; i < argc; i++) {
+		re->filename = argv[i];
+		dump_object(re);
+	}
 
 	exit(EXIT_SUCCESS);
 }
