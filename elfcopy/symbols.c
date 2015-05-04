@@ -1090,7 +1090,7 @@ str_hash(const char *s)
 {
 	uint32_t hash;
 
-	for (hash = 2166136261; *s; s++)
+	for (hash = 2166136261UL; *s; s++)
 		hash = (hash ^ *s) * 16777619;
 
 	return (hash & (STHASHSIZE - 1));
