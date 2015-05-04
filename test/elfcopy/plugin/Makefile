@@ -9,7 +9,9 @@ ${PLUGINS}:
 	${MAKE} -f Makefile.${plugin}
 .endfor
 
-clean cleandepend depend:
+test:	.PHONY
+
+clean cleandepend depend:	.PHONY
 .for plugin in ${PLUGINS}
 	${MAKE} -f Makefile.${plugin} ${.TARGET}
 .endfor
