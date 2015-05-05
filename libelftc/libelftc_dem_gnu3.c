@@ -316,7 +316,7 @@ cpp_demangle_push_fp(struct cpp_demangle_data *ddata,
 
 	rtn = 0;
 	if ((len = strlen(f)) > 0)
-	    rtn = cpp_demangle_push_str(ddata, f, len);
+		rtn = cpp_demangle_push_str(ddata, f, len);
 
 	free(f);
 
