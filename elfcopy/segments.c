@@ -442,7 +442,7 @@ copy_phdr(struct elfcopy *ecp)
 			s = seg->v_sec[i];
 			seg->msz = s->vma + s->sz - seg->addr;
 			if (s->type != SHT_NOBITS)
-				seg->fsz = seg->msz;
+				seg->fsz = s->off + s->sz - seg->off;
 		}
 	}
 
