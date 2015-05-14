@@ -565,6 +565,7 @@ _ELF_DEFINE_EM(EM_SPARC,            2, "SPARC")				\
 _ELF_DEFINE_EM(EM_386,              3, "Intel 80386")			\
 _ELF_DEFINE_EM(EM_68K,              4, "Motorola 68000")		\
 _ELF_DEFINE_EM(EM_88K,              5, "Motorola 88000")		\
+_ELF_DEFINE_EM(EM_IAMCU,            6, "Intel MCU")			\
 _ELF_DEFINE_EM(EM_860,              7, "Intel 80860")			\
 _ELF_DEFINE_EM(EM_MIPS,             8, "MIPS I Architecture")		\
 _ELF_DEFINE_EM(EM_S370,             9, "IBM System/370 Processor")	\

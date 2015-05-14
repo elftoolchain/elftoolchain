@@ -445,6 +445,7 @@ elf_machine(unsigned int mach)
 	case EM_SPARC: return "Sun SPARC";
 	case EM_386: return "Intel i386";
 	case EM_68K: return "Motorola 68000";
+	case EM_IAMCU: return "Intel MCU";
 	case EM_88K: return "Motorola 88000";
 	case EM_860: return "Intel i860";
 	case EM_MIPS: return "MIPS R3000 Big-Endian only";
@@ -1050,6 +1051,7 @@ r_type(unsigned int mach, unsigned int type)
 	switch(mach) {
 	case EM_NONE: return "";
 	case EM_386:
+	case EM_IAMCU:
 		switch(type) {
 		case 0: return "R_386_NONE";
 		case 1: return "R_386_32";
@@ -2381,6 +2383,7 @@ dwarf_reg(unsigned int mach, unsigned int reg)
 
 	switch (mach) {
 	case EM_386:
+	case EM_IAMCU:
 		switch (reg) {
 		case 0: return "eax";
 		case 1: return "ecx";
