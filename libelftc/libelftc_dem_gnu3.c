@@ -1634,9 +1634,18 @@ static int
 cpp_demangle_read_sname(struct cpp_demangle_data *ddata)
 {
 	long len;
+	int err;
 
 	if (ddata == NULL || cpp_demangle_read_number(ddata, &len) == 0 ||
-	    len <= 0 || cpp_demangle_push_str(ddata, ddata->cur, len) == 0)
+	    len <= 0)
+		return (0);
+
+	if (len == 12 && (memcmp("_GLOBAL__N_1", ddata->cur, 12) == 0))
+		err = cpp_demangle_push_str(ddata, "(anonymous namespace)", 21);
+	else
+		err = cpp_demangle_push_str(ddata, ddata->cur, len);
+
+	if (err == 0)
 		return (0);
 
 	assert(ddata->output.size > 0);
