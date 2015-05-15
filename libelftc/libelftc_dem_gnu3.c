@@ -50,7 +50,7 @@ ELFTC_VCSID("$Id$");
 
 enum type_qualifier {
 	TYPE_PTR, TYPE_REF, TYPE_CMX, TYPE_IMG, TYPE_EXT, TYPE_RST, TYPE_VAT,
-	TYPE_CST
+	TYPE_CST, TYPE_VEC
 };
 
 struct vector_type_qualifier {
@@ -112,6 +112,8 @@ static int	cpp_demangle_read_array(struct cpp_demangle_data *);
 static int	cpp_demangle_read_encoding(struct cpp_demangle_data *);
 static int	cpp_demangle_read_expr_primary(struct cpp_demangle_data *);
 static int	cpp_demangle_read_expression(struct cpp_demangle_data *);
+static int	cpp_demangle_read_expression_flat(struct cpp_demangle_data *,
+		    char **);
 static int	cpp_demangle_read_expression_binary(struct cpp_demangle_data *,
 		    const char *, size_t);
 static int	cpp_demangle_read_expression_unary(struct cpp_demangle_data *,
@@ -442,7 +444,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_EXT:
-			if (e_idx > v->ext_name.size - 1)
+			if (v->ext_name.size == 0 ||
+			    e_idx > v->ext_name.size - 1)
 				goto clean;
 			if ((e_len = strlen(v->ext_name.container[e_idx])) == 0)
 				goto clean;
@@ -505,6 +508,27 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			}
 			break;
 
+		case TYPE_VEC:
+			if (v->ext_name.size == 0 ||
+			    e_idx > v->ext_name.size - 1)
+				goto clean;
+			if ((e_len = strlen(v->ext_name.container[e_idx])) == 0)
+				goto clean;
+			if ((buf = malloc(e_len + 11)) == NULL)
+				goto clean;
+			memcpy(buf, " __vector(", 10);
+			memcpy(buf + 10, v->ext_name.container[e_idx], e_len);
+			buf[e_len + 10] = ')';
+			if (!cpp_demangle_push_str(ddata, buf, e_len + 11))
+				goto clean;
+			if (type_str != NULL) {
+				if (!vector_str_push(&subst_v, buf, e_len + 11))
+					goto clean;
+				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+					goto clean;
+			}
+			++e_idx;
+			break;
 		};
 		--idx;
 	}
@@ -996,6 +1020,38 @@ cpp_demangle_read_expression(struct cpp_demangle_data *ddata)
 	};
 
 	return (0);
+}
+
+static int
+cpp_demangle_read_expression_flat(struct cpp_demangle_data *ddata, char **str)
+{
+	struct vector_str *output;
+	size_t i, p_idx, idx, exp_len;
+	char *exp;
+
+	output = cpp_demangle_gnu3_push_head > 0 ? &ddata->output_tmp :
+	    &ddata->output;
+
+	p_idx = output->size;
+
+	if (!cpp_demangle_read_expression(ddata))
+		return (0);
+
+	if ((exp = vector_str_substr(output, p_idx, output->size - 1,
+	    &exp_len)) == NULL)
+		return (0);
+
+	idx = output->size;
+	for (i = p_idx; i < idx; ++i) {
+		if (!vector_str_pop(output)) {
+			free(exp);
+			return (0);
+		}
+	}
+
+	*str = exp;
+
+	return (1);
 }
 
 static int
@@ -1936,7 +1992,7 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata, int delimit)
 	size_t p_idx, type_str_len;
 	int extern_c, is_builtin;
 	long len;
-	char *type_str;
+	char *type_str, *exp_str, num_str[64];
 
 	if (ddata == NULL)
 		return (0);
@@ -2022,6 +2078,39 @@ again:
 		if (!cpp_demangle_push_str(ddata, "double", 6))
 			goto clean;
 		++ddata->cur;
+		goto rtn;
+
+	case 'D':
+		++ddata->cur;
+		switch (*ddata->cur) {
+		case 'v':
+			++ddata->cur;
+			if (*ddata->cur == '_') {
+				++ddata->cur;
+				if (!cpp_demangle_read_expression_flat(ddata,
+				    &exp_str))
+					goto clean;
+				if (!vector_str_push(&v.ext_name, exp_str,
+				    strlen(exp_str)))
+					goto clean;
+				free(exp_str);
+			} else {
+				if (!cpp_demangle_read_number(ddata, &len))
+					goto clean;
+				snprintf(num_str, sizeof(num_str), "%ld", len);
+				if (!vector_str_push(&v.ext_name, num_str,
+				    strlen(num_str)))
+					goto clean;
+			}
+			if (*ddata->cur != '_')
+				goto clean;
+			++ddata->cur;
+			if (!vector_type_qualifier_push(&v, TYPE_VEC))
+				goto clean;
+			goto again;
+		default:
+			goto clean;
+		}
 		goto rtn;
 
 	case 'e':
