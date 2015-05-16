@@ -2086,7 +2086,51 @@ again:
 	case 'D':
 		++ddata->cur;
 		switch (*ddata->cur) {
+		case 'd':
+			/* IEEE 754r decimal floating point (64 bits) */
+			if (!cpp_demangle_push_str(ddata, "decimal64", 9))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'e':
+			/* IEEE 754r decimal floating point (128 bits) */
+			if (!cpp_demangle_push_str(ddata, "decimal128", 10))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'f':
+			/* IEEE 754r decimal floating point (32 bits) */
+			if (!cpp_demangle_push_str(ddata, "decimal32", 9))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'h':
+			/* IEEE 754r half-precision floating point (16 bits) */
+			if (!cpp_demangle_push_str(ddata, "half", 4))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'i':
+			/* char32_t */
+			if (!cpp_demangle_push_str(ddata, "char32_t", 8))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'n':
+			/* std::nullptr_t (i.e., decltype(nullptr)) */
+			if (!cpp_demangle_push_str(ddata, "decltype(nullptr)",
+			    17))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 's':
+			/* char16_t */
+			if (!cpp_demangle_push_str(ddata, "char16_t", 8))
+				goto clean;
+			++ddata->cur;
+			break;
 		case 'v':
+			/* gcc vector_size extension. */
 			++ddata->cur;
 			if (*ddata->cur == '_') {
 				++ddata->cur;
