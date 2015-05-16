@@ -2210,7 +2210,7 @@ again:
 
 	case 'o':
 		/* unsigned __int128 */
-		if (!cpp_demangle_push_str(ddata, "unsigned _;int128", 17))
+		if (!cpp_demangle_push_str(ddata, "unsigned __int128", 17))
 			goto clean;
 		++ddata->cur;
 		goto rtn;
