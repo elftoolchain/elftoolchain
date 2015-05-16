@@ -310,7 +310,6 @@ cpp_demangle_push_fp(struct cpp_demangle_data *ddata,
 	fp = ddata->cur;
 	while (*ddata->cur != 'E')
 		++ddata->cur;
-	++ddata->cur;
 
 	if ((f = decoder(fp, ddata->cur - fp)) == NULL)
 		return (0);
@@ -320,6 +319,8 @@ cpp_demangle_push_fp(struct cpp_demangle_data *ddata,
 		rtn = cpp_demangle_push_str(ddata, f, len);
 
 	free(f);
+
+	++ddata->cur;
 
 	return (rtn);
 }
@@ -678,10 +679,14 @@ cpp_demangle_read_expr_primary(struct cpp_demangle_data *ddata)
 
 	switch (*ddata->cur) {
 	case 'b':
+		if (*(ddata->cur + 2) != 'E')
+			return (0);
 		switch (*(++ddata->cur)) {
 		case '0':
+			ddata->cur += 2;
 			return (cpp_demangle_push_str(ddata, "false", 5));
 		case '1':
+			ddata->cur += 2;
 			return (cpp_demangle_push_str(ddata, "true", 4));
 		default:
 			return (0);
@@ -730,7 +735,8 @@ cpp_demangle_read_expr_primary(struct cpp_demangle_data *ddata)
 			++ddata->cur;
 		}
 		++ddata->cur;
-		return (cpp_demangle_push_str(ddata, num, ddata->cur - num));
+		return (cpp_demangle_push_str(ddata, num,
+		    ddata->cur - num - 1));
 
 	default:
 		return (0);
