@@ -411,7 +411,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, "*", 1))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -422,7 +423,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, "&", 1))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -433,7 +435,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, " complex", 8))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -442,9 +445,11 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (!cpp_demangle_push_str(ddata, " imaginary", 10))
 				goto clean;
 			if (type_str != NULL) {
-				if (!vector_str_push(&subst_v, " imaginary", 10))
+				if (!vector_str_push(&subst_v, " imaginary",
+				    10))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -453,13 +458,13 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (v->ext_name.size == 0 ||
 			    e_idx > v->ext_name.size - 1)
 				goto clean;
-			if ((e_len = strlen(v->ext_name.container[e_idx])) == 0)
+			if ((e_len = strlen(v->ext_name.container[e_idx])) ==
+			    0)
 				goto clean;
-			if ((buf = malloc(sizeof(char) * (e_len + 1))) == NULL)
+			if ((buf = malloc(e_len + 2)) == NULL)
 				goto clean;
-
-			memcpy(buf, " ", 1);
-			memcpy(buf + 1, v->ext_name.container[e_idx], e_len);
+			snprintf(buf, e_len + 2, " %s",
+			    v->ext_name.container[e_idx]);
 
 			if (!cpp_demangle_push_str(ddata, buf, e_len + 1)) {
 				free(buf);
@@ -472,7 +477,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 					free(buf);
 					goto clean;
 				}
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v)) {
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v)) {
 					free(buf);
 					goto clean;
 				}
@@ -487,7 +493,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, " restrict", 9))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -498,7 +505,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, " volatile", 9))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -509,7 +517,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!vector_str_push(&subst_v, " const", 6))
 					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
 					goto clean;
 			}
 			break;
@@ -518,21 +527,30 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (v->ext_name.size == 0 ||
 			    e_idx > v->ext_name.size - 1)
 				goto clean;
-			if ((e_len = strlen(v->ext_name.container[e_idx])) == 0)
+			if ((e_len = strlen(v->ext_name.container[e_idx])) ==
+			    0)
 				goto clean;
-			if ((buf = malloc(e_len + 11)) == NULL)
+			if ((buf = malloc(e_len + 12)) == NULL)
 				goto clean;
-			memcpy(buf, " __vector(", 10);
-			memcpy(buf + 10, v->ext_name.container[e_idx], e_len);
-			buf[e_len + 10] = ')';
-			if (!cpp_demangle_push_str(ddata, buf, e_len + 11))
+			snprintf(buf, e_len + 12, " __vector(%s)",
+			    v->ext_name.container[e_idx]);
+			if (!cpp_demangle_push_str(ddata, buf, e_len + 11)) {
+				free(buf);
 				goto clean;
-			if (type_str != NULL) {
-				if (!vector_str_push(&subst_v, buf, e_len + 11))
-					goto clean;
-				if (!cpp_demangle_push_subst_v(ddata, &subst_v))
-					goto clean;
 			}
+			if (type_str != NULL) {
+				if (!vector_str_push(&subst_v, buf,
+				    e_len + 11)) {
+					free(buf);
+					goto clean;
+				}
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v)) {
+					free(buf);
+					goto clean;
+				}
+			}
+			free(buf);
 			++e_idx;
 			break;
 		};
