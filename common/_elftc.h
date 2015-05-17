@@ -342,12 +342,13 @@ struct name {							\
 
 
 #if defined(__GLIBC__) || defined(__linux__)
-
+#ifndef _GNU_SOURCE
 /*
  * GLIBC based systems have a global 'char *' pointer referencing
  * the executable's name.
  */
 extern const char *program_invocation_short_name;
+#endif	/* !_GNU_SOURCE */
 
 #define	ELFTC_GETPROGNAME()	program_invocation_short_name
 
