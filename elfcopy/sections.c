@@ -593,7 +593,7 @@ update_section_group(struct elfcopy *ecp, struct section *s)
 	uint32_t	*ws, *wd;
 	uint64_t	 n;
 	size_t		 ishnum;
-	int		 elferr, i;
+	int		 i;
 
 	if (!elf_getshnum(ecp->ein, &ishnum))
 		errx(EXIT_FAILURE, "elf_getshnum failed: %s",
