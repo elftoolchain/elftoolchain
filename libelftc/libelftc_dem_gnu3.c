@@ -1231,6 +1231,16 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 			return (0);
 		return (cpp_demangle_read_encoding(ddata));
 
+	case SIMPLE_HASH('T', 'H'):
+		/* TLS init function */
+		if (!cpp_demangle_push_str(ddata, "TLS init function for ",
+		    22))
+			return (0);
+		ddata->cur += 2;
+		if (*ddata->cur == '\0')
+			return (0);
+		break;
+
 	case SIMPLE_HASH('T', 'I'):
 		/* typeinfo structure */
 		/* FALLTHROUGH */
@@ -1270,6 +1280,16 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		if (*ddata->cur == '\0')
 			return (0);
 		return (cpp_demangle_read_type(ddata, 1));
+
+	case SIMPLE_HASH('T', 'W'):
+		/* TLS wrapper function */
+		if (!cpp_demangle_push_str(ddata, "TLS wrapper function for ",
+		    25))
+			return (0);
+		ddata->cur += 2;
+		if (*ddata->cur == '\0')
+			return (0);
+		break;
 	};
 
 	return (cpp_demangle_read_name(ddata));
