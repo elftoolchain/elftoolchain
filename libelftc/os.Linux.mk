@@ -1,3 +1,3 @@
 # $Id$
 
-CFLAGS+=	-Wall
+CFLAGS+=	-Wall -D_GNU_SOURCE
