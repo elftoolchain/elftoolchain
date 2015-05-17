@@ -56,6 +56,7 @@ static void	print_data(const char *d, size_t sz);
 static void	print_section(struct section *s);
 static void	*read_section(struct section *s, size_t *size);
 static void	update_reloc(struct elfcopy *ecp, struct section *s);
+static void	update_section_group(struct elfcopy *ecp, struct section *s);
 
 int
 is_remove_section(struct elfcopy *ecp, const char *name)
@@ -552,6 +553,14 @@ copy_content(struct elfcopy *ecp)
 		    (s->type == SHT_REL || s->type == SHT_RELA))
 			filter_reloc(ecp, s);
 
+		/*
+		 * The section indices in the SHT_GROUP section needs
+		 * to be updated since we might have stripped some
+		 * sections and changed section numbering.
+		 */
+		if (s->type == SHT_GROUP)
+			update_section_group(ecp, s);
+
 		if (is_modify_section(ecp, s->name))
 			modify_section(ecp, s);
 
@@ -569,6 +578,66 @@ copy_content(struct elfcopy *ecp)
 		if (is_print_section(ecp, s->name))
 			print_section(s);
 	}
+}
+
+
+/*
+ * Update section group section. The section indices in the SHT_GROUP
+ * section need update after section numbering changed.
+ */
+static void
+update_section_group(struct elfcopy *ecp, struct section *s)
+{
+	GElf_Shdr	 ish;
+	Elf_Data	*id;
+	uint32_t	*ws, *wd;
+	uint64_t	 n;
+	size_t		 ishnum;
+	int		 elferr, i;
+
+	if (!elf_getshnum(ecp->ein, &ishnum))
+		errx(EXIT_FAILURE, "elf_getshnum failed: %s",
+		    elf_errmsg(-1));
+
+	if (gelf_getshdr(s->is, &ish) == NULL)
+		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
+		    elf_errmsg(-1));
+
+	if ((id = elf_getdata(s->is, NULL)) == NULL)
+		errx(EXIT_FAILURE, "elf_getdata() failed: %s",
+		    elf_errmsg(-1));
+
+	if (ish.sh_size == 0)
+		return;
+
+	if (ish.sh_entsize == 0)
+		ish.sh_entsize = 4;
+
+	ws = id->d_buf;
+
+	/* We only support COMDAT section. */
+	if ((*ws & GRP_COMDAT) == 0)
+		return;
+
+	if ((s->buf = malloc(ish.sh_size)) == NULL)
+		err(EXIT_FAILURE, "malloc failed");
+
+	wd = s->buf;
+
+	/* Copy the flag word as-is. */
+	*wd = *ws;
+
+	/* Update the section indices. */
+	n = ish.sh_size / ish.sh_entsize;
+	for(i = 1; (uint64_t)i < n; i++) {
+		if (ws[i] == SHN_UNDEF || ws[i] >= ishnum)
+			wd[i] = ws[i];
+		else
+			wd[i] = ecp->secndx[ws[i]];
+	}
+
+	s->sz = ish.sh_size;
+	s->nocopy = 1;
 }
 
 /*
