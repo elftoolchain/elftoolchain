@@ -1097,8 +1097,11 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 				osh.sh_flags |= SHF_WRITE;
 			if (sec_flags & SF_CODE)
 				osh.sh_flags |= SHF_EXECINSTR;
-		} else
+		} else {
 			osh.sh_flags = ish.sh_flags;
+			if (ish.sh_type == SHT_REL || ish.sh_type == SHT_RELA)
+				osh.sh_flags |= SHF_INFO_LINK;
+		}
 	}
 
 	if (name == NULL)
