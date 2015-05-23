@@ -404,8 +404,19 @@ create_elf(struct elfcopy *ecp)
 	 * Insert SHDR table into the internal section list as a "pseudo"
 	 * section, so later it will get sorted and resynced just as "normal"
 	 * sections.
+	 *
+	 * Under FreeBSD, Binutils objcopy always put the section header
+	 * at the end of all the sections. We want to do the same here.
+	 *
+	 * However, note that the behaviour is still different with Binutils:
+	 * elfcopy checks the FreeBSD OSABI tag to tell whether it needs to
+	 * move the section headers, while Binutils is probably configured
+	 * this way when it's compiled on FreeBSD.
 	 */
-	shtab = insert_shtab(ecp, 0);
+	if (oeh.e_ident[EI_OSABI] == ELFOSABI_FREEBSD)
+		shtab = insert_shtab(ecp, 1);
+	else
+		shtab = insert_shtab(ecp, 0);
 
 	/*
 	 * Resync section offsets in the output object. This is needed
