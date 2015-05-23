@@ -698,6 +698,19 @@ free_symtab(struct elfcopy *ecp)
 			}
 		}
 	}
+
+	if (ecp->symndx != NULL) {
+		free(ecp->symndx);
+		ecp->symndx = NULL;
+	}
+	if (ecp->v_rel != NULL) {
+		free(ecp->v_rel);
+		ecp->v_rel = NULL;
+	}
+	if (ecp->v_secsym != NULL) {
+		free(ecp->v_secsym);
+		ecp->v_secsym = NULL;
+	}
 }
 
 void

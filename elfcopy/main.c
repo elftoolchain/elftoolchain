@@ -496,6 +496,11 @@ free_elf(struct elfcopy *ecp)
 			free(sec);
 		}
 	}
+
+	if (ecp->secndx != NULL) {
+		free(ecp->secndx);
+		ecp->secndx = NULL;
+	}
 }
 
 /* Create a temporary file. */
