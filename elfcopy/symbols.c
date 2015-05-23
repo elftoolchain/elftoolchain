@@ -550,6 +550,7 @@ generate_symbols(struct elfcopy *ecp)
 			sym.st_value = s->vma;
 			sym.st_size  = 0;
 			sym.st_info  = GELF_ST_INFO(STB_LOCAL, STT_SECTION);
+			sym.st_other = STV_DEFAULT;
 			/*
 			 * Don't let add_to_symtab() touch sym.st_shndx.
 			 * In this case, we know the index already.
