@@ -384,7 +384,7 @@ generate_symbols(struct elfcopy *ecp)
 	/* Symbol table should exist if this function is called. */
 	if (symndx == 0) {
 		warnx("can't find .strtab section");
-		return (0);
+		goto clean;
 	}
 
 	/* Locate .symtab of input object. */
@@ -427,7 +427,7 @@ generate_symbols(struct elfcopy *ecp)
 			if (elferr != 0)
 				errx(EXIT_FAILURE, "elf_getdata failed: %s",
 				    elf_errmsg(elferr));
-			return (0);
+			goto clean;
 		}
 	} else
 		return (0);
@@ -523,7 +523,7 @@ generate_symbols(struct elfcopy *ecp)
 	 * check if that only local symbol is the reserved symbol.
 	 */
 	if (sy_buf->nls <= 1 && sy_buf->ngs == 0)
-		return (0);
+		goto clean;
 
 	/*
 	 * Create STT_SECTION symbols for sections that do not already
@@ -584,6 +584,12 @@ generate_symbols(struct elfcopy *ecp)
 	}
 
 	return (1);
+
+clean:
+	free(gsym);
+	free_symtab(ecp);
+
+	return (0);
 }
 
 void
@@ -625,7 +631,9 @@ create_symtab(struct elfcopy *ecp)
 	if (((ecp->flags & SYMTAB_INTACT) == 0) && !generate_symbols(ecp)) {
 		TAILQ_REMOVE(&ecp->v_sec, ecp->symtab, sec_list);
 		TAILQ_REMOVE(&ecp->v_sec, ecp->strtab, sec_list);
+		free(ecp->symtab->buf);
 		free(ecp->symtab);
+		free(ecp->strtab->buf);
 		free(ecp->strtab);
 		ecp->symtab = NULL;
 		ecp->strtab = NULL;
