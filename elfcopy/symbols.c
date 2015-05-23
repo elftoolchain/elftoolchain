@@ -351,6 +351,8 @@ generate_symbols(struct elfcopy *ecp)
 	ecp->symtab->buf = sy_buf;
 	ecp->strtab->buf = st_buf;
 
+	gsym = NULL;
+
 	/*
 	 * Create bit vector v_secsym, which is used to mark sections
 	 * that already have corresponding STT_SECTION symbols.
@@ -413,7 +415,6 @@ generate_symbols(struct elfcopy *ecp)
 	 * output object, it is used by update_reloc() later to update
 	 * relocation information.
 	 */
-	gsym = NULL;
 	sc = ish.sh_size / ish.sh_entsize;
 	if (sc > 0) {
 		ecp->symndx = calloc(sc, sizeof(*ecp->symndx));
