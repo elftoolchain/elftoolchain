@@ -326,7 +326,7 @@ mark_section_group_symbols(struct elfcopy *ecp, size_t sc)
 	Elf_Scn		*s;
 	GElf_Shdr	 sh;
 	size_t		 indx;
-	int		 elferr, i;
+	int		 elferr;
 
 	ecp->v_grp = calloc((sc + 7) / 8, 1);
 	if (ecp->v_grp == NULL)
