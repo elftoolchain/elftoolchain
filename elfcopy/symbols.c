@@ -77,7 +77,8 @@ static int	is_weak_symbol(unsigned char st_info);
 static int	lookup_exact_string(hash_head *hash, const char *buf,
 		    const char *s);
 static int	generate_symbols(struct elfcopy *ecp);
-static void	mark_symbols(struct elfcopy *ecp, size_t sc);
+static void	mark_reloc_symbols(struct elfcopy *ecp, size_t sc);
+static void	mark_section_group_symbols(struct elfcopy *ecp, size_t sc);
 static int	match_wildcard(const char *name, const char *pattern);
 uint32_t	str_hash(const char *s);
 
@@ -160,6 +161,10 @@ is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s)
 	if (BIT_ISSET(ecp->v_rel, i))
 		return (1);
 
+	/* Symbols refered by COMDAT sections are needed. */
+	if (BIT_ISSET(ecp->v_grp, i))
+		return (1);
+
 	/*
 	 * For relocatable files (.o files), global and weak symbols
 	 * are needed.
@@ -207,7 +212,10 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 		return (1);
 
 	if (ecp->v_rel == NULL)
-		mark_symbols(ecp, sc);
+		mark_reloc_symbols(ecp, sc);
+
+	if (ecp->v_grp == NULL)
+		mark_section_group_symbols(ecp, sc);
 
 	if (is_needed_symbol(ecp, i, s))
 		return (0);
@@ -233,7 +241,7 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
  * Mark symbols refered by relocation entries.
  */
 static void
-mark_symbols(struct elfcopy *ecp, size_t sc)
+mark_reloc_symbols(struct elfcopy *ecp, size_t sc)
 {
 	const char	*name;
 	Elf_Data	*d;
@@ -304,6 +312,49 @@ mark_symbols(struct elfcopy *ecp, size_t sc)
 		if (elferr != 0)
 			errx(EXIT_FAILURE, "elf_getdata failed: %s",
 			    elf_errmsg(elferr));
+	}
+	elferr = elf_errno();
+	if (elferr != 0)
+		errx(EXIT_FAILURE, "elf_nextscn failed: %s",
+		    elf_errmsg(elferr));
+}
+
+static void
+mark_section_group_symbols(struct elfcopy *ecp, size_t sc)
+{
+	const char	*name;
+	Elf_Scn		*s;
+	GElf_Shdr	 sh;
+	size_t		 indx;
+	int		 elferr, i;
+
+	ecp->v_grp = calloc((sc + 7) / 8, 1);
+	if (ecp->v_grp == NULL)
+		err(EXIT_FAILURE, "calloc failed");
+
+	if (elf_getshstrndx(ecp->ein, &indx) == 0)
+		errx(EXIT_FAILURE, "elf_getshstrndx failed: %s",
+		    elf_errmsg(-1));
+
+	s = NULL;
+	while ((s = elf_nextscn(ecp->ein, s)) != NULL) {
+		if (gelf_getshdr(s, &sh) != &sh)
+			errx(EXIT_FAILURE, "elf_getshdr failed: %s",
+			    elf_errmsg(-1));
+
+		if (sh.sh_type != SHT_GROUP)
+			continue;
+
+		if ((name = elf_strptr(ecp->ein, indx, sh.sh_name)) == NULL)
+			errx(EXIT_FAILURE, "elf_strptr failed: %s",
+			    elf_errmsg(-1));
+		if (is_remove_section(ecp, name))
+			continue;
+
+		if (sh.sh_info > 0 && sh.sh_info < sc)
+			BIT_SET(ecp->v_grp, sh.sh_info);
+		else if (sh.sh_info != 0)
+			warnx("invalid symbox index");
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
@@ -715,6 +766,10 @@ free_symtab(struct elfcopy *ecp)
 	if (ecp->v_rel != NULL) {
 		free(ecp->v_rel);
 		ecp->v_rel = NULL;
+	}
+	if (ecp->v_grp != NULL) {
+		free(ecp->v_grp);
+		ecp->v_grp = NULL;
 	}
 	if (ecp->v_secsym != NULL) {
 		free(ecp->v_secsym);

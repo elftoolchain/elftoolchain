@@ -237,6 +237,7 @@ struct elfcopy {
 	uint64_t	*secndx;	/* section index map. */
 	uint64_t	*symndx;	/* symbol index map. */
 	unsigned char	*v_rel;		/* symbols needed by relocation. */
+	unsigned char	*v_grp;		/* symbols refered by section group. */
 	unsigned char	*v_secsym;	/* sections with section symbol. */
 	STAILQ_HEAD(, segment) v_seg;	/* list of segments. */
 	STAILQ_HEAD(, sec_action) v_sac;/* list of section operations. */
