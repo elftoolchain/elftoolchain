@@ -593,7 +593,7 @@ update_section_group(struct elfcopy *ecp, struct section *s)
 	uint32_t	*ws, *wd;
 	uint64_t	 n;
 	size_t		 ishnum;
-	int		 i;
+	int		 i, j;
 
 	if (!elf_getshnum(ecp->ein, &ishnum))
 		errx(EXIT_FAILURE, "elf_getshnum failed: %s",
@@ -622,6 +622,8 @@ update_section_group(struct elfcopy *ecp, struct section *s)
 	if ((s->buf = malloc(ish.sh_size)) == NULL)
 		err(EXIT_FAILURE, "malloc failed");
 
+	s->sz = ish.sh_size;
+
 	wd = s->buf;
 
 	/* Copy the flag word as-is. */
@@ -629,14 +631,14 @@ update_section_group(struct elfcopy *ecp, struct section *s)
 
 	/* Update the section indices. */
 	n = ish.sh_size / ish.sh_entsize;
-	for(i = 1; (uint64_t)i < n; i++) {
-		if (ws[i] == SHN_UNDEF || ws[i] >= ishnum)
-			wd[i] = ws[i];
+	for(i = 1, j = 1; (uint64_t)i < n; i++) {
+		if (ws[i] != SHN_UNDEF && ws[i] < ishnum &&
+		    ecp->secndx[ws[i]] != 0)
+			wd[j++] = ecp->secndx[ws[i]];
 		else
-			wd[i] = ecp->secndx[ws[i]];
+			s->sz -= 4;
 	}
 
-	s->sz = ish.sh_size;
 	s->nocopy = 1;
 }
 
