@@ -4091,7 +4091,7 @@ dump_section_groups(struct readelf *re)
 			return;
 
 		printf("\nCOMDAT group section [%5d] `%s' [%s] contains %ju"
-		    " sections:\n", i, s->name, symname, n);
+		    " sections:\n", i, s->name, symname, (uintmax_t)n);
 		printf("   %-10.10s %s\n", "[Index]", "Name");
 		for (j = 0; (size_t) j < n; j++, w++) {
 			if (*w >= re->shnum) {
