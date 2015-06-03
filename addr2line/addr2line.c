@@ -61,7 +61,7 @@ Usage: %s [options] hexaddress...\n\
   Map program addresses to source file names and line numbers.\n\n\
   Options:\n\
   -b TGT  | --target=TGT      (Accepted but ignored).\n\
-  -e EXE  | --exec=EXE        Use program \"EXE\" to translate addresses.\n\
+  -e EXE  | --exe=EXE         Use program \"EXE\" to translate addresses.\n\
   -f      | --functions       Display function names.\n\
   -j NAME | --section=NAME    Values are offsets into section \"NAME\".\n\
   -s      | --basename        Only show the base name for each file name.\n\
