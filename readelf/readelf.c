@@ -1378,6 +1378,51 @@ r_type(unsigned int mach, unsigned int type)
 		case 116: return "R_PPC_EMB_RELSDA";
 		default: return "";
 		}
+	case EM_RISCV:
+		switch(type) {
+		case 0: return "R_RISCV_NONE";
+		case 1: return "R_RISCV_32";
+		case 2: return "R_RISCV_64";
+		case 3: return "R_RISCV_RELATIVE";
+		case 4: return "R_RISCV_COPY";
+		case 5: return "R_RISCV_JUMP_SLOT";
+		case 6: return "R_RISCV_TLS_DTPMOD32";
+		case 7: return "R_RISCV_TLS_DTPMOD64";
+		case 8: return "R_RISCV_TLS_DTPREL32";
+		case 9: return "R_RISCV_TLS_DTPREL64";
+		case 10: return "R_RISCV_TLS_TPREL32";
+		case 11: return "R_RISCV_TLS_TPREL64";
+		case 16: return "R_RISCV_BRANCH";
+		case 17: return "R_RISCV_JAL";
+		case 18: return "R_RISCV_CALL";
+		case 19: return "R_RISCV_CALL_PLT";
+		case 20: return "R_RISCV_GOT_HI20";
+		case 21: return "R_RISCV_TLS_GOT_HI20";
+		case 22: return "R_RISCV_TLS_GD_HI20";
+		case 23: return "R_RISCV_PCREL_HI20";
+		case 24: return "R_RISCV_PCREL_LO12_I";
+		case 25: return "R_RISCV_PCREL_LO12_S";
+		case 26: return "R_RISCV_HI20";
+		case 27: return "R_RISCV_LO12_I";
+		case 28: return "R_RISCV_LO12_S";
+		case 29: return "R_RISCV_TPREL_HI20";
+		case 30: return "R_RISCV_TPREL_LO12_I";
+		case 31: return "R_RISCV_TPREL_LO12_S";
+		case 32: return "R_RISCV_TPREL_ADD";
+		case 33: return "R_RISCV_ADD8";
+		case 34: return "R_RISCV_ADD16";
+		case 35: return "R_RISCV_ADD32";
+		case 36: return "R_RISCV_ADD64";
+		case 37: return "R_RISCV_SUB8";
+		case 38: return "R_RISCV_SUB16";
+		case 39: return "R_RISCV_SUB32";
+		case 40: return "R_RISCV_SUB64";
+		case 41: return "R_RISCV_GNU_VTINHERIT";
+		case 42: return "R_RISCV_GNU_VTENTRY";
+		case 43: return "R_RISCV_ALIGN";
+		case 44: return "R_RISCV_RVC_BRANCH";
+		case 45: return "R_RISCV_RVC_JUMP";
+		}
 	case EM_SPARC:
 	case EM_SPARCV9:
 		switch(type) {
