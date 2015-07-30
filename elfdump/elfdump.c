@@ -205,11 +205,11 @@ d_tags(uint64_t tag)
 	case 0x6ffffef5: return "DT_GNU_HASH";
 	case 0x6ffffef8: return "DT_GNU_CONFLICT";
 	case 0x6ffffef9: return "DT_GNU_LIBLIST";
-	case 0x6ffffefa: return "DT_SUNW_CONFIG";
-	case 0x6ffffefb: return "DT_SUNW_DEPAUDIT";
-	case 0x6ffffefc: return "DT_SUNW_AUDIT";
-	case 0x6ffffefd: return "DT_SUNW_PLTPAD";
-	case 0x6ffffefe: return "DT_SUNW_MOVETAB";
+	case 0x6ffffefa: return "DT_CONFIG";
+	case 0x6ffffefb: return "DT_DEPAUDIT";
+	case 0x6ffffefc: return "DT_AUDIT";
+	case 0x6ffffefd: return "DT_PLTPAD";
+	case 0x6ffffefe: return "DT_MOVETAB";
 	case 0x6ffffeff: return "DT_SYMINFO (DT_ADDRRNGHI)";
 	case 0x6ffffff9: return "DT_RELACOUNT";
 	case 0x6ffffffa: return "DT_RELCOUNT";
@@ -333,6 +333,7 @@ sh_types(u_int64_t sht) {
 	case 18: return "SHT_SYMTAB_SHNDX";
 	/* 0x60000000 - 0x6fffffff operating system-specific semantics */
 	case 0x6ffffff0: return "XXX:VERSYM";
+	case 0x6ffffff4: return "SHT_SUNW_dof";
 	case 0x6ffffff6: return "SHT_GNU_HASH";
 	case 0x6ffffff7: return "SHT_GNU_LIBLIST";
 	case 0x6ffffffc: return "XXX:VERDEF";
