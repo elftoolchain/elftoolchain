@@ -244,11 +244,13 @@ e_machines(unsigned int mach)
 	case EM_860:	return "EM_860";
 	case EM_MIPS:	return "EM_MIPS";
 	case EM_PPC:	return "EM_PPC";
+	case EM_PPC64:	return "EM_PPC64";
 	case EM_ARM:	return "EM_ARM";
 	case EM_ALPHA:	return "EM_ALPHA (legacy)";
 	case EM_SPARCV9:return "EM_SPARCV9";
 	case EM_IA_64:	return "EM_IA_64";
 	case EM_X86_64:	return "EM_X86_64";
+	case EM_AARCH64:return "EM_AARCH64";
 	case EM_RISCV:	return "EM_RISCV";
 	}
 	snprintf(machdesc, sizeof(machdesc),
