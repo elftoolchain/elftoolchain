@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2008 Hyogeol Lee
  * Copyright (c) 2000, 2001 David O'Brien
- * Copyright (c) 1996 Søren Schmidt
+ * Copyright (c) 1996 SÃ¸ren Schmidt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
