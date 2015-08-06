@@ -3366,6 +3366,7 @@ dump_symtab(struct readelf *re, int i)
 	const char *name;
 	uint32_t stab;
 	int elferr, j, len;
+	uint16_t vs;
 
 	s = &re->sl[i];
 	if (s->link >= re->shnum)
@@ -3404,14 +3405,15 @@ dump_symtab(struct readelf *re, int i)
 		/* Append symbol version string for SHT_DYNSYM symbol table. */
 		if (s->type == SHT_DYNSYM && re->ver != NULL &&
 		    re->vs != NULL && re->vs[j] > 1) {
-			if (re->vs[j] & VERSYM_HIDDEN ||
-			    re->ver[re->vs[j] & VERSYM_VERSION].type == 0)
-				printf("@%s (%d)",
-				    re->ver[re->vs[j] & VERSYM_VERSION].name,
-				    re->vs[j] & VERSYM_VERSION);
+			vs = re->vs[j] & VERSYM_VERSION;
+			if (vs >= re->ver_sz || re->ver[vs].name == NULL) {
+				warnx("invalid versym version index %u", vs);
+				break;
+			}
+			if (re->vs[j] & VERSYM_HIDDEN || re->ver[vs].type == 0)
+				printf("@%s (%d)", re->ver[vs].name, vs);
 			else
-				printf("@@%s (%d)", re->ver[re->vs[j]].name,
-				    re->vs[j]);
+				printf("@@%s (%d)", re->ver[vs].name, vs);
 		}
 		putchar('\n');
 	}
@@ -3989,6 +3991,7 @@ static void
 dump_versym(struct readelf *re)
 {
 	int i;
+	uint16_t vs;
 
 	if (re->vs_s == NULL || re->ver == NULL || re->vs == NULL)
 		return;
@@ -3999,12 +4002,16 @@ dump_versym(struct readelf *re)
 				putchar('\n');
 			printf("  %03x:", i);
 		}
+		vs = re->vs[i] & VERSYM_VERSION;
+		if (vs >= re->ver_sz || re->ver[vs].name == NULL) {
+			warnx("invalid versym version index %u", re->vs[i]);
+			break;
+		}
 		if (re->vs[i] & VERSYM_HIDDEN)
-			printf(" %3xh %-12s ", re->vs[i] & VERSYM_VERSION,
+			printf(" %3xh %-12s ", vs,
 			    re->ver[re->vs[i] & VERSYM_VERSION].name);
 		else
-			printf(" %3x %-12s ", re->vs[i],
-			    re->ver[re->vs[i]].name);
+			printf(" %3x %-12s ", vs, re->ver[re->vs[i]].name);
 	}
 	putchar('\n');
 }
