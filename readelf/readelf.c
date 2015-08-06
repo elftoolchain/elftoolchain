@@ -3224,6 +3224,9 @@ dump_rel(struct readelf *re, struct section *s, Elf_Data *d)
 	uint64_t symval;
 	int i, len;
 
+	if (s->link >= re->shnum)
+		return;
+
 #define	REL_HDR "r_offset", "r_info", "r_type", "st_value", "st_name"
 #define	REL_CT32 (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	    \
 		r_type(re->ehdr.e_machine, ELF32_R_TYPE(r.r_info)), \
@@ -3249,8 +3252,6 @@ dump_rel(struct readelf *re, struct section *s, Elf_Data *d)
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
-		if (s->link >= re->shnum)
-			continue;
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
 		if (re->ec == ELFCLASS32) {
@@ -3279,6 +3280,9 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 	uint64_t symval;
 	int i, len;
 
+	if (s->link >= re->shnum)
+		return;
+
 #define	RELA_HDR "r_offset", "r_info", "r_type", "st_value", \
 		"st_name + r_addend"
 #define	RELA_CT32 (uintmax_t)r.r_offset, (uintmax_t)r.r_info,	    \
@@ -3305,8 +3309,6 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
-		if (s->link >= re->shnum)
-			warnx("invalid section link index %u", s->link);
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
 		if (re->ec == ELFCLASS32) {
