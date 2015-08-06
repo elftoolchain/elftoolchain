@@ -860,6 +860,12 @@ enum {
 #define	GRP_MASKPROC 	0xf0000000	/* processor-specific flags */
 
 /*
+ * Flags / mask for .gnu.versym sections.
+ */
+#define	VERSYM_VERSION	0x7fff
+#define	VERSYM_HIDDEN	0x8000
+
+/*
  * Flags used by program header table entries.
  */
 
