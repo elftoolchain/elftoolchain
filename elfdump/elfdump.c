@@ -822,6 +822,7 @@ static void	elf_print_checksum(struct elfdump *ed);
 static void	find_gotrel(struct elfdump *ed, struct section *gs,
     struct rel_entry *got);
 static struct spec_name	*find_name(struct elfdump *ed, const char *name);
+static int	get_ent_count(const struct section *s, int *ent_count);
 static const char *get_symbol_name(struct elfdump *ed, int symtab, int i);
 static const char *get_string(struct elfdump *ed, int strtab, size_t off);
 static void	get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs);
@@ -1630,6 +1631,24 @@ elf_print_shdr(struct elfdump *ed)
 }
 
 /*
+ * Return number of entries in the given section. We'd prefer ent_count be a
+ * size_t, but libelf APIs already use int for section indices.
+ */
+static int
+get_ent_count(const struct section *s, int *ent_count)
+{
+	if (s->entsize == 0) {
+		warnx("section %s has entry size 0", s->name);
+		return (0);
+	} else if (s->sz / s->entsize > INT_MAX) {
+		warnx("section %s has invalid section count", s->name);
+		return (0);
+	}
+	*ent_count = (int)(s->sz / s->entsize);
+	return (1);
+}
+
+/*
  * Retrieve the content of the corresponding SHT_SUNW_versym section for
  * a symbol table section.
  */
@@ -1660,7 +1679,9 @@ get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs)
 	}
 
 	*vs = data->d_buf;
-	*nvs = data->d_size / s->entsize;
+	assert(data->d_size == s->sz);
+	if (!get_ent_count(s, nvs))
+		*nvs = 0;
 }
 
 /*
@@ -1691,7 +1712,9 @@ elf_print_symtab(struct elfdump *ed, int i)
 	}
 	vs = NULL;
 	nvs = 0;
-	len = data->d_size / s->entsize;
+	assert(data->d_size == s->sz);
+	if (!get_ent_count(s, &len))
+		return;
 	if (ed->flags & SOLARIS_FMT) {
 		if (ed->ec == ELFCLASS32)
 			PRT("     index    value       ");
@@ -1790,7 +1813,9 @@ elf_print_dynamic(struct elfdump *ed)
 			warnx("elf_getdata failed: %s", elf_errmsg(elferr));
 		return;
 	}
-	len = data->d_size / s->entsize;
+	assert(data->d_size == s->sz);
+	if (!get_ent_count(s, &len))
+		return;
 	for (i = 0; i < len; i++) {
 		if (gelf_getdyn(data, i, &dyn) != &dyn) {
 			warnx("gelf_getdyn failed: %s", elf_errmsg(-1));
@@ -1916,7 +1941,9 @@ elf_print_rela(struct elfdump *ed, struct section *s, Elf_Data *data)
 	} else
 		PRT("\nrelocation with addend (%s):\n", s->name);
 	r.type = SHT_RELA;
-	len = data->d_size / s->entsize;
+	assert(data->d_size == s->sz);
+	if (!get_ent_count(s, &len))
+		return;
 	for (j = 0; j < len; j++) {
 		if (gelf_getrela(data, j, &r.u_r.rela) != &r.u_r.rela) {
 			warnx("gelf_getrela failed: %s",
@@ -1945,7 +1972,9 @@ elf_print_rel(struct elfdump *ed, struct section *s, Elf_Data *data)
 	} else
 		PRT("\nrelocation (%s):\n", s->name);
 	r.type = SHT_REL;
-	len = data->d_size / s->entsize;
+	assert(data->d_size == s->sz);
+	if (!get_ent_count(s, &len))
+		return;
 	for (j = 0; j < len; j++) {
 		if (gelf_getrel(data, j, &r.u_r.rel) != &r.u_r.rel) {
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
@@ -2046,7 +2075,9 @@ find_gotrel(struct elfdump *ed, struct section *gs, struct rel_entry *got)
 		}
 		memset(&r, 0, sizeof(struct rel_entry));
 		r.type = s->type;
-		len = data->d_size / s->entsize;
+		assert(data->d_size == s->sz);
+		if (!get_ent_count(s, &len))
+			return;
 		for (j = 0; j < len; j++) {
 			if (s->type == SHT_REL) {
 				if (gelf_getrel(data, j, &r.u_r.rel) !=
@@ -2090,9 +2121,11 @@ elf_print_got_section(struct elfdump *ed, struct section *s)
 			return;
 	}
 
+	if (!get_ent_count(s, &len))
+		return;
 	if (ed->flags & SOLARIS_FMT)
-		PRT("\nGlobal Offset Table Section:  %s  (%jd entries)\n",
-		    s->name, s->sz / s->entsize);
+		PRT("\nGlobal Offset Table Section:  %s  (%d entries)\n",
+		    s->name, len);
 	else
 		PRT("\nglobal offset table: %s\n", s->name);
 	(void) elf_errno();
@@ -2119,7 +2152,7 @@ elf_print_got_section(struct elfdump *ed, struct section *s)
 		warnx("gelf_xlatetom failed: %s", elf_errmsg(-1));
 		return;
 	}
-	len = dst.d_size / s->entsize;
+	assert(dst.d_size == s->sz);
 	if (ed->flags & SOLARIS_FMT) {
 		/*
 		 * In verbose/Solaris mode, we search the relocation sections
@@ -2507,7 +2540,8 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 	shift2 = buf[3];
 	buf += 4;
 	ds = &ed->sl[s->link];
-	dynsymcount = ds->sz / ds->entsize;
+	if (!get_ent_count(ds, &dynsymcount))
+		return;
 	nchain = dynsymcount - symndx;
 	if (data->d_size != 4 * sizeof(uint32_t) + maskwords *
 	    (ed->ec == ELFCLASS32 ? sizeof(uint32_t) : sizeof(uint64_t)) +
