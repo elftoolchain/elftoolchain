@@ -3249,10 +3249,8 @@ dump_rel(struct readelf *re, struct section *s, Elf_Data *d)
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
-		if (s->link >= re->shnum) {
-			warnx("invalid section link index %u", s->link);
+		if (s->link >= re->shnum)
 			continue;
-		}
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
 		if (re->ec == ELFCLASS32) {
@@ -3307,10 +3305,8 @@ dump_rela(struct readelf *re, struct section *s, Elf_Data *d)
 			warnx("gelf_getrel failed: %s", elf_errmsg(-1));
 			continue;
 		}
-		if (s->link >= re->shnum) {
+		if (s->link >= re->shnum)
 			warnx("invalid section link index %u", s->link);
-			continue;
-		}
 		symname = get_symbol_name(re, s->link, GELF_R_SYM(r.r_info));
 		symval = get_symbol_value(re, s->link, GELF_R_SYM(r.r_info));
 		if (re->ec == ELFCLASS32) {
@@ -3366,9 +3362,12 @@ dump_symtab(struct readelf *re, int i)
 	Elf_Data *d;
 	GElf_Sym sym;
 	const char *name;
-	int elferr, stab, j, len;
+	uint32_t stab;
+	int elferr, j, len;
 
 	s = &re->sl[i];
+	if (s->link >= re->shnum)
+		return;
 	stab = s->link;
 	(void) elf_errno();
 	if ((d = elf_getdata(s->scn, NULL)) == NULL) {
@@ -3639,6 +3638,8 @@ dump_gnu_hash(struct readelf *re, struct section *s)
 	symndx = buf[1];
 	maskwords = buf[2];
 	buf += 4;
+	if (s->link >= re->shnum)
+		return;
 	ds = &re->sl[s->link];
 	if (!get_ent_count(ds, &dynsymcount))
 		return;
@@ -3845,6 +3846,8 @@ dump_verdef(struct readelf *re, int dump)
 
 	if ((s = re->vd_s) == NULL)
 		return;
+	if (s->link >= re->shnum)
+		return;
 
 	if (re->ver == NULL) {
 		re->ver_sz = 16;
@@ -3917,6 +3920,8 @@ dump_verneed(struct readelf *re, int dump)
 	int elferr, i, j;
 
 	if ((s = re->vn_s) == NULL)
+		return;
+	if (s->link >= re->shnum)
 		return;
 
 	if (re->ver == NULL) {
@@ -4076,6 +4081,8 @@ dump_liblist(struct readelf *re)
 		s = &re->sl[i];
 		if (s->type != SHT_GNU_LIBLIST)
 			continue;
+		if (s->link >= re->shnum)
+			continue;
 		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
@@ -4141,6 +4148,8 @@ dump_section_groups(struct readelf *re)
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->type != SHT_GROUP)
+			continue;
+		if (s->link >= re->shnum)
 			continue;
 		(void) elf_errno();
 		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
@@ -6711,7 +6720,8 @@ get_symbol_name(struct readelf *re, int symtab, int i)
 	if (GELF_ST_TYPE(sym.st_info) == STT_SECTION &&
 	    re->sl[sym.st_shndx].name != NULL)
 		return (re->sl[sym.st_shndx].name);
-	if ((name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
+	if (s->link >= re->shnum ||
+	    (name = elf_strptr(re->elf, s->link, sym.st_name)) == NULL)
 		return ("");
 
 	return (name);
@@ -6902,6 +6912,9 @@ load_sections(struct readelf *re)
 			warnx("section index of '%s' out of range", name);
 			continue;
 		}
+		if (sh.sh_link >= re->shnum)
+			warnx("section link %llu of '%s' out of range",
+			    (unsigned long long)sh.sh_link, name);
 		s = &re->sl[ndx];
 		s->name = name;
 		s->scn = scn;
