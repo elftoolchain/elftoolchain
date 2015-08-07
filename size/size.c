@@ -440,7 +440,6 @@ handle_phdr(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 	if (elf == NULL || elfhdr == NULL || phdr == NULL)
 		return;
 
-	size = addr = 0;
 	split = (phdr->p_memsz > 0) && 	(phdr->p_filesz > 0) &&
 	    (phdr->p_memsz > phdr->p_filesz);
 
