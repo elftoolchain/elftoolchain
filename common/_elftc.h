@@ -372,7 +372,8 @@ extern const char *__progname;
 
 #if defined(__APPLE__)
 
-#include <machine/endian.h>
+#include <libkern/OSByteOrder.h>
+#define	htobe32(x)	OSSwapHostToBigInt32(x)
 #define	roundup2	roundup
 
 #define	ELFTC_BYTE_ORDER			_BYTE_ORDER
@@ -382,6 +383,7 @@ extern const char *__progname;
 #define	ELFTC_HAVE_MMAP				1
 #define	ELFTC_HAVE_STRMODE			1
 
+#define ELFTC_NEED_BYTEORDER_EXTENSIONS		1
 #endif /* __APPLE__ */
 
 
