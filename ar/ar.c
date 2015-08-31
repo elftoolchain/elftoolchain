@@ -151,7 +151,7 @@ main(int argc, char **argv)
 			ranlib_usage();
 
 		bsdar->options |= AR_S;
-		for (;(bsdar->filename = *argv++) != NULL;)
+		while ((bsdar->filename = *argv++) != NULL)
 			ar_write_archive(bsdar, 's');
 
 		exit(EXIT_SUCCESS);
