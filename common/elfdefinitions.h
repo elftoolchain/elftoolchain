@@ -1189,6 +1189,8 @@ _ELF_DEFINE_SHT(SHT_MIPS_XLATE_OLD,  0x70000028UL,			\
 	"obsolete")							\
 _ELF_DEFINE_SHT(SHT_MIPS_PDR_EXCEPTION, 0x70000029UL,			\
 	"runtime procedure descriptor table exception information")	\
+_ELF_DEFINE_SHT(SHT_MIPS_ABIFLAGS,   0x7000002AUL,			\
+	"ABI flags")							\
 _ELF_DEFINE_SHT(SHT_SPARC_GOTDATA,   0x70000000UL,			\
 	"SPARC-specific data")						\
 _ELF_DEFINE_SHT(SHT_AMD64_UNWIND,    0x70000001UL,			\
