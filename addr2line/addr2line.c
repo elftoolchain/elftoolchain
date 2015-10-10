@@ -37,9 +37,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "uthash.h"
 #include "_elftc.h"
 
 ELFTC_VCSID("$Id$");
+
+struct Func {
+	char *name;
+	Dwarf_Unsigned lopc;
+	Dwarf_Unsigned hipc;
+	struct Func *inlined_caller;
+	STAILQ_ENTRY(Func) next;
+};
+
+struct CU {
+	Dwarf_Off off;
+	Dwarf_Unsigned lopc;
+	Dwarf_Unsigned hipc;
+	STAILQ_HEAD(, Func) funclist;
+	UT_hash_handle hh;
+};
 
 static struct option longopts[] = {
 	{"target" , required_argument, NULL, 'b'},
@@ -55,6 +72,7 @@ static struct option longopts[] = {
 static int demangle, func, base;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
+static struct CU *culist;
 
 #define	USAGE_MESSAGE	"\
 Usage: %s [options] hexaddress...\n\
@@ -122,71 +140,97 @@ handle_high_pc(Dwarf_Die die, Dwarf_Unsigned lopc, Dwarf_Unsigned *hipc)
 	return (DW_DLV_OK);
 }
 
-static void
-search_func(Dwarf_Debug dbg, Dwarf_Die die, Dwarf_Addr addr, char **rlt_func)
+static const char *
+search_func(struct CU *cu, Dwarf_Unsigned addr)
 {
-	Dwarf_Die ret_die, spec_die;
+	struct Func *f, *f0;
+
+	f0 = NULL;
+
+	STAILQ_FOREACH(f, &cu->funclist, next) {
+		if (addr >= f->lopc && addr < f->hipc) {
+			if (f0 == NULL ||
+			    (f->lopc >= f0->lopc && f->hipc <= f0->hipc))
+				f0 = f;
+		}
+	}
+
+	if (f0 != NULL)
+		return (f0->name);
+
+	return (NULL);
+}
+
+static void
+collect_func(Dwarf_Debug dbg, Dwarf_Die die, struct Func *parent, struct CU *cu)
+{
+	Dwarf_Die ret_die, abst_die, spec_die;
 	Dwarf_Error de;
 	Dwarf_Half tag;
 	Dwarf_Unsigned lopc, hipc;
 	Dwarf_Off ref;
-	Dwarf_Attribute sub_at, spec_at;
-	char *func0;
-	const char *func1;
+	Dwarf_Attribute abst_at, spec_at;
+	const char *funcname;
+	struct Func *f;
 	int ret;
 
-	if (*rlt_func != NULL)
-		goto done;
+	f = NULL;
+	abst_die = spec_die = NULL;
 
 	if (dwarf_tag(die, &tag, &de)) {
 		warnx("dwarf_tag: %s", dwarf_errmsg(de));
 		goto cont_search;
 	}
-	if (tag == DW_TAG_subprogram) {
+	if (tag == DW_TAG_subprogram || tag == DW_TAG_entry_point ||
+	    tag == DW_TAG_inlined_subroutine) {
 		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) ||
 		    dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc, &de))
 			goto cont_search;
 		if (handle_high_pc(die, lopc, &hipc) != DW_DLV_OK)
 			goto cont_search;
-		if (addr < lopc || addr >= hipc)
-			goto cont_search;
 
-		/* Found it! */
+		if (dwarf_attrval_string(die, DW_AT_name, &funcname, &de) ==
+		    DW_DLV_OK)
+			goto add_func;
 
-		if ((*rlt_func = strdup(unknown)) == NULL)
-			err(EXIT_FAILURE, "strdup");
-		ret = dwarf_attr(die, DW_AT_name, &sub_at, &de);
-		if (ret == DW_DLV_ERROR)
-			goto done;
-		if (ret == DW_DLV_OK) {
-			if (dwarf_formstring(sub_at, &func0, &de) ==
-			    DW_DLV_OK) {
-				free(*rlt_func);
-				if ((*rlt_func = strdup(func0)) == NULL)
-					err(EXIT_FAILURE, "strdup");
-			}
-			goto done;
-		}
+		/*
+		 * For inlined function, the actual name is probably in the DIE
+		 * referenced by DW_AT_abstract_origin. (if present)
+		 */
+		if (dwarf_attr(die, DW_AT_abstract_origin, &abst_at, &de) ==
+		    DW_DLV_OK &&
+		    dwarf_global_formref(abst_at, &ref, &de) == DW_DLV_OK &&
+		    dwarf_offdie(dbg, ref, &abst_die, &de) == DW_DLV_OK &&
+		    dwarf_attrval_string(abst_die, DW_AT_name, &funcname,
+		    &de) == DW_DLV_OK)
+			goto add_func;
 
 		/*
 		 * If DW_AT_name is not present, but DW_AT_specification is
 		 * present, then probably the actual name is in the DIE
 		 * referenced by DW_AT_specification.
 		 */
-		if (dwarf_attr(die, DW_AT_specification, &spec_at, &de))
-			goto done;
-		if (dwarf_global_formref(spec_at, &ref, &de))
-			goto done;
-		if (dwarf_offdie(dbg, ref, &spec_die, &de))
-			goto done;
-		if (dwarf_attrval_string(spec_die, DW_AT_name, &func1, &de) ==
-		    DW_DLV_OK) {
-			free(*rlt_func);
-			if ((*rlt_func = strdup(func1)) == NULL)
-			    err(EXIT_FAILURE, "strdup");
-		}
+		if (dwarf_attr(die, DW_AT_specification, &spec_at, &de) ==
+		    DW_DLV_OK &&
+		    dwarf_global_formref(spec_at, &ref, &de) == DW_DLV_OK &&
+		    dwarf_offdie(dbg, ref, &spec_die, &de) == DW_DLV_OK &&
+		    dwarf_attrval_string(spec_die, DW_AT_name, &funcname,
+		    &de) == DW_DLV_OK)
+			goto add_func;
 
-		goto done;
+		/* Skip if no name assoicated with this DIE. */
+		goto cont_search;
+
+	add_func:
+		if ((f = calloc(1, sizeof(*f))) == NULL)
+			err(EXIT_FAILURE, "calloc");
+		if ((f->name = strdup(funcname)) == NULL)
+			err(EXIT_FAILURE, "strdup");
+		f->lopc = lopc;
+		f->hipc = hipc;
+		if (tag == DW_TAG_inlined_subroutine)
+			f->inlined_caller = parent;
+		STAILQ_INSERT_TAIL(&cu->funclist, f, next);
 	}
 
 cont_search:
@@ -194,19 +238,29 @@ cont_search:
 	/* Search children. */
 	ret = dwarf_child(die, &ret_die, &de);
 	if (ret == DW_DLV_ERROR)
-		errx(EXIT_FAILURE, "dwarf_child: %s", dwarf_errmsg(de));
-	else if (ret == DW_DLV_OK)
-		search_func(dbg, ret_die, addr, rlt_func);
+		warnx("dwarf_child: %s", dwarf_errmsg(de));
+	else if (ret == DW_DLV_OK) {
+		if (f != NULL)
+			collect_func(dbg, ret_die, f, cu);
+		else
+			collect_func(dbg, ret_die, parent, cu);
+	}
 
 	/* Search sibling. */
 	ret = dwarf_siblingof(dbg, die, &ret_die, &de);
 	if (ret == DW_DLV_ERROR)
-		errx(EXIT_FAILURE, "dwarf_siblingof: %s", dwarf_errmsg(de));
+		warnx("dwarf_siblingof: %s", dwarf_errmsg(de));
 	else if (ret == DW_DLV_OK)
-		search_func(dbg, ret_die, addr, rlt_func);
+		collect_func(dbg, ret_die, parent, cu);
 
-done:
+	/* Cleanup */
 	dwarf_dealloc(dbg, die, DW_DLA_DIE);
+
+	if (abst_die != NULL)
+		dwarf_dealloc(dbg, abst_die, DW_DLA_DIE);
+
+	if (spec_die != NULL)
+		dwarf_dealloc(dbg, spec_die, DW_DLA_DIE);
 }
 
 static void
@@ -219,7 +273,9 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 	Dwarf_Unsigned lopc, hipc, addr, lineno, plineno;
 	Dwarf_Signed lcount;
 	Dwarf_Addr lineaddr, plineaddr;
-	char *funcname;
+	Dwarf_Off off;
+	struct CU *cu;
+	const char *funcname;
 	char *file, *file0, *pfile;
 	char demangled[1024];
 	int i, ret;
@@ -228,8 +284,8 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 	addr += section_base;
 	lineno = 0;
 	file = unknown;
-	lbuf = NULL;
-	lcount = 0;
+	cu = NULL;
+	die = NULL;
 
 	while ((ret = dwarf_next_cu_header(dbg, NULL, NULL, NULL, NULL, NULL,
 	    &de)) ==  DW_DLV_OK) {
@@ -252,59 +308,46 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 			warnx("could not find DW_TAG_compile_unit die");
 			goto next_cu;
 		}
-		if (!dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) &&
-		    !dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc, &de)) {
+		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) ==
+		    DW_DLV_OK) {
+			if (dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc,
+			   &de) == DW_DLV_OK) {
+				/*
+				 * Check if the address falls into the PC
+				 * range of this CU.
+				 */
+				if (handle_high_pc(die, lopc, &hipc) !=
+				    DW_DLV_OK)
+					goto out;
+			} else {
+				/* Assume ~0ULL if DW_AT_high_pc not present */
+				hipc = ~0ULL;
+			}
+
 			/*
-			 * Check if the address falls into the PC range of
-			 * this CU.
+			 * Record the CU in the hash table for faster lookup
+			 * later.
 			 */
-			if (handle_high_pc(die, lopc, &hipc) != DW_DLV_OK)
-				goto next_cu;
-			if (addr < lopc || addr >= hipc)
-				goto next_cu;
+			if (dwarf_dieoffset(die, &off, &de) != DW_DLV_OK) {
+				warnx("dwarf_dieoffset failed: %s",
+				    dwarf_errmsg(de));
+				goto out;
+			}
+			HASH_FIND(hh, culist, &off, sizeof(off), cu);
+			if (cu == NULL) {
+				if ((cu = calloc(1, sizeof(*cu))) == NULL)
+					err(EXIT_FAILURE, "calloc");
+				cu->off = off;
+				cu->lopc = lopc;
+				cu->hipc = hipc;
+				STAILQ_INIT(&cu->funclist);
+				HASH_ADD(hh, culist, off, sizeof(off), cu);
+			}
+
+			if (addr >= lopc && addr < hipc)
+				break;
 		}
 
-		switch (dwarf_srclines(die, &lbuf, &lcount, &de)) {
-		case DW_DLV_OK:
-			break;
-		case DW_DLV_NO_ENTRY:
-			/* If a CU lacks debug info, just skip it. */
-			goto next_cu;
-		default:
-			warnx("dwarf_srclines: %s", dwarf_errmsg(de));
-			goto out;
-		}
-
-		plineaddr = ~0ULL;
-		plineno = 0;
-		pfile = unknown;
-		for (i = 0; i < lcount; i++) {
-			if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
-				warnx("dwarf_lineaddr: %s",
-				    dwarf_errmsg(de));
-				goto out;
-			}
-			if (dwarf_lineno(lbuf[i], &lineno, &de)) {
-				warnx("dwarf_lineno: %s",
-				    dwarf_errmsg(de));
-				goto out;
-			}
-			if (dwarf_linesrc(lbuf[i], &file0, &de)) {
-				warnx("dwarf_linesrc: %s",
-				    dwarf_errmsg(de));
-			} else
-				file = file0;
-			if (addr == lineaddr)
-				goto out;
-			else if (addr < lineaddr && addr > plineaddr) {
-				lineno = plineno;
-				file = pfile;
-				goto out;
-			}
-			plineaddr = lineaddr;
-			plineno = lineno;
-			pfile = file;
-		}
 	next_cu:
 		if (die != NULL) {
 			dwarf_dealloc(dbg, die, DW_DLA_DIE);
@@ -312,23 +355,69 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 		}
 	}
 
+	if (ret != DW_DLV_OK || die == NULL)
+		goto out;
+
+	switch (dwarf_srclines(die, &lbuf, &lcount, &de)) {
+	case DW_DLV_OK:
+		break;
+	case DW_DLV_NO_ENTRY:
+		/* If a CU lacks debug info, just skip it. */
+		goto out;
+	default:
+		warnx("dwarf_srclines: %s", dwarf_errmsg(de));
+		goto out;
+	}
+
+	plineaddr = ~0ULL;
+	plineno = 0;
+	pfile = unknown;
+	for (i = 0; i < lcount; i++) {
+		if (dwarf_lineaddr(lbuf[i], &lineaddr, &de)) {
+			warnx("dwarf_lineaddr: %s",
+			    dwarf_errmsg(de));
+			goto out;
+		}
+		if (dwarf_lineno(lbuf[i], &lineno, &de)) {
+			warnx("dwarf_lineno: %s",
+			    dwarf_errmsg(de));
+			goto out;
+		}
+		if (dwarf_linesrc(lbuf[i], &file0, &de)) {
+			warnx("dwarf_linesrc: %s",
+			    dwarf_errmsg(de));
+		} else
+			file = file0;
+		if (addr == lineaddr)
+			goto out;
+		else if (addr < lineaddr && addr > plineaddr) {
+			lineno = plineno;
+			file = pfile;
+			goto out;
+		}
+		plineaddr = lineaddr;
+		plineno = lineno;
+		pfile = file;
+	}
+
 out:
 	funcname = NULL;
-	if (ret == DW_DLV_OK && func) {
-		search_func(dbg, die, addr, &funcname);
-		die = NULL;
+	if (ret == DW_DLV_OK && func && cu != NULL) {
+		if (STAILQ_EMPTY(&cu->funclist)) {
+			collect_func(dbg, die, NULL, cu);
+			die = NULL;
+		}
+		funcname = search_func(cu, addr);
 	}
 
 	if (func) {
 		if (funcname == NULL)
-			if ((funcname = strdup(unknown)) == NULL)
-				err(EXIT_FAILURE, "strdup");
+			funcname = unknown;
 		if (demangle &&
 		    !elftc_demangle(funcname, demangled, sizeof(demangled), 0))
 			printf("%s\n", demangled);
 		else
 			printf("%s\n", funcname);
-		free(funcname);
 	}
 
 	(void) printf("%s:%ju\n", base ? basename(file) : file, lineno);
