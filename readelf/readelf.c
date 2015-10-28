@@ -1170,7 +1170,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 10: return "R_ARM_THM_PC22";
 		case 11: return "R_ARM_THM_PC8";
 		case 12: return "R_ARM_AMP_VCALL9";
-		case 13: return "R_ARM_SWI24";
+		case 13: return "R_ARM_TLS_DESC";
+		/* Obsolete R_ARM_SWI24 is also 13 */
 		case 14: return "R_ARM_THM_SWI8";
 		case 15: return "R_ARM_XPC25";
 		case 16: return "R_ARM_THM_XPC22";
