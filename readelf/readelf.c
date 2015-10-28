@@ -1174,6 +1174,9 @@ r_type(unsigned int mach, unsigned int type)
 		case 14: return "R_ARM_THM_SWI8";
 		case 15: return "R_ARM_XPC25";
 		case 16: return "R_ARM_THM_XPC22";
+		case 17: return "R_ARM_TLS_DTPMOD32";
+		case 18: return "R_ARM_TLS_DTPOFF32";
+		case 19: return "R_ARM_TLS_TPOFF32";
 		case 20: return "R_ARM_COPY";
 		case 21: return "R_ARM_GLOB_DAT";
 		case 22: return "R_ARM_JUMP_SLOT";
@@ -1182,6 +1185,17 @@ r_type(unsigned int mach, unsigned int type)
 		case 25: return "R_ARM_GOTPC";
 		case 26: return "R_ARM_GOT32";
 		case 27: return "R_ARM_PLT32";
+		case 28: return "R_ARM_CALL";
+		case 29: return "R_ARM_JUMP24";
+		case 30: return "R_ARM_THM_JUMP24";
+		case 31: return "R_ARM_BASE_ABS";
+		case 38: return "R_ARM_TARGET1";
+		case 40: return "R_ARM_V4BX";
+		case 42: return "R_ARM_PREL31";
+		case 43: return "R_ARM_MOVW_ABS_NC";
+		case 44: return "R_ARM_MOVT_ABS";
+		case 45: return "R_ARM_MOVW_PREL_NC";
+		case 46: return "R_ARM_MOVT_PREL";
 		case 100: return "R_ARM_GNU_VTENTRY";
 		case 101: return "R_ARM_GNU_VTINHERIT";
 		case 250: return "R_ARM_RSBREL32";
