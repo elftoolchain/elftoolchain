@@ -4433,18 +4433,18 @@ dump_attributes(struct readelf *re)
 		while (len > 0) {
 			if (len < 4) {
 				warnx("truncated attribute section length");
-				break;
+				return;
 			}
 			seclen = re->dw_decode(&p, 4);
 			if (seclen > len) {
 				warnx("invalid attribute section length");
-				break;
+				return;
 			}
 			len -= seclen;
 			nlen = strlen((char *) p) + 1;
 			if (nlen + 4 > seclen) {
 				warnx("invalid attribute section name");
-				break;
+				return;
 			}
 			printf("Attribute Section: %s\n", (char *) p);
 			p += nlen;
@@ -4456,7 +4456,7 @@ dump_attributes(struct readelf *re)
 				if (sublen > seclen) {
 					warnx("invalid attribute sub-section"
 					    " length");
-					break;
+					return;
 				}
 				seclen -= sublen;
 				printf("%s", top_tag(tag));
