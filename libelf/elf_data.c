@@ -253,6 +253,12 @@ elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 		return (NULL);
 	}
 
+	if (sh_type != SHT_NOBITS &&
+	    sh_offset + sh_size > (uint64_t) e->e_rawsize) {
+		LIBELF_SET_ERROR(SECTION, 0);
+		return (NULL);
+	}
+
 	if ((d = _libelf_allocate_data(s)) == NULL)
 		return (NULL);
 
