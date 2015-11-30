@@ -86,6 +86,7 @@ Usage: %s [options] hexaddress...\n\
   -b TGT  | --target=TGT      (Accepted but ignored).\n\
   -e EXE  | --exe=EXE         Use program \"EXE\" to translate addresses.\n\
   -f      | --functions       Display function names.\n\
+  -i      | --inlines         Display caller info for inlined functions.\n\
   -j NAME | --section=NAME    Values are offsets into section \"NAME\".\n\
   -s      | --basename        Only show the base name for each file name.\n\
   -C      | --demangle        Demangle C++ names.\n\
