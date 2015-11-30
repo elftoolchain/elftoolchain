@@ -70,12 +70,13 @@ static struct option longopts[] = {
 	{"functions", no_argument, NULL, 'f'},
 	{"inlines", no_argument, NULL, 'i'},
 	{"section", required_argument, NULL, 'j'},
+	{"pretty-print", no_argument, NULL, 'p'},
 	{"basename", no_argument, NULL, 's'},
 	{"help", no_argument, NULL, 'H'},
 	{"version", no_argument, NULL, 'V'},
 	{NULL, 0, NULL, 0}
 };
-static int demangle, func, base, inlines, print_addr;
+static int demangle, func, base, inlines, print_addr, pretty_print;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
 static struct CU *culist;
@@ -90,6 +91,8 @@ Usage: %s [options] hexaddress...\n\
   -f      | --functions       Display function names.\n\
   -i      | --inlines         Display caller info for inlined functions.\n\
   -j NAME | --section=NAME    Values are offsets into section \"NAME\".\n\
+  -p      | --pretty-print    Display line number info and function name\n\
+                              in human readable manner.\n\
   -s      | --basename        Only show the base name for each file name.\n\
   -C      | --demangle        Demangle C++ names.\n\
   -H      | --help            Print a help message.\n\
@@ -285,12 +288,22 @@ print_inlines(struct CU *cu, struct Func *f, Dwarf_Unsigned call_file,
 	else
 		file = unknown;
 
+	if (pretty_print)
+		printf(" (inlined by) ");
+
 	if (func) {
-		if (demangle &&
-		    !elftc_demangle(f->name, demangled, sizeof(demangled), 0))
-			printf("%s\n", demangled);
-		else
-			printf("%s\n", f->name);
+		if (demangle && !elftc_demangle(f->name, demangled,
+		    sizeof(demangled), 0)) {
+			if (pretty_print)
+				printf("%s at ", demangled);
+			else
+				printf("%s\n", demangled);
+		} else {
+			if (pretty_print)
+				printf("%s at ", f->name);
+			else
+				printf("%s\n", f->name);
+		}
 	}
 	(void) printf("%s:%ju\n", base ? basename(file) : file, call_line);
 
@@ -456,20 +469,34 @@ out:
 			warnx("gelf_getclass failed: %s", elf_errmsg(-1));
 			ec = ELFCLASS64;
 		}
-		if (ec == ELFCLASS32)
-			printf("0x%08jx\n", (uintmax_t) addr);
-		else
-			printf("0x%016jx\n", (uintmax_t) addr);
+		if (ec == ELFCLASS32) {
+			if (pretty_print)
+				printf("0x%08jx: ", (uintmax_t) addr);
+			else
+				printf("0x%08jx\n", (uintmax_t) addr);
+		} else {
+			if (pretty_print)
+				printf("0x%016jx: ", (uintmax_t) addr);
+			else
+				printf("0x%016jx\n", (uintmax_t) addr);
+		}
 	}
 
 	if (func) {
 		if (funcname == NULL)
 			funcname = unknown;
-		if (demangle &&
-		    !elftc_demangle(funcname, demangled, sizeof(demangled), 0))
-			printf("%s\n", demangled);
-		else
-			printf("%s\n", funcname);
+		if (demangle && !elftc_demangle(funcname, demangled,
+		    sizeof(demangled), 0)) {
+			if (pretty_print)
+				printf("%s at ", demangled);
+			else
+				printf("%s\n", demangled);
+		} else {
+			if (pretty_print)
+				printf("%s at ", funcname);
+			else
+				printf("%s\n", funcname);
+		}
 	}
 
 	(void) printf("%s:%ju\n", base ? basename(file) : file, lineno);
@@ -566,7 +593,7 @@ main(int argc, char **argv)
 
 	exe = NULL;
 	section = NULL;
-	while ((opt = getopt_long(argc, argv, "ab:Ce:fij:sHV", longopts,
+	while ((opt = getopt_long(argc, argv, "ab:Ce:fij:psHV", longopts,
 	    NULL)) != -1) {
 		switch (opt) {
 		case 'a':
@@ -589,6 +616,9 @@ main(int argc, char **argv)
 			break;
 		case 'j':
 			section = optarg;
+			break;
+		case 'p':
+			pretty_print = 1;
 			break;
 		case 's':
 			base = 1;

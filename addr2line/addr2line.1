@@ -38,6 +38,7 @@
 .Op Fl f | Fl -functions
 .Op Fl i | Fl -inlines
 .Op Fl j Ar sectionname | Fl -section Ns = Ns Ar sectionname
+.Op Fl p | Fl -pretty-print
 .Op Fl s | Fl -basename
 .Op Fl C | Fl -demangle
 .Op Fl H | Fl -help
@@ -97,6 +98,8 @@ The values specified by arguments
 .Ar hexaddress
 are to be treated as offsets into the section named
 .Ar sectionname .
+.It Fl p | -pretty-print
+Display the line number information on one line, in human readable manner.
 .It Fl s | -basename
 Display only the base name for each file name.
 .It Fl C | Fl -demangle
@@ -122,6 +125,18 @@ will print a line containing the name of the function corresponding
 to program address
 .Ar hexaddress ,
 followed by a line with the file name and line number.
+.Pp
+If the
+.Fl p
+option was specified,
+.Nm
+will print line number information and function name on one line in
+human readable manner. If the
+.Fl i
+option was also specified,
+.Nm
+will print the caller function information prefixed with
+.Dq (inlined by) .
 .Pp
 The
 .Nm
