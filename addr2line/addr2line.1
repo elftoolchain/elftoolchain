@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 25, 2010
+.Dd November 30, 2015
 .Os
 .Dt ADDR2LINE 1
 .Sh NAME
@@ -35,6 +35,7 @@
 .Op Fl b Ar target | Fl -target Ns = Ns Ar target
 .Op Fl e Ar pathname | Fl -exe Ns = Ns Ar pathname
 .Op Fl f | Fl -functions
+.Op Fl i | Fl -inlines
 .Op Fl j Ar sectionname | Fl -section Ns = Ns Ar sectionname
 .Op Fl s | Fl -basename
 .Op Fl C | Fl -demangle
@@ -84,6 +85,10 @@ will use the file
 .Dq Pa a.out .
 .It Fl f | Fl -functions
 Display function names in addition to file and line number information.
+.It Fl i | Fl -inlines
+If the address specified belongs to an inlined function, also display the line
+number information for its caller, recursively until the first non-inlined
+caller.
 .It Fl j Ar sectionname | Fl -section Ns = Ns Ar sectionname
 The values specified by arguments
 .Ar hexaddress
