@@ -63,6 +63,7 @@ struct CU {
 };
 
 static struct option longopts[] = {
+	{"addresses", no_argument, NULL, 'a'},
 	{"target" , required_argument, NULL, 'b'},
 	{"demangle", no_argument, NULL, 'C'},
 	{"exe", required_argument, NULL, 'e'},
@@ -74,7 +75,7 @@ static struct option longopts[] = {
 	{"version", no_argument, NULL, 'V'},
 	{NULL, 0, NULL, 0}
 };
-static int demangle, func, base, inlines;
+static int demangle, func, base, inlines, print_addr;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
 static struct CU *culist;
@@ -83,6 +84,7 @@ static struct CU *culist;
 Usage: %s [options] hexaddress...\n\
   Map program addresses to source file names and line numbers.\n\n\
   Options:\n\
+  -a      | --addresses       Display address prior to line number info.\n\
   -b TGT  | --target=TGT      (Accepted but ignored).\n\
   -e EXE  | --exe=EXE         Use program \"EXE\" to translate addresses.\n\
   -f      | --functions       Display function names.\n\
@@ -298,7 +300,7 @@ print_inlines(struct CU *cu, struct Func *f, Dwarf_Unsigned call_file,
 }
 
 static void
-translate(Dwarf_Debug dbg, const char* addrstr)
+translate(Dwarf_Debug dbg, Elf *e, const char* addrstr)
 {
 	Dwarf_Die die, ret_die;
 	Dwarf_Line *lbuf;
@@ -313,7 +315,7 @@ translate(Dwarf_Debug dbg, const char* addrstr)
 	const char *funcname;
 	char *file, *file0, *pfile;
 	char demangled[1024];
-	int i, ret;
+	int ec, i, ret;
 
 	addr = strtoull(addrstr, NULL, 16);
 	addr += section_base;
@@ -449,6 +451,17 @@ out:
 			funcname = f->name;
 	}
 
+	if (print_addr) {
+		if ((ec = gelf_getclass(e)) == ELFCLASSNONE) {
+			warnx("gelf_getclass failed: %s", elf_errmsg(-1));
+			ec = ELFCLASS64;
+		}
+		if (ec == ELFCLASS32)
+			printf("0x%08jx\n", (uintmax_t) addr);
+		else
+			printf("0x%016jx\n", (uintmax_t) addr);
+	}
+
 	if (func) {
 		if (funcname == NULL)
 			funcname = unknown;
@@ -553,9 +566,12 @@ main(int argc, char **argv)
 
 	exe = NULL;
 	section = NULL;
-	while ((opt = getopt_long(argc, argv, "b:Ce:fij:sHV", longopts,
+	while ((opt = getopt_long(argc, argv, "ab:Ce:fij:sHV", longopts,
 	    NULL)) != -1) {
 		switch (opt) {
+		case 'a':
+			print_addr = 1;
+			break;
 		case 'b':
 			/* ignored */
 			break;
@@ -608,10 +624,10 @@ main(int argc, char **argv)
 
 	if (argc > 0)
 		for (i = 0; i < argc; i++)
-			translate(dbg, argv[i]);
+			translate(dbg, e, argv[i]);
 	else
 		while (fgets(line, sizeof(line), stdin) != NULL) {
-			translate(dbg, line);
+			translate(dbg, e, line);
 			fflush(stdout);
 		}
 

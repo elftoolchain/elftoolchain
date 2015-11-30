@@ -32,6 +32,7 @@
 .Nd translate program addresses to source file names and line numbers
 .Sh SYNOPSIS
 .Nm
+.Op Fl a | Fl -addresses
 .Op Fl b Ar target | Fl -target Ns = Ns Ar target
 .Op Fl e Ar pathname | Fl -exe Ns = Ns Ar pathname
 .Op Fl f | Fl -functions
@@ -70,6 +71,8 @@ The
 .Nm
 utility recognizes the following options:
 .Bl -tag -width indent
+.It Fl a | Fl -addresses
+Display the address prior to the line number information.
 .It Fl b Ar target | Fl -target Ns = Ns Ar target
 This option is recognized by
 .Nm
