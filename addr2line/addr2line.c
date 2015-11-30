@@ -48,6 +48,8 @@ struct Func {
 	Dwarf_Unsigned hipc;
 	Dwarf_Unsigned call_file;
 	Dwarf_Unsigned call_line;
+	Dwarf_Ranges *ranges;
+	Dwarf_Signed ranges_cnt;
 	struct Func *inlined_caller;
 	STAILQ_ENTRY(Func) next;
 };
@@ -155,11 +157,38 @@ static struct Func *
 search_func(struct CU *cu, Dwarf_Unsigned addr)
 {
 	struct Func *f, *f0;
+	Dwarf_Unsigned lopc, hipc, addr_base;
+	int i;
 
 	f0 = NULL;
 
 	STAILQ_FOREACH(f, &cu->funclist, next) {
-		if (addr >= f->lopc && addr < f->hipc) {
+		if (f->ranges != NULL) {
+			addr_base = 0;
+			for (i = 0; i < f->ranges_cnt; i++) {
+				if (f->ranges[i].dwr_type == DW_RANGES_END)
+					break;
+				if (f->ranges[i].dwr_type ==
+				    DW_RANGES_ADDRESS_SELECTION) {
+					addr_base = f->ranges[i].dwr_addr2;
+					continue;
+				}
+
+				/* DW_RANGES_ENTRY */
+				lopc = f->ranges[i].dwr_addr1 + addr_base;
+				hipc = f->ranges[i].dwr_addr2 + addr_base;
+				if (addr >= lopc && addr < hipc) {
+					if (f0 == NULL ||
+					    (lopc >= f0->lopc &&
+					    hipc <= f0->hipc)) {
+						f0 = f;
+						f0->lopc = lopc;
+						f0->hipc = hipc;
+						break;
+					}
+				}
+			}
+		} else if (addr >= f->lopc && addr < f->hipc) {
 			if (f0 == NULL ||
 			    (f->lopc >= f0->lopc && f->hipc <= f0->hipc))
 				f0 = f;
@@ -175,12 +204,14 @@ collect_func(Dwarf_Debug dbg, Dwarf_Die die, struct Func *parent, struct CU *cu)
 	Dwarf_Die ret_die, abst_die, spec_die;
 	Dwarf_Error de;
 	Dwarf_Half tag;
-	Dwarf_Unsigned lopc, hipc;
+	Dwarf_Unsigned lopc, hipc, ranges_off;
+	Dwarf_Signed ranges_cnt;
 	Dwarf_Off ref;
 	Dwarf_Attribute abst_at, spec_at;
+	Dwarf_Ranges *ranges;
 	const char *funcname;
 	struct Func *f;
-	int ret;
+	int found_ranges, ret;
 
 	f = NULL;
 	abst_die = spec_die = NULL;
@@ -191,12 +222,39 @@ collect_func(Dwarf_Debug dbg, Dwarf_Die die, struct Func *parent, struct CU *cu)
 	}
 	if (tag == DW_TAG_subprogram || tag == DW_TAG_entry_point ||
 	    tag == DW_TAG_inlined_subroutine) {
+		/*
+		 * Function address range can be specified by either
+		 * a DW_AT_ranges attribute which points to a range list or
+		 * by a pair of DW_AT_low_pc and DW_AT_high_pc attributes.
+		 */
+		ranges = NULL;
+		ranges_cnt = 0;
+		found_ranges = 0;
+		if (dwarf_attrval_unsigned(die, DW_AT_ranges, &ranges_off,
+		    &de) == DW_DLV_OK &&
+		    dwarf_get_ranges(dbg, (Dwarf_Off) ranges_off, &ranges,
+		    &ranges_cnt, NULL, &de) == DW_DLV_OK) {
+			if (ranges != NULL && ranges_cnt > 0) {
+				found_ranges = 1;
+				goto get_func_name;
+			}
+		}
+
+		/*
+		 * Search for DW_AT_low_pc/DW_AT_high_pc if ranges pointer
+		 * not found.
+		 */
 		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) ||
 		    dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc, &de))
 			goto cont_search;
 		if (handle_high_pc(die, lopc, &hipc) != DW_DLV_OK)
 			goto cont_search;
 
+	get_func_name:
+		/*
+		 * Most common case the function name is stored in DW_AT_name
+		 * attribute.
+		 */
 		if (dwarf_attrval_string(die, DW_AT_name, &funcname, &de) ==
 		    DW_DLV_OK)
 			goto add_func;
@@ -234,8 +292,13 @@ collect_func(Dwarf_Debug dbg, Dwarf_Die die, struct Func *parent, struct CU *cu)
 			err(EXIT_FAILURE, "calloc");
 		if ((f->name = strdup(funcname)) == NULL)
 			err(EXIT_FAILURE, "strdup");
-		f->lopc = lopc;
-		f->hipc = hipc;
+		if (found_ranges) {
+			f->ranges = ranges;
+			f->ranges_cnt = ranges_cnt;
+		} else {
+			f->lopc = lopc;
+			f->hipc = hipc;
+		}
 		if (tag == DW_TAG_inlined_subroutine) {
 			f->inlined_caller = parent;
 			dwarf_attrval_unsigned(die, DW_AT_call_file,
