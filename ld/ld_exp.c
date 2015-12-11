@@ -202,7 +202,7 @@ ld_exp_eval(struct ld* ld, struct ld_exp *le)
 	assert(le != NULL);
 	switch (le->le_op) {
 	case LEOP_ABS:
-		return (abs(_EXP_EVAL(le->le_e1)));
+		return (llabs(_EXP_EVAL(le->le_e1)));
 	case LEOP_ADD:
 		return (_EXP_EVAL(le->le_e1) + _EXP_EVAL(le->le_e2));
 	case LEOP_ADDR:
