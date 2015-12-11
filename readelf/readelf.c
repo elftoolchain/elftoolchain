@@ -2862,9 +2862,9 @@ dump_phdr(struct readelf *re)
 		printf("   %2.2d     ", i);
 		/* skip NULL section. */
 		for (j = 1; (size_t)j < re->shnum; j++)
-			if (re->sl[j].off >= phdr.p_offset &&
-			    re->sl[j].off + re->sl[j].sz <=
-			    phdr.p_offset + phdr.p_memsz)
+			if (re->sl[j].addr >= phdr.p_vaddr &&
+			    re->sl[j].addr + re->sl[j].sz <=
+			    phdr.p_vaddr + phdr.p_memsz)
 				printf("%s ", re->sl[j].name);
 		printf("\n");
 	}
