@@ -569,7 +569,8 @@ static int64_t
 _func_data_segment_align(struct ld *ld, struct ld_exp *le)
 {
 	struct ld_state *ls; 
-	uint64_t maxpagesize, commonpagesize;
+	uint64_t maxpagesize;
+	/* uint64_t commonpagesize; */
 
 	/*
 	 * TODO: test if align to common page size use less number
@@ -577,7 +578,7 @@ _func_data_segment_align(struct ld *ld, struct ld_exp *le)
 	 */
 	ls = &ld->ld_state;
 	maxpagesize = _EXP_EVAL(le->le_e1);
-	commonpagesize = _EXP_EVAL(le->le_e2);
+	/* commonpagesize = _EXP_EVAL(le->le_e2); */
 
 	return (roundup(ls->ls_loc_counter, maxpagesize) +
 	    (ls->ls_loc_counter & (maxpagesize - 1)));
