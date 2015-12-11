@@ -78,9 +78,6 @@ ld_strtab_free(struct ld_strtab *st)
 	if (st == NULL)
 		return;
 
-	free(st->st_buf);
-	free(st);
-
 	if (st->st_pool != NULL) {
 		HASH_ITER(hh, st->st_pool, str, tmp) {
 			HASH_DELETE(hh, st->st_pool, str);
@@ -88,6 +85,9 @@ ld_strtab_free(struct ld_strtab *st)
 			free(str);
 		}
 	}
+
+	free(st->st_buf);
+	free(st);
 }
 
 char *
