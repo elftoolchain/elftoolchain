@@ -368,7 +368,8 @@ print_inlines(struct CU *cu, struct Func *f, Dwarf_Unsigned call_file,
 				printf("%s\n", f->name);
 		}
 	}
-	(void) printf("%s:%ju\n", base ? basename(file) : file, call_line);
+	(void) printf("%s:%ju\n", base ? basename(file) : file,
+	    (uintmax_t) call_line);
 
 	if (f->inlined_caller != NULL)
 		print_inlines(cu, f->inlined_caller, f->call_file,
@@ -562,7 +563,8 @@ out:
 		}
 	}
 
-	(void) printf("%s:%ju\n", base ? basename(file) : file, lineno);
+	(void) printf("%s:%ju\n", base ? basename(file) : file,
+	    (uintmax_t) lineno);
 
 	if (ret == DW_DLV_OK && inlines && cu != NULL &&
 	    cu->srcfiles != NULL && f != NULL && f->inlined_caller != NULL)

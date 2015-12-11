@@ -2173,11 +2173,14 @@ elf_print_got_section(struct elfdump *ed, struct section *s)
 		for(i = 0; i < len; i++) {
 			PRT("[%5.5d]  ", i);
 			if (ed->ec == ELFCLASS32) {
-				PRT("%-8.8jx  ", s->addr + i * s->entsize);
+				PRT("%-8.8jx  ",
+				    (uintmax_t) (s->addr + i * s->entsize));
 				PRT("%-8.8x ", *((uint32_t *)dst.d_buf + i));
 			} else {
-				PRT("%-16.16jx  ", s->addr + i * s->entsize);
-				PRT("%-16.16jx  ", *((uint64_t *)dst.d_buf + i));
+				PRT("%-16.16jx  ",
+				    (uintmax_t) (s->addr + i * s->entsize));
+				PRT("%-16.16jx  ",
+				    (uintmax_t) *((uint64_t *)dst.d_buf + i));
 			}
 			PRT("%-18s ", r_type(ed->ehdr.e_machine,
 				GELF_R_TYPE(got[i].u_r.rel.r_info)));
@@ -2198,7 +2201,8 @@ elf_print_got_section(struct elfdump *ed, struct section *s)
 			if (ed->ec == ELFCLASS32)
 				PRT("\t%#x\n", *((uint32_t *)dst.d_buf + i));
 			else
-				PRT("\t%#jx\n", *((uint64_t *)dst.d_buf + i));
+				PRT("\t%#jx\n",
+				    (uintmax_t) *((uint64_t *)dst.d_buf + i));
 		}
 	}
 }

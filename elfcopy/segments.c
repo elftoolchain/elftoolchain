@@ -173,7 +173,7 @@ adjust_addr(struct elfcopy *ecp)
 		if (lma % s->align != 0)
 			errx(EXIT_FAILURE, "The load address %#jx for "
 			    "section %s is not aligned to %ju",
-			    (uintmax_t) lma, s->name, s->align);
+			    (uintmax_t) lma, s->name, (uintmax_t) s->align);
 
 		if (lma < s->lma) {
 			/* Move section to lower address. */
@@ -214,7 +214,8 @@ adjust_addr(struct elfcopy *ecp)
 				continue;
 			errx(EXIT_FAILURE, "The extent of segment containing "
 			    "section %s overlaps with segment(%#jx,%#jx)",
-			    s->name, seg->addr, seg->addr + seg->msz);
+			    s->name, (uintmax_t) seg->addr,
+			    (uintmax_t) (seg->addr + seg->msz));
 		}
 
 		/*

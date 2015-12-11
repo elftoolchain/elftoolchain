@@ -215,7 +215,7 @@ report_textrel(const char *fn, Elf *e, Dwarf_Debug dbg, uintmax_t off,
 
 out:
 	if (found)
-		printf(", file: %s, line: %ju", file, lineno);
+		printf(", file: %s, line: %ju", file, (uintmax_t) lineno);
 
 	/*
 	 * Reset internal CU pointer, so we will start from the first CU
