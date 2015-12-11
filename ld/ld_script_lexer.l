@@ -51,6 +51,7 @@ MATTR		\(!?[rRwWxXaAiIlL]+\)
 
 %option noyywrap
 %option never-interactive
+%option nounput
 
 %%
 
