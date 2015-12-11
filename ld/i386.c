@@ -119,7 +119,7 @@ _reloc2str(uint64_t r)
 		case 37: return "R_386_TLS_TPOFF32";
 
 	default:
-		snprintf(s, sizeof(s), "<unkown: %ju>", r);
+		snprintf(s, sizeof(s), "<unkown: %ju>", (uintmax_t) r);
 		return (s);
 	}
 }

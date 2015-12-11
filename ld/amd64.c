@@ -133,7 +133,7 @@ _reloc2str(uint64_t r)
 		case 22: return "R_X86_64_GOTTPOFF";
 		case 23: return "R_X86_64_TPOFF32";
 	default:
-		snprintf(s, sizeof(s), "<unkown: %ju>", r);
+		snprintf(s, sizeof(s), "<unkown: %ju>", (uintmax_t) r);
 		return (s);
 	}
 }
