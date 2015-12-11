@@ -3,7 +3,7 @@
 TOP=	..
 
 PROG=	ld
-WARNS?=	6
+WARNS?=	5
 
 SRCS=	amd64.c			\
 	amd64_script.c		\
