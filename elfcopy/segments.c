@@ -77,8 +77,6 @@ add_to_inseg_list(struct elfcopy *ecp, struct section *s)
 		if (s->off + s->sz > seg->off + seg->fsz &&
 		    s->type != SHT_NOBITS)
 			continue;
-		if (s->off + s->sz > seg->off + seg->msz)
-			continue;
 		if (s->vma + s->sz > seg->addr + seg->msz)
 			continue;
 
