@@ -1262,11 +1262,13 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 			if (!cpp_demangle_push_str(ddata,
 			    "non-transaction clone for ", 26))
 				return (0);
+			break;
 		case 't':
 		default:
 			if (!cpp_demangle_push_str(ddata,
 			    "transaction clone for ", 22))
 				return (0);
+			break;
 		}
 		++ddata->cur;
 		return (cpp_demangle_read_encoding(ddata));
