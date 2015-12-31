@@ -1921,7 +1921,7 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 		/* std::basic_ostream<char, std::char_traits<char> > */
 		if (!cpp_demangle_push_str(ddata, "std::ostream", 18))
 			return (0);
-		ddata->last_sname = "istream";
+		ddata->last_sname = "ostream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
