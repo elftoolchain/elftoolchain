@@ -382,7 +382,7 @@ ac_read_objs(struct elfcopy *ecp, int ifd)
 	if (lseek(ifd, 0, SEEK_SET) == -1)
 		err(EXIT_FAILURE, "lseek failed");
 	if ((a = archive_read_new()) == NULL)
-		errx(EXIT_FAILURE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "archive_read_new failed");
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_fd(a, ifd, 10240));
 	for(;;) {
@@ -443,7 +443,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	int			 nr;
 
 	if ((a = archive_write_new()) == NULL)
-		errx(EXIT_FAILURE, "%s", archive_error_string(a));
+		errx(EXIT_FAILURE, "archive_write_new failed");
 	archive_write_set_format_ar_svr4(a);
 	AC(archive_write_open_fd(a, ofd));
 
