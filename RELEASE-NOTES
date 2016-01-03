@@ -96,7 +96,7 @@ systems:
   **Operating System**  **Version**  **Supported Architectures**
   --------------------  -----------  ---------------------------
   `DragonFly BSD`_      2.10.1       i386
-  FreeBSD_              v8.2         amd64 & i386
+  FreeBSD_              10.2         amd64 & i386
   Minix_                3.2.0        i386
   NetBSD_               v5.0.2       i386
   OpenBSD_              v5.0         i386
