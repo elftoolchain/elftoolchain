@@ -1897,35 +1897,35 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 
 	case SIMPLE_HASH('S', 'd'):
 		/* std::basic_iostream<char, std::char_traits<char> > */
-		if (!cpp_demangle_push_str(ddata, "std::iostream", 19))
+		if (!cpp_demangle_push_str(ddata, "std::basic_iostream", 19))
 			return (0);
-		ddata->last_sname = "iostream";
+		ddata->last_sname = "basic_iostream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::iostream", 19));
+			    "std::basic_iostream", 19));
 		return (1);
 
 	case SIMPLE_HASH('S', 'i'):
 		/* std::basic_istream<char, std::char_traits<char> > */
-		if (!cpp_demangle_push_str(ddata, "std::istream", 18))
+		if (!cpp_demangle_push_str(ddata, "std::basic_istream", 18))
 			return (0);
-		ddata->last_sname = "istream";
+		ddata->last_sname = "basic_istream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::istream", 18));
+			    "std::basic_istream", 18));
 		return (1);
 
 	case SIMPLE_HASH('S', 'o'):
 		/* std::basic_ostream<char, std::char_traits<char> > */
-		if (!cpp_demangle_push_str(ddata, "std::ostream", 18))
+		if (!cpp_demangle_push_str(ddata, "std::basic_ostream", 18))
 			return (0);
-		ddata->last_sname = "ostream";
+		ddata->last_sname = "basic_ostream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::ostream", 18));
+			    "std::basic_ostream", 18));
 		return (1);
 
 	case SIMPLE_HASH('S', 's'):
