@@ -223,6 +223,7 @@ static int
 is_debug_section(const char *name)
 {
 	const char *dbg_sec[] = {
+		".apple_",
 		".debug",
 		".gnu.linkonce.wi.",
 		".line",
