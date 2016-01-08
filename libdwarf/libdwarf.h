@@ -33,7 +33,7 @@
 #include <libelf.h>
 
 typedef int		Dwarf_Bool;
-typedef off_t		Dwarf_Off;
+typedef uint64_t	Dwarf_Off;
 typedef uint64_t	Dwarf_Unsigned;
 typedef uint16_t	Dwarf_Half;
 typedef uint8_t		Dwarf_Small;
