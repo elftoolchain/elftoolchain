@@ -92,8 +92,8 @@ extern struct _libdwarf_globals _libdwarf;
 typedef struct _Dwarf_CU *Dwarf_CU;
 
 struct _Dwarf_AttrDef {
-	uint64_t	ad_attrib;		/* DW_AT_XXX */
-	uint64_t	ad_form;		/* DW_FORM_XXX */
+	Dwarf_Half	ad_attrib;		/* DW_AT_XXX */
+	Dwarf_Half	ad_form;		/* DW_FORM_XXX */
 	uint64_t	ad_offset;		/* Offset in abbrev section. */
 	STAILQ_ENTRY(_Dwarf_AttrDef) ad_next;	/* Next attribute define. */
 };
@@ -102,8 +102,8 @@ struct _Dwarf_Attribute {
 	Dwarf_Die		at_die;		/* Ptr to containing DIE. */
 	Dwarf_Die		at_refdie;	/* Ptr to reference DIE. */
 	uint64_t		at_offset;	/* Offset in info section. */
-	uint64_t		at_attrib;	/* DW_AT_XXX */
-	uint64_t		at_form;	/* DW_FORM_XXX */
+	Dwarf_Half		at_attrib;	/* DW_AT_XXX */
+	Dwarf_Half		at_form;	/* DW_FORM_XXX */
 	int			at_indirect;	/* Has indirect form. */
 	union {
 		uint64_t	u64;		/* Unsigned value. */
