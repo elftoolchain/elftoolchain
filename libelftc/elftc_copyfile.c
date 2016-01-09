@@ -51,7 +51,7 @@ elftc_copyfile(int ifd, int ofd)
 	int buf_mmapped;
 	struct stat sb;
 	char *b, *buf;
-	ssize_t nw;
+	ssize_t nr, nw;
 
 	/* Determine the input file's size. */
 	if (fstat(ifd, &sb) < 0)
@@ -61,9 +61,9 @@ elftc_copyfile(int ifd, int ofd)
 	if (sb.st_size == 0)
 		return (0);
 
-	file_size = (size_t) sb.st_size;
 	buf = NULL;
 	buf_mmapped = 0;
+	file_size = (size_t) sb.st_size;
 
 #if	ELFTC_HAVE_MMAP
 	/*
@@ -83,9 +83,12 @@ elftc_copyfile(int ifd, int ofd)
 	if (buf_mmapped == false) {
 		if ((buf = malloc(file_size)) == NULL)
 			return (-1);
-		if (read(ifd, buf, file_size) != file_size) {
-			free(buf);
-			return (-1);
+		b = buf;
+		for (n = file_size; n > 0; n -= (size_t) nr, b += nr) {
+			if ((nr = read(ifd, b, n)) < 0) {
+				free(buf);
+				return (-1);
+			}
 		}
 	}
 
