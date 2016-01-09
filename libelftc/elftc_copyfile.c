@@ -47,11 +47,11 @@ ELFTC_VCSID("$Id$");
 int
 elftc_copyfile(int ifd, int ofd)
 {
+	size_t file_size, n;
 	int buf_mmapped;
 	struct stat sb;
 	char *b, *buf;
 	ssize_t nw;
-	size_t n;
 
 	/* Determine the input file's size. */
 	if (fstat(ifd, &sb) < 0)
@@ -61,6 +61,7 @@ elftc_copyfile(int ifd, int ofd)
 	if (sb.st_size == 0)
 		return (0);
 
+	file_size = (size_t) sb.st_size;
 	buf = NULL;
 	buf_mmapped = 0;
 
@@ -68,7 +69,7 @@ elftc_copyfile(int ifd, int ofd)
 	/*
 	 * Prefer mmap() if it is available.
 	 */
-	buf = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, ifd, (off_t) 0);
+	buf = mmap(NULL, file_size, PROT_READ, MAP_SHARED, ifd, (off_t) 0);
 	if (buf != MAP_FAILED)
 		buf_mmapped = 1;
 	else
@@ -80,9 +81,9 @@ elftc_copyfile(int ifd, int ofd)
 	 * failed, allocate a buffer, and read in input data.
 	 */
 	if (buf_mmapped == false) {
-		if ((buf = malloc(sb.st_size)) == NULL)
+		if ((buf = malloc(file_size)) == NULL)
 			return (-1);
-		if (read(ifd, buf, sb.st_size) != sb.st_size) {
+		if (read(ifd, buf, file_size) != file_size) {
 			free(buf);
 			return (-1);
 		}
@@ -91,13 +92,13 @@ elftc_copyfile(int ifd, int ofd)
 	/*
 	 * Write data to the output file descriptor.
 	 */
-	for (n = sb.st_size, b = buf; n > 0; n -= nw, b += nw)
+	for (n = file_size, b = buf; n > 0; n -= (size_t) nw, b += nw)
 		if ((nw = write(ofd, b, n)) <= 0)
 			break;
 
 	/* Release the input buffer. */
 #if	ELFTC_HAVE_MMAP
-	if (buf_mmapped && munmap(buf, sb.st_size) < 0)
+	if (buf_mmapped && munmap(buf, file_size) < 0)
 		return (-1);
 #endif
 

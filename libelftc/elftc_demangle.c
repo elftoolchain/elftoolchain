@@ -35,8 +35,8 @@
 
 ELFTC_VCSID("$Id$");
 
-static int
-is_mangled(const char *s, int style)
+static unsigned int
+is_mangled(const char *s, unsigned int style)
 {
 
 	switch (style) {
@@ -58,7 +58,7 @@ is_mangled(const char *s, int style)
 }
 
 static char *
-demangle(const char *s, int style, int rc)
+demangle(const char *s, unsigned int style, unsigned int rc)
 {
 
 	(void) rc;			/* XXX */
@@ -76,7 +76,7 @@ int
 elftc_demangle(const char *mangledname, char *buffer, size_t bufsize,
     unsigned int flags)
 {
-	int style, rc;
+	unsigned int style, rc;
 	char *rlt;
 
 	style = flags & 0xFFFF;
