@@ -64,7 +64,7 @@ done
 curdir=`pwd`
 cd ${top} || usage "ERROR: Cannot change directory to \"${top}\"."
 
-if [ -d .svn ]; then		# FreeBSD and SF.Net sources.
+if [ -d .svn -o -d ../.svn ]; then	# FreeBSD and SF.Net sources.
     versionstring=" svn:"$(svnversion)
 elif [ -d CVS ]; then		# NetBSD.
     versionstring=" cvs:unknown"
