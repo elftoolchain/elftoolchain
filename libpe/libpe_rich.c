@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "_libpe.h"
 
@@ -70,7 +71,7 @@ libpe_parse_rich_header(PE *pe)
 		return (-1);
 	}
 
-	if ((rh = malloc(sizeof(*rh))) == NULL) {
+	if ((rh = calloc(1, sizeof(*rh))) == NULL) {
 		errno = ENOMEM;
 		return (-1);
 	}

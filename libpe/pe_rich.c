@@ -41,8 +41,8 @@ pe_rich_header(PE *pe)
 	}
 
 	if (pe->pe_rh == NULL && pe->pe_stub_ex > 0 &&
-	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
-		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
+	    (pe->pe_flags & LIBPE_F_LOAD_DOS_STUB) == 0) {
+		assert((pe->pe_flags & LIBPE_F_SPECIAL_FILE) == 0);
 		(void) libpe_read_msdos_stub(pe);
 	}
 

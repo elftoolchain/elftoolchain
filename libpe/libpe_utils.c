@@ -24,30 +24,46 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/param.h>
+#include <assert.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-static int
-cmp_scn(PE_Scn *a, PE_Scn *b)
+off_t
+libpe_align(PE *pe, off_t off, size_t align)
 {
+	off_t n;
 
-	if (a->ps_sh.sh_rawptr < b->ps_sh.sh_rawptr)
-		return (-1);
-	else if (a->ps_sh.sh_rawptr == b->ps_sh.sh_rawptr)
-		return (0);
-	else
-		return (1);
+	assert(align > 0 && (align & (align - 1)) == 0);
+
+	n = roundup(off, align);
+	if (n > off) {
+		if (libpe_pad(pe, n - off) < 0)
+			return (-1);
+	}
+
+	return (n);
 }
 
-
-void
-libpe_sort_sections(PE *pe)
+int
+libpe_pad(PE *pe, size_t pad)
 {
+	char tmp[128];
+	size_t s;
 
-	if (STAILQ_EMPTY(&pe->pe_scn))
-		return;
+	memset(tmp, 0, sizeof(tmp));
+	for (; pad > 0; pad -= s) {
+		s = pad > sizeof(tmp) ? sizeof(tmp) : pad;
+		if (write(pe->pe_fd, tmp, s) != (ssize_t) s) {
+			errno = EIO;
+			return (-1);
+		}
+	}
 
-	/* Sort the list of Scn by offset in ascending order. */
-	STAILQ_SORT(&pe->pe_scn, _PE_Scn, ps_next, cmp_scn);
+	return (0);
 }

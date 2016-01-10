@@ -11,13 +11,16 @@ SRCS=	libpe_buffer.c	\
 	libpe_rich.c	\
 	libpe_section.c	\
 	libpe_utils.c	\
+	pe_buffer.c	\
 	pe_cntl.c	\
 	pe_coff.c	\
 	pe_dos.c	\
-	pe_buffer.c	\
+	pe_flag.c	\
 	pe_init.c	\
 	pe_rich.c	\
-	pe_section.c
+	pe_section.c	\
+	pe_symtab.c	\
+	pe_update.c
 
 INCS=		libpe.h pe.h
 INCSDIR=	/usr/include

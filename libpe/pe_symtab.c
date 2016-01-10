@@ -30,71 +30,57 @@
 
 ELFTC_VCSID("$Id$");
 
-PE_Buffer *
-pe_getbuffer(PE_Scn *ps, PE_Buffer *pb)
+int
+pe_update_symtab(PE *pe, char *symtab, size_t sz, unsigned int nsym)
 {
-	PE *pe;
+	PE_Scn *ps;
 	PE_SecBuf *sb;
+	PE_SecHdr *sh;
 
-	if (ps == NULL) {
+	if (pe == NULL || symtab == NULL || sz == 0) {
 		errno = EINVAL;
-		return (NULL);
+		return (-1);
 	}
 
-	pe = ps->ps_pe;
-
-	if ((ps->ps_flags & LIBPE_F_LOAD_SECTION) == 0) {
-		if (pe->pe_flags & LIBPE_F_FD_DONE) {
-			errno = EACCES;
-			return (NULL);
-		}
-		if (pe->pe_flags & LIBPE_F_SPECIAL_FILE) {
-			if (libpe_load_all_sections(pe) < 0)
-				return (NULL);
-		} else {
-			if (libpe_load_section(pe, ps) < 0)
-				return (NULL);
-		}
-	}
-
-	sb = (PE_SecBuf *) pb;
-
-	if (sb == NULL)
-		sb = STAILQ_FIRST(&ps->ps_b);
-	else
-		sb = STAILQ_NEXT(sb, sb_next);
-
-	return ((PE_Buffer *) sb);
-}
-
-PE_Buffer *
-pe_newbuffer(PE_Scn *ps)
-{
-	PE *pe;
-	PE_SecBuf *sb;
-
-	if (ps == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	pe = ps->ps_pe;
-
-	if (pe->pe_flags & LIBPE_F_FD_DONE) {
+	if (pe->pe_cmd == PE_C_READ || pe->pe_flags & LIBPE_F_FD_DONE) {
 		errno = EACCES;
-		return (NULL);
+		return (-1);
 	}
 
-	if ((ps->ps_flags & LIBPE_F_LOAD_SECTION) == 0) {
-		if (libpe_load_section(pe, ps) < 0)
-			return (NULL);
+	/* Remove the old symbol table. */
+	STAILQ_FOREACH(ps, &pe->pe_scn, ps_next) {
+		if (ps->ps_ndx == 0xFFFFFFFFU)
+			libpe_release_scn(ps);
 	}
 
-	if ((sb = libpe_alloc_buffer(ps, 0)) == NULL)
-		return (NULL);
+	/*
+	 * Insert the new symbol table.
+	 */
 
-	sb->sb_flags |= PE_F_DIRTY;
+	if ((ps = libpe_alloc_scn(pe)) == NULL)
+		return (-1);
+
+	STAILQ_INSERT_TAIL(&pe->pe_scn, ps, ps_next);
+	ps->ps_ndx = 0xFFFFFFFFU;
 	ps->ps_flags |= PE_F_DIRTY;
 
-	return ((PE_Buffer *) sb);
+	/*
+	 * Set the symbol table section offset to the maximum to make sure
+	 * that it will be placed in the end of the file during section
+	 * layout.
+	 */
+	sh = &ps->ps_sh;
+	sh->sh_rawptr = 0xFFFFFFFFU;
+	sh->sh_rawsize = sz;
+
+	/* Allocate the buffer. */
+	if ((sb = libpe_alloc_buffer(ps, 0)) == NULL)
+		return (-1);
+	sb->sb_flags |= PE_F_DIRTY;
+	sb->sb_pb.pb_size = sz;
+	sb->sb_pb.pb_buf = symtab;
+
+	pe->pe_nsym = nsym;
+
+	return (0);
 }

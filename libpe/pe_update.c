@@ -24,77 +24,63 @@
  * SUCH DAMAGE.
  */
 
+#include <assert.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-PE_Buffer *
-pe_getbuffer(PE_Scn *ps, PE_Buffer *pb)
+off_t
+pe_update(PE *pe)
 {
-	PE *pe;
-	PE_SecBuf *sb;
+	off_t off;
 
-	if (ps == NULL) {
+	if (pe == NULL) {
 		errno = EINVAL;
-		return (NULL);
+		return (-1);
 	}
 
-	pe = ps->ps_pe;
-
-	if ((ps->ps_flags & LIBPE_F_LOAD_SECTION) == 0) {
-		if (pe->pe_flags & LIBPE_F_FD_DONE) {
-			errno = EACCES;
-			return (NULL);
-		}
-		if (pe->pe_flags & LIBPE_F_SPECIAL_FILE) {
-			if (libpe_load_all_sections(pe) < 0)
-				return (NULL);
-		} else {
-			if (libpe_load_section(pe, ps) < 0)
-				return (NULL);
-		}
-	}
-
-	sb = (PE_SecBuf *) pb;
-
-	if (sb == NULL)
-		sb = STAILQ_FIRST(&ps->ps_b);
-	else
-		sb = STAILQ_NEXT(sb, sb_next);
-
-	return ((PE_Buffer *) sb);
-}
-
-PE_Buffer *
-pe_newbuffer(PE_Scn *ps)
-{
-	PE *pe;
-	PE_SecBuf *sb;
-
-	if (ps == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	pe = ps->ps_pe;
-
-	if (pe->pe_flags & LIBPE_F_FD_DONE) {
+	if (pe->pe_cmd == PE_C_READ || pe->pe_flags & LIBPE_F_FD_DONE) {
 		errno = EACCES;
-		return (NULL);
+		return (-1);
 	}
 
-	if ((ps->ps_flags & LIBPE_F_LOAD_SECTION) == 0) {
-		if (libpe_load_section(pe, ps) < 0)
-			return (NULL);
+	if (pe->pe_cmd == PE_C_RDWR || (pe->pe_cmd == PE_C_WRITE &&
+		(pe->pe_flags & LIBPE_F_SPECIAL_FILE) == 0)) {
+		if (lseek(pe->pe_fd, 0, SEEK_SET) < 0) {
+			errno = EIO;
+			return (-1);
+		}
 	}
 
-	if ((sb = libpe_alloc_buffer(ps, 0)) == NULL)
-		return (NULL);
+	off = 0;
 
-	sb->sb_flags |= PE_F_DIRTY;
-	ps->ps_flags |= PE_F_DIRTY;
+	if (pe->pe_obj == PE_O_PE32 || pe->pe_obj == PE_O_PE32P) {
+		if ((off = libpe_write_msdos_stub(pe, off)) < 0)
+			return (-1);
 
-	return ((PE_Buffer *) sb);
+		if ((off = libpe_write_pe_header(pe, off)) < 0)
+			return (-1);
+	}
+
+	if (libpe_resync_sections(pe, off) < 0)
+		return (-1);
+
+	if ((off = libpe_write_coff_header(pe, off)) < 0)
+		return (-1);
+
+	if ((off = libpe_write_section_headers(pe, off)) < 0)
+		return (-1);
+
+	if ((off = libpe_write_sections(pe, off)) < 0)
+		return (-1);
+
+	if (ftruncate(pe->pe_fd, off) < 0) {
+		errno = EIO;
+		return (-1);
+	}
+
+	return (off);
 }

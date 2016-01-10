@@ -54,6 +54,10 @@ pe_init(int fd, PE_Cmd c, PE_Object o)
 		break;
 
 	case PE_C_WRITE:
+		if (o < PE_O_PE32 || o > PE_O_COFF) {
+			errno = EINVAL;
+			goto init_fail;
+		}
 		break;
 
 	default:
@@ -75,7 +79,7 @@ pe_finish(PE *pe)
 	if (pe == NULL)
 		return;
 
-	free(pe);
+	libpe_release_object(pe);
 }
 
 PE_Object

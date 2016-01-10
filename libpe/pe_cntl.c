@@ -41,7 +41,7 @@ pe_cntl(PE *pe, PE_Cmd cmd)
 
 	switch (cmd) {
 	case PE_C_FDDONE:
-		pe->pe_iflags |= LIBPE_F_FD_DONE;
+		pe->pe_flags |= LIBPE_F_FD_DONE;
 		break;
 
 	case PE_C_FDREAD:
