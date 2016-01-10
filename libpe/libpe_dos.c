@@ -25,6 +25,7 @@
  */
 
 #include <sys/types.h>
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,7 +67,7 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 	PE_READ16(hdr, dh->dh_relocpos);
 	PE_READ16(hdr, dh->dh_noverlay);
 
-	/* Do not continue if the EXE is not a "new executable" */
+	/* Do not continue if the EXE is not a PE/NE/... (new executable) */
 	if (dh->dh_relocpos != 0x40) {
 		pe->pe_iflags |= LIBPE_F_UNSUP_DOS_HEADER;
 		return (0);
@@ -81,18 +82,27 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 	PE_READ32(hdr, dh->dh_lfanew);
 
 	/* Check if the e_lfanew pointer is valid. */
-	if (sizeof(PE_DosHdr) + dh->dh_lfanew > pe->pe_fsize - 4) {
+	if (dh->dh_lfanew > pe->pe_fsize - 4) {
 		pe->pe_iflags |= LIBPE_F_UNSUP_DOS_HEADER;
 		return (0);
 	}
 
-	pe->pe_dstub_len = dh->dh_lfanew - sizeof(PE_DosHdr);
+	if (dh->dh_lfanew < sizeof(PE_DosHdr) &&
+	    (pe->pe_iflags & LIBPE_F_SPECIAL_FILE)) {
+		pe->pe_iflags |= LIBPE_F_UNSUP_DOS_HEADER;
+		return (0);
+	}
 
-	if (pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
-		/* Read in DOS stub now. */
-		if (libpe_read_msdos_stub(pe) < 0 && errno != EIO)
-			return (-1);
-	} else {
+	if (dh->dh_lfanew > sizeof(PE_DosHdr)) {
+		pe->pe_dstub_len = dh->dh_lfanew - sizeof(PE_DosHdr);
+		if (pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
+			/* Read in DOS stub now. */
+			if (libpe_read_msdos_stub(pe) < 0 && errno != EIO)
+				return (-1);
+		}
+	}
+
+	if ((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0) {
 		/* Jump to the PE header. */
 		if (lseek(pe->pe_fd, (off_t) dh->dh_lfanew, SEEK_SET) < 0) {
 			errno = EIO;
@@ -118,6 +128,13 @@ int
 libpe_read_msdos_stub(PE *pe)
 {
 
+	assert(pe->pe_dstub == NULL && pe->pe_dstub_len > 0);
+
+	if (lseek(pe->pe_fd, (off_t) sizeof(PE_DosHdr), SEEK_SET) < 0) {
+		errno = EIO;
+		return (-1);
+	}
+
 	if ((pe->pe_dstub = malloc(pe->pe_dstub_len)) == NULL) {
 		errno = ENOMEM;
 		return (-1);
@@ -130,6 +147,9 @@ libpe_read_msdos_stub(PE *pe)
 		errno = EIO;
 		return (-1);
 	}
+
+	/* Search for the Rich header embedded just before the PE header. */
+	(void) libpe_parse_rich_header(pe);
 
 	return (0);
 }

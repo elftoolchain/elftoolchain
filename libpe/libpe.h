@@ -57,6 +57,7 @@ PE		*pe_init(int, PE_Cmd);
 void		pe_finish(PE *);
 PE_DosHdr	*pe_msdos_header(PE *);
 char		*pe_msdos_stub(PE *);
+PE_RichHdr	*pe_rich_header(PE *);
 
 #ifdef __cplusplus
 }

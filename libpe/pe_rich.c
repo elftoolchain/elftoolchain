@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Kai Wang
+ * Copyright (c) 2016 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,8 @@
 
 ELFTC_VCSID("$Id$");
 
-PE_DosHdr *
-pe_msdos_header(PE *pe)
-{
-
-	if (pe == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	if (pe->pe_doshdr == NULL) {
-		errno = ENOENT;
-		return (NULL);
-	}
-
-	return (pe->pe_doshdr);
-}
-
-char *
-pe_msdos_stub(PE *pe)
+PE_RichHdr *
+pe_rich_header(PE *pe)
 {
 
 	if (pe == NULL) {
@@ -63,5 +46,10 @@ pe_msdos_stub(PE *pe)
 			return (NULL);
 	}
 
-	return (pe->pe_dstub);
+	if (pe->pe_rh == NULL) {
+		errno = ENOENT;
+		return (NULL);
+	}
+
+	return (pe->pe_rh);
 }

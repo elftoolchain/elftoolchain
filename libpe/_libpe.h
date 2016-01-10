@@ -43,6 +43,7 @@ struct _PE {
 	PE_DosHdr *pe_doshdr;
 	char *pe_dstub;
 	size_t pe_dstub_len;
+	PE_RichHdr *pe_rh;
 };
 
 /* Library internal flags  */

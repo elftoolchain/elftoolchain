@@ -60,6 +60,20 @@ typedef struct _PE_DosHdr {
 } PE_DosHdr;
 
 /*
+ * Rich header.
+ */
+
+#define	PE_RICH_TEXT	"Rich"
+#define	PE_RICH_HIDDEN	0x536e6144 /* DanS */
+
+typedef struct _PE_RichHdr {
+	uint32_t rh_xor;
+	uint32_t rh_total;
+	uint32_t *rh_compid;
+	uint32_t *rh_cnt;
+} PE_RichHdr;
+
+/*
  * PE signature.
  */
 
