@@ -4,12 +4,13 @@ TOP=	..
 
 PROG=	elfcopy
 
-SRCS=	archive.c ascii.c binary.c main.c sections.c segments.c symbols.c
+SRCS=	archive.c ascii.c binary.c main.c pe.c sections.c segments.c \
+	symbols.c
 
 WARNS?=	5
 
-DPADD=	${LIBELF} ${LIBELFTC}
-LDADD=	-lelf -lelftc
+DPADD=	${LIBELF} ${LIBELFTC} ${LIBPE}
+LDADD=	-lelf -lelftc -lpe
 
 .if !defined(LIBELF_AR)
 LDADD+= -larchive

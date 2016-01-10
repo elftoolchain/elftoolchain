@@ -287,6 +287,7 @@ struct section *create_external_section(struct elfcopy *_ecp, const char *_name,
     int _loadable);
 void	create_external_symtab(struct elfcopy *_ecp);
 void	create_ihex(int _ifd, int _ofd);
+void	create_pe(struct elfcopy *_ecp, int _ifd, int _ofd);
 void	create_scn(struct elfcopy *_ecp);
 void	create_srec(struct elfcopy *_ecp, int _ifd, int _ofd, const char *_ofn);
 void	create_symtab(struct elfcopy *_ecp);

@@ -722,6 +722,10 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 				create_srec(ecp, ofd, ofd0,
 				    dst != NULL ? dst : src);
 				break;
+			case ETF_PE:
+			case ETF_EFI:
+				create_pe(ecp, ofd, ofd0);
+				break;
 			default:
 				errx(EXIT_FAILURE, "Internal: unsupported"
 				    " output flavour %d", ecp->oec);
@@ -1345,6 +1349,9 @@ set_output_target(struct elfcopy *ecp, const char *target_name)
 		ecp->oed = elftc_bfd_target_byteorder(tgt);
 		ecp->oem = elftc_bfd_target_machine(tgt);
 	}
+	if (ecp->otf == ETF_EFI || ecp->otf == ETF_PE)
+		ecp->oem = elftc_bfd_target_machine(tgt);
+
 	ecp->otgt = target_name;
 }
 
