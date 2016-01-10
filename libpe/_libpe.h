@@ -53,6 +53,7 @@ struct _PE_Scn {
 
 struct _PE {
 	int pe_fd;
+	PE_Cmd pe_cmd;
 	size_t pe_fsize;
 	unsigned int pe_flags;
 	unsigned int pe_iflags;
@@ -76,6 +77,7 @@ struct _PE {
 #define	LIBPE_F_BAD_COFF_HEADER		0x0010U
 #define	LIBPE_F_BAD_OPT_HEADER		0x0020U
 #define	LIBPE_F_BAD_SEC_HEADER		0x0040U
+#define	LIBPE_F_FD_DONE			0x0080U
 
 /* Internal section flags */
 #define	LIBPE_F_LOAD_SEC		0x100000U
@@ -129,7 +131,7 @@ le64dec(const void *pp)
 PE_SecBuf	*libpe_alloc_buffer(PE_Scn *, size_t);
 int		libpe_load_all_sections(PE *);
 int		libpe_load_section(PE *, PE_Scn *);
-int		libpe_open_object(PE *, PE_Cmd);
+int		libpe_open_object(PE *);
 int		libpe_parse_msdos_header(PE *, char *);
 int		libpe_parse_coff_header(PE *, char *);
 int		libpe_parse_rich_header(PE *);

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Kai Wang
+ * Copyright (c) 2016 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,55 +24,39 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/queue.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-PE *
-pe_init(int fd, PE_Cmd c)
+int
+pe_cntl(PE *pe, PE_Cmd cmd)
 {
-	PE *pe;
 
-	if ((pe = calloc(1, sizeof(*pe))) == NULL) {
-		errno = ENOMEM;
-		return (NULL);
+	if (pe == NULL) {
+		errno = EINVAL;
+		return (-1);
 	}
-	pe->pe_fd = fd;
-	pe->pe_cmd = c;
-	STAILQ_INIT(&pe->pe_scn);
 
-	switch (c) {
-	case PE_C_READ:
-	case PE_C_RDWR:
-		if (libpe_open_object(pe) < 0)
-			goto init_fail;
+	switch (cmd) {
+	case PE_C_FDDONE:
+		pe->pe_iflags |= LIBPE_F_FD_DONE;
 		break;
 
-	case PE_C_WRITE:
+	case PE_C_FDREAD:
+		if (pe->pe_cmd == PE_C_WRITE) {
+			errno = EACCES;
+			return (-1);
+		}
+		if (libpe_load_all_sections(pe) < 0)
+			return (-1);
 		break;
 
 	default:
 		errno = EINVAL;
-		goto init_fail;
+		return (-1);
 	}
 
-	return (pe);
-
-init_fail:
-	pe_finish(pe);
-	return (NULL);
-}
-
-void
-pe_finish(PE *pe)
-{
-
-	if (pe == NULL)
-		return;
-
-	free(pe);
+	return (0);
 }

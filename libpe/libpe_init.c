@@ -33,7 +33,7 @@
 ELFTC_VCSID("$Id$");
 
 int
-libpe_open_object(PE *pe, PE_Cmd c)
+libpe_open_object(PE *pe)
 {
 	struct stat sb;
 	mode_t mode;
@@ -53,7 +53,7 @@ libpe_open_object(PE *pe, PE_Cmd c)
 	}
 
 	/* Read/Write mode is not supported for non-regular file. */
-	if (c == PE_C_RDWR && !S_ISREG(mode)) {
+	if (pe->pe_cmd == PE_C_RDWR && !S_ISREG(mode)) {
 		errno = EINVAL;
 		return (-1);
 	}

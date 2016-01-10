@@ -11,6 +11,7 @@ SRCS=	libpe_buffer.c	\
 	libpe_rich.c	\
 	libpe_section.c	\
 	libpe_utils.c	\
+	pe_cntl.c	\
 	pe_coff.c	\
 	pe_dos.c	\
 	pe_buffer.c	\

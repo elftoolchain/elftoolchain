@@ -33,14 +33,21 @@ ELFTC_VCSID("$Id$");
 PE_Buffer *
 pe_getbuffer(PE_Scn *ps, PE_Buffer *pb)
 {
+	PE *pe;
 	PE_SecBuf *sb;
 
+	pe = ps->ps_pe;
+
 	if ((ps->ps_flags & LIBPE_F_LOAD_SEC) == 0) {
-		if (ps->ps_pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
-			if (libpe_load_all_section(ps->ps_pe) < 0)
+		if (pe->pe_iflags & LIBPE_F_FD_DONE) {
+			errno = EACCES;
+			return (NULL);
+		}
+		if (pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
+			if (libpe_load_all_section(pe) < 0)
 				return (NULL);
 		} else {
-			if (libpe_load_section(ps->ps_pe, ps) < 0)
+			if (libpe_load_section(pe, ps) < 0)
 				return (NULL);
 		}
 	}
