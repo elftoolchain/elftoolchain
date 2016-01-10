@@ -54,9 +54,12 @@ extern "C" {
 #endif
 
 PE		*pe_init(int, PE_Cmd);
+PE_CoffHdr	*pe_coff_header(PE *);
+PE_DataDir	*pe_data_dir(PE *);
 void		pe_finish(PE *);
 PE_DosHdr	*pe_msdos_header(PE *);
-  char		*pe_msdos_stub(PE *, size_t *);
+char		*pe_msdos_stub(PE *, size_t *);
+PE_OptHdr	*pe_opt_header(PE *);
 PE_RichHdr	*pe_rich_header(PE *);
 int		pe_rich_header_validate(PE *);
 

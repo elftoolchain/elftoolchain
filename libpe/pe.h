@@ -103,7 +103,7 @@ typedef struct _PE_RichHdr {
 #define	IMAGE_FILE_MACHINE_SH3DSP	0x1a3	/* Hitachi SH3 DSP */
 #define	IMAGE_FILE_MACHINE_SH4		0x1a6	/* Hitachi SH4 */
 #define	IMAGE_FILE_MACHINE_SH5		0x1a8	/* Hitachi SH5 */
-#define	IMAGE_FILE_MACHINE_THUMB	0x1c2	/* ARM or Thumb */
+#define	IMAGE_FILE_MACHINE_THUMB	0x1c2	/* ARM or Thumb interworking */
 #define	IMAGE_FILE_MACHINE_WCEMIPSV2	0x169	/* MIPS LE WCE v2 */
 
 /*
@@ -217,28 +217,32 @@ typedef struct _PE_OptHdr {
  * Optional Header: Data Directories.
  */
 
+#define	PE_DD_EXPORT		0
+#define	PE_DD_IMPORT		1
+#define	PE_DD_RESROUCE		2
+#define	PE_DD_EXCEPTION		3
+#define	PE_DD_CERTIFICATE	4
+#define	PE_DD_BASERELOC		5
+#define	PE_DD_DEBUG		6
+#define	PE_DD_ARCH		7
+#define	PE_DD_GLOBALPTR		8
+#define	PE_DD_TLS		9
+#define	PE_DD_LOADCONFIG	10
+#define	PE_DD_BOUNDIMPORT	11
+#define	PE_DD_IAT		12
+#define	PE_DD_DELAYIMPORT	13
+#define	PE_DD_CLRRUNTIME	14
+#define	PE_DD_RESERVED		15
+#define	PE_DD_MAX		16
+
 typedef struct _PE_DataDirEntry {
 	uint32_t de_addr;
 	uint32_t de_size;
 } PE_DataDirEntry;
 
 typedef struct _PE_DataDir {
-	PE_DataDirEntry dd_export;
-	PE_DataDirEntry dd_import;
-	PE_DataDirEntry dd_resource;
-	PE_DataDirEntry dd_exception;
-	PE_DataDirEntry dd_certificate;
-	PE_DataDirEntry dd_basereloc;
-	PE_DataDirEntry dd_debug;
-	PE_DataDirEntry dd_arch;
-	PE_DataDirEntry dd_globalptr;
-	PE_DataDirEntry dd_tls;
-	PE_DataDirEntry dd_loadconfig;
-	PE_DataDirEntry dd_boundimport;
-	PE_DataDirEntry dd_iat;
-	PE_DataDirEntry dd_delayimport;
-	PE_DataDirEntry dd_clr;
-	PE_DataDirEntry dd_reserve;
+	PE_DataDirEntry dd_e[PE_DD_MAX];
+	uint32_t dd_total;
 } PE_DataDir;
 
 /*

@@ -22,75 +22,46 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $Id$
  */
 
-#ifndef	__LIBPE_H_
-#define	__LIBPE_H_
+#include <errno.h>
 
-#include <sys/types.h>
+#include "_libpe.h"
 
-#include "libpe.h"
+ELFTC_VCSID("$Id$");
 
-#include "_elftc.h"
-
-struct _PE {
-	int pe_fd;
-	size_t pe_fsize;
-	unsigned int pe_flags;
-	unsigned int pe_iflags;
-	PE_DosHdr *pe_doshdr;
-	char *pe_stub;
-	size_t pe_stub_ex;
-	PE_RichHdr *pe_rh;
-	char *pe_rh_start;
-	PE_CoffHdr *pe_ch;
-	PE_OptHdr *pe_oh;
-	PE_DataDir *pe_dd;
-};
-
-/* Library internal flags  */
-#define	LIBPE_F_SPECIAL_FILE		0x0001U
-#define	LIBPE_F_UNSUP_DOS_HEADER	0x0002U
-#define	LIBPE_F_BAD_PE_HEADER		0x0004U
-#define	LIBPE_F_LOAD_DOS_STUB		0x0008U
-
-/* Encode/Decode macros */
-#if defined(ELFTC_NEED_BYTEORDER_EXTENSIONS)
-static  __inline uint16_t
-le16dec(const void *pp)
+PE_CoffHdr *
+pe_coff_header(PE *pe)
 {
-	unsigned char const *p = (unsigned char const *)pp;
 
-	return ((p[1] << 8) | p[0]);
+	if (pe->pe_ch == NULL) {
+		errno = ENOENT;
+		return (NULL);
+	}
+
+	return (pe->pe_ch);
 }
 
-static __inline uint32_t
-le32dec(const void *pp)
+PE_OptHdr *
+pe_opt_header(PE *pe)
 {
-	unsigned char const *p = (unsigned char const *)pp;
 
-	return ((p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0]);
+	if (pe->pe_oh == NULL) {
+		errno = ENOENT;
+		return (NULL);
+	}
+
+	return (pe->pe_oh);
 }
 
-static __inline uint64_t
-le64dec(const void *pp)
+PE_DataDir *
+pe_data_dir(PE *pe)
 {
-	unsigned char const *p = (unsigned char const *)pp;
 
-	return (((uint64_t)le32dec(p + 4) << 32) | le32dec(p));
+	if (pe->pe_dd == NULL) {
+		errno = ENOENT;
+		return (NULL);
+	}
+
+	return (pe->pe_dd);
 }
-#endif
-
-#define	PE_READ16(p,v)	do {			\
-	(v) = le16dec(p);			\
-	p += 2;					\
-} while(0)
-
-#define	PE_READ32(p,v)	do {			\
-	(v) = le32dec(p);			\
-	p += 4;					\
-} while(0)
-
-#endif	/* !__LIBPE_H_ */

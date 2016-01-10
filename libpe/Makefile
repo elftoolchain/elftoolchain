@@ -8,6 +8,8 @@ SRCS=	libpe_coff.c	\
 	libpe_dos.c	\
 	libpe_init.c	\
 	libpe_rich.c	\
+	libpe_section.c	\
+	pe_coff.c	\
 	pe_dos.c	\
 	pe_init.c	\
 	pe_rich.c
