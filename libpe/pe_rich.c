@@ -96,7 +96,7 @@ pe_rich_header_validate(PE *pe)
 
 	/* Add each compid rotated left by its count to the checksum. */
 	rh = pe->pe_rh;
-	for (i = 0; i < rh->rh_total; i++)
+	for (i = 0; (uint32_t) i < rh->rh_total; i++)
 		cksum += rol32(rh->rh_compid[i], rh->rh_cnt[i]);
 
 	/* Validate the checksum with the XOR mask stored after "Rich". */

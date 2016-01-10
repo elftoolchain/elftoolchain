@@ -117,7 +117,7 @@ libpe_parse_rich_header(PE *pe)
 		errno = ENOMEM;
 		return (-1);
 	}
-	for (i = 0; i < rh->rh_total; i++, p += 8) {
+	for (i = 0; (uint32_t) i < rh->rh_total; i++, p += 8) {
 		rh->rh_compid[i] = le32dec(p) ^ rh->rh_xor;
 		rh->rh_cnt[i] = le32dec(p + 4) ^ rh->rh_xor;
 	}
