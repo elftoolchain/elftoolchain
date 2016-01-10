@@ -58,6 +58,7 @@ void		pe_finish(PE *);
 PE_DosHdr	*pe_msdos_header(PE *);
   char		*pe_msdos_stub(PE *, size_t *);
 PE_RichHdr	*pe_rich_header(PE *);
+int		pe_rich_header_validate(PE *);
 
 #ifdef __cplusplus
 }

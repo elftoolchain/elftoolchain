@@ -53,3 +53,55 @@ pe_rich_header(PE *pe)
 
 	return (pe->pe_rh);
 }
+
+static uint32_t
+rol32(uint32_t n, int c)
+{
+
+	c &= 0x1f;
+
+	return ((n << c) | (n >> (0x20 - c)));
+}
+
+int
+pe_rich_header_validate(PE *pe)
+{
+	PE_RichHdr *rh;
+	uint32_t cksum;
+	char *p;
+	int i, off;
+
+	if (pe_rich_header(pe) == NULL)
+		return (-1);
+
+	assert(pe->pe_rh_start != NULL);
+
+	/*
+	 * Initial value of the checksum is the offset to the begin of
+	 * the Rich header.
+	 */
+	cksum = pe->pe_rh_start - pe->pe_stub;
+
+	/*
+	 * Add the bytes before the Rich header to the checksum, rotated
+	 * left by the offset.
+	 */
+	for (p = pe->pe_stub; p < pe->pe_rh_start; p++) {
+		/* Skip dh_lfanew. */
+		off = p - pe->pe_stub;
+		if (off >= 0x3c && off < 0x40)
+			continue;
+		cksum += rol32((unsigned char) *p, off);
+	}
+
+	/* Add each compid rotated left by its count to the checksum. */
+	rh = pe->pe_rh;
+	for (i = 0; i < rh->rh_total; i++)
+		cksum += rol32(rh->rh_compid[i], rh->rh_cnt[i]);
+
+	/* Validate the checksum with the XOR mask stored after "Rich". */
+	if (cksum == rh->rh_xor)
+		return (1);
+
+	return (0);
+}

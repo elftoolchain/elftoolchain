@@ -44,6 +44,7 @@ struct _PE {
 	char *pe_stub;
 	size_t pe_stub_ex;
 	PE_RichHdr *pe_rh;
+	char *pe_rh_start;
 };
 
 /* Library internal flags  */

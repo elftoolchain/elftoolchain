@@ -100,6 +100,7 @@ libpe_parse_rich_header(PE *pe)
 	 * The next step is to skip the first 16 bytes (DanS, XOR mask,
 	 * XOR mask, XOR mask) and read the (compid,cnt) tuples.
 	 */
+	pe->pe_rh_start = p;
 	p += 16;
 	rh->rh_total = (r - p) / 8;
 	if ((rh->rh_compid = malloc(rh->rh_total * sizeof(*rh->rh_compid))) ==
