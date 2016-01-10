@@ -56,15 +56,16 @@ int
 libpe_parse_rich_header(PE *pe)
 {
 	PE_RichHdr *rh;
-	char *p, *r;
+	char *p, *r, *s;
 	uint32_t x;
 	int found, i;
 
-	assert(pe->pe_dstub != NULL && pe->pe_dstub_len > 0);
+	assert(pe->pe_stub != NULL && pe->pe_stub_ex > 0);
 
 	/* Search for the "Rich" keyword to locate the Rich header. */
-	r = memfind(pe->pe_dstub, PE_RICH_TEXT, pe->pe_dstub_len, 4);
-	if (r == NULL || r + 8 > pe->pe_dstub + pe->pe_dstub_len) {
+	s = pe->pe_stub + sizeof(PE_DosHdr);
+	r = memfind(s, PE_RICH_TEXT, pe->pe_stub_ex, 4);
+	if (r == NULL || r + 8 > s + pe->pe_stub_ex) {
 		errno = ENOENT;
 		return (-1);
 	}
@@ -81,7 +82,7 @@ libpe_parse_rich_header(PE *pe)
 	 * the "Rich" keyword with the XOR mask.
 	 */
 	found = 0;
-	for (p = r - 4; p >= pe->pe_dstub; p -= 4) {
+	for (p = r - 4; p >= s; p -= 4) {
 		x = le32dec(p) ^ rh->rh_xor;
 		if (x == PE_RICH_HIDDEN) {
 			found = 1;

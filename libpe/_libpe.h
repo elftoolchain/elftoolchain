@@ -41,8 +41,8 @@ struct _PE {
 	unsigned int pe_flags;
 	unsigned int pe_iflags;
 	PE_DosHdr *pe_doshdr;
-	char *pe_dstub;
-	size_t pe_dstub_len;
+	char *pe_stub;
+	size_t pe_stub_ex;
 	PE_RichHdr *pe_rh;
 };
 
@@ -50,6 +50,7 @@ struct _PE {
 #define	LIBPE_F_SPECIAL_FILE		0x0001U
 #define	LIBPE_F_UNSUP_DOS_HEADER	0x0002U
 #define	LIBPE_F_BAD_PE_HEADER		0x0004U
+#define	LIBPE_F_LOAD_DOS_STUB		0x0008U
 
 /* Encode/Decode macros */
 #if defined(ELFTC_NEED_BYTEORDER_EXTENSIONS)

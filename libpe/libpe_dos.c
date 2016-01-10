@@ -44,6 +44,12 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 	uint32_t pe_magic;
 	int i;
 
+	if ((pe->pe_stub = malloc(sizeof(PE_DosHdr))) == NULL) {
+		errno = ENOMEM;
+		return (-1);
+	}
+	memcpy(pe->pe_stub, hdr, sizeof(PE_DosHdr));
+
 	if ((dh = malloc(sizeof(*dh))) == NULL) {
 		errno = ENOMEM;
 		return (-1);
@@ -94,19 +100,21 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 	}
 
 	if (dh->dh_lfanew > sizeof(PE_DosHdr)) {
-		pe->pe_dstub_len = dh->dh_lfanew - sizeof(PE_DosHdr);
+		pe->pe_stub_ex = dh->dh_lfanew - sizeof(PE_DosHdr);
 		if (pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
 			/* Read in DOS stub now. */
-			if (libpe_read_msdos_stub(pe) < 0 && errno != EIO)
-				return (-1);
+			if (libpe_read_msdos_stub(pe) < 0) {
+				pe->pe_iflags |= LIBPE_F_UNSUP_DOS_HEADER;
+				return (0);
+			}
 		}
 	}
 
 	if ((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0) {
 		/* Jump to the PE header. */
 		if (lseek(pe->pe_fd, (off_t) dh->dh_lfanew, SEEK_SET) < 0) {
-			errno = EIO;
-			return (-1);
+			pe->pe_iflags |= LIBPE_F_BAD_PE_HEADER;
+			return (0);
 		}
 	}
 
@@ -127,29 +135,41 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 int
 libpe_read_msdos_stub(PE *pe)
 {
+	void *m;
 
-	assert(pe->pe_dstub == NULL && pe->pe_dstub_len > 0);
+	assert(pe->pe_stub_ex > 0 &&
+	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0);
 
-	if (lseek(pe->pe_fd, (off_t) sizeof(PE_DosHdr), SEEK_SET) < 0) {
-		errno = EIO;
-		return (-1);
+	if ((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0) {
+		if (lseek(pe->pe_fd, (off_t) sizeof(PE_DosHdr), SEEK_SET) <
+		    0) {
+			errno = EIO;
+			goto fail;
+		}
 	}
 
-	if ((pe->pe_dstub = malloc(pe->pe_dstub_len)) == NULL) {
+	if ((m = realloc(pe->pe_stub, sizeof(PE_DosHdr) + pe->pe_stub_ex)) ==
+	    NULL) {
 		errno = ENOMEM;
-		return (-1);
+		goto fail;
 	}
-	if (read(pe->pe_fd, pe->pe_dstub, pe->pe_dstub_len) !=
-	    (ssize_t) pe->pe_dstub_len) {
-		free(pe->pe_dstub);
-		pe->pe_dstub = NULL;
-		pe->pe_iflags |= LIBPE_F_UNSUP_DOS_HEADER;
+	pe->pe_stub = m;
+
+	if (read(pe->pe_fd, pe->pe_stub + sizeof(PE_DosHdr), pe->pe_stub_ex) !=
+	    (ssize_t) pe->pe_stub_ex) {
 		errno = EIO;
-		return (-1);
+		goto fail;
 	}
+
+	pe->pe_iflags |= LIBPE_F_LOAD_DOS_STUB;
 
 	/* Search for the Rich header embedded just before the PE header. */
 	(void) libpe_parse_rich_header(pe);
 
 	return (0);
+
+fail:
+	pe->pe_stub_ex = 0;
+
+	return (-1);
 }

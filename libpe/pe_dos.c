@@ -49,19 +49,21 @@ pe_msdos_header(PE *pe)
 }
 
 char *
-pe_msdos_stub(PE *pe)
+pe_msdos_stub(PE *pe, size_t *len)
 {
 
-	if (pe == NULL) {
+	if (pe == NULL || len == NULL) {
 		errno = EINVAL;
 		return (NULL);
 	}
 
-	if (pe->pe_dstub == NULL && pe->pe_dstub_len > 0) {
+	if (pe->pe_stub_ex > 0 &&
+	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
 		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
-		if (libpe_read_msdos_stub(pe) < 0)
-			return (NULL);
+		(void) libpe_read_msdos_stub(pe);
 	}
 
-	return (pe->pe_dstub);
+	*len = sizeof(PE_DosHdr) + pe->pe_stub_ex;
+
+	return (pe->pe_stub);
 }

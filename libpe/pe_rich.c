@@ -40,10 +40,10 @@ pe_rich_header(PE *pe)
 		return (NULL);
 	}
 
-	if (pe->pe_dstub == NULL && pe->pe_dstub_len > 0) {
+	if (pe->pe_rh == NULL && pe->pe_stub_ex > 0 &&
+	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
 		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
-		if (libpe_read_msdos_stub(pe) < 0)
-			return (NULL);
+		(void) libpe_read_msdos_stub(pe);
 	}
 
 	if (pe->pe_rh == NULL) {
