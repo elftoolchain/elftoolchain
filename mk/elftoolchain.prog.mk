@@ -36,6 +36,12 @@ _LDADD_LIBELFTC=${LDADD:M-lelftc}
 CFLAGS+= -I${TOP}/libelftc
 LDFLAGS+= -L${TOP}/libelftc
 .endif
+
+_LDADD_LIBPE=${LDADD:M-lpe}
+.if !empty(_LDADD_LIBPE)
+CFLAGS+= -I${TOP}/libpe
+LDFLAGS+= -L${TOP}/libpe
+.endif
 .endif
 
 #
