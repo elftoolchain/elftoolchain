@@ -375,6 +375,30 @@ struct _Elftc_Bfd_Target _libelftc_targets[] = {
 	},
 
 	{
+		.bt_name    = "efi-app-ia32",
+		.bt_type    = ETF_EFI,
+		.bt_machine = EM_386,
+	},
+
+	{
+		.bt_name    = "efi-app-x86_64",
+		.bt_type    = ETF_EFI,
+		.bt_machine = EM_X86_64,
+	},
+
+	{
+		.bt_name    = "pei-i386",
+		.bt_type    = ETF_PE,
+		.bt_machine = EM_386,
+	},
+
+	{
+		.bt_name    = "pei-x86-64",
+		.bt_type    = ETF_PE,
+		.bt_machine = EM_X86_64,
+	},
+
+	{
 		.bt_name = NULL,
 		.bt_type = ETF_NONE,
 	},

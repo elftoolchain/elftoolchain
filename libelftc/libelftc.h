@@ -46,7 +46,9 @@ typedef enum {
 	ETF_ELF,
 	ETF_BINARY,
 	ETF_SREC,
-	ETF_IHEX
+	ETF_IHEX,
+	ETF_PE,
+	ETF_EFI,
 } Elftc_Bfd_Target_Flavor;
 
 /*
