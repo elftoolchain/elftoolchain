@@ -13,6 +13,7 @@ SUBDIR += libdwarf
 
 # Build additional APIs.
 SUBDIR += libelftc
+SUBDIR += libpe
 
 # Build the tools needed for the rest of the build.
 
