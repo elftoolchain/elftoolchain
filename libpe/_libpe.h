@@ -30,17 +30,33 @@
 #define	__LIBPE_H_
 
 #include <sys/types.h>
+#include <sys/queue.h>
 
 #include "libpe.h"
 
 #include "_elftc.h"
+
+typedef struct _PE_SecBuf {
+	PE_Buffer sb_pb;
+	PE_Scn *sb_ps;
+	STAILQ_ENTRY(_PE_SecBuf) sb_next;
+} PE_SecBuf;
+
+struct _PE_Scn {
+	PE *ps_pe;
+	PE_SecHdr ps_sh;
+	unsigned int ps_ndx;
+	unsigned int ps_flags;
+	STAILQ_HEAD(, _PE_SecBuf) ps_b;
+	STAILQ_ENTRY(_PE_Scn) ps_next;
+};
 
 struct _PE {
 	int pe_fd;
 	size_t pe_fsize;
 	unsigned int pe_flags;
 	unsigned int pe_iflags;
-	PE_DosHdr *pe_doshdr;
+	PE_DosHdr *pe_dh;
 	char *pe_stub;
 	size_t pe_stub_ex;
 	PE_RichHdr *pe_rh;
@@ -48,6 +64,8 @@ struct _PE {
 	PE_CoffHdr *pe_ch;
 	PE_OptHdr *pe_oh;
 	PE_DataDir *pe_dd;
+	unsigned int pe_nscn;
+	STAILQ_HEAD(, _PE_Scn) pe_scn;
 };
 
 /* Library internal flags  */
@@ -55,6 +73,20 @@ struct _PE {
 #define	LIBPE_F_UNSUP_DOS_HEADER	0x0002U
 #define	LIBPE_F_BAD_PE_HEADER		0x0004U
 #define	LIBPE_F_LOAD_DOS_STUB		0x0008U
+#define	LIBPE_F_BAD_COFF_HEADER		0x0010U
+#define	LIBPE_F_BAD_OPT_HEADER		0x0020U
+#define	LIBPE_F_BAD_SEC_HEADER		0x0040U
+
+/* Internal section flags */
+#define	LIBPE_F_LOAD_SEC		0x100000U
+
+/* Library internal defines */
+#define	PE_DOS_MAGIC		0x5a4d
+#define	PE_RICH_TEXT		"Rich"
+#define	PE_RICH_HIDDEN		0x536e6144 /* DanS */
+#define	PE_SIGNATURE		0x4550	   /* PE\0\0 */
+#define	PE_COFF_MAX_SECTION	96
+#define	PE_SYM_ENTRY_SIZE	18
 
 /* Encode/Decode macros */
 #if defined(ELFTC_NEED_BYTEORDER_EXTENSIONS)
@@ -92,5 +124,17 @@ le64dec(const void *pp)
 	(v) = le32dec(p);			\
 	p += 4;					\
 } while(0)
+
+/* Internal function declarations */
+PE_SecBuf	*libpe_alloc_buffer(PE_Scn *, size_t);
+int		libpe_load_all_sections(PE *);
+int		libpe_load_section(PE *, PE_Scn *);
+int		libpe_open_object(PE *, PE_Cmd);
+int		libpe_parse_msdos_header(PE *, char *);
+int		libpe_parse_coff_header(PE *, char *);
+int		libpe_parse_rich_header(PE *);
+int		libpe_parse_section_headers(PE *);
+int		libpe_read_msdos_stub(PE *);
+void		libpe_sort_sections(PE *);
 
 #endif	/* !__LIBPE_H_ */

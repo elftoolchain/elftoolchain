@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Kai Wang
+ * Copyright (c) 2016 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,46 +24,30 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
-#include <errno.h>
-
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-PE_DosHdr *
-pe_msdos_header(PE *pe)
+static int
+cmp_scn(PE_Scn *a, PE_Scn *b)
 {
 
-	if (pe == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	if (pe->pe_dh == NULL) {
-		errno = ENOENT;
-		return (NULL);
-	}
-
-	return (pe->pe_dh);
+	if (a->ps_sh.sh_rawptr < b->ps_sh.sh_rawptr)
+		return (-1);
+	else if (a->ps_sh.sh_rawptr == b->ps_sh.sh_rawptr)
+		return (0);
+	else
+		return (1);
 }
 
-char *
-pe_msdos_stub(PE *pe, size_t *len)
+
+void
+libpe_sort_sections(PE *pe)
 {
 
-	if (pe == NULL || len == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
+	if (STAILQ_EMPTY(&pe->pe_scn))
+		return;
 
-	if (pe->pe_stub_ex > 0 &&
-	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
-		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
-		(void) libpe_read_msdos_stub(pe);
-	}
-
-	*len = sizeof(PE_DosHdr) + pe->pe_stub_ex;
-
-	return (pe->pe_stub);
+	/* Sort the list of Scn by offset in ascending order. */
+	STAILQ_SORT(&pe->pe_scn, _PE_Scn, ps_next, cmp_scn);
 }

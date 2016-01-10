@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/queue.h>
 #include <errno.h>
 #include <stdlib.h>
 
@@ -41,6 +42,7 @@ pe_init(int fd, PE_Cmd c)
 		return (NULL);
 	}
 	pe->pe_fd = fd;
+	STAILQ_INIT(&pe->pe_scn);
 
 	switch (c) {
 	case PE_C_READ:

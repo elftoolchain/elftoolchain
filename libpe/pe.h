@@ -35,8 +35,6 @@
  * MS-DOS header.
  */
 
-#define	PE_DOS_MAGIC	0x5a4d
-
 typedef struct _PE_DosHdr {
 	char dh_magic[2];
 	uint16_t dh_lastsize;
@@ -63,21 +61,12 @@ typedef struct _PE_DosHdr {
  * Rich header.
  */
 
-#define	PE_RICH_TEXT	"Rich"
-#define	PE_RICH_HIDDEN	0x536e6144 /* DanS */
-
 typedef struct _PE_RichHdr {
 	uint32_t rh_xor;
 	uint32_t rh_total;
 	uint32_t *rh_compid;
 	uint32_t *rh_cnt;
 } PE_RichHdr;
-
-/*
- * PE signature.
- */
-
-#define	PE_SIGNATURE	0x4550
 
 /*
  * COFF header: Machine Types.
@@ -129,8 +118,6 @@ typedef struct _PE_RichHdr {
 /*
  * COFF Header.
  */
-
-#define	PE_COFF_MAX_SECTION	96
 
 typedef struct _PE_CoffHdr {
 	uint16_t ch_machine;
@@ -299,7 +286,7 @@ typedef struct _PE_SecHdr {
 	uint32_t sh_lineptr;
 	uint16_t sh_nreloc;
 	uint16_t sh_nline;
-	uint16_t sh_char;
+	uint32_t sh_char;
 } PE_SecHdr;
 
 #endif	/* !_PE_H_ */

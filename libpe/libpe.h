@@ -33,6 +33,15 @@
 
 /* Library private data structures */
 typedef struct _PE PE;
+typedef struct _PE_Scn PE_Scn;
+
+/* Section buffers */
+typedef struct PE_Buffer {
+        unsigned int pb_align;
+	off_t pb_off;
+	size_t pb_size;
+	void *pb_buf;
+} PE_Buffer;
 
 /* Commands */
 typedef enum {
@@ -53,12 +62,16 @@ typedef enum {
 extern "C" {
 #endif
 
-PE		*pe_init(int, PE_Cmd);
 PE_CoffHdr	*pe_coff_header(PE *);
 PE_DataDir	*pe_data_dir(PE *);
 void		pe_finish(PE *);
+PE_Buffer	*pe_getbuffer(PE_Scn *, PE_Buffer *);
+PE_Scn 		*pe_getscn(PE *, size_t);
+PE		*pe_init(int, PE_Cmd);
 PE_DosHdr	*pe_msdos_header(PE *);
 char		*pe_msdos_stub(PE *, size_t *);
+size_t		pe_ndxscn(PE_Scn *);
+PE_Scn		*pe_nextscn(PE *, PE_Scn *);
 PE_OptHdr	*pe_opt_header(PE *);
 PE_RichHdr	*pe_rich_header(PE *);
 int		pe_rich_header_validate(PE *);

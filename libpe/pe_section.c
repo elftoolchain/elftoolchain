@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Kai Wang
+ * Copyright (c) 2016 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,15 +24,46 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include <errno.h>
 
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-PE_DosHdr *
-pe_msdos_header(PE *pe)
+PE_Scn *
+pe_getscn(PE *pe, size_t index)
+{
+	PE_Scn *ps;
+
+	if (pe == NULL || index < 1 || index > 0xFFFFU) {
+		errno = EINVAL;
+		return (NULL);
+	}
+
+	STAILQ_FOREACH(ps, &pe->pe_scn, ps_next) {
+		if (ps->ps_ndx == index)
+			return (ps);
+	}
+
+	errno = ENOENT;
+
+	return (NULL);
+}
+
+size_t
+pe_ndxscn(PE_Scn *ps)
+{
+
+	if (ps == NULL) {
+		errno = EINVAL;
+		return (0);
+	}
+
+	return (ps->ps_ndx);
+}
+
+PE_Scn *
+pe_nextscn(PE *pe, PE_Scn *ps)
 {
 
 	if (pe == NULL) {
@@ -40,30 +71,16 @@ pe_msdos_header(PE *pe)
 		return (NULL);
 	}
 
-	if (pe->pe_dh == NULL) {
-		errno = ENOENT;
-		return (NULL);
+	if (ps == NULL)
+		ps = STAILQ_FIRST(&pe->pe_scn);
+	else
+		ps = STAILQ_NEXT(ps, ps_next);
+
+	while (ps != NULL) {
+		if (ps->ps_ndx >= 1 && ps->ps_ndx <= 0xFFFFU)
+			return (ps);
+		ps = STAILQ_NEXT(ps, ps_next);
 	}
 
-	return (pe->pe_dh);
-}
-
-char *
-pe_msdos_stub(PE *pe, size_t *len)
-{
-
-	if (pe == NULL || len == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	if (pe->pe_stub_ex > 0 &&
-	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
-		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
-		(void) libpe_read_msdos_stub(pe);
-	}
-
-	*len = sizeof(PE_DosHdr) + pe->pe_stub_ex;
-
-	return (pe->pe_stub);
+	return (NULL);
 }

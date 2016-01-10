@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Kai Wang
+ * Copyright (c) 2016 Kai Wang
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,46 +24,33 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include <errno.h>
 
 #include "_libpe.h"
 
 ELFTC_VCSID("$Id$");
 
-PE_DosHdr *
-pe_msdos_header(PE *pe)
+PE_Buffer *
+pe_getbuffer(PE_Scn *ps, PE_Buffer *pb)
 {
+	PE_SecBuf *sb;
 
-	if (pe == NULL) {
-		errno = EINVAL;
-		return (NULL);
+	if ((ps->ps_flags & LIBPE_F_LOAD_SEC) == 0) {
+		if (ps->ps_pe->pe_iflags & LIBPE_F_SPECIAL_FILE) {
+			if (libpe_load_all_section(ps->ps_pe) < 0)
+				return (NULL);
+		} else {
+			if (libpe_load_section(ps->ps_pe, ps) < 0)
+				return (NULL);
+		}
 	}
 
-	if (pe->pe_dh == NULL) {
-		errno = ENOENT;
-		return (NULL);
-	}
+	sb = (PE_SecBuf *) pb;
 
-	return (pe->pe_dh);
-}
+	if (sb == NULL)
+		sb = STAILQ_FIRST(&ps->ps_b);
+	else
+		sb = STAILQ_NEXT(sb, sb_next);
 
-char *
-pe_msdos_stub(PE *pe, size_t *len)
-{
-
-	if (pe == NULL || len == NULL) {
-		errno = EINVAL;
-		return (NULL);
-	}
-
-	if (pe->pe_stub_ex > 0 &&
-	    (pe->pe_iflags & LIBPE_F_LOAD_DOS_STUB) == 0) {
-		assert((pe->pe_iflags & LIBPE_F_SPECIAL_FILE) == 0);
-		(void) libpe_read_msdos_stub(pe);
-	}
-
-	*len = sizeof(PE_DosHdr) + pe->pe_stub_ex;
-
-	return (pe->pe_stub);
+	return ((PE_Buffer *) sb);
 }

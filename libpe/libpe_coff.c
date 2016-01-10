@@ -60,7 +60,7 @@ libpe_parse_coff_header(PE *pe, char *hdr)
 	 * The Optional header is omitted for object files.
 	 */
 	if (ch->ch_optsize == 0)
-		return (libpe_parse_section_header(pe));
+		return (libpe_parse_section_headers(pe));
 
 	if ((oh = calloc(1, sizeof(PE_OptHdr))) == NULL) {
 		errno = ENOMEM;
@@ -79,14 +79,14 @@ libpe_parse_coff_header(PE *pe, char *hdr)
 			/* Consume the "extra" bytes */			\
 			r = ch->ch_optsize - p;				\
 			if (read(pe->pe_fd, tmp, r) != (ssize_t) r) {	\
-				errno = EIO;				\
-				return (-1);				\
+				pe->pe_iflags |= LIBPE_F_BAD_SEC_HEADER;\
+				return (0);				\
 			}						\
-			return (libpe_parse_section_header(pe));	\
+			return (libpe_parse_section_headers(pe));	\
 		}							\
 		if (read(pe->pe_fd, tmp, (n)) != (ssize_t) (n)) {	\
-			errno = EIO;					\
-			return (-1);					\
+			pe->pe_iflags |= LIBPE_F_BAD_OPT_HEADER;	\
+			return (0);					\
 		}							\
 		p += (n);						\
 	} while (0)
@@ -167,11 +167,11 @@ libpe_parse_coff_header(PE *pe, char *hdr)
 		for (; r > 0; r -= s) {
 			s = r > sizeof(tmp) ? sizeof(tmp) : r;
 			if (read(pe->pe_fd, tmp, s) != (ssize_t) s) {
-				errno = EIO;
-				return (-1);
+				pe->pe_iflags |= LIBPE_F_BAD_SEC_HEADER;
+				return (0);
 			}
 		}
 	}
 
-	return (libpe_parse_section_header(pe));
+	return (libpe_parse_section_headers(pe));
 }

@@ -54,7 +54,7 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 		errno = ENOMEM;
 		return (-1);
 	}
-	pe->pe_doshdr = dh;
+	pe->pe_dh = dh;
 
 	/* Read the conventional MS-DOS EXE header. */
 	memcpy(dh->dh_magic, hdr, 2);
@@ -125,7 +125,7 @@ libpe_parse_msdos_header(PE *pe, char *hdr)
 	}
 
 	if (read(pe->pe_fd, coff, sizeof(coff)) != (ssize_t) sizeof(coff)) {
-		pe->pe_iflags |= LIBPE_F_BAD_PE_HEADER;
+		pe->pe_iflags |= LIBPE_F_BAD_COFF_HEADER;
 		return (0);
 	}
 
