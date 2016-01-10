@@ -43,6 +43,14 @@ typedef struct PE_Buffer {
 	void *pb_buf;
 } PE_Buffer;
 
+/* Object types */
+typedef enum {
+	PE_O_UNKNOWN = 0,
+	PE_O_PE32,
+	PE_O_PE32P,
+	PE_O_COFF,
+} PE_Object;
+
 /* Commands */
 typedef enum {
 	PE_C_NULL = 0,
@@ -67,11 +75,12 @@ PE_DataDir	*pe_data_dir(PE *);
 void		pe_finish(PE *);
 PE_Buffer	*pe_getbuffer(PE_Scn *, PE_Buffer *);
 PE_Scn 		*pe_getscn(PE *, size_t);
-PE		*pe_init(int, PE_Cmd);
+PE		*pe_init(int, PE_Cmd, PE_Object);
 PE_DosHdr	*pe_msdos_header(PE *);
 char		*pe_msdos_stub(PE *, size_t *);
 size_t		pe_ndxscn(PE_Scn *);
 PE_Scn		*pe_nextscn(PE *, PE_Scn *);
+PE_Object	pe_object(PE *);
 PE_OptHdr	*pe_opt_header(PE *);
 PE_RichHdr	*pe_rich_header(PE *);
 int		pe_rich_header_validate(PE *);

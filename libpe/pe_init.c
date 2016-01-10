@@ -33,7 +33,7 @@
 ELFTC_VCSID("$Id$");
 
 PE *
-pe_init(int fd, PE_Cmd c)
+pe_init(int fd, PE_Cmd c, PE_Object o)
 {
 	PE *pe;
 
@@ -43,6 +43,7 @@ pe_init(int fd, PE_Cmd c)
 	}
 	pe->pe_fd = fd;
 	pe->pe_cmd = c;
+	pe->pe_obj = o;
 	STAILQ_INIT(&pe->pe_scn);
 
 	switch (c) {
@@ -75,4 +76,16 @@ pe_finish(PE *pe)
 		return;
 
 	free(pe);
+}
+
+PE_Object
+pe_object(PE *pe)
+{
+
+	if (pe == NULL) {
+		errno = EINVAL;
+		return (PE_O_UNKNOWN);
+	}
+
+	return (pe->pe_obj);
 }

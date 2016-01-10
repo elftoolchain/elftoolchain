@@ -74,6 +74,7 @@ libpe_open_object(PE *pe)
 	}
 
 	if (magic[0] == 'M' && magic[1] == 'Z') {
+		pe->pe_obj = PE_O_PE32;
 		if (read(pe->pe_fd, &magic[2], sizeof(PE_DosHdr) - 2) !=
 		    (ssize_t) sizeof(PE_DosHdr) - 2) {
 			errno = EIO;
@@ -81,6 +82,7 @@ libpe_open_object(PE *pe)
 		}
 		return (libpe_parse_msdos_header(pe, magic));
 	} else {
+		pe->pe_obj = PE_O_COFF;
 		if (read(pe->pe_fd, &magic[2], sizeof(PE_CoffHdr) - 2) !=
 		    (ssize_t) sizeof(PE_CoffHdr) - 2) {
 			errno = EIO;

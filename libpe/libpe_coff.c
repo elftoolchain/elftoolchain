@@ -101,6 +101,8 @@ libpe_parse_coff_header(PE *pe, char *hdr)
 	 */
 
 	READ_OPT16(oh->oh_magic);
+	if (oh->oh_magic == PE_FORMAT_32P)
+		pe->pe_obj = PE_O_PE32P;
 	READ_OPT8(oh->oh_ldvermajor);
 	READ_OPT8(oh->oh_ldverminor);
 	READ_OPT32(oh->oh_textsize);

@@ -54,6 +54,7 @@ struct _PE_Scn {
 struct _PE {
 	int pe_fd;
 	PE_Cmd pe_cmd;
+	PE_Object pe_obj;
 	size_t pe_fsize;
 	unsigned int pe_flags;
 	unsigned int pe_iflags;
