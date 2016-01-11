@@ -18,8 +18,7 @@ operating systems.
   Minix_              3.0.2      i386
   NetBSD_             v5.0.2     i386
   OpenBSD_            v5.0       i386
-  Ubuntu_ GNU/Linux   10.04LTS   i386 & x86_64
-  Ubuntu_ GNU/Linux   12.04LTS   i386 & x86_64
+  Ubuntu_ GNU/Linux   14.04LTS   x86_64
   =================   ========   =======================
 
 .. _DragonFly BSD: http://www.dragonflybsd.org/
@@ -197,9 +196,9 @@ Prerequisites
 
           % sudo apt-get install pgf
 
-:Ubuntu GNU/Linux 12.04:
+:Ubuntu GNU/Linux 14.04:
     - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux 12.04:
+      sources on Ubuntu GNU/Linux 14.04:
 
       ===================     =====================================
       **Package**             **Description**
@@ -210,7 +209,7 @@ Prerequisites
       ``libarchive-dev``      Archive access library.
       ``libexpat1-dev``       An XML processing library.
       ``m4``                  Macro processor.
-      ``pmake``               A ``make`` that uses BSD-make syntax.
+      ``bmake``               NetBSD ``make``.
       ``python-yaml``         A YAML library for Python.
       ``sharutils``           For ``uudecode``.
       ``zlib1g-dev``          Compression library.
@@ -220,7 +219,7 @@ Prerequisites
       pre-requisites::
 
           % sudo apt-get install bison build-essential flex libarchive-dev \
-            m4 pmake zlib1g-dev
+            m4 bmake zlib1g-dev
 
     - To build and run the test suite:
 
@@ -234,7 +233,7 @@ Prerequisites
             % sudo apt-get install libexpat1-dev python-yaml sharutils
 
     - Builds of additional documentation are not currently supported
-      under Ubuntu GNU/Linux 12.04.
+      under Ubuntu GNU/Linux 14.04.
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
