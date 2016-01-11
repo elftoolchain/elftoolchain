@@ -100,7 +100,7 @@ systems:
   Minix_                3.2.0        i386
   NetBSD_               v5.0.2       i386
   OpenBSD_              v5.0         i386
-  Ubuntu_ GNU/Linux     10.04LTS     i386 & x86_64
+  Ubuntu_ GNU/Linux     14.04LTS     x86_64
   ====================  ===========  ===========================
 
 
