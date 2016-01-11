@@ -722,10 +722,12 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 				create_srec(ecp, ofd, ofd0,
 				    dst != NULL ? dst : src);
 				break;
+#if	WITH_PE
 			case ETF_PE:
 			case ETF_EFI:
 				create_pe(ecp, ofd, ofd0);
 				break;
+#endif
 			default:
 				errx(EXIT_FAILURE, "Internal: unsupported"
 				    " output flavour %d", ecp->oec);

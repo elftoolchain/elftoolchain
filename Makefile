@@ -2,6 +2,7 @@
 
 TOP=	.
 
+.include "${TOP}/mk/elftoolchain.components.mk"
 .include "${TOP}/mk/elftoolchain.os.mk"
 
 # Build configuration information first.
@@ -13,7 +14,9 @@ SUBDIR += libdwarf
 
 # Build additional APIs.
 SUBDIR += libelftc
+.if defined(WITH_PE) && ${WITH_PE} == "YES"
 SUBDIR += libpe
+.endif
 
 # Build the tools needed for the rest of the build.
 

@@ -2,18 +2,28 @@
 
 TOP=	..
 
+.include "${TOP}/mk/elftoolchain.components.mk"
+
 PROG=	elfcopy
 
-SRCS=	archive.c ascii.c binary.c main.c pe.c sections.c segments.c \
+SRCS=	archive.c ascii.c binary.c main.c sections.c segments.c \
 	symbols.c
 
 WARNS?=	5
 
-DPADD=	${LIBELF} ${LIBELFTC} ${LIBPE}
-LDADD=	-lelf -lelftc -lpe
+DPADD=	${LIBELF} ${LIBELFTC}
+LDADD=	-lelf -lelftc
 
 .if !defined(LIBELF_AR)
 LDADD+= -larchive
+.endif
+
+.if defined(WITH_PE) && ${WITH_PE} == "YES"
+SRCS+=	pe.c
+CFLAGS+= -DWITH_PE=1
+
+DPADD+=	${LIBPE}
+LDADD+=	-lpe
 .endif
 
 MAN=	elfcopy.1 mcs.1 strip.1
