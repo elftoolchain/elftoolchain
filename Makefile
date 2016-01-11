@@ -14,13 +14,14 @@ SUBDIR += libdwarf
 
 # Build additional APIs.
 SUBDIR += libelftc
-.if defined(WITH_PE) && ${WITH_PE} == "YES"
+.if defined(WITH_PE) && ${WITH_PE:tl} == "yes"
 SUBDIR += libpe
 .endif
 
-# Build the tools needed for the rest of the build.
-
-# SUBDIR += isa  # ('isa' does not build on all platforms yet).
+# The instruction set analyser.
+.if defined(WITH_ISA) && ${WITH_ISA:tl} == "yes"
+SUBDIR += isa  # ('isa' does not build on all platforms yet).
+.endif
 
 # Build tools after the libraries.
 SUBDIR += addr2line
@@ -37,12 +38,18 @@ SUBDIR += strings
 SUBDIR += tools
 
 # Build the test suites.
-.if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
+.if exists(${.CURDIR}/test) && defined(WITH_TESTS) && ${WITH_TESTS:tl} == "yes"
 SUBDIR += test
 .endif
 
+# Build additional build tooling.
+.if defined(WITH_BUILD_TOOLS) && ${WITH_BUILD_TOOLS:tl} == "yes"
+SUBDIR += tools
+.endif
+
 # Build documentation at the end.
-.if exists(${.CURDIR}/documentation) && defined(MKDOC) && ${MKDOC} == "yes"
+.if exists(${.CURDIR}/documentation) && defined(WITH_DOCUMENTATION) && \
+	${WITH_DOCUMENTATION:tl} == "yes"
 SUBDIR += documentation
 .endif
 
@@ -53,7 +60,7 @@ SUBDIR += documentation
 #
 
 # Run the test suites.
-.if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
+.if exists(${.CURDIR}/test) && defined(WITH_TESTS) && ${WITH_TESTS:tl} == "yes"
 run-tests:	all .PHONY
 	(cd ${.CURDIR}/test; ${MAKE} test)
 .endif
