@@ -407,7 +407,7 @@ Usage: %s <command> [options] archive file...\n\
   -F FORMAT | --flavor=FORMAT\n\
                 Create archives with the specified format.\n\
   -S            Do not generate an archive symbol table.\n\
-  -U            Use original metadata, for unique archive checksums.\n"
+  -U            Use original metadata for archive members.\n"
 
 static void
 bsdar_usage(void)
