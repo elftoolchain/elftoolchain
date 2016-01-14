@@ -7550,6 +7550,10 @@ Usage: %s [options] file...\n\
   -s | --syms | --symbols  Print symbol tables.\n\
   -t | --section-details   Print additional information about sections.\n\
   -v | --version           Print a version identifier and exit.\n\
+  -w[afilmoprsFLR] | --debug-dump={abbrev,aranges,decodedline,frames,\n\
+                               frames-interp,info,loc,macro,pubnames,\n\
+                               ranges,Ranges,rawline,str}\n\
+                           Display DWARF information.\n\
   -x INDEX | --hex-dump=INDEX\n\
                            Display contents of a section as hexadecimal.\n\
   -A | --arch-specific     (accepted, but ignored)\n\
