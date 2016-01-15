@@ -1394,6 +1394,8 @@ Usage: %s [options] infile [outfile]\n\
   -N SYM | --strip-symbol=SYM  Do not copy symbol SYM to the output.\n\
   -O FORMAT | --output-target=FORMAT\n\
                                Specify object format for the output file.\n\
+                               FORMAT should be a target name understood by\n\
+                               elftc_bfd_find_target(3).\n\
   -R NAME | --remove-section=NAME\n\
                                Remove the named section.\n\
   -S | --strip-all             Remove all symbol and relocation information\n\
