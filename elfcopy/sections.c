@@ -1095,13 +1095,8 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 
 		if (sec_flags) {
 			osh.sh_flags = 0;
-			if (sec_flags & SF_ALLOC) {
+			if (sec_flags & SF_ALLOC)
 				osh.sh_flags |= SHF_ALLOC;
-				if (!s->loadable)
-					warnx("set SHF_ALLOC flag for "
-					    "unloadable section %s",
-					    s->name);
-			}
 			if ((sec_flags & SF_READONLY) == 0)
 				osh.sh_flags |= SHF_WRITE;
 			if (sec_flags & SF_CODE)
