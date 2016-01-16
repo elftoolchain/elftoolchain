@@ -234,6 +234,9 @@ libpe_write_coff_header(PE *pe, off_t off)
 	uint32_t reloc_rva, reloc_sz;
 	int i, reloc;
 
+	reloc = 0;
+	reloc_rva = reloc_sz = 0;
+
 	if (pe->pe_cmd == PE_C_RDWR) {
 		assert((pe->pe_flags & LIBPE_F_SPECIAL_FILE) == 0);
 
@@ -303,8 +306,6 @@ libpe_write_coff_header(PE *pe, off_t off)
 
 	ch->ch_nsec = pe->pe_nscn;
 
-	reloc = 0;
-	reloc_rva = reloc_sz = 0;
 	STAILQ_FOREACH(ps, &pe->pe_scn, ps_next) {
 		sh = &ps->ps_sh;
 
