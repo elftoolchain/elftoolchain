@@ -370,7 +370,7 @@ create_scn(struct elfcopy *ecp)
 	is = NULL;
 	while ((is = elf_nextscn(ecp->ein, is)) != NULL) {
 		if (gelf_getshdr(is, &ish) == NULL)
-			errx(EXIT_FAILURE, "219 gelf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 		if ((name = elf_strptr(ecp->ein, indx, ish.sh_name)) == NULL)
 			errx(EXIT_FAILURE, "elf_strptr failed: %s",
@@ -1075,10 +1075,10 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 	GElf_Shdr ish, osh;
 
 	if (gelf_getshdr(s->is, &ish) == NULL)
-		errx(EXIT_FAILURE, "526 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	if (gelf_getshdr(s->os, &osh) == NULL)
-		errx(EXIT_FAILURE, "529 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 
 	if (copy)
@@ -1278,7 +1278,7 @@ update_shdr(struct elfcopy *ecp, int update_link)
 			continue;
 
 		if (gelf_getshdr(s->os, &osh) == NULL)
-			errx(EXIT_FAILURE, "668 gelf_getshdr failed: %s",
+			errx(EXIT_FAILURE, "gelf_getshdr failed: %s",
 			    elf_errmsg(-1));
 
 		/* Find section name in string table and set sh_name. */
@@ -1357,7 +1357,7 @@ set_shstrtab(struct elfcopy *ecp)
 	}
 
 	if (gelf_getshdr(s->os, &sh) == NULL)
-		errx(EXIT_FAILURE, "692 gelf_getshdr() failed: %s",
+		errx(EXIT_FAILURE, "gelf_getshdr() failed: %s",
 		    elf_errmsg(-1));
 	sh.sh_addr	= 0;
 	sh.sh_addralign	= 1;
