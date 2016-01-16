@@ -1101,6 +1101,17 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 				osh.sh_flags |= SHF_WRITE;
 			if (sec_flags & SF_CODE)
 				osh.sh_flags |= SHF_EXECINSTR;
+			if ((sec_flags & SF_CONTENTS) &&
+			    s->type == SHT_NOBITS && s->sz > 0) {
+				/*
+				 * Convert SHT_NOBITS section to section with
+				 * (zero'ed) content on file.
+				 */
+				osh.sh_type = s->type = SHT_PROGBITS;
+				if ((s->buf = calloc(1, s->sz)) == NULL)
+					err(EXIT_FAILURE, "malloc failed");
+				s->nocopy = 1;
+			}
 		} else {
 			osh.sh_flags = ish.sh_flags;
 			if (ish.sh_type == SHT_REL || ish.sh_type == SHT_RELA)
