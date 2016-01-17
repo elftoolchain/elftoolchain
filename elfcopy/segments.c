@@ -107,11 +107,11 @@ adjust_addr(struct elfcopy *ecp)
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
 
 		/* Only adjust loadable section's address. */
-		if (!s->loadable || s->seg == NULL)
+		if (!s->loadable)
 			continue;
 
 		/* Apply global LMA adjustment. */
-		if (ecp->change_addr != 0)
+		if (ecp->change_addr != 0 && s->seg != NULL)
 			s->lma += ecp->change_addr;
 
 		if (!s->pseudo) {
@@ -135,7 +135,10 @@ adjust_addr(struct elfcopy *ecp)
 	 */
 	TAILQ_FOREACH(s, &ecp->v_sec, sec_list) {
 
-		/* Only adjust loadable section's LMA. */
+		/*
+		 * Only loadable section that's inside a segment can have
+		 * LMA adjusted.
+		 */
 		if (!s->loadable || s->seg == NULL)
 			continue;
 

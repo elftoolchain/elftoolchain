@@ -417,12 +417,19 @@ create_scn(struct elfcopy *ecp)
 			 * is loadable, but if user explicitly set section flags
 			 * while neither "load" nor "alloc" is set, we make the
 			 * section unloadable.
+			 *
+			 * Sections in relocatable object is loadable if
+			 * section flag SHF_ALLOC is set.
 			 */
 			if (sec_flags &&
 			    (sec_flags & (SF_LOAD | SF_ALLOC)) == 0)
 				s->loadable = 0;
-			else
+			else {
 				s->loadable = add_to_inseg_list(ecp, s);
+				if ((ecp->flags & RELOCATABLE) &&
+				    (ish.sh_flags & SHF_ALLOC))
+					s->loadable = 1;
+			}
 		} else {
 			/* Assuming .shstrtab is "unloadable". */
 			s		= ecp->shstrtab;
@@ -876,7 +883,7 @@ resync_sections(struct elfcopy *ecp)
 			if (!s->loadable)
 				s->off = roundup(off, s->align);
 		} else {
-			if (s->loadable)
+			if (s->loadable && (ecp->flags & RELOCATABLE) == 0)
 				warnx("moving loadable section %s, "
 				    "is this intentional?", s->name);
 			s->off = roundup(off, s->align);
