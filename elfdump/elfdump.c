@@ -399,13 +399,49 @@ static const char *st_types_S[] = {
 	"NOTY", "OBJT", "FUNC", "SECT", "FILE"
 };
 
-static const char *st_bindings[] = {
-	"STB_LOCAL", "STB_GLOBAL", "STB_WEAK"
-};
+static const char *
+st_bindings(unsigned int sbind)
+{
+	static char s_sbind[32];
 
-static const char *st_bindings_S[] = {
-	"LOCL", "GLOB", "WEAK"
-};
+	switch (sbind) {
+	case STB_LOCAL: return "LOCAL";
+	case STB_GLOBAL: return "GLOBAL";
+	case STB_WEAK: return "WEAK";
+	case STB_GNU_UNIQUE: return "UNIQUE";
+	default:
+		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
+			return "OS";
+		else if (sbind >= STB_LOPROC && sbind <= STB_HIPROC)
+			return "PROC";
+		else
+			snprintf(s_sbind, sizeof(s_sbind), "<unknown: %#x>",
+			    sbind);
+		return (s_sbind);
+	}
+}
+
+static const char *
+st_bindings_S(unsigned int sbind)
+{
+	static char s_sbind[32];
+
+	switch (sbind) {
+	case STB_LOCAL: return "LOCL";
+	case STB_GLOBAL: return "GLOB";
+	case STB_WEAK: return "WEAK";
+	case STB_GNU_UNIQUE: return "UNIQ";
+	default:
+		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
+			return "OS";
+		else if (sbind >= STB_LOPROC && sbind <= STB_HIPROC)
+			return "PROC";
+		else
+			snprintf(s_sbind, sizeof(s_sbind), "<%#x>",
+			    sbind);
+		return (s_sbind);
+	}
+}
 
 static unsigned char st_others[] = {
 	'D', 'I', 'H', 'P'
@@ -1746,7 +1782,7 @@ elf_print_symtab(struct elfdump *ed, int i)
 			else
 				PRT("0x%12.12jx  ", (uintmax_t)sym.st_size);
 			PRT("%s ", st_types_S[GELF_ST_TYPE(sym.st_info)]);
-			PRT("%s  ", st_bindings_S[GELF_ST_BIND(sym.st_info)]);
+			PRT("%s  ", st_bindings_S(GELF_ST_BIND(sym.st_info)));
 			PRT("%c  ", st_others[sym.st_other]);
 			PRT("%3u ", (vs == NULL ? 0 : vs[j]));
 			PRT("%-11.11s ", sh_name(ed, sym.st_shndx));
@@ -1758,7 +1794,7 @@ elf_print_symtab(struct elfdump *ed, int i)
 			PRT("\tst_size: %ju\n", (uintmax_t)sym.st_size);
 			PRT("\tst_info: %s %s\n",
 			    st_types[GELF_ST_TYPE(sym.st_info)],
-			    st_bindings[GELF_ST_BIND(sym.st_info)]);
+			    st_bindings(GELF_ST_BIND(sym.st_info)));
 			PRT("\tst_shndx: %ju\n", (uintmax_t)sym.st_shndx);
 		}
 	}
