@@ -1463,14 +1463,17 @@ add_section(struct elfcopy *ecp, const char *arg)
 	if (stat(fn, &sb) == -1)
 		err(EXIT_FAILURE, "stat failed");
 	sa->size = sb.st_size;
-	if ((sa->content = malloc(sa->size)) == NULL)
-		err(EXIT_FAILURE, "malloc failed");
-	if ((fp = fopen(fn, "r")) == NULL)
-		err(EXIT_FAILURE, "can not open %s", fn);
-	if (fread(sa->content, 1, sa->size, fp) == 0 ||
-	    ferror(fp))
-		err(EXIT_FAILURE, "fread failed");
-	fclose(fp);
+	if (sa->size > 0) {
+		if ((sa->content = malloc(sa->size)) == NULL)
+			err(EXIT_FAILURE, "malloc failed");
+		if ((fp = fopen(fn, "r")) == NULL)
+			err(EXIT_FAILURE, "can not open %s", fn);
+		if (fread(sa->content, 1, sa->size, fp) == 0 ||
+		    ferror(fp))
+			err(EXIT_FAILURE, "fread failed");
+		fclose(fp);
+	} else
+		sa->content = NULL;
 
 	STAILQ_INSERT_TAIL(&ecp->v_sadd, sa, sadd_list);
 	ecp->flags |= SEC_ADD;
