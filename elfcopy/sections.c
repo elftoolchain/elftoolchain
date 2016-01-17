@@ -1119,6 +1119,13 @@ copy_shdr(struct elfcopy *ecp, struct section *s, const char *name, int copy,
 			}
 		} else {
 			osh.sh_flags = ish.sh_flags;
+			/*
+			 * Newer binutils as(1) emits the section flag
+			 * SHF_INFO_LINK for relocation sections. elfcopy
+			 * emits this flag in the output section if it's
+			 * missing in the input section, to remain compatible
+			 * with binutils.
+			 */
 			if (ish.sh_type == SHT_REL || ish.sh_type == SHT_RELA)
 				osh.sh_flags |= SHF_INFO_LINK;
 		}
