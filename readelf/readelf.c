@@ -958,6 +958,7 @@ st_bind(unsigned int sbind)
 	case STB_LOCAL: return "LOCAL";
 	case STB_GLOBAL: return "GLOBAL";
 	case STB_WEAK: return "WEAK";
+	case STB_GNU_UNIQUE: return "UNIQUE";
 	default:
 		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
 			return "OS";
