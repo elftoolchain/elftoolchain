@@ -1026,8 +1026,11 @@ print_section(struct section *s)
 		print_data(s->buf, s->sz);
 	} else {
 		id = NULL;
-		while ((id = elf_getdata(s->is, id)) != NULL)
+		while ((id = elf_getdata(s->is, id)) != NULL ||
+		    (id = elf_rawdata(s->is, id)) != NULL) {
+			(void) elf_errno();
 			print_data(id->d_buf, id->d_size);
+		}
 		elferr = elf_errno();
 		if (elferr != 0)
 			errx(EXIT_FAILURE, "elf_getdata() failed: %s",
@@ -1047,7 +1050,9 @@ read_section(struct section *s, size_t *size)
 	sz = 0;
 	b = NULL;
 	id = NULL;
-	while ((id = elf_getdata(s->is, id)) != NULL) {
+	while ((id = elf_getdata(s->is, id)) != NULL ||
+	    (id = elf_rawdata(s->is, id)) != NULL) {
+		(void) elf_errno();
 		if (b == NULL)
 			b = malloc(id->d_size);
 		else
@@ -1139,11 +1144,14 @@ copy_data(struct section *s)
 		return;
 
 	if ((id = elf_getdata(s->is, NULL)) == NULL) {
-		elferr = elf_errno();
-		if (elferr != 0)
-			errx(EXIT_FAILURE, "elf_getdata() failed: %s",
-			    elf_errmsg(elferr));
-		return;
+		(void) elf_errno();
+		if ((id = elf_rawdata(s->is, NULL)) == NULL) {
+			elferr = elf_errno();
+			if (elferr != 0)
+				errx(EXIT_FAILURE, "failed to read section:"
+				    " %s", s->name);
+			return;
+		}
 	}
 
 	if ((od = elf_newdata(s->os)) == NULL)
