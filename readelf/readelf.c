@@ -6836,13 +6836,15 @@ hex_dump(struct readelf *re)
 		if (find_dumpop(re, (size_t) i, s->name, HEX_DUMP, -1) == NULL)
 			continue;
 		(void) elf_errno();
-		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		if ((d = elf_getdata(s->scn, NULL)) == NULL &&
+		    (d = elf_rawdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
 			if (elferr != 0)
 				warnx("elf_getdata failed: %s",
 				    elf_errmsg(elferr));
 			continue;
 		}
+		(void) elf_errno();
 		if (d->d_size <= 0 || d->d_buf == NULL) {
 			printf("\nSection '%s' has no data to dump.\n",
 			    s->name);
@@ -6891,13 +6893,15 @@ str_dump(struct readelf *re)
 		if (find_dumpop(re, (size_t) i, s->name, STR_DUMP, -1) == NULL)
 			continue;
 		(void) elf_errno();
-		if ((d = elf_getdata(s->scn, NULL)) == NULL) {
+		if ((d = elf_getdata(s->scn, NULL)) == NULL &&
+		    (d = elf_rawdata(s->scn, NULL)) == NULL) {
 			elferr = elf_errno();
 			if (elferr != 0)
 				warnx("elf_getdata failed: %s",
 				    elf_errmsg(elferr));
 			continue;
 		}
+		(void) elf_errno();
 		if (d->d_size <= 0 || d->d_buf == NULL) {
 			printf("\nSection '%s' has no data to dump.\n",
 			    s->name);
