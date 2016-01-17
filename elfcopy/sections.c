@@ -1257,6 +1257,7 @@ insert_sections(struct elfcopy *ecp)
 	struct sec_add	*sa;
 	struct section	*s;
 	size_t		 off;
+	uint64_t	 stype;
 
 	/* Put these sections in the end of current list. */
 	off = 0;
@@ -1271,8 +1272,20 @@ insert_sections(struct elfcopy *ecp)
 
 		/* TODO: Add section header vma/lma, flag changes here */
 
+		/*
+		 * The default section type for user added section is
+		 * SHT_PROGBITS. If the section name match certain patterns,
+		 * elfcopy will try to set a more appropriate section type.
+		 * However, data type is always set to ELF_T_BYTE and no
+		 * translation is performed by libelf.
+		 */
+		stype = SHT_PROGBITS;
+		if (strcmp(sa->name, ".note") == 0 ||
+		    strncmp(sa->name, ".note.", strlen(".note.")) == 0)
+			stype = SHT_NOTE;
+
 		(void) create_external_section(ecp, sa->name, NULL, sa->content,
-		    sa->size, off, SHT_PROGBITS, ELF_T_BYTE, 0, 1, 0, 0);
+		    sa->size, off, stype, ELF_T_BYTE, 0, 1, 0, 0);
 	}
 }
 
