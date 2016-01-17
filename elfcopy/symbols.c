@@ -102,7 +102,8 @@ static int
 is_global_symbol(unsigned char st_info)
 {
 
-	if (GELF_ST_BIND(st_info) == STB_GLOBAL)
+	if (GELF_ST_BIND(st_info) == STB_GLOBAL ||
+	    GELF_ST_BIND(st_info) == STB_GNU_UNIQUE)
 		return (1);
 
 	return (0);
