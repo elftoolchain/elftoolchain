@@ -1228,6 +1228,7 @@ _ELF_DEFINE_STB(STB_GLOBAL,          1,					\
 _ELF_DEFINE_STB(STB_WEAK,            2,					\
 	"visible across all object files but with low precedence")	\
 _ELF_DEFINE_STB(STB_LOOS,            10, "start of OS-specific range")	\
+_ELF_DEFINE_STB(STB_GNU_UNIQUE,      10, "unique symbol (GNU)")		\
 _ELF_DEFINE_STB(STB_HIOS,            12, "end of OS-specific range")	\
 _ELF_DEFINE_STB(STB_LOPROC,          13,				\
 	"start of processor-specific range")				\
