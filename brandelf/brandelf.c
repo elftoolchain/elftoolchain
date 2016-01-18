@@ -212,7 +212,7 @@ main(int argc, char **argv)
 			/*
 			 * Update the ABI type.
 			 */
-			ehdr.e_ident[EI_OSABI] = type;
+			ehdr.e_ident[EI_OSABI] = (unsigned char) type;
 			if (gelf_update_ehdr(elf, &ehdr) == 0) {
 				warnx("gelf_update_ehdr error: %s",
 				    elf_errmsg(-1));
