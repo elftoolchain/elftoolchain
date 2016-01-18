@@ -44,6 +44,12 @@ LDFLAGS+= -L${TOP}/libpe
 .endif
 .endif
 
+_LDADD_LIBARCHIVE=${LDADD:M-larchive}
+.if !empty(_LDADD_LIBARCHIVE) && ${OS_HOST} == NetBSD
+CFLAGS+=	-I/usr/pkg/include
+LDFLAGS+=	-L/usr/pkg/lib
+.endif
+
 #
 # Handle lex(1) and yacc(1) in a portable fashion.
 #
