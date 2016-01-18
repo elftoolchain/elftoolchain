@@ -25,8 +25,6 @@ SRCS=	libpe_buffer.c	\
 INCS=		libpe.h pe.h
 INCSDIR=	/usr/include
 
-RELEASE=	HEAD		# Change this on release branches.
-
 SHLIB_MAJOR=	1
 
 WARNS?=	6
