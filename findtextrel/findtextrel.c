@@ -70,9 +70,10 @@ version(void)
 static const char *
 find_symbol(const char *fn, Elf *e, Elf_Data *d, GElf_Shdr *sh, uintmax_t off)
 {
-	GElf_Sym sym;
 	const char *name;
-	int i, len;
+	GElf_Sym sym;
+	uint64_t len;
+	int i;
 
 	len = d->d_size / sh->sh_entsize;
 	for (i = 0; i < len; i++) {
@@ -236,9 +237,10 @@ static void
 examine_reloc(const char *fn, Elf *e, Elf_Data *d, GElf_Shdr *sh, GElf_Phdr *ph,
     int phnum, Dwarf_Debug dbg, int *textrel)
 {
-	GElf_Rel rel;
 	GElf_Rela rela;
-	int i, j, len;
+	GElf_Rel rel;
+	uint64_t len;
+	int i, j;
 
 	len = d->d_size / sh->sh_entsize;
 	for (i = 0; i < len; i++) {
