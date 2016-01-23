@@ -25,6 +25,7 @@
  */
 
 #include <sys/param.h>
+#include <assert.h>
 #include <err.h>
 #include <fnmatch.h>
 #include <stdio.h>
@@ -579,8 +580,11 @@ generate_symbols(struct elfcopy *ecp)
 		 * If the symbol is a STT_SECTION symbol, mark the section
 		 * it points to.
 		 */
-		if (GELF_ST_TYPE(sym.st_info) == STT_SECTION)
+		if (GELF_ST_TYPE(sym.st_info) == STT_SECTION &&
+		    sym.st_shndx < SHN_LORESERVE) {
+			assert(ecp->secndx[sym.st_shndx] < (uint64_t)ecp->nos);
 			BIT_SET(ecp->v_secsym, ecp->secndx[sym.st_shndx]);
+		}
 	}
 
 	/*
