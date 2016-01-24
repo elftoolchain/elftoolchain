@@ -32,7 +32,7 @@ main(int argc, char **argv)
 	char *tc;
 	int fd;
 	int ts;
-	int now;
+	time_t now;
 	FILE *ct, *ps;
 
 
