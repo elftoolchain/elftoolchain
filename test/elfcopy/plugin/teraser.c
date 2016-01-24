@@ -25,14 +25,14 @@ static void	usage(void);
 int
 main(int argc, char **argv)
 {
-	char opt;
+	int opt;
 	char checktime;
 	char erasetime;
 	char buf[TSLEN + 1];
 	char *tc;
 	int fd;
 	int ts;
-	int now;
+	time_t now;
 	FILE *ct, *ps;
 
 
