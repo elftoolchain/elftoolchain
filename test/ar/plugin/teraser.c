@@ -25,7 +25,7 @@ static void	usage(void);
 int
 main(int argc, char **argv)
 {
-	char opt;
+	int opt;
 	char checktime;
 	char erasetime;
 	char buf[TSLEN + 1];
