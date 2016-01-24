@@ -72,10 +72,9 @@ find_symbol(const char *fn, Elf *e, Elf_Data *d, GElf_Shdr *sh, uintmax_t off)
 {
 	const char *name;
 	GElf_Sym sym;
-	uint64_t len;
-	int i;
+	int i, len;
 
-	len = d->d_size / sh->sh_entsize;
+	len = (int) (d->d_size / sh->sh_entsize);
 	for (i = 0; i < len; i++) {
 		if (gelf_getsym(d, i, &sym) != &sym) {
 			warnx("%s: gelf_getsym() failed: %s", fn,
@@ -238,11 +237,10 @@ examine_reloc(const char *fn, Elf *e, Elf_Data *d, GElf_Shdr *sh, GElf_Phdr *ph,
     int phnum, Dwarf_Debug dbg, int *textrel)
 {
 	GElf_Rela rela;
+	int i, j, len;
 	GElf_Rel rel;
-	uint64_t len;
-	int i, j;
 
-	len = d->d_size / sh->sh_entsize;
+	len = (int) (d->d_size / sh->sh_entsize);
 	for (i = 0; i < len; i++) {
 		if (sh->sh_type == SHT_REL) {
 			if (gelf_getrel(d, i, &rel) != &rel) {
