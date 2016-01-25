@@ -434,10 +434,10 @@ st_bindings(unsigned int sbind)
 	static char s_sbind[32];
 
 	switch (sbind) {
-	case STB_LOCAL: return "LOCAL";
-	case STB_GLOBAL: return "GLOBAL";
-	case STB_WEAK: return "WEAK";
-	case STB_GNU_UNIQUE: return "UNIQUE";
+	case STB_LOCAL: return "STB_LOCAL";
+	case STB_GLOBAL: return "STB_GLOBAL";
+	case STB_WEAK: return "STB_WEAK";
+	case STB_GNU_UNIQUE: return "STB_GNU_UNIQUE";
 	default:
 		if (sbind >= STB_LOOS && sbind <= STB_HIOS)
 			return "OS";
