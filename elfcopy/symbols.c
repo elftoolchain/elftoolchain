@@ -879,6 +879,8 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 	 * It handles buffer growing, st_name calculating and st_shndx
 	 * updating for symbols with non-special section index.
 	 */
+#define	_ST_NAME_EMPTY_l 0
+#define	_ST_NAME_EMPTY_g -1
 #define	_ADDSYM(B, SZ) do {						\
 	if (sy_buf->B##SZ == NULL) {					\
 		sy_buf->B##SZ = malloc(sy_buf->B##cap *			\
@@ -938,7 +940,8 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 			st_buf->B.sz += strlen(name) + 1;		\
 		}							\
 	} else								\
-		sy_buf->B##SZ[sy_buf->n##B##s].st_name = 0;		\
+		sy_buf->B##SZ[sy_buf->n##B##s].st_name = 		\
+		    (Elf##SZ##_Word)_ST_NAME_EMPTY_##B;			\
 	sy_buf->n##B##s++;						\
 } while (0)
 
@@ -963,6 +966,8 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 	ecp->strtab->sz = st_buf->l.sz + st_buf->g.sz;
 
 #undef	_ADDSYM
+#undef	_ST_NAME_EMPTY_l
+#undef	_ST_NAME_EMPTY_g
 }
 
 void
@@ -979,10 +984,17 @@ finalize_external_symtab(struct elfcopy *ecp)
 	sy_buf = ecp->symtab->buf;
 	st_buf = ecp->strtab->buf;
 	for (i = 0; (size_t) i < sy_buf->ngs; i++) {
-		if (ecp->oec == ELFCLASS32)
-			sy_buf->g32[i].st_name += st_buf->l.sz;
-		else
-			sy_buf->g64[i].st_name += st_buf->l.sz;
+		if (ecp->oec == ELFCLASS32) {
+			if (sy_buf->g32[i].st_name == (Elf32_Word)-1)
+				sy_buf->g32[i].st_name = 0;
+			else
+				sy_buf->g32[i].st_name += st_buf->l.sz;
+		} else {
+			if (sy_buf->g64[i].st_name == (Elf64_Word)-1)
+				sy_buf->g64[i].st_name = 0;
+			else
+				sy_buf->g64[i].st_name += st_buf->l.sz;
+		}
 	}
 }
 
