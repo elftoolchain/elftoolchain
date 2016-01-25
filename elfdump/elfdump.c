@@ -390,7 +390,8 @@ sh_flags(uint64_t shf)
 	return (flg);
 }
 
-static const char *st_type(unsigned int mach, unsigned int type)
+static const char *
+st_type(unsigned int mach, unsigned int type)
 {
 	static char s_type[32];
 
@@ -411,7 +412,8 @@ static const char *st_type(unsigned int mach, unsigned int type)
 	return (s_type);
 }
 
-static const char *st_type_S(unsigned int type)
+static const char *
+st_type_S(unsigned int type)
 {
 	static char s_type[32];
 
