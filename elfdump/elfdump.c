@@ -390,14 +390,41 @@ sh_flags(uint64_t shf)
 	return (flg);
 }
 
-static const char *st_types[] = {
-	"STT_NOTYPE", "STT_OBJECT", "STT_FUNC", "STT_SECTION", "STT_FILE",
-	"STT_COMMON", "STT_TLS"
-};
+static const char *st_type(unsigned int mach, unsigned int type)
+{
+	static char s_type[32];
 
-static const char *st_types_S[] = {
-	"NOTY", "OBJT", "FUNC", "SECT", "FILE"
-};
+	switch (type) {
+	case STT_NOTYPE: return "STT_NOTYPE";
+	case STT_OBJECT: return "STT_OBJECT";
+	case STT_FUNC: return "STT_FUNC";
+	case STT_SECTION: return "STT_SECTION";
+	case STT_FILE: return "STT_FILE";
+	case STT_COMMON: return "STT_COMMON";
+	case STT_TLS: return "STT_TLS";
+	case 13:
+		if (mach == EM_SPARCV9)
+			return "STT_SPARC_REGISTER";
+		break;
+	}
+	snprintf(s_type, sizeof(s_type), "<unknown: %#x>", type);
+	return (s_type);
+}
+
+static const char *st_type_S(unsigned int type)
+{
+	static char s_type[32];
+
+	switch (type) {
+	case STT_NOTYPE: return "NOTY";
+	case STT_OBJECT: return "OBJT";
+	case STT_FUNC: return "FUNC";
+	case STT_SECTION: return "SECT";
+	case STT_FILE: return "FILE";
+	}
+	snprintf(s_type, sizeof(s_type), "<unknown: %#x>", type);
+	return (s_type);
+}
 
 static const char *
 st_bindings(unsigned int sbind)
@@ -1781,7 +1808,7 @@ elf_print_symtab(struct elfdump *ed, int i)
 				PRT("0x%8.8jx  ", (uintmax_t)sym.st_size);
 			else
 				PRT("0x%12.12jx  ", (uintmax_t)sym.st_size);
-			PRT("%s ", st_types_S[GELF_ST_TYPE(sym.st_info)]);
+			PRT("%s ", st_type_S(GELF_ST_TYPE(sym.st_info)));
 			PRT("%s  ", st_bindings_S(GELF_ST_BIND(sym.st_info)));
 			PRT("%c  ", st_others[sym.st_other]);
 			PRT("%3u ", (vs == NULL ? 0 : vs[j]));
@@ -1793,7 +1820,8 @@ elf_print_symtab(struct elfdump *ed, int i)
 			PRT("\tst_value: %#jx\n", (uintmax_t)sym.st_value);
 			PRT("\tst_size: %ju\n", (uintmax_t)sym.st_size);
 			PRT("\tst_info: %s %s\n",
-			    st_types[GELF_ST_TYPE(sym.st_info)],
+			    st_type(ed->ehdr.e_machine,
+			    GELF_ST_TYPE(sym.st_info)),
 			    st_bindings(GELF_ST_BIND(sym.st_info)));
 			PRT("\tst_shndx: %ju\n", (uintmax_t)sym.st_shndx);
 		}
