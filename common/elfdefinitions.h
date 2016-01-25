@@ -1260,6 +1260,7 @@ _ELF_DEFINE_STT(STT_LOPROC,          13,				\
 	"start of processor-specific types")				\
 _ELF_DEFINE_STT(STT_ARM_TFUNC,       13, "Thumb function (GNU)")	\
 _ELF_DEFINE_STT(STT_ARM_16BIT,       15, "Thumb label (GNU)")		\
+_ELF_DEFINE_STT(STT_SPARC_REGISTER,  13, "SPARC register information")	\
 _ELF_DEFINE_STT(STT_HIPROC,          15,				\
 	"end of processor-specific types")
 

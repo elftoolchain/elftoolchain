@@ -348,7 +348,7 @@ static void set_cu_context(struct readelf *re, Dwarf_Half psize,
     Dwarf_Half osize, Dwarf_Half ver);
 static const char *st_bind(unsigned int sbind);
 static const char *st_shndx(unsigned int shndx);
-static const char *st_type(unsigned int stype);
+static const char *st_type(unsigned int mach, unsigned int stype);
 static const char *st_vis(unsigned int svis);
 static const char *top_tag(unsigned int tag);
 static void unload_sections(struct readelf *re);
@@ -972,7 +972,7 @@ st_bind(unsigned int sbind)
 }
 
 static const char *
-st_type(unsigned int stype)
+st_type(unsigned int mach, unsigned int stype)
 {
 	static char s_stype[32];
 
@@ -988,10 +988,12 @@ st_type(unsigned int stype)
 		if (stype >= STT_LOOS && stype <= STT_HIOS)
 			snprintf(s_stype, sizeof(s_stype), "OS+%#x",
 			    stype - STT_LOOS);
-		else if (stype >= STT_LOPROC && stype <= STT_HIPROC)
+		else if (stype >= STT_LOPROC && stype <= STT_HIPROC) {
+			if (mach == EM_SPARCV9 && stype == STT_SPARC_REGISTER)
+				return "REGISTER";
 			snprintf(s_stype, sizeof(s_stype), "PROC+%#x",
 			    stype - STT_LOPROC);
-		else
+		} else
 			snprintf(s_stype, sizeof(s_stype), "<unknown: %#x>",
 			    stype);
 		return (s_stype);
@@ -3456,7 +3458,8 @@ dump_symtab(struct readelf *re, int i)
 		printf("%6d:", j);
 		printf(" %16.16jx", (uintmax_t) sym.st_value);
 		printf(" %5ju", (uintmax_t) sym.st_size);
-		printf(" %-7s", st_type(GELF_ST_TYPE(sym.st_info)));
+		printf(" %-7s", st_type(re->ehdr.e_machine,
+		    GELF_ST_TYPE(sym.st_info)));
 		printf(" %-6s", st_bind(GELF_ST_BIND(sym.st_info)));
 		printf(" %-8s", st_vis(GELF_ST_VISIBILITY(sym.st_other)));
 		printf(" %3s", st_shndx(sym.st_shndx));
