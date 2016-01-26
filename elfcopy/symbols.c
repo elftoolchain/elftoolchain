@@ -1135,16 +1135,18 @@ add_to_symop_list(struct elfcopy *ecp, const char *name, const char *newname,
 {
 	struct symop *s;
 
-	if ((s = lookup_symop_list(ecp, name, ~0U)) == NULL) {
-		if ((s = calloc(1, sizeof(*s))) == NULL)
-			errx(EXIT_FAILURE, "not enough memory");
-		s->name = name;
-		if (op == SYMOP_REDEF)
-			s->newname = newname;
-	}
+	STAILQ_FOREACH(s, &ecp->v_symop, symop_list)
+		if (!strcmp(name, s->name))
+			goto found;
 
-	s->op |= op;
+	if ((s = calloc(1, sizeof(*s))) == NULL)
+		errx(EXIT_FAILURE, "not enough memory");
 	STAILQ_INSERT_TAIL(&ecp->v_symop, s, symop_list);
+	s->name = name;
+found:
+	if (op == SYMOP_REDEF)
+		s->newname = newname;
+	s->op |= op;
 }
 
 static int
