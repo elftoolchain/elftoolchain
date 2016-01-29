@@ -11,7 +11,7 @@ ${PLUGINS}:
 
 test:	.PHONY
 
-clean cleandepend depend:	.PHONY
+clean cleandepend clobber depend:	.PHONY
 .for plugin in ${PLUGINS}
 	${MAKE} -f Makefile.${plugin} ${.TARGET}
 .endfor
