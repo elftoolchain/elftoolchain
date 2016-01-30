@@ -1378,7 +1378,7 @@ set_osabi(struct elfcopy *ecp, const char *abi)
 
 #define	ELFCOPY_USAGE_MESSAGE	"\
 Usage: %s [options] infile [outfile]\n\
-  Transform an ELF object.\n\n\
+  Transform object files.\n\n\
   Options:\n\
   -d | -g | --strip-debug      Remove debugging information from the output.\n\
   -j SECTION | --only-section=SECTION\n\
