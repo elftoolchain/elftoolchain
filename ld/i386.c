@@ -253,12 +253,11 @@ static void
 _reserve_gotplt_entry(struct ld *ld, struct ld_symbol *lsb)
 {
 	struct ld_input_section *is;
-	uint64_t off;
 
 	is = _find_and_create_gotplt_section(ld, 1);
 
 	/* Reserve a GOT entry for PLT. */
-	off = ld_input_reserve_ibuf(is, 1);
+	(void) ld_input_reserve_ibuf(is, 1);
 
 	/*
 	 * Record a R_386_JMP_SLOT entry for this symbol. Note that
