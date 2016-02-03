@@ -1056,8 +1056,9 @@ static struct {
 static const char *
 r_type(unsigned int mach, unsigned int type)
 {
+	static char s_type[32];
+
 	switch(mach) {
-	case EM_NONE: return "";
 	case EM_386:
 	case EM_IAMCU:
 		switch(type) {
@@ -1092,8 +1093,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 35: return "R_386_TLS_DTPMOD32";
 		case 36: return "R_386_TLS_DTPOFF32";
 		case 37: return "R_386_TLS_TPOFF32";
-		default: return "";
 		}
+		break;
 	case EM_AARCH64:
 		switch(type) {
 		case 0: return "R_AARCH64_NONE";
@@ -1167,8 +1168,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 1030: return "R_AARCH64_TLS_TPREL64";
 		case 1031: return "R_AARCH64_TLSDESC";
 		case 1032: return "R_AARCH64_IRELATIVE";
-		default: return "";
 		}
+		break;
 	case EM_ARM:
 		switch(type) {
 		case 0: return "R_ARM_NONE";
@@ -1219,8 +1220,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 253: return "R_ARM_RABS32";
 		case 254: return "R_ARM_RPC24";
 		case 255: return "R_ARM_RBASE";
-		default: return "";
 		}
+		break;
 	case EM_IA_64:
 		switch(type) {
 		case 0: return "R_IA_64_NONE";
@@ -1303,8 +1304,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 182: return "R_IA_64_DTPREL64MSB";
 		case 183: return "R_IA_64_DTPREL64LSB";
 		case 186: return "R_IA_64_LTOFF_DTPREL22";
-		default: return "";
 		}
+		break;
 	case EM_MIPS:
 		switch(type) {
 		case 0: return "R_MIPS_NONE";
@@ -1337,9 +1338,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 48: return "R_MIPS_TLS_TPREL64";
 		case 49: return "R_MIPS_TLS_TPREL_HI16";
 		case 50: return "R_MIPS_TLS_TPREL_LO16";
-
-		default: return "";
 		}
+		break;
 	case EM_PPC:
 		switch(type) {
 		case 0: return "R_PPC_NONE";
@@ -1419,8 +1419,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 114: return "R_PPC_EMB_RELST_HA";
 		case 115: return "R_PPC_EMB_BIT_FLD";
 		case 116: return "R_PPC_EMB_RELSDA";
-		default: return "";
 		}
+		break;
 	case EM_RISCV:
 		switch(type) {
 		case 0: return "R_RISCV_NONE";
@@ -1465,8 +1465,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 43: return "R_RISCV_ALIGN";
 		case 44: return "R_RISCV_RVC_BRANCH";
 		case 45: return "R_RISCV_RVC_JUMP";
-		default: return "";
 		}
+		break;
 	case EM_SPARC:
 	case EM_SPARCV9:
 		switch(type) {
@@ -1550,8 +1550,8 @@ r_type(unsigned int mach, unsigned int type)
 		case 77: return "R_SPARC_TLS_DTPOFF64";
 		case 78: return "R_SPARC_TLS_TPOFF32";
 		case 79: return "R_SPARC_TLS_TPOFF64";
-		default: return "";
 		}
+		break;
 	case EM_X86_64:
 		switch(type) {
 		case 0: return "R_X86_64_NONE";
@@ -1592,10 +1592,12 @@ r_type(unsigned int mach, unsigned int type)
 		case 35: return "R_X86_64_TLSDESC_CALL";
 		case 36: return "R_X86_64_TLSDESC";
 		case 37: return "R_X86_64_IRELATIVE";
-		default: return "";
 		}
-	default: return "";
+		break;
 	}
+
+	snprintf(s_type, sizeof(s_type), "<unknown: %#x>", type);
+	return (s_type);
 }
 
 static const char *
