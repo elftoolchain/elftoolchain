@@ -338,7 +338,7 @@ static const char *phdr_type(unsigned int ptype);
 static const char *ppc_abi_fp(uint64_t fp);
 static const char *ppc_abi_vector(uint64_t vec);
 static const char *r_type(unsigned int mach, unsigned int type);
-static void readelf_usage(void);
+static void readelf_usage(int status);
 static void readelf_version(void);
 static void search_loclist_at(struct readelf *re, Dwarf_Die die,
     Dwarf_Unsigned lowpc);
@@ -7590,10 +7590,10 @@ Usage: %s [options] file...\n\
 
 
 static void
-readelf_usage(void)
+readelf_usage(int status)
 {
 	fprintf(stderr, USAGE_MESSAGE, ELFTC_GETPROGNAME());
-	exit(EXIT_FAILURE);
+	exit(status);
 }
 
 int
@@ -7612,7 +7612,7 @@ main(int argc, char **argv)
 	    longopts, NULL)) != -1) {
 		switch(opt) {
 		case '?':
-			readelf_usage();
+			readelf_usage(EXIT_SUCCESS);
 			break;
 		case 'A':
 			re->options |= RE_AA;
@@ -7637,7 +7637,7 @@ main(int argc, char **argv)
 			re->options |= RE_G;
 			break;
 		case 'H':
-			readelf_usage();
+			readelf_usage(EXIT_SUCCESS);
 			break;
 		case 'h':
 			re->options |= RE_H;
@@ -7715,7 +7715,7 @@ main(int argc, char **argv)
 	argc -= optind;
 
 	if (argc == 0 || re->options == 0)
-		readelf_usage();
+		readelf_usage(EXIT_FAILURE);
 
 	if (argc > 1)
 		re->flags |= DISPLAY_FILENAME;
