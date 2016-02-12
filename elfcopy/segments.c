@@ -489,7 +489,7 @@ copy_phdr(struct elfcopy *ecp)
 		ophdr.p_filesz = seg->fsz;
 		ophdr.p_memsz = seg->msz;
 		if (!gelf_update_phdr(ecp->eout, i, &ophdr))
-			err(EXIT_FAILURE, "gelf_update_phdr failed :%s",
+			errx(EXIT_FAILURE, "gelf_update_phdr failed: %s",
 			    elf_errmsg(-1));
 
 		i++;
