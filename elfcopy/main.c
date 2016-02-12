@@ -316,6 +316,7 @@ create_elf(struct elfcopy *ecp)
 	oeh.e_entry	      = ieh.e_entry;
 	oeh.e_version	      = ieh.e_version;
 
+	ecp->flags &= ~(EXECUTABLE | DYNAMIC | RELOCATABLE);
 	if (ieh.e_type == ET_EXEC)
 		ecp->flags |= EXECUTABLE;
 	else if (ieh.e_type == ET_DYN)
