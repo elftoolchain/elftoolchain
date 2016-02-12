@@ -1485,6 +1485,7 @@ Usage: %s [options] file...\n\
   Options:\n\
   -d | -g | -S | --strip-debug    Remove debugging symbols.\n\
   -h | --help                     Print a help message.\n\
+  -o FILE | --output-file FILE    Write output to FILE.\n\
   --only-keep-debug               Keep debugging information only.\n\
   -p | --preserve-dates           Preserve access and modification times.\n\
   -s | --strip-all                Remove all symbols.\n\
