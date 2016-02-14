@@ -45,8 +45,6 @@ LDADD=	-lelftc -ldwarf -lelf
 CFLAGS+= -I. -I${.CURDIR}
 YFLAGS=	-d
 
-NOMAN=
-
 .SUFFIXES:	.ld .c
 .ld.c:
 	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
