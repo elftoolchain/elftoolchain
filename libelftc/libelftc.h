@@ -75,6 +75,7 @@ unsigned int	elftc_bfd_target_machine(Elftc_Bfd_Target *_tgt);
 int		elftc_copyfile(int _srcfd,  int _dstfd);
 int		elftc_demangle(const char *_mangledname, char *_buffer,
     size_t _bufsize, unsigned int _flags);
+const char	*elftc_reloc_type_str(unsigned int mach, unsigned int type);
 int		elftc_set_timestamps(const char *_filename, struct stat *_sb);
 Elftc_String_Table	*elftc_string_table_create(int _hint);
 void		elftc_string_table_destroy(Elftc_String_Table *_table);
