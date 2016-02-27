@@ -115,9 +115,7 @@ _dwarf_abbrev_parse(Dwarf_Debug dbg, Dwarf_CU cu, Dwarf_Unsigned *offset,
 	assert(abp != NULL);
 
 	ds = _dwarf_find_section(dbg, ".debug_abbrev");
-	assert(ds != NULL);
-
-	if (*offset >= ds->ds_size)
+	if (ds == NULL || *offset >= ds->ds_size)
 		return (DW_DLE_NO_ENTRY);
 
 	aboff = *offset;
