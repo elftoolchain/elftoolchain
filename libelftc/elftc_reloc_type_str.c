@@ -51,12 +51,17 @@ elftc_reloc_type_str(unsigned int mach, unsigned int type)
 		case 8: return "R_386_RELATIVE";
 		case 9: return "R_386_GOTOFF";
 		case 10: return "R_386_GOTPC";
+		case 11: return "R_386_32PLT"; /* Not in psabi */
 		case 14: return "R_386_TLS_TPOFF";
 		case 15: return "R_386_TLS_IE";
 		case 16: return "R_386_TLS_GOTIE";
 		case 17: return "R_386_TLS_LE";
 		case 18: return "R_386_TLS_GD";
 		case 19: return "R_386_TLS_LDM";
+		case 20: return "R_386_16";
+		case 21: return "R_386_PC16";
+		case 22: return "R_386_8";
+		case 23: return "R_386_PC8";
 		case 24: return "R_386_TLS_GD_32";
 		case 25: return "R_386_TLS_GD_PUSH";
 		case 26: return "R_386_TLS_GD_CALL";
@@ -71,6 +76,11 @@ elftc_reloc_type_str(unsigned int mach, unsigned int type)
 		case 35: return "R_386_TLS_DTPMOD32";
 		case 36: return "R_386_TLS_DTPOFF32";
 		case 37: return "R_386_TLS_TPOFF32";
+		case 38: return "R_386_SIZE32";
+		case 39: return "R_386_TLS_GOTDESC";
+		case 40: return "R_386_TLS_DESC_CALL";
+		case 41: return "R_386_TLS_DESC";
+		case 42: return "R_386_IRELATIVE";
 		}
 		break;
 	case EM_AARCH64:
