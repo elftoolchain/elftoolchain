@@ -1971,7 +1971,8 @@ elf_print_note(struct elfdump *ed)
 	uint32_t	 desc;
 	size_t		 count;
 	int		 elferr, i;
-	char		*src, idx[10];
+	uint8_t		*src;
+	char		 idx[10];
 
 	s = NULL;
 	for (i = 0; (size_t)i < ed->shnum; i++) {
