@@ -1159,7 +1159,7 @@ lookup_symop_list(struct elfcopy *ecp, const char *name, unsigned int op)
 		if ((s->op & op) == 0)
 			continue;
 		if (name == NULL || !strcmp(name, s->name))
-				return (s);
+			return (s);
 		if ((ecp->flags & WILDCARD) == 0)
 			continue;
 
