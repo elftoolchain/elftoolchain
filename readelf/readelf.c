@@ -650,7 +650,7 @@ section_type(unsigned int mach, unsigned int stype)
 		switch (mach) {
 		case EM_X86_64:
 			switch (stype) {
-			case SHT_AMD64_UNWIND: return "AMD64_UNWIND";
+			case SHT_X86_64_UNWIND: return "X86_64_UNWIND";
 			default:
 				break;
 			}

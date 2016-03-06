@@ -1193,7 +1193,7 @@ _ELF_DEFINE_SHT(SHT_MIPS_ABIFLAGS,   0x7000002AUL,			\
 	"ABI flags")							\
 _ELF_DEFINE_SHT(SHT_SPARC_GOTDATA,   0x70000000UL,			\
 	"SPARC-specific data")						\
-_ELF_DEFINE_SHT(SHT_AMD64_UNWIND,    0x70000001UL,			\
+_ELF_DEFINE_SHT(SHT_X86_64_UNWIND,   0x70000001UL,			\
 	"unwind tables for the AMD64")					\
 _ELF_DEFINE_SHT(SHT_ORDERED,         0x7FFFFFFFUL,			\
 	"sort entries in the section")					\
@@ -1212,6 +1212,7 @@ enum {
 };
 
 /* Aliases for section types. */
+#define	SHT_AMD64_UNWIND	SHT_X86_64_UNWIND
 #define	SHT_GNU_verdef		SHT_SUNW_verdef
 #define	SHT_GNU_verneed		SHT_SUNW_verneed
 #define	SHT_GNU_versym		SHT_SUNW_versym
