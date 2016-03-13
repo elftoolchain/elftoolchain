@@ -1268,7 +1268,7 @@ elf_print_phdr(struct elfdump *ed)
 		return;
 	}
 	header = 0;
-	for (i = 0; (u_int64_t) i < phnum; i++) {
+	for (i = 0; (size_t) i < phnum; i++) {
 		if (gelf_getphdr(ed->elf, i, &ph) != &ph) {
 			warnx("elf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
@@ -1564,6 +1564,7 @@ elf_print_dynamic(struct elfdump *ed)
 		case DT_NEEDED:
 		case DT_SONAME:
 		case DT_RPATH:
+		case DT_RUNPATH:
 			if ((name = elf_strptr(ed->elf, s->link,
 				    dyn.d_un.d_val)) == NULL)
 				name = "";
