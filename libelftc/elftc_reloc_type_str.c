@@ -664,6 +664,9 @@ elftc_reloc_type_str(unsigned int mach, unsigned int type)
 		case 35: return "R_X86_64_TLSDESC_CALL";
 		case 36: return "R_X86_64_TLSDESC";
 		case 37: return "R_X86_64_IRELATIVE";
+		case 38: return "R_X86_64_RELATIVE64";
+		case 41: return "R_X86_64_GOTPCRELX";
+		case 42: return "R_X86_64_REX_GOTPCRELX";
 		}
 		break;
 	}
