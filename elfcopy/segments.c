@@ -174,7 +174,7 @@ adjust_addr(struct elfcopy *ecp)
 		if (vma % s->align != 0)
 			errx(EXIT_FAILURE, "The VMA %#jx for "
 			    "section %s is not aligned to %ju",
-			    (uintmax_t) lma, s->name, (uintmax_t) s->align);
+			    (uintmax_t) vma, s->name, (uintmax_t) s->align);
 
 		if (vma < s->vma) {
 			/* Move section to lower address. */
