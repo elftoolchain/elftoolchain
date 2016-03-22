@@ -197,7 +197,7 @@ adjust_addr(struct elfcopy *ecp)
 			if (end < start)
 				errx(EXIT_FAILURE, "Not enough space to move "
 				    "section %s VMA to %#jx", s->name,
-				    (uintmax_t) lma);
+				    (uintmax_t) vma);
 		}
 
 #ifdef	DEBUG
