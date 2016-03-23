@@ -184,6 +184,10 @@ _ELF_DEFINE_DT(DT_ADDRRNGLO,        0x6FFFFE00UL,			\
 	"start of range using the d_ptr field")				\
 _ELF_DEFINE_DT(DT_GNU_HASH,	    0x6FFFFEF5UL,			\
 	"GNU style hash tables")					\
+_ELF_DEFINE_DT(DT_TLSDESC_PLT,	    0x6FFFFEF6UL,			\
+	"location of PLT entry for TLS descriptor resolver calls")	\
+_ELF_DEFINE_DT(DT_TLSDESC_GOT,	    0x6FFFFEF7UL,			\
+	"location of GOT entry used by TLS descriptor resolver PLT entry") \
 _ELF_DEFINE_DT(DT_GNU_CONFLICT,     0x6FFFFEF8UL,			\
 	"address of conflict section")					\
 _ELF_DEFINE_DT(DT_GNU_LIBLIST,      0x6FFFFEF9UL,			\
