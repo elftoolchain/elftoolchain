@@ -544,6 +544,7 @@ _ELF_DEFINE_EABI(ELFOSABI_NSK,        14,				\
 _ELF_DEFINE_EABI(ELFOSABI_AROS,       15, "Amiga Research OS")		\
 _ELF_DEFINE_EABI(ELFOSABI_FENIXOS,    16,				\
 	"The FenixOS highly scalable multi-core OS")			\
+_ELF_DEFINE_EABI(ELFOSABI_CLOUDABI,   17, "Nuxi CloudABI")		\
 _ELF_DEFINE_EABI(ELFOSABI_ARM_AEABI,  64,				\
 	"ARM specific symbol versioning extensions")			\
 _ELF_DEFINE_EABI(ELFOSABI_ARM,        97, "ARM ABI")			\
