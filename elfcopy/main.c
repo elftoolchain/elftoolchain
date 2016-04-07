@@ -209,6 +209,7 @@ static struct {
 	{"openbsd", ELFOSABI_OPENBSD},
 	{"openvms", ELFOSABI_OPENVMS},
 	{"nsk", ELFOSABI_NSK},
+	{"cloudabi", ELFOSABI_CLOUDABI},
 	{"arm", ELFOSABI_ARM},
 	{"standalone", ELFOSABI_STANDALONE},
 	{NULL, 0}
