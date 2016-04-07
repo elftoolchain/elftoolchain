@@ -62,6 +62,7 @@ static struct ELFtypes elftypes[] = {
 	{ "AIX",	ELFOSABI_AIX },
 	{ "ARM",	ELFOSABI_ARM },
 	{ "AROS",	ELFOSABI_AROS },
+	{ "CloudABI",	ELFOSABI_CLOUDABI },
 	{ "FreeBSD",	ELFOSABI_FREEBSD },
 	{ "GNU",	ELFOSABI_GNU },
 	{ "HP/UX",	ELFOSABI_HPUX},
