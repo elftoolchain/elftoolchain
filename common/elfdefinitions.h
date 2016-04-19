@@ -1261,6 +1261,7 @@ _ELF_DEFINE_STT(STT_FILE,            4, "source file")			\
 _ELF_DEFINE_STT(STT_COMMON,          5, "uninitialized common block")	\
 _ELF_DEFINE_STT(STT_TLS,             6, "thread local storage")		\
 _ELF_DEFINE_STT(STT_LOOS,            10, "start of OS-specific types")	\
+_ELF_DEFINE_STT(STT_GNU_IFUNC,       10, "indirect function")	\
 _ELF_DEFINE_STT(STT_HIOS,            12, "end of OS-specific types")	\
 _ELF_DEFINE_STT(STT_LOPROC,          13,				\
 	"start of processor-specific types")				\
