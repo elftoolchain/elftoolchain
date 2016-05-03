@@ -735,7 +735,7 @@ berkeley_calc(GElf_Shdr *shdr)
 static void
 berkeley_totals(void)
 {
-	long unsigned int grand_total;
+	uint64_t grand_total;
 
 	grand_total = text_size_total + data_size_total + bss_size_total;
 	tbl_append();
