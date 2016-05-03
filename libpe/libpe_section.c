@@ -486,7 +486,7 @@ libpe_write_sections(PE *pe, off_t off)
 		/*
 		 * Padding between sections. (padding always written
 		 * in case the the section headers or sections are
-		 * moved or shrinked.)
+		 * moved or shrunk.)
 		 */
 		assert(off <= sh->sh_rawptr);
 		if (off < sh->sh_rawptr)

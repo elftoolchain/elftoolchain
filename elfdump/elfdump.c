@@ -1783,7 +1783,7 @@ elf_print_interp(struct elfdump *ed)
 }
 
 /*
- * Search the relocation sections for entries refering to the .got section.
+ * Search the relocation sections for entries referring to the .got section.
  */
 static void
 find_gotrel(struct elfdump *ed, struct section *gs, struct rel_entry *got)
@@ -1870,7 +1870,7 @@ elf_print_got_section(struct elfdump *ed, struct section *s)
 
 	/*
 	 * GOT section has section type SHT_PROGBITS, thus libelf treats it as
-	 * byte stream and will not perfrom any translation on it. As a result,
+	 * byte stream and will not perform any translation on it. As a result,
 	 * an exlicit call to gelf_xlatetom is needed here. Depends on arch,
 	 * GOT section should be translated to either WORD or XWORD.
 	 */

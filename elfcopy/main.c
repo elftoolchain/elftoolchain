@@ -236,7 +236,7 @@ static void	strip_main(struct elfcopy *ecp, int argc, char **argv);
 static void	strip_usage(void);
 
 /*
- * An ELF object usually has a sturcture described by the
+ * An ELF object usually has a structure described by the
  * diagram below.
  *  _____________
  * |             |
@@ -1447,7 +1447,7 @@ Usage: %s [options] infile [outfile]\n\
                                sections.\n\
   --only-keep-debug            Copy only debugging information.\n\
   --output-target=FORMAT       Use the specified format for the output.\n\
-  --pad-to=ADDRESS             Pad the output object upto the given address.\n\
+  --pad-to=ADDRESS             Pad the output object up to the given address.\n\
   --prefix-alloc-sections=STRING\n\
                                Prefix the section names of all the allocated\n\
                                sections with STRING.\n\

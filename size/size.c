@@ -424,8 +424,8 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 }
 
 /*
- * Handles program headers except for PT_NOTE, when sysv output stlye is
- * choosen, prints out the segment name and length. For berkely output
+ * Handles program headers except for PT_NOTE, when sysv output style is
+ * chosen, prints out the segment name and length. For berkely output
  * style only PT_LOAD segments are handled, and text,
  * data, bss size is calculated for them.
  */

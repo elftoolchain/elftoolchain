@@ -284,7 +284,7 @@ collect_func(Dwarf_Debug dbg, Dwarf_Die die, struct Func *parent, struct CU *cu)
 		    &de) == DW_DLV_OK)
 			goto add_func;
 
-		/* Skip if no name assoicated with this DIE. */
+		/* Skip if no name associated with this DIE. */
 		goto cont_search;
 
 	add_func:

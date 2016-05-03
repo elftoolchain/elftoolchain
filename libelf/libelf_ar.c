@@ -64,7 +64,7 @@ ELFTC_VCSID("$Id$");
  * table where the actual file name of the object starts.  Strings in
  * the string table are padded to start on even addresses.
  *
- * In the BSD format, file names can be upto 16 characters.  File
+ * In the BSD format, file names can be up to 16 characters.  File
  * names shorter than 16 characters are padded to 16 characters using
  * (ASCII) space characters.  File names with embedded spaces and file
  * names longer than 16 characters are stored immediately after the

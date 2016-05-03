@@ -273,7 +273,7 @@ _ELF_DEFINE_DT(DT_MIPS_DELTA_RELOC, 0x7000001BUL,			\
 _ELF_DEFINE_DT(DT_MIPS_DELTA_RELOC_NO, 0x7000001CUL,			\
 	"number of entries in DT_MIPS_DELTA_RELOC")			\
 _ELF_DEFINE_DT(DT_MIPS_DELTA_SYM,   0x7000001DUL,			\
-	"Delta symbols refered by Delta relocations")			\
+	"Delta symbols referred by Delta relocations")			\
 _ELF_DEFINE_DT(DT_MIPS_DELTA_SYM_NO, 0x7000001EUL,			\
 	"number of entries in DT_MIPS_DELTA_SYM")			\
 _ELF_DEFINE_DT(DT_MIPS_DELTA_CLASSSYM, 0x70000020UL,			\
@@ -2486,7 +2486,7 @@ _ELF_DEFINE_ODK(ODK_HWOR,       8,      "hardware OR patch applied")	\
 _ELF_DEFINE_ODK(ODK_GP_GROUP,   9,					\
 	"GP group to use for text/data sections")			\
 _ELF_DEFINE_ODK(ODK_IDENT,      10,     "ID information")		\
-_ELF_DEFINE_ODK(ODK_PAGESIZE,   11,     "page size infomation")
+_ELF_DEFINE_ODK(ODK_PAGESIZE,   11,     "page size information")
 
 #undef	_ELF_DEFINE_ODK
 #define	_ELF_DEFINE_ODK(N, V, DESCR)	N = V ,

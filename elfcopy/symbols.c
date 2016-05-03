@@ -162,7 +162,7 @@ is_needed_symbol(struct elfcopy *ecp, int i, GElf_Sym *s)
 	if (BIT_ISSET(ecp->v_rel, i))
 		return (1);
 
-	/* Symbols refered by COMDAT sections are needed. */
+	/* Symbols referred by COMDAT sections are needed. */
 	if (BIT_ISSET(ecp->v_grp, i))
 		return (1);
 
@@ -252,7 +252,7 @@ is_remove_symbol(struct elfcopy *ecp, size_t sc, int i, GElf_Sym *s,
 }
 
 /*
- * Mark symbols refered by relocation entries.
+ * Mark symbols referred by relocation entries.
  */
 static void
 mark_reloc_symbols(struct elfcopy *ecp, size_t sc)

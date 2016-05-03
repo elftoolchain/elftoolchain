@@ -187,7 +187,7 @@ create_srec(struct elfcopy *ecp, int ifd, int ofd, const char *ofn)
 	if (elferr != 0)
 		warnx("elf_nextscn failed: %s", elf_errmsg(elferr));
 
-	/* Generate S{7,8,9} end of block recrod. */
+	/* Generate S{7,8,9} end of block record. */
 	if (gelf_getehdr(e, &eh) == NULL)
 		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));

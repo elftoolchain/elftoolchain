@@ -258,7 +258,7 @@ handle_elf(const char *name, int fd)
 	int rc;
 
 	rc = RETURN_OK;
-	/* If entire file is choosen, treat it as a binary file */
+	/* If entire file is chosen, treat it as a binary file */
 	if (entire_file)
 		return (handle_binary(name, fd));
 
