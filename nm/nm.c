@@ -1716,7 +1716,7 @@ sym_elem_print_all_sysv(char type, const char *sec, const GElf_Sym *sym,
 	case STT_NOTYPE:
 	default:
 		printf("%18s|", "NOTYPE");
-	};
+	}
 
 	if (sym->st_size != 0)
 		nm_opts.size_print_fn(sym);
@@ -1945,7 +1945,7 @@ sym_list_print_each(struct sym_entry *ep, struct sym_print_data *p,
 			return;
 		sec = p->s_table[ep->sym->st_shndx];
 		break;
-	};
+	}
 
 	nm_opts.elem_print_fn(type, sec, ep->sym, ep->name);
 

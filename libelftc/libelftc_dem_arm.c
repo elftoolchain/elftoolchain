@@ -1171,8 +1171,8 @@ read_type(struct demangle_data *d)
 			break;
 		default :
 			break;
-		};
-	};
+		}
+	}
 
 	if (ELFTC_ISDIGIT(*d->p))
 		return (read_class(d));

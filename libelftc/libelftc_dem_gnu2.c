@@ -135,7 +135,7 @@ cpp_demangle_gnu2(const char *org)
 	case ENCODE_OP_TI :
 	case ENCODE_OP_VT :
 		goto flat;
-	};
+	}
 
 	if (*d.p == 'F')
 		++d.p;
@@ -315,7 +315,7 @@ is_cpp_mangled_gnu2(const char *org)
 					rtn |= true;
 
 					break;
-				};
+				}
 			}
 		}
 
@@ -1308,8 +1308,8 @@ read_type(struct demangle_data *d)
 			break;
 		default :
 			break;
-		};
-	};
+		}
+	}
 
 	if (ELFTC_ISDIGIT(*d->p))
 		return (read_class(d));
