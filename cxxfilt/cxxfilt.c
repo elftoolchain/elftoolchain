@@ -185,7 +185,7 @@ main(int argc, char **argv)
 	if (*argv != NULL) {
 		for (n = 0; n < argc; n++) {
 			if ((dem = demangle(argv[n], 1, NULL)) == NULL)
-				fprintf(stderr, "Failed: %s\n", argv[n]);
+				printf("%s\n", argv[n]);
 			else
 				printf("%s\n", dem);
 		}
