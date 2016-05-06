@@ -393,10 +393,18 @@ elftc_reloc_type_str(unsigned int mach, unsigned int type)
 		case 10: return "R_MIPS_PC16";
 		case 11: return "R_MIPS_CALL16";
 		case 12: return "R_MIPS_GPREL32";
+		case 16: return "R_MIPS_SHIFT5";
+		case 17: return "R_MIPS_SHIFT6";
+		case 18: return "R_MIPS_64";
+		case 19: return "R_MIPS_GOT_DISP";
+		case 20: return "R_MIPS_GOT_PAGE";
+		case 21: return "R_MIPS_GOT_OFST";
 		case 22: return "R_MIPS_GOT_HI16";
 		case 23: return "R_MIPS_GOT_LO16";
+		case 24: return "R_MIPS_SUB";
 		case 30: return "R_MIPS_CALLHI16";
 		case 31: return "R_MIPS_CALLLO16";
+		case 37: return "R_MIPS_JALR";
 		case 38: return "R_MIPS_TLS_DTPMOD32";
 		case 39: return "R_MIPS_TLS_DTPREL32";
 		case 40: return "R_MIPS_TLS_DTPMOD64";
