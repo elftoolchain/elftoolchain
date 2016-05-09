@@ -262,7 +262,7 @@ static void
 handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
     char **cmd_line)
 {
-	size_t max_size;
+	size_t max_size, segment_end;
 	uint64_t raw_size;
 	GElf_Off offset;
 	static pid_t pid;
@@ -276,7 +276,13 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 
 	data = elf_rawfile(elf, &max_size);
 	offset = phdr->p_offset;
-	while (data != NULL && offset < phdr->p_offset + phdr->p_filesz) {
+	if (offset >= max_size || phdr->p_filesz > max_size - offset) {
+		warnx("invalid PHDR offset");
+		return;
+	}
+	segment_end = phdr->p_offset + phdr->p_filesz;
+
+	while (data != NULL && offset + sizeof(Elf32_Nhdr) < segment_end) {
 		nhdr = (Elf32_Nhdr *)(uintptr_t)((char*)data + offset);
 		memset(&nhdr_l, 0, sizeof(Elf32_Nhdr));
 		if (!xlatetom(elf, elfhdr, &nhdr->n_type, &nhdr_l.n_type,
@@ -286,6 +292,13 @@ handle_core_note(Elf *elf, GElf_Ehdr *elfhdr, GElf_Phdr *phdr,
 		    !xlatetom(elf, elfhdr, &nhdr->n_namesz, &nhdr_l.n_namesz,
 			ELF_T_WORD, sizeof(Elf32_Word)))
 			break;
+
+		if (offset + sizeof(Elf32_Nhdr) +
+		    ELF_ALIGN(nhdr_l.n_namesz, 4) +
+		    ELF_ALIGN(nhdr_l.n_descsz, 4) >= segment_end) {
+			warnx("invalid note header");
+			return;
+		}
 
 		name = (char *)((char *)nhdr + sizeof(Elf32_Nhdr));
 		switch (nhdr_l.n_type) {
