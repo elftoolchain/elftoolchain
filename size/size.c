@@ -609,7 +609,7 @@ handle_elf(char const *name)
 			elf_cmd = elf_next(elf);
 			(void) elf_end(elf);
 			warnx("%s: File format not recognized",
-			    arhdr->ar_name);
+			    arhdr != NULL ? arhdr->ar_name : name);
 			continue;
 		}
 		/* Core dumps are handled separately */
