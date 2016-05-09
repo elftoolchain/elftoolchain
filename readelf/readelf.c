@@ -3246,7 +3246,7 @@ dump_notes(struct readelf *re)
 	const char *rawfile;
 	GElf_Phdr phdr;
 	Elf_Data *d;
-	size_t phnum;
+	size_t filesize, phnum;
 	int i, elferr;
 
 	if (re->ehdr.e_type == ET_CORE) {
@@ -3260,7 +3260,7 @@ dump_notes(struct readelf *re)
 		}
 		if (phnum == 0)
 			return;
-		if ((rawfile = elf_rawfile(re->elf, NULL)) == NULL) {
+		if ((rawfile = elf_rawfile(re->elf, &filesize)) == NULL) {
 			warnx("elf_rawfile failed: %s", elf_errmsg(-1));
 			return;
 		}
@@ -3270,9 +3270,15 @@ dump_notes(struct readelf *re)
 				    elf_errmsg(-1));
 				continue;
 			}
-			if (phdr.p_type == PT_NOTE)
+			if (phdr.p_type == PT_NOTE) {
+				if (phdr.p_offset >= filesize ||
+				    phdr.p_filesz > filesize - phdr.p_offset) {
+					warnx("invalid PHDR offset");
+					continue;
+				}
 				dump_notes_content(re, rawfile + phdr.p_offset,
 				    phdr.p_filesz, phdr.p_offset);
+			}
 		}
 
 	} else {
