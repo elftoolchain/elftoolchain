@@ -263,21 +263,68 @@ e_machines(unsigned int mach)
 	return (machdesc);
 }
 
-static const char *e_types[] = {
-	"ET_NONE", "ET_REL", "ET_EXEC", "ET_DYN", "ET_CORE"
-};
+static const char *
+elf_type_str(unsigned int type)
+{
+	static char s_type[32];
 
-static const char *ei_versions[] = {
-	"EV_NONE", "EV_CURRENT"
-};
+	switch (type)
+	{
+	case ET_NONE:	return "ET_NONE";
+	case ET_REL:	return "ET_REL";
+	case ET_EXEC:	return "ET_EXEC";
+	case ET_DYN:	return "ET_DYN";
+	case ET_CORE:	return "ET_CORE";
+	}
+	if (type >= ET_LOPROC)
+		snprintf(s_type, sizeof(s_type), "<proc: %#x>", type);
+	else if (type >= ET_LOOS && type <= ET_HIOS)
+		snprintf(s_type, sizeof(s_type), "<os: %#x>", type);
+	else
+		snprintf(s_type, sizeof(s_type), "<unknown: %#x", type);
+	return (s_type);
+}
 
-static const char *ei_classes[] = {
-	"ELFCLASSNONE", "ELFCLASS32", "ELFCLASS64"
-};
+static const char *
+elf_version_str(unsigned int ver)
+{
+	static char s_ver[32];
 
-static const char *ei_data[] = {
-	"ELFDATANONE", "ELFDATA2LSB", "ELFDATA2MSB"
-};
+	switch (ver) {
+	case EV_NONE:		return "EV_NONE";
+	case EV_CURRENT:	return "EV_CURRENT";
+	}
+	snprintf(s_ver, sizeof(s_ver), "<unknown: %#x>", ver);
+	return (s_ver);
+}
+
+static const char *
+elf_class_str(unsigned int class)
+{
+	static char s_class[32];
+
+	switch (class) {
+	case ELFCLASSNONE:	return "ELFCLASSNONE";
+	case ELFCLASS32:	return "ELFCLASS32";
+	case ELFCLASS64:	return "ELFCLASS64";
+	}
+	snprintf(s_class, sizeof(s_class), "<unknown: %#x>", class);
+	return (s_class);
+}
+
+static const char *
+elf_data_str(unsigned int data)
+{
+	static char s_data[32];
+
+	switch (data) {
+	case ELFDATANONE:	return "ELFDATANONE";
+	case ELFDATA2LSB:	return "ELFDATA2LSB";
+	case ELFDATA2MSB:	return "ELFDATA2MSB";
+	}
+	snprintf(s_data, sizeof(s_data), "<unknown: %#x>", data);
+	return (s_data);
+}
 
 static const char *ei_abis[256] = {
 	"ELFOSABI_NONE", "ELFOSABI_HPUX", "ELFOSABI_NETBSD", "ELFOSABI_LINUX",
@@ -1216,11 +1263,13 @@ elf_print_ehdr(struct elfdump *ed)
 		    ed->ehdr.e_ident[0], ed->ehdr.e_ident[1],
 		    ed->ehdr.e_ident[2], ed->ehdr.e_ident[3]);
 		PRT("  ei_class:   %-18s",
-		    ei_classes[ed->ehdr.e_ident[EI_CLASS]]);
-		PRT("  ei_data:      %s\n", ei_data[ed->ehdr.e_ident[EI_DATA]]);
+		    elf_class_str(ed->ehdr.e_ident[EI_CLASS]));
+		PRT("  ei_data:      %s\n",
+		    elf_data_str(ed->ehdr.e_ident[EI_DATA]));
 		PRT("  e_machine:  %-18s", e_machines(ed->ehdr.e_machine));
-		PRT("  e_version:    %s\n", ei_versions[ed->ehdr.e_version]);
-		PRT("  e_type:     %s\n", e_types[ed->ehdr.e_type]);
+		PRT("  e_version:    %s\n",
+		    elf_version_str(ed->ehdr.e_version));
+		PRT("  e_type:     %s\n", elf_type_str(ed->ehdr.e_type));
 		PRT("  e_flags:    %18d\n", ed->ehdr.e_flags);
 		PRT("  e_entry:    %#18jx", (uintmax_t)ed->ehdr.e_entry);
 		PRT("  e_ehsize: %6d", ed->ehdr.e_ehsize);
@@ -1235,12 +1284,12 @@ elf_print_ehdr(struct elfdump *ed)
 		PRT("\nelf header:\n");
 		PRT("\n");
 		PRT("\te_ident: %s %s %s\n",
-		    ei_classes[ed->ehdr.e_ident[EI_CLASS]],
-		    ei_data[ed->ehdr.e_ident[EI_DATA]],
+		    elf_class_str(ed->ehdr.e_ident[EI_CLASS]),
+		    elf_data_str(ed->ehdr.e_ident[EI_DATA]),
 		    ei_abis[ed->ehdr.e_ident[EI_OSABI]]);
-		PRT("\te_type: %s\n", e_types[ed->ehdr.e_type]);
+		PRT("\te_type: %s\n", elf_type_str(ed->ehdr.e_type));
 		PRT("\te_machine: %s\n", e_machines(ed->ehdr.e_machine));
-		PRT("\te_version: %s\n", ei_versions[ed->ehdr.e_version]);
+		PRT("\te_version: %s\n", elf_version_str(ed->ehdr.e_version));
 		PRT("\te_entry: %#jx\n", (uintmax_t)ed->ehdr.e_entry);
 		PRT("\te_phoff: %ju\n", (uintmax_t)ed->ehdr.e_phoff);
 		PRT("\te_shoff: %ju\n", (uintmax_t) ed->ehdr.e_shoff);
