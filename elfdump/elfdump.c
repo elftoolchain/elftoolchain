@@ -2005,6 +2005,10 @@ elf_print_note(struct elfdump *ed)
 		descsz = en->n_descsz;
 		src += sizeof(Elf_Note);
 		count -= sizeof(Elf_Note);
+		if (roundup2(namesz, 4) + roundup2(descsz, 4) > count) {
+			warnx("truncated note section");
+			return;
+		}
 		if (ed->flags & SOLARIS_FMT) {
 			PRT("\n    type   %#x\n", en->n_type);
 			PRT("    namesz %#x:\n", en->n_namesz);
