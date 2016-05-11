@@ -1821,13 +1821,13 @@ elf_print_interp(struct elfdump *ed)
 {
 	const char *s;
 	GElf_Phdr phdr;
-	size_t phnum;
+	size_t filesize, phnum;
 	int i;
 
 	if (!STAILQ_EMPTY(&ed->snl) && find_name(ed, "PT_INTERP") == NULL)
 		return;
 
-	if ((s = elf_rawfile(ed->elf, NULL)) == NULL) {
+	if ((s = elf_rawfile(ed->elf, &filesize)) == NULL) {
 		warnx("elf_rawfile failed: %s", elf_errmsg(-1));
 		return;
 	}
@@ -1841,6 +1841,10 @@ elf_print_interp(struct elfdump *ed)
 			continue;
 		}
 		if (phdr.p_type == PT_INTERP) {
+			if (phdr.p_offset >= filesize) {
+				warnx("invalid phdr offset");
+				continue;
+			}
 			PRT("\ninterp:\n");
 			PRT("\t%s\n", s + phdr.p_offset);
 		}
