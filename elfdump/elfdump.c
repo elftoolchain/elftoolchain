@@ -335,10 +335,24 @@ static const char *ei_abis[256] = {
 	[255] = "ELFOSABI_STANDALONE"
 };
 
-static const char *p_types[] = {
-	"PT_NULL", "PT_LOAD", "PT_DYNAMIC", "PT_INTERP", "PT_NOTE",
-	"PT_SHLIB", "PT_PHDR", "PT_TLS"
-};
+static const char *
+elf_phdr_type_str(unsigned int type)
+{
+	static char s_type[32];
+
+	switch (type) {
+	case PT_NULL:		return "PT_NULL";
+	case PT_LOAD:		return "PT_LOAD";
+	case PT_DYNAMIC:	return "PT_DYNAMIC";
+	case PT_INTERP:		return "PT_INTERP";
+	case PT_NOTE:		return "PT_NOTE";
+	case PT_SHLIB:		return "PT_SHLIB";
+	case PT_PHDR:		return "PT_PHDR";
+	case PT_TLS:		return "PT_TLS";
+	}
+	snprintf(s_type, sizeof(s_type), "<unknown: %#x>", type);
+	return (s_type);
+}
 
 static const char *p_flags[] = {
 	"", "PF_X", "PF_W", "PF_X|PF_W", "PF_R", "PF_X|PF_R", "PF_W|PF_R",
@@ -1324,14 +1338,15 @@ elf_print_phdr(struct elfdump *ed)
 			continue;
 		}
 		if (!STAILQ_EMPTY(&ed->snl) &&
-		    find_name(ed, p_types[ph.p_type & 0x7]) == NULL)
+		    find_name(ed, elf_phdr_type_str(ph.p_type)) == NULL)
 			continue;
 		if (ed->flags & SOLARIS_FMT) {
 			PRT("\nProgram Header[%d]:\n", i);
 			PRT("    p_vaddr:      %#-14jx", (uintmax_t)ph.p_vaddr);
 			PRT("  p_flags:    [ %s ]\n", p_flags[ph.p_flags]);
 			PRT("    p_paddr:      %#-14jx", (uintmax_t)ph.p_paddr);
-			PRT("  p_type:     [ %s ]\n", p_types[ph.p_type & 0x7]);
+			PRT("  p_type:     [ %s ]\n",
+			    elf_phdr_type_str(ph.p_type));
 			PRT("    p_filesz:     %#-14jx",
 			    (uintmax_t)ph.p_filesz);
 			PRT("  p_memsz:    %#jx\n", (uintmax_t)ph.p_memsz);
@@ -1345,7 +1360,7 @@ elf_print_phdr(struct elfdump *ed)
 			}
 			PRT("\n");
 			PRT("entry: %d\n", i);
-			PRT("\tp_type: %s\n", p_types[ph.p_type & 0x7]);
+			PRT("\tp_type: %s\n", elf_phdr_type_str(ph.p_type));
 			PRT("\tp_offset: %ju\n", (uintmax_t)ph.p_offset);
 			PRT("\tp_vaddr: %#jx\n", (uintmax_t)ph.p_vaddr);
 			PRT("\tp_paddr: %#jx\n", (uintmax_t)ph.p_paddr);
