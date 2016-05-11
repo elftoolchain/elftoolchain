@@ -2154,7 +2154,8 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 		warnx("Malformed .hash section");
 		return;
 	}
-	if (data->d_size != (nbucket + nchain + 2) * sizeof(uint32_t)) {
+	if (data->d_size !=
+	    ((uint64_t)nbucket + (uint64_t)nchain + 2) * sizeof(uint32_t)) {
 		warnx("Malformed .hash section");
 		return;
 	}
@@ -2355,7 +2356,7 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 	nchain = dynsymcount - symndx;
 	if (data->d_size != 4 * sizeof(uint32_t) + maskwords *
 	    (ed->ec == ELFCLASS32 ? sizeof(uint32_t) : sizeof(uint64_t)) +
-	    (nbucket + nchain) * sizeof(uint32_t)) {
+	    ((uint64_t)nbucket + (uint64_t)nchain) * sizeof(uint32_t)) {
 		warnx("Malformed .gnu.hash section");
 		return;
 	}
