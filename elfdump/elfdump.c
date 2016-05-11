@@ -1343,7 +1343,8 @@ elf_print_phdr(struct elfdump *ed)
 		if (ed->flags & SOLARIS_FMT) {
 			PRT("\nProgram Header[%d]:\n", i);
 			PRT("    p_vaddr:      %#-14jx", (uintmax_t)ph.p_vaddr);
-			PRT("  p_flags:    [ %s ]\n", p_flags[ph.p_flags]);
+			PRT("  p_flags:    [ %s ]\n",
+			    p_flags[ph.p_flags & 0x7]);
 			PRT("    p_paddr:      %#-14jx", (uintmax_t)ph.p_paddr);
 			PRT("  p_type:     [ %s ]\n",
 			    elf_phdr_type_str(ph.p_type));
@@ -1366,7 +1367,7 @@ elf_print_phdr(struct elfdump *ed)
 			PRT("\tp_paddr: %#jx\n", (uintmax_t)ph.p_paddr);
 			PRT("\tp_filesz: %ju\n", (uintmax_t)ph.p_filesz);
 			PRT("\tp_memsz: %ju\n", (uintmax_t)ph.p_memsz);
-			PRT("\tp_flags: %s\n", p_flags[ph.p_flags]);
+			PRT("\tp_flags: %s\n", p_flags[ph.p_flags & 0x7]);
 			PRT("\tp_align: %ju\n", (uintmax_t)ph.p_align);
 		}
 	}
