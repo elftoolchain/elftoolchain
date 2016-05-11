@@ -94,7 +94,7 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 
 	if ((elftype = _libelf_xlate_shtype(sh_type)) < ELF_T_FIRST ||
 	    elftype > ELF_T_LAST || (sh_type != SHT_NOBITS &&
-	    sh_offset + sh_size > (uint64_t) e->e_rawsize)) {
+	    (sh_offset > e->e_rawsize || sh_size > e->e_rawsize - sh_offset))) {
 		LIBELF_SET_ERROR(SECTION, 0);
 		return (NULL);
 	}
@@ -254,7 +254,7 @@ elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 	}
 
 	if (sh_type != SHT_NOBITS &&
-	    sh_offset + sh_size > (uint64_t) e->e_rawsize) {
+	    (sh_offset > e->e_rawsize || sh_size > e->e_rawsize - sh_offset)) {
 		LIBELF_SET_ERROR(SECTION, 0);
 		return (NULL);
 	}
