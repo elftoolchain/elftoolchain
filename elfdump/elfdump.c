@@ -469,7 +469,8 @@ sh_types(uint64_t mach, uint64_t sht) {
 	DEFINE_SHF(LINK_ORDER)			\
 	DEFINE_SHF(OS_NONCONFORMING)		\
 	DEFINE_SHF(GROUP)			\
-	DEFINE_SHF(TLS)
+	DEFINE_SHF(TLS)				\
+	DEFINE_SHF(COMPRESSED)
 
 #undef	DEFINE_SHF
 #define	DEFINE_SHF(F) "SHF_" #F "|"

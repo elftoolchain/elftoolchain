@@ -1056,6 +1056,7 @@ static struct {
 	{"OS NONCONF", 'O', SHF_OS_NONCONFORMING},
 	{"GROUP", 'G', SHF_GROUP},
 	{"TLS", 'T', SHF_TLS},
+	{"COMPRESSED", 'C', SHF_COMPRESSED},
 	{NULL, 0, 0}
 };
 
