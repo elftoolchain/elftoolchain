@@ -349,6 +349,9 @@ elf_phdr_type_str(unsigned int type)
 	case PT_SHLIB:		return "PT_SHLIB";
 	case PT_PHDR:		return "PT_PHDR";
 	case PT_TLS:		return "PT_TLS";
+	case PT_GNU_EH_FRAME:	return "PT_GNU_EH_FRAME";
+	case PT_GNU_STACK:	return "PT_GNU_STACK";
+	case PT_GNU_RELRO:	return "PT_GNU_RELRO";
 	}
 	snprintf(s_type, sizeof(s_type), "<unknown: %#x>", type);
 	return (s_type);
