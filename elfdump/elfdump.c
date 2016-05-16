@@ -795,8 +795,8 @@ ac_print_ar(struct elfdump *ed, int fd)
 	char			 idx[10], *b;
 	void			*buff;
 	size_t			 size;
-	uint32_t		 cnt;
-	int			 i, r;
+	uint32_t		 cnt, i;
+	int			 r;
 
 	if (lseek(fd, 0, SEEK_SET) == -1)
 		err(EXIT_FAILURE, "lseek failed");
@@ -845,11 +845,11 @@ ac_print_ar(struct elfdump *ed, int fd)
 			if (arsym == NULL)
 				err(EXIT_FAILURE, "calloc failed");
 			b += sizeof(uint32_t);
-			for (i = 0; (size_t)i < cnt; i++) {
+			for (i = 0; i < cnt; i++) {
 				arsym[i].off = be32dec(b);
 				b += sizeof(uint32_t);
 			}
-			for (i = 0; (size_t)i < cnt; i++) {
+			for (i = 0; i < cnt; i++) {
 				arsym[i].sym_name = b;
 				b += strlen(b) + 1;
 			}
@@ -858,7 +858,7 @@ ac_print_ar(struct elfdump *ed, int fd)
 				PRT("     index    offset    symbol\n");
 			} else
 				PRT("\nsymbol table (archive):\n");
-			for (i = 0; (size_t)i < cnt; i++) {
+			for (i = 0; i < cnt; i++) {
 				if (ed->flags & SOLARIS_FMT) {
 					snprintf(idx, sizeof(idx), "[%d]", i);
 					PRT("%10s  ", idx);
@@ -914,8 +914,7 @@ elf_print_ar(struct elfdump *ed, int fd)
 	Elf_Arsym	*arsym;
 	Elf_Cmd		 cmd;
 	char		 idx[10];
-	size_t		 cnt;
-	int		 i;
+	size_t		 cnt, i;
 
 	ed->ar = ed->elf;
 
@@ -932,7 +931,7 @@ elf_print_ar(struct elfdump *ed, int fd)
 			PRT("     index    offset    member name and symbol\n");
 		} else
 			PRT("\nsymbol table (archive):\n");
-		for (i = 0; (size_t)i < cnt - 1; i++) {
+		for (i = 0; i < cnt - 1; i++) {
 			if (elf_rand(ed->ar, arsym[i].as_off) !=
 			    arsym[i].as_off) {
 				warnx("elf_rand failed: %s", elf_errmsg(-1));
@@ -948,14 +947,14 @@ elf_print_ar(struct elfdump *ed, int fd)
 				break;
 			}
 			if (ed->flags & SOLARIS_FMT) {
-				snprintf(idx, sizeof(idx), "[%d]", i);
+				snprintf(idx, sizeof(idx), "[%zu]", i);
 				PRT("%10s  ", idx);
 				PRT("0x%8.8jx  ",
 				    (uintmax_t)arsym[i].as_off);
 				PRT("(%s):%s\n", arh->ar_name,
 				    arsym[i].as_name);
 			} else {
-				PRT("\nentry: %d\n", i);
+				PRT("\nentry: %zu\n", i);
 				PRT("\toffset: %#jx\n",
 				    (uintmax_t)arsym[i].as_off);
 				PRT("\tmember: %s\n", arh->ar_name);
@@ -1328,15 +1327,15 @@ static void
 elf_print_phdr(struct elfdump *ed)
 {
 	GElf_Phdr	 ph;
-	size_t		 phnum;
-	int		 header, i;
+	size_t		 phnum, i;
+	int		 header;
 
 	if (elf_getphnum(ed->elf, &phnum) == 0) {
 		warnx("elf_getphnum failed: %s", elf_errmsg(-1));
 		return;
 	}
 	header = 0;
-	for (i = 0; (size_t) i < phnum; i++) {
+	for (i = 0; i < phnum; i++) {
 		if (gelf_getphdr(ed->elf, i, &ph) != &ph) {
 			warnx("elf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
@@ -1345,7 +1344,7 @@ elf_print_phdr(struct elfdump *ed)
 		    find_name(ed, elf_phdr_type_str(ph.p_type)) == NULL)
 			continue;
 		if (ed->flags & SOLARIS_FMT) {
-			PRT("\nProgram Header[%d]:\n", i);
+			PRT("\nProgram Header[%zu]:\n", i);
 			PRT("    p_vaddr:      %#-14jx", (uintmax_t)ph.p_vaddr);
 			PRT("  p_flags:    [ %s ]\n",
 			    p_flags[ph.p_flags & 0x7]);
@@ -1364,7 +1363,7 @@ elf_print_phdr(struct elfdump *ed)
 				header = 1;
 			}
 			PRT("\n");
-			PRT("entry: %d\n", i);
+			PRT("entry: %zu\n", i);
 			PRT("\tp_type: %s\n", elf_phdr_type_str(ph.p_type));
 			PRT("\tp_offset: %ju\n", (uintmax_t)ph.p_offset);
 			PRT("\tp_vaddr: %#jx\n", (uintmax_t)ph.p_vaddr);
@@ -1384,19 +1383,19 @@ static void
 elf_print_shdr(struct elfdump *ed)
 {
 	struct section *s;
-	int i;
+	size_t i;
 
 	if (!STAILQ_EMPTY(&ed->snl))
 		return;
 
 	if ((ed->flags & SOLARIS_FMT) == 0)
 		PRT("\nsection header:\n");
-	for (i = 0; (size_t)i < ed->shnum; i++) {
+	for (i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (ed->flags & SOLARIS_FMT) {
 			if (i == 0)
 				continue;
-			PRT("\nSection Header[%d]:", i);
+			PRT("\nSection Header[%zu]:", i);
 			PRT("  sh_name: %s\n", s->name);
 			PRT("    sh_addr:      %#-14jx", (uintmax_t)s->addr);
 			if (s->flags != 0)
@@ -1456,15 +1455,16 @@ get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs)
 {
 	struct section	*s;
 	Elf_Data	*data;
-	int		 j, elferr;
+	size_t		 j;
+	int		 elferr;
 
 	s = NULL;
-	for (j = 0; (size_t)j < ed->shnum; j++) {
+	for (j = 0; j < ed->shnum; j++) {
 		s = &ed->sl[j];
 		if (s->type == SHT_SUNW_versym && s->link == (uint32_t)i)
 			break;
 	}
-	if ((size_t)j >= ed->shnum) {
+	if (j >= ed->shnum) {
 		*vs = NULL;
 		return;
 	}
@@ -1569,9 +1569,9 @@ elf_print_symtab(struct elfdump *ed, int i)
 static void
 elf_print_symtabs(struct elfdump *ed)
 {
-	int i;
+	size_t i;
 
-	for (i = 0; (size_t)i < ed->shnum; i++)
+	for (i = 0; i < ed->shnum; i++)
 		if ((ed->sl[i].type == SHT_SYMTAB ||
 		    ed->sl[i].type == SHT_DYNSYM) &&
 		    (STAILQ_EMPTY(&ed->snl) || find_name(ed, ed->sl[i].name)))
@@ -1795,9 +1795,10 @@ elf_print_reloc(struct elfdump *ed)
 {
 	struct section	*s;
 	Elf_Data	*data;
-	int		 i, elferr;
+	size_t		 i;
+	int		 elferr;
 
-	for (i = 0; (size_t)i < ed->shnum; i++) {
+	for (i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if ((s->type == SHT_REL || s->type == SHT_RELA) &&
 		    (STAILQ_EMPTY(&ed->snl) || find_name(ed, s->name))) {
@@ -1825,8 +1826,7 @@ elf_print_interp(struct elfdump *ed)
 {
 	const char *s;
 	GElf_Phdr phdr;
-	size_t filesize, phnum;
-	int i;
+	size_t filesize, i, phnum;
 
 	if (!STAILQ_EMPTY(&ed->snl) && find_name(ed, "PT_INTERP") == NULL)
 		return;
@@ -1839,7 +1839,7 @@ elf_print_interp(struct elfdump *ed)
 		warnx("elf_getphnum failed: %s", elf_errmsg(-1));
 		return;
 	}
-	for (i = 0; (size_t)i < phnum; i++) {
+	for (i = 0; i < phnum; i++) {
 		if (gelf_getphdr(ed->elf, i, &phdr) != &phdr) {
 			warnx("elf_getphdr failed: %s", elf_errmsg(-1));
 			continue;
@@ -1864,9 +1864,10 @@ find_gotrel(struct elfdump *ed, struct section *gs, struct rel_entry *got)
 	struct section		*s;
 	struct rel_entry	 r;
 	Elf_Data		*data;
-	int			 elferr, i, j, k, len;
+	size_t			 i;
+	int			 elferr, j, k, len;
 
-	for(i = 0; (size_t)i < ed->shnum; i++) {
+	for(i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (s->type != SHT_REL && s->type != SHT_RELA)
 			continue;
@@ -2018,13 +2019,13 @@ static void
 elf_print_got(struct elfdump *ed)
 {
 	struct section	*s;
-	int		 i;
+	size_t		 i;
 
 	if (!STAILQ_EMPTY(&ed->snl))
 		return;
 
 	s = NULL;
-	for (i = 0; (size_t)i < ed->shnum; i++) {
+	for (i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (s->name && !strncmp(s->name, ".got", 4) &&
 		    (STAILQ_EMPTY(&ed->snl) || find_name(ed, s->name)))
@@ -2132,7 +2133,8 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 	uint32_t	*bucket, *chain;
 	uint32_t	 nbucket, nchain;
 	uint32_t	*bl, *c, maxl, total;
-	int		 i, j, first, elferr;
+	uint32_t	 i, j;
+	int		 first, elferr;
 	char		 idx[10];
 
 	if (ed->flags & SOLARIS_FMT)
@@ -2170,20 +2172,18 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint32_t)i < nbucket; i++)
-			for (j = bucket[i]; j > 0 && (uint32_t)j < nchain;
-			     j = chain[j])
+		for (i = 0; i < nbucket; i++)
+			for (j = bucket[i]; j > 0 && j < nchain; j = chain[j])
 				if (++bl[i] > maxl)
 					maxl = bl[i];
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint32_t)i < nbucket; i++)
+		for (i = 0; i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
-		for (i = 0; (uint32_t)i < nbucket; i++) {
+		for (i = 0; i < nbucket; i++) {
 			first = 1;
-			for (j = bucket[i]; j > 0 && (uint32_t)j < nchain;
-			     j = chain[j]) {
+			for (j = bucket[i]; j > 0 && j < nchain; j = chain[j]) {
 				if (first) {
 					PRT("%10d  ", i);
 					first = 0;
@@ -2196,7 +2196,7 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 		}
 		PRT("\n");
 		total = 0;
-		for (i = 0; (uint32_t)i <= maxl; i++) {
+		for (i = 0; i <= maxl; i++) {
 			total += c[i] * i;
 			PRT("%10u  buckets contain %8d symbols\n", c[i], i);
 		}
@@ -2205,9 +2205,9 @@ elf_print_svr4_hash(struct elfdump *ed, struct section *s)
 	} else {
 		PRT("\nnbucket: %u\n", nbucket);
 		PRT("nchain: %u\n\n", nchain);
-		for (i = 0; (uint32_t)i < nbucket; i++)
+		for (i = 0; i < nbucket; i++)
 			PRT("bucket[%d]:\n\t%u\n\n", i, bucket[i]);
-		for (i = 0; (uint32_t)i < nchain; i++)
+		for (i = 0; i < nchain; i++)
 			PRT("chain[%d]:\n\t%u\n\n", i, chain[i]);
 	}
 }
@@ -2223,7 +2223,8 @@ elf_print_svr4_hash64(struct elfdump *ed, struct section *s)
 	uint64_t	*bucket, *chain;
 	uint64_t	 nbucket, nchain;
 	uint64_t	*bl, *c, maxl, total;
-	int		 i, j, elferr, first;
+	uint64_t	 i, j;
+	int		 elferr, first;
 	char		 idx[10];
 
 	if (ed->flags & SOLARIS_FMT)
@@ -2273,35 +2274,33 @@ elf_print_svr4_hash64(struct elfdump *ed, struct section *s)
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint64_t)i < nbucket; i++)
-			for (j = bucket[i]; j > 0 && (uint64_t)j < nchain;
-			     j = chain[j])
+		for (i = 0; i < nbucket; i++)
+			for (j = bucket[i]; j > 0 && j < nchain; j = chain[j])
 				if (++bl[i] > maxl)
 					maxl = bl[i];
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint64_t)i < nbucket; i++)
+		for (i = 0; i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
-		for (i = 0; (uint64_t)i < nbucket; i++) {
+		for (i = 0; i < nbucket; i++) {
 			first = 1;
-			for (j = bucket[i]; j > 0 && (uint64_t)j < nchain;
-			     j = chain[j]) {
+			for (j = bucket[i]; j > 0 && j < nchain; j = chain[j]) {
 				if (first) {
-					PRT("%10d  ", i);
+					PRT("%10zu  ", i);
 					first = 0;
 				} else
 					PRT("            ");
-				snprintf(idx, sizeof(idx), "[%d]", j);
+				snprintf(idx, sizeof(idx), "[%zu]", (size_t)j);
 				PRT("%-10s  ", idx);
 				PRT("%s\n", get_symbol_name(ed, s->link, j));
 			}
 		}
 		PRT("\n");
 		total = 0;
-		for (i = 0; (uint64_t)i <= maxl; i++) {
+		for (i = 0; i <= maxl; i++) {
 			total += c[i] * i;
-			PRT("%10ju  buckets contain %8d symbols\n",
+			PRT("%10ju  buckets contain %8zu symbols\n",
 			    (uintmax_t)c[i], i);
 		}
 		PRT("%10ju  buckets         %8ju symbols (globals)\n",
@@ -2309,10 +2308,10 @@ elf_print_svr4_hash64(struct elfdump *ed, struct section *s)
 	} else {
 		PRT("\nnbucket: %ju\n", (uintmax_t)nbucket);
 		PRT("nchain: %ju\n\n", (uintmax_t)nchain);
-		for (i = 0; (uint64_t)i < nbucket; i++)
-			PRT("bucket[%d]:\n\t%ju\n\n", i, (uintmax_t)bucket[i]);
-		for (i = 0; (uint64_t)i < nchain; i++)
-			PRT("chain[%d]:\n\t%ju\n\n", i, (uintmax_t)chain[i]);
+		for (i = 0; i < nbucket; i++)
+			PRT("bucket[%zu]:\n\t%ju\n\n", i, (uintmax_t)bucket[i]);
+		for (i = 0; i < nchain; i++)
+			PRT("chain[%zu]:\n\t%ju\n\n", i, (uintmax_t)chain[i]);
 	}
 
 }
@@ -2329,7 +2328,8 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 	uint32_t	*bucket, *chain;
 	uint32_t	 nbucket, nchain, symndx, maskwords, shift2;
 	uint32_t	*bl, *c, maxl, total;
-	int		 i, j, first, elferr, dynsymcount;
+	uint32_t	 i, j;
+	int		 first, elferr, dynsymcount;
 	char		 idx[10];
 
 	if (ed->flags & SOLARIS_FMT)
@@ -2371,10 +2371,8 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 		maxl = 0;
 		if ((bl = calloc(nbucket, sizeof(*bl))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint32_t)i < nbucket; i++)
-			for (j = bucket[i];
-			     j > 0 && (uint32_t)j - symndx < nchain;
-			     j++) {
+		for (i = 0; i < nbucket; i++)
+			for (j = bucket[i]; j > 0 && j - symndx < nchain; j++) {
 				if (++bl[i] > maxl)
 					maxl = bl[i];
 				if (chain[j - symndx] & 1)
@@ -2382,14 +2380,12 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 			}
 		if ((c = calloc(maxl + 1, sizeof(*c))) == NULL)
 			err(EXIT_FAILURE, "calloc failed");
-		for (i = 0; (uint32_t)i < nbucket; i++)
+		for (i = 0; i < nbucket; i++)
 			c[bl[i]]++;
 		PRT("    bucket    symndx    name\n");
-		for (i = 0; (uint32_t)i < nbucket; i++) {
+		for (i = 0; i < nbucket; i++) {
 			first = 1;
-			for (j = bucket[i];
-			     j > 0 && (uint32_t)j - symndx < nchain;
-			     j++) {
+			for (j = bucket[i]; j > 0 && j - symndx < nchain; j++) {
 				if (first) {
 					PRT("%10d  ", i);
 					first = 0;
@@ -2404,7 +2400,7 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 		}
 		PRT("\n");
 		total = 0;
-		for (i = 0; (uint32_t)i <= maxl; i++) {
+		for (i = 0; i <= maxl; i++) {
 			total += c[i] * i;
 			PRT("%10u  buckets contain %8d symbols\n", c[i], i);
 		}
@@ -2416,9 +2412,9 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 		PRT("maskwords: %u\n", maskwords);
 		PRT("shift2: %u\n", shift2);
 		PRT("nchain: %u\n\n", nchain);
-		for (i = 0; (uint32_t)i < nbucket; i++)
+		for (i = 0; i < nbucket; i++)
 			PRT("bucket[%d]:\n\t%u\n\n", i, bucket[i]);
-		for (i = 0; (uint32_t)i < nchain; i++)
+		for (i = 0; i < nchain; i++)
 			PRT("chain[%d]:\n\t%u\n\n", i, chain[i]);
 	}
 }
@@ -2430,9 +2426,9 @@ static void
 elf_print_hash(struct elfdump *ed)
 {
 	struct section	*s;
-	int		 i;
+	size_t		 i;
 
-	for (i = 0; (size_t)i < ed->shnum; i++) {
+	for (i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if ((s->type == SHT_HASH || s->type == SHT_GNU_HASH) &&
 		    (STAILQ_EMPTY(&ed->snl) || find_name(ed, s->name))) {
@@ -2615,9 +2611,9 @@ static void
 elf_print_symver(struct elfdump *ed)
 {
 	struct section	*s;
-	int		 i;
+	size_t		 i;
 
-	for (i = 0; (size_t)i < ed->shnum; i++) {
+	for (i = 0; i < ed->shnum; i++) {
 		s = &ed->sl[i];
 		if (!STAILQ_EMPTY(&ed->snl) && !find_name(ed, s->name))
 			continue;
