@@ -2356,9 +2356,17 @@ elf_print_gnu_hash(struct elfdump *ed, struct section *s)
 	maskwords = buf[2];
 	shift2 = buf[3];
 	buf += 4;
+	if (s->link >= ed->shnum) {
+		warnx("Malformed .gnu.hash section");
+		return;
+	}
 	ds = &ed->sl[s->link];
 	if (!get_ent_count(ds, &dynsymcount))
 		return;
+	if (symndx >= (uint32_t)dynsymcount) {
+		warnx("Malformed .gnu.hash section");
+		return;
+	}
 	nchain = dynsymcount - symndx;
 	if (data->d_size != 4 * sizeof(uint32_t) + maskwords *
 	    (ed->ec == ELFCLASS32 ? sizeof(uint32_t) : sizeof(uint64_t)) +
