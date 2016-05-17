@@ -790,7 +790,8 @@ is_sec_debug(const char *shname)
 	};
 	const char **p;
 
-	assert(shname != NULL && "shname is NULL");
+	if (shname == NULL)
+		return (false);
 
 	for (p = dbg_sec; *p; p++) {
 		if (!strncmp(shname, *p, strlen(*p)))
