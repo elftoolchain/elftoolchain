@@ -616,7 +616,7 @@ static void	find_gotrel(struct elfdump *ed, struct section *gs,
     struct rel_entry *got);
 static struct spec_name	*find_name(struct elfdump *ed, const char *name);
 static int	get_ent_count(const struct section *s, int *ent_count);
-static const char *get_symbol_name(struct elfdump *ed, int symtab, int i);
+static const char *get_symbol_name(struct elfdump *ed, uint32_t symtab, int i);
 static const char *get_string(struct elfdump *ed, int strtab, size_t off);
 static void	get_versym(struct elfdump *ed, int i, uint16_t **vs, int *nvs);
 static void	load_sections(struct elfdump *ed);
@@ -1215,7 +1215,7 @@ find_name(struct elfdump *ed, const char *name)
  * table and the index of the symbol within that table.
  */
 static const char *
-get_symbol_name(struct elfdump *ed, int symtab, int i)
+get_symbol_name(struct elfdump *ed, uint32_t symtab, int i)
 {
 	static char	 sname[64];
 	struct section	*s;
@@ -1224,6 +1224,8 @@ get_symbol_name(struct elfdump *ed, int symtab, int i)
 	Elf_Data	*data;
 	int		 elferr;
 
+	if (symtab >= ed->shnum)
+		return ("");
 	s = &ed->sl[symtab];
 	if (s->type != SHT_SYMTAB && s->type != SHT_DYNSYM)
 		return ("");
