@@ -50,8 +50,8 @@ static const char *debug_name[] = {
 };
 
 static void
-_dwarf_elf_apply_rel_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
-    Elf_Data *symtab_data, int endian)
+_dwarf_elf_apply_rel_reloc(Dwarf_Debug dbg, void *buf, uint64_t bufsize,
+    Elf_Data *rel_data, Elf_Data *symtab_data, int endian)
 {
 	Dwarf_Unsigned type;
 	GElf_Rel rel;
@@ -74,6 +74,9 @@ _dwarf_elf_apply_rel_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
 			continue; /* Unknown or non-absolute relocation. */
 
 		offset = rel.r_offset;
+		if (offset + size >= bufsize)
+			continue;
+
 		if (endian == ELFDATA2MSB)
 			addend = _dwarf_read_msb(buf, &offset, size);
 		else
@@ -90,8 +93,8 @@ _dwarf_elf_apply_rel_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
 }
 
 static void
-_dwarf_elf_apply_rela_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
-    Elf_Data *symtab_data, int endian)
+_dwarf_elf_apply_rela_reloc(Dwarf_Debug dbg, void *buf, uint64_t bufsize,
+    Elf_Data *rel_data, Elf_Data *symtab_data, int endian)
 {
 	Dwarf_Unsigned type;
 	GElf_Rela rela;
@@ -112,6 +115,8 @@ _dwarf_elf_apply_rela_reloc(Dwarf_Debug dbg, void *buf, Elf_Data *rel_data,
 		size = _dwarf_get_reloc_size(dbg, type);
 		if (size == 0)
 			continue; /* Unknown or non-absolute relocation. */
+		if (offset + size >= bufsize)
+			continue;
 
 		if (endian == ELFDATA2MSB)
 			_dwarf_write_msb(buf, &offset,
@@ -171,10 +176,12 @@ _dwarf_elf_relocate(Dwarf_Debug dbg, Elf *elf, Dwarf_Elf_Data *ed, size_t shndx,
 			memcpy(ed->ed_alloc, ed->ed_data->d_buf,
 			    ed->ed_data->d_size);
 			if (sh.sh_type == SHT_REL)
-				_dwarf_elf_apply_rel_reloc(dbg, ed->ed_alloc,
+				_dwarf_elf_apply_rel_reloc(dbg,
+				    ed->ed_alloc, ed->ed_data->d_size,
 				    rel, symtab_data, eh.e_ident[EI_DATA]);
 			else
-				_dwarf_elf_apply_rela_reloc(dbg, ed->ed_alloc,
+				_dwarf_elf_apply_rela_reloc(dbg,
+				    ed->ed_alloc, ed->ed_data->d_size,
 				    rel, symtab_data, eh.e_ident[EI_DATA]);
 
 			return (DW_DLE_NONE);
