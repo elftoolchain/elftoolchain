@@ -54,7 +54,7 @@ create_pe(struct elfcopy *ecp, int ifd, int ofd)
 	PE_Buffer *pb;
 	const char *name;
 	size_t indx;
-	int elferr, i;
+	int elferr;
 
 	if (ecp->otf == ETF_EFI || ecp->oem == EM_X86_64)
 		po = PE_O_PE32P;
@@ -190,12 +190,6 @@ create_pe(struct elfcopy *ecp, int ifd, int ofd)
 			    IMAGE_SCN_CNT_CODE;
 		if ((sh.sh_flags & SHF_ALLOC) && (psh.sh_char & 0xF0) == 0)
 			psh.sh_char |= IMAGE_SCN_CNT_INITIALIZED_DATA;
-		for (i = 0xE; i > 0; i--) {
-			if (sh.sh_addralign & (1U << (i - 1))) {
-				psh.sh_char |= i << 20;
-				break;
-			}
-		}
 
 		/* Mark relocation section "discardable". */
 		if (strcmp(name, ".reloc") == 0)
