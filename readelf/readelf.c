@@ -431,6 +431,7 @@ elf_osabi(unsigned int abi)
 	case ELFOSABI_OPENVMS: return "OpenVMS";
 	case ELFOSABI_NSK: return "NSK";
 	case ELFOSABI_CLOUDABI: return "CloudABI";
+	case ELFOSABI_ARM_AEABI: return "ELFOSABI_ARM_AEABI";
 	case ELFOSABI_ARM: return "ARM";
 	case ELFOSABI_STANDALONE: return "StandAlone";
 	default:
