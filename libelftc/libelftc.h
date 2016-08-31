@@ -91,6 +91,7 @@ int		elftc_string_table_remove(Elftc_String_Table *_table,
     const char *_string);
 const char	*elftc_string_table_to_string(Elftc_String_Table *_table,
     size_t offset);
+int		elftc_timestamp(time_t *_timestamp);
 const char	*elftc_version(void);
 #ifdef __cplusplus
 }
