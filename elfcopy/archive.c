@@ -440,6 +440,7 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	struct archive		*a;
 	struct archive_entry	*entry;
 	struct ar_obj		*obj;
+	time_t			 timestamp;
 	int			 nr;
 
 	if ((a = archive_write_new()) == NULL)
@@ -450,7 +451,9 @@ ac_write_objs(struct elfcopy *ecp, int ofd)
 	/* Write the archive symbol table, even if it's empty. */
 	entry = archive_entry_new();
 	archive_entry_copy_pathname(entry, "/");
-	archive_entry_set_mtime(entry, time(NULL), 0);
+	if (elftc_timestamp(&timestamp) != 0)
+		err(EXIT_FAILURE, "elftc_timestamp");
+	archive_entry_set_mtime(entry, timestamp, 0);
 	archive_entry_set_size(entry, (ecp->s_cnt + 1) * sizeof(uint32_t) +
 	    ecp->s_sn_sz);
 	AC(archive_write_header(a, entry));
