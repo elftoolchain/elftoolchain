@@ -4077,30 +4077,26 @@ static void
 dump_mips_specific_info(struct readelf *re)
 {
 	struct section *s;
-	int i, options_found;
+	int i;
 
-	options_found = 0;
 	s = NULL;
 	for (i = 0; (size_t) i < re->shnum; i++) {
 		s = &re->sl[i];
 		if (s->name != NULL && (!strcmp(s->name, ".MIPS.options") ||
 		    (s->type == SHT_MIPS_OPTIONS))) {
 			dump_mips_options(re, s);
-			options_found = 1;
 		}
 	}
 
 	/*
-	 * According to SGI mips64 spec, .reginfo should be ignored if
-	 * .MIPS.options section is present.
+	 * Dump .reginfo if present (although it will be ignored by an OS if a
+	 * .MIPS.options section is present, according to SGI mips64 spec).
 	 */
-	if (!options_found) {
-		for (i = 0; (size_t) i < re->shnum; i++) {
-			s = &re->sl[i];
-			if (s->name != NULL && (!strcmp(s->name, ".reginfo") ||
-			    (s->type == SHT_MIPS_REGINFO)))
-				dump_mips_reginfo(re, s);
-		}
+	for (i = 0; (size_t) i < re->shnum; i++) {
+		s = &re->sl[i];
+		if (s->name != NULL && (!strcmp(s->name, ".reginfo") ||
+		    (s->type == SHT_MIPS_REGINFO)))
+			dump_mips_reginfo(re, s);
 	}
 }
 
