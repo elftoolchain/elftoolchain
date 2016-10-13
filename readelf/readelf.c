@@ -709,6 +709,7 @@ section_type(unsigned int mach, unsigned int stype)
 			case SHT_MIPS_EH_REGION: return "MIPS_EH_REGION";
 			case SHT_MIPS_XLATE_OLD: return "MIPS_XLATE_OLD";
 			case SHT_MIPS_PDR_EXCEPTION: return "MIPS_PDR_EXCEPTION";
+			case SHT_MIPS_ABIFLAGS: return "MIPS_ABIFLAGS";
 			default:
 				break;
 			}
