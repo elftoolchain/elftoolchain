@@ -720,11 +720,11 @@ main(int argc, char **argv)
 	if (argc > 0)
 		for (i = 0; i < argc; i++)
 			translate(dbg, e, argv[i]);
-	else
-		while (fgets(line, sizeof(line), stdin) != NULL) {
+	else {
+		setvbuf(stdout, NULL, _IOLBF, 0);
+		while (fgets(line, sizeof(line), stdin) != NULL)
 			translate(dbg, e, line);
-			fflush(stdout);
-		}
+	}
 
 	dwarf_finish(dbg, &de);
 

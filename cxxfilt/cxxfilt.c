@@ -175,6 +175,7 @@ main(int argc, char **argv)
 	} else {
 		p = 0;
 		for (;;) {
+			setvbuf(stdout, NULL, _IOLBF, 0);
 			c = fgetc(stdin);
 			if (c == EOF || !(isalnum(c) || strchr(".$_", c))) {
 				if (p > 0) {
