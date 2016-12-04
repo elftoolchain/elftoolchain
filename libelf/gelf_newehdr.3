@@ -127,6 +127,15 @@ flag on ELF descriptor
 .Sh RETURN VALUES
 These functions return a pointer to a translated header descriptor
 if successful, or NULL on failure.
+.Sh COMPATIBILITY
+The
+.Fn gelf_newehdr
+function uses a type of
+.Ft "void *"
+for its returned value.
+This differs from some other implementations of the ELF(3) API, which use an
+.Ft "unsigned long"
+return type.
 .Sh ERRORS
 These functions can fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
