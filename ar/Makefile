@@ -9,8 +9,8 @@ YSRC=	acpyacc.y
 
 WARNS?=	5
 
-DPADD=	${LIBARCHIVE} ${LIBELFTC} ${LIBELF} ${LIBZ}
-LDADD=	-larchive -lelftc -lelf -lz
+DPADD=	${LIBARCHIVE} ${LIBELFTC} ${LIBELF} ${LIBZ} ${LIBBZ2}
+LDADD=	-larchive -lelftc -lelf -lz -lbz2
 
 CFLAGS+=-I. -I${.CURDIR}
 
