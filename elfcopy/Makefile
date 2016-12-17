@@ -15,7 +15,7 @@ DPADD=	${LIBELF} ${LIBELFTC}
 LDADD=	-lelf -lelftc
 
 .if !defined(LIBELF_AR)
-LDADD+= -larchive -lbz2
+LDADD+= -larchive
 .endif
 
 .if defined(WITH_PE) && ${WITH_PE:tl} == "yes"

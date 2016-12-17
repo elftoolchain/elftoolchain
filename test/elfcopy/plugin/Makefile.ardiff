@@ -8,7 +8,7 @@ NOMAN=
 
 WARNS?=	6
 
-DPADD=	${LIBARCHIVE} ${LIBBZ2}
-LDADD=	-larchive -lbz2
+DPADD=	${LIBARCHIVE}
+LDADD=	-larchive
 
 .include "${TOP}/mk/elftoolchain.prog.mk"
