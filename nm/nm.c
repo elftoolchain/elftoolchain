@@ -1186,7 +1186,7 @@ read_elf(Elf *elf, const char *filename, Elf_Kind kind)
 	}
 	if (!elf_getshnum(elf, &shnum)) {
 		if ((e_err = elf_errno()) != 0)
-			warnx("%s: %s", OBJNAME, elf_errmsg(e_err));
+			warnx("%s: %s", OBJNAME, "File format not recognized");
 		else
 			warnx("%s: cannot get section number", OBJNAME);
 		rtn = 1;
