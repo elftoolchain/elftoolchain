@@ -70,7 +70,7 @@ create_pe(struct elfcopy *ecp, int ifd, int ofd)
 		errx(EXIT_FAILURE, "gelf_getehdr() failed: %s",
 		    elf_errmsg(-1));
 
-	if (elf_getshstrndx(ecp->ein, &indx) == 0)
+	if (elf_getshstrndx(e, &indx) == 0)
 		errx(EXIT_FAILURE, "elf_getshstrndx() failed: %s",
 		    elf_errmsg(-1));
 
@@ -124,7 +124,7 @@ create_pe(struct elfcopy *ecp, int ifd, int ofd)
 			(void) elf_errno();
 			continue;
 		}
-		if ((name = elf_strptr(ecp->ein, indx, sh.sh_name)) ==
+		if ((name = elf_strptr(e, indx, sh.sh_name)) ==
 		    NULL) {
 			warnx("elf_strptr() failed: %s", elf_errmsg(-1));
 			(void) elf_errno();
