@@ -1,0 +1,11 @@
+# ticket 481, TLS wrappers
+"_ZTWL20PrettyStackTraceHead", "TLS wrapper function for PrettyStackTraceHead"
+
+# ticket 488, trailing E
+"_ZN1fILi4EEE", "f<4>"
+
+# ticket 489, handle Dv (__vector)
+
+"_Z22__gen_ocl_write_imagef11ocl_image2dDv2_iDv4_f", "__gen_ocl_write_imagef(ocl_image2d, int __vector(2), float __vector(4))"
+"_Z23__gen_ocl_write_imageui16ocl_image2darrayDv3_iDv4_j", "__gen_ocl_write_imageui(ocl_image2darray, int __vector(3), unsigned int __vector(4))"
+"_Z1fDv2_i", "f(int __vector(2))"
