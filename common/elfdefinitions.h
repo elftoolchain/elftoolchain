@@ -923,6 +923,8 @@ _ELF_DEFINE_PT(PT_OPENBSD_RANDOMIZE,0x65A3DBE6UL,		\
 	"Segment filled with random data")			\
 _ELF_DEFINE_PT(PT_OPENBSD_WXNEEDED, 0x65A3DBE7UL,		\
 	"Program violates W^X")					\
+_ELF_DEFINE_PT(PT_OPENBSD_BOOTDATA, 0x65A41BE6UL,		\
+	"Boot data")						\
 _ELF_DEFINE_PT(PT_SUNWBSS,          0x6FFFFFFAUL,		\
 	"A Solaris .SUNW_bss section")				\
 _ELF_DEFINE_PT(PT_SUNWSTACK,        0x6FFFFFFBUL,		\
