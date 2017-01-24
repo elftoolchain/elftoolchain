@@ -153,6 +153,8 @@ _ELF_DEFINE_DT(DT_SUNW_FILTER,      0x6000000FUL,			\
 	"offset of string naming standard filtees")			\
 _ELF_DEFINE_DT(DT_SUNW_CAP,         0x60000010UL,			\
 	"address of hardware capabilities section")			\
+_ELF_DEFINE_DT(DT_SUNW_ASLR,        0x60000023UL,			\
+	"Address Space Layout Randomization flag")			\
 _ELF_DEFINE_DT(DT_HIOS,             0x6FFFF000UL,			\
 	"end of OS-specific types")					\
 _ELF_DEFINE_DT(DT_VALRNGLO,         0x6FFFFD00UL,			\

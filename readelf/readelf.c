@@ -938,6 +938,7 @@ dt_type(unsigned int mach, unsigned int dtype)
 	case DT_SUNW_RTLDINF: return "SUNW_RTLDINF";
 	case DT_SUNW_FILTER: return "SUNW_FILTER";
 	case DT_SUNW_CAP: return "SUNW_CAP";
+	case DT_SUNW_ASLR: return "SUNW_ASLR";
 	case DT_CHECKSUM: return "CHECKSUM";
 	case DT_PLTPADSZ: return "PLTPADSZ";
 	case DT_MOVEENT: return "MOVEENT";
