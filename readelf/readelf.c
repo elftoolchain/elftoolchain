@@ -6203,9 +6203,7 @@ dump_dwarf_loclist(struct readelf *re)
 	Dwarf_Half tag, version, pointer_size, off_size;
 	Dwarf_Error de;
 	struct loc_at *la;
-	int i, j, ret;
-
-	printf("\nContents of section .debug_loc:\n");
+	int i, j, ret, has_content;
 
 	/* Search .debug_info section. */
 	while ((ret = dwarf_next_cu_header_b(re->dbg, NULL, &version, NULL,
@@ -6268,13 +6266,19 @@ dump_dwarf_loclist(struct readelf *re)
 	if (TAILQ_EMPTY(&lalist))
 		return;
 
-	printf("    Offset   Begin    End      Expression\n");
-
+	has_content = 0;
 	TAILQ_FOREACH(la, &lalist, la_next) {
-		if (dwarf_loclist_n(la->la_at, &llbuf, &lcnt, &de) !=
+		if ((ret = dwarf_loclist_n(la->la_at, &llbuf, &lcnt, &de)) !=
 		    DW_DLV_OK) {
-			warnx("dwarf_loclist_n failed: %s", dwarf_errmsg(de));
+			if (ret != DW_DLV_NO_ENTRY)
+				warnx("dwarf_loclist_n failed: %s",
+				    dwarf_errmsg(de));
 			continue;
+		}
+		if (!has_content) {
+			has_content = 1;
+			printf("\nContents of section .debug_loc:\n");
+			printf("    Offset   Begin    End      Expression\n");
 		}
 		set_cu_context(re, la->la_cu_psize, la->la_cu_osize,
 		    la->la_cu_ver);
@@ -6310,6 +6314,9 @@ dump_dwarf_loclist(struct readelf *re)
 		}
 		dwarf_dealloc(re->dbg, llbuf, DW_DLA_LIST);
 	}
+
+	if (!has_content)
+		printf("\nSection '.debug_loc' has no debugging data.\n");
 }
 
 /*
