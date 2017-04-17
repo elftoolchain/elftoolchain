@@ -285,6 +285,7 @@ create_elf(struct elfcopy *ecp)
 	size_t		 ishnum;
 
 	ecp->flags |= SYMTAB_INTACT;
+	ecp->flags &= ~SYMTAB_EXIST;
 
 	/* Create EHDR. */
 	if (gelf_getehdr(ecp->ein, &ieh) == NULL)
@@ -498,6 +499,10 @@ free_elf(struct elfcopy *ecp)
 			free(sec);
 		}
 	}
+
+	ecp->symtab = NULL;
+	ecp->strtab = NULL;
+	ecp->shstrtab = NULL;
 
 	if (ecp->secndx != NULL) {
 		free(ecp->secndx);

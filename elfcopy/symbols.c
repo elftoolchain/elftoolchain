@@ -670,6 +670,8 @@ create_symtab(struct elfcopy *ecp)
 	sy = ecp->symtab;
 	st = ecp->strtab;
 
+	assert(sy != NULL && st != NULL);
+
 	/*
 	 * Set section index map for .symtab and .strtab. We need to set
 	 * these map because otherwise symbols which refer to .symtab and
