@@ -2226,8 +2226,8 @@ elf_print_svr4_hash64(struct elfdump *ed, struct section *s)
 	uint64_t	*buf;
 	uint64_t	*bucket, *chain;
 	uint64_t	 nbucket, nchain;
-	uint64_t	*bl, *c, maxl, total;
-	uint64_t	 i, j;
+	uint64_t	*bl, *c, j, maxl, total;
+	size_t		 i;
 	int		 elferr, first;
 	char		 idx[10];
 
