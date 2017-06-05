@@ -30,6 +30,9 @@
 #                ::= Dn # std::nullptr_t (i.e., decltype(nullptr))
 #                ::= u <source-name>    # vendor extended type
 
+"_Z3barv", "bar()"
+"_Z3barPv", "bar(void*)"
+"_Z3bariPv", "bar(int, void*)"
 "_Z3fooww", "foo(wchar_t, wchar_t)"
 "_Z3foob", "foo(bool)"
 "_Z3foocah", "foo(char, signed char, unsigned char)"
