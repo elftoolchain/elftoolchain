@@ -70,6 +70,12 @@ struct vector_read_cmd {
 	enum read_cmd *r_container;
 };
 
+enum push_qualifier {
+	PUSH_ALL_QUALIFIER,
+	PUSH_CV_QUALIFIER,
+	PUSH_NON_CV_QUALIFIER,
+};
+
 struct cpp_demangle_data {
 	struct vector_str	 output;	/* output string vector */
 	struct vector_str	 subst;		/* substitution string vector */
@@ -84,6 +90,7 @@ struct cpp_demangle_data {
 	bool			 is_functype;	/* function type */
 	bool			 ref_qualifier; /* ref qualifier */
 	enum type_qualifier	 ref_qualifier_type; /* ref qualifier type */
+	enum push_qualifier	 push_qualifier; /* which qualifiers to push */
 	bool			 delay_void;	/* void print delayed */
 	int			 func_type;
 	const char		*cur;		/* current mangled name ptr */
@@ -325,6 +332,7 @@ cpp_demangle_data_init(struct cpp_demangle_data *d, const char *cur)
 	d->is_tmpl = false;
 	d->is_functype = false;
 	d->ref_qualifier = false;
+	d->push_qualifier = PUSH_ALL_QUALIFIER;
 	d->func_type = 0;
 	d->cur = cur;
 	d->cur_output = &d->output;
@@ -454,6 +462,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 	while (idx > 0) {
 		switch (v->q_container[idx - 1]) {
 		case TYPE_PTR:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, "*"))
 				goto clean;
 			if (type_str != NULL) {
@@ -466,6 +476,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_REF:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, "&"))
 				goto clean;
 			if (type_str != NULL) {
@@ -478,6 +490,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_RREF:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, "&&"))
 				goto clean;
 			if (type_str != NULL) {
@@ -490,6 +504,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_CMX:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, " complex"))
 				goto clean;
 			if (type_str != NULL) {
@@ -502,6 +518,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_IMG:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, " imaginary"))
 				goto clean;
 			if (type_str != NULL) {
@@ -515,6 +533,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_EXT:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (v->ext_name.size == 0 ||
 			    e_idx > v->ext_name.size - 1)
 				goto clean;
@@ -547,6 +567,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_RST:
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, " restrict"))
 				goto clean;
 			if (type_str != NULL) {
@@ -559,6 +581,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_VAT:
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, " volatile"))
 				goto clean;
 			if (type_str != NULL) {
@@ -571,6 +595,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_CST:
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+				break;
 			if (!DEM_PUSH_STR(ddata, " const"))
 				goto clean;
 			if (type_str != NULL) {
@@ -583,6 +609,8 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_VEC:
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
+				break;
 			if (v->ext_name.size == 0 ||
 			    e_idx > v->ext_name.size - 1)
 				goto clean;
@@ -1196,6 +1224,8 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 	struct type_delimit td;
 	size_t class_type_size, class_type_len, limit;
 	const char *class_type;
+	int i;
+	bool paren, non_cv_qualifier;
 
 	if (ddata == NULL || *ddata->cur != 'F' || v == NULL)
 		return (0);
@@ -1214,9 +1244,28 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 	if (*ddata->cur != 'E') {
 		if (!DEM_PUSH_STR(ddata, " "))
 			return (0);
-		if (vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
+
+		non_cv_qualifier = false;
+		if (v->size > 0) {
+			for (i = 0; (size_t) i < v->size; i++) {
+				if (v->q_container[i] != TYPE_RST &&
+				    v->q_container[i] != TYPE_VAT &&
+				    v->q_container[i] != TYPE_CST) {
+					non_cv_qualifier = true;
+					break;
+				}
+			}
+		}
+
+		paren = false;
+		if (non_cv_qualifier ||
+		    vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
 			if (!DEM_PUSH_STR(ddata, "("))
 				return (0);
+			paren = true;
+		}
+
+		if (vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
 			if ((class_type_size = ddata->class_type.size) == 0)
 				return (0);
 			class_type =
@@ -1228,15 +1277,19 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 			if (!cpp_demangle_push_str(ddata, class_type,
 			    class_type_len))
 				return (0);
-			if (!DEM_PUSH_STR(ddata, "::*)"))
+			if (!DEM_PUSH_STR(ddata, "::*"))
 				return (0);
 			++ddata->func_type;
-		} else {
-			if (!cpp_demangle_push_type_qualifier(ddata, v, NULL))
+		}
+
+		/* Push non-cv qualifiers. */
+		ddata->push_qualifier = PUSH_NON_CV_QUALIFIER;
+		if (!cpp_demangle_push_type_qualifier(ddata, v, NULL))
+			return (0);
+		if (paren) {
+			if (!DEM_PUSH_STR(ddata, ")"))
 				return (0);
-			vector_type_qualifier_dest(v);
-			if (!vector_type_qualifier_init(v))
-				return (0);
+			paren = false;
 		}
 
 		td.paren = false;
@@ -1259,7 +1312,19 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 			td.paren = false;
 		}
 
-		/* Push function ref-qualifiers. */
+		/* Push CV qualifiers. */
+		ddata->push_qualifier = PUSH_CV_QUALIFIER;
+		if (!cpp_demangle_push_type_qualifier(ddata, v, NULL))
+			return (0);
+
+		ddata->push_qualifier = PUSH_ALL_QUALIFIER;
+
+		/* Release type qualifier vector. */
+		vector_type_qualifier_dest(v);
+		if (!vector_type_qualifier_init(v))
+			return (0);
+
+		/* Push ref-qualifiers. */
 		if (ddata->ref_qualifier) {
 			switch (ddata->ref_qualifier_type) {
 			case TYPE_REF:
