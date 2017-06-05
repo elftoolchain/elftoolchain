@@ -385,7 +385,6 @@ translate(Dwarf_Debug dbg, Elf *e, const char* addrstr)
 	Dwarf_Unsigned lopc, hipc, addr_base, ranges_off, addr, lineno, plineno;
 	Dwarf_Signed lcount, ranges_cnt;
 	Dwarf_Addr lineaddr, plineaddr;
-	Dwarf_Off off;
 	Dwarf_Ranges *ranges;
 	struct CU *cu;
 	struct Func *f;
