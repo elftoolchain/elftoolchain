@@ -65,9 +65,14 @@ enum read_cmd {
 	READ_TYPE, READ_FUNC, READ_PTRMEM
 };
 
+struct read_cmd_item {
+	enum read_cmd cmd;
+	void *data;
+};
+
 struct vector_read_cmd {
 	size_t size, capacity;
-	enum read_cmd *r_container;
+	struct read_cmd_item *r_container;
 };
 
 enum push_qualifier {
@@ -152,7 +157,8 @@ static int	cpp_demangle_read_number_as_string(struct cpp_demangle_data *,
 static int	cpp_demangle_read_nv_offset(struct cpp_demangle_data *);
 static int	cpp_demangle_read_offset(struct cpp_demangle_data *);
 static int	cpp_demangle_read_offset_number(struct cpp_demangle_data *);
-static int	cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *);
+static int	cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *,
+		    struct vector_type_qualifier *);
 static int	cpp_demangle_read_sname(struct cpp_demangle_data *);
 static int	cpp_demangle_read_subst(struct cpp_demangle_data *);
 static int	cpp_demangle_read_subst_std(struct cpp_demangle_data *);
@@ -174,10 +180,12 @@ static char	*decode_fp_to_float80(const char *, size_t);
 static char	*decode_fp_to_long_double(const char *, size_t);
 static int	hex_to_dec(char);
 static void	vector_read_cmd_dest(struct vector_read_cmd *);
-static int	vector_read_cmd_find(struct vector_read_cmd *, enum read_cmd);
+static struct read_cmd_item *vector_read_cmd_find(struct vector_read_cmd *,
+		    enum read_cmd);
 static int	vector_read_cmd_init(struct vector_read_cmd *);
 static int	vector_read_cmd_pop(struct vector_read_cmd *);
-static int	vector_read_cmd_push(struct vector_read_cmd *, enum read_cmd);
+static int	vector_read_cmd_push(struct vector_read_cmd *, enum read_cmd,
+		    void *);
 static void	vector_type_qualifier_dest(struct vector_type_qualifier *);
 static int	vector_type_qualifier_init(struct vector_type_qualifier *);
 static int	vector_type_qualifier_push(struct vector_type_qualifier *,
@@ -1222,6 +1230,7 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
     struct vector_type_qualifier *v)
 {
 	struct type_delimit td;
+	struct read_cmd_item *rc;
 	size_t class_type_size, class_type_len, limit;
 	const char *class_type;
 	int i;
@@ -1258,14 +1267,21 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 		}
 
 		paren = false;
-		if (non_cv_qualifier ||
-		    vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
+		rc = vector_read_cmd_find(&ddata->cmd, READ_PTRMEM);
+		if (non_cv_qualifier || rc != NULL) {
 			if (!DEM_PUSH_STR(ddata, "("))
 				return (0);
 			paren = true;
 		}
 
-		if (vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
+		/* Push non-cv qualifiers. */
+		ddata->push_qualifier = PUSH_NON_CV_QUALIFIER;
+		if (!cpp_demangle_push_type_qualifier(ddata, v, NULL))
+			return (0);
+
+		if (rc) {
+			if (non_cv_qualifier && !DEM_PUSH_STR(ddata, " "))
+				return (0);
 			if ((class_type_size = ddata->class_type.size) == 0)
 				return (0);
 			class_type =
@@ -1279,13 +1295,14 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 				return (0);
 			if (!DEM_PUSH_STR(ddata, "::*"))
 				return (0);
+			/* Push pointer-to-member qualifiers. */
+			ddata->push_qualifier = PUSH_ALL_QUALIFIER;
+			if (!cpp_demangle_push_type_qualifier(ddata, rc->data,
+			    NULL))
+				return (0);
 			++ddata->func_type;
 		}
 
-		/* Push non-cv qualifiers. */
-		ddata->push_qualifier = PUSH_NON_CV_QUALIFIER;
-		if (!cpp_demangle_push_type_qualifier(ddata, v, NULL))
-			return (0);
 		if (paren) {
 			if (!DEM_PUSH_STR(ddata, ")"))
 				return (0);
@@ -1960,7 +1977,8 @@ cpp_demangle_read_offset_number(struct cpp_demangle_data *ddata)
 }
 
 static int
-cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
+cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata,
+    struct vector_type_qualifier *v)
 {
 	size_t class_type_len, i, idx, p_idx;
 	int p_func_type, rtn;
@@ -1983,7 +2001,7 @@ cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
 		if (!vector_str_pop(&ddata->output))
 			goto clean1;
 
-	if (!vector_read_cmd_push(&ddata->cmd, READ_PTRMEM))
+	if (!vector_read_cmd_push(&ddata->cmd, READ_PTRMEM, v))
 		goto clean1;
 
 	if (!vector_str_push(&ddata->class_type, class_type, class_type_len))
@@ -2012,6 +2030,10 @@ clean2:
 clean1:
 	free(class_type);
 
+	vector_type_qualifier_dest(v);
+	if (!vector_type_qualifier_init(v))
+		return (0);
+
 	return (rtn);
 }
 
@@ -2035,7 +2057,7 @@ cpp_demangle_read_sname(struct cpp_demangle_data *ddata)
 		return (0);
 
 	assert(ddata->output.size > 0);
-	if (vector_read_cmd_find(&ddata->cmd, READ_TMPL) == 0)
+	if (vector_read_cmd_find(&ddata->cmd, READ_TMPL) == NULL)
 		ddata->last_sname =
 		    ddata->output.container[ddata->output.size - 1];
 
@@ -2291,7 +2313,7 @@ cpp_demangle_read_tmpl_args(struct cpp_demangle_data *ddata)
 
 	++ddata->cur;
 
-	if (!vector_read_cmd_push(&ddata->cmd, READ_TMPL))
+	if (!vector_read_cmd_push(&ddata->cmd, READ_TMPL, NULL))
 		return (0);
 
 	if (!DEM_PUSH_STR(ddata, "<"))
@@ -2657,7 +2679,7 @@ again:
 		goto rtn;
 	case 'M':
 		/* pointer to member */
-		if (!cpp_demangle_read_pointer_to_member(ddata))
+		if (!cpp_demangle_read_pointer_to_member(ddata, &v))
 			goto clean;
 		is_builtin = 0;
 		goto rtn;
@@ -3690,20 +3712,19 @@ vector_read_cmd_dest(struct vector_read_cmd *v)
 	free(v->r_container);
 }
 
-/* return -1 at failed, 0 at not found, 1 at found. */
-static int
+static struct read_cmd_item *
 vector_read_cmd_find(struct vector_read_cmd *v, enum read_cmd dst)
 {
-	size_t i;
+	int i;
 
 	if (v == NULL || dst == READ_FAIL)
-		return (-1);
+		return (NULL);
 
-	for (i = 0; i < v->size; ++i)
-		if (v->r_container[i] == dst)
-			return (1);
+	for (i = (int) v->size - 1; i >= 0; i--)
+		if (v->r_container[i].cmd == dst)
+			return (&v->r_container[i]);
 
-	return (0);
+	return (NULL);
 }
 
 static int
@@ -3716,7 +3737,7 @@ vector_read_cmd_init(struct vector_read_cmd *v)
 	v->size = 0;
 	v->capacity = VECTOR_DEF_CAPACITY;
 
-	if ((v->r_container = malloc(sizeof(enum read_cmd) * v->capacity))
+	if ((v->r_container = malloc(sizeof(*v->r_container) * v->capacity))
 	    == NULL)
 		return (0);
 
@@ -3731,15 +3752,16 @@ vector_read_cmd_pop(struct vector_read_cmd *v)
 		return (0);
 
 	--v->size;
-	v->r_container[v->size] = READ_FAIL;
+	v->r_container[v->size].cmd = READ_FAIL;
+	v->r_container[v->size].data = NULL;
 
 	return (1);
 }
 
 static int
-vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd)
+vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd, void *data)
 {
-	enum read_cmd *tmp_r_ctn;
+	struct read_cmd_item *tmp_r_ctn;
 	size_t tmp_cap;
 	size_t i;
 
@@ -3748,8 +3770,7 @@ vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd)
 
 	if (v->size == v->capacity) {
 		tmp_cap = v->capacity * BUFFER_GROWFACTOR;
-		if ((tmp_r_ctn = malloc(sizeof(enum read_cmd) * tmp_cap))
-		    == NULL)
+		if ((tmp_r_ctn = malloc(sizeof(*tmp_r_ctn) * tmp_cap)) == NULL)
 			return (0);
 		for (i = 0; i < v->size; ++i)
 			tmp_r_ctn[i] = v->r_container[i];
@@ -3758,7 +3779,8 @@ vector_read_cmd_push(struct vector_read_cmd *v, enum read_cmd cmd)
 		v->capacity = tmp_cap;
 	}
 
-	v->r_container[v->size] = cmd;
+	v->r_container[v->size].cmd = cmd;
+	v->r_container[v->size].data = data;
 	++v->size;
 
 	return (1);
