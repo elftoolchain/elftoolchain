@@ -1194,12 +1194,9 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 				return (0);
 		}
 
-		if (!DEM_PUSH_STR(ddata, "("))
-			return (0);
-
 		limit = 0;
 		for (;;) {
-			if (!cpp_demangle_read_type(ddata, 0))
+			if (!cpp_demangle_read_type(ddata, 1))
 				return (0);
 			if (*ddata->cur == 'E')
 				break;
@@ -1215,9 +1212,6 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 			if (!vector_type_qualifier_init(v))
 				return (0);
 		}
-
-		if (!DEM_PUSH_STR(ddata, ")"))
-			return (0);
 	}
 
 	++ddata->cur;
