@@ -2,6 +2,7 @@
 
 TOP=		../../..
 
+SUBDIR+=	builtin
 SUBDIR+=	misc
 SUBDIR+=	qualifiers
 SUBDIR+=	regression
