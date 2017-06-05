@@ -2300,6 +2300,18 @@ again:
 	case 'D':
 		++ddata->cur;
 		switch (*ddata->cur) {
+		case 'a':
+			/* auto */
+			if (!DEM_PUSH_STR(ddata, "auto"))
+				goto clean;
+			++ddata->cur;
+			break;
+		case 'c':
+			/* decltype(auto) */
+			if (!DEM_PUSH_STR(ddata, "decltype(auto)"))
+				goto clean;
+			++ddata->cur;
+			break;
 		case 'd':
 			/* IEEE 754r decimal floating point (64 bits) */
 			if (!DEM_PUSH_STR(ddata, "decimal64"))
