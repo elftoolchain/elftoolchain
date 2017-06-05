@@ -77,8 +77,6 @@ struct cpp_demangle_data {
 	struct vector_str	 class_type;
 	struct vector_str	*cur_output;	/* ptr to current output vec */
 	struct vector_read_cmd	 cmd;
-	bool			 paren;		/* parenthesis opened */
-	bool			 pfirst;	/* first element of parameter */
 	bool			 mem_rst;	/* restrict member function */
 	bool			 mem_vat;	/* volatile member function */
 	bool			 mem_cst;	/* const member function */
@@ -86,6 +84,12 @@ struct cpp_demangle_data {
 	int			 func_type;
 	const char		*cur;		/* current mangled name ptr */
 	const char		*last_sname;	/* last source name */
+};
+
+struct type_delimit {
+	bool paren;
+	bool firstp;
+	bool omit_void;
 };
 
 #define	CPP_DEMANGLE_TRY_LIMIT	128
@@ -147,7 +151,8 @@ static int	cpp_demangle_read_subst_stdtmpl(struct cpp_demangle_data *,
 static int	cpp_demangle_read_tmpl_arg(struct cpp_demangle_data *);
 static int	cpp_demangle_read_tmpl_args(struct cpp_demangle_data *);
 static int	cpp_demangle_read_tmpl_param(struct cpp_demangle_data *);
-static int	cpp_demangle_read_type(struct cpp_demangle_data *, int);
+static int	cpp_demangle_read_type(struct cpp_demangle_data *,
+		    struct type_delimit *);
 static int	cpp_demangle_read_type_flat(struct cpp_demangle_data *,
 		    char **);
 static int	cpp_demangle_read_uqname(struct cpp_demangle_data *);
@@ -180,6 +185,7 @@ cpp_demangle_gnu3(const char *org)
 {
 	struct cpp_demangle_data ddata;
 	struct vector_str ret_type;
+	struct type_delimit td;
 	ssize_t org_len;
 	unsigned int limit;
 	char *rtn;
@@ -207,6 +213,9 @@ cpp_demangle_gnu3(const char *org)
 	if (!cpp_demangle_read_encoding(&ddata))
 		goto clean;
 
+	td.paren = false;
+	td.firstp = true;
+	td.omit_void = true;
 	has_ret = more_type = false;
 	limit = 0;
 	while (*ddata.cur != '\0') {
@@ -225,9 +234,9 @@ cpp_demangle_gnu3(const char *org)
 				goto clean;
 			ddata.cur_output = &ret_type;
 			has_ret = true;
-			if (!cpp_demangle_read_type(&ddata, 0))
+			if (!cpp_demangle_read_type(&ddata, NULL))
 				goto clean;
-		} else if (!cpp_demangle_read_type(&ddata, 1))
+		} else if (!cpp_demangle_read_type(&ddata, &td))
 			goto clean;
 
 		if (has_ret) {
@@ -250,7 +259,7 @@ cpp_demangle_gnu3(const char *org)
 
 	if (ddata.output.size == 0)
 		goto clean;
-	if (ddata.paren && !VEC_PUSH_STR(&ddata.output, ")"))
+	if (td.paren && !VEC_PUSH_STR(&ddata.output, ")"))
 		goto clean;
 	if (ddata.mem_vat && !VEC_PUSH_STR(&ddata.output, " volatile"))
 		goto clean;
@@ -307,8 +316,6 @@ cpp_demangle_data_init(struct cpp_demangle_data *d, const char *cur)
 	assert(d->tmpl.container != NULL);
 	assert(d->class_type.container != NULL);
 
-	d->paren = false;
-	d->pfirst = false;
 	d->mem_rst = false;
 	d->mem_vat = false;
 	d->mem_cst = false;
@@ -654,7 +661,7 @@ cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 		if (*(++ddata->cur) == '\0')
 			return (0);
 
-		if (!cpp_demangle_read_type(ddata, 0))
+		if (!cpp_demangle_read_type(ddata, NULL))
 			return (0);
 
 		if (!DEM_PUSH_STR(ddata, "[]"))
@@ -670,7 +677,7 @@ cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 			assert(num_len > 0);
 			if (*(++ddata->cur) == '\0')
 				return (0);
-			if (!cpp_demangle_read_type(ddata, 0))
+			if (!cpp_demangle_read_type(ddata, NULL))
 				return (0);
 			if (!DEM_PUSH_STR(ddata, "["))
 				return (0);
@@ -700,7 +707,7 @@ cpp_demangle_read_array(struct cpp_demangle_data *ddata)
 				free(exp);
 				return (0);
 			}
-			if (!cpp_demangle_read_type(ddata, 0)) {
+			if (!cpp_demangle_read_type(ddata, NULL)) {
 				free(exp);
 				return (0);
 			}
@@ -817,11 +824,11 @@ cpp_demangle_read_expression(struct cpp_demangle_data *ddata)
 	switch (SIMPLE_HASH(*ddata->cur, *(ddata->cur + 1))) {
 	case SIMPLE_HASH('s', 't'):
 		ddata->cur += 2;
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('s', 'r'):
 		ddata->cur += 2;
-		if (!cpp_demangle_read_type(ddata, 0))
+		if (!cpp_demangle_read_type(ddata, NULL))
 			return (0);
 		if (!cpp_demangle_read_uqname(ddata))
 			return (0);
@@ -1175,6 +1182,7 @@ static int
 cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
     struct vector_type_qualifier *v)
 {
+	struct type_delimit td;
 	size_t class_type_size, class_type_len, limit;
 	const char *class_type;
 
@@ -1189,7 +1197,7 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 	}
 
 	/* Return type */
-	if (!cpp_demangle_read_type(ddata, 0))
+	if (!cpp_demangle_read_type(ddata, NULL))
 		return (0);
 
 	if (*ddata->cur != 'E') {
@@ -1221,14 +1229,22 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 				return (0);
 		}
 
+		td.paren = false;
+		td.firstp = true;
+		td.omit_void = true;
 		limit = 0;
 		for (;;) {
-			if (!cpp_demangle_read_type(ddata, 1))
+			if (!cpp_demangle_read_type(ddata, &td))
 				return (0);
 			if (*ddata->cur == 'E')
 				break;
 			if (limit++ > CPP_DEMANGLE_TRY_LIMIT)
 				return (0);
+		}
+		if (td.paren) {
+			if (!DEM_PUSH_STR(ddata, ")"))
+				return (0);
+			td.paren = false;
 		}
 
 		if (vector_read_cmd_find(&ddata->cmd, READ_PTRMEM) == 1) {
@@ -1344,7 +1360,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 			goto clean3;
 		if (*ddata->cur++ != '_')
 			goto clean3;
-		if (!cpp_demangle_read_type(ddata, 0))
+		if (!cpp_demangle_read_type(ddata, NULL))
 			goto clean3;
 		if (!DEM_PUSH_STR(ddata, "-in-"))
 			goto clean3;
@@ -1366,7 +1382,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'h'):
 		/* virtual function non-virtual override thunk */
@@ -1396,7 +1412,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'J'):
 		/* java class */
@@ -1405,7 +1421,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'S'):
 		/* RTTI name (NTBS) */
@@ -1414,7 +1430,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'T'):
 		/* VTT table */
@@ -1423,7 +1439,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'v'):
 		/* virtual function virtual override thunk */
@@ -1444,7 +1460,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
 			return (0);
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('T', 'W'):
 		/* TLS wrapper function */
@@ -1463,6 +1479,7 @@ static int
 cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 {
 	struct vector_str local_name;
+	struct type_delimit td;
 	size_t limit;
 	bool has_ret, more_type;
 
@@ -1479,6 +1496,9 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 		return (0);
 	}
 
+	td.paren = false;
+	td.firstp = true;
+	td.omit_void = true;
 	has_ret = more_type = false;
 	limit = 0;
 	for (;;) {
@@ -1495,7 +1515,7 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 		}
 
 		ddata->cur_output = &ddata->output;
-		if (!cpp_demangle_read_type(ddata, 1)) {
+		if (!cpp_demangle_read_type(ddata, &td)) {
 			if (has_ret)
 				vector_str_dest(&local_name);
 			return (0);
@@ -1509,7 +1529,9 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 			}
 			has_ret = false;
 			more_type = true;
-		}
+		} else if (more_type)
+			more_type = false;
+
 		vector_str_dest(&local_name);
 
 		if (*ddata->cur == 'E')
@@ -1522,10 +1544,10 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 
 	if (*(++ddata->cur) == '\0')
 		return (0);
-	if (ddata->paren == true) {
+	if (td.paren == true) {
 		if (!DEM_PUSH_STR(ddata, ")"))
 			return (0);
-		ddata->paren = false;
+		td.paren = false;
 	}
 	if (*ddata->cur == 's')
 		++ddata->cur;
@@ -1863,7 +1885,7 @@ cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
 		return (0);
 
 	p_idx = ddata->output.size;
-	if (!cpp_demangle_read_type(ddata, 0))
+	if (!cpp_demangle_read_type(ddata, NULL))
 		return (0);
 
 	if ((class_type = vector_str_substr(&ddata->output, p_idx,
@@ -1883,7 +1905,7 @@ cpp_demangle_read_pointer_to_member(struct cpp_demangle_data *ddata)
 		goto clean2;
 
 	p_func_type = ddata->func_type;
-	if (!cpp_demangle_read_type(ddata, 0))
+	if (!cpp_demangle_read_type(ddata, NULL))
 		goto clean3;
 
 	if (p_func_type == ddata->func_type) {
@@ -2169,7 +2191,7 @@ cpp_demangle_read_tmpl_arg(struct cpp_demangle_data *ddata)
 		return (cpp_demangle_read_expression(ddata));
 	}
 
-	return (cpp_demangle_read_type(ddata, 0));
+	return (cpp_demangle_read_type(ddata, NULL));
 }
 
 static int
@@ -2268,7 +2290,8 @@ cpp_demangle_read_tmpl_param(struct cpp_demangle_data *ddata)
 }
 
 static int
-cpp_demangle_read_type(struct cpp_demangle_data *ddata, int delimit)
+cpp_demangle_read_type(struct cpp_demangle_data *ddata,
+    struct type_delimit *td)
 {
 	struct vector_type_qualifier v;
 	struct vector_str *output;
@@ -2281,25 +2304,22 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata, int delimit)
 		return (0);
 
 	output = ddata->cur_output;
-	if (delimit == 1) {
-		if (ddata->paren == false) {
+	if (td) {
+		if (td->paren == false) {
 			if (!DEM_PUSH_STR(ddata, "("))
 				return (0);
 			if (ddata->output.size < 2)
 				return (0);
-			ddata->paren = true;
-			ddata->pfirst = true;
+			td->paren = true;
 			/* Need pop function name */
 			if (ddata->subst.size == 1 &&
 			    !vector_str_pop(&ddata->subst))
 				return (0);
 		}
 
-		if (ddata->pfirst)
-			ddata->pfirst = false;
-		else if (*ddata->cur != 'I' &&
-		    !DEM_PUSH_STR(ddata, ", ")) {
-			return (0);
+		if (!td->firstp && *ddata->cur != 'I') {
+			if (!DEM_PUSH_STR(ddata, ", "))
+				return (0);
 		}
 	}
 
@@ -2684,6 +2704,9 @@ rtn:
 	if (!cpp_demangle_push_type_qualifier(ddata, &v, type_str))
 		goto clean;
 
+	if (td)
+		td->firstp = false;
+
 	free(type_str);
 	free(exp_str);
 	free(num_str);
@@ -2710,7 +2733,7 @@ cpp_demangle_read_type_flat(struct cpp_demangle_data *ddata, char **str)
 
 	p_idx = output->size;
 
-	if (!cpp_demangle_read_type(ddata, 0))
+	if (!cpp_demangle_read_type(ddata, NULL))
 		return (0);
 
 	if ((type = vector_str_substr(output, p_idx, output->size - 1,
@@ -2805,7 +2828,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 		if (!DEM_PUSH_STR(ddata, "operator(cast)"))
 			return (0);
 		ddata->cur += 2;
-		return (cpp_demangle_read_type(ddata, 0));
+		return (cpp_demangle_read_type(ddata, NULL));
 
 	case SIMPLE_HASH('d', 'a'):
 		/* operator delete [] */
