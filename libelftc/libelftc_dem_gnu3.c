@@ -3077,9 +3077,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 	/* ctor-dtor-name */
 	switch (SIMPLE_HASH(*ddata->cur, *(ddata->cur + 1))) {
 	case SIMPLE_HASH('C', '1'):
-		/* FALLTHROUGH */
 	case SIMPLE_HASH('C', '2'):
-		/* FALLTHROUGH */
 	case SIMPLE_HASH('C', '3'):
 		if (ddata->last_sname == NULL)
 			return (0);
@@ -3093,9 +3091,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 		return (1);
 
 	case SIMPLE_HASH('D', '0'):
-		/* FALLTHROUGH */
 	case SIMPLE_HASH('D', '1'):
-		/* FALLTHROUGH */
 	case SIMPLE_HASH('D', '2'):
 		if (ddata->last_sname == NULL)
 			return (0);
