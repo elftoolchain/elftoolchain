@@ -89,7 +89,7 @@ struct cpp_demangle_data {
 struct type_delimit {
 	bool paren;
 	bool firstp;
-	bool omit_void;
+	bool has_void;
 };
 
 #define	CPP_DEMANGLE_TRY_LIMIT	128
@@ -215,7 +215,6 @@ cpp_demangle_gnu3(const char *org)
 
 	td.paren = false;
 	td.firstp = true;
-	td.omit_void = true;
 	has_ret = more_type = false;
 	limit = 0;
 	while (*ddata.cur != '\0') {
@@ -1231,7 +1230,6 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 
 		td.paren = false;
 		td.firstp = true;
-		td.omit_void = true;
 		limit = 0;
 		for (;;) {
 			if (!cpp_demangle_read_type(ddata, &td))
@@ -1498,7 +1496,6 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 
 	td.paren = false;
 	td.firstp = true;
-	td.omit_void = true;
 	has_ret = more_type = false;
 	limit = 0;
 	for (;;) {
@@ -2317,9 +2314,18 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata,
 				return (0);
 		}
 
-		if (!td->firstp && *ddata->cur != 'I') {
-			if (!DEM_PUSH_STR(ddata, ", "))
-				return (0);
+		if (td->firstp)
+			td->has_void = false;
+		else {
+			if (td->has_void)  {
+				if (!DEM_PUSH_STR(ddata, "void"))
+					return (0);
+				td->has_void = false;
+			}
+			if (*ddata->cur != 'I') {
+				if (!DEM_PUSH_STR(ddata, ", "))
+					return (0);
+			}
 		}
 	}
 
@@ -2365,6 +2371,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_CMX))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'c':
@@ -2460,6 +2468,8 @@ again:
 			++ddata->cur;
 			if (!vector_type_qualifier_push(&v, TYPE_VEC))
 				goto clean;
+			if (td)
+				td->firstp = false;
 			goto again;
 		default:
 			goto clean;
@@ -2499,6 +2509,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_IMG))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'h':
@@ -2527,6 +2539,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_CST))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'l':
@@ -2570,6 +2584,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_RREF))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'P':
@@ -2577,6 +2593,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_PTR))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'r':
@@ -2584,6 +2602,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_RST))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'R':
@@ -2591,6 +2611,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_REF))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 's':
@@ -2641,11 +2663,15 @@ again:
 		ddata->cur += len;
 		if (!vector_type_qualifier_push(&v, TYPE_EXT))
 			goto clean;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'v':
 		/* void */
-		if (!DEM_PUSH_STR(ddata, "void"))
+		if (td && td->firstp) {
+			td->has_void = true;
+		} else if (!DEM_PUSH_STR(ddata, "void"))
 			goto clean;
 		++ddata->cur;
 		goto rtn;
@@ -2655,6 +2681,8 @@ again:
 		if (!vector_type_qualifier_push(&v, TYPE_VAT))
 			goto clean;
 		++ddata->cur;
+		if (td)
+			td->firstp = false;
 		goto again;
 
 	case 'w':
@@ -2691,11 +2719,11 @@ again:
 
 	is_builtin = 0;
 rtn:
-	if ((type_str = vector_str_substr(output, p_idx, output->size - 1,
-	    &type_str_len)) == NULL)
-		goto clean;
 
 	if (is_builtin == 0) {
+		if ((type_str = vector_str_substr(output, p_idx,
+		    output->size - 1, &type_str_len)) == NULL)
+			goto clean;
 		if (!vector_str_find(&ddata->subst, type_str, type_str_len) &&
 		    !vector_str_push(&ddata->subst, type_str, type_str_len))
 			goto clean;
