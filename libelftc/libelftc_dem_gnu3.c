@@ -1160,12 +1160,17 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 			*ext_c = 1;
 		++ddata->cur;
 	}
+
+	/* Return type */
 	if (!cpp_demangle_read_type(ddata, 0))
 		return (0);
+
 	if (*ddata->cur != 'E') {
-		if (!DEM_PUSH_STR(ddata, "("))
+		if (!DEM_PUSH_STR(ddata, " "))
 			return (0);
 		if (vector_read_cmd_find(&ddata->cmd, READ_PTRMEM)) {
+			if (!DEM_PUSH_STR(ddata, "("))
+				return (0);
 			if ((class_type_size = ddata->class_type.size) == 0)
 				return (0);
 			class_type =
@@ -1177,7 +1182,7 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 			if (!cpp_demangle_push_str(ddata, class_type,
 			    class_type_len))
 				return (0);
-			if (!DEM_PUSH_STR(ddata, "::*"))
+			if (!DEM_PUSH_STR(ddata, "::*)"))
 				return (0);
 			++ddata->func_type;
 		} else {
@@ -1189,7 +1194,7 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 				return (0);
 		}
 
-		if (!DEM_PUSH_STR(ddata, ")("))
+		if (!DEM_PUSH_STR(ddata, "("))
 			return (0);
 
 		limit = 0;
