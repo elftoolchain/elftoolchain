@@ -11,6 +11,11 @@ misc
 	/ts/misc/tc
 	"Complete misc Test"
 
+misc
+	"Starting qualifiers Test"
+	/ts/qualifiers/tc
+	"Complete qualifiers Test"
+
 regression
 	"Starting regression Test"
 	/ts/regression/tc
