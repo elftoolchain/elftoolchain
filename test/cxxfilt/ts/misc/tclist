@@ -15,8 +15,8 @@
 
 # non-static member function with qualifiers  <nested-name>
 # N [<CV-qualifiers>] [<ref-qualifier>] <prefix> <unqualified-name> E
-"_ZNKR12elftoolchain3fooiEi", "elftoolchain::foo(int) const &"
-"_ZNKO12elftoolchain3fooiEi", "elftoolchain::foo(int) const &&"
+"_ZNKR12elftoolchain3fooEi", "elftoolchain::foo(int) const &"
+"_ZNKO12elftoolchain3fooEi", "elftoolchain::foo(int) const &&"
 
 # function type with qualifiers. (note that the place to encode qualifiers
 # is different than <nested-name>)
@@ -37,6 +37,7 @@
 "_Z3fooKPFvvREM1AFvvE", "foo(void (* const)() &, void (A::*)())"
 "_Z3fooPKFvvREM1AFvvE", "foo(void (*)() const &, void (A::*)())"
 "_Z3fooPKFvvREPM1AFvvE", "foo(void (*)() const &, void (A::**)())"
+"_Z3fooPKFviREPM1AFvidE", "foo(void (*)(int) const &, void (A::**)(int, double))"
 "_Z3fooPrKFvvREPKVM1APKFvvE", "foo(void (*)() const restrict &, void (* A::* volatile const*)() const)"
 
 # local names
