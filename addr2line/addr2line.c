@@ -81,6 +81,7 @@ static struct option longopts[] = {
 static int demangle, func, base, inlines, print_addr, pretty_print;
 static char unknown[] = { '?', '?', '\0' };
 static Dwarf_Addr section_base;
+static struct CU *culist;
 
 #define	USAGE_MESSAGE	"\
 Usage: %s [options] hexaddress...\n\
@@ -382,10 +383,10 @@ translate(Dwarf_Debug dbg, Elf *e, const char* addrstr)
 	Dwarf_Line *lbuf;
 	Dwarf_Error de;
 	Dwarf_Half tag;
-	Dwarf_Unsigned lopc, hipc, addr_base, ranges_off, addr, lineno, plineno;
-	Dwarf_Signed lcount, ranges_cnt;
+	Dwarf_Unsigned lopc, hipc, addr, lineno, plineno;
+	Dwarf_Signed lcount;
 	Dwarf_Addr lineaddr, plineaddr;
-	Dwarf_Ranges *ranges;
+	Dwarf_Off off;
 	struct CU *cu;
 	struct Func *f;
 	const char *funcname;
@@ -421,53 +422,45 @@ translate(Dwarf_Debug dbg, Elf *e, const char* addrstr)
 			warnx("could not find DW_TAG_compile_unit die");
 			goto next_cu;
 		}
-
-		/*
-		 * Compile unit address range can be specified by either
-		 * a DW_AT_ranges attribute which points to a range list or
-		 * by a pair of DW_AT_low_pc and DW_AT_high_pc attributes.
-		 */
-		ranges = NULL;
-		ranges_cnt = 0;
-		if (dwarf_attrval_unsigned(die, DW_AT_ranges, &ranges_off,
-		    &de) == DW_DLV_OK &&
-		    dwarf_get_ranges(dbg, (Dwarf_Off) ranges_off, &ranges,
-		    &ranges_cnt, NULL, &de) == DW_DLV_OK) {
-			if (ranges == NULL || ranges_cnt <= 0) {
-				goto next_cu;
+		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) ==
+		    DW_DLV_OK) {
+			if (dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc,
+			   &de) == DW_DLV_OK) {
+				/*
+				 * Check if the address falls into the PC
+				 * range of this CU.
+				 */
+				if (handle_high_pc(die, lopc, &hipc) !=
+				    DW_DLV_OK)
+					goto out;
+			} else {
+				/* Assume ~0ULL if DW_AT_high_pc not present */
+				hipc = ~0ULL;
 			}
 
-			addr_base = 0;
-			for (i = 0; i < ranges_cnt; i++) {
-				if (ranges[i].dwr_type == DW_RANGES_END)
-					goto next_cu;
-				if (ranges[i].dwr_type ==
-				    DW_RANGES_ADDRESS_SELECTION) {
-					addr_base = ranges[i].dwr_addr2;
-					continue;
-				}
-
-				/* DW_RANGES_ENTRY */
-				lopc = ranges[i].dwr_addr1 + addr_base;
-				hipc = ranges[i].dwr_addr2 + addr_base;
-				if (addr >= lopc && addr < hipc) {
-					goto found_cu;
-				}
+			/*
+			 * Record the CU in the hash table for faster lookup
+			 * later.
+			 */
+			if (dwarf_dieoffset(die, &off, &de) != DW_DLV_OK) {
+				warnx("dwarf_dieoffset failed: %s",
+				    dwarf_errmsg(de));
+				goto out;
 			}
+			HASH_FIND(hh, culist, &off, sizeof(off), cu);
+			if (cu == NULL) {
+				if ((cu = calloc(1, sizeof(*cu))) == NULL)
+					err(EXIT_FAILURE, "calloc");
+				cu->off = off;
+				cu->lopc = lopc;
+				cu->hipc = hipc;
+				STAILQ_INIT(&cu->funclist);
+				HASH_ADD(hh, culist, off, sizeof(off), cu);
+			}
+
+			if (addr >= lopc && addr < hipc)
+				break;
 		}
-
-		/*
-		 * Search for DW_AT_low_pc/DW_AT_high_pc if ranges pointer
-		 * not found.
-		 */
-		if (dwarf_attrval_unsigned(die, DW_AT_low_pc, &lopc, &de) ||
-		    dwarf_attrval_unsigned(die, DW_AT_high_pc, &hipc, &de))
-			goto next_cu;
-		if (handle_high_pc(die, lopc, &hipc) != DW_DLV_OK)
-			goto next_cu;
-
-		if (addr >= lopc && addr < hipc)
-			break;
 
 	next_cu:
 		if (die != NULL) {
@@ -476,7 +469,6 @@ translate(Dwarf_Debug dbg, Elf *e, const char* addrstr)
 		}
 	}
 
-	found_cu:
 	if (ret != DW_DLV_OK || die == NULL)
 		goto out;
 
