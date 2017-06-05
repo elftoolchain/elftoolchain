@@ -228,13 +228,13 @@ cpp_demangle_gnu3(const char *org)
 		return (NULL);
 
 	rtn = NULL;
+	has_ret = more_type = false;
 
 	if (!cpp_demangle_read_encoding(&ddata))
 		goto clean;
 
 	td.paren = false;
 	td.firstp = true;
-	has_ret = more_type = false;
 	limit = 0;
 	while (*ddata.cur != '\0') {
 		/*
