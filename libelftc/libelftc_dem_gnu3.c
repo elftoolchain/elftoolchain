@@ -50,7 +50,7 @@ ELFTC_VCSID("$Id$");
 
 enum type_qualifier {
 	TYPE_PTR, TYPE_REF, TYPE_CMX, TYPE_IMG, TYPE_EXT, TYPE_RST, TYPE_VAT,
-	TYPE_CST, TYPE_VEC
+	TYPE_CST, TYPE_VEC, TYPE_RREF
 };
 
 struct vector_type_qualifier {
@@ -424,6 +424,18 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 				goto clean;
 			if (type_str != NULL) {
 				if (!VEC_PUSH_STR(&subst_v, "&"))
+					goto clean;
+				if (!cpp_demangle_push_subst_v(ddata,
+				    &subst_v))
+					goto clean;
+			}
+			break;
+
+		case TYPE_RREF:
+			if (!DEM_PUSH_STR(ddata, "&&"))
+				goto clean;
+			if (type_str != NULL) {
+				if (!VEC_PUSH_STR(&subst_v, "&&"))
 					goto clean;
 				if (!cpp_demangle_push_subst_v(ddata,
 				    &subst_v))
@@ -2456,6 +2468,13 @@ again:
 			goto clean;
 		++ddata->cur;
 		goto rtn;
+
+	case 'O':
+		/* rvalue reference */
+		if (!vector_type_qualifier_push(&v, TYPE_RREF))
+			goto clean;
+		++ddata->cur;
+		goto again;
 
 	case 'P':
 		/* pointer */
