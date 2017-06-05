@@ -2241,7 +2241,7 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata, int delimit)
 
 	assert(output != NULL);
 	/*
-	 * [r, V, K] [P, R, C, G, U] builtin, function, class-enum, array
+	 * [r, V, K] [P, R, O, C, G, U] builtin, function, class-enum, array
 	 * pointer-to-member, template-param, template-template-param, subst
 	 */
 
