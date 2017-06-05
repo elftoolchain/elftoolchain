@@ -82,6 +82,8 @@ bool	vector_str_init(struct vector_str *_vs);
 bool	vector_str_pop(struct vector_str *_vs);
 bool	vector_str_push(struct vector_str *_vs, const char *_str,
     size_t _len);
+bool	vector_str_push_vector(struct vector_str *_dst,
+    struct vector_str *_org);
 bool	vector_str_push_vector_head(struct vector_str *_dst,
     struct vector_str *_org);
 char	*vector_str_substr(const struct vector_str *_vs, size_t _begin,
