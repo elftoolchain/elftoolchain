@@ -125,6 +125,7 @@ static int	cpp_demangle_push_fp(struct cpp_demangle_data *,
 		    char *(*)(const char *, size_t));
 static int	cpp_demangle_push_str(struct cpp_demangle_data *, const char *,
 		    size_t);
+static int	cpp_demangle_pop_str(struct cpp_demangle_data *);
 static int	cpp_demangle_push_subst(struct cpp_demangle_data *,
 		    const char *, size_t);
 static int	cpp_demangle_push_subst_v(struct cpp_demangle_data *,
@@ -407,6 +408,16 @@ cpp_demangle_push_str(struct cpp_demangle_data *ddata, const char *str,
 	}
 
 	return (vector_str_push(ddata->cur_output, str, len));
+}
+
+static int
+cpp_demangle_pop_str(struct cpp_demangle_data *ddata)
+{
+
+	if (ddata == NULL)
+		return (0);
+
+	return (vector_str_pop(ddata->cur_output));
 }
 
 static int
@@ -2598,6 +2609,9 @@ again:
 		/* unexpected end except ref-qualifiers */
 		if (ddata->ref_qualifier && ddata->is_functype) {
 			skip_ref_qualifier = true;
+			/* Pop the delimiter. */
+			if (!ddata->delay_void)
+				cpp_demangle_pop_str(ddata);
 			goto rtn;
 		}
 		goto clean;
