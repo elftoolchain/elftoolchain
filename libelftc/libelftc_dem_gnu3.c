@@ -2805,7 +2805,7 @@ cpp_demangle_read_uqname(struct cpp_demangle_data *ddata)
 		if (!DEM_PUSH_STR(ddata, "operator(cast)"))
 			return (0);
 		ddata->cur += 2;
-		return (cpp_demangle_read_type(ddata, 1));
+		return (cpp_demangle_read_type(ddata, 0));
 
 	case SIMPLE_HASH('d', 'a'):
 		/* operator delete [] */
