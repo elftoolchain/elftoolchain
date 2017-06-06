@@ -91,6 +91,8 @@ struct cpp_demangle_data {
 	bool			 mem_rst;	/* restrict member function */
 	bool			 mem_vat;	/* volatile member function */
 	bool			 mem_cst;	/* const member function */
+	bool			 mem_ref;	/* lvalue-ref member func */
+	bool			 mem_rref;	/* rvalue-ref member func */
 	bool			 is_tmpl;	/* template args */
 	bool			 is_functype;	/* function type */
 	bool			 ref_qualifier; /* ref qualifier */
@@ -286,6 +288,10 @@ cpp_demangle_gnu3(const char *org)
 		goto clean;
 	if (ddata.mem_rst && !VEC_PUSH_STR(&ddata.output, " restrict"))
 		goto clean;
+	if (ddata.mem_ref && !VEC_PUSH_STR(&ddata.output, " &"))
+		goto clean;
+	if (ddata.mem_rref && !VEC_PUSH_STR(&ddata.output, " &&"))
+		goto clean;
 
 	rtn = vector_str_get_flat(&ddata.output, (size_t *) NULL);
 
@@ -338,9 +344,12 @@ cpp_demangle_data_init(struct cpp_demangle_data *d, const char *cur)
 	d->mem_rst = false;
 	d->mem_vat = false;
 	d->mem_cst = false;
+	d->mem_ref = false;
+	d->mem_rref = false;
 	d->is_tmpl = false;
 	d->is_functype = false;
 	d->ref_qualifier = false;
+	d->delay_void = false;
 	d->push_qualifier = PUSH_ALL_QUALIFIER;
 	d->func_type = 0;
 	d->cur = cur;
@@ -1807,8 +1816,7 @@ cpp_demangle_read_nested_name(struct cpp_demangle_data *ddata)
 	if (*(++ddata->cur) == '\0')
 		return (0);
 
-	while (*ddata->cur == 'r' || *ddata->cur == 'V' ||
-	    *ddata->cur == 'K') {
+	do {
 		switch (*ddata->cur) {
 		case 'r':
 			ddata->mem_rst = true;
@@ -1819,10 +1827,18 @@ cpp_demangle_read_nested_name(struct cpp_demangle_data *ddata)
 		case 'K':
 			ddata->mem_cst = true;
 			break;
+		case 'R':
+			ddata->mem_ref = true;
+			break;
+		case 'O':
+			ddata->mem_rref = true;
+			break;
+		default:
+			goto next;
 		}
-		++ddata->cur;
-	}
+	} while (*(++ddata->cur));
 
+next:
 	output = ddata->cur_output;
 	if (!vector_str_init(&v))
 		return (0);
