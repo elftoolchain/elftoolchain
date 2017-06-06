@@ -460,8 +460,9 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 {
 	struct vector_str subst_v;
 	size_t idx, e_idx, e_len;
-	int rtn;
 	char *buf;
+	int rtn;
+	bool cv;
 
 	if (ddata == NULL || v == NULL)
 		return (0);
@@ -477,10 +478,12 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			goto clean;
 	}
 
+	cv = true;
 	e_idx = 0;
 	while (idx > 0) {
 		switch (v->q_container[idx - 1]) {
 		case TYPE_PTR:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (!DEM_PUSH_STR(ddata, "*"))
@@ -495,6 +498,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_REF:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (!DEM_PUSH_STR(ddata, "&"))
@@ -509,6 +513,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_RREF:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (!DEM_PUSH_STR(ddata, "&&"))
@@ -523,6 +528,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_CMX:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (!DEM_PUSH_STR(ddata, " complex"))
@@ -537,6 +543,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_IMG:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (!DEM_PUSH_STR(ddata, " imaginary"))
@@ -552,6 +559,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_EXT:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (v->ext_name.size == 0 ||
@@ -586,7 +594,10 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_RST:
-			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER &&
+			    cv)
+				break;
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER && !cv)
 				break;
 			if (!DEM_PUSH_STR(ddata, " restrict"))
 				goto clean;
@@ -600,7 +611,10 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_VAT:
-			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER &&
+			    cv)
+				break;
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER && !cv)
 				break;
 			if (!DEM_PUSH_STR(ddata, " volatile"))
 				goto clean;
@@ -614,7 +628,10 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_CST:
-			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER)
+			if (ddata->push_qualifier == PUSH_NON_CV_QUALIFIER &&
+			    cv)
+				break;
+			if (ddata->push_qualifier == PUSH_CV_QUALIFIER && !cv)
 				break;
 			if (!DEM_PUSH_STR(ddata, " const"))
 				goto clean;
@@ -628,6 +645,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			break;
 
 		case TYPE_VEC:
+			cv = false;
 			if (ddata->push_qualifier == PUSH_CV_QUALIFIER)
 				break;
 			if (v->ext_name.size == 0 ||
