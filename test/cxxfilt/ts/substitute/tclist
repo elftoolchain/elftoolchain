@@ -43,6 +43,14 @@
 "_Z3foorKP3BarS0_", "foo(Bar* const restrict, Bar*)"
 "_Z3foorKP3BarS1_", "foo(Bar* const restrict, Bar* const restrict)"
 
+# vendor extended qualifiers and substitution
+# note that ABI requires that "the type with all the K, V, and r qualifiers
+# " plus any vendor extended types in the same order-insensitive set is
+# substitutible". Here vendor extended type is not handled as above
+# requirement.
+"_Z3fooU3barKiS_", "foo(int const bar, int const)"
+"_Z3fooU3barKiS0_", "foo(int const bar, int const bar)"
+
 # bug introduced with a botched fix for omitting "void"
 "_Z3barvPvS_", "bar(void, void*, void*)"
 # wrong result: bar(void, void*, void, void*)
