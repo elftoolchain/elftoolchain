@@ -98,7 +98,6 @@ struct cpp_demangle_data {
 	bool			 ref_qualifier; /* ref qualifier */
 	enum type_qualifier	 ref_qualifier_type; /* ref qualifier type */
 	enum push_qualifier	 push_qualifier; /* which qualifiers to push */
-	bool			 delay_void;	/* void print delayed */
 	int			 func_type;
 	const char		*cur;		/* current mangled name ptr */
 	const char		*last_sname;	/* last source name */
@@ -284,7 +283,6 @@ cpp_demangle_gnu3(const char *org)
 	}
 	if (more_type)
 		goto clean;
-	ddata.delay_void = false;
 
 	if (ddata.output.size == 0)
 		goto clean;
@@ -357,7 +355,6 @@ cpp_demangle_data_init(struct cpp_demangle_data *d, const char *cur)
 	d->is_tmpl = false;
 	d->is_functype = false;
 	d->ref_qualifier = false;
-	d->delay_void = false;
 	d->push_qualifier = PUSH_ALL_QUALIFIER;
 	d->func_type = 0;
 	d->cur = cur;
@@ -417,12 +414,6 @@ cpp_demangle_push_str(struct cpp_demangle_data *ddata, const char *str,
 		return (0);
 
 	ddata->is_tmpl = false;
-
-	if (ddata->delay_void) {
-		if (!VEC_PUSH_STR(ddata->cur_output, "void, "))
-			return (0);
-		ddata->delay_void = false;
-	}
 
 	return (vector_str_push(ddata->cur_output, str, len));
 }
@@ -1368,7 +1359,6 @@ cpp_demangle_read_function(struct cpp_demangle_data *ddata, int *ext_c,
 				return (0);
 		}
 		ddata->is_functype = false;
-		ddata->delay_void = false;
 		if (td.paren) {
 			if (!DEM_PUSH_STR(ddata, ")"))
 				return (0);
@@ -1688,7 +1678,6 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 	}
 	if (more_type)
 		return (0);
-	ddata->delay_void = false;
 
 	if (*(++ddata->cur) == '\0')
 		return (0);
@@ -2461,8 +2450,9 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata,
 	size_t p_idx, type_str_len, subst_str_len;
 	int extern_c, is_builtin;
 	long len;
+	const char *p;
 	char *type_str, *exp_str, *num_str, *subst_str;
-	bool skip_ref_qualifier;
+	bool skip_ref_qualifier, omit_void;
 
 	if (ddata == NULL)
 		return (0);
@@ -2478,7 +2468,7 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata,
 		}
 
 		if (!td->firstp) {
-			if (*ddata->cur != 'I' && !ddata->delay_void) {
+			if (*ddata->cur != 'I') {
 				if (!DEM_PUSH_STR(ddata, ", "))
 					return (0);
 			}
@@ -2651,8 +2641,7 @@ again:
 		if (ddata->ref_qualifier && ddata->is_functype) {
 			skip_ref_qualifier = true;
 			/* Pop the delimiter. */
-			if (!ddata->delay_void)
-				cpp_demangle_pop_str(ddata);
+			cpp_demangle_pop_str(ddata);
 			goto rtn;
 		}
 		goto clean;
@@ -2877,9 +2866,23 @@ again:
 
 	case 'v':
 		/* void */
+		omit_void = false;
 		if (td && td->firstp) {
-			ddata->delay_void = true;
-		} else if (!DEM_PUSH_STR(ddata, "void"))
+			/*
+			 * peek into next bytes and see if we should omit
+			 * the "void".
+			 */
+			omit_void = true;
+			for (p = ddata->cur + 1; *p != '\0'; p++) {
+				if (*p == 'E')
+					break;
+				if (*p != 'R' && *p != 'O') {
+					omit_void = false;
+					break;
+				}
+			}
+		}
+		if (!omit_void && !DEM_PUSH_STR(ddata, "void"))
 			goto clean;
 		++ddata->cur;
 		goto rtn;
