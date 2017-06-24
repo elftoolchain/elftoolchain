@@ -467,6 +467,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
     struct vector_type_qualifier *v, const char *type_str)
 {
 	struct vector_str subst_v;
+	enum type_qualifier t;
 	size_t idx, e_idx, e_len;
 	char *buf;
 	int rtn;
@@ -612,6 +613,12 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!VEC_PUSH_STR(&subst_v, " restrict"))
 					goto clean;
+				if (idx - 1 > 0) {
+					t = v->q_container[idx - 2];
+					if (t == TYPE_RST || t == TYPE_VAT ||
+					    t == TYPE_CST)
+						break;
+				}
 				if (!cpp_demangle_push_subst_v(ddata,
 				    &subst_v))
 					goto clean;
@@ -629,6 +636,12 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!VEC_PUSH_STR(&subst_v, " volatile"))
 					goto clean;
+				if (idx - 1 > 0) {
+					t = v->q_container[idx - 2];
+					if (t == TYPE_RST || t == TYPE_VAT ||
+					    t == TYPE_CST)
+						break;
+				}
 				if (!cpp_demangle_push_subst_v(ddata,
 				    &subst_v))
 					goto clean;
@@ -646,6 +659,12 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (type_str != NULL) {
 				if (!VEC_PUSH_STR(&subst_v, " const"))
 					goto clean;
+				if (idx - 1 > 0) {
+					t = v->q_container[idx - 2];
+					if (t == TYPE_RST || t == TYPE_VAT ||
+					    t == TYPE_CST)
+						break;
+				}
 				if (!cpp_demangle_push_subst_v(ddata,
 				    &subst_v))
 					goto clean;
