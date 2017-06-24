@@ -2348,7 +2348,10 @@ cpp_demangle_read_tmpl_arg(struct cpp_demangle_data *ddata)
 	case 'L':
 		return (cpp_demangle_read_expr_primary(ddata));
 	case 'X':
-		return (cpp_demangle_read_expression(ddata));
+		++ddata->cur;
+		if (!cpp_demangle_read_expression(ddata))
+			return (0);
+		return (*ddata->cur++ == 'E');
 	}
 
 	return (cpp_demangle_read_type(ddata, NULL));
