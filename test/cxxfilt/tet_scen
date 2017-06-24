@@ -6,6 +6,7 @@ all
 	^misc
 	^qualifiers
 	^regression
+	^substitute
         "Complete Test Suite"
 
 builtin
@@ -27,3 +28,8 @@ regression
 	"Starting regression Test"
 	/ts/regression/tc
 	"Complete regression Test"
+
+substitute
+	"Starting substitute Test"
+	/ts/substitute/tc
+	"Complete substitute Test"

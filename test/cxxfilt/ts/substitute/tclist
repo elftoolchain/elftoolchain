@@ -1,0 +1,21 @@
+#  <substitution> ::= S <seq-id> _
+#                 ::= S_
+
+"_ZN1N1TIiiE2mfES_IddE", "N::T<int, int>::mf(N<double, double>)"
+"_ZN1N1TIiiE2mfES0_IddE", "N::T<int, int>::mf(N::T<double, double>)"
+"_ZN1N1TIiiE2mfES1_IddE", "N::T<int, int>::mf(N::T<int, int><double, double>)"
+"_ZN1N1TIiiE2mfES2_IddE", "_ZN1N1TIiiE2mfES2_IddE"
+# wrong result:
+# "_ZN1N1TIiiE2mfES2_IddE", "N::T<int, int>::mf(N::T<int, int>::mf<double, double>)"
+
+"_ZN1f1gEP1hNS_1iE", "f::g(h*, f::i)"
+"_ZN1f1gEP1hNS0_1iE", "f::g(h*, h::i)"
+# wrong result:
+# "_ZN1f1gEP1hNS0_1iE", "f::g(h*, f::g::i)"
+"_ZN1f1gEP1hNS1_1iE", "f::g(h*, h*::i)"
+
+"_Z3fooN1A1B1TES_", "foo(A::B::T, A)"
+"_Z3fooN1A1B1TES0_", "foo(A::B::T, A::B)"
+"_Z3fooN1A1B1TES1_", "foo(A::B::T, A::B::T)"
+
+"_Z3foo5Hello5WorldS_S0_", "foo(Hello, World, Hello, World)"
