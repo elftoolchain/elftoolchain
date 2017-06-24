@@ -2446,11 +2446,11 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata,
     struct type_delimit *td)
 {
 	struct vector_type_qualifier v;
-	struct vector_str *output;
-	size_t p_idx, type_str_len;
+	struct vector_str *output, sv;
+	size_t p_idx, type_str_len, subst_str_len;
 	int extern_c, is_builtin;
 	long len;
-	char *type_str, *exp_str, *num_str;
+	char *type_str, *exp_str, *num_str, *subst_str;
 	bool skip_ref_qualifier;
 
 	if (ddata == NULL)
@@ -2692,6 +2692,32 @@ again:
 		if (!DEM_PUSH_STR(ddata, "int"))
 			goto clean;
 		++ddata->cur;
+		goto rtn;
+
+	case 'I':
+		/* template args. */
+		/* handles <substitute><template-args> */
+		p_idx = output->size;
+		if (!cpp_demangle_read_tmpl_args(ddata))
+			goto clean;
+		if ((subst_str = vector_str_substr(output, p_idx,
+		    output->size - 1, &subst_str_len)) == NULL)
+			goto clean;
+		if (!vector_str_init(&sv)) {
+			free(subst_str);
+			goto clean;
+		}
+		if (!vector_str_push(&sv, subst_str, subst_str_len)) {
+			free(subst_str);
+			vector_str_dest(&sv);
+			goto clean;
+		}
+		free(subst_str);
+		if (!cpp_demangle_push_subst_v(ddata, &sv)) {
+			vector_str_dest(&sv);
+			goto clean;
+		}
+		vector_str_dest(&sv);
 		goto rtn;
 
 	case 'j':
