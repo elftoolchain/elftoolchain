@@ -2928,10 +2928,10 @@ again:
 	is_builtin = 0;
 rtn:
 
+	type_str = vector_str_substr(output, p_idx, output->size - 1,
+	    &type_str_len);
+
 	if (is_builtin == 0) {
-		if ((type_str = vector_str_substr(output, p_idx,
-		    output->size - 1, &type_str_len)) == NULL)
-			goto clean;
 		if (!vector_str_find(&ddata->subst, type_str, type_str_len) &&
 		    !vector_str_push(&ddata->subst, type_str, type_str_len))
 			goto clean;
