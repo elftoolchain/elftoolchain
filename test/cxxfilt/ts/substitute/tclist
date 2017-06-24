@@ -19,3 +19,30 @@
 "_Z3fooN1A1B1TES1_", "foo(A::B::T, A::B::T)"
 
 "_Z3foo5Hello5WorldS_S0_", "foo(Hello, World, Hello, World)"
+
+# qualifiers with builtin type should be substitute candidates
+"_Z3fooPiS_", "foo(int*, int*)"
+"_Z3fooKPiS_", "foo(int* const, int*)"
+"_Z3fooKPiS0_", "foo(int* const, int* const)"
+"_Z3fooRKiS_", "foo(int const&, int const)"
+"_Z3fooRKiS0_", "foo(int const&, int const&)"
+"_Z3foorKiS_", "foo(int const restrict, int const restrict)"
+"_Z3fooPrKiS_", "foo(int const restrict*, int const restrict)"
+"_Z3fooPrKiS0_", "foo(int const restrict*, int const restrict*)"
+"_Z3foorPKiS_", "foo(int const* restrict, int const)"
+"_Z3foorPKiS0_", "foo(int const* restrict, int const*)"
+"_Z3foorPKiS1_", "foo(int const* restrict, int const* restrict)"
+"_Z3foorKPiS_", "foo(int* const restrict, int*)"
+"_Z3foorKPiS0_", "foo(int* const restrict, int* const restrict)"
+
+# qualifers with non-builin type
+"_Z3fooP3BarS_", "foo(Bar*, Bar)"
+"_Z3fooP3BarS0_", "foo(Bar*, Bar*)"
+"_Z3fooPK3BarS_", "foo(Bar const*, Bar)"
+"_Z3fooPK3BarS1_", "foo(Bar const*, Bar const*)"
+"_Z3foorKP3BarS0_", "foo(Bar* const restrict, Bar*)"
+"_Z3foorKP3BarS1_", "foo(Bar* const restrict, Bar* const restrict)"
+
+# bug introduced with a botched fix for omitting "void"
+"_Z3barvPvS_", "bar(void, void*, void*)"
+# wrong result: bar(void, void*, void, void*)
