@@ -1881,6 +1881,8 @@ next:
 				goto clean;
 		}
 
+		if (p_idx == output->size)
+			goto next_comp;
 		if ((subst_str = vector_str_substr(output, p_idx,
 		    output->size - 1, &subst_str_len)) == NULL)
 			goto clean;
@@ -1892,10 +1894,12 @@ next:
 
 		if (!cpp_demangle_push_subst_v(ddata, &v))
 			goto clean;
+
+	next_comp:
 		if (*ddata->cur == 'E')
 			break;
-		else if (*ddata->cur != 'I' &&
-		    *ddata->cur != 'C' && *ddata->cur != 'D') {
+		else if (*ddata->cur != 'I' && *ddata->cur != 'C' &&
+		    *ddata->cur != 'D' && p_idx != output->size) {
 			if (!DEM_PUSH_STR(ddata, "::"))
 				goto clean;
 			if (!VEC_PUSH_STR(&v, "::"))
@@ -2213,6 +2217,14 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 
 	if (*(++ddata->cur) == '\0')
 		return (0);
+
+	/* Skip unknown substitution abbreviations. */
+	if (!(*ddata->cur >= '0' && *ddata->cur <= '9') &&
+	    !(*ddata->cur >= 'A' && *ddata->cur <= 'Z') &&
+	    *ddata->cur != '_') {
+		++ddata->cur;
+		return (1);
+	}
 
 	/* substitution */
 	if (*ddata->cur == '_')
