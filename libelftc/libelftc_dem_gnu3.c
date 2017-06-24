@@ -235,6 +235,14 @@ cpp_demangle_gnu3(const char *org)
 	if (!cpp_demangle_read_encoding(&ddata))
 		goto clean;
 
+	/*
+	 * Pop function name from substitution candidate list.
+	 */
+	if (*ddata.cur != 0 && ddata.subst.size >= 1) {
+		if (!vector_str_pop(&ddata.subst))
+			goto clean;
+	}
+
 	td.paren = false;
 	td.firstp = true;
 	limit = 0;
@@ -2464,10 +2472,6 @@ cpp_demangle_read_type(struct cpp_demangle_data *ddata,
 			if (ddata->output.size < 2)
 				return (0);
 			td->paren = true;
-			/* Need pop function name */
-			if (ddata->subst.size == 1 &&
-			    !vector_str_pop(&ddata->subst))
-				return (0);
 		}
 
 		if (!td->firstp) {
