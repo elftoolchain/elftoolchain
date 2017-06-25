@@ -245,6 +245,20 @@ cpp_demangle_gnu3(const char *org)
 	td.paren = false;
 	td.firstp = true;
 	limit = 0;
+
+	/*
+	 * The first type is a return type if we just demangled template
+	 * args. (the template args is right next to the function name,
+	 * which means it's a template function)
+	 */
+	if (ddata.is_tmpl) {
+		ddata.is_tmpl = false;
+		if (!vector_str_init(&ret_type))
+			goto clean;
+		ddata.cur_output = &ret_type;
+		has_ret = true;
+	}
+
 	while (*ddata.cur != '\0') {
 		/*
 		 * Breaking at some gcc info at tail. e.g) @@GLIBCXX_3.4
@@ -252,21 +266,18 @@ cpp_demangle_gnu3(const char *org)
 		if (*ddata.cur == '@' && *(ddata.cur + 1) == '@')
 			break;
 
-		/*
-		 * The first type here is a return type if we just demangled
-		 * template args.
-		 */
-		if (ddata.is_tmpl) {
-			if (!vector_str_init(&ret_type))
-				goto clean;
-			ddata.cur_output = &ret_type;
-			has_ret = true;
+		if (has_ret) {
+			/* Read return type */
 			if (!cpp_demangle_read_type(&ddata, NULL))
 				goto clean;
-		} else if (!cpp_demangle_read_type(&ddata, &td))
-			goto clean;
+		} else {
+			/* Read function arg type */
+			if (!cpp_demangle_read_type(&ddata, &td))
+				goto clean;
+		}
 
 		if (has_ret) {
+			/* Push return type to the beginning */
 			if (!VEC_PUSH_STR(&ret_type, " "))
 				goto clean;
 			if (!vector_str_push_vector_head(&ddata.output,
@@ -413,6 +424,11 @@ cpp_demangle_push_str(struct cpp_demangle_data *ddata, const char *str,
 	if (ddata == NULL || str == NULL || len == 0)
 		return (0);
 
+	/*
+	 * is_tmpl is used to check if the type (function arg) is right next
+	 * to template args, and should always be cleared whenever new string
+	 * pushed.
+	 */
 	ddata->is_tmpl = false;
 
 	return (vector_str_push(ddata->cur_output, str, len));
@@ -1638,7 +1654,7 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 	struct vector_str local_name;
 	struct type_delimit td;
 	size_t limit;
-	bool has_ret, more_type;
+	bool  more_type;
 
 	if (ddata == NULL)
 		return (0);
@@ -1653,43 +1669,42 @@ cpp_demangle_read_local_name(struct cpp_demangle_data *ddata)
 		return (0);
 	}
 
+	ddata->cur_output = &ddata->output;
+
 	td.paren = false;
 	td.firstp = true;
-	has_ret = more_type = false;
+	more_type = false;
 	limit = 0;
-	for (;;) {
-		/*
-		 * The first type here is a return type if we just demangled
-		 * template args.
-		 */
-		if (ddata->is_tmpl)
-			has_ret = true;
-		else if (!vector_str_push_vector(&ddata->output,
-		    &local_name)) {
+
+	/*
+	 * The first type is a return type if we just demangled template
+	 * args. (the template args is right next to the function name,
+	 * which means it's a template function)
+	 */
+	if (ddata->is_tmpl) {
+		ddata->is_tmpl = false;
+
+		/* Read return type */
+		if (!cpp_demangle_read_type(ddata, NULL)) {
 			vector_str_dest(&local_name);
 			return (0);
 		}
 
-		ddata->cur_output = &ddata->output;
-		if (!cpp_demangle_read_type(ddata, &td)) {
-			if (has_ret)
-				vector_str_dest(&local_name);
-			return (0);
-		}
-		if (has_ret) {
-			if (!DEM_PUSH_STR(ddata, " ") ||
-			    !vector_str_push_vector(&ddata->output,
-				&local_name)) {
-				vector_str_dest(&local_name);
-				return (0);
-			}
-			has_ret = false;
-			more_type = true;
-		} else if (more_type)
-			more_type = false;
+		more_type = true;
+	}
 
+	/* Now we can push the name after possible return type is handled. */
+	if (!vector_str_push_vector(&ddata->output, &local_name)) {
 		vector_str_dest(&local_name);
+		return (0);
+	}
+	vector_str_dest(&local_name);
 
+	while (*ddata->cur != '\0') {
+		if (!cpp_demangle_read_type(ddata, &td))
+			return (0);
+		if (more_type)
+			more_type = false;
 		if (*ddata->cur == 'E')
 			break;
 		if (limit++ > CPP_DEMANGLE_TRY_LIMIT)
