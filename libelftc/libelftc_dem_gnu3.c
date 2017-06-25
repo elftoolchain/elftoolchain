@@ -165,7 +165,7 @@ static int	cpp_demangle_read_sname(struct cpp_demangle_data *);
 static int	cpp_demangle_read_subst(struct cpp_demangle_data *);
 static int	cpp_demangle_read_subst_std(struct cpp_demangle_data *);
 static int	cpp_demangle_read_subst_stdtmpl(struct cpp_demangle_data *,
-		    const char *, size_t);
+		    const char *);
 static int	cpp_demangle_read_tmpl_arg(struct cpp_demangle_data *);
 static int	cpp_demangle_read_tmpl_args(struct cpp_demangle_data *);
 static int	cpp_demangle_read_tmpl_param(struct cpp_demangle_data *);
@@ -2163,7 +2163,7 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::allocator", 14));
+			    "std::allocator"));
 		return (1);
 
 	case SIMPLE_HASH('S', 'b'):
@@ -2173,40 +2173,46 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::basic_string", 17));
+			    "std::basic_string"));
 		return (1);
 
 	case SIMPLE_HASH('S', 'd'):
 		/* std::basic_iostream<char, std::char_traits<char> > */
-		if (!DEM_PUSH_STR(ddata, "std::basic_iostream"))
+		if (!DEM_PUSH_STR(ddata, "std::basic_iostream<char, "
+		    "std::char_traits<char> >"))
 			return (0);
 		ddata->last_sname = "basic_iostream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::basic_iostream", 19));
+			    "std::basic_iostream<char, std::char_traits"
+				"<char> >"));
 		return (1);
 
 	case SIMPLE_HASH('S', 'i'):
 		/* std::basic_istream<char, std::char_traits<char> > */
-		if (!DEM_PUSH_STR(ddata, "std::basic_istream"))
+		if (!DEM_PUSH_STR(ddata, "std::basic_istream<char, "
+		    "std::char_traits<char> >"))
 			return (0);
 		ddata->last_sname = "basic_istream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::basic_istream", 18));
+			    "std::basic_istream<char, std::char_traits"
+				"<char> >"));
 		return (1);
 
 	case SIMPLE_HASH('S', 'o'):
 		/* std::basic_ostream<char, std::char_traits<char> > */
-		if (!DEM_PUSH_STR(ddata, "std::basic_ostream"))
+		if (!DEM_PUSH_STR(ddata, "std::basic_ostream<char, "
+		    "std::char_traits<char> >"))
 			return (0);
 		ddata->last_sname = "basic_ostream";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::basic_ostream", 18));
+			    "std::basic_ostream<char, std::char_traits"
+				"<char> >"));
 		return (1);
 
 	case SIMPLE_HASH('S', 's'):
@@ -2216,13 +2222,15 @@ cpp_demangle_read_subst(struct cpp_demangle_data *ddata)
 		 *
 		 * a.k.a std::string
 		 */
-		if (!DEM_PUSH_STR(ddata, "std::string"))
+		if (!DEM_PUSH_STR(ddata, "std::basic_string<char, "
+		    "std::char_traits<char>, std::allocator<char> >"))
 			return (0);
 		ddata->last_sname = "string";
 		ddata->cur += 2;
 		if (*ddata->cur == 'I')
 			return (cpp_demangle_read_subst_stdtmpl(ddata,
-			    "std::string", 11));
+			    "std::basic_string<char, std::char_traits<char>,"
+				" std::allocator<char> >"));
 		return (1);
 
 	case SIMPLE_HASH('S', 't'):
@@ -2330,14 +2338,17 @@ clean:
 
 static int
 cpp_demangle_read_subst_stdtmpl(struct cpp_demangle_data *ddata,
-    const char *str, size_t len)
+    const char *str)
 {
 	struct vector_str *output;
-	size_t p_idx, substr_len;
+	size_t p_idx, substr_len, len;
 	int rtn;
 	char *subst_str, *substr;
 
-	if (ddata == NULL || str == NULL || len == 0)
+	if (ddata == NULL || str == NULL)
+		return (0);
+
+	if ((len = strlen(str)) == 0)
 		return (0);
 
 	output = ddata->cur_output;
