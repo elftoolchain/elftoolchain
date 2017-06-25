@@ -7,3 +7,4 @@
 "_ZN3Foo3BarIiiE1fE1TIiE", "Foo::Bar<int, int>::f(T<int>)"
 "_ZN3Foo3BarIiiE1fE1TIiEi", "Foo::Bar<int, int>::f(T<int>, int)"
 "_ZN3Foo3BarIiiE1fE1TIiEii", "Foo::Bar<int, int>::f(T<int>, int, int)"
+"_Z3foo1TIiEdh", "foo(T<int>, double, unsigned char)"
