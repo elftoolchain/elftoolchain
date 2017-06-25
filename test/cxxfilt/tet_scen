@@ -7,6 +7,7 @@ all
 	^qualifiers
 	^regression
 	^substitute
+	^template
         "Complete Test Suite"
 
 builtin
@@ -33,3 +34,8 @@ substitute
 	"Starting substitute Test"
 	/ts/substitute/tc
 	"Complete substitute Test"
+
+template
+	"Starting template Test"
+	/ts/template/tc
+	"Complete template Test"
