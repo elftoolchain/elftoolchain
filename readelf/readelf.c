@@ -1136,6 +1136,7 @@ note_type_freebsd_core(unsigned int nt)
 	case 14: return "NT_PROCSTAT_OSREL";
 	case 15: return "NT_PROCSTAT_PSSTRINGS";
 	case 16: return "NT_PROCSTAT_AUXV";
+	case 17: return "NT_PTLWPINFO";
 	case 0x202: return "NT_X86_XSTATE (x86 XSAVE extended state)";
 	default: return (note_type_unknown(nt));
 	}
