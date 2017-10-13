@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <err.h>
 #include <getopt.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -204,7 +205,7 @@ main(int argc, char **argv)
 			if (option_index >= 0)
 				errx(1,
 				    "ERROR: option \"--%s\" is unimplemented.",
-				    as_option_long_options[option_index]);
+				    as_option_long_options[option_index].name);
 			else
 				errx(1,
 				    "ERROR: option '-%c' is unimplemented.",
