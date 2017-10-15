@@ -574,8 +574,7 @@ cpp_demangle_push_type_qualifier(struct cpp_demangle_data *ddata,
 			if (!DEM_PUSH_STR(ddata, " imaginary"))
 				goto clean;
 			if (type_str != NULL) {
-				if (!vector_str_push(&subst_v, " imaginary",
-				    10))
+				if (!VEC_PUSH_STR(&subst_v, " imaginary"))
 					goto clean;
 				if (!cpp_demangle_push_subst_v(ddata,
 				    &subst_v))
