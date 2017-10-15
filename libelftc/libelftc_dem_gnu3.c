@@ -1616,8 +1616,7 @@ cpp_demangle_read_encoding(struct cpp_demangle_data *ddata)
 
 	case SIMPLE_HASH('T', 'v'):
 		/* virtual function virtual override thunk */
-		if (!DEM_PUSH_STR(ddata,
-		    "virtual function virtual override "))
+		if (!DEM_PUSH_STR(ddata, "virtual function virtual override "))
 			return (0);
 		ddata->cur += 2;
 		if (*ddata->cur == '\0')
