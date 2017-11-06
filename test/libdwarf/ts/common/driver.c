@@ -31,6 +31,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -441,7 +442,7 @@ _xml_data_cb(void *data, const char *s, int len)
 	}
 }
 
-#define	_CMD_SIZE	256
+#define	_CMD_SIZE	(2*PATH_MAX + 32) /* Two paths and a command */
 
 static void
 driver_parse_ic_desc(const char *fname)
