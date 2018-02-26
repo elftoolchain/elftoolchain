@@ -4,7 +4,7 @@
 
 TOP=		../..
 
-MAN1=		yabs.1 \
-		yabs-slave.1
+SUBDIR=		controller \
+		executor
 
 .include "${TOP}/mk/elftoolchain.subdir.mk"
