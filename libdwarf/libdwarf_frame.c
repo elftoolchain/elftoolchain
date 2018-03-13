@@ -142,6 +142,8 @@ _dwarf_frame_parse_lsb_cie_augment(Dwarf_Debug dbg, Dwarf_Cie cie,
 	augdata_p = cie->cie_augdata;
 	while (*aug_p != '\0') {
 		switch (*aug_p) {
+		case 'S':
+			break;
 		case 'L':
 			/* Skip one augment in augment data. */
 			augdata_p++;
