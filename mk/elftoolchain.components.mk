@@ -9,7 +9,7 @@ WITH_BUILD_TOOLS=	no
 
 # Build additional tutorial documentation. (Manual page generation is
 # controlled by the 'MKDOC' knob).
-WITH_DOCUMENTATION=yes
+WITH_ADDITIONAL_DOCUMENTATION=yes
 
 # Build the instruction set analyser.
 WITH_ISA=	no

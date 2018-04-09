@@ -49,8 +49,9 @@ SUBDIR += tools
 .endif
 
 # Build documentation at the end.
-.if exists(${.CURDIR}/documentation) && defined(WITH_DOCUMENTATION) && \
-	${WITH_DOCUMENTATION:tl} == "yes"
+.if exists(${.CURDIR}/documentation) && \
+    defined(WITH_ADDITIONAL_DOCUMENTATION) && \
+    ${WITH_ADDITIONAL_DOCUMENTATION:tl} == "yes"
 SUBDIR += documentation
 .endif
 
