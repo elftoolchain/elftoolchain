@@ -9,7 +9,15 @@ WITH_BUILD_TOOLS?=	no
 
 # Build additional tutorial documentation. (Manual page generation is
 # controlled by the 'MKDOC' knob).
+.if defined(MAKEOBJDIR) || defined(MAKEOBJDIRPREFIX)
+.if defined(WITH_ADDITIONAL_DOCUMENTATION) && \
+    ${WITH_ADDITIONAL_DOCUMENTATION:tl} == "yes"
+.error "Only in-tree builds are supported for additional documentation [#271]."
+.endif
+WITH_ADDITIONAL_DOCUMENTATION=no
+.else
 WITH_ADDITIONAL_DOCUMENTATION?=yes
+.endif
 
 # Build the instruction set analyser.
 WITH_ISA?=	no
@@ -18,4 +26,11 @@ WITH_ISA?=	no
 WITH_PE?=	yes
 
 # Build test suites.
+.if defined(MAKEOBJDIR) || defined(MAKEOBJDIRPREFIX)
+.if defined(WITH_TESTS) && ${WITH_TESTS:tl} == "yes"
+.error "Only in-tree builds are supported for tests currently [#271]."
+.endif
+WITH_TESTS=no
+.else
 WITH_TESTS?=	yes
+.endif
