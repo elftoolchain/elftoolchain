@@ -246,6 +246,49 @@ Prerequisites
     - Builds of additional documentation are not currently supported
       under Ubuntu GNU/Linux 14.04.
 
+:Ubuntu GNU/Linux 17.10:
+    - The following packages are pre-requisites for building the
+      sources on Ubuntu GNU/Linux 17.10:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``binutils``            Needed for the build.
+      ``bison``               Parser generator.
+      ``flex``                Lexical analyser.
+      ``gcc``                 C compiler.
+      ``libarchive-dev``      Archive access library.
+      ``libc6-dev``           Files for C language development.
+      ``libexpat1-dev``       An XML processing library.
+      ``m4``                  Macro processor.
+      ``bmake``               NetBSD ``make``.
+      ``python-yaml``         A YAML library for Python.
+      ``sharutils``           For ``uudecode``.
+      ``zlib1g-dev``          Compression library.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+	  % sudo apt-get install binutils bison flex gcc libarchive-dev \
+	    libc6-dev m4 bmake zlib1g-dev
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_, needs
+         to be downloaded and unpacked into the ``test/tet/``
+         directory.
+
+      #. The following additional packages need to be installed, as
+         listed in the example command line below::
+
+            % sudo apt-get install libexpat1-dev python-yaml sharutils
+
+    - To build additional documentation, the following packages are
+      needed::
+
+          % sudo apt-get install texlive-latex-recommended texlive-pictures
+
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
 
@@ -263,6 +306,10 @@ On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
   % pmake
 
+On Ubuntu GNU/Linux with the **bmake** package installed, use::
+
+  % bmake
+
 
 Testing the software
 ---------------------
@@ -278,6 +325,10 @@ On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
     % pmake run-tests
 
+On Ubuntu GNU/Linux with the **bmake** package installed, use::
+
+    % bmake run-tests
+
 Installing the Software
 =======================
 
@@ -291,6 +342,10 @@ On Ubuntu GNU/Linux with the **pmake** package installed, use::
 
     % pmake install
 
+On Ubuntu GNU/Linux with the **bmake** package installed, use::
+
+    % bmake install
+
 
 By default the ``install`` target will install utilities into
 ``/usr/bin/``, libraries into ``/usr/lib/`` and manual pages into
@@ -299,7 +354,7 @@ By default the ``install`` target will install utilities into
 The installation directory may be changed using the ``DESTDIR``
 variable.  For example::
 
-    % pmake DESTDIR=$HOME/local install
+    % bmake DESTDIR=$HOME/local install
 
 
 Additional Information
