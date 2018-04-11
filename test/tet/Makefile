@@ -13,7 +13,7 @@ TET_PATCH_MARKER=	.tet-patch-done
 
 .MAIN:	all
 
-.PHONY:	all clean clobber depend test
+.PHONY:	all clean cleandepend clobber depend test
 
 .if exists(${TET_ROOT}/configure)
 
@@ -61,4 +61,6 @@ all depend test:	.SILENT
 
 clean clobber:
 	rm -f ${TET_BUILD_MARKER} ${TET_PATCH_MARKER}
+
+cleandepend:	# Nothing to do.
 .endif

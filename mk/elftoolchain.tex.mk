@@ -87,7 +87,7 @@ install:	all
 
 .else
 
-all clean clobber depend install obj:	.PHONY .SILENT
+all clean cleandepend clobber depend install obj: .PHONY .SILENT
 	echo -n WARNING: make \"${.TARGET}\" in \"${.CURDIR:T}\" skipped:
 .if	defined(MKTEX) && ${MKTEX} == "yes"
 	echo " missing tools."
