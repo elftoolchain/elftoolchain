@@ -15,16 +15,20 @@ CLEANFILES+=		${SRCS:Mprog*:S/.txt/.c/}
 .include "${TOP}/mk/elftoolchain.tex.mk"
 
 .if ${OS_HOST} == "Linux"
+EXTRA_FLAGS=	-I/usr/include/bsd -DLIBBSD_OVERLAY
 EXTRA_LIBS=	-lbsd
 .endif
 
 check-example-syntax: .PHONY
-.for f in ${SRCS:Mprog*}
-	@c=$$(basename ${f} .txt).c; sed -e 's/@[^@]*@//' \
-		${.CURDIR}/${f} > ${.OBJDIR}/$${c}; \
-	echo -n $${c} ' '; cc -I${.CURDIR}/${TOP}/common \
-		-I${.CURDIR}/${TOP}/libelf ${.OBJDIR}/$${c} \
-		-L${.CURDIR}/${TOP}/libelf -lelf ${EXTRA_LIBS} && \
-		rm ${.OBJDIR}/$${c} a.out
+.for f in ${SRCS:Mprog*:S/.txt//}
+	@sed -e 's/@[^@]*@//' \
+		${.CURDIR}/${f}.txt > ${.OBJDIR}/${f}.c; \
+	echo -n ${f} ' '; \
+	cc -I${.CURDIR}/${TOP}/common \
+		-I${.CURDIR}/${TOP}/libelf \
+		${EXTRA_FLAGS} \
+		${.OBJDIR}/${f}.c \
+		-L${.OBJDIR}/${TOP}/libelf -lelf ${EXTRA_LIBS} && \
+		rm a.out
 .endfor
 	@echo
