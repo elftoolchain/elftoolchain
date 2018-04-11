@@ -258,6 +258,7 @@ Prerequisites
       ``flex``                Lexical analyser.
       ``gcc``                 C compiler.
       ``libarchive-dev``      Archive access library.
+      ``libbsd-dev``          BSD headers and libraries.
       ``libc6-dev``           Files for C language development.
       ``libexpat1-dev``       An XML processing library.
       ``m4``                  Macro processor.
@@ -284,10 +285,11 @@ Prerequisites
 
             % sudo apt-get install libexpat1-dev python-yaml sharutils
 
-    - To build additional documentation, the following packages are
-      needed::
+    - To build additional documentation, the packages listed in the
+      example command line below are needed::
 
-          % sudo apt-get install texlive-latex-recommended texlive-pictures
+          % sudo apt-get install texlive-latex-recommended texlive-pictures \
+            libbsd-dev
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
