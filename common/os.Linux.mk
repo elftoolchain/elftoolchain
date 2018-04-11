@@ -5,9 +5,11 @@
 
 _NATIVE_ELF_FORMAT = native-elf-format
 
-.BEGIN:	${_NATIVE_ELF_FORMAT}.h
+.if !make(obj)
+.BEGIN:	${.OBJDIR}/${_NATIVE_ELF_FORMAT}.h
 
-${_NATIVE_ELF_FORMAT}.h:
+${.OBJDIR}/${_NATIVE_ELF_FORMAT}.h:
 	${.CURDIR}/${_NATIVE_ELF_FORMAT} > ${.TARGET} || rm ${.TARGET}
+.endif
 
-CLEANFILES += ${_NATIVE_ELF_FORMAT}.h
+CLEANFILES += ${.OBJDIR}/${_NATIVE_ELF_FORMAT}.h

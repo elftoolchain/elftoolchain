@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	${.CURDIR}/..
+TOP=	..
 
 LIB=	elftc
 
@@ -28,7 +28,8 @@ SHLIB_MAJOR=	1
 
 WARNS?=	6
 
-CLEANFILES+=	elftc_version.c
+ELFTC_VERSION_FILE=	${.OBJDIR}/elftc_version.c
+CLEANFILES+=		${ELFTC_VERSION_FILE}
 
 LDADD+=	-lelf
 
@@ -50,10 +51,10 @@ MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 	elftc_string_table_create.3 elftc_string_table_insert.3 \
 	elftc_string_table_create.3 elftc_string_table_lookup.3
 
-.if	!make(clean) && !make(clobber)
+.if	!make(clean) && !make(clobber) && !make(obj)
 .BEGIN:	.SILENT
 	${.CURDIR}/make-toolchain-version -t ${TOP} -r ${RELEASE} \
-	    -h ${OS_HOST}
+	    -h ${OS_HOST} -o ${ELFTC_VERSION_FILE}
 .endif
 
 .include "${TOP}/mk/elftoolchain.lib.mk"

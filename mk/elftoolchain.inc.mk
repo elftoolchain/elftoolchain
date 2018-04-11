@@ -9,7 +9,7 @@
 
 .include "${TOP}/mk/elftoolchain.os.mk"
 
-.include <bsd.own.mk>
+.include <bsd.obj.mk>
 
 .if ${OS_HOST} == "Darwin" || ${OS_HOST} == "DragonFly" || \
 	${OS_HOST} == "FreeBSD" || ${OS_HOST} == "OpenBSD"

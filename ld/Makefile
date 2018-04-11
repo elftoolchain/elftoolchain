@@ -47,6 +47,6 @@ YFLAGS=	-d
 
 .SUFFIXES:	.ld .c
 .ld.c:
-	awk -f ld_script.awk ${.ALLSRC} > ${.TARGET}
+	awk -f ${.CURDIR}/ld_script.awk ${.ALLSRC} > ${.TARGET}
 
 .include "${TOP}/mk/elftoolchain.prog.mk"

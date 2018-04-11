@@ -1,6 +1,6 @@
 # $Id$
 
-TOP=	${.CURDIR}/..
+TOP=	..
 
 LIB=	dwarf
 

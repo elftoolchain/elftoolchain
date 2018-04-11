@@ -7,12 +7,12 @@ INCSDIR=	/usr/include
 
 .PHONY:	all clean clobber depend obj
 
-all depend obj:
+all depend:
 
 clean clobber:
 	rm -f ${CLEANFILES}
 
 cleandepend:
-	rm -f .depend
+	rm -f ${.OBJDIR}/.depend
 
 .include "${TOP}/mk/elftoolchain.inc.mk"
