@@ -53,8 +53,8 @@ MLINKS=	elftc_bfd_find_target.3 elftc_bfd_target_byteorder.3 \
 
 .if	!make(clean) && !make(clobber) && !make(obj)
 .BEGIN:	.SILENT
-	${.CURDIR}/make-toolchain-version -t ${TOP} -r ${RELEASE} \
-	    -h ${OS_HOST} -o ${ELFTC_VERSION_FILE}
+	${.CURDIR}/make-toolchain-version -t ${.CURDIR}/${TOP} \
+	    -r ${RELEASE} -h ${OS_HOST} -o ${ELFTC_VERSION_FILE}
 .endif
 
 .include "${TOP}/mk/elftoolchain.lib.mk"
