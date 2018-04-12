@@ -18,7 +18,7 @@ operating systems.
   Minix_              3.0.2      i386
   NetBSD_             7.0        i386
   OpenBSD_            v5.0       i386
-  Ubuntu_ GNU/Linux   14.04LTS   x86_64
+  Ubuntu_ GNU/Linux   17.10      x86_64
   =================   ========   =======================
 
 .. _DragonFly BSD: http://www.dragonflybsd.org/
@@ -164,88 +164,6 @@ Prerequisites
     - Building additional documentation is not currently supported
       under NetBSD.
 
-:Ubuntu GNU/Linux 10.04:
-    - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux 10.04:
-
-      ===================     =====================================
-      **Package**             **Description**
-      ===================     =====================================
-      ``binutils``            Needed for the build.
-      ``bison``               Parser generator.
-      ``flex``                Lexical analyser.
-      ``gcc``                 C compiler.
-      ``libarchive-dev``      Archive access library.
-      ``libc6-dev``           Files for C language development.
-      ``libexpat1-dev``       An XML processing library.
-      ``m4``                  Macro processor.
-      ``pmake``               A ``make`` that uses BSD-make syntax.
-      ``python-yaml``         A YAML library for Python.
-      ``sharutils``           For ``uudecode``.
-      ``zlib1g-dev``          Compression library.
-      ===================     =====================================
-
-      The following command line may be used to install the necessary
-      pre-requisites::
-
-	  % sudo apt-get install binutils bison flex gcc libarchive-dev \
-	    libc6-dev m4 pmake zlib1g-dev
-
-    - To build and run the test suite:
-
-      #. The current release of the `Test Execution Toolkit`_, needs
-         to be downloaded and unpacked into the ``test/tet/``
-         directory.
-
-      #. The following additional packages need to be installed, as
-         listed in the example command line below::
-
-            % sudo apt-get install libexpat1-dev python-yaml sharutils
-
-    - To build additional documentation, the ``pgf`` package is
-      needed::
-
-          % sudo apt-get install pgf
-
-:Ubuntu GNU/Linux 14.04:
-    - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux 14.04:
-
-      ===================     =====================================
-      **Package**             **Description**
-      ===================     =====================================
-      ``bison``               Parser generator.
-      ``build-essential``     Basic build tools.
-      ``flex``                Lexical analyser.
-      ``libarchive-dev``      Archive access library.
-      ``libexpat1-dev``       An XML processing library.
-      ``m4``                  Macro processor.
-      ``bmake``               NetBSD ``make``.
-      ``python-yaml``         A YAML library for Python.
-      ``sharutils``           For ``uudecode``.
-      ``zlib1g-dev``          Compression library.
-      ===================     =====================================
-
-      The following command line may be used to install the necessary
-      pre-requisites::
-
-          % sudo apt-get install bison build-essential flex libarchive-dev \
-            m4 bmake zlib1g-dev
-
-    - To build and run the test suite:
-
-      #. The current release of the `Test Execution Toolkit`_, needs
-         to be downloaded and unpacked into the ``test/tet/``
-         directory.
-
-      #. The following additional packages need to be installed, as
-         listed in the example command line below::
-
-            % sudo apt-get install libexpat1-dev python-yaml sharutils
-
-    - Builds of additional documentation are not currently supported
-      under Ubuntu GNU/Linux 14.04.
-
 :Ubuntu GNU/Linux 17.10:
     - The following packages are pre-requisites for building the
       sources on Ubuntu GNU/Linux 17.10:
@@ -304,10 +222,6 @@ On `DragonFly BSD`_,  FreeBSD_, Minix_, NetBSD_ and OpenBSD_, use::
 
   % make
 
-On Ubuntu GNU/Linux with the **pmake** package installed, use::
-
-  % pmake
-
 On Ubuntu GNU/Linux with the **bmake** package installed, use::
 
   % bmake
@@ -323,10 +237,6 @@ On `DragonFly BSD`_, FreeBSD_ and NetBSD_, use::
 
     % make run-tests
 
-On Ubuntu GNU/Linux with the **pmake** package installed, use::
-
-    % pmake run-tests
-
 On Ubuntu GNU/Linux with the **bmake** package installed, use::
 
     % bmake run-tests
@@ -339,10 +249,6 @@ The software may be installed using the ``install`` target.
 On `DragonFly BSD`_, FreeBSD_, Minix_, NetBSD_ and OpenBSD_ use::
 
     % make install
-
-On Ubuntu GNU/Linux with the **pmake** package installed, use::
-
-    % pmake install
 
 On Ubuntu GNU/Linux with the **bmake** package installed, use::
 
