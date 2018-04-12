@@ -24,11 +24,16 @@ check-example-syntax: .PHONY
 	@sed -e 's/@[^@]*@//' \
 		${.CURDIR}/${f}.txt > ${.OBJDIR}/${f}.c; \
 	echo -n ${f} ' '; \
+	libelf="${.OBJDIR}/${TOP}/libelf";	\
+	if [ ! -d $${libelf} -a "${.CURDIR}" != "${.OBJDIR}" ]; then	\
+		suffix="${.OBJDIR:S,${.CURDIR}/,,}";	\
+		libelf="${.CURDIR}/${TOP}/libelf/$${suffix}";	\
+	fi; \
 	cc -I${.CURDIR}/${TOP}/common \
 		-I${.CURDIR}/${TOP}/libelf \
 		${EXTRA_FLAGS} \
 		${.OBJDIR}/${f}.c \
-		-L${.OBJDIR}/${TOP}/libelf -lelf ${EXTRA_LIBS} && \
-		rm a.out
+		-L"$${libelf}" -lelf ${EXTRA_LIBS} && \
+		rm ${.OBJDIR}/a.out
 .endfor
 	@echo
