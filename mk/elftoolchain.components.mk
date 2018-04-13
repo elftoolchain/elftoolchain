@@ -19,7 +19,7 @@ WITH_PE?=	yes
 
 # Build test suites.
 .if defined(MAKEOBJDIR) || defined(MAKEOBJDIRPREFIX)
-.if defined(WITH_TESTS) && ${WITH_TESTS:tl} == "yes"
+.if defined(WITH_TESTS) && ${WITH_TESTS} == "yes"
 .error "Only in-tree builds are supported for tests currently [#271]."
 .endif
 WITH_TESTS=no

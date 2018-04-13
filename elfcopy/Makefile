@@ -18,7 +18,7 @@ LDADD=	-lelf -lelftc
 LDADD+= -larchive
 .endif
 
-.if defined(WITH_PE) && ${WITH_PE:tl} == "yes"
+.if defined(WITH_PE) && ${WITH_PE} == "yes"
 SRCS+=	pe.c
 CFLAGS+= -DWITH_PE=1
 
