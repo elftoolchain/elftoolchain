@@ -6,12 +6,12 @@
 #
 # These knobs should be set to one of "yes" or "no".
 
-# Build the automation tools.
-WITH_BUILD_TOOLS?=	no
-
 # Build additional tutorial documentation. (Manual page generation is
 # controlled by the 'MKDOC' knob).
 WITH_ADDITIONAL_DOCUMENTATION?=yes
+
+# Build the automation tools.
+WITH_BUILD_TOOLS?=	no
 
 # Build the instruction set analyser.
 WITH_ISA?=	no
@@ -22,7 +22,7 @@ WITH_PE?=	yes
 # Build test suites.
 .if defined(MAKEOBJDIR) || defined(MAKEOBJDIRPREFIX)
 .if defined(WITH_TESTS) && ${WITH_TESTS} == "yes"
-.error "Only in-tree builds are supported for tests currently [#271]."
+.error Only in-tree builds are supported for tests currently [#271].
 .endif
 WITH_TESTS?=	no
 .else

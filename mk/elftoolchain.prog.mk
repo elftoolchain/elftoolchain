@@ -29,7 +29,7 @@ LDFLAGS+= -L${.OBJDIR}/${TOP}/libdwarf
 .elif exists(${TOP}/libdwarf/${.OBJDIR:S,${.CURDIR}/,,})
 LDFLAGS+= -L${.CURDIR}/${TOP}/libdwarf/${.OBJDIR:S,${.CURDIR}/,,}
 .else
-.error "cannot determine LDFLAGS for -ldwarf"
+.error Cannot determine LDFLAGS for -ldwarf.
 .endif
 .endif
 
@@ -41,7 +41,7 @@ LDFLAGS+= -L${.OBJDIR}/${TOP}/libelf
 .elif exists(${TOP}/libelf/${.OBJDIR:S,${.CURDIR}/,,})
 LDFLAGS+= -L${.CURDIR}/${TOP}/libelf/${.OBJDIR:S,${.CURDIR}/,,}
 .else
-.error "cannot determine LDFLAGS for -lelf"
+.error Cannot determine LDFLAGS for -lelf.
 .endif
 .endif
 
@@ -53,7 +53,7 @@ LDFLAGS+= -L${.OBJDIR}/${TOP}/libelftc
 .elif exists(${TOP}/libelftc/${.OBJDIR:S,${.CURDIR}/,,})
 LDFLAGS+= -L${.CURDIR}/${TOP}/libelftc/${.OBJDIR:S,${.CURDIR}/,,}
 .else
-.error "cannot determine LDFLAGS for -lelftc"
+.error Cannot determine LDFLAGS for -lelftc.
 .endif
 .endif
 
@@ -65,7 +65,7 @@ LDFLAGS+= -L${.OBJDIR}/${TOP}/libpe
 .elif exists(${TOP}/libpe/${.OBJDIR:S,${.CURDIR}/,,})
 LDFLAGS+= -L${.CURDIR}/${TOP}/libpe/${.OBJDIR:S,${.CURDIR}/,,}
 .else
-.error "cannot determine LDFLAGS for -lpe"
+.error Cannot determine LDFLAGS for -lpe.
 .endif
 .endif
 .endif
