@@ -13,7 +13,7 @@ operating systems.
   =================   ========   =======================
   Operating System    Version    Supported Architectures
   -----------------   --------   -----------------------
-  `DragonFly BSD`_    2.10.1     i386
+  `DragonFly BSD`_    5.2        amd64
   FreeBSD_            11.1       amd64 & i386
   Minix_              3.0.2      i386
   NetBSD_             7.0        i386
@@ -40,7 +40,7 @@ directories are present.
 Prerequisites
 -------------
 
-:DragonFly BSD 2.10.1:
+:DragonFly BSD 5.2:
     - The core libraries and utilities should build out of the box on
       a stock install of DragonFly BSD.
 
@@ -49,9 +49,9 @@ Prerequisites
       #. The current release of the `Test Execution Toolkit`_ needs to
          be downloaded and unpacked into the ``test/tet/`` directory.
 
-      #. The ``py26-yaml`` package needs to be installed::
+      #. The ``py27-yaml`` package needs to be installed::
 
-            % sudo pkgin install py26-yaml
+            % sudo pkg install py27-yaml
 
     - Building additional documentation is not currently supported
       under DragonFly BSD.
