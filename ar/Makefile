@@ -32,4 +32,6 @@ ${EXTRA_TARGETS}:	${PROG}
 .if ${OS_HOST} == "OpenBSD"
 CFLAGS+=	-I/usr/local/include
 LDFLAGS+=	-L/usr/local/lib
+.elif ${OS_HOST} == "DragonFly"
+LDADD+=	-lbz2
 .endif
