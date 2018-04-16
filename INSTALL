@@ -16,7 +16,7 @@ operating systems.
   `DragonFly BSD`_    5.2        amd64
   FreeBSD_            11.1       amd64 & i386
   Minix_              3.0.2      i386
-  NetBSD_             7.0        i386
+  NetBSD_             7.1.2      i386
   OpenBSD_            v5.0       i386
   Ubuntu_ GNU/Linux   17.10      x86_64
   =================   ========   =======================
@@ -135,20 +135,9 @@ Prerequisites
     - Building additional documentation is not currently supported
       under OpenBSD.
 
-:NetBSD 7.0:
-    - The following packages are pre-requisites for building the
-      sources on NetBSD 7.0:
-
-      ===================     =====================================
-      **Package**             **Description**
-      ===================     =====================================
-      ``libarchive``          An archive access library.
-      ===================     =====================================
-
-      The following command line may be used to install the necessary
-      pre-requisites::
-
-          # pkg_add libarchive
+:NetBSD 7.1.2:
+    - The core libraries and utilities should build out of the box on
+      a stock install of NetBSD 7.1.2.
 
     - To build and run the test suite:
 
@@ -159,7 +148,7 @@ Prerequisites
       #. The following additional package needs to be installed, as
          listed in the example command line below ::
 
-            % sudo pkg_add py27-yaml
+            % sudo pkgin install py27-yaml
 
     - Building additional documentation is not currently supported
       under NetBSD.
