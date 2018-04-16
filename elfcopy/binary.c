@@ -215,7 +215,7 @@ create_elf_from_binary(struct elfcopy *ecp, int ifd, const char *ifn)
 	if ((sym_basename = strdup(ifn)) == NULL)
 		err(1, "strdup");
 	for (p = sym_basename; *p != '\0'; p++)
-		if (!isalnum(*p))
+		if (!isalnum(*p & 0xFF))
 			*p = '_';
 #define	_GEN_SYMNAME(S) do {						\
 	snprintf(name, sizeof(name), "%s%s%s", "_binary_", sym_basename, S); \
