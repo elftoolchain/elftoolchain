@@ -17,7 +17,7 @@ operating systems.
   FreeBSD_            11.1       amd64 & i386
   Minix_              3.0.2      i386
   NetBSD_             7.1.2      i386
-  OpenBSD_            v5.0       i386
+  OpenBSD_            6.3        amd64
   Ubuntu_ GNU/Linux   17.10      x86_64
   =================   ========   =======================
 
@@ -95,29 +95,9 @@ Prerequisites
     - Building additional documentation is not currently supported
       under Minix.
 
-:OpenBSD 5.0:
+:OpenBSD 6.3:
     - The following packages are pre-requisites for building the
-      sources on OpenBSD 5.0:
-
-      ===================     =====================================
-      **Package**             **Description**
-      ===================     =====================================
-      ``libarchive``          An archive access library.
-      ===================     =====================================
-
-      The following command line may be used to install the necessary
-      pre-requisites::
-
-          # pkg_add libarchive-2.8.4p0
-
-    - The test suites cannot currently be built under OpenBSD.
-
-    - Building additional documentation is not currently supported
-      under OpenBSD.
-
-:OpenBSD 5.4:
-    - The following packages are pre-requisites for building the
-      sources on OpenBSD 5.4:
+      sources on OpenBSD 6.3:
 
       ===================     =====================================
       **Package**             **Description**
