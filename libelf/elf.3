@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 28, 2014
+.Dd July 25, 2018
 .Os
 .Dt ELF 3
 .Sh NAME
@@ -529,9 +529,11 @@ back to the underlying file.
 Compute checksum of an ELF object.
 .It Fn elf_getident
 Retrieve the identification bytes for an ELF object.
-.It Fn elf_getshnum
+.It Fn elf_getphdrnum
+Retrieve the number of program headers in an ELF object.
+.It Fn elf_getshdrnum
 Retrieve the number of sections in an ELF object.
-.It Fn elf_getshstrndx
+.It Fn elf_getshdrstrndx
 Retrieve the section index of the section name string table in
 an ELF object.
 .It Fn elf_hash
