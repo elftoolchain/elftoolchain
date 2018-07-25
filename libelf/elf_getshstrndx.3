@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd August 5, 2009
+.Dd July 25, 2018
 .Os
 .Dt ELF_GETSHSTRNDX 3
 .Sh NAME
@@ -41,17 +41,18 @@
 .Sh DESCRIPTION
 Function
 .Fn elf_getshstrndx
+is deprecated.
+Please use
+.Xr elf_getshdrstrndx 3
+instead.
+.Pp
+Function
+.Fn elf_getshstrndx
 retrieves the section index of the string table containing section
 names from descriptor
 .Ar elf
 and stores it into the location pointed to by argument
 .Ar ndxptr .
-Function
-.Fn elf_getshstrndx
-is deprecated.
-Please use
-.Xr elf_getshdrstrndx 3
-instead.
 .Pp
 Function
 .Fn elf_setshstrndx
