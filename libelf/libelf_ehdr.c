@@ -41,11 +41,10 @@ static int
 _libelf_load_extended(Elf *e, int ec, uint64_t shoff, uint16_t phnum,
     uint16_t strndx)
 {
-	Elf_Scn *scn;
 	size_t fsz;
-	int (*xlator)(unsigned char *_d, size_t _dsz, unsigned char *_s,
-	    size_t _c, int _swap);
+	Elf_Scn *scn;
 	uint32_t shtype;
+	_libelf_translator_function *xlator;
 
 	assert(STAILQ_EMPTY(&e->e_u.e_elf.e_scn));
 

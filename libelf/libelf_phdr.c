@@ -42,8 +42,7 @@ _libelf_getphdr(Elf *e, int ec)
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
 	void *ehdr, *phdr;
-	int (*xlator)(unsigned char *_d, size_t _dsz, unsigned char *_s,
-	    size_t _c, int _swap);
+	_libelf_translator_function *xlator;
 
 	assert(ec == ELFCLASS32 || ec == ELFCLASS64);
 
