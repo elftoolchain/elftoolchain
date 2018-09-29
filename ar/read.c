@@ -96,6 +96,13 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 		if (bsdar_is_pseudomember(bsdar, name))
 			continue;
 
+		/* The ar(5) format only supports 'leaf' file names. */
+		if (strchr(name, '/')) {
+			bsdar_warnc(bsdar, 0, "ignoring entry: %s",
+			    name);
+			continue;
+		}
+
 		/*
 		 * If we had been given a list of file names to process, check
 		 * that the current entry is present in this list.
@@ -182,12 +189,6 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 
 				if (bsdar->options & AR_V)
 					(void)fprintf(out, "x - %s\n", name);
-				/* Disallow absolute paths. */
-				if (name[0] == '/') {
-					bsdar_warnc(bsdar, 0,
-					    "Absolute path '%s'", name);
-					continue;
-				}
 				/* Basic path security flags. */
 				flags = ARCHIVE_EXTRACT_SECURE_SYMLINKS |
 	 			    ARCHIVE_EXTRACT_SECURE_NODOTDOT;
