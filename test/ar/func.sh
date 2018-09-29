@@ -72,7 +72,7 @@ udecode() {
     fi
 
     cd $1 || exit 1
-    find . -type f -execdir uudecode {} \;
+    find . -type f -a -name '*.uu' -execdir uudecode {} \;
     find . -type f -name '*.uu' -delete
 }
 
