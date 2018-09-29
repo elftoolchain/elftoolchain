@@ -19,7 +19,7 @@ a.ar:	a1.o a2.o .SILENT
 	echo 'This is s1.' > s1
 	echo 's2.' > ${TS_LONGNAME}
 	echo 's-3.' > "s 3"
-	${AR} crv ${.TARGET} s1 a1.o ${TS_LONGNAME} a2.o "s 3" > /dev/null
+	${AR} crvU ${.TARGET} s1 a1.o ${TS_LONGNAME} a2.o "s 3" > /dev/null
 
 a-bsd.ar: a.ar .SILENT
 	rm -f ${.TARGET}
