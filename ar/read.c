@@ -60,7 +60,7 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 	gid_t			  gid;
 	char			**av;
 	char			  buf[25];
-	char			  find;
+	int			  found;
 	int			  i, flags, r;
 
 	assert(mode == 'p' || mode == 't' || mode == 'x');
@@ -96,12 +96,20 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 		if (bsdar_is_pseudomember(bsdar, name))
 			continue;
 
+		/*
+		 * If we had been given a list of file names to process, check
+		 * that the current entry is present in this list.
+		 */
 		if (bsdar->argc > 0) {
-			find = 0;
+			found = 0;
 			for(i = 0; i < bsdar->argc; i++) {
 				av = &bsdar->argv[i];
 				if (*av == NULL)
 					continue;
+				/*
+				 * Per POSIX, only the basename of a file
+				 * argument should be compared.
+				 */
 				if ((bname = basename(*av)) == NULL)
 					bsdar_errc(bsdar, errno,
 					    "basename failed");
@@ -109,10 +117,10 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 					continue;
 
 				*av = NULL;
-				find = 1;
+				found = 1;
 				break;
 			}
-			if (!find)
+			if (!found)
 				continue;
 		}
 
