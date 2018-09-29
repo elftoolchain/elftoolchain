@@ -297,7 +297,7 @@ tcArMember$1(void)
 		}
 
 		if (arh->ar_mode != sb.st_mode) {
-			TP_FAIL("\%s\" mode: 0%x != 0%o.", *fn,
+			TP_FAIL("\"%s\" mode: 0%o != 0%o.", *fn,
 			    arh->ar_mode, sb.st_mode);
 			goto done;
 		}
