@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd November 28, 2010
+.Dd September 30, 2018
 .Os
 .Dt AR 5
 .Sh NAME
@@ -84,6 +84,8 @@ An archive header comprises the following fixed sized fields:
 .Bl -tag -width "Li ar_name"
 .It Ar ar_name
 (16 bytes) The file name of the archive member.
+This field names a leaf file; absolute paths and relative paths containing
+directory names are not supported.
 The format of this field varies between the BSD and SVR4/GNU formats and
 is described in more detail in the section
 .Sx "Representing File Names"
