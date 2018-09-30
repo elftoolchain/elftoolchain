@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "ar.h"
@@ -42,8 +43,11 @@ ELFTC_VCSID("$Id$");
 
 /*
  * Handle read modes: 'x', 't' and 'p'.
+ *
+ * Returns EXIT_SUCCESS if all operations completed successfully or returns
+ * EXIT_FAILURE otherwise.
  */
-void
+int
 ar_read_archive(struct bsdar *bsdar, int mode)
 {
 	FILE			 *out;
@@ -61,7 +65,7 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 	char			**av;
 	char			  buf[25];
 	int			  found;
-	int			  i, flags, r;
+	int			  exitcode, i, flags, r;
 
 	assert(mode == 'p' || mode == 't' || mode == 'x');
 
@@ -70,6 +74,7 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_filename(a, bsdar->filename, DEF_BLKSZ));
 
+	exitcode = EXIT_SUCCESS;
 	out = bsdar->output;
 
 	for (;;) {
@@ -172,7 +177,7 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 				/* mode == 'x' */
 				if (stat(name, &sb) != 0) {
 					if (errno != ENOENT) {
-						bsdar_warnc(bsdar, 0,
+						bsdar_warnc(bsdar, errno,
 						    "stat %s failed",
 						    bsdar->filename);
 						continue;
@@ -198,11 +203,19 @@ ar_read_archive(struct bsdar *bsdar, int mode)
 				r = archive_read_extract(a, entry, flags);
 			}
 
-			if (r)
+			if (r) {
 				bsdar_warnc(bsdar, 0, "%s",
 				    archive_error_string(a));
+				exitcode = EXIT_FAILURE;
+			}
 		}
 	}
+
+	if (r == ARCHIVE_FATAL)
+		exitcode = EXIT_FAILURE;
+
 	AC(archive_read_close(a));
 	ACV(archive_read_free(a));
+
+	return (exitcode);
 }

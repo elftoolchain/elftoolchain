@@ -135,8 +135,8 @@ struct bsdar {
 };
 
 void	ar_mode_script(struct bsdar *ar);
-void	ar_read_archive(struct bsdar *_ar, int _mode);
-void	ar_write_archive(struct bsdar *_ar, int _mode);
+int	ar_read_archive(struct bsdar *_ar, int _mode);
+int	ar_write_archive(struct bsdar *_ar, int _mode);
 void	bsdar_errc(struct bsdar *, int _code, const char *fmt, ...);
 int	bsdar_is_pseudomember(struct bsdar *_ar, const char *_name);
 const char *bsdar_strmode(mode_t m);
