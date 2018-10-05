@@ -1070,9 +1070,8 @@ CONVERTER_NAMES(ELF_TYPE_LIST)
 	}
 };
 
-int (*_libelf_get_translator(Elf_Type t, int direction, int elfclass))
- (unsigned char *_dst, size_t dsz, unsigned char *_src, size_t _cnt,
-  int _byteswap)
+_libelf_translator_function *
+_libelf_get_translator(Elf_Type t, int direction, int elfclass)
 {
 	assert(elfclass == ELFCLASS32 || elfclass == ELFCLASS64);
 	assert(direction == ELF_TOFILE || direction == ELF_TOMEMORY);
