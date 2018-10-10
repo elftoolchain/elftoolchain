@@ -1070,16 +1070,24 @@ CONVERTER_NAMES(ELF_TYPE_LIST)
 	}
 };
 
+/*
+ * Return a translator function for the specified ELF section type, conversion
+ * direction, ELF class and ELF machine.
+ */
 _libelf_translator_function *
-_libelf_get_translator(Elf_Type t, int direction, int elfclass)
+_libelf_get_translator(Elf_Type t, int direction, int elfclass, int elfmachine)
 {
 	assert(elfclass == ELFCLASS32 || elfclass == ELFCLASS64);
+	assert(elfmachine >= EM_NONE && elfmachine < EM__LAST__);
 	assert(direction == ELF_TOFILE || direction == ELF_TOMEMORY);
 
 	if (t >= ELF_T_NUM ||
 	    (elfclass != ELFCLASS32 && elfclass != ELFCLASS64) ||
 	    (direction != ELF_TOFILE && direction != ELF_TOMEMORY))
 		return (NULL);
+
+	/* TODO: Handle MIPS64 REL{,A} sections (ticket #559). */
+	(void) elfmachine;
 
 	return ((elfclass == ELFCLASS32) ?
 	    (direction == ELF_TOFILE ? cvt[t].tof32 : cvt[t].tom32) :

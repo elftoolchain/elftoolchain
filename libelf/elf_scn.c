@@ -83,7 +83,8 @@ _libelf_load_section_headers(Elf *e, void *ehdr)
 		CHECK_EHDR(e, eh64);
 	}
 
-	xlator = _libelf_get_translator(ELF_T_SHDR, ELF_TOMEMORY, ec);
+	xlator = _libelf_get_translator(ELF_T_SHDR, ELF_TOMEMORY, ec,
+	    _libelf_elfmachine(e));
 
 	swapbytes = e->e_byteorder != LIBELF_PRIVATE(byteorder);
 	src = e->e_rawfile + shoff;

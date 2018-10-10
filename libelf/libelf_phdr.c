@@ -97,7 +97,8 @@ _libelf_getphdr(Elf *e, int ec)
 		e->e_u.e_elf.e_phdr.e_phdr64 = phdr;
 
 
-	xlator = _libelf_get_translator(ELF_T_PHDR, ELF_TOMEMORY, ec);
+	xlator = _libelf_get_translator(ELF_T_PHDR, ELF_TOMEMORY, ec,
+	    _libelf_elfmachine(e));
 	(*xlator)(phdr, phnum * msz, e->e_rawfile + phoff, phnum,
 	    e->e_byteorder != LIBELF_PRIVATE(byteorder));
 
