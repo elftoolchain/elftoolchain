@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd July 25, 2018
+.Dd October 10, 2018
 .Os
 .Dt ELF 3
 .Sh NAME
@@ -116,9 +116,12 @@ library offers translation facilities
 .Xr elf64_xlatetof 3
 and
 .Xr elf64_xlatetom 3 )
-to and from these
-representations and also provides higher-level APIs that retrieve and store
-data from the ELF object in a transparent manner.
+to and from these representations.
+It also provides higher-level APIs
+.Xr ( gelf_xlatetof 3 ,
+.Xr gelf_xlatetom 3 )
+that retrieve and store data from the ELF object in a class-agnostic
+manner.
 .Ss Library Working Version
 Conceptually, there are three version numbers associated with an
 application using the ELF library to manipulate ELF objects:
