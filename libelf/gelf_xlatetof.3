@@ -180,7 +180,33 @@ These functions return argument
 .Ar dst
 if successful, or NULL in case of an error.
 .Sh EXAMPLES
-TODO
+To translate a
+.Vt GElf_Rel
+structure to its LSB file representation use:
+.Bd -literal -offset indent
+Elf_Data dst, src;
+GElf_Rel rel;
+Elf *e;
+
+e = ...; /* See elf_begin(3). */
+
+/* Set up the 'src' descriptor. */
+memset(&src, 0, sizeof src);
+src.d_buf = &rel;
+src.d_size = sizeof(rel);
+src.d_type = ELF_T_REL;
+src.d_version = EV_CURRENT;
+
+/* Set up the 'dst' descriptor. */
+memset(&dst, 0, sizeof dst);
+dst.d_buf = filebuf;
+dst.d_size = gelf_fsize(e, ELF_T_REL, 1, EV_CURRENT);
+dst.d_version = EV_CURRENT;
+
+if (gelf_xlatetof(e, &dst, &src, ELFDATA2LSB) == NULL) {
+	printf("error: %s", elf_errmsg(0));
+}
+.Ed
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
