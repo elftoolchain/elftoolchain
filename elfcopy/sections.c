@@ -686,7 +686,7 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 	Elf32_Rela	*rela32;
 	Elf64_Rela	*rela64;
 	Elf_Data	*id;
-	uint64_t	 cap, n, nrels;
+	uint64_t	 cap, n, nrels, sym;
 	int		 elferr, i;
 
 	if (gelf_getshdr(s->is, &ish) == NULL)
@@ -744,13 +744,14 @@ filter_reloc(struct elfcopy *ecp, struct section *s)
 			if (gelf_getrel(id, i, &rel) != &rel)
 				errx(EXIT_FAILURE, "gelf_getrel failed: %s",
 				    elf_errmsg(-1));
+			sym = GELF_R_SYM(rel.r_info);
 		} else {
 			if (gelf_getrela(id, i, &rela) != &rela)
 				errx(EXIT_FAILURE, "gelf_getrel failed: %s",
 				    elf_errmsg(-1));
+			sym = GELF_R_SYM(rela.r_info);
 		}
-		name = elf_strptr(ecp->ein, elf_ndxscn(ecp->strtab->is),
-		    GELF_R_SYM(rel.r_info));
+		name = elf_strptr(ecp->ein, elf_ndxscn(ecp->strtab->is), sym);
 		if (name == NULL)
 			errx(EXIT_FAILURE, "elf_strptr failed: %s",
 			    elf_errmsg(-1));
