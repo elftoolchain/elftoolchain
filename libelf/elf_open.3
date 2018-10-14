@@ -67,6 +67,9 @@ archive contained in the memory area pointed to by the argument
 The argument
 .Ar sz
 specifies the size of the memory area in bytes.
+.Sh RETURN VALUES
+The function returns a pointer to a ELF descriptor if successful, or
+NULL if an error occurred.
 .Sh COMPATIBILITY
 These functions are non-standard extensions to the ELF(3) API set.
 .Pp
@@ -79,9 +82,6 @@ and
 .Xr ar 1
 archives, returning an Elf descriptor of type
 .Dv ELF_K_NONE .
-.Sh RETURN VALUES
-The function returns a pointer to a ELF descriptor if successful, or
-NULL if an error occurred.
 .Sh ERRORS
 These functions can fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
