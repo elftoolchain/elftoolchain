@@ -150,23 +150,7 @@ In case of an error, it returns
 .Dv DW_DLV_ERROR
 and sets the argument
 .Ar err .
-.Sh ERRORS
-Function
-.Fn dwarf_get_macro_details
-can fail with:
-.Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
-.It Bq Er DW_DLE_ARGUMENT
-One of the arguments
-.Ar dbg ,
-.Ar entry_cnt
-or
-.Ar details
-was NULL.
-.It Bq Er DW_DLE_NO_ENTRY
-There is no more macro information at the specified offset
-.Ar offset .
-.El
-.Sh EXAMPLE
+.Sh EXAMPLES
 To loop through all the macro information entries associated with
 a DWARF debug context:
 .Bd -literal -offset indent
@@ -185,6 +169,22 @@ while (dwarf_get_macro_details(dbg, offset, 0,
 	offset = md[cnt - 1].dmd_offset + 1;
 }
 .Ed
+.Sh ERRORS
+Function
+.Fn dwarf_get_macro_details
+can fail with:
+.Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
+.It Bq Er DW_DLE_ARGUMENT
+One of the arguments
+.Ar dbg ,
+.Ar entry_cnt
+or
+.Ar details
+was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+There is no more macro information at the specified offset
+.Ar offset .
+.El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_dealloc 3 ,

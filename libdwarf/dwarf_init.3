@@ -137,6 +137,11 @@ The
 .Vt Dwarf_Debug
 instance returned by these functions should be freed using
 .Fn dwarf_finish .
+.Sh IMPLEMENTATION NOTES
+The current implementation does not support access modes
+.Dv DW_DLC_RDWR
+and
+.Dv DW_DLC_WRITE .
 .Sh RETURN VALUES
 These functions return the following values:
 .Bl -tag -width ".Bq Er DW_DLV_NO_ENTRY"
@@ -151,11 +156,6 @@ or
 .Ar "elf"
 did not contain debug information.
 .El
-.Sh IMPLEMENTATION NOTES
-The current implementation does not support access modes
-.Dv DW_DLC_RDWR
-and
-.Dv DW_DLC_WRITE .
 .Sh EXAMPLES
 To initialize a
 .Vt Dwarf_Debug

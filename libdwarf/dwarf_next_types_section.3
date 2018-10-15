@@ -95,20 +95,6 @@ When there are no more
 .Dq \&.debug_types
 sections left to traverse, it returns
 .Dv DW_DLV_NO_ENTRY .
-.Sh COMPATIBILITY
-This function is an extension to the
-.Xr DWARF 3
-API.
-.Sh ERRORS
-The
-.Fn dwarf_next_types_section
-function may fail with the following errors:
-.Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
-.It Bq Er DW_DLE_ARGUMENT
-Argument
-.Va dbg
-was NULL.
-.El
 .Sh EXAMPLES
 To iterate though every type unit in all the
 .Dq \&.debug_types
@@ -128,6 +114,20 @@ do {
 	}
 } while (dwarf_next_types_section(dbg, &de) == DW_DLV_OK);
 .Ed
+.Sh COMPATIBILITY
+This function is an extension to the
+.Xr DWARF 3
+API.
+.Sh ERRORS
+The
+.Fn dwarf_next_types_section
+function may fail with the following errors:
+.Bl -tag -width ".Bq Er DW_DLE_ARGUMENT"
+.It Bq Er DW_DLE_ARGUMENT
+Argument
+.Va dbg
+was NULL.
+.El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_init 3 ,

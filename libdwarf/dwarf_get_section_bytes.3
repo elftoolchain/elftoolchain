@@ -96,23 +96,6 @@ In case of an error, function
 .Fn dwarf_get_section_bytes
 will return NULL and set the argument
 .Ar err .
-.Sh ERRORS
-Function
-.Fn dwarf_get_section_bytes
-can fail with:
-.Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
-.It Bq Er DW_DLE_ARGUMENT
-One of the arguments
-.Ar dbg ,
-.Ar elf_section_index ,
-or
-.Ar length
-was NULL.
-.It Bq Er DW_DLE_NO_ENTRY
-There were no more ELF sections to retrieve, or the function was
-called before a call to
-.Xr dwarf_transform_to_disk_form 3 .
-.El
 .Sh EXAMPLES
 To generate and retrieve ELF section byte streams, use:
 .Bd -literal -offset indent
@@ -148,10 +131,27 @@ for (i = 0; i < count; i++) {
 /* Release resources. */
 dwarf_producer_finish(dbg, &de);
 .Ed
+.Sh ERRORS
+Function
+.Fn dwarf_get_section_bytes
+can fail with:
+.Bl -tag -width ".Bq Er DW_DLE_NO_ENTRY"
+.It Bq Er DW_DLE_ARGUMENT
+One of the arguments
+.Ar dbg ,
+.Ar elf_section_index ,
+or
+.Ar length
+was NULL.
+.It Bq Er DW_DLE_NO_ENTRY
+There were no more ELF sections to retrieve, or the function was
+called before a call to
+.Xr dwarf_transform_to_disk_form 3 .
+.El
 .Sh SEE ALSO
 .Xr dwarf 3 ,
-.Xr dwarf_reset_section_bytes 3 ,
 .Xr dwarf_producer_finish 3 ,
 .Xr dwarf_producer_init 3 ,
 .Xr dwarf_producer_init_b 3 ,
+.Xr dwarf_reset_section_bytes 3 ,
 .Xr dwarf_transform_to_disk_form 3

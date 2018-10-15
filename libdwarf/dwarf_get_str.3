@@ -95,6 +95,26 @@ In case of an error, it returns
 .Dv DW_DLV_ERROR
 and sets the argument
 .Ar err .
+.Sh EXAMPLES
+To retrieve all the strings in the DWARF string section, use:
+.Bd -literal -offset indent
+Dwarf_Debug dbg;
+Dwarf_Off offset;
+Dwarf_Signed len;
+Dwarf_Error de;
+char *str;
+int ret
+
+offset = 0;
+while ((ret = dwarf_get_str(dbg, offset, &str, &len, &de)) ==
+	DW_DLV_OK) {
+	/* .. Use the retrieved string. .. */
+	offset += len + 1; /* Account for the terminating NUL. */
+}
+
+if (ret == DW_DLV_ERROR)
+	warnx("dwarf_get_str: %s", dwarf_errmsg(de));
+.Ed
 .Sh ERRORS
 Function
 .Fn dwarf_get_str
@@ -124,26 +144,6 @@ was at the very end of the
 .Dq ".debug_str"
 section.
 .El
-.Sh EXAMPLE
-To retrieve all the strings in the DWARF string section, use:
-.Bd -literal -offset indent
-Dwarf_Debug dbg;
-Dwarf_Off offset;
-Dwarf_Signed len;
-Dwarf_Error de;
-char *str;
-int ret
-
-offset = 0;
-while ((ret = dwarf_get_str(dbg, offset, &str, &len, &de)) ==
-	DW_DLV_OK) {
-	/* .. Use the retrieved string. .. */
-	offset += len + 1; /* Account for the terminating NUL. */
-}
-
-if (ret == DW_DLV_ERROR)
-	warnx("dwarf_get_str: %s", dwarf_errmsg(de));
-.Ed
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr dwarf_init 3
