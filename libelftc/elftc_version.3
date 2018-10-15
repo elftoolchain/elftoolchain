@@ -54,7 +54,7 @@ The operating system that the tool chain was compiled for.
 A tree-wide version number extracted from the version control
 system in use.
 .El
-.Sh RETURN VALUE
+.Sh RETURN VALUES
 Function
 .Fn elftc_program_version
 returns a pointer to an internal character buffer.
@@ -68,7 +68,9 @@ To retrieve and print the current toolchain version identifier, use:
 .Ed
 .Pp
 On the HEAD branch of the project's sources, when checked out using
-Subversion and compiled on a NetBSD host, this would print:
+Subversion and compiled on a
+.Nx
+host, this would print:
 .D1 Dq elftoolchain HEAD NetBSD svn: Ns Em REVINFO
 where
 .Em REVINFO
