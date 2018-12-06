@@ -20,7 +20,7 @@ PDFLATEX?=	/usr/local/bin/pdflatex
 
 # Translate the spelling of a build knob (see ticket #316).
 .if defined(NOMAN)
-NO_MAN=		yes
+MK_MAN=		no	# FreeBSD 7 and later.
 .endif
 
 # Literate programming utility.
