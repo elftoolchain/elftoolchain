@@ -67,5 +67,5 @@ ${DESTDIR}${INCSDIR}/${inc}: ${inc}
 
 .endif	# OpenBSD
 
-# Bring in rules related to test code.
-.include "${TOP}/mk/elftoolchain.test.mk"
+# Bring in rules related to running the related test suite.
+.include "${TOP}/mk/elftoolchain.test-target.mk"
