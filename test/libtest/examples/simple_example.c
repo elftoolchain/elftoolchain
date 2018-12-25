@@ -64,8 +64,9 @@
 
 /*
  * A symbol name prefixed with 'tc_description_' contains a
- * test case description. In the case of the symbol below,
- * the test case named is 'helloworld'.
+ * test case description. The TESTCASE_DESCRIPTION macro offers
+ * a convenient way to define such symbols. In the case of the
+ * symbol below, the test case named is 'helloworld'.
  */
 TESTCASE_DESCRIPTION(helloworld) = "A description for a test case.";
 
@@ -90,11 +91,14 @@ tc_teardown_helloworld(testcase_state state)
 }
 
 /*
- * Names prefixed with 'tc_tags_' denote the tags associated with
- * test cases.
+ * Names prefixed with 'tc_tags_' denote the tags associated with test
+ * cases. The TESTCASE_TAGS macro offers a convenient way to define such
+ * symbols.
  *
  * In the example below, all test functions belonging to the test case
  * named 'helloworld' would be associated with tags "tag1" and "tag2".
+ *
+ * Tags lists are terminated by a NULL entry.
  */
 TESTCASE_TAGS(helloworld) = {
 	"tag1",
@@ -113,7 +117,11 @@ tf_helloworld_sayhello(testcase_state state)
 
 /*
  * Names prefixed by 'tf_description_' contain descriptions of test
- * functions.
+ * functions (e.g., 'tf_description_helloworld_sayhello' contains the
+ * description for test function 'tf_helloworld_sayhello').
+ *
+ * The TEST_DESCRIPTION macro offers a convenient way to define such
+ * symbols.
  */
 TEST_DESCRIPTION(helloworld_sayhello) =
     "A description for the test function 'tf_helloworld_sayhello'.";
@@ -124,6 +132,11 @@ TEST_DESCRIPTION(helloworld_sayhello) =
  *
  * In the example below, the tags 'tag3' and 'tag4' are associated
  * with the test function 'tf_helloworld_sayhello'.
+ *
+ * Alternately, the TEST_TAGS() macro offers a convenient way to
+ * define such symbols.
+ *
+ * Tags lists are terminated by a NULL entry.
  */
 test_tags tf_tags_helloworld_sayhello = {
 	"tag3",
