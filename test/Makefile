@@ -5,7 +5,8 @@
 
 TOP=		..
 
-# Build TET first.
+# Build TET and LIBTEST first.
+SUBDIR+=	libtest
 SUBDIR+=	tet
 
 # Build tests for libraries.
