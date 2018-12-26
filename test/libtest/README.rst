@@ -75,7 +75,7 @@ Test cases can define their own set up and tear down functions:
 	enum testcase_status
 	tc_teardown_helloworld(testcase_state tcs)
 	{
-		.. deallocate the state in 'tcs'..
+		.. deallocate test case state..
 		return (TESTCASE_OK);
 	}
 
