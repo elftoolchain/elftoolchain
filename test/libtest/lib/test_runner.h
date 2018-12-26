@@ -54,18 +54,20 @@ enum testrun_status {
  * A single test function, with its associated tags and description.
  */
 struct test_descriptor {
-  const char *t_description;	/* Description of the test. */
-  const char **t_tags;		/* Tags associated with the test. */
-  test_function *t_func;		/* The function to invoke. */
+	const char	*t_name;	/* Test name. */
+	const char	*t_description;	/* Test description. */
+	const char	**t_tags;	/* Tags associated with the test. */
+	test_function	*t_func;	/* The function to invoke. */
 };
 
 /*
  * A test case.
  */
 struct test_case_descriptor {
-  const char *tc_description;	/* Description of the test case. */
-  const char **tc_tags;		/* Tags associated with the test case. */
-  struct test_descriptor *tc_tests; /* The tests. */
+	const char	*tc_name;	/* Test case name. */
+	const char	*tc_description; /* Test case description. */
+	const char	**tc_tags;	/* Any associated tags. */
+	struct test_descriptor *tc_tests; /* The tests in this test case. */
 };
 
 /*

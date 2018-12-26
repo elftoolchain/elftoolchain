@@ -106,7 +106,8 @@ if ! nm ${*} | sort -k 3 | \
 		return DEFAULT
 	}
 	function print_test_case_record(tc_name) {
-		printf("\t{ /* %s */ \n", tc_name)
+		printf("\t{\n")
+		printf("\t\t.tc_name = \"%s\",\n", tc_name)
 		printf("\t\t.tc_description = %s,\n", test_case_descriptions[tc_name])
 		printf("\t\t.tc_tags = %s,\n", test_case_tags[tc_name])
 		printf("\t\t.tc_tests = test_functions_%s\n", tc_name)
@@ -124,6 +125,7 @@ if ! nm ${*} | sort -k 3 | \
 			if (tc_name != matched_test_case(tf_name))
 				continue
 			printf("\t{\n")
+			printf("\t\t.t_name = \"%s\",\n", tf_name)
 			printf("\t\t.t_description = %s,\n",
 				test_function_descriptions[tf_name])
 			printf("\t\t.t_func = %s,\n", prefix_tf tf_name)
