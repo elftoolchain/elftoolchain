@@ -11,7 +11,6 @@ INCS=	test.h
 
 WARNS?=	6
 
-MAN=	test.3 \
-	test_runner.3
+MAN=	test.3
 
 .include "${TOP}/mk/elftoolchain.lib.mk"
