@@ -4,6 +4,8 @@
 
 TOP=	../../..
 
+NOMAN=		true
+
 CFLAGS+=	-I../lib -Wall -pedantic
 
 TEST_SRCS=	minimal_example.c \
