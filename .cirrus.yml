@@ -1,0 +1,10 @@
+freebsd_instance:
+  image: freebsd-11-2-release-amd64
+
+task:
+  install_script: pkg install -y git py27-yaml
+  script:
+    - fetch http://tetworks.opengroup.org/downloads/38/software/Sources/3.8/tet3.8-src.tar.gz
+    - tar -x -C test/tet -f tet3.8-src.tar.gz
+    - make
+
