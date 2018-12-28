@@ -134,6 +134,10 @@ if ! nm ${*} | sort -k 3 | \
 		}
 		printf("};\n")
 	}
+	function is_non_empty(array,  i) {
+		for (i in array) return 1
+		return 0
+	}
 	BEGIN {
 		DEFAULT = "default"
 		test_case_descriptions[DEFAULT] = "NULL"
@@ -193,7 +197,7 @@ if ! nm ${*} | sort -k 3 | \
 			print_test_functions_record(tc_name)
 			delete_test_functions(tc_name)
 		}
-		needs_default = length(test_functions) > 0
+		needs_default = is_non_empty(test_functions)
 		if (needs_default)
 			print_test_functions_record(DEFAULT)
 		printf("struct test_case_descriptor test_cases[] = {\n")
