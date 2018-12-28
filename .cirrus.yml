@@ -13,7 +13,7 @@ debian_stable_task:
   setup_script:
     - apt-get update
     - apt-get install -y
-      binutils bison bmake curl flex gcc git
+      binutils bison bmake curl flex g++ gcc git
       libarchive-dev libbsd-dev libc6-dev libexpat1-dev lsb-release
       m4 perl python-yaml sharutils zlib1g-dev
   script:
