@@ -10,7 +10,7 @@
 TEST_BASE=	$(TOP)/test/libtest
 TEST_LIB=	$(TEST_BASE)/lib
 TEST_DRIVER=	${TEST_BASE}/driver
-TEST_DRIVER_MAIN=	$(TEST_BASE)/driver/test_main.o
+TEST_DRIVER_MAIN=	$(TEST_DRIVER)/test_main.o
 
 CFLAGS+=	-I$(TEST_LIB) -I${TEST_DRIVER}
 
@@ -29,7 +29,7 @@ _M4_SRCS=	${TEST_SRCS:M*.m4}
 SRCS=		${_C_SRCS} ${_M4_SRCS}	# See <bsd.prog.mk>
 CLEANFILES+=	${_M4_SRCS:S/.m4$/.c/g} ${TEST_DATA}
 
-${PROG}:	${TEST_DATA}
+${PROG}:	${TEST_DATA} ${TEST_LIB} ${TEST_DRIVER_MAIN}
 
 .if defined(MAKE_TEST_SCAFFOLDING) && ${MAKE_TEST_SCAFFOLDING} == "yes"
 _TC_SRC=	${.OBJDIR}/tc.c		# Test scaffolding.
