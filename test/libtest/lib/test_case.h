@@ -24,26 +24,34 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * This file defines a "main" that parses command-line arguments and invokes
- * the selected test cases.
- */
-#include <sys/param.h>
+#ifndef	_LIBTEST_TEST_CASE_H_
+#define	_LIBTEST_TEST_CASE_H_
 
-#include <assert.h>
-#include <stdlib.h>
-
-#include "_elftc.h"
 #include "test.h"
-#include "test_case.h"
 
-ELFTC_VCSID("$Id$");
+/*
+ * These structures describe the test cases that are linked into a
+ * test executable.
+ */
 
-int
-main(int argc, char **argv)
-{
-	(void) test_cases;
-	(void) argc;
-	(void) argv;
-	exit(0);
-}
+/* A single test function, with its associated tags and description. */
+struct test_function_descriptor {
+	const char	*tf_name;	/* Test name. */
+	const char	*tf_description; /* Test description. */
+	const char	**tf_tags;	/* The tags for the test. */
+	test_function	*tf_func;	/* The function to invoke. */
+};
+
+/* A test case, with its associated tests. */
+struct test_case_descriptor {
+	const char	*tc_name;	/* Test case name. */
+	const char	*tc_description; /* Test case description. */
+	const char	**tc_tags;	/* Any associated tags. */
+	struct test_function_descriptor *tc_tests; /* Contained tests. */
+	const int	tc_count;	/* The number of tests. */
+};
+
+/* All test cases linked into the test binary. */
+extern struct test_case_descriptor test_cases[];
+
+#endif	/* _LIBTEST_TEST_CASE_H_ */

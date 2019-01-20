@@ -7,7 +7,7 @@ LIB=	test
 SRCS=	test.c \
 	test_runner.c
 
-INCS=	test.h
+INCS=	test.h test_case.h
 
 WARNS?=	6
 
