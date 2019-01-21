@@ -213,6 +213,8 @@ if ! nm ${*} | sort -k 3 | \
 		if (needs_default)
 			print_test_case_record(DEFAULT)
 		printf("};\n")
+		printf("const int test_case_count = sizeof(test_cases) / ")
+		printf("sizeof(test_cases[0]);\n")
 	}'; then
     # Cleanup in case of an error.
     rm ${output_file}

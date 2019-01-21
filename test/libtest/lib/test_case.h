@@ -53,5 +53,6 @@ struct test_case_descriptor {
 
 /* All test cases linked into the test binary. */
 extern struct test_case_descriptor test_cases[];
+extern const int test_case_count;
 
 #endif	/* _LIBTEST_TEST_CASE_H_ */
