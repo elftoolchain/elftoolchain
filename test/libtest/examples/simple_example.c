@@ -64,35 +64,35 @@
 
 /*
  * A symbol name prefixed with 'tc_description_' contains a
- * test case description. The TESTCASE_DESCRIPTION macro offers
+ * test case description. The TEST_CASE_DESCRIPTION macro offers
  * a convenient way to define such symbols. In the case of the
  * symbol below, the test case named is 'helloworld'.
  */
-TESTCASE_DESCRIPTION(helloworld) = "A description for a test case.";
+TEST_CASE_DESCRIPTION(helloworld) = "A description for a test case.";
 
 /*
  * Function names prefixed with 'tc_setup_' are assumed to be test
  * case set up functions.
  */
-enum testcase_status
-tc_setup_helloworld(testcase_state *state)
+enum test_case_status
+tc_setup_helloworld(test_case_state *state)
 {
-	return (TESTCASE_OK);
+	return (TEST_CASE_OK);
 }
 
 /*
  * Function names prefixed with 'tc_teardown_' are assumed to be test
  * case tear down functions.
  */
-enum testcase_status
-tc_teardown_helloworld(testcase_state state)
+enum test_case_status
+tc_teardown_helloworld(test_case_state state)
 {
-	return (TESTCASE_OK);
+	return (TEST_CASE_OK);
 }
 
 /*
  * Names prefixed with 'tc_tags_' denote the tags associated with test
- * cases. The TESTCASE_TAGS macro offers a convenient way to define such
+ * cases. The TESTC_ASE_TAGS macro offers a convenient way to define such
  * symbols.
  *
  * In the example below, all test functions belonging to the test case
@@ -100,7 +100,7 @@ tc_teardown_helloworld(testcase_state state)
  *
  * Tags lists are terminated by a NULL entry.
  */
-TESTCASE_TAGS(helloworld) = {
+TEST_CASE_TAGS(helloworld) = {
 	"tag1",
 	"tag2",
 	NULL
@@ -110,7 +110,7 @@ TESTCASE_TAGS(helloworld) = {
  * Function names prefixed with 'tf_' name test functions.
  */
 enum test_result
-tf_helloworld_sayhello(testcase_state state)
+tf_helloworld_sayhello(test_case_state state)
 {
 	return (TEST_PASS);
 }

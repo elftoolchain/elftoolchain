@@ -44,7 +44,7 @@
  * Function names prefixed with 'tf_' name test functions.
  */
 enum test_result
-tf_helloworld(testcase_state state)
+tf_helloworld(test_case_state state)
 {
 	return (TEST_PASS);
 }
