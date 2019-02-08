@@ -11,4 +11,6 @@ SRCS=	test_main.c
 
 WARNS?=	6
 
+MAN=	test_driver.1
+
 .include "$(TOP)/mk/elftoolchain.lib.mk"
