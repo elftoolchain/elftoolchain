@@ -62,12 +62,12 @@ The project uses subversion_ for its version control system.
 The subversion branch for the current set of sources may be accessed
 at the following URL::
 
-    https://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk
+    https://sourceforge.net/p/elftoolchain/code/HEAD/tree/trunk/
 
 The project's source tree may be checked out from its repository by
 using the ``svn checkout`` command::
 
-    % svn checkout https://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk
+    % svn checkout https://svn.code.sf.net/p/elftoolchain/code/trunk
 
 Checked-out sources may be kept upto-date by running ``svn update``
 inside the source directory::
@@ -108,7 +108,7 @@ Reporting Bugs
 Please use our `Trac instance`_ for viewing existing bug reports and
 for submitting new bug reports.
 
-.. _`Trac instance`: http://sourceforge.net/apps/trac/elftoolchain/report
+.. _`Trac instance`: https://sourceforge.net/p/elftoolchain/tickets/
 
 
 Additional Information
