@@ -105,10 +105,10 @@ The project's developers may be contacted using the mailing list:
 Reporting Bugs
 --------------
 
-Please use our `Trac instance`_ for viewing existing bug reports and
+Please use our `bug tracker`_ for viewing existing bug reports and
 for submitting new bug reports.
 
-.. _`Trac instance`: https://sourceforge.net/p/elftoolchain/tickets/
+.. _`bug tracker`: https://sourceforge.net/p/elftoolchain/tickets/
 
 
 Additional Information
