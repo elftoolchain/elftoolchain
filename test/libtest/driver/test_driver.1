@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 08, 2019
+.Dd February 14, 2019
 .Dt TEST-DRIVER 1
 .Os
 .Sh NAME
@@ -38,7 +38,7 @@ based tests from the command-line.
 .Op Fl l
 .Op Fl n Ar run-name
 .Op Fl p Ar search-path-directory
-.Op Fl R Ar runtime-directory-base
+.Op Fl R Ar runtime-base-directory
 .Op Fl s Ar execution-style
 .Op Fl t Ar selection-pattern
 .Op Fl T Ar seconds
@@ -70,7 +70,7 @@ the test run to the archive named by argument
 .Ar archive-name .
 The format of the archive is specified by the path name suffix of the
 artefact name.
-The supporter output formats are those supported by
+The supported output formats are those supported by
 .Xr libarchive 3 .
 .It Fl l
 If this option is specified, then the
@@ -87,11 +87,12 @@ Add the argument
 to the list of directories searched for by
 .Xr test 3
 utility functions.
-.It Fl R Ar runtime-directory-base
-Set the base runtime directory to
-.Ar runtime-directory-base .
+.It Fl R Ar runtime-base-directory
+Set the runtime base directory to the directory specified by the
+argument
+.Ar runtime-base-directory .
 Tests execute with their current directory set to a subdirectory
-in this directory.
+within this directory.
 If this option is not specified, then a unique subdirectory will
 be created in the directory named by the
 .Ev TMPDIR
@@ -159,12 +160,25 @@ qualifiers were not specified, then the pattern is assumed to
 name a test case.
 .El
 .Pp
-If the selection pattern is preceded by a
-.Dq Li -
-then the entries it matches will be removed from the currently
-selected list.
 If no selection patterns are specified then all the tests found in
 the test executable will be run.
+Otherwise, the selection patterns specified are processed in the
+order specified.
+.Pp
+A selection pattern that does not start with a
+.Dq Li -
+will add the entries that it matches to the currently selected list
+of tests.
+Selection patterns that are preceded by a
+.Dq Li -
+will remove the entries it matches from the currently selected list
+of tests.
+.Pp
+If test selection patterns were specified, and if the result of
+applying the specified test selection patterns was an empty list
+of tests, then the
+.Nm
+library will exit with an error message.
 .It Fl T Ar seconds
 Set the timeout for individual tests to
 .Ar seconds .
