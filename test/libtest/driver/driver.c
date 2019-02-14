@@ -38,7 +38,8 @@
 void
 test_run_add_search_path(struct test_run *tr, const char *search_path)
 {
-	/*Stub.*/
+	(void) tr;
+	(void) search_path;
 	return;
 }
 
@@ -46,7 +47,8 @@ test_run_add_search_path(struct test_run *tr, const char *search_path)
 void
 test_run_set_runtime_directory(struct test_run *tr, const char *tmpdir)
 {
-
+	(void) tr;
+	(void) tmpdir;
 }
 
 struct test_run *
