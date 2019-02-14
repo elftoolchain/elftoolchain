@@ -7,7 +7,8 @@ TOP=	../../..
 CFLAGS+=	-I${TOP}/test/libtest/lib
 
 LIB=	driver
-SRCS=	driver_main.c
+SRCS=	driver.c \
+	driver_main.c
 
 WARNS?=	6
 

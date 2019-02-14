@@ -4,8 +4,7 @@ TOP=	../../..
 
 LIB=	test
 
-SRCS=	test.c \
-	test_runner.c
+SRCS=	test.c
 
 INCS=	test.h test_case.h
 
