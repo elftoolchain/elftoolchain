@@ -31,6 +31,8 @@
 
 #include <stdbool.h>
 
+#include "_elftc.h"
+
 #include "test.h"
 
 #define	TEST_ENVIRONMENT_SEARCH_PATH	"TEST_PATH"
@@ -151,7 +153,7 @@ struct test_run {
 	 * A value of zero indicates that the test driver should wait
 	 * indefinitely for tests.
 	 */
-	long tr_max_seconds_per_test;
+	long	tr_max_seconds_per_test;
 
 	/*
 	 * If not NULL, An absolute pathname to an archive that will hold
