@@ -29,13 +29,15 @@
 
 #include <sys/queue.h>
 
+#include <limits.h>
 #include <stdbool.h>
 
 #include "_elftc.h"
 
 #include "test.h"
 
-#define	TEST_ENVIRONMENT_SEARCH_PATH	"TEST_PATH"
+#define	TEST_SEARCH_PATH_ENV_VAR	"TEST_PATH"
+#define	TEST_TMPDIR_ENV_VAR		"TEST_TMPDIR"
 
 /*
  * Run time data strucrures.
@@ -103,8 +105,8 @@ struct test_case_selector {
  * The action being requested of the test driver.
  */
 enum test_run_action {
-	TR_ACTION_EXECUTE,	/* Execute the selected tests. */
-	TR_ACTION_LIST,		/* Only list tests. */
+	TEST_RUN_EXECUTE,	/* Execute the selected tests. */
+	TEST_RUN_LIST,		/* Only list tests. */
 };
 
 STAILQ_HEAD(test_case_selector_list, test_case_selector);
@@ -113,8 +115,8 @@ STAILQ_HEAD(test_case_selector_list, test_case_selector);
  * Runtime directories to look up data files.
  */
 struct test_search_path_entry {
-	char *tp_directory;
-	STAILQ_ENTRY(test_search_path_entry)	tp_next;
+	char *tsp_directory;
+	STAILQ_ENTRY(test_search_path_entry)	tsp_next;
 };
 
 STAILQ_HEAD(test_search_path_list, test_search_path_entry);
@@ -129,14 +131,11 @@ struct test_run {
 	/* The desired behavior of the test harness. */
 	enum test_run_style	tr_style;
 
-	/* An optional name assigned by the user for this test run. */
-	const char	*tr_name;
+	/* The desired verbosity level. */
+	int			tr_verbosity;
 
-	/*
-	 * Directories to use when resolving non-absolute data file
-	 * names.
-	 */
-	struct test_search_path_list tr_search_path;
+	/* An optional name assigned by the user for this test run. */
+	char			*tr_name;
 
 	/*
 	 * The absolute path to the directory under which the test is
@@ -145,7 +144,7 @@ struct test_run {
 	 * Each test case will be invoked in some subdirectory of this
 	 * directory.
 	 */
-	char	*tr_runtime_base_directory;
+	char			*tr_runtime_base_directory;
 
 	/*
 	 * The test timeout in seconds.
@@ -153,30 +152,34 @@ struct test_run {
 	 * A value of zero indicates that the test driver should wait
 	 * indefinitely for tests.
 	 */
-	long	tr_max_seconds_per_test;
+	long			tr_max_seconds_per_test;
 
 	/*
 	 * If not NULL, An absolute pathname to an archive that will hold
 	 * the artefacts created by a test run.
 	 */
-	char	*tr_artefact_archive;
+	char			*tr_artefact_archive;
 
-	/* The desired verbosity level. */
-	int	tr_verbosity;
+	/*
+	 * Directories to use when resolving non-absolute data file
+	 * names.
+	 */
+	struct test_search_path_list tr_search_path;
 
-	/* All tests that were selected for this run. */
+	/* All tests selected for this run. */
 	struct	test_case_selector_list	tr_test_cases;
 };
 
 #ifdef	__cplusplus
 extern "C" {
 #endif
-struct test_run	*test_run_allocate(void);
-void		test_run_release(struct test_run *);
-void		test_run_add_search_path(struct test_run *,
+struct test_run	*test_driver_allocate_run(void);
+bool		test_driver_add_search_path(struct test_run *,
     const char *search_path);
-void		test_run_set_runtime_directory(struct test_run *,
-    const char *tmpdir);
+void		test_driver_free_run(struct test_run *);
+bool		test_driver_is_directory(const char *);
+bool		test_driver_finish_run_initialization(struct test_run *,
+    const char *argv0);
 #ifdef	__cplusplus
 }
 #endif
