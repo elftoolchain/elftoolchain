@@ -55,14 +55,86 @@
 ELFTC_VCSID("$Id$");
 #endif
 
+enum selection_scope {
+	SCOPE_TEST_CASE = 0,	/* c:STRING */
+	SCOPE_TEST_FUNCTION,	/* f:STRING */
+	SCOPE_TAG,		/* t:STRING */
+};
+
 /* Selection list entry. */
 struct selection_option {
-	STAILQ_ENTRY(selection_option)	s_next;
-	const char	*s_option;
+	STAILQ_ENTRY(selection_option)	so_next;
+	/* The text to use for matching. */
+	const char	*so_text;
+
+	/*
+	 * Whether matched test and test cases should be selected
+	 * (if false) or deselected (if true).
+	 */
+	bool		so_select_tests;
+
+	/* The kind of information to match. */
+	enum selection_scope	so_selection_scope;
 };
 
 /* All selection options specified. */
 STAILQ_HEAD(selection_option_list, selection_option);
+
+static struct selection_option *
+parse_selection_option(const char *option)
+{
+	int scope_char;
+	bool select_tests;
+	enum selection_scope scope;
+	struct selection_option *so;
+
+	scope_char = '\0';
+	select_tests = true;
+	scope = SCOPE_TEST_CASE;
+
+	/* Deselection patterns start with a '-'. */
+	if (*option == '-') {
+		select_tests = false;
+		option++;
+	}
+
+	/*
+	 * If a scope was not specified, the selection scope defaults
+	 * to SCOPE_TEST_CASE.
+	 */
+	if (strchr(option, ':') == NULL)
+		scope_char = 'c';
+	else {
+		scope_char = *option++;
+		if (*option != ':')
+			return (NULL);
+		option++;	/* Skip over the ':'. */
+	}
+
+	if (*option == '\0')
+		return (NULL);
+
+	switch (scope_char) {
+	case 'c':
+		scope = SCOPE_TEST_CASE;
+		break;
+	case 'f':
+		scope = SCOPE_TEST_FUNCTION;
+		break;
+	case 't':
+		scope = SCOPE_TAG;
+		break;
+	default:
+		return (NULL);
+	}
+
+	so = calloc(1, sizeof(*so));
+	so->so_text = option;
+	so->so_selection_scope = scope;
+	so->so_select_tests = select_tests;
+
+	return (so);
+}
 
 /* Test execution styles. */
 struct style_entry {
@@ -130,7 +202,7 @@ free_selections(struct selection_option_list *selections)
 
 	while (!STAILQ_EMPTY(selections)) {
 		selection = STAILQ_FIRST(selections);
-		STAILQ_REMOVE_HEAD(selections, s_next);
+		STAILQ_REMOVE_HEAD(selections, so_next);
 		free(selection);
 	}
 }
@@ -273,16 +345,17 @@ main(int argc, char **argv)
 			break;
 		case 's':	/* Test execution style. */
 			if (!parse_run_style(optarg, &run_style))
-				errx(EX_USAGE, "option -%c: unrecognized run "
-				    "style \"%s\"", option, optarg);
+				errx(EX_USAGE, "option -%c: argument \"%s\" "
+				    "is not a supported test execution style.",
+				    option, optarg);
 			tr->tr_style = run_style;
 			break;
 		case 't':	/* Test selection option. */
-			/*TODO check selection syntax. */
-			selector =
-			    calloc(1, sizeof(struct selection_option));
-			selector->s_option = optarg;
-			STAILQ_INSERT_TAIL(&selections, selector, s_next);
+			if ((selector = parse_selection_option(optarg)) == NULL)
+				errx(EX_USAGE, "option -%c: argument \"%s\" "
+				    "is not a valid selection pattern.",
+				    option, optarg);
+			STAILQ_INSERT_TAIL(&selections, selector, so_next);
 			break;
 		case 'v':
 			tr->tr_verbosity++;
