@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 14, 2019
+.Dd February 19, 2019
 .Dt TEST-DRIVER 1
 .Os
 .Sh NAME
@@ -93,14 +93,24 @@ argument
 .Ar runtime-base-directory .
 Tests execute with their current directory set to a subdirectory
 within this directory.
-If this option is not specified, then a unique subdirectory will
-be created in the directory named by the
+The path specified by argument
+.Ar runtime-base-directory
+must exist, and must name a directory.
+.Pp
+If this option is not specified, then the
+.Ev TEST_TMPDIR
+environment variable will be examined.
+If set to a non-empty value, then its value will be used.
+Otherwise, the value of the
 .Ev TMPDIR
-environment variable, or under
-.Pa /tmp
-if the
+environment variable will be used, if non-empty.
+If neither of the environment variables
+.Ev TEST_TMPDIR
+and
 .Ev TMPDIR
-environment variable is not set.
+contain a non-empty value, then the path
+.Dq Pa /tmp
+will be used.
 .It Fl s Ar execution-style
 Set the desired execution style to that specified by argument
 .Ar execution-style .
