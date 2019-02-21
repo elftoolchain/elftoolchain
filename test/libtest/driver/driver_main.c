@@ -35,6 +35,7 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,6 +186,36 @@ to_execution_style_name(enum test_run_style run_style)
 	return (NULL);
 }
 
+/*
+ * Parse a string value containing a positive integral number.
+ */
+static bool
+parse_execution_time(const char *option, long *execution_time) {
+	char *end;
+	long value;
+
+	if (option == NULL || *option == '\0')
+		return (false);
+
+	value = strtol(option, &end, 10);
+
+	/* Check for parse errors. */
+	if (*end != '\0')
+		return (false);
+
+	/* Reject negative numbers. */
+	if (value < 0)
+		return (false);
+
+	/* Check for overflows during parsing. */
+	if (value == LONG_MAX && errno == ERANGE)
+		return (false);
+
+	*execution_time = value;
+
+	return (true);
+}
+
 /* Add the selected tests to the test run. */
 static void
 select_tests(struct test_run *tr,
@@ -268,6 +299,12 @@ show_run_header(const struct test_run *tr)
 		printf("> test-artefact-archive: %s\n",
 		    tr->tr_artefact_archive);
 
+	printf("> test-execution-time: ");
+	if (tr->tr_max_seconds_per_test == 0)
+		printf("(unlimited)\n");
+	else
+		printf("%lu\n", tr->tr_max_seconds_per_test);
+
 	printf("> test-case-count: %d\n", test_case_count);
 
 	if (tr->tr_action == TEST_RUN_EXECUTE) {
@@ -323,8 +360,12 @@ main(int argc, char **argv)
 			if (tr->tr_runtime_base_directory == NULL)
 				err(1, "realpath failed for \"%s\"", optarg);
 			break;
-		case 'T':	/* Max execution time for a test case. */
-			/* TODO convert optarg to int. */
+		case 'T':	/* Max execution time for a test function. */
+			if (!parse_execution_time(
+			    optarg, &tr->tr_max_seconds_per_test))
+				errx(EX_USAGE, "option -%c: argument \"%s\" "
+				    "is not a valid execution time value.",
+				    option, optarg);
 			break;
 		case 'c':	/* The archive holding artefacts. */
 			tr->tr_artefact_archive = to_absolute_path(optarg);
