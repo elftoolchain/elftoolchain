@@ -18,11 +18,11 @@ main(int argc, char **argv)
 {
     int fd;
     Elf *e;
-    char *name, *p, pc[4*sizeof(char)];
     Elf_Scn *scn;
     Elf_Data *data;
     GElf_Shdr shdr;
     size_t n, shstrndx, sz;
+    char *name, *p, pc[(4 * sizeof(char)) + 1];
 
     if (argc != 2)
         errx(EXIT_FAILURE, "usage: %s file-name", argv[0]);
