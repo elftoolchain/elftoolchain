@@ -51,7 +51,12 @@ _libelf_load_extended(Elf *e, int ec, uint64_t shoff, uint16_t phnum,
 	fsz = _libelf_fsize(ELF_T_SHDR, ec, e->e_version, 1);
 	assert(fsz > 0);
 
-	if (e->e_rawsize < shoff + fsz) { /* raw file too small */
+	if (shoff + fsz < shoff) {	/* Numeric overflow. */
+		LIBELF_SET_ERROR(HEADER, 0);
+		return (0);
+	}
+
+	if (e->e_rawsize < (shoff + fsz)) {
 		LIBELF_SET_ERROR(HEADER, 0);
 		return (0);
 	}

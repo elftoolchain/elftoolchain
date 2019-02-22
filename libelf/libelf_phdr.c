@@ -77,6 +77,11 @@ _libelf_getphdr(Elf *e, int ec)
 
 	assert(fsz > 0);
 
+	if (phoff + fsz < phoff) {	/* Numeric overflow. */
+		LIBELF_SET_ERROR(HEADER, 0);
+		return (NULL);
+	}
+
 	if ((uint64_t) e->e_rawsize < (phoff + fsz)) {
 		LIBELF_SET_ERROR(HEADER, 0);
 		return (NULL);
