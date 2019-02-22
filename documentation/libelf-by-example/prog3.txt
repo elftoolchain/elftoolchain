@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <vis.h>
 
 void
 print_ptype(size_t pt) @\co{7}@
