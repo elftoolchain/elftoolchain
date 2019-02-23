@@ -5,6 +5,7 @@ TOP=	../../../..
 YAML_FILES=	check_elf \
 		getclass \
 		ehdr \
+		ehdr-malformed-1 \
 		fsize \
 		newehdr newscn newscn2 \
 		phdr \
