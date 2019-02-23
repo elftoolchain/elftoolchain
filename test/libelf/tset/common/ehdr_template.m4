@@ -367,3 +367,40 @@ tcElfWrongSize$1(void)
 
 FN(`LSB')
 FN(`MSB')
+
+/*
+ * Verify that malformed ELF objects are rejected.
+ */
+
+undefine(`FN')
+define(`FN',`
+void
+tcMalformed1$1(void)
+{
+	int error, fd, result;
+	Elf *e;
+	char *fn;
+	TS_EHDR *eh;
+
+	TP_CHECK_INITIALIZATION();
+
+	TP_ANNOUNCE("TS_ICNAME with a malformed ELF header "
+	    "fails with ELF_E_HEADER.");
+
+	result = TET_PASS;
+	fn = "ehdr-malformed-1.TOLOWER($1)`'TS_EHDRSZ";
+	TS_OPEN_FILE(e, fn, ELF_C_READ, fd);
+
+	error = 0;
+	if ((eh = TS_ICFUNC`'(e)) != NULL)
+		TP_FAIL("\"%s\" TS_ICNAME`'() succeeded.", fn);
+	else if ((error = elf_errno()) != ELF_E_HEADER)
+		TP_FAIL("\"%s\" incorrect error (%d).", fn, error);
+
+	(void) elf_end(e);
+	(void) close(fd);
+	tet_result(result);
+}')
+
+FN(`LSB')
+FN(`MSB')
