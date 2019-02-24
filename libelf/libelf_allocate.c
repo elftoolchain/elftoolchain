@@ -43,25 +43,18 @@ _libelf_allocate_elf(void)
 {
 	Elf *e;
 
-	if ((e = malloc(sizeof(*e))) == NULL) {
+	if ((e = calloc((size_t) 1, sizeof(*e))) == NULL) {
 		LIBELF_SET_ERROR(RESOURCE, errno);
 		return NULL;
 	}
 
 	e->e_activations = 1;
-	e->e_hdr.e_rawhdr = NULL;
 	e->e_byteorder   = ELFDATANONE;
 	e->e_class       = ELFCLASSNONE;
 	e->e_cmd         = ELF_C_NULL;
 	e->e_fd          = -1;
-	e->e_flags	 = 0;
 	e->e_kind        = ELF_K_NONE;
-	e->e_parent      = NULL;
-	e->e_rawfile     = NULL;
-	e->e_rawsize     = 0;
 	e->e_version     = LIBELF_PRIVATE(version);
-
-	(void) memset(&e->e_u, 0, sizeof(e->e_u));
 
 	return (e);
 }
