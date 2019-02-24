@@ -59,7 +59,8 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 		return (&d->d_data);
 
 	if (d != NULL)
-		return (&STAILQ_NEXT(d, d_next)->d_data);
+		return (STAILQ_NEXT(d, d_next) ?
+		    &STAILQ_NEXT(d, d_next)->d_data : NULL);
 
 	if (e->e_rawfile == NULL) {
 		/*
