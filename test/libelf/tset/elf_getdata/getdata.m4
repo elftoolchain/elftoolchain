@@ -106,6 +106,11 @@ tcZeroSection$1$2(void)
 		goto done;
 	}
 
+	if ((ed = elf_getdata(scn, ed)) != NULL) {
+		TP_FAIL("Extra data descriptor in section.");
+		goto done;
+	}
+
 	result = TET_PASS;
 
 done:
@@ -183,6 +188,11 @@ tcNonZeroSection$1$2(void)
 				break;
 		TP_FAIL("String mismatch: buf[%d] \"%c\" != \"%c\"",
 		    n, buf[n], stringsection[n]);
+		goto done;
+	}
+
+	if ((ed = elf_getdata(scn, ed)) != NULL) {
+		TP_FAIL("Extra data descriptor in section.");
 		goto done;
 	}
 
