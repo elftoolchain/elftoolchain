@@ -123,8 +123,16 @@ _libelf_ar_gethdr(Elf *e)
 	arh = (struct ar_hdr *) (uintptr_t) e->e_hdr.e_rawhdr;
 
 	assert((uintptr_t) arh >= (uintptr_t) parent->e_rawfile + SARMAG);
-	assert((uintptr_t) arh <= (uintptr_t) parent->e_rawfile +
-	    parent->e_rawsize - sizeof(struct ar_hdr));
+
+	/*
+	 * There needs to be enough space remaining in the file for the
+	 * archive header.
+	 */
+	if ((uintptr_t) arh > (uintptr_t) parent->e_rawfile +
+	    parent->e_rawsize - sizeof(struct ar_hdr)) {
+		LIBELF_SET_ERROR(ARGUMENT, 0);
+		return (NULL);
+	}
 
 	if ((eh = malloc(sizeof(Elf_Arhdr))) == NULL) {
 		LIBELF_SET_ERROR(RESOURCE, 0);
