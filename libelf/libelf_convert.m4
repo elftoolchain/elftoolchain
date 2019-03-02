@@ -1078,7 +1078,6 @@ _libelf_translator_function *
 _libelf_get_translator(Elf_Type t, int direction, int elfclass, int elfmachine)
 {
 	assert(elfclass == ELFCLASS32 || elfclass == ELFCLASS64);
-	assert(elfmachine >= EM_NONE && elfmachine < EM__LAST__);
 	assert(direction == ELF_TOFILE || direction == ELF_TOMEMORY);
 
 	if (t >= ELF_T_NUM ||
