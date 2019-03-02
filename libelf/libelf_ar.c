@@ -130,7 +130,7 @@ _libelf_ar_gethdr(Elf *e)
 	 */
 	if ((uintptr_t) arh > (uintptr_t) parent->e_rawfile +
 	    parent->e_rawsize - sizeof(struct ar_hdr)) {
-		LIBELF_SET_ERROR(ARGUMENT, 0);
+		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
 
