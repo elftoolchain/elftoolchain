@@ -387,18 +387,29 @@ tcMalformed1$1(void)
 	TP_ANNOUNCE("TS_ICNAME with a malformed ELF header "
 	    "fails with ELF_E_HEADER.");
 
-	result = TET_PASS;
+	e = NULL;
+	fd = -1;
 	fn = "ehdr-malformed-1.TOLOWER($1)`'TS_EHDRSZ";
-	TS_OPEN_FILE(e, fn, ELF_C_READ, fd);
+	result = TET_UNRESOLVED;
+
+	_TS_OPEN_FILE(e, fn, ELF_C_READ, fd, goto done;);
 
 	error = 0;
-	if ((eh = TS_ICFUNC`'(e)) != NULL)
+	if ((eh = TS_ICFUNC`'(e)) != NULL) {
 		TP_FAIL("\"%s\" TS_ICNAME`'() succeeded.", fn);
-	else if ((error = elf_errno()) != ELF_E_HEADER)
+		goto done;
+	} else if ((error = elf_errno()) != ELF_E_HEADER) {
 		TP_FAIL("\"%s\" incorrect error (%d).", fn, error);
+		goto done;
+	}
 
-	(void) elf_end(e);
-	(void) close(fd);
+	result = TET_PASS;
+
+done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
 	tet_result(result);
 }')
 
