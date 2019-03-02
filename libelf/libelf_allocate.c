@@ -76,12 +76,6 @@ _libelf_init_elf(Elf *e, Elf_Kind kind)
 	}
 }
 
-#define	FREE(P)		do {				\
-		if (P)					\
-			free(P);			\
-	} while (0)
-
-
 Elf *
 _libelf_release_elf(Elf *e)
 {
@@ -89,18 +83,18 @@ _libelf_release_elf(Elf *e)
 
 	switch (e->e_kind) {
 	case ELF_K_AR:
-		FREE(e->e_u.e_ar.e_symtab);
+		free(e->e_u.e_ar.e_symtab);
 		break;
 
 	case ELF_K_ELF:
 		switch (e->e_class) {
 		case ELFCLASS32:
-			FREE(e->e_u.e_elf.e_ehdr.e_ehdr32);
-			FREE(e->e_u.e_elf.e_phdr.e_phdr32);
+			free(e->e_u.e_elf.e_ehdr.e_ehdr32);
+			free(e->e_u.e_elf.e_phdr.e_phdr32);
 			break;
 		case ELFCLASS64:
-			FREE(e->e_u.e_elf.e_ehdr.e_ehdr64);
-			FREE(e->e_u.e_elf.e_phdr.e_phdr64);
+			free(e->e_u.e_elf.e_ehdr.e_ehdr64);
+			free(e->e_u.e_elf.e_phdr.e_phdr64);
 			break;
 		}
 
@@ -108,8 +102,8 @@ _libelf_release_elf(Elf *e)
 
 		if (e->e_flags & LIBELF_F_AR_HEADER) {
 			arh = e->e_hdr.e_arhdr;
-			FREE(arh->ar_name);
-			FREE(arh->ar_rawname);
+			free(arh->ar_name);
+			free(arh->ar_rawname);
 			free(arh);
 		}
 
