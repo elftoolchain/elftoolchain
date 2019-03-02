@@ -651,6 +651,8 @@ tcArEntryTooLarge(void)
 	TP_ANNOUNCE("elf_begin() returns ELF_E_ARCHIVE for too-large archive "
 	    "entries.");
 
+	TP_SET_VERSION();
+
 	_TS_OPEN_FILE(ar_e, "entry-too-large.ar", ELF_C_READ, fd, goto done;);
 
 	if ((e = elf_begin(fd, ELF_C_READ, ar_e)) != NULL) {
