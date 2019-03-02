@@ -207,8 +207,8 @@ Elf *
 _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 {
 	Elf *e;
-	off_t next;
 	size_t nsz, sz;
+	off_t next, end;
 	struct ar_hdr *arh;
 	char *member, *namelen;
 
@@ -225,6 +225,17 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 
 	assert((next & 1) == 0);
 
+	/*
+	 * There needs to be enough space in the file to contain an
+	 * ar(1) header.
+	 */
+	end = next + sizeof(struct ar_hdr);
+	if (end < next || /* Overflow. */
+	    end > elf->e_rawsize) {
+		LIBELF_SET_ERROR(ARCHIVE, 0);
+		return (NULL);
+	}
+
 	arh = (struct ar_hdr *) (elf->e_rawfile + next);
 
 	/*
@@ -232,6 +243,17 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 */
 	if (_libelf_ar_get_number(arh->ar_size, sizeof(arh->ar_size), 10,
 	    &sz) == 0) {
+		LIBELF_SET_ERROR(ARCHIVE, 0);
+		return (NULL);
+	}
+
+	/*
+	 * Check if the archive member that follows will fit in the
+	 * containing archive.
+	 */
+	end += sz;
+	if (end < next || /* Overflow. */
+	    end > elf->e_rawsize) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
