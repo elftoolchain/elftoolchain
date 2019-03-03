@@ -1079,11 +1079,7 @@ _libelf_get_translator(Elf_Type t, int direction, int elfclass, int elfmachine)
 {
 	assert(elfclass == ELFCLASS32 || elfclass == ELFCLASS64);
 	assert(direction == ELF_TOFILE || direction == ELF_TOMEMORY);
-
-	if (t >= ELF_T_NUM ||
-	    (elfclass != ELFCLASS32 && elfclass != ELFCLASS64) ||
-	    (direction != ELF_TOFILE && direction != ELF_TOMEMORY))
-		return (NULL);
+	assert(t >= ELF_T_FIRST && t <= ELF_T_LAST);
 
 	/* TODO: Handle MIPS64 REL{,A} sections (ticket #559). */
 	(void) elfmachine;
