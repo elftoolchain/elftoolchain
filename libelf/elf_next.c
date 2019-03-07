@@ -35,7 +35,7 @@ ELFTC_VCSID("$Id$");
 Elf_Cmd
 elf_next(Elf *e)
 {
-	off_t next;
+	size_t next;
 	Elf *parent;
 
 	if (e == NULL)
@@ -50,15 +50,14 @@ elf_next(Elf *e)
 	assert(parent->e_cmd == ELF_C_READ);
 	assert(e->e_rawfile > parent->e_rawfile);
 
-	next = e->e_rawfile - parent->e_rawfile + (off_t) e->e_rawsize;
+	next = e->e_rawfile - parent->e_rawfile + e->e_rawsize;
 	next = (next + 1) & ~1;	/* round up to an even boundary */
 
 	/*
 	 * Setup the 'e_next' field of the archive descriptor for the
 	 * next call to 'elf_begin()'.
 	 */
-	parent->e_u.e_ar.e_next = (next >= (off_t) parent->e_rawsize) ?
-	    (off_t) 0 : next;
+	parent->e_u.e_ar.e_next = (next >= parent->e_rawsize) ?  0 : next;
 
 	/*
 	 * Return an error if the 'e_next' field falls outside the current
