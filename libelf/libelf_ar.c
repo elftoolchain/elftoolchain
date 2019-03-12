@@ -208,7 +208,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 {
 	Elf *e;
 	size_t nsz, sz;
-	size_t next, end;
+	off_t next, end;
 	struct ar_hdr *arh;
 	char *member, *namelen;
 
@@ -220,7 +220,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 * `next' is only set to zero by elf_next() when the last
 	 * member of an archive is processed.
 	 */
-	if (next == 0)
+	if (next == (off_t) 0)
 		return (NULL);
 
 	assert((next & 1) == 0);
@@ -231,7 +231,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 */
 	end = next + sizeof(struct ar_hdr);
 	if (end < next || /* Overflow. */
-	    end > elf->e_rawsize) {
+	    end > (off_t) elf->e_rawsize) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
@@ -253,7 +253,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 */
 	end += sz;
 	if (end < next || /* Overflow. */
-	    end > elf->e_rawsize) {
+	    end > (off_t) elf->e_rawsize) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
