@@ -42,7 +42,7 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 	int elfclass, elftype;
 	size_t count, fsz, msz;
 	struct _Libelf_Data *d;
-	uint64_t sh_align, sh_offset, sh_size;
+	uint64_t sh_align, sh_offset, sh_size, raw_size;
 	_libelf_translator_function *xlate;
 
 	d = (struct _Libelf_Data *) ed;
@@ -92,9 +92,10 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 		return (NULL);
 	}
 
+	raw_size = (uint64_t) e->e_rawsize;
 	if ((elftype = _libelf_xlate_shtype(sh_type)) < ELF_T_FIRST ||
 	    elftype > ELF_T_LAST || (sh_type != SHT_NOBITS &&
-	    (sh_offset > e->e_rawsize || sh_size > e->e_rawsize - sh_offset))) {
+	    (sh_offset > raw_size || sh_size > raw_size - sh_offset))) {
 		LIBELF_SET_ERROR(SECTION, 0);
 		return (NULL);
 	}
@@ -216,7 +217,7 @@ elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 	int elf_class;
 	uint32_t sh_type;
 	struct _Libelf_Data *d;
-	uint64_t sh_align, sh_offset, sh_size;
+	uint64_t sh_align, sh_offset, sh_size, raw_size;
 
 	if (s == NULL || (e = s->s_elf) == NULL || e->e_rawfile == NULL) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
@@ -254,8 +255,9 @@ elf_rawdata(Elf_Scn *s, Elf_Data *ed)
 		return (NULL);
 	}
 
+	raw_size = (uint64_t) e->e_rawsize;
 	if (sh_type != SHT_NOBITS &&
-	    (sh_offset > e->e_rawsize || sh_size > e->e_rawsize - sh_offset)) {
+	    (sh_offset > raw_size || sh_size > raw_size - sh_offset)) {
 		LIBELF_SET_ERROR(SECTION, 0);
 		return (NULL);
 	}

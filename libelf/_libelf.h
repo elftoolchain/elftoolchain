@@ -90,7 +90,7 @@ struct _Elf {
 	Elf_Kind	e_kind;		/* ELF_K_* */
 	Elf		*e_parent; 	/* non-NULL for archive members */
 	unsigned char	*e_rawfile;	/* uninterpreted bytes */
-	size_t		e_rawsize;	/* size of uninterpreted bytes */
+	off_t		e_rawsize;	/* size of uninterpreted bytes */
 	unsigned int	e_version;	/* file version */
 
 	/*

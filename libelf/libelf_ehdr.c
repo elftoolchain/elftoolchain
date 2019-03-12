@@ -56,7 +56,7 @@ _libelf_load_extended(Elf *e, int ec, uint64_t shoff, uint16_t phnum,
 		return (0);
 	}
 
-	if (e->e_rawsize < (shoff + fsz)) {
+	if ((uint64_t) e->e_rawsize < shoff + fsz) {
 		LIBELF_SET_ERROR(HEADER, 0);
 		return (0);
 	}
@@ -143,7 +143,7 @@ _libelf_ehdr(Elf *e, int ec, int allocate)
 	fsz = _libelf_fsize(ELF_T_EHDR, ec, e->e_version, (size_t) 1);
 	assert(fsz > 0);
 
-	if (e->e_cmd != ELF_C_WRITE && e->e_rawsize < fsz) {
+	if (e->e_cmd != ELF_C_WRITE && e->e_rawsize < (off_t) fsz) {
 		LIBELF_SET_ERROR(HEADER, 0);
 		return (NULL);
 	}

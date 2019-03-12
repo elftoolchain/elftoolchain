@@ -35,10 +35,14 @@ off_t
 elf_rand(Elf *ar, off_t offset)
 {
 	struct ar_hdr *arh;
+	off_t offset_of_member;
+
+	offset_of_member = offset + sizeof(struct ar_hdr);
 
 	if (ar == NULL || ar->e_kind != ELF_K_AR ||
 	    (offset & 1) || offset < SARMAG ||
-	    (size_t) offset + sizeof(struct ar_hdr) >= ar->e_rawsize) {
+	    offset_of_member < offset || /* Overflow. */
+	    offset_of_member >= ar->e_rawsize) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return 0;
 	}

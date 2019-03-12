@@ -373,7 +373,7 @@ _libelf_ar_process_bsd_symtab(Elf *e, size_t *count)
 		GET_LONG(p, fileoffset);
 
 		if (stroffset < 0 || fileoffset <  0 ||
-		    (size_t) fileoffset >= e->e_rawsize)
+		    (off_t) fileoffset >= e->e_rawsize)
 			goto symtaberror;
 
 		s = s0 + stroffset;

@@ -58,7 +58,7 @@ _libelf_load_section_headers(Elf *e, void *ehdr)
 	assert((e->e_flags & LIBELF_F_SHDRS_LOADED) == 0);
 
 #define	CHECK_EHDR(E,EH)	do {				\
-		if (shoff > e->e_rawsize ||			\
+		if (shoff > (uint64_t) e->e_rawsize ||		\
 		    fsz != (EH)->e_shentsize ||			\
 		    shnum > SIZE_MAX / fsz ||			\
 		    fsz * shnum > e->e_rawsize - shoff) {	\
