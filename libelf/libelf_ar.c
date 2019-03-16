@@ -129,7 +129,7 @@ _libelf_ar_gethdr(Elf *e)
 	 * archive header.
 	 */
 	if ((uintptr_t) arh > (uintptr_t) parent->e_rawfile +
-	    parent->e_rawsize - sizeof(struct ar_hdr)) {
+	    (uintptr_t) parent->e_rawsize - sizeof(struct ar_hdr)) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
 	}
@@ -229,8 +229,8 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 * There needs to be enough space in the file to contain an
 	 * ar(1) header.
 	 */
-	end = next + sizeof(struct ar_hdr);
-	if (end < next || /* Overflow. */
+	end = next + (off_t) sizeof(struct ar_hdr);
+	if ((uintmax_t) end < (uintmax_t) next || /* Overflow. */
 	    end > (off_t) elf->e_rawsize) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
 		return (NULL);
@@ -251,7 +251,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 	 * Check if the archive member that follows will fit in the
 	 * containing archive.
 	 */
-	end += sz;
+	end += (off_t) sz;
 	if (end < next || /* Overflow. */
 	    end > (off_t) elf->e_rawsize) {
 		LIBELF_SET_ERROR(ARCHIVE, 0);
@@ -316,7 +316,8 @@ Elf_Arsym *
 _libelf_ar_process_bsd_symtab(Elf *e, size_t *count)
 {
 	Elf_Arsym *symtab, *sym;
-	unsigned int n, nentries;
+	unsigned int n;
+	size_t nentries;
 	unsigned char *end, *p, *p0, *s, *s0;
 	const size_t entrysize = 2 * sizeof(long);
 	long arraysize, fileoffset, stroffset, strtabsize;

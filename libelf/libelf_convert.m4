@@ -820,7 +820,7 @@ _libelf_cvt_GNUHASH64_tom(unsigned char *dst, size_t dsz, unsigned char *src,
 	if (dsz < srcsz)	/* Destination lacks space. */
 		return (0);
 
-	nchains = srcsz / sizeof(uint32_t);
+	nchains = (uint32_t) (srcsz / sizeof(uint32_t));
 	chains = (uint32_t *) (uintptr_t) dst;
 
 	for (n = 0; n < nchains; n++) {
@@ -901,7 +901,7 @@ _libelf_cvt_GNUHASH64_tof(unsigned char *dst, size_t dsz, unsigned char *src,
 	if (dsz < srcsz)
 		return (0);
 
-	nchains = srcsz / sizeof(uint32_t);
+	nchains = (uint32_t) (srcsz / sizeof(uint32_t));
 	for (n = 0; n < nchains; n++) {
 		t32 = *s32++;
 		if (byteswap)

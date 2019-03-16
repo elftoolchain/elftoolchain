@@ -81,7 +81,7 @@ elf_end(Elf *e)
 				free(e->e_rawfile);
 #if	ELFTC_HAVE_MMAP
 			else if (e->e_flags & LIBELF_F_RAWFILE_MMAP)
-				(void) munmap(e->e_rawfile, e->e_rawsize);
+				(void) munmap(e->e_rawfile, (size_t) e->e_rawsize);
 #endif
 		}
 

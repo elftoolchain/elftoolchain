@@ -37,12 +37,17 @@ elf_rand(Elf *ar, off_t offset)
 	struct ar_hdr *arh;
 	off_t offset_of_member;
 
-	offset_of_member = offset + sizeof(struct ar_hdr);
+	offset_of_member = offset + (off_t) sizeof(struct ar_hdr);
 
 	if (ar == NULL || ar->e_kind != ELF_K_AR ||
 	    (offset & 1) || offset < SARMAG ||
-	    offset_of_member < offset || /* Overflow. */
 	    offset_of_member >= ar->e_rawsize) {
+		LIBELF_SET_ERROR(ARGUMENT, 0);
+		return 0;
+	}
+
+	/* Check for numeric overflow. */
+	if ((uintmax_t) offset_of_member < (uintmax_t) offset) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
 		return 0;
 	}

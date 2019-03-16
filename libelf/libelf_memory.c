@@ -54,7 +54,7 @@ _libelf_memory(unsigned char *image, size_t sz, int reporterror)
 
 	e->e_cmd = ELF_C_READ;
 	e->e_rawfile = image;
-	e->e_rawsize = sz;
+	e->e_rawsize = (off_t) sz;
 
 #undef	LIBELF_IS_ELF
 #define	LIBELF_IS_ELF(P) ((P)[EI_MAG0] == ELFMAG0 && 		\
