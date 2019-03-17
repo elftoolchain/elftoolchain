@@ -142,7 +142,7 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t rc)
 	assert(sh_type != SHT_NULL && sh_type != SHT_NOBITS);
 
 	elftype = _libelf_xlate_shtype(sh_type);
-	if (elftype > ELF_T_LAST) {
+	if (elftype < ELF_T_FIRST || elftype > ELF_T_LAST) {
 		LIBELF_SET_ERROR(SECTION, 0);
 		return (0);
 	}
