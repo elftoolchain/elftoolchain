@@ -36,6 +36,7 @@ SUBDIR+=	elf_ndxscn
 SUBDIR+=	elf_next
 SUBDIR+=	elf_newscn
 SUBDIR+=	elf_nextscn
+SUBDIR+=	elf_rand
 SUBDIR+=	elf_rawfile
 SUBDIR+=	elf_strptr
 SUBDIR+=	elf_update
