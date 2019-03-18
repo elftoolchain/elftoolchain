@@ -31,6 +31,7 @@
 
 #include <ar.h>
 #include <libelf.h>
+#include <limits.h>
 #include <unistd.h>
 
 #include "elfts.h"
@@ -41,9 +42,10 @@ IC_REQUIRES_VERSION_INIT();
 include(`elfts.m4')
 
 /*
- * The following definition should match that in `./Makefile'.
+ * The following definitions should match those in `./Makefile'.
  */
 define(`TP_ARFILE',`"a.ar"')
+define(`TP_NONARCHIVE', `"s1"')
 
 /*
  * The use of an offset less than SARMAG should fail.
@@ -117,6 +119,291 @@ tcSeekMoreThanFileSize(void)
 		TP_FAIL("unexpected error=%d \"%s\"", error,
 		    elf_errmsg(error));
 	}
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * An offset with value SARMAG is accepted.
+ */
+void
+tcOffsetEqualsSARMAG(void)
+{
+	Elf *ar;
+	off_t offset;
+	int fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(SARMAG) succeeds.");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(ar, SARMAG)) != SARMAG) {
+		TP_FAIL("unexpected offset: %lld",
+		    (long long) offset);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * Invoking elf_rand() on a non-archive should fail.
+ */
+void
+tcOnNonArchive(void)
+{
+	Elf *e;
+	off_t offset;
+	int error, fd, result;
+
+	fd = -1;
+	e = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(non-archive) fails.");
+
+	TS_OPEN_FILE(e, TP_NONARCHIVE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(e, SARMAG)) != 0 ||
+	    (error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("unexpected offset=%lld",
+			(long long) offset);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (e)
+		(void) elf_end(e);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * Use an offset value that could cause an overflow.
+ */
+void
+tcOffsetOverflow(void)
+{
+	Elf *ar;
+	off_t offset;
+	uint64_t max_offset;
+	int error, fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	/* A even offset that is close to overflowing. */
+	max_offset = (1ULL << (sizeof(off_t) * CHAR_BIT - 1)) - 2;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("offset close to overflowing an off_t");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(ar, (off_t) max_offset)) != 0) {
+		TP_FAIL("unexpected success, offset=%lld",
+		    (long long) offset);
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * Setting the offset to a value that does not correspond to an ar header
+ * should fail.
+ */
+void
+tcOffsetNotCorrespondingToAnArchiveHeader(void)
+{
+	Elf *ar;
+	off_t offset;
+	int error, fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(non-header-offset) should fail.");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(ar, SARMAG+2)) != 0) {
+		TP_FAIL("unexpected success, offset=%lld",
+		    (long long) offset);
+		goto done;
+	} else if ((error = elf_errno()) != ELF_E_ARCHIVE) {
+		TP_FAIL("unexpected error=%d \"%s\"", error,
+		    elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * Odd values of offsets are not legal.
+ */
+void
+tcOddOffset(void)
+{
+	Elf *ar;
+	off_t offset;
+	int error, fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(odd-offset-value) should fail.");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(ar, SARMAG+1)) != 0) {
+		TP_FAIL("unexpected success, offset=%lld",
+		    (long long) offset);
+		goto done;
+	} else if ((error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("unexpected error=%d \"%s\"", error,
+		    elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+/*
+ * Negative offset values are not legal.
+ */
+void
+tcNegativeOffset(void)
+{
+	Elf *ar;
+	off_t offset;
+	int error, fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(odd-offset-value) should fail.");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	if ((offset = elf_rand(ar, -SARMAG)) != 0) {
+		TP_FAIL("unexpected success, offset=%lld",
+		    (long long) offset);
+		goto done;
+	} else if ((error = elf_errno()) != ELF_E_ARGUMENT) {
+		TP_FAIL("unexpected error=%d \"%s\"", error,
+		    elf_errmsg(error));
+		goto done;
+	}
+
+	result = TET_PASS;
+
+done:
+	if (ar)
+		(void) elf_end(ar);
+	if (fd != -1)
+		(void) close(fd);
+
+	tet_result(result);
+}
+
+
+/* These offsets correspond to archive TP_ARFILE. */
+static off_t valid_offsets[] = {
+	SARMAG,	/* File 's1'. */
+	80	/* File 's2'. */
+};
+
+static const int number_of_offsets =
+    sizeof(valid_offsets) / sizeof(valid_offsets[0]);
+
+/*
+ * Valid offsets should be usable.
+ */
+void
+tcValidOffsets(void)
+{
+	Elf *ar;
+	off_t offset;
+	int i, error, fd, result;
+
+	fd = -1;
+	ar = NULL;
+	result = TET_UNRESOLVED;
+
+	TP_CHECK_INITIALIZATION();
+	TP_ANNOUNCE("elf_rand(valid-offsets) succeeds.");
+
+	TS_OPEN_FILE(ar, TP_ARFILE, ELF_C_READ, fd);
+
+	for (i = 0; i < number_of_offsets; i++) {
+		if ((offset = elf_rand(ar, valid_offsets[i])) !=
+		    valid_offsets[i]) {
+			error = elf_errno();
+			TP_FAIL("failed to seek to offset %lld, error=%d "
+			    "\"%s\"", (long long) offset, error,
+			    elf_errmsg(error));
+			goto done;
+		}
+	}
+
+	result = TET_PASS;
 
 done:
 	if (ar)
