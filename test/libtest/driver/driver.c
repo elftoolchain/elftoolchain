@@ -122,14 +122,14 @@ test_driver_free_run(struct test_run *tr)
 	/* Free the test selector list. */
 	while (!STAILQ_EMPTY(&tr->tr_test_cases)) {
 		test_case_entry = STAILQ_FIRST(&tr->tr_test_cases);
-		STAILQ_REMOVE_HEAD(&tr->tr_test_cases, tcr_next);
+		STAILQ_REMOVE_HEAD(&tr->tr_test_cases, tcs_next);
 
 		/* Free the linked test functions. */
-		while (!STAILQ_EMPTY(&test_case_entry->tcr_functions)) {
+		while (!STAILQ_EMPTY(&test_case_entry->tcs_functions)) {
 			function_entry =
-			    STAILQ_FIRST(&test_case_entry->tcr_functions);
-			STAILQ_REMOVE_HEAD(&test_case_entry->tcr_functions,
-			    tf_next);
+			    STAILQ_FIRST(&test_case_entry->tcs_functions);
+			STAILQ_REMOVE_HEAD(&test_case_entry->tcs_functions,
+			    tfs_next);
 
 			free(function_entry);
 		}

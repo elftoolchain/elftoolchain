@@ -86,19 +86,19 @@ enum test_run_style {
  * Structures used for selecting tests.
  */
 struct test_function_selector {
-	const struct test_function_descriptor *tf_descriptor;
+	const struct test_function_descriptor *tfs_descriptor;
 
-	STAILQ_ENTRY(test_function_selector) tf_next;
-	int	tf_is_selected;
+	STAILQ_ENTRY(test_function_selector) tfs_next;
+	int	tfs_is_selected;
 };
 
 STAILQ_HEAD(test_function_selector_list, test_function_selector);
 
 struct test_case_selector {
-	const struct test_case_descriptor	*tcr_descriptor;
-	STAILQ_ENTRY(test_case_selector)	tcr_next;
-	int	tcr_has_selected_tests;
-	struct test_function_selector_list	tcr_functions;
+	const struct test_case_descriptor	*tcs_descriptor;
+	STAILQ_ENTRY(test_case_selector)	tcs_next;
+	struct test_function_selector_list	tcs_functions;
+	bool					tcs_has_selected_tests;
 };
 
 /*

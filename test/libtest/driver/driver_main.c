@@ -65,6 +65,7 @@ enum selection_scope {
 /* Selection list entry. */
 struct selection_option {
 	STAILQ_ENTRY(selection_option)	so_next;
+
 	/* The text to use for matching. */
 	const char	*so_text;
 
@@ -216,21 +217,92 @@ parse_execution_time(const char *option, long *execution_time) {
 	return (true);
 }
 
-/* Add the selected tests to the test run. */
 static void
-select_tests(struct test_run *tr,
-    const struct selection_option_list *selections)
+match_test_cases(struct test_case_selector_list *tl)
 {
 	/*Stub*/
-	(void) tr;
-	(void) selections;
+	(void) tl;
 }
 
 static void
-free_selections(struct selection_option_list *selections)
+match_test_functions(struct test_case_selector_list *tl)
 {
-	struct selection_option *selection;
+	/*Stub*/
+	(void) tl;
+}
 
+static void
+match_tags(struct test_case_selector_list *tl)
+{
+	/*Stub*/
+	(void) tl;
+}
+
+/*
+ * Add the selected tests to the test run.
+ *
+ * The memory used by the options list is returned to the system when this
+ * function completes.
+ */
+static void
+select_tests(struct test_run *tr,
+    struct selection_option_list *selections)
+{
+	int i, j;
+	struct selection_option *selection;
+	const struct test_case_descriptor *tcd;
+	struct test_case_selector *tcs;
+	struct test_function_selector *tfs;
+	struct test_case_selector_list *tcsl;
+	bool default_selection_state;
+
+	default_selection_state = STAILQ_EMPTY(selections);
+	tcsl = NULL;
+
+	/*
+	 * Set up runtime descriptors.
+	 */
+	for (i = 0; i < test_case_count; i++) {
+		if ((tcs = calloc(1, sizeof(*tcs))) == NULL)
+			err(EX_OSERR, "cannot allocate a test-case selector");
+		STAILQ_INSERT_TAIL(&tr->tr_test_cases, tcs, tcs_next);
+		STAILQ_INIT(&tcs->tcs_functions);
+
+		tcd = &test_cases[i];
+
+		tcs->tcs_descriptor = tcd;
+		tcs->tcs_has_selected_tests = default_selection_state;
+
+		for (j = 0; j < tcd->tc_count; j++) {
+			if ((tfs = calloc(1, sizeof(*tfs))) == NULL)
+				err(EX_OSERR, "cannot allocate a test "
+				    "function selector");
+			STAILQ_INSERT_TAIL(&tcs->tcs_functions, tfs, tfs_next);
+
+			tfs->tfs_descriptor = tcd->tc_tests + j;
+			tfs->tfs_is_selected = default_selection_state;
+		}
+	}
+
+	/*
+	 * Set or reset the selection state based on the options.
+	 */
+	STAILQ_FOREACH(selection, selections, so_next) {
+		tcsl = &tr->tr_test_cases;
+		switch (selection->so_selection_scope) {
+		case SCOPE_TEST_CASE:
+			match_test_cases(tcsl);
+			break;
+		case SCOPE_TEST_FUNCTION:
+			match_test_functions(tcsl);
+			break;
+		case SCOPE_TAG:
+			match_tags(tcsl);
+			break;
+		}
+	}
+
+	/* Free up the selection list. */
 	while (!STAILQ_EMPTY(selections)) {
 		selection = STAILQ_FIRST(selections);
 		STAILQ_REMOVE_HEAD(selections, so_next);
@@ -331,8 +403,34 @@ show_run_trailer(const struct test_run *tr)
 static int
 show_listing(struct test_run *tr)
 {
-	/*Stub*/
-	(void) tr;
+	const struct test_case_selector *tcs;
+	const struct test_function_selector *tfs;
+	const struct test_case_descriptor *tcd;
+	const struct test_function_descriptor *tfd;
+
+	STAILQ_FOREACH(tcs, &tr->tr_test_cases, tcs_next) {
+		if (!tcs->tcs_has_selected_tests)
+			continue;
+		printf("%s", tcs->tcs_descriptor->tc_name);
+		if (tr->tr_verbosity > 0) {
+			tcd = tcs->tcs_descriptor;
+			if (tcd->tc_description)
+				printf(" :: %s", tcd->tc_description);
+		}
+		printf("\n");
+
+		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
+			if (tfs->tfs_is_selected) {
+				tfd = tfs->tfs_descriptor;
+				printf("  %s", tfd->tf_name);
+				if (tr->tr_verbosity > 0 &&
+				    tfd->tf_description)
+					printf(" :: %s", tfd->tf_description);
+				printf("\n");
+			}
+		}
+	}
+
 	return (EXIT_SUCCESS);
 }
 
@@ -422,11 +520,10 @@ main(int argc, char **argv)
 	if (!test_driver_finish_run_initialization(tr, argv[0]))
 		err(EX_OSERR, "cannot initialize test driver");
 
-	/* Choose the tests and test cases to act upon. */
+	/* Choose tests and test cases to act upon. */
 	select_tests(tr, &selections);
 
-	/* Free up selections. */
-	free_selections(&selections);
+	assert(STAILQ_EMPTY(&selections));
 
 	show_run_header(tr);
 

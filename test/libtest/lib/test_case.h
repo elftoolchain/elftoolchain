@@ -47,7 +47,7 @@ struct test_case_descriptor {
 	const char	*tc_name;	/* Test case name. */
 	const char	*tc_description; /* Test case description. */
 	const char	**tc_tags;	/* Any associated tags. */
-	struct test_function_descriptor *tc_tests; /* Contained tests. */
+	const struct test_function_descriptor *tc_tests; /* Contained tests. */
 	const int	tc_count;	/* The number of tests. */
 };
 
