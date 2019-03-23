@@ -9,7 +9,7 @@
 .if ${OS_HOST} == FreeBSD
 SUBDIR_TARGETS+=	clobber test
 .elif ${OS_HOST} == OpenBSD
-clobber test:: _SUBDIRUSE
+clobber: _SUBDIRUSE
 .else		# NetBSD, pmake on Linux
 TARGETS+=	cleandepend clobber test
 .endif
