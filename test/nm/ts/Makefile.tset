@@ -16,7 +16,7 @@ CLEANFILES+=	test_nm.c
 .endif
 .endfor
 
-.if !exists(${TS_DATA:R})
+.if !empty(${TS_DATA:R}) && !exists(${TS_DATA:R})
 ${TS_DATA}:
 	uudecode ${TS_DATA}.uu
 .endif
