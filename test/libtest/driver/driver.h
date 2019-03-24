@@ -98,7 +98,7 @@ struct test_case_selector {
 	const struct test_case_descriptor	*tcs_descriptor;
 	STAILQ_ENTRY(test_case_selector)	tcs_next;
 	struct test_function_selector_list	tcs_functions;
-	bool					tcs_has_selected_tests;
+	int					tcs_selected_count;
 };
 
 /*

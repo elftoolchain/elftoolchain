@@ -217,25 +217,108 @@ parse_execution_time(const char *option, long *execution_time) {
 	return (true);
 }
 
+/*
+ * Match the names of test cases.
+ *
+ * In the event of a match, then the selection state specifed in
+ * 'option' is applied to all the test functions in the test case.
+ */
 static void
-match_test_cases(struct test_case_selector_list *tl)
+match_test_cases(struct selection_option *option,
+    struct test_case_selector *tcs)
 {
-	/*Stub*/
-	(void) tl;
+	const struct test_case_descriptor *tcd;
+	struct test_function_selector *tfs;
+
+	tcd = tcs->tcs_descriptor;
+
+	if (strcmp(tcd->tc_name, option->so_text))
+		return;
+
+	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
+		tfs->tfs_is_selected = option->so_select_tests;
 }
 
+/*
+ * Match the names of test functions.
+ */
 static void
-match_test_functions(struct test_case_selector_list *tl)
+match_test_functions(struct selection_option *option,
+    struct test_case_selector *tcs)
 {
-	/*Stub*/
-	(void) tl;
+	struct test_function_selector *tfs;
+	const struct test_function_descriptor *tfd;
+
+	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
+		tfd = tfs->tfs_descriptor;
+
+		if (strcmp(option->so_text, tfd->tf_name))
+			continue;
+
+		tfs->tfs_is_selected = option->so_select_tests;
+	}
 }
 
-static void
-match_tags(struct test_case_selector_list *tl)
+/*
+ * Helper: returns true if the specified text matches any of the
+ * entries in the array 'tags'.
+ */
+static bool
+match_tags_helper(const char *text, const char *tags[])
 {
-	/*Stub*/
-	(void) tl;
+	const char **tag;
+
+	if (!tags)
+		return (false);
+
+	for (tag = tags; *tag && **tag != '\0'; tag++) {
+		if (!strcmp(text, *tag))
+			return (true);
+	}
+
+	return (false);
+}
+
+/*
+ * Match tags.
+ *
+ * Matches against test case tags apply to all the test
+ * functions in the test case.
+ *
+ * Matches against test function tags apply to the matched
+ * test function only.
+ */
+static void
+match_tags(struct selection_option *option,
+    struct test_case_selector *tcs)
+{
+	const struct test_case_descriptor *tcd;
+	const struct test_function_descriptor *tfd;
+	struct test_function_selector *tfs;
+
+	tcd = tcs->tcs_descriptor;
+
+	/*
+	 * If the tag in the option matches a tag associated with
+	 * a test case, then we set all of the test case's functions
+	 * to the specified selection state.
+	 */
+	if (match_tags_helper(option->so_text, tcd->tc_tags)) {
+		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
+			tfs->tfs_is_selected = option->so_select_tests;
+		return;
+	}
+
+	/*
+	 * Otherwise, check the tag against the tags for each function
+	 * in the test case and set the selection state of each matched
+	 * function.
+	 */
+	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
+		tfd = tfs->tfs_descriptor;
+		if (match_tags_helper(option->so_text, tfd->tf_tags))
+			tfs->tfs_is_selected = option->so_select_tests;
+	}
 }
 
 /*
@@ -253,11 +336,10 @@ select_tests(struct test_run *tr,
 	const struct test_case_descriptor *tcd;
 	struct test_case_selector *tcs;
 	struct test_function_selector *tfs;
-	struct test_case_selector_list *tcsl;
 	bool default_selection_state;
+	int selected_count;
 
 	default_selection_state = STAILQ_EMPTY(selections);
-	tcsl = NULL;
 
 	/*
 	 * Set up runtime descriptors.
@@ -271,7 +353,6 @@ select_tests(struct test_run *tr,
 		tcd = &test_cases[i];
 
 		tcs->tcs_descriptor = tcd;
-		tcs->tcs_has_selected_tests = default_selection_state;
 
 		for (j = 0; j < tcd->tc_count; j++) {
 			if ((tfs = calloc(1, sizeof(*tfs))) == NULL)
@@ -288,18 +369,29 @@ select_tests(struct test_run *tr,
 	 * Set or reset the selection state based on the options.
 	 */
 	STAILQ_FOREACH(selection, selections, so_next) {
-		tcsl = &tr->tr_test_cases;
-		switch (selection->so_selection_scope) {
-		case SCOPE_TEST_CASE:
-			match_test_cases(tcsl);
-			break;
-		case SCOPE_TEST_FUNCTION:
-			match_test_functions(tcsl);
-			break;
-		case SCOPE_TAG:
-			match_tags(tcsl);
-			break;
+		STAILQ_FOREACH(tcs, &tr->tr_test_cases, tcs_next) {
+			switch (selection->so_selection_scope) {
+			case SCOPE_TEST_CASE:
+				match_test_cases(selection, tcs);
+				break;
+			case SCOPE_TEST_FUNCTION:
+				match_test_functions(selection, tcs);
+				break;
+			case SCOPE_TAG:
+				match_tags(selection, tcs);
+				break;
+			}
 		}
+	}
+
+	/*
+	 * Determine the count of tests selected, for each test case.
+	 */
+	STAILQ_FOREACH(tcs, &tr->tr_test_cases, tcs_next) {
+		selected_count = 0;
+		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
+			selected_count += tfs->tfs_is_selected;
+		tcs->tcs_selected_count = selected_count;
 	}
 
 	/* Free up the selection list. */
@@ -340,9 +432,17 @@ to_absolute_path(const char *filename)
 	return (absolute_path);
 }
 
+
 /*
  * Display run parameters.
  */
+
+#define FIELD_HEADER_WIDTH	24
+#define	INFOLINE(FIELD, FORMAT, VALUE)	do {				\
+		printf("I %-*s " FORMAT "\n", FIELD_HEADER_WIDTH,	\
+		    FIELD, VALUE);					\
+	} while (0)
+
 static void
 show_run_header(const struct test_run *tr)
 {
@@ -351,37 +451,37 @@ show_run_header(const struct test_run *tr)
 
 	if (tr->tr_verbosity == 0)
 		return;
+	INFOLINE("test-run-name", "%s", tr->tr_name);
 
-	printf("> test-run-name: %s\n", tr->tr_name);
-
-	printf("> test-execution-style: %s\n",
+	INFOLINE("test-execution-style", "%s",
 	    to_execution_style_name(tr->tr_style));
 
 	if (!STAILQ_EMPTY(&tr->tr_search_path)) {
-		printf("> test-search-path:\n");
+		printf("I %-*s", FIELD_HEADER_WIDTH, "test-search-path");
 		STAILQ_FOREACH(path_entry, &tr->tr_search_path, tsp_next) {
-			printf("+   %s\n", path_entry->tsp_directory);
+			printf(" %s", path_entry->tsp_directory);
 		}
+		printf("\n");
 	}
 
-	printf("> test-run-base-directory: %s\n",
+	INFOLINE("test-run-base-directory", "%s",
 	    tr->tr_runtime_base_directory);
 
 	if (tr->tr_artefact_archive)
-		printf("> test-artefact-archive: %s\n",
+		INFOLINE("test-artefact-archive", "%s",
 		    tr->tr_artefact_archive);
 
-	printf("> test-execution-time: ");
+	printf("I %-*s ", FIELD_HEADER_WIDTH, "test-execution-time");
 	if (tr->tr_max_seconds_per_test == 0)
-		printf("(unlimited)\n");
+		printf("unlimited\n");
 	else
 		printf("%lu\n", tr->tr_max_seconds_per_test);
 
-	printf("> test-case-count: %d\n", test_case_count);
+	INFOLINE("test-case-count", "%d", test_case_count);
 
 	if (tr->tr_action == TEST_RUN_EXECUTE) {
 		start_time = time(NULL);
-		printf("> test-run-start-time: %s", ctime(&start_time));
+		INFOLINE("test-run-start-time", "%s", ctime(&start_time));
 	}
 }
 
@@ -395,9 +495,86 @@ show_run_trailer(const struct test_run *tr)
 
 	if (tr->tr_action == TEST_RUN_EXECUTE) {
 		end_time = time(NULL);
-		printf("> test-run-end-time: %s\n",
+		INFOLINE("test-run-end-time", "%s",
 		    asctime(localtime(&end_time)));
 	}
+}
+#undef	INFOLINE
+#undef	FIELD_HEADER_WIDTH
+
+/*
+ * Helper: returns a character indicating the selection status for
+ * a test case.  This character is as follows:
+ *
+ * - "*" all test functions in the test case were selected.
+ * - "+" some test functions in the test case were selected.
+ * - "-" no test functions from the test case were selected.
+ */
+static int
+get_test_case_status(const struct test_case_selector *tcs)
+{
+	if (tcs->tcs_selected_count == 0)
+		return '-';
+	if (tcs->tcs_selected_count == tcs->tcs_descriptor->tc_count)
+		return '*';
+	return '+';
+}
+
+/*
+ * Helper: print out a comma-separated list of tags.
+ */
+static void
+show_tags(int indent, const char *tags[])
+{
+	const char **tag;
+
+	printf("%*c: ", indent, ' ');
+	for (tag = tags; *tag && **tag != '\0';) {
+		printf("%s", *tag++);
+		if (*tag && **tag != '\0')
+			printf(",");
+	}
+	printf("\n");
+}
+
+/*
+ * Display a test case descriptor.
+ */
+static void
+show_test_case(struct test_run *tr, const struct test_case_selector *tcs)
+{
+	const struct test_case_descriptor *tcd;
+	int prefix_char;
+
+	prefix_char = get_test_case_status(tcs);
+	tcd = tcs->tcs_descriptor;
+
+	printf("%c C %s\n", prefix_char, tcd->tc_name);
+
+	if (tr->tr_verbosity > 0 && tcd->tc_tags != NULL)
+		show_tags(2, tcd->tc_tags);
+
+	if (tr->tr_verbosity > 1 && tcd->tc_description)
+		printf("  = %s\n", tcd->tc_description);
+}
+
+static void
+show_test_function(struct test_run *tr,
+    const struct test_function_selector *tfs)
+{
+	const struct test_function_descriptor *tfd;
+	int selection_char;
+
+	selection_char = tfs->tfs_is_selected ? '+' : '-';
+	tfd = tfs->tfs_descriptor;
+
+	printf("  %c F %s\n", selection_char, tfd->tf_name);
+
+	if (tr->tr_verbosity > 0 && tfd->tf_tags != NULL)
+		show_tags(4, tfd->tf_tags);
+
+	if (tr->tr_verbosity > 1 && tfd->tf_description)
+		printf("%*c= %s\n", 4, ' ', tfd->tf_description);
 }
 
 static int
@@ -405,30 +582,11 @@ show_listing(struct test_run *tr)
 {
 	const struct test_case_selector *tcs;
 	const struct test_function_selector *tfs;
-	const struct test_case_descriptor *tcd;
-	const struct test_function_descriptor *tfd;
 
 	STAILQ_FOREACH(tcs, &tr->tr_test_cases, tcs_next) {
-		if (!tcs->tcs_has_selected_tests)
-			continue;
-		printf("%s", tcs->tcs_descriptor->tc_name);
-		if (tr->tr_verbosity > 0) {
-			tcd = tcs->tcs_descriptor;
-			if (tcd->tc_description)
-				printf(" :: %s", tcd->tc_description);
-		}
-		printf("\n");
-
-		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
-			if (tfs->tfs_is_selected) {
-				tfd = tfs->tfs_descriptor;
-				printf("  %s", tfd->tf_name);
-				if (tr->tr_verbosity > 0 &&
-				    tfd->tf_description)
-					printf(" :: %s", tfd->tf_description);
-				printf("\n");
-			}
-		}
+		show_test_case(tr, tcs);
+		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
+			show_test_function(tr, tfs);
 	}
 
 	return (EXIT_SUCCESS);
