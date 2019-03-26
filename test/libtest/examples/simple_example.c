@@ -115,6 +115,12 @@ tf_helloworld_sayhello(test_case_state state)
 	return (TEST_PASS);
 }
 
+enum test_result
+tf_helloworld_saygoodbye(test_case_state state)
+{
+	return (TEST_PASS);
+}
+
 /*
  * Names prefixed by 'tf_description_' contain descriptions of test
  * functions (e.g., 'tf_description_helloworld_sayhello' contains the
@@ -125,6 +131,9 @@ tf_helloworld_sayhello(test_case_state state)
  */
 TEST_DESCRIPTION(helloworld_sayhello) =
     "A description for the test function 'tf_helloworld_sayhello'.";
+
+TEST_DESCRIPTION(helloworld_saygoodbye) =
+    "A description for the test function 'tf_helloworld_saygoodbye'.";
 
 /*
  * Names prefixed by 'tf_tags_' contain the tags associated with
@@ -141,5 +150,10 @@ TEST_DESCRIPTION(helloworld_sayhello) =
 test_tags tf_tags_helloworld_sayhello = {
 	"tag3",
 	"tag4",
+	NULL
+};
+
+test_tags tf_tags_helloworld_saygoodbye = {
+	"tag5",
 	NULL
 };
