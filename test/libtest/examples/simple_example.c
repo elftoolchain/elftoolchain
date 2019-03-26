@@ -31,6 +31,14 @@
 #include "test.h"
 
 /*
+ * Function prototypes.
+ */
+enum test_case_status tc_setup_helloworld(test_case_state *);
+enum test_case_status tc_teardown_helloworld(test_case_state);
+enum test_result tf_helloworld_sayhello(test_case_state);
+enum test_result tf_helloworld_saygoodbye(test_case_state);
+
+/*
  * This source defines a single test case named 'helloworld' containing a
  * single test function named 'sayhello' contained in that test case. At
  * test execution time the test case would be selectable using the tags
@@ -77,6 +85,7 @@ TEST_CASE_DESCRIPTION(helloworld) = "A description for a test case.";
 enum test_case_status
 tc_setup_helloworld(test_case_state *state)
 {
+	(void) state;
 	return (TEST_CASE_OK);
 }
 
@@ -87,6 +96,7 @@ tc_setup_helloworld(test_case_state *state)
 enum test_case_status
 tc_teardown_helloworld(test_case_state state)
 {
+	(void) state;
 	return (TEST_CASE_OK);
 }
 
@@ -112,12 +122,14 @@ TEST_CASE_TAGS(helloworld) = {
 enum test_result
 tf_helloworld_sayhello(test_case_state state)
 {
+	(void) state;
 	return (TEST_PASS);
 }
 
 enum test_result
 tf_helloworld_saygoodbye(test_case_state state)
 {
+	(void) state;
 	return (TEST_PASS);
 }
 
