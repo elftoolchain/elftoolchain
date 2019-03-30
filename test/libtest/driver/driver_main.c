@@ -437,10 +437,11 @@ to_absolute_path(const char *filename)
  * Display run parameters.
  */
 
-#define FIELD_HEADER_WIDTH	24
-#define	INFOLINE(FIELD, FORMAT, VALUE)	do {				\
-		printf("I %-*s " FORMAT "\n", FIELD_HEADER_WIDTH,	\
-		    FIELD, VALUE);					\
+#define	FIELD_NAME_WIDTH	24
+#define	INFOLINE(NAME, FLAG, FORMAT, ...)	do {			\
+		printf("I %c %-*s " FORMAT,				\
+		    (FLAG) ? '!' : '.',					\
+		    FIELD_NAME_WIDTH, NAME, __VA_ARGS__);		\
 	} while (0)
 
 static void
@@ -451,37 +452,49 @@ show_run_header(const struct test_run *tr)
 
 	if (tr->tr_verbosity == 0)
 		return;
-	INFOLINE("test-run-name", "%s", tr->tr_name);
 
-	INFOLINE("test-execution-style", "%s",
-	    to_execution_style_name(tr->tr_style));
+	INFOLINE("test-run-name", tr->tr_commandline_flags & TRF_NAME,
+	    "%s\n", tr->tr_name);
+
+	INFOLINE("test-execution-style",
+	    tr->tr_commandline_flags & TRF_EXECUTION_STYLE,
+	    "%s\n", to_execution_style_name(tr->tr_style));
 
 	if (!STAILQ_EMPTY(&tr->tr_search_path)) {
-		printf("I %-*s", FIELD_HEADER_WIDTH, "test-search-path");
+		INFOLINE("test-search-path",
+		    tr->tr_commandline_flags & TRF_SEARCH_PATH,
+		    "%c", '[');
 		STAILQ_FOREACH(path_entry, &tr->tr_search_path, tsp_next) {
 			printf(" %s", path_entry->tsp_directory);
 		}
-		printf("\n");
+		printf(" ]\n");
 	}
 
-	INFOLINE("test-run-base-directory", "%s",
-	    tr->tr_runtime_base_directory);
+	INFOLINE("test-run-base-directory",
+	    tr->tr_commandline_flags & TRF_BASE_DIRECTORY,
+	    "%s\n", tr->tr_runtime_base_directory);
 
-	if (tr->tr_artefact_archive)
-		INFOLINE("test-artefact-archive", "%s",
-		    tr->tr_artefact_archive);
+	if (tr->tr_artefact_archive) {
+		INFOLINE("test-artefact-archive",
+		    tr->tr_commandline_flags & TRF_ARTEFACT_ARCHIVE,
+		    "%s\n", tr->tr_artefact_archive);
+	}
 
-	printf("I %-*s ", FIELD_HEADER_WIDTH, "test-execution-time");
+	printf("I %c %-*s ",
+	    tr->tr_commandline_flags & TRF_EXECUTION_TIME ? '=' : '.',
+	    FIELD_NAME_WIDTH, "test-execution-time");
 	if (tr->tr_max_seconds_per_test == 0)
 		printf("unlimited\n");
 	else
 		printf("%lu\n", tr->tr_max_seconds_per_test);
 
-	INFOLINE("test-case-count", "%d", test_case_count);
+	printf("I %% %-*s %d\n", FIELD_NAME_WIDTH, "test-case-count",
+	    test_case_count);
 
 	if (tr->tr_action == TEST_RUN_EXECUTE) {
 		start_time = time(NULL);
-		INFOLINE("test-run-start-time", "%s", ctime(&start_time));
+		printf("I %% %-*s %s", FIELD_NAME_WIDTH,
+		    "test-run-start-time", ctime(&start_time));
 	}
 }
 
@@ -495,10 +508,11 @@ show_run_trailer(const struct test_run *tr)
 
 	if (tr->tr_action == TEST_RUN_EXECUTE) {
 		end_time = time(NULL);
-		INFOLINE("test-run-end-time", "%s",
+		printf("I %% %-*s %s", FIELD_NAME_WIDTH, "test-run-end-time",
 		    asctime(localtime(&end_time)));
 	}
 }
+
 #undef	INFOLINE
 #undef	FIELD_HEADER_WIDTH
 
@@ -517,7 +531,7 @@ get_test_case_status(const struct test_case_selector *tcs)
 		return '-';
 	if (tcs->tcs_selected_count == tcs->tcs_descriptor->tc_count)
 		return '*';
-	return '+';
+	return '?';
 }
 
 /*
@@ -549,13 +563,13 @@ show_test_case(struct test_run *tr, const struct test_case_selector *tcs)
 	prefix_char = get_test_case_status(tcs);
 	tcd = tcs->tcs_descriptor;
 
-	printf("%c C %s\n", prefix_char, tcd->tc_name);
+	printf("C %c %s\n", prefix_char, tcd->tc_name);
 
 	if (tr->tr_verbosity > 0 && tcd->tc_tags != NULL)
 		show_tags(2, tcd->tc_tags);
 
 	if (tr->tr_verbosity > 1 && tcd->tc_description)
-		printf("  = %s\n", tcd->tc_description);
+		printf("  & %s\n", tcd->tc_description);
 }
 
 static void
@@ -565,16 +579,16 @@ show_test_function(struct test_run *tr,
 	const struct test_function_descriptor *tfd;
 	int selection_char;
 
-	selection_char = tfs->tfs_is_selected ? '+' : '-';
+	selection_char = tfs->tfs_is_selected ? '*' : '-';
 	tfd = tfs->tfs_descriptor;
 
-	printf("  %c F %s\n", selection_char, tfd->tf_name);
+	printf("  F %c %s\n", selection_char, tfd->tf_name);
 
 	if (tr->tr_verbosity > 0 && tfd->tf_tags != NULL)
 		show_tags(4, tfd->tf_tags);
 
 	if (tr->tr_verbosity > 1 && tfd->tf_description)
-		printf("%*c= %s\n", 4, ' ', tfd->tf_description);
+		printf("    & %s\n", tfd->tf_description);
 }
 
 static int
@@ -615,6 +629,7 @@ main(int argc, char **argv)
 			tr->tr_runtime_base_directory = realpath(optarg, NULL);
 			if (tr->tr_runtime_base_directory == NULL)
 				err(1, "realpath failed for \"%s\"", optarg);
+			tr->tr_commandline_flags |= TRF_BASE_DIRECTORY;
 			break;
 		case 'T':	/* Max execution time for a test function. */
 			if (!parse_execution_time(
@@ -622,9 +637,11 @@ main(int argc, char **argv)
 				errx(EX_USAGE, "option -%c: argument \"%s\" "
 				    "is not a valid execution time value.",
 				    option, optarg);
+			tr->tr_commandline_flags |= TRF_EXECUTION_TIME;
 			break;
 		case 'c':	/* The archive holding artefacts. */
 			tr->tr_artefact_archive = to_absolute_path(optarg);
+			tr->tr_commandline_flags |= TRF_ARTEFACT_ARCHIVE;
 			break;
 		case 'l':	/* List matching tests. */
 			tr->tr_action = TEST_RUN_LIST;
@@ -633,12 +650,14 @@ main(int argc, char **argv)
 			if (tr->tr_name)
 				free(tr->tr_name);
 			tr->tr_name = strdup(optarg);
+			tr->tr_commandline_flags |= TRF_NAME;
 			break;
 		case 'p':	/* Add a search path entry. */
 			if (!test_driver_add_search_path(tr, optarg))
 				errx(EX_USAGE, "option -%c: argument \"%s\" "
 				    "does not name a directory.", option,
 				    optarg);
+			tr->tr_commandline_flags |= TRF_SEARCH_PATH;
 			break;
 		case 's':	/* Test execution style. */
 			if (!parse_run_style(optarg, &run_style))
@@ -646,6 +665,7 @@ main(int argc, char **argv)
 				    "is not a supported test execution style.",
 				    option, optarg);
 			tr->tr_style = run_style;
+			tr->tr_commandline_flags |= TRF_EXECUTION_STYLE;
 			break;
 		case 't':	/* Test selection option. */
 			if ((selector = parse_selection_option(optarg)) == NULL)

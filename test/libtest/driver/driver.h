@@ -122,9 +122,28 @@ struct test_search_path_entry {
 STAILQ_HEAD(test_search_path_list, test_search_path_entry);
 
 /*
+ * Used to track flags that were explicity set on the command line.
+ */
+enum test_run_flags {
+	TRF_BASE_DIRECTORY = 1U << 0,
+	TRF_EXECUTION_TIME =  1U << 1,
+	TRF_ARTEFACT_ARCHIVE = 1U << 2,
+	TRF_NAME = 1U << 3,
+	TRF_SEARCH_PATH = 1U << 4,
+	TRF_EXECUTION_STYLE = 1U << 5,
+};
+
+/*
  * Parameters for the run.
  */
 struct test_run {
+	/*
+	 * Flags tracking the options which were explicitly set.
+	 *
+	 * This field is a bitmask formed of 'enum test_run_flags' values.
+	 */
+	unsigned int		tr_commandline_flags;
+
 	/* What the test run should do. */
 	enum test_run_action	tr_action;
 
