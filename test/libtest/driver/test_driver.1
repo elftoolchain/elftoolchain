@@ -24,14 +24,14 @@
 .\"
 .\" $Id$
 .\"
-.Dd February 19, 2019
+.Dd March 31, 2019
 .Dt TEST-DRIVER 1
 .Os
 .Sh NAME
 .Nm test-driver
 .Nd scaffolding for executing
 .Xr test 3
-based tests from the command-line.
+based tests from the command-line
 .Sh SYNOPSIS
 .Nm test-executable
 .Op Fl c Ar artefact-archive-name
@@ -195,6 +195,9 @@ Set the timeout for individual tests to
 If a test function fails to return with the specified number of seconds
 then it is treated as having failed.
 The default is to wait indefinitely for the test function to complete.
+.It Fl v
+Increase verbosity level by 1.
+The default verbosity level is 0.
 .El
 .Ss Link-time Pre-requisites
 The
@@ -256,6 +259,7 @@ copied to the specified archive.
 .It
 The test's runtime directory is then deleted.
 .El
+.Pp
 After all test cases have been attempted, the
 .Fn main
 function exits with the exit code appropriate for the
