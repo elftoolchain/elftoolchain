@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd March 31, 2019
+.Dd April 02, 2019
 .Dt TEST-DRIVER 1
 .Os
 .Sh NAME
@@ -40,7 +40,7 @@ based tests from the command-line
 .Op Fl p Ar search-path-directory
 .Op Fl R Ar runtime-base-directory
 .Op Fl s Ar execution-style
-.Op Fl t Ar selection-pattern
+.Op Fl t Ar test-selector
 .Op Fl T Ar seconds
 .Op Fl v
 .Sh DESCRIPTION
@@ -129,63 +129,66 @@ Be compatible with TAP
 Be compatible with libtest (this test framework).
 .El
 The default is to use libtest semantics.
-.It Fl t Ar selection-pattern
-Select (or deselect) tests to execute based on the selection
-pattern specified by argument
-.Ar selection-pattern .
-Selection patterns use the following syntax:
+.It Fl t Ar test-selector
+Select (or deselect) tests to execute according to the argument
+.Ar test-selector .
 .Pp
+Test selectors are specified using the following syntax:
 .Bl -tag -compact -width indent
 .It Xo
 .Op Li - Ns
-.Li c : Ns Ar test-case-name
+.Li c : Ns Ar pattern
 .Xc
-Select the test case whose name is
-.Ar test-case-name .
+Select test cases whose names match
+.Ar pattern .
 Selecting a test case will cause all of its contained
 test functions to be selected.
 .It Xo
 .Op Li - Ns
-.Li f : Ns Ar test-function-name
+.Li f : Ns Ar pattern
 .Xc
-Select the test function whose name is
-.Ar test-function-name .
+Select test functions whose names match
+.Ar pattern .
 .It Xo
 .Op Li - Ns
-.Li t : Ns Ar tag
+.Li t : Ns Ar pattern
 .Xc
-Select all test cases and test functions associated with the
-tag
-.Ar tag .
+Select the test cases and test functions associated with
+tags matching
+.Ar pattern .
 .It Xo
 .Op Li - Ns
-.Ar test-case-name
+.Ar pattern
 .Xc
 If the
 .Li c ,
 .Li f
 or
 .Li t
-qualifiers were not specified, then the pattern is assumed to
-name a test case.
+qualifiers were not specified, then the pattern is matched
+against the names of test cases.
 .El
+The
+.Ar pattern
+fields of test selectors use shell wildcard syntax, as implemented by
+.Xr fnmatch 3 .
 .Pp
-If no selection patterns are specified then all the tests found in
+If no test selectors are specified then all the tests present in
 the test executable will be run.
-Otherwise, the selection patterns specified are processed in the
-order specified.
+Otherwise, the test selectors specified are processed in the
+order specified on the command line.
 .Pp
-A selection pattern that does not start with a
+A test selector that does not start with a
 .Dq Li -
 will add the entries that it matches to the currently selected list
 of tests.
-Selection patterns that are preceded by a
+A test selector that starts with a
 .Dq Li -
-will remove the entries it matches from the currently selected list
+will remove the entries that it matches from the currently selected list
 of tests.
 .Pp
-If test selection patterns were specified, and if the result of
-applying the specified test selection patterns was an empty list
+If at least one test selector was specified, and if the result of
+applying the specified test selectors was an empty list
 of tests, then the
 .Nm
 library will exit with an error message.
@@ -299,6 +302,7 @@ passed when run, and with a non-zero exit code if an error
 occurred during test execution.
 .Sh SEE ALSO
 .Xr make-test-scaffolding 1 ,
+.Xr fnmatch 3 ,
 .Xr libarchive 3 ,
 .Xr test 3 ,
 .Xr test_case 5
