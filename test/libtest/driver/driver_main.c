@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <fnmatch.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +68,7 @@ struct selection_option {
 	STAILQ_ENTRY(selection_option)	so_next;
 
 	/* The text to use for matching. */
-	const char	*so_text;
+	const char	*so_pattern;
 
 	/*
 	 * Whether matched test and test cases should be selected
@@ -131,7 +132,7 @@ parse_selection_option(const char *option)
 	}
 
 	so = calloc(1, sizeof(*so));
-	so->so_text = option;
+	so->so_pattern = option;
 	so->so_selection_scope = scope;
 	so->so_select_tests = select_tests;
 
@@ -232,7 +233,7 @@ match_test_cases(struct selection_option *option,
 
 	tcd = tcs->tcs_descriptor;
 
-	if (strcmp(tcd->tc_name, option->so_text))
+	if (fnmatch(option->so_pattern, tcd->tc_name, 0))
 		return;
 
 	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
@@ -252,7 +253,7 @@ match_test_functions(struct selection_option *option,
 	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
 		tfd = tfs->tfs_descriptor;
 
-		if (strcmp(option->so_text, tfd->tf_name))
+		if (fnmatch(option->so_pattern, tfd->tf_name, 0))
 			continue;
 
 		tfs->tfs_is_selected = option->so_select_tests;
@@ -264,7 +265,7 @@ match_test_functions(struct selection_option *option,
  * entries in the array 'tags'.
  */
 static bool
-match_tags_helper(const char *text, const char *tags[])
+match_tags_helper(const char *pattern, const char *tags[])
 {
 	const char **tag;
 
@@ -272,7 +273,7 @@ match_tags_helper(const char *text, const char *tags[])
 		return (false);
 
 	for (tag = tags; *tag && **tag != '\0'; tag++) {
-		if (!strcmp(text, *tag))
+		if (!fnmatch(pattern, *tag, 0))
 			return (true);
 	}
 
@@ -303,7 +304,7 @@ match_tags(struct selection_option *option,
 	 * a test case, then we set all of the test case's functions
 	 * to the specified selection state.
 	 */
-	if (match_tags_helper(option->so_text, tcd->tc_tags)) {
+	if (match_tags_helper(option->so_pattern, tcd->tc_tags)) {
 		STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next)
 			tfs->tfs_is_selected = option->so_select_tests;
 		return;
@@ -316,7 +317,7 @@ match_tags(struct selection_option *option,
 	 */
 	STAILQ_FOREACH(tfs, &tcs->tcs_functions, tfs_next) {
 		tfd = tfs->tfs_descriptor;
-		if (match_tags_helper(option->so_text, tfd->tf_tags))
+		if (match_tags_helper(option->so_pattern, tfd->tf_tags))
 			tfs->tfs_is_selected = option->so_select_tests;
 	}
 }
