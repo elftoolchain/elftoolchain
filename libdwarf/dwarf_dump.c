@@ -605,7 +605,7 @@ dwarf_get_DS_name(unsigned ds, const char **s)
 	case DW_DS_leading_separate:
 		*s = "DW_DS_leading_separate"; break;
 	case DW_DS_trailing_separate:
-		*s = "DW_DS_trailing_separate";
+		*s = "DW_DS_trailing_separate"; break;
 	default:
 		return (DW_DLV_NO_ENTRY);
 	}
