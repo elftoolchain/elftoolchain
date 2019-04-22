@@ -83,9 +83,8 @@ _libelf_xlate(Elf_Data *dst, const Elf_Data *src, unsigned int encoding,
 	    (src->d_type, (size_t) 1, src->d_version)) == 0)
 		return (NULL);
 
-	msz = _libelf_msize(src->d_type, elfclass, src->d_version);
-
-	assert(msz > 0);
+	if ((msz = _libelf_msize(src->d_type, elfclass, src->d_version)) == 0)
+		return (NULL);
 
 	if (src->d_size % (direction == ELF_TOMEMORY ? fsz : msz)) {
 		LIBELF_SET_ERROR(DATA, 0);

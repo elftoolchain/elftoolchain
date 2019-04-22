@@ -118,7 +118,8 @@ elf_getdata(Elf_Scn *s, Elf_Data *ed)
 
 	count = (size_t) (sh_size / fsz);
 
-	msz = _libelf_msize(elftype, elfclass, e->e_version);
+	if ((msz = _libelf_msize(elftype, elfclass, e->e_version)) == 0)
+		return (NULL);
 
 	if (count > 0 && msz > SIZE_MAX / count) {
 		LIBELF_SET_ERROR(RANGE, 0);

@@ -67,9 +67,9 @@ gelf_getrel(Elf_Data *ed, int ndx, GElf_Rel *dst)
 		return (NULL);
 	}
 
-	msz = _libelf_msize(ELF_T_REL, ec, e->e_version);
+	if ((msz = _libelf_msize(ELF_T_REL, ec, e->e_version)) == 0)
+		return (NULL);
 
-	assert(msz > 0);
 	assert(ndx >= 0);
 
 	if (msz * (size_t) ndx >= d->d_data.d_size) {
@@ -129,9 +129,9 @@ gelf_update_rel(Elf_Data *ed, int ndx, GElf_Rel *dr)
 		return (0);
 	}
 
-	msz = _libelf_msize(ELF_T_REL, ec, e->e_version);
+	if ((msz = _libelf_msize(ELF_T_REL, ec, e->e_version)) == 0)
+		return (0);
 
-	assert(msz > 0);
 	assert(ndx >= 0);
 
 	if (msz * (size_t) ndx >= d->d_data.d_size) {

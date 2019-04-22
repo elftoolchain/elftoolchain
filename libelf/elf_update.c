@@ -222,10 +222,16 @@ _libelf_compute_section_extents(Elf *e, Elf_Scn *s, off_t rc)
 		}
 
 		/*
+		 * The data buffer's ELF type, ELF class and ELF version
+		 * should be supported.
+		 */
+		if ((msz = _libelf_msize(d->d_type, ec, e->e_version)) == 0)
+			return (0);
+
+		/*
 		 * The buffer's size should be a multiple of the
 		 * memory size of the underlying type.
 		 */
-		msz = _libelf_msize(d->d_type, ec, e->e_version);
 		if (d->d_size % msz) {
 			LIBELF_SET_ERROR(DATA, 0);
 			return (0);
@@ -800,7 +806,8 @@ _libelf_write_scn(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 
 		d = &ld->d_data;
 
-		msz = _libelf_msize(d->d_type, ec, e->e_version);
+		if ((msz = _libelf_msize(d->d_type, ec, e->e_version)) == 0)
+			return ((off_t) -1);
 
 		if ((uint64_t) rc < sh_off + d->d_off)
 			(void) memset(nf + rc,
@@ -851,7 +858,8 @@ _libelf_write_ehdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	assert(ehdr != NULL);
 
 	fsz = _libelf_fsize(ELF_T_EHDR, ec, e->e_version, (size_t) 1);
-	msz = _libelf_msize(ELF_T_EHDR, ec, e->e_version);
+	if ((msz = _libelf_msize(ELF_T_EHDR, ec, e->e_version)) == 0)
+		return ((off_t) -1);
 
 	em = _libelf_elfmachine(e);
 
@@ -885,7 +893,7 @@ _libelf_write_phdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
 	Elf_Data dst, src;
-	size_t fsz, phnum;
+	size_t fsz, msz, phnum;
 	uint64_t phoff;
 
 	assert(ex->ex_type == ELF_EXTENT_PHDR);
@@ -913,14 +921,15 @@ _libelf_write_phdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	(void) memset(&dst, 0, sizeof(dst));
 	(void) memset(&src, 0, sizeof(src));
 
+	if ((msz = _libelf_msize(ELF_T_PHDR, ec, e->e_version)) == 0)
+		return ((off_t) -1);
 	fsz = _libelf_fsize(ELF_T_PHDR, ec, e->e_version, phnum);
 	assert(fsz > 0);
 
 	src.d_buf = _libelf_getphdr(e, ec);
 	src.d_version = dst.d_version = e->e_version;
 	src.d_type = ELF_T_PHDR;
-	src.d_size = phnum * _libelf_msize(ELF_T_PHDR, ec,
-	    e->e_version);
+	src.d_size = phnum * msz;
 
 	dst.d_size = fsz;
 	dst.d_buf = nf + ex->ex_start;
@@ -945,7 +954,7 @@ _libelf_write_shdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	uint64_t shoff;
 	Elf32_Ehdr *eh32;
 	Elf64_Ehdr *eh64;
-	size_t fsz, nscn;
+	size_t fsz, msz, nscn;
 	Elf_Data dst, src;
 
 	assert(ex->ex_type == ELF_EXTENT_SHDR);
@@ -971,8 +980,11 @@ _libelf_write_shdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	(void) memset(&dst, 0, sizeof(dst));
 	(void) memset(&src, 0, sizeof(src));
 
+	if ((msz = _libelf_msize(ELF_T_SHDR, ec, e->e_version)) == 0)
+		return ((off_t) -1);
+
 	src.d_type = ELF_T_SHDR;
-	src.d_size = _libelf_msize(ELF_T_SHDR, ec, e->e_version);
+	src.d_size = msz;
 	src.d_version = dst.d_version = e->e_version;
 
 	fsz = _libelf_fsize(ELF_T_SHDR, ec, e->e_version, (size_t) 1);

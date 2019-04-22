@@ -67,9 +67,8 @@ gelf_getcap(Elf_Data *ed, int ndx, GElf_Cap *dst)
 		return (NULL);
 	}
 
-	msz = _libelf_msize(ELF_T_CAP, ec, e->e_version);
-
-	assert(msz > 0);
+	if ((msz = _libelf_msize(ELF_T_CAP, ec, e->e_version)) == 0)
+		return (NULL);
 
 	if (msz * (size_t) ndx >= d->d_data.d_size) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
@@ -127,8 +126,8 @@ gelf_update_cap(Elf_Data *ed, int ndx, GElf_Cap *gc)
 		return (0);
 	}
 
-	msz = _libelf_msize(ELF_T_CAP, ec, e->e_version);
-	assert(msz > 0);
+	if ((msz = _libelf_msize(ELF_T_CAP, ec, e->e_version)) == 0)
+		return (0);
 
 	if (msz * (size_t) ndx >= d->d_data.d_size) {
 		LIBELF_SET_ERROR(ARGUMENT, 0);
