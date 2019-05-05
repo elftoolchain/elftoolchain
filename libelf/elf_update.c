@@ -899,9 +899,11 @@ _libelf_write_phdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	assert(ex->ex_type == ELF_EXTENT_PHDR);
 
 	ec = e->e_class;
-	ehdr = _libelf_ehdr(e, ec, 0);
-	phnum = e->e_u.e_elf.e_nphdr;
 
+	ehdr = _libelf_ehdr(e, ec, 0);
+	assert(ehdr != NULL);
+
+	phnum = e->e_u.e_elf.e_nphdr;
 	assert(phnum > 0);
 
 	if (ec == ELFCLASS32) {
@@ -960,7 +962,10 @@ _libelf_write_shdr(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	assert(ex->ex_type == ELF_EXTENT_SHDR);
 
 	ec = e->e_class;
+
 	ehdr = _libelf_ehdr(e, ec, 0);
+	assert(ehdr != NULL);
+
 	nscn = e->e_u.e_elf.e_nscn;
 
 	if (ec == ELFCLASS32) {
