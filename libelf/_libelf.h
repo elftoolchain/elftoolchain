@@ -226,7 +226,7 @@ size_t	_libelf_msize(Elf_Type _t, int _elfclass, unsigned int _version);
 void	*_libelf_newphdr(Elf *_e, int _elfclass, size_t _count);
 Elf	*_libelf_open_object(int _fd, Elf_Cmd _c, int _reporterror);
 struct _Libelf_Data *_libelf_release_data(struct _Libelf_Data *_d);
-Elf	*_libelf_release_elf(Elf *_e);
+void	_libelf_release_elf(Elf *_e);
 Elf_Scn	*_libelf_release_scn(Elf_Scn *_s);
 int	_libelf_setphnum(Elf *_e, void *_eh, int _elfclass, size_t _phnum);
 int	_libelf_setshnum(Elf *_e, void *_eh, int _elfclass, size_t _shnum);

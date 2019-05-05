@@ -76,7 +76,7 @@ _libelf_init_elf(Elf *e, Elf_Kind kind)
 	}
 }
 
-Elf *
+void
 _libelf_release_elf(Elf *e)
 {
 	Elf_Arhdr *arh;
@@ -114,8 +114,6 @@ _libelf_release_elf(Elf *e)
 	}
 
 	free(e);
-
-	return (NULL);
 }
 
 struct _Libelf_Data *

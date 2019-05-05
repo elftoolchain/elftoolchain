@@ -88,7 +88,7 @@ elf_end(Elf *e)
 		sv = e;
 		if ((e = e->e_parent) != NULL)
 			e->e_u.e_ar.e_nchildren--;
-		sv = _libelf_release_elf(sv);
+		_libelf_release_elf(sv);
 	}
 
 	return (0);
