@@ -1126,12 +1126,14 @@ _libelf_write_elf(Elf *e, off_t newsize, struct _Elf_Extent_List *extents)
 		assert((e->e_flags & LIBELF_F_RAWFILE_MALLOC) ||
 		    (e->e_flags & LIBELF_F_RAWFILE_MMAP));
 		if (e->e_flags & LIBELF_F_RAWFILE_MALLOC) {
+			assert((e->e_flags & LIBELF_F_RAWFILE_MMAP) == 0);
 			free(e->e_rawfile);
 			e->e_rawfile = newfile;
 			newfile = NULL;
 		}
 #if	ELFTC_HAVE_MMAP
 		else if (e->e_flags & LIBELF_F_RAWFILE_MMAP) {
+			assert((e->e_flags & LIBELF_F_RAWFILE_MALLOC) == 0);
 			if ((e->e_rawfile = mmap(NULL, (size_t) newsize,
 			    PROT_READ, MAP_PRIVATE, e->e_fd, (off_t) 0)) ==
 			    MAP_FAILED) {
