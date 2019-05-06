@@ -145,7 +145,7 @@ gelf_update_rela(Elf_Data *ed, int ndx, GElf_Rela *dr)
 
 		LIBELF_COPY_U32(rela32, dr, r_offset);
 
-		if (ELF64_R_SYM(dr->r_info) > ELF32_R_SYM(~0UL) ||
+		if (ELF64_R_SYM(dr->r_info) > ELF32_R_SYM(~0U) ||
 		    ELF64_R_TYPE(dr->r_info) > ELF32_R_TYPE(~0U)) {
 			LIBELF_SET_ERROR(RANGE, 0);
 			return (0);
