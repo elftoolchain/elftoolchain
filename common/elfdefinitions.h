@@ -2806,7 +2806,8 @@ typedef struct {
 
 #define ELF64_R_SYM(I)		((I) >> 32)
 #define ELF64_R_TYPE(I)		((I) & 0xFFFFFFFFUL)
-#define ELF64_R_INFO(S,T)	(((S) << 32) + ((T) & 0xFFFFFFFFUL))
+#define ELF64_R_INFO(S,T)	\
+	(((Elf64_Xword) (S) << 32) + ((T) & 0xFFFFFFFFUL))
 
 /*
  * Symbol versioning structures.
