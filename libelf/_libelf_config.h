@@ -103,6 +103,12 @@
 #define	LIBELF_BYTEORDER	ELFDATA2LSB
 #define	LIBELF_CLASS		ELFCLASS64
 
+#elif	defined(__riscv64)
+
+#define	LIBELF_ARCH		EM_RISCV
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS64
+
 #elif	defined(__sparc__)
 
 #define	LIBELF_ARCH		EM_SPARCV9
