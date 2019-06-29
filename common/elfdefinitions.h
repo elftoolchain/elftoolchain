@@ -72,7 +72,39 @@ _ELF_DEFINE_DF(DF_TEXTREL,          0x4,			\
 _ELF_DEFINE_DF(DF_BIND_NOW,         0x8,			\
 	"process relocation entries at load time")		\
 _ELF_DEFINE_DF(DF_STATIC_TLS,       0x10,			\
-	"uses static thread-local storage")
+	"uses static thread-local storage")			\
+_ELF_DEFINE_DF(DF_1_BIND_NOW,       0x1,			\
+	"process relocation entries at load time")		\
+_ELF_DEFINE_DF(DF_1_GLOBAL,         0x2,			\
+	"unused")						\
+_ELF_DEFINE_DF(DF_1_GROUP,          0x4,			\
+	"object is a member of a group")			\
+_ELF_DEFINE_DF(DF_1_NODELETE,       0x8,			\
+	"object cannot be deleted from a process")		\
+_ELF_DEFINE_DF(DF_1_LOADFLTR,       0x10,			\
+	"immediate load filtees")				\
+_ELF_DEFINE_DF(DF_1_INITFIRST,      0x20,			\
+	"initialize object first")				\
+_ELF_DEFINE_DF(DF_1_NOOPEN,         0x40,			\
+	"disallow dlopen()")					\
+_ELF_DEFINE_DF(DF_1_ORIGIN,         0x80,			\
+	"object being loaded may refer to $ORIGIN")		\
+_ELF_DEFINE_DF(DF_1_DIRECT,         0x100,			\
+	"direct bindings enabled")				\
+_ELF_DEFINE_DF(DF_1_INTERPOSE,      0x400,			\
+	"object is interposer")					\
+_ELF_DEFINE_DF(DF_1_NODEFLIB,       0x800,			\
+	"ignore default library search path")			\
+_ELF_DEFINE_DF(DF_1_NODUMP,         0x1000,			\
+	"disallow dldump()")					\
+_ELF_DEFINE_DF(DF_1_CONFALT,        0x2000,			\
+	"object is a configuration alternative")		\
+_ELF_DEFINE_DF(DF_1_ENDFILTEE,      0x4000,			\
+	"filtee terminates filter search")			\
+_ELF_DEFINE_DF(DF_1_DISPRELDNE,     0x8000,			\
+	"displacement relocation done")				\
+_ELF_DEFINE_DF(DF_1_DISPRELPND,     0x10000,			\
+	"displacement relocation pending")
 #undef	_ELF_DEFINE_DF
 #define	_ELF_DEFINE_DF(N, V, DESCR)	N = V ,
 enum {
