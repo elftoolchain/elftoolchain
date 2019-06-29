@@ -206,6 +206,11 @@ struct eflags_desc {
 	const char *desc;
 };
 
+struct flag_desc {
+	uint64_t flag;
+	const char *desc;
+};
+
 struct mips_option {
 	uint64_t flag;
 	const char *desc;
@@ -284,6 +289,7 @@ static void dump_dwarf_ranges_foreach(struct readelf *re, Dwarf_Die die,
 static void dump_dwarf_str(struct readelf *re);
 static void dump_eflags(struct readelf *re, uint64_t e_flags);
 static void dump_elf(struct readelf *re);
+static void dump_flags(struct flag_desc *fd, uint64_t flags);
 static void dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab);
 static void dump_dynamic(struct readelf *re);
 static void dump_liblist(struct readelf *re);
@@ -2721,6 +2727,59 @@ dump_arch_dyn_val(struct readelf *re, GElf_Dyn *dyn)
 }
 
 static void
+dump_flags(struct flag_desc *desc, uint64_t val)
+{
+	struct flag_desc *fd;
+
+	for (fd = desc; fd->flag != 0; fd++) {
+		if (val & fd->flag) {
+			val &= ~fd->flag;
+			printf(" %s", fd->desc);
+		}
+	}
+	if (val != 0)
+		printf(" unknown (0x%jx)", (uintmax_t)val);
+	printf("\n");
+}
+
+static struct flag_desc dt_flags[] = {
+	{ DF_ORIGIN,		"ORIGIN" },
+	{ DF_SYMBOLIC,		"SYMBOLIC" },
+	{ DF_TEXTREL,		"TEXTREL" },
+	{ DF_BIND_NOW,		"BIND_NOW" },
+	{ DF_STATIC_TLS,	"STATIC_TLS" },
+	{ 0, NULL }
+};
+
+static struct flag_desc dt_flags_1[] = {
+	{ DF_1_BIND_NOW,	"NOW" },
+	{ DF_1_GLOBAL,		"GLOBAL" },
+	{ 0x4,			"GROUP" },
+	{ DF_1_NODELETE,	"NODELETE" },
+	{ DF_1_LOADFLTR,	"LOADFLTR" },
+	{ 0x20,			"INITFIRST" },
+	{ DF_1_NOOPEN,		"NOOPEN" },
+	{ DF_1_ORIGIN,		"ORIGIN" },
+	{ 0x100,		"DIRECT" },
+	{ DF_1_INTERPOSE,	"INTERPOSE" },
+	{ DF_1_NODEFLIB,	"NODEFLIB" },
+	{ 0x1000,		"NODUMP" },
+	{ 0x2000,		"CONFALT" },
+	{ 0x4000,		"ENDFILTEE" },
+	{ 0x8000,		"DISPRELDNE" },
+	{ 0x10000,		"DISPRELPND" },
+	{ 0x20000,		"NODIRECT" },
+	{ 0x40000,		"IGNMULDEF" },
+	{ 0x80000,		"NOKSYMS" },
+	{ 0x100000,		"NOHDR" },
+	{ 0x200000,		"EDITED" },
+	{ 0x400000,		"NORELOC" },
+	{ 0x800000,		"SYMINTPOSE" },
+	{ 0x1000000,		"GLOBAUDIT" },
+	{ 0, NULL }
+};
+
+static void
 dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 {
 	const char *name;
@@ -2803,6 +2862,12 @@ dump_dyn_val(struct readelf *re, GElf_Dyn *dyn, uint32_t stab)
 		break;
 	case DT_GNU_PRELINKED:
 		printf(" %s\n", timestamp(dyn->d_un.d_val));
+		break;
+	case DT_FLAGS:
+		dump_flags(dt_flags, dyn->d_un.d_val);
+		break;
+	case DT_FLAGS_1:
+		dump_flags(dt_flags_1, dyn->d_un.d_val);
 		break;
 	default:
 		printf("\n");
