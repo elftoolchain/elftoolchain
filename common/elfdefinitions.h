@@ -2480,7 +2480,10 @@ _ELF_DEFINE_NT(NT_PSTATUS,	10,	"Linux process status")		\
 _ELF_DEFINE_NT(NT_FPREGS,	12,	"Linux floating point regset")	\
 _ELF_DEFINE_NT(NT_PSINFO,	13,	"Linux process information")	\
 _ELF_DEFINE_NT(NT_LWPSTATUS,	16,	"Linux lwpstatus_t type")	\
-_ELF_DEFINE_NT(NT_LWPSINFO,	17,	"Linux lwpinfo_t type")
+_ELF_DEFINE_NT(NT_LWPSINFO,	17,	"Linux lwpinfo_t type")		\
+_ELF_DEFINE_NT(NT_FREEBSD_NOINIT_TAG,	2,	"FreeBSD no .init tag")	\
+_ELF_DEFINE_NT(NT_FREEBSD_ARCH_TAG,	3,	"FreeBSD arch tag")	\
+_ELF_DEFINE_NT(NT_FREEBSD_FEATURE_CTL,	4,	"FreeBSD feature control")
 
 #undef	_ELF_DEFINE_NT
 #define	_ELF_DEFINE_NT(N, V, DESCR)	N = V ,
