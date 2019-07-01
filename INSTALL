@@ -95,9 +95,9 @@ Prerequisites
     - Building additional documentation is not currently supported
       under Minix.
 
-:OpenBSD 6.3:
+:OpenBSD 6.5:
     - The following packages are pre-requisites for building the
-      sources on OpenBSD 6.3:
+      sources on OpenBSD 6.5:
 
       ===================     =====================================
       **Package**             **Description**
