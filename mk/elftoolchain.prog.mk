@@ -71,9 +71,14 @@ LDFLAGS+= -L${.CURDIR}/${TOP}/libpe/${.OBJDIR:S,${.CURDIR}/,,}
 .endif
 
 _LDADD_LIBARCHIVE=${LDADD:M-larchive}
-.if !empty(_LDADD_LIBARCHIVE) && ${OS_HOST} == NetBSD
+.if !empty(_LDADD_LIBARCHIVE)
+.if ${OS_HOST} == NetBSD
 CFLAGS+=	-I/usr/pkg/include
 LDFLAGS+=	-L/usr/pkg/lib
+.elif ${OS_HOST} == OpenBSD
+CFLAGS+=	-I/usr/local/include
+LDFLAGS+=	-L/usr/local/lib
+.endif
 .endif
 
 #
