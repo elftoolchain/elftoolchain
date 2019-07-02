@@ -43,6 +43,8 @@
 #include <expat.h>
 #endif
 
+#include "_elftc.h"
+
 #include "driver.h"
 #include "tet_api.h"
 
