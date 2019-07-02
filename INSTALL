@@ -17,7 +17,7 @@ operating systems.
   FreeBSD_            11.2       amd64 & i386
   Minix_              3.0.2      i386
   NetBSD_             7.1.2      i386
-  OpenBSD_            6.3        amd64
+  OpenBSD_            6.5        amd64
   Ubuntu_ GNU/Linux   17.10      x86_64
   =================   ========   =======================
 
