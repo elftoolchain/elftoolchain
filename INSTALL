@@ -110,8 +110,6 @@ Prerequisites
 
           # pkg_add libarchive
 
-    - The test suites cannot currently be built under OpenBSD.
-
     - Building additional documentation is not currently supported
       under OpenBSD.
 
