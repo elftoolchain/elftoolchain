@@ -1607,7 +1607,7 @@ if __name__ == '__main__':
 	init_parser()
 
 	try:
-		elf = make_elf(yaml.load(stream))
+		elf = make_elf(yaml.load(stream, Loader=yaml.Loader))
 		elf.layout()
 		elf.write(options.output)
 	except yaml.YAMLError, x:
