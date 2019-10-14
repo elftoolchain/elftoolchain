@@ -36,7 +36,6 @@ SUBDIR += nm
 SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
-SUBDIR += tools
 
 # Build the test suites.
 .if exists(${.CURDIR}/test) && defined(WITH_TESTS) && ${WITH_TESTS} == "yes"
