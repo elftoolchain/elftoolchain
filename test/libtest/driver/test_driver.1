@@ -24,7 +24,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd April 02, 2019
+.Dd November 05, 2019
 .Dt TEST-DRIVER 1
 .Os
 .Sh NAME
@@ -69,7 +69,7 @@ provided scaffolding will copy test outputs and other artefacts from
 the test run to the archive named by argument
 .Ar archive-name .
 The format of the archive is specified by the path name suffix of the
-artefact name.
+archive name.
 The supported output formats are those supported by
 .Xr libarchive 3 .
 .It Fl l
@@ -245,7 +245,7 @@ The current directory of the process is changed to the runtime
 directory.
 .It
 .Pq Child
-The test case set up function is then executed.
+The test case's set up function is then executed.
 If this function returns an error then test case execution is
 aborted.
 .It
@@ -255,7 +255,7 @@ its status is output to stdout (or stderr) according to the test
 execution style selected.
 .It
 .Pq Child
-The test case tear down function is then executed.
+The test case's tear down function is then executed.
 .It
 If test artefacts need to be preserved, then these are
 copied to the specified archive.
