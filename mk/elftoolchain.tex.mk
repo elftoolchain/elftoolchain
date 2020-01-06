@@ -13,6 +13,7 @@ _TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX} -file-line-error \
 			-halt-on-error
 
 DOCSUBDIR=	elftoolchain	# Destination directory.
+COVERPAGE?=	1		# Page number with the cover page.
 
 .MAIN:	all
 
@@ -33,6 +34,12 @@ index:	.PHONY
 	@if grep 'Rerun to get' ${DOC}.log > /dev/null; then \
 		${_TEX} ${DOC}.tex; \
 	fi
+
+# Extract the cover page.
+#
+# This uses 'pdfjam' from the Tex Live package.
+coverpage:	${DOC}.pdf .PHONY
+	${PDFJAM} -q -o ${DOC}.cover.pdf ${DOC}.pdf ${COVERPAGE}
 
 # Recognize additional suffixes.
 .SUFFIXES:	.mp .eps .tex .pdf
@@ -62,7 +69,7 @@ ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 		${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null; \
 	fi
 
-.for f in aux log out pdf toc ind idx ilg
+.for f in aux log out pdf toc ind idx ilg cover.pdf
 CLEANFILES+=	${DOC}.${f}
 .endfor
 

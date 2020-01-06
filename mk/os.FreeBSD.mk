@@ -15,6 +15,7 @@ EPSTOPDF?=	/usr/local/bin/epstopdf
 MAKEINDEX?=	/usr/local/bin/makeindex
 MPOSTTEX?=	/usr/local/bin/latex
 MPOST?=		/usr/local/bin/mpost
+PDFJAM?=	/usr/local/bin/pdfjam
 PDFLATEX?=	/usr/local/bin/pdflatex
 .endif
 

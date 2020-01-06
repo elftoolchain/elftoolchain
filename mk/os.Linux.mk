@@ -26,4 +26,5 @@ MAKEINDEX?=	/usr/bin/makeindex
 MPOST?=		/usr/bin/mpost
 MPOSTTEX?=	/usr/bin/latex
 NOWEB?=		/usr/bin/noweb
+PDFJAM?=	/usr/bin/pdfjam
 PDFLATEX?=	/usr/bin/pdflatex
