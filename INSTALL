@@ -174,7 +174,7 @@ Prerequisites
       example command line below are needed::
 
           % sudo apt-get install texlive-latex-recommended texlive-pictures \
-            libbsd-dev
+            texlive-extra-utils libbsd-dev
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
