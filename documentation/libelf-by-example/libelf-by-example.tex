@@ -51,7 +51,7 @@
 % Document-specific LaTeX commands.
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
-\newcommand{\elftoolchain}{\href{http://elftoolchain.sourceforge.net/}%
+\newcommand{\elftoolchain}{\href{https://elftoolchain.sourceforge.net/}%
     {elftoolchain}\xspace}
 \newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\filename}[1]{\texttt{#1}}
@@ -129,8 +129,8 @@
 \chapter*{Preface}
 
 This tutorial introduces the \library{libelf} library being developed
-at the \href{http://elftoolchain.sourceforge.net/}{ElfToolChain}
-project on \href{http://sourceforge.net/}{SourceForge.Net}.  It shows
+at the \href{https://elftoolchain.sourceforge.net/}{ElfToolChain}
+project on \href{https://sourceforge.net/}{SourceForge.Net}.  It shows
 how this library can be used to create tools that can manipulate ELF
 objects for native and non-native architectures.
 
@@ -204,7 +204,7 @@ It is a format for use by compilers, linkers, loaders and other tools
 that manipulate object code.
 
 The ELF specification was released to the public in 1990 as an
-``\href{http://www.x86.org/ftp/manuals/tools/elf.pdf}{open standard}''
+``\href{https://refspecs.linuxbase.org/elf/elf.pdf}{open standard}''
 by a group of vendors.  As a result of its ready availability it has
 been widely adopted by industry and the open-source community.  The
 ELF standard supports 32- and 64-bit architectures of both big and
@@ -229,7 +229,7 @@ manipulate ELF objects for another.
 There are multiple implementations of the ELF(3)/GELF(3) APIs in the
 open-source world.  This tutorial is based on the \library{libelf}
 library being developed as part of the \elftoolchain project on
-\href{http://sourceforge.net/}{SourceForge.Net}.
+\href{https://sourceforge.net/}{SourceForge.Net}.
 
 \section*{Rationale for this tutorial}
 
@@ -2793,35 +2793,40 @@ This tutorial covered the following topics:
 \index{ELF!further reading}
 
 \subsection{On the Web}
-Peter Seebach's DeveloperWorks article ``%
-\href{http://www-128.ibm.com/developerworks/power/library/pa-spec12/index.html}%
-{An unsung hero: The hardworking ELF}'' covers the history and features
-of the ELF format.  Other tutorials include Hongjiu Liu's ``%
-\href{http://linux4u.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/elf.html}%
-{ELF: From The Programmer's Perspective}'', which covers GCC and GNU ld,
-and Michael L. Haung's ``%
-\href{http://www.cs.ucdavis.edu/~haungs/paper/node10.html}%
-{The Executable and Linking Format (ELF)}''.
+Peter Seebach's DeveloperWorks article ``\href{%
+https://web.archive.org/web/20070224140341/http://www-128.ibm.com/developerworks/power/library/pa-spec12/%
+}{An unsung hero: The hardworking ELF}'' covers the history and
+features of the ELF format. Hongjiu Liu's ``\href{%
+https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.37.8698}{ELF:
+From The Programmer's Perspective}'' describes how to use the
+features of ELF with GCC and GNU ld.  The paper ``\href{%
+http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.136.2517}{Extending
+Sim286 to the Intel386 Architecture with 32-bit processing and Elf
+Binary input} by Michael L. Haungs and Brian A. Malloy contains a
+description of the ELF format in the chapter ``\href{%
+https://web.archive.org/web/20071217235525/www.cs.ucdavis.edu/~haungs/paper/node10.html%
+}{Executable and Linking Format (ELF)}''.
 
-Neelakanth Nadgir's
-\href{http://developers.sun.com/solaris/articles/elf.html}%
-{tutorial on ELF(3) and GELF(3)} is a readable and brief introduction
-to the ELF(3) and GELF(3) APIs for Solaris\trade.
+Neelakanth Nadgir's tutorial ``\href{%
+https://web.archive.org/web/20110926220119/http://developers.sun.com/solaris/articles/elf.html%
+}{LibElf and GElf - A Library to Manipulate ELf Files}'' is a readable
+introduction to the ELF(3) and GELF(3) APIs in Solaris\trade.
 
 \index{linking!books about}The
-\href{http://docsun.cites.uiuc.edu/sun_docs/C/solaris_9/SUNWdev/LLM/toc.html}%
-{Linkers and Libraries Guide} from Sun Microsystems\reg describes linking and
-loading tools in Solaris\trade.  Chapter 7 of this book, ``Object File
-Format'' contains a readable introduction to the ELF format.
+\href{https://docs.oracle.com/cd/E53394_01/html/E54813/index.html}{Linkers
+and Libraries Guide} from Oracle\reg describes the linking and
+loading tools present in Solaris\trade.  Chapter 14 of this book,
+titled ``Object File Format'', contains a readable introduction to the
+ELF format.
 
 \subsection{More Example Programs}
 
 \index{libelf@\library{libelf}!additional examples}
 The
-\href{http://sourceforge.net/apps/trac/elftoolchain/browser/trunk}%
+\href{https://sourceforge.net/p/elftoolchain/code/HEAD/tree/trunk/}%
 {source code for the tools} being developed at the
-\href{http://elftoolchain.sourceforge.net/}{ElfToolChain Project}
-at \href{http://sourceforge.net/}{SourceForge.Net}
+\href{https://elftoolchain.sourceforge.net/}{ElfToolChain Project}
+at \href{https://sourceforge.net/}{SourceForge.Net}
 show the use of the ELF(3)/GELF(3) APIs in useful programs.
 
 For readers looking for smaller programs to study, Emmanuel Azencot
@@ -2832,14 +2837,14 @@ offers a website with
 \subsection{Books}
 
 \index{linking!books about}John Levine's
-``\href{http://linker.iecc.com/}{Linkers and Loaders}'', is a readable
+``\href{https://linker.iecc.com/}{Linkers and Loaders}'' is a readable
 book offering a overview of the process of linking and loading object
 files.
 
 \subsection{Standards}
 
 \index{ELF!specification}The current specification of the ELF
-format, the ``\href{http://www.x86.org/ftp/manuals/tools/elf.pdf}%
+format, the ``\href{https://refspecs.linuxbase.org/elf/elf.pdf}%
 {Tool Interface Standard (TIS) Executable and Linking Format
 (ELF) Specification, Version 1.2}'' is freely available to download.
 
