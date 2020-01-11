@@ -441,6 +441,7 @@ elf_osabi(unsigned int abi)
 	case ELFOSABI_OPENVMS: return "OpenVMS";
 	case ELFOSABI_NSK: return "NSK";
 	case ELFOSABI_CLOUDABI: return "CloudABI";
+	case ELFOSABI_FENIXOS: return "FenixOS";
 	case ELFOSABI_OPENVOS: return "OpenVOS";
 	case ELFOSABI_ARM_AEABI: return "ARM EABI";
 	case ELFOSABI_ARM: return "ARM";
