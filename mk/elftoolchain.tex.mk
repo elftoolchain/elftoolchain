@@ -13,7 +13,8 @@ _TEX=		TEXINPUTS=${TEXINPUTS} ${PDFLATEX} -file-line-error \
 			-halt-on-error
 
 DOCSUBDIR=	elftoolchain	# Destination directory.
-COVERPAGE?=	1		# Page number with the cover page.
+COVER_PAGE?=	1		# Cover page number in the document.
+COVER_DPI?=	300		# Image resolution for cover page images.
 
 .MAIN:	all
 
@@ -35,11 +36,34 @@ index:	.PHONY
 		${_TEX} ${DOC}.tex; \
 	fi
 
-# Extract the cover page.
+# Cover page generation.
+#
+# Use the dedicated cover page if present.
+.if exists(${DOC}.cover.tex)
+${DOC}.cover.pdf: ${DOC}.cover.tex ${COVER_SRCS}
+	${_TEX} ${.CURDIR}/${DOC}.cover.tex > /dev/null || \
+		(cat ${DOC}.cover.log; rm -f ${.TARGET}; exit 1)
+.else
+# Otherwise, extract the cover page from the main document.
 #
 # This uses 'pdfjam' from the Tex Live package.
-coverpage:	${DOC}.pdf .PHONY
-	${PDFJAM} -q -o ${DOC}.cover.pdf ${DOC}.pdf ${COVERPAGE}
+${DOC}.cover.pdf:	${DOC}.pdf .PHONY
+	${PDFJAM} -q -o ${DOC}.cover.pdf ${DOC}.pdf ${COVER_PAGE}
+.endif
+
+CLEANFILES+=	${DOC}.cover.pdf
+
+# Converts the cover page to JPEG format, using US-Letter
+# (8.5" x 11.0") dimensions.
+#
+# This step uses 'pdftoppm' from the Poppler package.
+${DOC}.cover.usletter.jpeg:	${DOC}.cover.pdf .PHONY
+	_W=$$(echo 8.5 '*' ${COVER_DPI} | bc | sed -e 's/\.[0-9]*$$//'); \
+	_H=$$(echo 11.0 '*' ${COVER_DPI} | bc | sed -e 's/\.[0-9]*$$//'); \
+	pdftoppm -r ${COVER_DPI} -jpeg -scale-to-x $${_W} -scale-to-y $${_H} \
+		-aa yes -freetype yes ${DOC}.cover.pdf > ${.TARGET}
+
+CLEANFILES+=	${DOC}.cover.usletter.jpeg
 
 # Recognize additional suffixes.
 .SUFFIXES:	.mp .eps .tex .pdf
@@ -69,8 +93,13 @@ ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 		${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null; \
 	fi
 
-.for f in aux log out pdf toc ind idx ilg cover.pdf
-CLEANFILES+=	${DOC}.${f}
+CLEANFILES+=	${DOC}.pdf
+
+# Remove temporary files.
+.for file in ${DOC} ${DOC}.cover ${COVER_SRCS:M*.tex:C/.tex$//1g}
+.for ext in aux log out toc ind idx ilg
+CLEANFILES+=	${file}.${ext}
+.endfor
 .endfor
 
 # Do something sensible for the `depend` and `cleandepend` targets.
