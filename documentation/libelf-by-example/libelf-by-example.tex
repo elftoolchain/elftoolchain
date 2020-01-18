@@ -2435,11 +2435,14 @@ introductory tutorial.
 
 \chapter{Processing ar(1) archives}\label{chap.ar}
 
-The \library{libelf} library also offers support for reading archives
-members in an ar(1) archive.  This support is ``read-only''; you
-cannot create new ar(1) archives or update members in an archive using
-these functions.  The \library{libelf} library supports both random
-and sequential access to the members of an ar(1) archive.
+The \library{libelf} library also supports reading the content of
+ar(1) archives, offering both sequential and random access to their
+content.  However, this support is ``read-only''; you cannot create
+new ar(1) archives or modify existing archives using these
+functions. If you need to create or modify ar(1) archives, please
+consider using
+\href{https://github.com/libarchive/libarchive/wiki}{\library{libarchive}}
+instead.
 
 \section{Archive structure}
 
