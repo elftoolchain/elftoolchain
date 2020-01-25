@@ -51,8 +51,8 @@
 % Document-specific LaTeX commands.
 \makeatletter
 \newcommand{\constant}[1]{\texttt{#1}}
-\newcommand{\elftoolchain}{\href{https://elftoolchain.sourceforge.net/}%
-    {elftoolchain}\xspace}
+\newcommand{\elftoolchainproject}{\href{https://elftoolchain.sourceforge.io/}%
+    {ElfToolChain Project}\xspace}
 \newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\filename}[1]{\texttt{#1}}
 \newcommand{\firstterm}[1]{\textit{#1}}
@@ -130,10 +130,9 @@
 \chapter*{Preface}
 
 This tutorial introduces the \library{libelf} library being developed
-at the \href{https://elftoolchain.sourceforge.net/}{ElfToolChain}
-project on \href{https://sourceforge.net/}{SourceForge.Net}.  It shows
-how this library can be used to create tools that can manipulate ELF
-objects for native and non-native architectures.
+at the \elftoolchainproject on \href{https://sourceforge.net/}%
+{SourceForge.Net}.  It shows how this library can be used to create
+tools that can manipulate ELF objects for native and non-native architectures.
 
 The ELF(3)/GELF(3) APIs are discussed, as is handling of ar(1)
 archives.  The ELF format is discussed to the extent needed to
@@ -229,7 +228,7 @@ manipulate ELF objects for another.
 
 There are multiple implementations of the ELF(3)/GELF(3) APIs in the
 open-source world.  This tutorial is based on the \library{libelf}
-library being developed as part of the \elftoolchain project on
+library being developed as part of the \elftoolchainproject on
 \href{https://sourceforge.net/}{SourceForge.Net}.
 
 \section*{Rationale for this tutorial}
@@ -2829,8 +2828,7 @@ ELF format.
 The
 \href{https://sourceforge.net/p/elftoolchain/code/HEAD/tree/trunk/}%
 {source code for the tools} being developed at the
-\href{https://elftoolchain.sourceforge.net/}{ElfToolChain Project}
-at \href{https://sourceforge.net/}{SourceForge.Net}
+\elftoolchainproject at \href{https://sourceforge.net/}{SourceForge.Net}
 show the use of the ELF(3)/GELF(3) APIs in useful programs.
 
 For readers looking for smaller programs to study, Emmanuel Azencot
