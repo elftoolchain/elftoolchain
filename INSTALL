@@ -131,7 +131,7 @@ Prerequisites
     - Building additional documentation is not currently supported
       under NetBSD.
 
-:Ubuntu GNU/Linux 17.10:
+:Ubuntu GNU/Linux 18.04:
     - The following packages are pre-requisites for building the
       sources on Ubuntu GNU/Linux 17.10:
 
@@ -156,7 +156,7 @@ Prerequisites
       The following command line may be used to install the necessary
       pre-requisites::
 
-	  % sudo apt-get install binutils bison flex gcc libarchive-dev \
+	  % sudo apt install binutils bison flex gcc libarchive-dev \
 	    libc6-dev m4 bmake zlib1g-dev
 
     - To build and run the test suite:
@@ -168,12 +168,12 @@ Prerequisites
       #. The following additional packages need to be installed, as
          listed in the example command line below::
 
-            % sudo apt-get install libexpat1-dev python-yaml sharutils
+            % sudo apt install libexpat1-dev python-yaml sharutils
 
     - To build additional documentation, the packages listed in the
       example command line below are needed::
 
-          % sudo apt-get install texlive-latex-recommended texlive-pictures \
+          % sudo apt install texlive-latex-recommended texlive-pictures \
             texlive-extra-utils libbsd-dev
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
