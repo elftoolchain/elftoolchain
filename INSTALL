@@ -133,7 +133,7 @@ Prerequisites
 
 :Ubuntu GNU/Linux 18.04:
     - The following packages are pre-requisites for building the
-      sources on Ubuntu GNU/Linux 17.10:
+      sources on Ubuntu GNU/Linux 18.04:
 
       ===================     =====================================
       **Package**             **Description**
