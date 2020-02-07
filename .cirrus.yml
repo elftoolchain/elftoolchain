@@ -1,6 +1,11 @@
-freebsd_11_task:
+env:
+  CIRRUS_CLONE_DEPTH: 1
+
+freebsd_task:
   freebsd_instance:
-    image: freebsd-11-2-release-amd64
+    matrix:
+      image: freebsd-11-2-release-amd64
+      image: freebsd-12-1-release-amd64
   install_script: pkg install -y git py27-yaml
   script:
     - fetch http://tetworks.opengroup.org/downloads/38/software/Sources/3.8/tet3.8-src.tar.gz
