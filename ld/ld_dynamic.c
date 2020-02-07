@@ -253,7 +253,7 @@ _create_interp(struct ld *ld, struct ld_output *lo)
 
 	if ((odb->odb_buf = calloc(odb->odb_size, 1)) == NULL)
 		ld_fatal_std(ld, "calloc");
-	strncpy((char*) odb->odb_buf, interp, strlen(interp));
+	memcpy(odb->odb_buf, interp, strlen(interp));
 	odb->odb_buf[strlen(interp)] = '\0';
 
 	(void) ld_output_create_section_element(ld, os, OET_DATA_BUFFER, odb,

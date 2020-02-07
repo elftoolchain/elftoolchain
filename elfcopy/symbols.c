@@ -935,7 +935,7 @@ add_to_symtab(struct elfcopy *ecp, const char *name, uint64_t st_value,
 			hash = str_hash(name);				\
 			LIST_INSERT_HEAD(&st_buf->B.hash[hash], sh,	\
 			    sh_next);					\
-			strncpy(&st_buf->B.buf[st_buf->B.sz], name,	\
+			memcpy(&st_buf->B.buf[st_buf->B.sz], name,	\
 			    strlen(name));				\
 			st_buf->B.buf[st_buf->B.sz + strlen(name)] = '\0'; \
 			st_buf->B.sz += strlen(name) + 1;		\

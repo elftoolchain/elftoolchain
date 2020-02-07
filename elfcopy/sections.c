@@ -1027,7 +1027,7 @@ modify_section(struct elfcopy *ecp, struct section *s)
 	if (is_append_section(ecp, s->name)) {
 		sac = lookup_sec_act(ecp, s->name, 0);
 		len = strlen(sac->string);
-		strncpy(&b[p], sac->string, len);
+		memcpy(&b[p], sac->string, len);
 		b[p + len] = '\0';
 		p += len + 1;
 	}
@@ -1596,7 +1596,7 @@ add_gnu_debuglink(struct elfcopy *ecp)
 	/* Section content. */
 	if ((sa->content = calloc(1, sa->size)) == NULL)
 		err(EXIT_FAILURE, "malloc failed");
-	strncpy(sa->content, fnbase, strlen(fnbase));
+	memcpy(sa->content, fnbase, strlen(fnbase));
 	if (ecp->oed == ELFDATA2LSB) {
 		sa->content[crc_off] = crc & 0xFF;
 		sa->content[crc_off + 1] = (crc >> 8) & 0xFF;

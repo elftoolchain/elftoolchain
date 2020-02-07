@@ -531,11 +531,11 @@ create_tempfile(char **fn, int *fd)
 		tmpf = malloc(tlen + plen + 2);
 		if (tmpf == NULL)
 			err(EXIT_FAILURE, "malloc failed");
-		strncpy(tmpf, tmpdir, tlen);
+		memcpy(tmpf, tmpdir, tlen);
 		cp = &tmpf[tlen - 1];
 		if (*cp++ != '/')
 			*cp++ = '/';
-		strncpy(cp, _TEMPFILE, plen);
+		memcpy(cp, _TEMPFILE, plen);
 		cp[plen] = '\0';
 	} else {
 		tmpf = strdup(_TEMPFILEPATH);

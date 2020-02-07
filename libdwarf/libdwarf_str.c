@@ -52,7 +52,7 @@ _dwarf_strtab_add(Dwarf_Debug dbg, char *string, uint64_t *off,
 	if (off != NULL)
 		*off = dbg->dbg_strtab_size;
 
-	strncpy(&dbg->dbg_strtab[dbg->dbg_strtab_size], string, len - 1);
+	memcpy(&dbg->dbg_strtab[dbg->dbg_strtab_size], string, len - 1);
 	dbg->dbg_strtab_size += len;
 	dbg->dbg_strtab[dbg->dbg_strtab_size - 1] = '\0';
 

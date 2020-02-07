@@ -178,7 +178,7 @@ add_to_ar_sym_table(struct elfcopy *ecp, const char *name)
 		if (ecp->s_sn == NULL)
 			err(EXIT_FAILURE, "realloc failed");
 	}
-	strncpy(&ecp->s_sn[ecp->s_sn_sz], name, strlen(name));
+	memcpy(&ecp->s_sn[ecp->s_sn_sz], name, strlen(name));
 	ecp->s_sn_sz += strlen(name);
 	ecp->s_sn[ecp->s_sn_sz++] = '\0';
 }

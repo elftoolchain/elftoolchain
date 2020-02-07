@@ -206,7 +206,7 @@ ld_strtab_insert(struct ld *ld, struct ld_strtab *st, const char *s)
 		_resize_strtab(ld, st, st->st_cap * 2);
 
 	b = st->st_buf;
-	strncpy(&b[st->st_size], s, slen);
+	memcpy(&b[st->st_size], s, slen);
 	b[st->st_size + slen] = '\0';
 	st->st_size += slen + 1;
 }

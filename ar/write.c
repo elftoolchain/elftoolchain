@@ -980,7 +980,7 @@ add_to_ar_sym_table(struct bsdar *bsdar, const char *name)
 		if (bsdar->s_sn == NULL)
 			bsdar_errc(bsdar, errno, "realloc failed");
 	}
-	strncpy(&bsdar->s_sn[bsdar->s_sn_sz], name, strlen(name));
+	memcpy(&bsdar->s_sn[bsdar->s_sn_sz], name, strlen(name));
 	bsdar->s_sn_sz += strlen(name);
 	bsdar->s_sn[bsdar->s_sn_sz++] = '\0';
 }
