@@ -6,6 +6,8 @@ freebsd_11_task:
     - fetch http://tetworks.opengroup.org/downloads/38/software/Sources/3.8/tet3.8-src.tar.gz
     - tar -x -C test/tet -f tet3.8-src.tar.gz
     - make
+  test_script:
+    - make run-tests
 
 #debian_stable_task:
 #  container:
