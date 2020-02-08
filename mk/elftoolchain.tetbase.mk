@@ -35,6 +35,7 @@ TET_OPTIONS+=	-e
 execute tccbuild tccclean test:
 	TET_ROOT=${TET_ROOT} TET_EXECUTE=${TET_EXECUTE} \
 		TET_SUITE_ROOT=${.CURDIR} ${TET_ROOT}/bin/tcc ${TET_OPTIONS} .
+	${TOP}/test/tet/bin/check-tet-journal -t ${.OBJDIR}
 
 clobber:	clean
 	rm -rf ${TET_RESULTS_DIR} ${TET_TMP_DIR}
