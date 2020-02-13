@@ -14,16 +14,18 @@ freebsd_task:
   test_script:
     - make run-tests
 
-#debian_stable_task:
-#  container:
-#    image: debian:stable
-#  setup_script:
-#    - apt-get update
-#    - apt-get install -y
-#      binutils bison bmake curl flex g++ gcc git
-#      libarchive-dev libbsd-dev libc6-dev libexpat1-dev lsb-release
-#      m4 perl python-yaml sharutils zlib1g-dev
-#  script:
-#    - curl -O http://tetworks.opengroup.org/downloads/38/software/Sources/3.8/tet3.8-src.tar.gz
-#    - tar -x -C test/tet -z -f tet3.8-src.tar.gz
-#    - bmake
+ubuntu_task:
+  container:
+    image: ubuntu:18.04
+  setup_script:
+    - apt-get update
+    - apt-get install -y
+      binutils bison bmake curl flex g++ gcc git
+      libarchive-dev libbsd-dev libc6-dev libexpat1-dev lsb-release
+      m4 perl python-yaml sharutils zlib1g-dev
+  script:
+    - curl -O http://tetworks.opengroup.org/downloads/38/software/Sources/3.8/tet3.8-src.tar.gz
+    - tar -x -C test/tet -z -f tet3.8-src.tar.gz
+    - bmake
+  test_script:
+    - make run-tests
