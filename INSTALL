@@ -18,7 +18,7 @@ operating systems.
   Minix_              3.0.2      i386
   NetBSD_             8.1        amd64
   OpenBSD_            6.5        amd64
-  Ubuntu_ GNU/Linux   17.10      x86_64
+  Ubuntu_ GNU/Linux   18.04      x86_64
   =================   ========   =======================
 
 .. _DragonFly BSD: http://www.dragonflybsd.org/
