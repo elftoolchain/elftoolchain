@@ -28,4 +28,4 @@ ubuntu_task:
     - tar -x -C test/tet -z -f tet3.8-src.tar.gz
     - bmake
   test_script:
-    - make run-tests
+    - bmake run-tests
