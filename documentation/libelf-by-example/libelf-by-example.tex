@@ -376,52 +376,35 @@ concepts covered in this tutorial.
 
 \chapter{Getting Started}\label{chap.getting-started}
 
-Let us dive in and get a taste of programming with \library{libelf}.
+It is time to get a taste of programming with \library{libelf}.
 
-\section{Example: Getting started with \library{libelf}}
-
-Our first program (Program 1, listing~\vref{src.prog.1}) will open a
-filename presented to it on its command line and retrieve the file
-type as recognized by the ELF library.
-
-This example is covers the basics involved in using \library{libelf};
-how to compile a program using \library{libelf}, how to initialize the
-library, how to report errors, and how to wind up.
+Our first example program (Program 1, listing~\vref{src.prog.1}) will
+open the a file named on its command line, and will display the file's
+type as recognized by the ELF library.  This example covers the basics
+of using \library{libelf}: how to compile a program that uses
+\library{libelf}, how to initialize the library, how to handle the
+errors reported by the library, and how to release resources cleanly
+when done.
 
 \begin{callout}{prog1}
   \lstinputlisting[caption=Program 1, label=src.prog.1]{prog1.txt}
 
   \begin{description}
-  \item[\coref{1}] The functions and dataypes that make up the ELF(3) API
-    are declared in the header \filename{libelf.h}.  This file must be included
-    in every application that desires to use the \library{libelf}
-    library.%
+  \item[\coref{1}] The functions and dataypes that make up the ELF(3)
+    API are declared in the header \filename{libelf.h}.  This file
+    must be included by every source file that uses the
+    \library{libelf} library.%
     \index{libelf@\library{libelf}!header \filename{elf.h}}
 
-  \item[\coref{2}] The ELF(3) library uses an opaque type \type{Elf} as a
-    handle for the ELF object being processed.
+  \item[\coref{2}] The library uses an opaque C type named \type{Elf}
+    as a handle to an ELF object.
 
-  \item[\coref{4}] Before the functions in the library can be invoked, an
-    application must indicate to the library the version of the ELF
-    specification it is expecting to use.  This is done by the call to
-    \function{elf\_version}.
-
-    A call to \function{elf\_version} is mandatory before other
-    functions in the ELF library can be invoked.
-
-    There are multiple version numbers that come into play when an
-    application is manipulating an ELF object.
-
-    \begin{itemize}
-    \item The version of the ELF specification that the application
-      expects to use is $v_1$.
-    \item The ELF version associated with the ELF object being
-      processed is $v_2$.  Versions $v_1$ and $v_2$ could possibly be
-      different.
-    \item The ELF versions supported by the \library{libelf} library:
-      $v_1$ and $v_2$.  The library could, in theory, translate
-      between versions $v_1$ and $v_2$.
-    \end{itemize}
+  \item[\coref{4}] Before the functions in the library can be invoked,
+    an application must indicate the version of the ELF specification
+    that it expects to use.  This is done by calling the
+    \function{elf\_version} function. Calling \function{elf\_version}
+    is mandatory---most \library{libelf} APIs will return an error if
+    invoked before the expected ELF version is set.
 
     \begin{figure}
       \begin{tikzpicture}[
@@ -447,54 +430,68 @@ library, how to report errors, and how to wind up.
       \caption{Handling ELF versioning.}\label{fig.versions}
     \end{figure}
 
-    In figure~\vref{fig.versions} the application expects to work with
-    ELF specification version $v_1$. The ELF object file conforms to
-    ELF specification version $v_2$.  The library understands both
-    version $v_1$ and $v_2$ of ELF semantics and so is able to mediate
+    Multiple ELF specification versions could come into play when an
+    application reads or writes an ELF object.  In
+    figure~\vref{fig.versions} the application program using
+    \library{libelf} expects to work with files conforming to version
+    $v_1$ of the ELF specification. The ELF object file however
+    conforms to ELF specification version $v_2$.  The \library{libelf}
+    library understands the semantics of both specification versions
+    $v_1$ and $v_2$, and so would be able to (in theory) mediate
     between the application and the ELF object.
 
-    In practice, the ELF version has not changed since inception, so
-    the current version (\constant{EV\_CURRENT}) is 1.
+    In practice, the ELF specification's version has not changed since
+    its inception; the current version (denoted by the symbol
+    \constant{EV\_CURRENT}) is 1.
 
-  \item[\coref{5}] The \function{elf\_begin} function takes an open file
-    descriptor and converts it an \type{Elf} handle according to the
-    command specified.
+  \item[\coref{5}] The \function{elf\_begin} function takes an open
+    file descriptor and converts it an \type{Elf} handle.
 
     The second parameter to \function{elf\_begin} can be one of
     `\constant{ELF\_C\_READ}' for opening an ELF object for reading,
     `\constant{ELF\_C\_WRITE}' for creating a new ELF object, or
     `\constant{ELF\_C\_RDWR}' for opening an ELF object for updates.
-    The mode with which file descriptor \parameter{fd} was opened with
-    must be consistent with the this parameter.
+    The opening mode for the file descriptor \parameter{fd} should be
+    compatible with this parameter: the file descriptor should have
+    been opened for reading if used with \constant{ELF\_C\_READ}, for
+    writing if used with \constant{ELF\_C\_WRITE} and for updating if
+    used with \constant{ELF\_C\_RDWR}.
 
     The third parameter to \function{elf\_begin} is only used when
-    processing \tool{ar} ar\-chives.  We will look at \tool{ar}
-    archive processing in chapter~\vref{chap.ar}.
+    reading \tool{ar} ar\-chives.  We will look at \tool{ar} archive
+    processing in chapter~\vref{chap.ar}.
 
-  \item[\coref{6}] When the ELF library encounters an error, it records
-    an error number in an internal location.  This error number may be
-    retrieved using the \function{elf\_errno} function.
+  \item[\coref{6}] When the ELF library encounters an error, it will
+    record an error number in an internal location and return a
+    sentinel value (e.g., the \constant{NULL} value from functions
+    that return pointers). The error number that was saved indicates
+    the specific class of error that was encountered. This number can
+    be retrieved using the \function{elf\_errno} function.
 
-    The \function{elf\_errmsg} function returns a human readable
-    string describing the error number passed in.  As a programming
-    convenience, a value of -1 denotes the current error number.
+    Error numbers are not user-friendly though. The
+    \function{elf\_errmsg} function returns a human readable string
+    describing the error number passed to it.  As a programming
+    convenience, and an error number of -1 denotes the most recent
+    error number that had been saved.
 
   \item[\coref{3} \coref{7}] The ELF library can operate on \tool{ar}
     archives and ELF objects.  The function \function{elf\_kind}
     returns the kind of object associated with an \type{Elf} handle.
     The return value of the \function{elf\_kind} function is one of
     the values defined by the \type{Elf\_Kind} enumeration in
-    \filename{libelf.h}.
+    \filename{libelf.h}. Currently, the library only recognizes ELF
+    files and \tool{ar} archives.
 
-  \item[\coref{8}] When you are done with a handle, it is good practice
-    to release its resources using the \function{elf\_end} function.
+  \item[\coref{8}] When you are done with an \type{Elf} handle you
+    should release its resources using the \function{elf\_end}
+    function.
   \end{description}
 \end{callout}
 
-Now it is time to get something running.
+It is now time to compile and run our first example program.
 
-Save the listing in listing~\vref{src.prog.1} to file
-\filename{prog1.c} and then compile and run it as shown in
+Save the listing in listing~\vref{src.prog.1} to a file named
+\filename{prog1.c}, and then compile and run it as shown in
 listing~\vref{scr.prog1}.%
 \index{libelf@\library{libelf}!linking with}
 
@@ -510,21 +507,20 @@ prog1: elf object
   \end{lstlisting}
 
   \begin{description}
-  \item[\coref{1}] The \parameter{-lelf} option to the \tool{cc} comand
-    informs it to link \tool{prog1} against the \library{libelf}
+  \item[\coref{1}] The \parameter{-lelf} option to the \tool{cc}
+    comand informs it to link \tool{prog1} with the \library{libelf}
     library.
-  \item[\coref{2}] We invoke \tool{prog1} on itself, and it recognizes
-    its own executable as ELF object.  All is well.
+  \item[\coref{2}] We then invoke \tool{prog1} on itself. If all went
+    well it should recognize its own executable as an ELF object.
   \item[\coref{3}] Here we see that \tool{prog1} recognizes an \tool{ar}
     archive correctly.
   \end{description}
 \end{callout}
 
-Congratulations!  You have created your first ELF handling program
-using \library{libelf}.
+Congratulations!  You have created your first ELF-aware program using
+\library{libelf}.
 
-In the next chapter we will look deeper into the ELF format and learn
-how to pick an ELF object apart into its component pieces.
+In the next chapter we will study the ELF format in greater detail.
 
 \chapter{Peering Inside an ELF Object}\label{chap.peering-inside}
 
