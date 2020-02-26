@@ -10,7 +10,7 @@
 #
 buildhost=`uname -s`
 elftcname="elftoolchain"
-options="e:h:o:r:t:"
+options="e:h:o:r:st:"
 top=""
 version="HEAD"
 versionfile="elftc_version.c"
@@ -30,6 +30,7 @@ usage()
     echo "	-o OUTPUT      Set the output file [default: ${versionfile}]."
     echo "	-r VERSION     Set the version string [default: ${version}]."
     echo "	-t TOPDIR      Set the top-of-tree directory [required]."
+    echo "	-s             Print the toolchain version to stdout and exit."
     exit 1
 }
 
@@ -69,7 +70,8 @@ do
 	'e') elftcname="${OPTARG}"   ;;
 	'h') buildhost="${OPTARG}"   ;;
 	'o') versionfile="${OPTARG}" ;;
-	'r') version="${OPTARG}"      ;;
+	'r') version="${OPTARG}"     ;;
+	's') only_show_version=true  ;;
 	't') top="${OPTARG}"         ;;
 	'?') usage                   ;;
     esac
@@ -84,6 +86,13 @@ cd ${top} || usage "ERROR: Cannot change directory to \"${top}\"."
 versionstring="$(get_revision_string)" || {
     echo "ERROR: cannot determine a revision number." 1>&2;
     exit 1
+}
+
+toolchain_version="${elftcname} ${version} ${buildhost} ${versionstring}"
+
+[ -n "${only_show_version}" ] && {
+    echo "${toolchain_version}"
+    exit
 }
 
 cd ${curdir} || usage "Cannot change back to ${curdir}."
@@ -103,7 +112,7 @@ cat > ${tmpfile} <<EOF
 const char *
 elftc_version(void)
 {
-	return "${elftcname} ${version} ${buildhost} ${versionstring}";
+	return "${toolchain_version}";
 }
 EOF
 
