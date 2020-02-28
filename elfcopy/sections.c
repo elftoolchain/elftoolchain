@@ -1427,7 +1427,6 @@ init_shstrtab(struct elfcopy *ecp)
 	s->vma = 0;
 	s->strtab = elftc_string_table_create(sizehint);
 
-	add_to_shstrtab(ecp, "");
 	add_to_shstrtab(ecp, ".symtab");
 	add_to_shstrtab(ecp, ".strtab");
 	add_to_shstrtab(ecp, ".shstrtab");
