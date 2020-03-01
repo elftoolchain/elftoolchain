@@ -3519,6 +3519,8 @@ dump_notes(struct readelf *re)
 
 static struct flag_desc note_feature_ctl_flags[] = {
 	{ 0x1, "ASLR_DISABLE" },
+	{ 0x2, "PROTMAX_DISABLE" },
+	{ 0x4, "STKGAP_DISABLE" },
 	{ 0, NULL }
 };
 
