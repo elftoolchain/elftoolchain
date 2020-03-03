@@ -958,7 +958,7 @@ copying and conversion of data that happens behind the scenes inside
 \library{libelf}.\index{GELF!downsides to} This overhead is usually
 not significant for most programs.
 
-\section{File and Memory Representations}
+\section{File and Memory Representations}\label{sec.representations}
 
 \begin{figure}
   \begin{tikzpicture}[
@@ -1191,40 +1191,54 @@ prog2: 64-bit ELF object
 \chapter{Examining the Program Header Table}\label{chap.elf-phdr}
 
 Before a program on disk can be executed by a processor it needs to
-brought into main memory.  This process is conventionally called
-``loading''\index{loading!of~programs}.
+brought into system memory. The technical name for this process is
+``loading''.\index{loading!of~programs}
 
-When loading an ELF object into memory, the operating system views it
-as comprising of ``segments''\index{segments}.  Each such segment is a
-\index{segments!definition~of} contiguous region of data inside
-the ELF object that is associated with a particular protection
-characteristic (for example, read-only or read-write) and that gets
-placed at a specific virtual memory address.
+When loading an ELF program into memory, the operating system views it
+as comprising of distinct parts, where each part has a particular
+characteristic. For example, one part of the program could contain
+read-only data that needs to be loaded at specific virtual memory
+addresses and at a specific address alignment. Another part could
+contain executable code.\index{segments} Each such part of the ELF
+object is called an ELF
+\elfdatastructure{Segment}\index{segments!definition~of}.
 
-For example, the FreeBSD\trade operating system expects
-executables to have an ``executable'' segment containing code, and a
-``data'' segment containing statically initialized data.%
-\index{segments!example layout}%
-The executable segment would be mapped in with read and execute
-permissions and could be shared across multiple processes using the
-same ELF executable.  The data segment would be mapped in with read
-and write permissions and would be made private to each process.  For
-dynamically linked executables, the basic idea of grouping related
-parts of an ELF object into contiguous ``segments'' still holds,
-though there may be multiple segments of each type per process.
+By way of an example, the FreeBSD\trade operating system expects
+programs to contain a segment containing executable
+code.\index{segments!example~layout} This segment is called the
+program's ``\filename{text}'' segment. A \filename{text} segment would
+usually be loaded into memory with `read' and `execute' permissions.
+Multiple processes using the same executable could also potentially
+share the same \filename{text} segment.  FreeBSD programs would
+usually have \filename{data} segments too; these segments are placed
+in memory with `read' and `write' permissions, and made private to
+each process.
+
+Like executables, dynamically linked objects can similarly be viewed
+as comprising segments.
+
+The segments present in an ELF object are described by a data
+structure known as the ELF \elfdatastructure{Program Header
+  Table}.\index{program~header!table} We will study this data
+structure in this chapter, and write an example program that displays
+the \elfdatastructure{Program Header Table} present in an ELF object.
 
 \section{The ELF Program Header Table}
 
-The ELF \firstterm{program header table}\index{program~header!table}
-describes the segments present in an ELF file.  The location of the
-program header table is described by the \parameter{e\_phoff} field of
-the ELF executable header (see section~\vref{sec.ehdr}).  The program
-header table is a contiguous array of program header table entries,
-one entry per segment.
+An ELF \elfdatastructure{Program Header Table} is a contiguous array
+of \elfdatastructure{Program Header Table Entry} structures. The table
+contains one table entry per segment present. The location of the
+program header table within the ELF object is given by the
+\parameter{e\_phoff} member of the ELF executable header (see
+figure~\ref{fig.elf.ehdr-layout} in section~\ref{sec.ehdr}). This member
+holds the offset in bytes from the start of the ELF object to the
+start of its contained program header table.
 
-Figure~\vref{fig.elf.phdr.layout} shows graphically how the fields of
-a program header table entry specify the segment's placement in file
-and in memory.
+Table~\vref{src.elf.phdr} lists the members of a
+\elfdatastructure{Program Header Table Entry}
+structure.\index{program~header!table!entry}
+Figure~\vref{fig.elf.phdr.layout} shows how these members specify the
+segment's placement in memory and within the ELF object.
 
 \begin{figure}
   \index{program~header!table!layout}
@@ -1307,9 +1321,6 @@ and in memory.
   \caption{ELF Segment Placement.}\label{fig.elf.phdr.layout}
 \end{figure}
 
-The structure of each program header table entry is shown in
-table~\vref{src.elf.phdr}.\index{program~header!table!entry}
-
 \begin{callout}{phdr}
   \begin{table}[H]
     \begin{tabular}{rl|ll}
@@ -1339,100 +1350,95 @@ table~\vref{src.elf.phdr}.\index{program~header!table!entry}
   \end{table}
 
   \begin{description}
-  \item[\coref{1}] The type of the program header table entry is
-    encoded using this field.  It holds one of the \constant{PT\_*}
-    constants defined in the system headers.%
-    \index{segments!type}
-
-    Examples include:
+  \item[\coref{1}] The \parameter{p\_type} member of the program
+    specifies the type of the ELF segment.\index{segments!type} The
+    type of the segment is specified by one of the \constant{PT\_*}
+    constants in the programming API.  Examples include:
     \begin{itemize}
-    \item A segment of type \constant{PT\_LOAD} is loaded into memory.
+    \item A segment of type \constant{PT\_LOAD} contains data that
+      needs to be placed in memory.
+    \item A segment of type \constant{PT\_PHDR} describes the ELF
+      \elfdatastructure{Program Header Table} itself.
+    \item A segment of type \constant{PT\_INTERP} contains a path to
+      the runtime linker used by dynamically linked executables.
     \item A segment of type \constant{PT\_NOTE} contains auxiliary
-      information.  For example, core filesuse \constant{PT\_NOTE}
-      sections to record the name of the process that dumped core.
-    \item A \constant{PT\_PHDR} segment describes the program header
-      table itself.
+      information, and so on.
     \end{itemize}
 
-    The ELF specification reserves type values from 0x6000\-0000
-    (\constant{PT\_LOOS}) to 0x6FFF\-FFFF (\constant{PT\_HIOS}) for
-    OS-private information.  Values from 0x7000\-0000
-    (\constant{PT\_LOPROC}) to 0x7FFF\-FFFF (\constant{PT\_HIPROC})
-    are similarly reserved for processor-specific information.%
-    \index{segments!type!reserved values}
+  \item[\coref{2}] The \parameter{p\_offset} member holds the offset
+    from the start of the ELF object to the start of the segment being
+    described by this table entry.\index{segments!offset in object}
 
-  \item[\coref{2}] The \parameter{p\_offset} field holds the file
-    offset in the ELF object to the start of the segment being
-    described by this table entry.%
-    \index{segments!offset in file}
+  \item[\coref{3}] The \parameter{p\_vaddr} member specifies the
+    virtual address that this segment should be placed
+    at.\index{segments!virtual address of}
 
-  \item[\coref{3}] The virtual address this segment should be loaded
-    at.%
-    \index{segments!virtual address of}
+  \item[\coref{4}] The \parameter{p\_paddr} member specifies the
+    physical memory address this segment should be loaded at.
 
-  \item[\coref{4}] The physical address this segment should be loaded
-    at.  This field does not apply for userland objects.
+  \item[\coref{5}] The \parameter{p\_filesz} member specifies the size
+    of the segment in the file.  This number can be zero if the
+    segment does not use data from file (for example, if the segment
+    is a memory-only segment).\index{segments!file size of}
 
-  \item[\coref{5}] The number of bytes the segment takes up in the
-    file.  This number is zero for segments that do not have data
-    associated with them in the file.%
-    \index{segments!file size of}
-
-  \item[\coref{6}] The number of bytes the segment takes up in memory.%
+  \item[\coref{6}] The \parameter{p\_memsz} member specifies the
+    number of bytes of memory the segment would use.%
     \index{segments!memory size of}
 
-  \item[\coref{7}] Additional flags that specify segment properties.
-    For example, flag \constant{PF\_X} specifies that the segment in
-    question should be made executable and flag \constant{PF\_W}
-    denotes that the segment should be writable.%
-    \index{segments!flags}
+  \item[\coref{7}] The \parameter{p\_flags} member specifies
+    additional segment properties.  For example, the value
+    \constant{PF\_X} specifies that the segment should be made
+    executable, the value \constant{PF\_W} specifies that the segment
+    should be writable, and so on.\index{segments!flags}
 
-  \item[\coref{8}] The alignment requirements of the segment both in
-    memory and in the file.  This field holds a value that is a power
-    of two.%
+  \item[\coref{8}] The \parameter{p\_align} member specifies the
+    alignment requirements of the segment in memory and in the file.
+    This member holds a number that is a power of two.
     \index{segments!aligment of}
   \end{description}
 \end{callout}
 
-\textbf{Note}: The careful reader will note that the 32- and 64- bit
-\type{Elf\_Phdr} structures are laid out differently in memory.  These
-differences are handled for you by the functions in the
-\library{libelf} library.
+The file representation of a \elfdatastructure{Program Header Table}
+uses the ELF object's native endianness. The functions in the
+\library{libelf} library will handle the translation between the
+in-file and in-memory representations of program header table entries
+for you. Please see section~\vref{sec.representations} for more
+information on in-memory and in-file representations of ELF data
+structures.
 
 \section{Example: Reading a Program Header Table}
 
-We will now look at a program that will print out the program header
-table associated with an ELF object.  We will continue to use the
-GELF(3) API set for this example.  The ELF(3) API set also offers two
-ELF class-dependent APIs that retrieve the program header table from
-an ELF object: \function{elf32\_getphdr} and
-\function{elf64\_getphdr}, but these require us to know the ELF class
-of the object being handled.%
-\index{ELF!class!agnostic APIs}
+Let us write a program to print out the program header table in an ELF
+object. We will continue to use the ELF class agnostic GELF(3) APIs
+for our example.\index{ELF!class!agnostic APIs}
 
 \begin{callout}{prog3}
   \lstinputlisting[caption=Program 3, label=src.prog.3]{prog3.txt}
   
   \begin{description}
-  \item[\coref{1}] We need to include \filename{gelf.h} in order to
-    use the GELF(3) APIs.
-  \item[\coref{2}] The \type{GElf\_Phdr} type has fields that are
-    large enough to contain the values in an \type{Elf32\_Phdr} type
-    and an \type{Elf64\_Phdr} type.%
-    \index{ELF!class!agnostic APIs}
-  \item[\coref{3}] We retrieve the number of program header table
-    entries using the function \function{elf\_getphdrnum}.  Note that
-    the program header table is optional; for example, an ELF
-    relocatable object will not have a program header table.%
-    \index{program~header!table!retrieval of}
-  \item[\coref{4} \coref{5}] We iterate over all valid indices for the
-    object's program header table, retrieving the table entry at each
-    index using the \function{gelf\_getphdr} function.%
-    \index{program~header!table!iteration over}
-  \item[\coref{6} \coref{7}] We then print out the contents of the
-    entry so retrieved.  We use a helper function
-    \function{print\_ptype} to convert the \parameter{p\_type} member
-    to a readable string.
+  \item[\coref{1}] Source code that uses the GELF(3) functions needs
+    to include the \filename{gelf.h} header file.
+  \item[\coref{2}] We define a helper function that translates the
+    value of the \parameter{p\_type} member to human-readable form.
+  \item[\coref{3}] The GELF(3) functions in this example will use the
+    \type{GElf\_Phdr} C type. This type has members that are large
+    enough for both the 32-bit (\type{Elf32\_Phdr}) and 64-bit
+    (\type{Elf64\_Phdr}) header table
+    entries.\index{ELF!class!agnostic APIs}
+  \item[\coref{4}] The function \function{elf\_getphdrnum} will
+    retrieve the number of program header table entries in the ELF
+    object. However, not every ELF object contains a program header
+    table.  We only proceed if a \elfdatastructure{Program Header
+      Table} is present.\index{program~header!table!retrieval of}
+  \item[\coref{5}] We iterate over the valid indices into the
+    \elfdatastructure{Program Header Table} using a C \function{for}
+    loop.
+  \item[\coref{6}] The \function{gelf\_getphdr} function retrieves the
+    program header table entry at a specified index.
+    \index{program~header!table!iteration over} If successful it
+    returns the \type{GElf\_Phdr} pointer that was passed to it.
+  \item[\coref{7}] We then print out the contents of the returned
+    \type{GElf\_Phdr} entry.
   \end{description}
 \end{callout}
 
@@ -1502,33 +1508,38 @@ PHDR 5:
   \end{lstlisting}
 
   \begin{description}
-  \item[\coref{1}] Compile and link the program in the standard way.
-  \item[\coref{2}] We make our program examine its own program header
-    table.  This listing was generated on an i386\trade machine
-    running FreeBSD\trade.
-  \item[\coref{3}] The very first entry in this program header table
-    describes the program header table itself.%
+  \item[\coref{1}] Compile and link the program with \library{libelf},
+    as before.
+  \item[\coref{2}] We run our program on itself, and print out its own
+    program header table.  This listing was generated on an i386\trade
+    machine running FreeBSD\trade.
+  \item[\coref{3}] The very first entry of this program header table
+    describes the \elfdatastructure{Program Header Table} itself.%
     \index{program~header!table!self-description}
-  \item[\coref{4}] An entry of type \constant{PT\_INTERP} is used to
-    point the kernel to the ``interpreter'' associated with this ELF
-    object.  This is usually a runtime loader, such as
-    \filename{/libexec/ld-elf.so.1}.
-  \item[\coref{5} \coref{6}] This object has two loadable segments:
-    one with execute and read permissions and one with read and write
-    permissions.  Both these segments require page alignment.%
-    \index{segments!examples of}
+  \item[\coref{4}] The program \tool{prog3} contains a header entry of
+    type \constant{PT\_INTERP} because it is dynamically linked.  A
+    segment of type \constant{PT\_INTERP} contains the path name to
+    the ``interpreter'' that the kernel should use when executing the
+    program.  This is usually the runtime loader (the file
+    \filename{/libexec/ld-elf.so.1} on FreeBSD systems).
+  \item[\coref{5} \coref{6}] This object contains two loadable
+    segments. The first segment requires execute and read permissions,
+    and the second read and write permissions.  Both segments require
+    page (4096 byte) alignment.\index{segments!examples of}
   \end{description}
 \end{callout}
 
-You should now run \tool{prog3} on other object files.
+You should try runing \tool{prog3} on other object files.
 
 \begin{itemize}
-\item Try a relocatable object file created by a \tool{cc -c}
-  invocation.  Does it have an program header table?
-\item Try \tool{prog3} on shared libraries.  What do their program
-  header tables look like?
-\item Can you locate ELF objects on your system that have
-  \constant{PT\_TLS} header entries?
+\item Try running \tool{prog3} on a relocatable object created by a
+  \tool{cc -c} invocation.  Does this object have a program header
+  table?
+\item Try running \tool{prog3} on a shared library.  What does the
+  \elfdatastructure{Program Header Table} look like for a shared
+  library?
+\item Can you find ELF objects on your system that contain program
+  header table entries of type \constant{PT\_TLS}?
 \end{itemize}
 
 \chapter{Looking at Sections}\label{chap.elf-sections}

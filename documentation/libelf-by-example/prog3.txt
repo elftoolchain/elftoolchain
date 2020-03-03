@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 void
-print_ptype(size_t pt) @\co{7}@
+print_ptype(size_t pt) @\co{2}@
 {
     char *s;
 
@@ -39,7 +39,7 @@ main(int argc, char **argv)
     Elf *e;
     char *id, bytes[5];
     size_t n;
-    GElf_Phdr phdr; @\co{2}@
+    GElf_Phdr phdr; @\co{3}@
 
     if (argc != 2)
         errx(EXIT_FAILURE, "usage: %s file-name", argv[0]);
@@ -59,12 +59,12 @@ main(int argc, char **argv)
         errx(EXIT_FAILURE, "\"%s\" is not an ELF object.",
             argv[1]);
 
-    if (elf_getphdrnum(e, &n) != 0) @\co{3}@
+    if (elf_getphdrnum(e, &n) != 0) @\co{4}@
         errx(EXIT_FAILURE, "elf_getphdrnum() failed: %s.",
             elf_errmsg(-1));
 
-    for (i = 0; i < n; i++) { @\co{4}@
-        if (gelf_getphdr(e, i, &phdr) != &phdr) @\co{5}@
+    for (i = 0; i < n; i++) { @\co{5}@
+        if (gelf_getphdr(e, i, &phdr) != &phdr) @\co{6}@
             errx(EXIT_FAILURE, "getphdr() failed: %s.",
                 elf_errmsg(-1));
 
@@ -74,7 +74,7 @@ main(int argc, char **argv)
         (void) printf(PRINT_FMT, #N, (uintmax_t) phdr.N); \
     } while (0)
 #define         NL() do { (void) printf("\n"); } while (0)
-        PRINT_FIELD(p_type); @\co{6}@
+        PRINT_FIELD(p_type); @\co{7}@
         print_ptype(phdr.p_type);       NL();
         PRINT_FIELD(p_offset);          NL();
         PRINT_FIELD(p_vaddr);           NL();
