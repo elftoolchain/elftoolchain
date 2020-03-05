@@ -3489,6 +3489,10 @@ dump_notes(struct readelf *re)
 					warnx("invalid PHDR offset");
 					continue;
 				}
+				/*
+				 * XXX cross-endian core notes are not
+				 * translated - ticket #583.
+				 */
 				dump_notes_content(re, rawfile + phdr.p_offset,
 				    phdr.p_filesz, phdr.p_offset);
 			}
