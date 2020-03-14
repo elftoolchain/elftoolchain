@@ -360,7 +360,7 @@ concepts covered in this tutorial.
       child { node[concept] { ELF string tables } }
     }
     child {
-      node[concept] { ar(1) archives }
+      node[concept] { \tool{ar} archives }
       [clockwise from=-150]
       child { node[concept] { archive structure } }
       child { node[concept] { symbol \& string tables } }
@@ -2480,26 +2480,31 @@ you should also keep the relevant offsets in its
 \elfdatastructure{Program Header Table} entries updated. We will not
 however explore this topic further in this introductory tutorial.
 
-\chapter{Processing ar(1) archives}\label{chap.ar}
+\chapter{Processing \tool{ar} Archives}\label{chap.ar}
 
-The \library{libelf} library also supports reading the content of
-ar(1) archives, offering both sequential and random access to their
-content.  However, this support is ``read-only''; you cannot create
-new ar(1) archives or modify existing archives using these
-functions. If you need to create or modify ar(1) archives, please
-consider using
-\href{https://github.com/libarchive/libarchive/wiki}{\library{libarchive}}
-instead.
+During program development the \tool{ar} archiver is used to manage
+``libraries'' of object files.  You can use the \library{libelf}
+library to read these archives.
 
-\section{Archive structure}
+The \library{libelf} library's APIs are `read-only'---we cannot create
+new \tool{ar} archives (or modify existing archives) using its APIs.%
+\footnote{The
+  \href{https://github.com/libarchive/libarchive/wiki}{\library{libarchive}}
+  library could be used to create or modify \tool{ar} archives.}
 
-Each ar(1) archive starts with a sequence of 8 signature bytes (see
-the constant \constant{ARMAG}\index{ar~archive!magic} defined in the
-system header \filename{ar.h}).  The members of the archive follow,
-each member preceded by an \firstterm{archive
-  header}\index{ar~archive!header} describing the metadata associated
-with the member.  Figure~\vref{fig.arstr} depicts the structure of an
-ar(1) archive pictorially.
+In this chapter we will build an example program that takes an
+\tool{ar} archive as input and lists the names and sizes of the files
+contained within it.
+
+\section{The Structure of \tool{ar} Archives}
+
+Every \tool{ar} archive starts with a signature sequence of 8 bytes
+(please see the constant \constant{ARMAG}\index{ar~archive!magic}
+defined in the system header \filename{ar.h}).  The members of the
+archive follow this signature.
+
+Figure~\vref{fig.arstr} shows the structure of an
+\tool{ar} archive.
 
 \begin{figure}
   \begin{tikzpicture}[
@@ -2579,14 +2584,17 @@ ar(1) archive pictorially.
     \draw[shorten >=1pt, shorten <=1pt] ([yshift=1pt] h1.north west)
       to (arname.north west);
   \end{tikzpicture}
-  \caption{The structure of ar(1) archives.}\label{fig.arstr}
+  \caption{The structure of \tool{ar} archives.}\label{fig.arstr}
 \end{figure}
 
-Each archive header is a collection of fixed size ASCII
-strings.\index{ar~archive!header!layout} Archive headers are required
-to reside at even offsets in the archive file.
-Figure~\vref{src.arhdr} shows the layout of the archive header as a C
-structure.
+\subsection{The Archive Header}
+
+Each member of an \tool{ar} archive is preceded by an archive
+header\index{ar~archive!header} that describes the member's
+attributes. The archive header is a collection of fixed-size ASCII
+strings that resides at an even offset within the archive
+file.\index{ar~archive!header!layout} Listing~\vref{src.arhdr} shows
+the layout of the archive header as a C \type{struct}.
 
 \begin{lstlisting}[caption=Archive Header Layout, label=src.arhdr]
 struct ar_hdr {
@@ -2601,48 +2609,100 @@ struct ar_hdr {
 } __packed;
 \end{lstlisting}
 
-The initial members of an ar(1); archive may be special:
+\subsection{Special Archive Members}
+The initial members of an \tool{ar} archive may be special:
 
 \begin{itemize}
-\item An archive member with name ``/'' is an \firstterm{archive
-  symbol table}\index{ar~archive!symbol~table}.  An archive symbol table
-  maps program symbols to archive members in an archive.  It is
-  usually maintained by tools like \tool{ranlib} and \tool{ar}.
-\item An archive member with name ``/\hskip-.2ex/'' is an
-  \firstterm{archive string table}\index{ar~archive!string~table}.
-  The members of an ar(1) header only contain fixed size ASCII strings
-  with space and `/' characters being used for string termination.
-  File names that exceed the length limits of the \parameter{ar\_name}
-  member are handled by placing them in a special string table (not to
-  be confused with ELF string tables) and storing the offset of the
-  file name in the \parameter{ar\_name} member as a string of decimal
-  digits.\index{ar~archive!long~file~names}
+\item An archive member with the name ``/'' is an archive symbol
+  table\index{ar~archive!symbol~table}.  This symbol table maps
+  program symbols to archive members in the archive.  It is usually
+  maintained by tools like \tool{ranlib} and \tool{ar}.
+
+\item An archive member with the name ``/\hskip-.2ex/'' is an archive
+  string table\index{ar~archive!string~table}.
+
+  The \tool{ar} archive header can only contain fixed size ASCII
+  strings. Member file names that exceed the length limits of the
+  \parameter{ar\_name} archive header field would need to be placed in
+  a special string table.\footnote{Archive string tables are not to be
+    confused with ELF string tables. ELF string tables were examined
+    in section~\ref{sec.shdr.strtab}.}  The \parameter{ar\_name} field
+  of the archive header would then hold the offset within the archive
+  string table of the real file name, encoded as a decimal
+  number.\index{ar~archive!long~file~names}
 \end{itemize}
 
-The archive handling functions offered by the \library{libelf} library
-insulate the application from these details of the layout of
-ar(1) archives.
+\subsection{Archive Flavors}
 
-\section{Example: Stepping through an ar(1) archive}
+\tool{ar} archives come in two flavors mainly: BSD and SVR4.  These
+flavors are different in many respects---for example, SVR4 archives
+use a `/' character to terminate file names in the archive header,
+whereas BSD format archives use a ASCII space character as a
+terminator.  The way the two formats handle long file names is also
+different. The archive handling APIs offered by the \library{libelf}
+library will insulate your code from the differences between the
+archive formats.
 
-We now illustrate (listing~\vref{src.prog.6}) how an application may
-iterate through the members of an ar(1) archive.  The steps involved
-are:\index{ar~archive!sequential~access}
+\subsection{Archive Symbol Tables}\label{sec.ar.symtab}
 
-\begin{enumerate}
-\item Archives are opened using \function{elf\_begin} in the usual way.
-\item Each archive managed by the \library{libelf} library tracks the
-  next member to opened.  This information is updated using the
-  functions \function{elf\_next} and \function{elf\_rand}.
-\item Nested calls to function \function{elf\_begin} retrieve ELF
-  descriptors for the members in the archive.
-\end{enumerate}
+An archive symbol table helps linkers to quickly locate the ELF
+objects in an archive. The BSD and SVR4 archive flavors have their own
+archive symbol table formats.
 
-Figure \vref{fig.ariter} pictorially depicts how functions
-\function{elf\_begin} and \function{elf\_next} are used to step
-through an ar(1) archive.%
-\index{ar~archive!sequential~access!elf_begin@\function{elf\_begin}}
-\index{ar~archive!sequential~access!elf_next@\function{elf\_next}}
+If an archive symbol table is present in an \tool{ar} archive, it will
+be the archive's first member.
+
+You can read an \tool{ar} archive's symbol table using the function
+\function{elf\_getarsym}.\index{ar~archive!symbol~table!retrieval of}
+\index{ar~archive!symbol~table!elf_getarsym@\function{elf\_getarsym}}
+This function returns an array of \type{Elf\_Arsym} structures, where
+each \type{Elf\_Arsym} structure maps a program symbol to a file
+offset within the \tool{ar} archive. These file offsets can then be
+used with the \function{elf\_rand} function to retrieve the ELF object
+in question (please see section~\ref{sec.ar.random-access} below).
+
+Listing~\vref{fig.arsym} contains the C definition of an
+\type{Elf\_Arsym} data type.%
+\index{Elf_Arsym@\texttt{Elf\_Arsym}!definition~of}
+
+\begin{lstlisting}[caption=The \type{Elf\_Arsym} structure,
+    label=fig.arsym, basicstyle=\small\ttfamily]
+typedef struct {
+  off_t         as_off;   /* byte offset to member header */
+  unsigned long as_hash;  /* elf_hash() value for name */
+  char          *as_name; /* null terminated symbol name */
+} Elf_Arsym;
+\end{lstlisting}
+
+\subsection{Random Archive Access Using \function{elf\_rand}}
+\label{sec.ar.random-access}
+
+Instead of iterating over the members of an \tool{ar} archive in
+sequence, you can also directly access specific members in the archive
+using the \function{elf\_rand}
+function.\index{ar~archive!random~access}
+
+This function configures the parent archive's \type{Elf} descriptor to
+open the desired archive member on the next call to
+\function{elf\_begin}.\index{ar~archive!random~access!use of
+  \function{elf\_rand}}
+
+The \function{elf\_rand} function takes the file offset to an archive
+header as its input parameter.  This means that the function is only
+useful when the file offset to the desired member's archive header is
+already known. If an archive contains an archive symbol table
+\index{ar~archive!symbol~table} then the function
+\function{elf\_getarsym} could be used to retrieve the relevant file
+offsets to its member's headers.
+
+The \function{elf\_getarsym} function was described in
+section~\ref{sec.ar.symtab} above.
+
+\section{Example: Stepping Through An \filename{ar} Archive}
+
+Listing~\vref{src.prog.6} contains a program that traverses an
+\tool{ar} archive, printing out the file names and byte sizes of its
+members.
 
 \begin{figure}[h]
   \begin{tikzpicture}[
@@ -2709,37 +2769,35 @@ through an ar(1) archive.%
     \draw[->,shorten >=1pt,shorten <=1pt,bend left] (h2.north east) to
       node[auto] {$\texttt{elf\_next}_{(2)}$} (h3.north east);
   \end{tikzpicture}
-  \caption{Iterating through ar(1) archives with
+  \caption{Iterating through \tool{ar} archives with
     \function{elf\_begin} and \function{elf\_next}.}\label{fig.ariter}
 \end{figure}
-
-We now look at an example program that illustrates these concepts.
 
 \begin{callout}{prog6}
   \lstinputlisting[caption=Program 6, label=src.prog.6]{prog6.txt}
 
   \begin{description}
-  \item[\coref{1} \coref{2}] We open the ar(1) archive for reading and
-    obtain a descriptor in the usual manner.%
-    \index{ar~archive!reading of!elf_begin@\function{elf\_begin}}
+  \item[\coref{1}] We open the archive for reading.
+  \item[\coref{2}] We obtain an \type{Elf} descriptor by calling the
+    function \function{elf\_begin}.\index{ar~archive!reading
+      of!elf_begin@\function{elf\_begin}} We then verify that the
+    \library{libelf} library had recognized the file as an \tool{ar}
+    archive.
 
-  \item[\coref{3}] Function \function{elf\_begin} is used to the
-    iterate through the members of the archive.  The third parameter
-    in the call to \function{elf\_begin} is a pointer to the
-    descriptor for the archive itself.  The return value of function
-    \function{elf\_begin} is a descriptor that references an archive
-    member.
+  \item[\coref{3}] We call the \function{elf\_begin} to obtain a
+    nested \type{Elf} descriptor to an archive member.  The third
+    parameter passed to \function{elf\_begin} is a pointer to the
+    \type{Elf} descriptor for the archive itself.
 
-  \item[\coref{4}] We retrieve the translated ar(1) header using
-    function \function{elf\_getarhdr}.  We then print out the name and
-    size of the member.  Note that function \function{elf\_getarhdr}
-    translates names to null-terminated C strings suitable for use
-    with \function{printf}.\index{ar~archive!header!retrieval~of}
+  \item[\coref{4}] We retrieve the archive header for the current
+    archive member using the function \function{elf\_getarhdr}. This
+    function will translate the file names in the archive header to
+    \constant{NUL}-terminated strings suitable for use with
+    \function{printf}.\index{ar~archive!header!retrieval~of}
 
     Figure~\vref{fig.arhdr} shows the translated information returned
     by \function{elf\_getarhdr}.%
     \index{ar~archive!header!elf_getarhdr@\function{elf\_getarhdr}}
-
     \index{Elf_Arhdr@\type{Elf\_Arhdr}!definition~of}
 
     \begin{lstlisting}[caption=The \type{Elf\_Arhdr} Structure,
@@ -2754,24 +2812,38 @@ typedef struct {
     uid_t       ar_uid;      /* creator's user id */
 } Elf_Arhdr;
     \end{lstlisting}
-  \item[\coref{5}] The \function{elf\_next} function sets up the
-    \emph{parent} archive descriptor (referenced by
-    variable \parameter{ar} in this example) to return the next
-    archive member on the next call to function \function{elf\_begin}.
 
-    The \function{elf\_next} function ordinarily returns the value
-    \constant{ELF\_C\_READ}, allowing the traversal of the archive to
-    continue normally. In the event of an error the function
-    returns the value \constant{ELF\_C\_NULL}, which causes the function
-    \function{elf\_begin} to stop archive traversal.
-  \item[\coref{6}] It is good programming practice to call
-    \function{elf\_end} on descriptors that are no longer needed.
+    We then print out the name and the size of the member using the
+    \parameter{ar\_name} and \parameter{ar\_size} fields of the
+    returned \type{Elf\_Arhdr} structure.
+
+  \item[\coref{5}] We call the \function{elf\_next} function to set up
+    the parent archive descriptor (held in the variable \parameter{ar}
+    in our example) to return the next archive member on the next call
+    to function \function{elf\_begin}.
+
+    The \function{elf\_next} function will return the value
+    \constant{ELF\_C\_READ} as long as the traversal of the archive
+    can continue.  When called with a descriptor to the last member of
+    an archive the \function{elf\_next} function will return the value
+    \constant{ELF\_C\_NULL}.  This value will cause the subsequent
+    call to function \function{elf\_begin} at step 3 to return
+    \constant{NULL}, thereby terminating the loop.
+
+    Figure \vref{fig.ariter} shows how the functions
+    \function{elf\_begin} and \function{elf\_next} work together to
+    step through an \tool{ar} archive.%
+    \index{ar~archive!sequential~access!elf_begin@\function{elf\_begin}}
+    \index{ar~archive!sequential~access!elf_next@\function{elf\_next}}
+
+  \item[\coref{6}] We call \function{elf\_end} to release the
+    resources held by \type{Elf} descriptors that are no longer
+    needed.
   \end{description}
 \end{callout}
 
-Save the program in listing~\vref{src.prog.6} to file
-\filename{prog6.c} and then compile and run it as shown in
-listing~\vref{scr.prog6}.%
+Save the program in listing~\ref{src.prog.6} to a file named
+\filename{prog6.c}, and compile and run it as shown.
 \index{libelf@\library{libelf}!linking with}
 
 \begin{callout}{scr6}
@@ -2785,44 +2857,11 @@ listing~\vref{scr.prog6}.%
       sigev_thread.o 15528
   \end{lstlisting}
   \begin{description}
-  \item[\coref{1}] Compile and link the program in the usual fashion.
-  \item[\coref{2}] We run the program against a small library and get
-    a list of its members.
+  \item[\coref{1}] We compile and link the program with \library{libelf}.
+  \item[\coref{2}] We run the program on an archive and obtain a
+    listing of the archive's contents.
   \end{description}
 \end{callout}
-
-\subsection{Random access in an ar(1) archive}
-
-Random access in the archive is supported by the function
-\function{elf\_rand}.\index{ar~archive!random~access} However, in
-order to use this function you need to know the file offsets in the
-archive for the desired archive member.  For archives containing
-object files this information is present in the archive symbol
-table.\index{ar~archive!symbol~table}
-
-If an archive has an archive symbol table, it can be retrieved using
-the function \function{elf\_getarsym}.%
-\index{ar~archive!symbol~table!retrieval of}%
-\index{ar~archive!symbol~table!elf_getarsym@\function{elf\_getarsym}}
-Function \function{elf\_getarsym} returns an array of
-\type{Elf\_Arsym} structures.  Each \type{Elf\_Arsym} structure
-(figure~\vref{fig.arsym}) maps one program symbol to the file offset
-inside the ar(1) archive of the member that contains its definition.%
-\index{Elf_Arsym@\texttt{Elf\_Arsym}!definition~of}
-
-\begin{lstlisting}[caption=The \type{Elf\_Arsym} structure,
-    label=fig.arsym, basicstyle=\small\ttfamily]
-typedef struct {
-  off_t         as_off;   /* byte offset to member header */
-  unsigned long as_hash;  /* elf_hash() value for name */
-  char          *as_name; /* null terminated symbol name */
-} Elf_Arsym;
-\end{lstlisting}
-
-Once the file offset of the member is known, the function
-\function{elf\_rand} can be used to set the parent archive to open the
-desired archive member at the next call to \function{elf\_begin}.%
-\index{ar~archive!random~access!use of \function{elf\_rand}}
 
 \chapter{Conclusion}\label{chap.conclusion}
 
@@ -2836,7 +2875,7 @@ This tutorial covered the following topics:
   from existing ELF objects.
 \item We looked at how to create new ELF objects using the ELF(3)
   library.
-\item We looked at accessing information in the ar(1) archives.
+\item We looked at accessing information in the \tool{ar} archives.
 \end{itemize}
 
 \section{Further Reading}
