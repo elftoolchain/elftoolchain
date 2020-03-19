@@ -132,18 +132,22 @@
 \chapter*{Preface}
 
 This tutorial introduces the \library{libelf} library being developed
-at the \elftoolchainproject on \href{https://sourceforge.net/}%
-{SourceForge.Net}.  Using a series of example programs, it shows how
-this library could be used to create tools that manipulate ELF
-objects. Along the way, the tutorial will describe the ELF file format
-to the extent needed to understand the example programs being
-discussed.
+at the \elftoolchainproject on
+\href{https://sourceforge.net/}{SourceForge.Net}.  It uses simple
+example programs to show how to create ELF processing tools using the
+\library{libelf} library. Along the way the tutorial covers the ELF
+file format---to the extent needed to understand the example programs
+being discussed.
 
-This tutorial would primarily be of interest to developers desiring to
-create ELF processing tools.
+The tutorial would be of interest to software developers who wish to
+write software that processes ELF files.
 
 The tutorial's example programs are written using the C programming
-language. As a consequence, the knowledge of C is a pre-requisite.
+language. They should compile out of the box on FreeBSD\trade,
+NetBSD\raisebox{0.7ex}{\reg} and other BSD-family operating systems,
+and on GNU/Linux with the \filename{libbsd-dev}
+package\footnote{\filename{libbsd-dev} is the package name used by
+  Debian and Debian-derived distributions.} (or equivalent) installed.
 
 \section*{Legal Notice}
 
@@ -213,12 +217,12 @@ The ELF specification was released to the public in
 ``\href{https://refspecs.linuxbase.org/elf/elf.pdf}{open
   standard}''. As a result of its ready availability it has been
 widely adopted by industry and the open-source community. The ELF
-standard supports both big and little-endian architectures of 32 and
-64-bit widths. It supports features like cross-compilation and dynamic
-shared libraries. ELF also supports the special compilation needs of
-the C++ language.
+standard supports big and little-endian machine architectures with
+32-bit and 64-bit word widths. It supports cross-compilation, the use
+of dynamic shared libraries and supports the special compilation needs
+of the C++ language.
 
-Among open-source operating systems\index{ELF!in~open-source}, the
+Among the open-source operating systems\index{ELF!in~open-source}, the
 RedHat\trade RHL 2.0 Beta release (late summer 1995) and the Slackware
 v3.0 (November 1995) release were among the first Linux\reg-based
 operating systems to use ELF.  The first ELF based release for
@@ -228,96 +232,95 @@ format in FreeBSD 3.0 (October 1998).
 
 The \library{libelf} library implements a large set of APIs, known as
 the ELF(3) \& GELF(3) APIs. \index{libelf@\library{libelf}!purpose of}
-These APIs allow application writers to write software that can run on
-one kind of machine architecture, while manipulating ELF objects meant
-for another.
+These APIs allow you to write software that can run on one kind of
+machine architecture, while manipulating ELF objects meant for
+another.
 
 There are multiple implementations of the ELF(3)/GELF(3) API set in
 the open-source world.  This tutorial is based on the \library{libelf}
 library being developed as part of the \elftoolchainproject on
 \href{https://sourceforge.net/}{SourceForge.Net}.
 
-The set of ELF(3)/GELF(3) APIs implemented by the \library{libelf}
-library is quite large, with over 80 callable functions.  This
-tutorial has been written to provide a gentle introduction to this API
-set.
+The ELF(3)/GELF(3) APIs implemented by the \library{libelf} library
+have over 80 callable functions and can be daunting to learn.  This
+tutorial offers a gentle introduction to this API set.
 
 \section{On The Structure Of This Tutorial}
 
-As you would expect from the tutorial's name, we will be looking at
-working code from the very beginning. We will look at a series of
+As you would expect from the tutorial's name, we will be writing
+example programs from the very beginning. We will look at a series of
 simple but complete programs, each illustrating a different aspect of
 the ELF format and the \library{libelf} library's APIs. We will
 introduce the necessary ELF related concepts as we go along.
 
-We will start in chapter \vref{chap.getting-started} by getting
-started with using the \library{libelf} library. We will look at how
-to compile and link an application that uses the library, how to
-establish a working ELF version number, how to obtain a handle to a
-ELF object, and how to handle any errors reported back by the
-\library{libelf} library.  This chapter will introduce the functions
+We start in chapter \vref{chap.getting-started} by covering getting
+started with the \library{libelf} library. We look at how to compile
+and link an application that uses the library, how to establish a
+working ELF version number, how to obtain a handle to a ELF object,
+and how to handle any errors reported back by the \library{libelf}
+library.  This chapter introduces the functions
 \function{elf\_begin}, \function{elf\_end}, \function{elf\_errmsg},
 \function{elf\_errno}, \function{elf\_kind} and
 \function{elf\_version}.
 
-Then, in chapter \vref{chap.peering-inside} we will look at how the
-ELF standard defines the layout of executables, relocatable objects
-and shared objects. We will look at how the ELF data structure known
-as the Executable Header\index{executable header} describes the layout
-of the rest of the file.  Along the way we will introduce the notions
-of the ``file representation'' and ``memory representation'' of ELF
-data types, and will look at how the \library{libelf} library enables
-applications to work on ELF objects whose word size and endianness
-differ from their ``native'' word size and endianness. We will then
-bring all these concepts together to write a program that displays the
-contents of the ELF Executable Header for an ELF object. In this
+In chapter \vref{chap.peering-inside} we study layout of executables,
+relocatable objects and shared objects. We look at how the ELF data
+structure known as the \elfdatastructure{Executable
+  Header}\index{executable header} describes the layout of the rest of
+the file.  Along the way we introduce the notions of the ``file
+representation'' and ``memory representation'' of ELF data types, and
+look at how the \library{libelf} library enables applications to work
+on ELF objects whose word size and endianness differ from their
+``native'' size and endianness. We then bring these concepts together
+to write a program that displays the contents of the ELF
+\elfdatastructure{Executable Header} for an ELF object. In this
 chapter we look at the following new APIs: \function{elf\_getident},
 \function{elf\_getphdrnum}, \function{elf\_getshdrnum},
 \function{elf\_getshdrstrndx}, \function{gelf\_getehdr} and
 \function{gelf\_getclass}.
 
-In chapter \vref{chap.elf-phdr} we will study ELF segments and how
-these segments are described by an ELF Prog\-ram Head\-er Table. We
-will write an example program to display the program header table
-entries in an ELF executable.  This chapter introduces the
-\function{gelf\_getphdr} function.
+In chapter \vref{chap.elf-phdr} we study ELF segments. We see how the
+segments of a file are described by a \elfdatastructure{Prog\-ram
+  Head\-er Table}. We write an example program to display the program
+header table entries in an ELF executable.  This chapter introduces
+the \function{gelf\_getphdr} function.
 
-In chapter \vref{chap.elf-sections} we will look at how data is stored
-in ELF sections and how these sections are described by the ELF
-Section Header Table. We will look at how ELF string tables (a special
-kind of ELF section) are structured. We will write an example program
-that traverses an ELF object, listing the names of its contained
-sections.  In this chapter we will meet the \type{Elf\_Scn} and
-\type{Elf\_Data} data types and their related APIs
+In chapter \vref{chap.elf-sections} we look at how data is stored in
+ELF sections, and how these sections are described by the ELF
+\elfdatastructure{Section Header Table}. We study how ELF string
+tables (a special kind of ELF section) are structured. We then write
+an example program that traverses an ELF object, listing the names of
+its contained sections.  In this chapter we meet the \type{Elf\_Scn}
+and \type{Elf\_Data} data types and their related APIs
 \function{elf\_\-getscn}, \function{elf\_\-getdata},
 \function{elf\_\-nextscn}, \function{elf\_\-strptr}, and
 \function{gelf\_\-getshdr}.
 
-In chapter \vref{chap.creating-elf} we will look at how to create new
-ELF objects using the \library{libelf} library. We will look at how
-the \library{libelf} library lays out ELF objects by default, and how
-to use the library to create ELF objects with custom layouts if the
-default layout is not desired. We will look at the correct ordering of
-individual API calls when creating ELF objects. We will then write an
+In chapter \vref{chap.creating-elf} we look at how to create new ELF
+objects using the \library{libelf} library. We look at how the
+\library{libelf} library lays out ELF objects by default, and how to
+use the library to create ELF objects with custom layouts if the
+default layout is not desired. We look at the correct ordering of
+individual API calls when creating ELF objects. We then write an
 example program that creates a new ELF object.  In this chapter we
-will introduce you to the \function{elf\_fill},
-\function{elf32\_get\-shdr}, \function{elf32\_new\-ehdr},
-\function{elf32\_new\-phdr}, \function{elf\_flag\-phdr},
-\function{elf\_ndx\-scn}, \function{elf\_new\-data},
-\function{elf\_new\-scn}, and \function{elf\_update} functions.
+encounter the \function{elf\_fill}, \function{elf32\_get\-shdr},
+\function{elf32\_new\-ehdr}, \function{elf32\_new\-phdr},
+\function{elf\_flag\-phdr}, \function{elf\_ndx\-scn},
+\function{elf\_new\-data}, \function{elf\_new\-scn}, and
+\function{elf\_update} functions.
 
 We then move on to \tool{ar} archives---in chapter \vref{chap.ar} we
-will study how these archives are structured. We will write an example
-program to list the names of files in an \tool{ar} archive.  This
+study the structure of these archives. The example program in this
+chapter lists the names of files in an \tool{ar} archive.  This
 chapter covers the use of the \function{elf\_get\-arhdr},
 \function{elf\_get\-arsym}, \function{elf\_next} and
 \function{elf\_rand} functions.
 
-Finally, we will conclude the tutorial in chapter
-\vref{chap.conclusion} with a few suggestions for further reading.
+Finally, we conclude the tutorial with a few suggestions for further
+reading.
 
-Figure~\vref{fig.concept.map} shows a graphical overview of the
-concepts covered in this tutorial.
+Figure~\vref{fig.concept.map} offers a graphical overview of the
+concepts covered by this tutorial.
 
 \begin{figure}
 \begin{tikzpicture}[mindmap,concept color=orange!25]
@@ -930,7 +933,7 @@ be incorrect.
 \section{The ELf32, Elf64 and GElf APIs}
 
 The ELF(3) API is defined in terms of ELF class-dep\-endent types
-(\type{Elf32\_\-Ehdr}, \type{Elf64\_\-Shdr}, etc.). Consequently many
+(\type{Elf32\_\-Ehdr}, \type{Elf64\_\-Shdr}, etc). Consequently many
 operations on ELF handles in the ELF(3) API have both 32- and 64- bit
 variants.
 
@@ -947,13 +950,13 @@ need to process either class of ELF objects.\index{ELF!class!agnostic
 The GELF(3)\index{GELF} APIs instead provide a way to write
 applications that can handle objects of both ELF classes without code
 duplication.  These APIs are defined in terms of ``generic'' C types
-that are large enough to hold the values of their corresponding 32-
-and 64- bit ELF types. The GELF(3) data types have names that start
-with \type{GElf\_} and the functions have names that start with
+that are large enough to hold their corresponding 32-bit and 64- bit
+ELF types. The GELF(3) data types have names that start with
+\type{GElf\_} and the functions have names that start with
 \function{gelf\_}.  You can freely mix calls to GELF(3) and ELF(3)
 functions in your code.
 
-The downside of using the GELF(3) APIs is the small cost of the
+The downside to using the GELF(3) APIs is the small cost of the
 copying and conversion of data that happens behind the scenes inside
 \library{libelf}.\index{GELF!downsides to} This overhead is usually
 not significant for most programs.
