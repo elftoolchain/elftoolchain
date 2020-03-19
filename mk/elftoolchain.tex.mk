@@ -47,7 +47,7 @@ ${DOC}.cover.pdf: ${DOC}.cover.tex ${COVER_SRCS}
 # Otherwise, extract the cover page from the main document.
 #
 # This uses 'pdfjam' from the Tex Live package.
-${DOC}.cover.pdf:	${DOC}.pdf .PHONY
+${DOC}.cover.pdf:	${DOC}.pdf ${GENERATED_VERSION_TEX} .PHONY
 	${PDFJAM} -q -o ${DOC}.cover.pdf ${DOC}.pdf ${COVER_PAGE}
 .endif
 
@@ -83,7 +83,7 @@ CLEANFILES+=	${f:R}.eps ${f:R}.log ${f:R}.pdf ${f:R}.mpx
 
 CLEANFILES+=	mpxerr.tex mpxerr.log makempx.log missfont.log
 
-${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
+${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g} ${GENERATED_VERSION_TEX}
 	${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null || \
 		(cat ${DOC}.log; rm -f ${.TARGET}; exit 1)
 	@if grep 'undefined references' ${DOC}.log > /dev/null; then \
@@ -92,6 +92,11 @@ ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g}
 	@if grep 'Rerun to get' ${DOC}.log > /dev/null; then \
 		${_TEX} ${.CURDIR}/${DOC}.tex > /dev/null; \
 	fi
+
+.if defined(GENERATED_VERSION_TEX)
+${GENERATED_VERSION_TEX}:	.PHONY
+	${TOP}/libelftc/make-toolchain-version -t ${TOP} -o ${.TARGET} -h '' -p
+.endif
 
 CLEANFILES+=	${DOC}.pdf
 
