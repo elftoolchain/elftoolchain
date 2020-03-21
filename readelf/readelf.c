@@ -7058,15 +7058,8 @@ process_members:
 }
 
 static void
-dump_object(struct readelf *re)
+dump_object(struct readelf *re, int fd)
 {
-	int fd;
-
-	if ((fd = open(re->filename, O_RDONLY)) == -1) {
-		warn("open %s failed", re->filename);
-		return;
-	}
-
 	if ((re->flags & DISPLAY_FILENAME) != 0)
 		printf("\nFile: %s\n", re->filename);
 
@@ -7435,7 +7428,7 @@ main(int argc, char **argv)
 {
 	struct readelf	*re, re_storage;
 	unsigned long	 si;
-	int		 opt, i;
+	int		 fd, opt, i;
 	char		*ep;
 
 	re = &re_storage;
@@ -7560,7 +7553,13 @@ main(int argc, char **argv)
 
 	for (i = 0; i < argc; i++) {
 		re->filename = argv[i];
-		dump_object(re);
+		fd = open(re->filename, O_RDONLY);
+		if (fd < 0) {
+			warn("open %s failed", re->filename);
+		} else {
+			dump_object(re, fd);
+			close(fd);
+		}
 	}
 
 	exit(EXIT_SUCCESS);
