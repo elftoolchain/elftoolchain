@@ -1066,7 +1066,7 @@ use the \code{elf\textit{NN}\_xlatetof} and
 \index{libelf@\texttt{libelf}!manual~data~conversion} We don't look at
 these functions in this introductory tutorial.
 
-\section{Example: Reading an ELF executable header}
+\section{Example: Reading an ELF Executable Header}
 
 Let us create a program that will print out the ELF
 \elfdatastructure{Executable Header} present in an ELF object. Our
@@ -1520,7 +1520,7 @@ You should try runing \tool{prog3} on other object files.
   header table entries of type \constant{PT\_TLS}?
 \end{itemize}
 
-\chapter{Looking At Sections}\label{chap.elf-sections}
+\chapter{Looking at Sections}\label{chap.elf-sections}
 
 Compilers and linkers view ELF objects differently than operating
 systems do. These tools treat ELF files as a collection of ELF
@@ -1710,7 +1710,7 @@ There are a couple of quirks to keep mind when handling ELF sections:
   extended section numbering.\index{sections!indices!valid~indices}
 \end{itemize}
 
-\section{ELF section handling with \library{libelf}}
+\section{ELF Section Handling With \library{libelf}}
 
 The \library{libelf} library offers APIs to retrieve section header
 table entries and the contents of sections.\footnote{We will cover the
@@ -2036,7 +2036,7 @@ The \function{elf\_strptr} function in the \library{libelf} library
 converts string table offsets into \code{char *} pointers usable by
 C code.\index{string~tables!retrieval of strings}
 
-\section{Example: Listing section names}
+\section{Example: Listing Section Names}
 
 Let us now write an example program that retrieves and prints the
 names of the sections in an ELF object.
@@ -2137,7 +2137,7 @@ r p \^@\at@ . h a s h \^@\at@ . d y n s y m
 In this chapter we will use the \library{libelf} library to create a
 new ELF object.\index{ELF!creation~of}
 
-\section{Example: Creating An ELF Object}
+\section{Example: Creating an ELF Object}
 
 Listing~\vref{src.prog.5} has an example program that creates an ELF
 file with the following content:
@@ -2413,7 +2413,7 @@ working with your ELF object, you should retrieve these pointers
 afresh from \library{libelf}.%
 \index{libelf@\texttt{libelf}!API!pointer validity}
 
-\section{Modifying existing ELF objects}\label{sec.modifying-elf}
+\section{Modifying Existing ELF Objects}\label{sec.modifying-elf}
 
 You can use the \library{libelf} library to modify existing ELF
 objects.
@@ -2581,7 +2581,7 @@ struct ar_hdr {
 } __packed;
 \end{lstlisting}
 
-\subsection{Special Archive Members}
+\section{Special Archive Members}
 The initial members of an \tool{ar} archive may be special:
 
 \begin{itemize}
@@ -2604,7 +2604,7 @@ The initial members of an \tool{ar} archive may be special:
   number.\index{ar~archive!long~file~names}
 \end{itemize}
 
-\subsection{Archive Flavors}
+\section{Archive Flavors}
 
 \tool{ar} archives come in two flavors mainly: BSD and SVR4.  These
 flavors are different in many respects---for example, SVR4 archives
@@ -2615,7 +2615,7 @@ different. The archive handling APIs offered by the \library{libelf}
 library will insulate your code from the differences between the
 archive formats.
 
-\subsection{Archive Symbol Tables}\label{sec.ar.symtab}
+\section{Archive Symbol Tables}\label{sec.ar.symtab}
 
 An archive symbol table helps linkers to quickly locate the ELF
 objects in an archive. The BSD and SVR4 archive flavors have their own
@@ -2644,7 +2644,7 @@ typedef struct {
 } Elf_Arsym;
 \end{lstlisting}
 
-\subsection{Random Archive Access Using \function{elf\_rand}}
+\section{Random Archive Access Using \function{elf\_rand}}
 \label{sec.ar.random-access}
 
 Instead of iterating over the members of an \tool{ar} archive in
@@ -2667,7 +2667,7 @@ offsets to its member's headers.
 The \function{elf\_getarsym} function was described in
 section~\ref{sec.ar.symtab} above.
 
-\section{Example: Stepping Through An \filename{ar} Archive}
+\section{Example: Stepping Through an \filename{ar} Archive}
 
 Listing~\vref{src.prog.6} contains a program that traverses an
 \tool{ar} archive, printing out the file names and byte sizes of its
