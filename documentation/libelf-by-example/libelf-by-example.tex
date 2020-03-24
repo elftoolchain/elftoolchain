@@ -35,6 +35,7 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{lmodern}
 \usepackage{makeidx}
 \usepackage{tikz}
 \usepackage{varioref}
@@ -145,10 +146,9 @@ write software that processes ELF files.
 
 The tutorial's example programs are written using the C programming
 language. They should compile out of the box on FreeBSD\trade,
-NetBSD\raisebox{0.7ex}{\reg} and other BSD-family operating systems,
-and on GNU/Linux\reg with the \filename{libbsd-dev}
-package\footnote{\filename{libbsd-dev} is the name of the package in
-  Debian and Debian-derived distributions.} (or equivalent) installed.
+NetBSD\raisebox{0.7ex}{\reg} and other BSD-family operating systems.
+They should also compile on Debian GNU/Linux\reg, with the
+\filename{libbsd-dev} package installed.
 
 \section*{Legal Notice}
 
@@ -199,7 +199,15 @@ designations appear in this document, and the author and contributors
 were aware of the trademark claim, the designations have been followed
 by the ``\raisebox{-.5ex}{\texttrademark}'' or the ``\textregistered'' symbol.
 
-\subsection*{Acknowledgements}
+\section*{Document Version}
+
+You are reading the following version of this tutorial:
+
+\begin{quote}
+\texttt{\input{version}\unskip}
+\end{quote}
+
+\section*{Acknowledgements}
 
 The following people (names in alphabetical order) offered
 constructive criticism of this tutorial: Cherry George Mathew, Douglas
