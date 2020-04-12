@@ -51,7 +51,11 @@ table.head {	width: 100%;
 		border-bottom: 1px dotted #808080;
 		margin-bottom: 1em;
 		font-size: smaller; }
-td.head-vol {	text-align: center; }
+td.head-vol {	text-align: center;
+	        vertical-align: middle; }
+td.head-ltitle {
+		text-align: left;
+                vertical-align: middle; }
 td.head-rtitle {
 		text-align: right; }
 
