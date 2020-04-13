@@ -173,8 +173,8 @@ Prerequisites
     - To build additional documentation, the packages listed in the
       example command line below are needed::
 
-          % sudo apt install texlive-latex-recommended texlive-pictures \
-            texlive-extra-utils libbsd-dev
+          % sudo apt install html-xml-utils libbsd-dev mandoc \
+               texlive-extra-utils texlive-latex-recommended texlive-pictures
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
