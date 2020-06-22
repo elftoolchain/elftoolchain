@@ -83,11 +83,9 @@ curdir=`pwd`
 cd ${top} || usage "ERROR: Cannot change directory to \"${top}\"."
 
 # Determine the in-tree revision number.
-versionstring="$(get_revision_string)" || {
-    echo "ERROR: cannot determine a revision number." 1>&2;
-    exit 1
-}
+versionstring="$(get_revision_string)"
 
+# Prepare the full toolchain version string.
 toolchain_version="${elftcname} ${version} ${buildhost} ${versionstring}"
 
 cd ${curdir} || usage "Cannot change back to ${curdir}."
