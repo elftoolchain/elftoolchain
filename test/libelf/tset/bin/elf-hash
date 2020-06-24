@@ -1,16 +1,16 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 #
 # $Id$
 
-import sys, os
+import io, sys, os
 
 
-def elf_hash(s):
+def elf_hash(s : bytes):
     """A python implementation of elf_hash(3)."""
-    h = 0L
+    h = 0
     for c in s:
-        h = (h << 4) + ord(c)
-        t = (h & 0xF0000000L)
+        h = (h << 4) + c
+        t = (h & 0xF0000000)
         if t != 0:
             h = h ^ (t >> 24)
         h = h & ~t
@@ -39,6 +39,6 @@ if __name__ == '__main__':
 
     if options.hash_strings:
         for s in options.hash_strings:
-            print "\"%s\" 0x%x" % (s, elf_hash(s))
+            print("\"%s\" 0x%x" % (s, elf_hash(bytes(s, 'utf-8'))))
     for f in args:
-        print "[%s] 0x%x" % (f, elf_hash(open(f, 'r').read()))
+        print("[%s] 0x%x" % (f, elf_hash(io.open(f, 'rb').read())))
