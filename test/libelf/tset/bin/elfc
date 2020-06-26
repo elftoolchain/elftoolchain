@@ -84,7 +84,7 @@ usage = "usage: %prog [options] [input-file]"
 description = """Create an ELF binary from a textual description in """ + \
  """'input-file' (or stdin)"""
 
-import optparse, re, struct, sys, types, yaml
+import io, operator, optparse, re, struct, sys, types, yaml
 
 
 class ElfError(Exception):
@@ -110,13 +110,13 @@ class ElfError(Exception):
 
         if self.ee_start != -1:
             if self.ee_start == self.ee_end:
-                return "Error: line %d: %s" % (self.ee_start, self.ee_msg)
+                return "Error: line {start}: {msg}".format(
+                    start=self.ee_start, end=self.ee_msg)
             else:
-                return "Error: lines %d--%d: %s" % \
-                       (self.ee_start, self.ee_end,
-                 self.ee_msg)
+                return "Error: lines {start}--{end}: {msg}".format(
+                    start=self.ee_start, end=self.ee_end, msg=self.ee_msg)
         else:
-            return "Error: %s" % self.ee_msg
+            return "Error: {msg}".format(msg=self.ee_msg)
 
 
 #
@@ -571,12 +571,12 @@ def encode_flags(flags, m):
 def check_dict(d, l, node=None):
     """Check a dictionary for unknown keys."""
     unknown = []
-    for k in d.keys():
+    for k in d.iterkeys():
         if k not in l:
             unknown.append(k)
     if len(unknown) > 0:
-        raise ElfError(node, "{%s} Unknown key(s) %s" % \
-                (node.tag, unknown))
+        raise ElfError(node, "{tag} Unknown key(s) {key}".format(
+            tag=node.tag, key=unknown))
 
 
 def bounded_value(v, encoding):
@@ -623,10 +623,9 @@ class ElfStrTab:
     def bits(self):
         """Return the contents of an ELF string table."""
 
-        l = self.htab.items()
-        l.sort(lambda x, y: cmp(x[1], y[1]))  # Order by string offset.
+        # Prepare the string table, ordered by string offset.
         ls = [""]  # initial NUL
-        for (ss, oo) in l:
+        for (ss, oo) in sorted(self.htab.items(), key=operator.itemgetter(1)):
             ls.append(ss)
         return "\000".join(ls) + "\000"  # Add trailing NULs
 
@@ -672,9 +671,9 @@ class ElfType:
                 v = fn(d, name)
                 setattr(self, f[0], v)
             except:
-                raise ElfError(node,
-                        'key: "%s" value: "%s" unrecognized.' % \
-                      (name, d[name]))
+                raise ElfError(
+                    node, "key: {key!r} value: {value!r} unrecognized.".format(
+                        key=name, value=[name]))
         self._n = node  # Save YAML node and associated value
         self._d = d  # for error reporting.
 
@@ -749,7 +748,7 @@ class ElfType:
             elif f == "":
                 pass
             else:
-                raise TypeError, "Invalid format char '%s'." % f
+                raise TypeError("Invalid format char {char!r}.".format(char=f))
         return sz
 
 
@@ -1233,7 +1232,8 @@ class ElfSection(ElfType):
 
         if self._strtab:
             return self._strtab.lookup(name)
-        raise ElfError(None, 'Cannot translate "%s" to an index.' % name)
+        raise ElfError(
+            None, "Cannot translate {name!r} to an index.".format(name=name))
 
     def bits(self, formatchar, elfclass):
         raise AssertionError, "Section objects should use " \
@@ -1251,9 +1251,10 @@ class ElfSection(ElfType):
                     self.sh_name = \
                         elf.section_name_index(self.sh_name)
                 except KeyError:
-                    raise ElfError(self._n,
-                          "Section name '%s' not in string table." % \
-                          self.sh_name)
+                    raise ElfError(
+                        self._n,
+                        "Section name {name!r} not in string table.".format(
+                            name=self.sh_name))
         # give a chance for the contents of a section to xlate strings
         for d in self.sh_data:
             if isinstance(d, ElfType):
@@ -1355,7 +1356,7 @@ class ElfSym(ElfType):
                   elf.elf_sections.get_index(self.st_shndx)
             if self.st_shndx is None:
                 raise ElfError(self._n, "Untranslateable 'st_shndx' " + \
-                 "value \"%s\"." % self.st_shndx)
+                 "value {value!r}.".format(value=self.st_shndx))
 
         if type(self.st_name) == types.StringType:
             try:
@@ -1369,7 +1370,9 @@ class ElfSym(ElfType):
             try:
                 self.st_name = strtab.lookup(self.st_name)
             except KeyError:
-                raise ElfError(self._n, 'unknown string "%s"' % self.st_name)
+                raise ElfError(
+                    self._n,
+                    "unknown string {string!r}".format(string=self.st_name))
         return offset
 
 
@@ -1541,7 +1544,7 @@ class ElfSectionList:
             for sh in self.shl_sections:
                 if sh.sh_index == ind:
                     return sh
-            raise IndexError, "no section at index %d" % ind
+            raise IndexError("no section at index {index}".format(index=ind))
 
     def layout(self, offset, elf):
         """Compute the layout for section."""
@@ -1672,7 +1675,7 @@ class Elf:
         if offset < pos or (offset > pos and self.elf_fillchar == 0):
             f.seek(offset, 0)
             return
-        s = ("%c" % self.elf_fillchar) * (offset - pos)
+        s = ("{fillchar}".format(fillchar=self.elf_fillchar) * (offset - pos))
         f.write(s)
 
 
@@ -1763,11 +1766,11 @@ if __name__ == '__main__':
 
     try:
         if args:
-            stream = file(args[0], 'r')
+            stream = io.open(args[0], 'r')
         else:
             stream = sys.stdin
-    except IOError, x:
-        parser.error("cannot open stream: %s" % x)
+    except IOError as err:
+        parser.error("cannot open stream: {err}".format(err=err))
 
     init_parser()
 
@@ -1775,9 +1778,9 @@ if __name__ == '__main__':
         elf = make_elf(yaml.load(stream, Loader=yaml.Loader))
         elf.layout()
         elf.write(options.output)
-    except yaml.YAMLError, x:
-        parser.error("cannot parse stream: %s" % x)
-    except ElfError, msg:
+    except yaml.YAMLError as err:
+        parser.error("cannot parse stream: {err}".format(err=err))
+    except ElfError as msg:
         print msg
         sys.exit(1)
 
