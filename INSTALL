@@ -13,10 +13,10 @@ operating systems.
   =================   ========   =======================
   Operating System    Version    Supported Architectures
   -----------------   --------   -----------------------
-  `DragonFly BSD`_    5.2        amd64
+  `DragonFly BSD`_    5.8.1      amd64
   FreeBSD_            11.3       amd64 & i386
   Minix_              3.0.2      i386
-  NetBSD_             8.1        amd64
+  NetBSD_             8.2        amd64
   OpenBSD_            6.5        amd64
   Ubuntu_ GNU/Linux   18.04      x86_64
   =================   ========   =======================
@@ -40,7 +40,7 @@ directories are present.
 Prerequisites
 -------------
 
-:DragonFly BSD 5.2:
+:DragonFly BSD 5.8.1:
     - The core libraries and utilities should build out of the box on
       a stock install of DragonFly BSD.
 
@@ -49,9 +49,9 @@ Prerequisites
       #. The current release of the `Test Execution Toolkit`_ needs to
          be downloaded and unpacked into the ``test/tet/`` directory.
 
-      #. The ``py27-yaml`` package needs to be installed::
+      #. The ``py37-yaml`` package needs to be installed::
 
-            % sudo pkg install py27-yaml
+            % sudo pkg install py37-yaml
 
     - Building additional documentation is not currently supported
       under DragonFly BSD.
@@ -68,9 +68,9 @@ Prerequisites
             % cd <SRCDIR>/test/tet
             % tar -xf /PATH/TO/DOWNLOADED/TET-3.8-SOURCES
 
-      #. The ``python`` and ``py27-yaml`` packages need to be installed::
+      #. The ``py37-yaml`` package needs to be installed::
 
-            % sudo pkg install python py27-yaml
+            % sudo pkg install py37-yaml
 
     - Building additional documentation is not currently supported under
       FreeBSD 11.3.
@@ -113,9 +113,9 @@ Prerequisites
     - Building additional documentation is not currently supported
       under OpenBSD.
 
-:NetBSD 8.1:
+:NetBSD 8.2:
     - The core libraries and utilities should build out of the box on
-      a stock install of NetBSD 8.1.
+      a stock install of NetBSD 8.2.
 
     - To build and run the test suite:
 
@@ -126,7 +126,7 @@ Prerequisites
       #. The following additional package needs to be installed, as
          listed in the example command line below ::
 
-            % sudo pkgin install py27-yaml
+            % sudo pkgin install py37-yaml
 
     - Building additional documentation is not currently supported
       under NetBSD.
@@ -148,7 +148,7 @@ Prerequisites
       ``libexpat1-dev``       An XML processing library.
       ``m4``                  Macro processor.
       ``bmake``               NetBSD ``make``.
-      ``python-yaml``         A YAML library for Python.
+      ``python3-yaml``        A YAML library for Python.
       ``sharutils``           For ``uudecode``.
       ``zlib1g-dev``          Compression library.
       ===================     =====================================
@@ -168,7 +168,8 @@ Prerequisites
       #. The following additional packages need to be installed, as
          listed in the example command line below::
 
-            % sudo apt install libexpat1-dev python-yaml sharutils
+            % sudo apt install libexpat1-dev python3.7 python3-yaml \
+              sharutils
 
     - To build additional documentation, the packages listed in the
       example command line below are needed::
