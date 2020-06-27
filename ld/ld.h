@@ -48,7 +48,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "dwarf.h"
-#define oom() ld_fatal(ld, "out of memory")
+#define utarray_oom() ld_fatal(ld, "out of memory")
 #include "utarray.h"
 #define uthash_fatal(msg) ld_fatal(ld, msg)
 #include "uthash.h"
