@@ -488,6 +488,7 @@ defaults = {
     'sh_offset': None,
     'sh_size': None,
     'sh_type': 'SHT_NULL',
+    'sh_word_size': 32,
     # Verdaux
     'vda_name': 0,
     'vda_next': 0,
@@ -673,7 +674,7 @@ class ElfType:
             except:
                 raise ElfError(
                     node, "key: {key!r} value: {value!r} unrecognized.".format(
-                        key=name, value=[name]))
+                        key=name, value=d[name]))
         self._n = node  # Save YAML node and associated value
         self._d = d  # for error reporting.
 
@@ -950,11 +951,14 @@ class ElfEhdr(ElfType):
               type(self.e_shstrndx) == types.LongType:
                 pass
             else:
-                raise ElfError(self._n, "Unparseable e_shstrndx field.")
+                raise ElfError(
+                    self._n,
+                    "Unparseable e_shstrndx field: {v!r}".format(
+                        v=self.e_shstrndx))
             if self.e_shstrndx is None:
                 raise ElfError(self._n,
                         'Cannot determine section ' + \
-                        'name string table index.')
+                        'name string table index: {v!r}'.format(v=self.e_shstrndx))
         else:
             if self.e_shstrndx is None:
                 self.e_shstrndx = 0
@@ -1169,11 +1173,14 @@ class ElfSection(ElfType):
     YAML tag: !Section
 
     A section description consists of the fields that make up an ELF
-    section header entry and an additional field 'sh_data' that
-    contains the data associated with this section.
+    section header entry with the following additional fields:
 
-    'sh_data' may be a YAML string, or a YAML list of items that
-    comprise the content of the section.
+    - Field 'sh_data' contains the data associated with this section.
+      'sh_data' may be a YAML string, or can be a YAML list of items
+      that comprise the content of the section.
+    - Field 'sh_index' can be used to manually set the section's index.
+    - Field 'sh_word_size' specifies the word size to use for data in
+      integer literal form.  The value of this field can be 32 or 64.
     """
 
     fields = [
@@ -1189,7 +1196,8 @@ class ElfSection(ElfType):
         ('sh_addralign', do_copy, "I", "Q"),
         ('sh_entsize', do_long, "I", "Q"),
         ('sh_data', do_copy, "", ""),
-        ('sh_index', do_long, "", "")
+        ('sh_index', do_long, "", ""),
+        ('sh_word_size', do_long, "", ""),
     ]
 
     def __init__(self, shdr, node):
@@ -1207,6 +1215,11 @@ class ElfSection(ElfType):
             if (self.sh_addralign == 0 or \
              (self.sh_addralign & (self.sh_addralign - 1)) != 0):
                 raise ElfError(node, "'sh_addralign' not a power of two.")
+        if self.sh_word_size != 32 and self.sh_word_size != 64:
+            raise ElfError(
+                node,
+                "unsupported 'sh_word_size' value: {v!r}".format(
+                    v=self.sh_word_size))
         self._data = None  # 'cache' of translated data
         self._strtab = None
 
@@ -1236,8 +1249,8 @@ class ElfSection(ElfType):
             None, "Cannot translate {name!r} to an index.".format(name=name))
 
     def bits(self, formatchar, elfclass):
-        raise AssertionError, "Section objects should use " \
-              "databits() or headerbits()"
+        raise AssertionError("Section objects should use " \
+                             "databits() or headerbits()")
 
     def layout(self, offset, elf):
         """Prepare an ELF section for output."""
@@ -1298,10 +1311,13 @@ class ElfSection(ElfType):
         for d in self.sh_data:
             if isinstance(d, ElfType):
                 s += d.bits(formatchar, elfclass)
+            elif isinstance(d, types.IntType):
+                word_size_char = "I"
+                if self.sh_word_size == 64:
+                    word_size_char = "Q"
+                s += struct.pack(formatchar + word_size_char, d)
             elif isinstance(d, types.LongType):
                 s += struct.pack(formatchar + "Q", d)
-            elif isinstance(d, types.IntType):
-                s += struct.pack(formatchar + "I", d)
             else:
                 s += str(d)
         return s
@@ -1634,7 +1650,7 @@ class Elf:
 
         Argument 'fn' denotes the destination."""
 
-        of = file(fn, 'w')
+        of = io.open(fn, 'wb')
 
         formatchar = self.formatchar()
         elfclass = self.elfclass()
