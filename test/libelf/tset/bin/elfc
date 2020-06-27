@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 #
 # This script converts a textual (YAML) description of an ELF file to
 # an equivalent 'binary' file.
@@ -555,16 +555,16 @@ def encode(d, key, default, mapping):
 def encode_flags(flags, m):
     """Convert 'flags' to a single numeric value using mapping 'm'."""
     try:
-        v = long(flags)
+        v = int(flags)
         return v
     except:
         pass
-    v = 0L
+    v = 0
     for f in flags:
         try:
-            t = long(m[f])
+            t = int(m[f])
         except KeyError:
-            t = long(f)
+            t = int(f)
         v |= t
     return v
 
@@ -572,7 +572,7 @@ def encode_flags(flags, m):
 def check_dict(d, l, node=None):
     """Check a dictionary for unknown keys."""
     unknown = []
-    for k in d.iterkeys():
+    for k in d.keys():
         if k not in l:
             unknown.append(k)
     if len(unknown) > 0:
@@ -604,31 +604,31 @@ class ElfStrTab:
         """Initialize a string table from a list of strings."""
         self.offset = 1  # reserve space for initial null byte
         self.htab = {}
-        if type(strs) == types.StringType:  # one string
+        if isinstance(strs, str):  # one string
             self.add(strs)
-        elif type(strs) == types.ListType:  # list of strings
+        elif isinstance(strs, list):  # list of strings
             for s in strs:
                 self.add(s)
 
-    def add(self, str):
+    def add(self, s: str):
         """Add a string to the string table.
 
         Returns the offset of the string in the ELF section."""
         try:
-            return self.lookup(str)
+            return self.lookup(s)
         except KeyError:
-            self.htab[str] = offset = self.offset
-            self.offset += len(str) + 1  # Keep space for a NUL.
+            self.htab[s] = offset = self.offset
+            self.offset += len(s) + 1  # Keep space for a NUL.
         return offset
 
     def bits(self):
         """Return the contents of an ELF string table."""
 
         # Prepare the string table, ordered by string offset.
-        ls = [""]  # initial NUL
+        ls = [b""]  # initial NUL
         for (ss, oo) in sorted(self.htab.items(), key=operator.itemgetter(1)):
-            ls.append(ss)
-        return "\000".join(ls) + "\000"  # Add trailing NULs
+            ls.append(bytes(ss, 'utf-8'))
+        return b"\000".join(ls) + b"\000"  # Add trailing NULs
 
     def lookup(self, str):
         """Return the ELF string table offset for string 'str'."""
@@ -663,7 +663,7 @@ class ElfType:
         node    -- YAML parser node for this element.
         """
 
-        keys = map(lambda t: t[0], self.fields)
+        keys = [t[0] for t in self.fields]
         check_dict(d, keys, node)
         for f in self.fields:
             name = f[0]
@@ -696,7 +696,7 @@ class ElfType:
             n = 2
         else:
             n = 3
-        return "".join(map(lambda t: t[n], self.fields))
+        return "".join([t[n] for t in self.fields])
 
     def content(self, elfclass):
         """Return a tuple containing the values for an ELF type."""
@@ -772,7 +772,7 @@ def do_long(d, n):
 
     v = get(d, n, defaults[n])
     if v:
-        return long(v)
+        return int(v)
     return v
 
 
@@ -852,7 +852,7 @@ class ElfEhdrIdent(ElfType):
 
     def bits(self, format, elfclass):
         f, args = self.getfields(elfclass)
-        s = "\x7FELF"
+        s = b"\x7FELF"
         s += struct.pack(f + 'xxxxxxx', *args)
         return s
 
@@ -944,11 +944,10 @@ class ElfEhdr(ElfType):
         if self.nsections > 0:
             if self.e_shstrndx is None:
                 self.e_shstrndx = '.shstrtab'
-            if type(self.e_shstrndx) == types.StringType:
+            if isinstance(self.e_shstrndx, str):
                 self.e_shstrndx = \
                   elf.elf_sections.get_index(self.e_shstrndx)
-            elif type(self.e_shstrndx) == types.IntType or \
-              type(self.e_shstrndx) == types.LongType:
+            elif isinstance(self.e_shstrndx, int):
                 pass
             else:
                 raise ElfError(
@@ -1001,7 +1000,7 @@ class ElfLong:
     """Wrapper around a python Int/Long."""
 
     def __init__(self, v):
-        self._v = long(v)
+        self._v = int(v)
 
     def bits(self, formatchar, elfclass):
         """Return the file representation for this object.
@@ -1011,7 +1010,7 @@ class ElfLong:
         8 bytes wide.
         """
 
-        if self._v > 0xFFFFFFFFL:
+        if self._v > 0xFFFFFFFF:
             f = formatchar + "Q"
         else:
             f = formatchar + "I"
@@ -1204,7 +1203,7 @@ class ElfSection(ElfType):
         """Initialize a section descriptor."""
 
         ElfType.__init__(self, shdr, node)
-        if type(self.sh_data) != types.ListType:
+        if not isinstance(self.sh_data, list):
             self.sh_data = list(self.sh_data)
         if self.sh_addralign is None:
             if self.sh_type == SHT_NULL or self.sh_type == SHT_NOBITS:
@@ -1255,10 +1254,10 @@ class ElfSection(ElfType):
     def layout(self, offset, elf):
         """Prepare an ELF section for output."""
 
-        if type(self.sh_name) == types.StringType:
+        if isinstance(self.sh_name, str):
             # first try convert it to a long
             try:
-                self.sh_name = long(self.sh_name)
+                self.sh_name = int(self.sh_name)
             except ValueError:  # lookup in string table
                 try:
                     self.sh_name = \
@@ -1307,19 +1306,17 @@ class ElfSection(ElfType):
         if self.sh_type == SHT_STRTAB:
             return self._strtab.bits()
         # 'normal' section
-        s = ""
+        s = b""
         for d in self.sh_data:
             if isinstance(d, ElfType):
                 s += d.bits(formatchar, elfclass)
-            elif isinstance(d, types.IntType):
+            elif isinstance(d, int):
                 word_size_char = "I"
                 if self.sh_word_size == 64:
                     word_size_char = "Q"
                 s += struct.pack(formatchar + word_size_char, d)
-            elif isinstance(d, types.LongType):
-                s += struct.pack(formatchar + "Q", d)
             else:
-                s += str(d)
+                s += bytes(d, 'utf-8')
         return s
 
     def headerbits(self, formatchar, elfclass):
@@ -1367,14 +1364,14 @@ class ElfSym(ElfType):
         string tables.
         """
 
-        if type(self.st_shndx) == types.StringType:
+        if isinstance(self.st_shndx, str):
             self.st_shndx = \
                   elf.elf_sections.get_index(self.st_shndx)
             if self.st_shndx is None:
                 raise ElfError(self._n, "Untranslateable 'st_shndx' " + \
                  "value {value!r}.".format(value=self.st_shndx))
 
-        if type(self.st_name) == types.StringType:
+        if isinstance(self.st_name, str):
             try:
                 strtab = \
                        elf.elf_sections[self.st_shndx]._strtab
@@ -1490,7 +1487,7 @@ class ElfPhdrTable:
 
         self.pht_data = []
         for ph in phdr:
-            if type(ph) == types.DictType:
+            if isinstance(ph, dict):
                 ph = ElfPhdr(ph)
             elif not isinstance(ph, ElfPhdr):
                 raise ElfError(ph.node, "Program Header Table "
@@ -1611,7 +1608,7 @@ class Elf:
         self.elf_ehdr = ehdr
         self.elf_phdrtab = phdrtab
         self.elf_sections = sections
-        self.elf_fillchar = long(
+        self.elf_fillchar = int(
             get(yamldict, 'elf_fillchar', defaults['elf_fillchar']))
 
     def byteorder(self):
@@ -1701,22 +1698,22 @@ class Elf:
 
 yaml_tags = [
     # -YAPF-
-    (u'!Cap', ElfCap),
-    (u'!Dyn', ElfDyn),
-    (u'!Ehdr', ElfEhdr),
-    (u'!Ident', ElfEhdrIdent),
-    (u'!Move', ElfMove),
-    (u'!Note', ElfNote),
-    (u'!Phdr', ElfPhdr),
-    (u'!Rel', ElfRel),
-    (u'!Rela', ElfRela),
-    (u'!Section', ElfSection),
-    (u'!Sym', ElfSym),
-    (u'!Syminfo', ElfSyminfo),
-    (u'!Verdaux', ElfVerdaux),
-    (u'!Verdef', ElfVerdef),
-    (u'!Vernaux', ElfVernaux),
-    (u'!Verneed', ElfVerneed)
+    ('!Cap', ElfCap),
+    ('!Dyn', ElfDyn),
+    ('!Ehdr', ElfEhdr),
+    ('!Ident', ElfEhdrIdent),
+    ('!Move', ElfMove),
+    ('!Note', ElfNote),
+    ('!Phdr', ElfPhdr),
+    ('!Rel', ElfRel),
+    ('!Rela', ElfRela),
+    ('!Section', ElfSection),
+    ('!Sym', ElfSym),
+    ('!Syminfo', ElfSyminfo),
+    ('!Verdaux', ElfVerdaux),
+    ('!Verdef', ElfVerdef),
+    ('!Vernaux', ElfVernaux),
+    ('!Verneed', ElfVerneed)
 ]
 
 
@@ -1797,7 +1794,7 @@ if __name__ == '__main__':
     except yaml.YAMLError as err:
         parser.error("cannot parse stream: {err}".format(err=err))
     except ElfError as msg:
-        print msg
+        print(msg)
         sys.exit(1)
 
 # Local Variables:
