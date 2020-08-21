@@ -23,7 +23,7 @@
 .\"
 .\" $Id$
 .\"
-.Dd June 27, 2019
+.Dd August 21, 2020
 .Dt ELFTC_BFD_FIND_TARGET 3
 .Os
 .Sh NAME
@@ -31,7 +31,8 @@
 .Nm elftc_bfd_target_byteorder ,
 .Nm elftc_bfd_target_class ,
 .Nm elftc_bfd_target_flavor ,
-.Nm elftc_bfd_target_machine
+.Nm elftc_bfd_target_machine ,
+.Nm elftc_bfd_target_osabi
 .Nd binary object descriptor handling
 .Sh LIBRARY
 .Lb libelftc
@@ -48,6 +49,8 @@
 .Fn elftc_bfd_target_flavor "Elftc_Bfd_Target *target"
 .Ft "unsigned int"
 .Fn elftc_bfd_target_machine "Elftc_Bfd_Target *target"
+.Ft "unsigned int"
+.Fn elftc_bfd_target_osabi "Elftc_Bfd_Target *target"
 .Sh DESCRIPTION
 Function
 .Fn elftc_bfd_find_target
