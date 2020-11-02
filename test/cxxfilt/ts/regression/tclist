@@ -32,3 +32,8 @@
 
 # ticket 539, demangler does not demangle lambdas
 "_ZZN9libunwind17LocalAddressSpace18findUnwindSectionsEjRNS_18UnwindInfoSectionsEENUlP12dl_phdr_infojPvE_8__invokeES4_jS5_", "libunwind::LocalAddressSpace::findUnwindSections(unsigned int, libunwind::UnwindInfoSections&)::{lambda(dl_phdr_info*, unsigned int, void*)#1}::__invoke(dl_phdr_info*, unsigned int, void*)"
+
+# ticket 581, memory corruption
+"_ZZN5boost13serialization16singleton_module8get_lockEvE4lock", "boost::serialization::singleton_module::get_lock()::lock"
+"_ZZN7WebCore19SVGAnimatedProperty20LookupOrCreateHelperINS_32SVGAnimatedStaticPropertyTearOffIbEEbLb1EE21lookupOrCreateWrapperEPNS_10SVGElementEPKNS_15SVGPropertyInfoERbE19__PRETTY_FUNCTION__", "WebCore::SVGAnimatedProperty::LookupOrCreateHelper<WebCore::SVGAnimatedStaticPropertyTearOff<bool>, bool, true>::lookupOrCreateWrapper(WebCore::SVGElement*, WebCore::SVGPropertyInfo const*, bool&)::__PRETTY_FUNCTION__"
+"_ZN10linked_ptrIN12CrxInstaller14WhitelistEntryEE4copyIS1_EEvPKS_IT_E", "void linked_ptr<CrxInstaller::WhitelistEntry>::copy<CrxInstaller::WhitelistEntry>(linked_ptr<CrxInstaller::WhitelistEntry> const*)"
