@@ -59,7 +59,7 @@ fi
 # Determine the latest journal file to use, if one was not explicitly
 # specified.
 if [ -z "${journal}" ]; then
-    journal=`find "${ts_root}/results" -name journal | tail -1`
+    journal=`find "${ts_root}/results" -name journal | sort | tail -1`
     if [ -z "${journal}" ]; then
 	usage "Could not find a TET journal under \"${ts_root}\"."
 	exit 1
