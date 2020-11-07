@@ -14,7 +14,7 @@ operating systems.
   Operating System    Version    Supported Architectures
   -----------------   --------   -----------------------
   `DragonFly BSD`_    5.8.1      amd64
-  FreeBSD_            11.3       amd64 & i386
+  FreeBSD_            12.2       amd64 & i386
   Minix_              3.0.2      i386
   NetBSD_             8.2        amd64
   OpenBSD_            6.5        amd64
@@ -56,7 +56,7 @@ Prerequisites
     - Building additional documentation is not currently supported
       under DragonFly BSD.
 
-:FreeBSD 11.3:
+:FreeBSD 12.2:
     - The core libraries and utilities should build out of the box on
       a stock install of FreeBSD.
 
@@ -73,7 +73,7 @@ Prerequisites
             % sudo pkg install py37-yaml
 
     - Building additional documentation is not currently supported under
-      FreeBSD 11.3.
+      FreeBSD 12.2.
 
 :Minix 3.2.0:
     - The following packages are pre-requisites for building the
