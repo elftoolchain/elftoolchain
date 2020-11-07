@@ -26,6 +26,6 @@
  * $Id$
  */
 
-char *i386_script;
+extern char *i386_script;
 
 void	i386_register(struct ld *);

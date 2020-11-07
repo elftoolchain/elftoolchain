@@ -23,7 +23,7 @@
  * SUCH DAMAGE.
  */
 
-char *littlemips_script;
-char *bigmips_script;
+extern char *littlemips_script;
+extern char *bigmips_script;
 
 void	mips_register(struct ld *);
