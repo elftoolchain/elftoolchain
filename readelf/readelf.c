@@ -2736,8 +2736,9 @@ timestamp(time_t ti)
 
 	t = gmtime(&ti);
 	snprintf(ts, sizeof(ts), "%04d-%02d-%02dT%02d:%02d:%02d",
-	    t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour,
-	    t->tm_min, t->tm_sec);
+	    (t->tm_year + 1900) % 10000u, (t->tm_mon + 1) % 100u,
+	    t->tm_mday % 100u, t->tm_hour % 100u, t->tm_min % 100u,
+	    t->tm_sec % 100u);
 
 	return (ts);
 }
@@ -4001,8 +4002,10 @@ dump_liblist(struct readelf *re)
 			ti = lib->l_time_stamp;
 			t = gmtime(&ti);
 			snprintf(tbuf, sizeof(tbuf), "%04d-%02d-%02dT%02d:%02d"
-			    ":%2d", t->tm_year + 1900, t->tm_mon + 1,
-			    t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+			    ":%2d", (t->tm_year + 1900) % 10000u,
+			    (t->tm_mon + 1) % 100u, t->tm_mday % 100u,
+			    t->tm_hour % 100u, t->tm_min % 100u,
+			    t->tm_sec % 100u);
 			printf("%-19.19s ", tbuf);
 			printf("0x%08x ", lib->l_checksum);
 			printf("%-7d %#x", lib->l_version, lib->l_flags);
