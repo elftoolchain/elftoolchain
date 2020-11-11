@@ -26,3 +26,4 @@ MK_MAN=		no	# FreeBSD 7 and later.
 
 # Literate programming utility.
 NOWEB?=		/usr/local/bin/noweb
+PYTHON?=	/usr/local/bin/python3.7

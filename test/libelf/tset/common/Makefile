@@ -25,7 +25,7 @@ ${f}.${e}${c}: ${f}.yaml
 	_E=`echo ${e} | tr '[a-z]' '[A-Z]'`; _C=`echo ${c} | tr '[a-z]' '[A-Z]'`; \
 	cat ${.CURDIR}/${f}.yaml | sed -e "s/ELFDATANONE/ELFDATA2$${_E}/g" \
 		-e "s/ELFCLASSNONE/ELFCLASS$${_C}/g" | \
-		${TS_ROOT}/bin/elfc -o ${.TARGET}
+		${PYTHON} ${TS_ROOT}/bin/elfc -o ${.TARGET}
 .  endfor
 . endfor
 .endfor

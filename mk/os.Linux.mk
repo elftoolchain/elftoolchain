@@ -28,3 +28,4 @@ MPOSTTEX?=	/usr/bin/latex
 NOWEB?=		/usr/bin/noweb
 PDFJAM?=	/usr/bin/pdfjam
 PDFLATEX?=	/usr/bin/pdflatex
+PYTHON?=	/usr/bin/python3
