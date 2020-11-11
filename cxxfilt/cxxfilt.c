@@ -154,11 +154,11 @@ main(int argc, char **argv)
 			break;
 		case 'V':
 			version();
-			/* NOT REACHED */
+			break;
 		case OPTION_HELP:
 		default:
 			usage();
-			/* NOT REACHED */
+			break;
 		}
 	}
 

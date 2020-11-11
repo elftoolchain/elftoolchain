@@ -158,12 +158,11 @@ main(int argc, char **argv)
 				radix = RADIX_HEX;
 			else
 				usage();
-			        /* NOTREACHED */
 			break;
 		case 'v':
 		case 'V':
 			show_version();
-			/* NOTREACHED */
+			break;
 		case '0':
 	        case '1':
 		case '2':

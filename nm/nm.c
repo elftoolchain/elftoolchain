@@ -499,7 +499,7 @@ get_opt(int argc, char **argv)
 			break;
 		case 'V':
 			print_version();
-			/* NOTREACHED */
+			break;
 		case 'a':
 			nm_opts.print_debug = true;
 			break;

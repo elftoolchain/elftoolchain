@@ -404,10 +404,13 @@ main(int argc, char **argv)
 		switch (opt) {
 		case 'H':
 			usage();
+			break;
 		case 'V':
 			version();
+			break;
 		default:
 			usage();
+			break;
 		}
 	}
 

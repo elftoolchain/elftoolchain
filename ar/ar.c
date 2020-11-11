@@ -141,8 +141,10 @@ main(int argc, char **argv)
 				break;
 			case OPTION_HELP:
 				ranlib_usage();
+				break;
 			default:
 				ranlib_usage();
+				break;
 			}
 		}
 		argv += optind;
@@ -261,8 +263,10 @@ main(int argc, char **argv)
 			break;
 		case OPTION_HELP:
 			bsdar_usage();
+			break;
 		default:
 			bsdar_usage();
+			break;
 		}
 	}
 

@@ -690,10 +690,13 @@ main(int argc, char **argv)
 			break;
 		case 'H':
 			usage();
+			break;
 		case 'V':
 			version();
+			break;
 		default:
 			usage();
+			break;
 		}
 	}
 

@@ -462,7 +462,7 @@ _scan_reloc(struct ld *ld, struct ld_input_section *is,
 				_create_got_reloc(ld, lsb, R_386_RELATIVE,
 				    lsb->lsb_got_off);
 		}
-
+		/* FALLTHROUGH */
 	default:
 		ld_warn(ld, "can not handle relocation %ju",
 		    lre->lre_type);

@@ -141,19 +141,23 @@ ld_file_load(struct ld *ld, struct ld_file *lf)
 	switch (ehdr.e_type) {
 	case ET_NONE:
 		ld_fatal(ld, "%s: ELF type ET_NONE not supported", lf->lf_name);
+		break;
 	case ET_REL:
 		lf->lf_type = LFT_RELOCATABLE;
 		break;
 	case ET_EXEC:
 		ld_fatal(ld, "%s: ELF type ET_EXEC not supported yet",
 		    lf->lf_name);
+		break;
 	case ET_DYN:
 		lf->lf_type = LFT_DSO;
 		break;
 	case ET_CORE:
 		ld_fatal(ld, "%s: ELF type ET_NONE not supported", lf->lf_name);
+		break;
 	default:
 		ld_fatal(ld, "%s: unknown ELF type %u", ehdr.e_type);
+		break;
 	}
 
 	ld_arch_verify(ld, lf->lf_name, ehdr.e_machine, ehdr.e_ident[EI_DATA],
