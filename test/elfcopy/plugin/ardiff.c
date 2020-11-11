@@ -77,6 +77,7 @@ main(int argc, char **argv)
 			break;
 		case 's':
 			checksize = 1;
+			break;
 		case 't':
 			tc = optarg;
 			break;
