@@ -16,7 +16,7 @@ operating systems.
   `DragonFly BSD`_    5.8.1      amd64
   FreeBSD_            12.2       amd64 & i386
   Minix_              3.0.2      i386
-  NetBSD_             8.2        amd64
+  NetBSD_             9.1        amd64
   OpenBSD_            6.5        amd64
   Ubuntu_ GNU/Linux   18.04      x86_64
   =================   ========   =======================
@@ -113,9 +113,9 @@ Prerequisites
     - Building additional documentation is not currently supported
       under OpenBSD.
 
-:NetBSD 8.2:
+:NetBSD 9.1:
     - The core libraries and utilities should build out of the box on
-      a stock install of NetBSD 8.2.
+      a stock install of NetBSD 9.1.
 
     - To build and run the test suite:
 
@@ -126,7 +126,7 @@ Prerequisites
       #. The following additional package needs to be installed, as
          listed in the example command line below ::
 
-            % sudo pkgin install py37-yaml
+            % sudo pkgin install py38-yaml
 
     - Building additional documentation is not currently supported
       under NetBSD.
