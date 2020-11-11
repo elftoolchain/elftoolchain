@@ -435,7 +435,8 @@ _layout_sections(struct ld *ld, struct ld_script_sections *ldss)
 		switch (ldc->ldc_type) {
 		case LSC_ASSERT:
 			ld_output_create_element(ld, &lo->lo_oelist,
-			    OET_ASSIGN, ldc->ldc_cmd, NULL);
+			    OET_ASSERT, ldc->ldc_cmd, NULL);
+			break;
 		case LSC_ASSIGN:
 			ld_output_create_element(ld, &lo->lo_oelist,
 			    OET_ASSIGN, ldc->ldc_cmd, NULL);
