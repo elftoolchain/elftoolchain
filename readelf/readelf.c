@@ -7415,7 +7415,7 @@ _decode_sleb128(uint8_t **dp, uint8_t *dpe)
 	} while ((b & 0x80) != 0);
 
 	if (shift < 32 && (b & 0x40) != 0)
-		ret |= (-1 << shift);
+		ret |= (~0UL << shift);
 
 	*dp = src;
 
