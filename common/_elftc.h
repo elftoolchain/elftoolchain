@@ -372,6 +372,12 @@ extern const char *__progname;
  * The following symbols are supported by this configuration fragment,
  * although not all the OSes so referenced are fully supported.
  *
+ * Cross-compilation:
+ *
+ * HAVE_NBTOOL_CONFIG_H : cross-compiling NetBSD tools on various OSes.
+ *
+ * Native compilation:
+ *
  * __APPLE__     : compiling under Mac OS X.
  * __DragonFly__ : compiling under DragonFlyBSD.
  * __GLIBC__     : compiling under GNU based systems, such as GNU/kFreeBSD.
@@ -382,7 +388,19 @@ extern const char *__progname;
  * __OpenBSD__   : compiling under OpenBSD.
  */
 
-#if defined(__APPLE__)
+#if defined(HAVE_NBTOOL_CONFIG_H)
+
+#include <sys/param.h>
+#include <sys/endian.h>
+
+#define	ELFTC_BYTE_ORDER			_BYTE_ORDER
+#define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
+#define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+
+#define	ELFTC_HAVE_MMAP				1
+#define	ELFTC_HAVE_STRMODE			1
+
+#elif defined(__APPLE__)
 
 #include <libkern/OSByteOrder.h>
 #define	htobe32(x)	OSSwapHostToBigInt32(x)
