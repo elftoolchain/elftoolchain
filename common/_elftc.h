@@ -282,45 +282,32 @@ struct name {							\
 
 /*
  * VCS Ids.
+ *
+ * The marker below is intended to be replaced with a project-specific
+ * definition of the ELFTC_VCSID macro.
  */
+
+/* @ELFTC-VCSID-MARKER@ */
 
 #ifndef	ELFTC_VCSID
 
-#if defined(__DragonFly__)
-#define	ELFTC_VCSID(ID)		__RCSID(ID)
-#endif
+#if defined(__DragonFly__) || defined(__NetBSD__)
 
-#if defined(__FreeBSD__)
+#define	ELFTC_VCSID(ID)		__RCSID(ID)
+
+#elif defined(__FreeBSD__)
+
 #define	ELFTC_VCSID(ID)		__FBSDID(ID)
-#endif
 
-#if defined(__APPLE__) || defined(__GLIBC__) || defined(__GNU__) || \
-    defined(__linux__)
+#elif defined(__APPLE__) || defined(__OpenBSD__) || defined(__GLIBC__) || \
+    defined(__GNU__) || defined(__linux__) || defined(__minix)
+
 #if defined(__GNUC__)
 #define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
 #else
 #define	ELFTC_VCSID(ID)		/**/
 #endif
-#endif
 
-#if defined(__minix)
-#if defined(__GNUC__)
-#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
-#else
-#define	ELFTC_VCSID(ID)		/**/
-#endif	/* __GNU__ */
-#endif
-
-#if defined(__NetBSD__)
-#define	ELFTC_VCSID(ID)		__RCSID(ID)
-#endif
-
-#if defined(__OpenBSD__)
-#if defined(__GNUC__)
-#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
-#else
-#define	ELFTC_VCSID(ID)		/**/
-#endif	/* __GNUC__ */
 #endif
 
 #endif	/* ELFTC_VCSID */
