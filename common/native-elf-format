@@ -39,6 +39,8 @@ $1 ~ "Machine:" {
             elfarch = "EM_X86_64";
         } else if (match($0, "PowerPC64")) {
             elfarch = "EM_PPC64";
+	} else if (match($0, "ARM")) {
+	    elfarch = "EM_ARM";
         } else {
             elfarch = "unknown";
         }
