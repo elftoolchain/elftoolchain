@@ -111,7 +111,7 @@ struct type_delimit {
 #define	CPP_DEMANGLE_TRY_LIMIT	128
 #define	FLOAT_SPRINTF_TRY_LIMIT	5
 #define	FLOAT_QUADRUPLE_BYTES	16
-#define	FLOAT_EXTENED_BYTES	10
+#define	FLOAT_EXTENDED_BYTES	10
 
 #define SIMPLE_HASH(x,y)	(64 * x + y)
 #define DEM_PUSH_STR(d,s)	cpp_demangle_push_str((d), (s), strlen((s)))
@@ -3628,7 +3628,7 @@ decode_fp_to_float128(const char *p, size_t len)
 	switch(sizeof(long double)) {
 	case FLOAT_QUADRUPLE_BYTES:
 		return (decode_fp_to_long_double(p, len));
-	case FLOAT_EXTENED_BYTES:
+	case FLOAT_EXTENDED_BYTES:
 		if (p == NULL || len == 0 || len % 2 != 0 ||
 		    len / 2 > FLOAT_QUADRUPLE_BYTES)
 			return (NULL);
@@ -3647,12 +3647,12 @@ decode_fp_to_float128(const char *p, size_t len)
 			    (unsigned char)(byte);
 #endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
-		memset(&f, 0, FLOAT_EXTENED_BYTES);
+		memset(&f, 0, FLOAT_EXTENDED_BYTES);
 
 #if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
+		memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
 #else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		memcpy(&f, buf + 6, FLOAT_EXTENED_BYTES);
+		memcpy(&f, buf + 6, FLOAT_EXTENDED_BYTES);
 #endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
@@ -3681,16 +3681,16 @@ decode_fp_to_float80(const char *p, size_t len)
 	long double f;
 	size_t rtn_len, limit, i;
 	int byte;
-	unsigned char buf[FLOAT_EXTENED_BYTES];
+	unsigned char buf[FLOAT_EXTENDED_BYTES];
 	char *rtn;
 
 	switch(sizeof(long double)) {
 	case FLOAT_QUADRUPLE_BYTES:
 		if (p == NULL || len == 0 || len % 2 != 0 ||
-		    len / 2 > FLOAT_EXTENED_BYTES)
+		    len / 2 > FLOAT_EXTENDED_BYTES)
 			return (NULL);
 
-		memset(buf, 0, FLOAT_EXTENED_BYTES);
+		memset(buf, 0, FLOAT_EXTENDED_BYTES);
 
 		for (i = 0; i < len / 2; ++i) {
 			byte = hex_to_dec(p[len - i * 2 - 1]) +
@@ -3702,7 +3702,7 @@ decode_fp_to_float80(const char *p, size_t len)
 #if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
 			buf[i] = (unsigned char)(byte);
 #else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-			buf[FLOAT_EXTENED_BYTES - i -1] =
+			buf[FLOAT_EXTENDED_BYTES - i -1] =
 			    (unsigned char)(byte);
 #endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 		}
@@ -3710,9 +3710,9 @@ decode_fp_to_float80(const char *p, size_t len)
 		memset(&f, 0, FLOAT_QUADRUPLE_BYTES);
 
 #if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-		memcpy(&f, buf, FLOAT_EXTENED_BYTES);
+		memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
 #else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENED_BYTES);
+		memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENDED_BYTES);
 #endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 
 		rtn_len = 256;
@@ -3730,7 +3730,7 @@ again:
 		}
 
 		return (rtn);
-	case FLOAT_EXTENED_BYTES:
+	case FLOAT_EXTENDED_BYTES:
 		return (decode_fp_to_long_double(p, len));
 	default:
 		return (NULL);
