@@ -465,7 +465,7 @@ _libelf_ar_process_svr4_symtab(Elf *e, size_t *count)
 			goto symtaberror;
 
 		GET_WORD(p, off);
-		if (off >= e->e_rawsize)
+		if ((off_t) off >= e->e_rawsize)
 			goto symtaberror;
 
 		sym->as_off = (off_t) off;
