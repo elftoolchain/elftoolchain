@@ -18,6 +18,7 @@ operating systems.
   Minix_              3.0.2      i386
   NetBSD_             9.1        amd64
   OpenBSD_            6.5        amd64
+  Raspbian_           10         armv7l
   Ubuntu_ GNU/Linux   18.04      x86_64
   =================   ========   =======================
 
@@ -26,6 +27,7 @@ operating systems.
 .. _Minix:   http://www.minix3.org/
 .. _NetBSD:  http://www.netbsd.org/
 .. _OpenBSD: http://www.openbsd.org/
+.. _Raspbian: https://www.raspberrypi.org/software/
 .. _Ubuntu:  http://www.ubuntu.com/
 
 Building the Source Tree
@@ -176,6 +178,40 @@ Prerequisites
 
           % sudo apt install html-xml-utils libbsd-dev mandoc \
                texlive-extra-utils texlive-latex-recommended texlive-pictures
+
+:Raspbian 10:
+    - The following packages are pre-requisites for building the
+      sources on Raspbian 10:
+
+      ===================     =====================================
+      **Package**             **Description**
+      ===================     =====================================
+      ``bison``               Parser generator.
+      ``flex``                Lexical analyser.
+      ``libarchive-dev``      Archive access library.
+      ``m4``                  Macro processor.
+      ``bmake``               NetBSD ``make``.
+      ===================     =====================================
+
+      The following command line may be used to install the necessary
+      pre-requisites::
+
+	  % sudo apt install bison flex libarchive-dev m4 bmake
+
+    - To build and run the test suite:
+
+      #. The current release of the `Test Execution Toolkit`_ needs to
+         be downloaded and unpacked into the ``test/tet/`` directory::
+
+            % cd <SRCDIR>/test/tet
+            % tar -xf /PATH/TO/DOWNLOADED/TET-3.8-SOURCES
+
+      #. The ``python3-yaml`` package needs to be installed::
+
+            % sudo apt install python3-yaml
+
+    - Building additional documentation is not currently supported
+      under Raspbian.
 
 .. _Test Execution Toolkit: http://tetworks.opengroup.org/
 .. _OpenGroup: http://www.opengroup.org/
