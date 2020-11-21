@@ -108,6 +108,14 @@ struct type_delimit {
 	bool firstp;
 };
 
+#if !defined(__SIZEOF_LONG_DOUBLE__)
+#error __SIZEOF_LONG_DOUBLE__ must be defined, see ticket [#599]
+#endif
+
+#if !defined(__SIZEOF_DOUBLE__)
+#error __SIZEOF_DOUBLE__ must be defined, see ticket [#599]
+#endif
+
 #define	CPP_DEMANGLE_TRY_LIMIT	128
 #define	FLOAT_SPRINTF_TRY_LIMIT	5
 #define	FLOAT_QUADRUPLE_BYTES	16
@@ -179,7 +187,9 @@ static char	*decode_fp_to_double(const char *, size_t);
 static char	*decode_fp_to_float(const char *, size_t);
 static char	*decode_fp_to_float128(const char *, size_t);
 static char	*decode_fp_to_float80(const char *, size_t);
+#if __SIZEOF_LONG_DOUBLE__ != __SIZEOF_DOUBLE__
 static char	*decode_fp_to_long_double(const char *, size_t);
+#endif
 static int	hex_to_dec(char);
 static void	vector_read_cmd_dest(struct vector_read_cmd *);
 static struct read_cmd_item *vector_read_cmd_find(struct vector_read_cmd *,
@@ -3619,124 +3629,125 @@ again:
 static char *
 decode_fp_to_float128(const char *p, size_t len)
 {
+#if __SIZEOF_LONG_DOUBLE__ == FLOAT_QUADRUPLE_BYTES
+	return (decode_fp_to_long_double(p, len));
+#elif __SIZEOF_LONG_DOUBLE__ == FLOAT_EXTENDED_BYTES
 	long double f;
 	size_t rtn_len, limit, i;
 	int byte;
 	unsigned char buf[FLOAT_QUADRUPLE_BYTES];
 	char *rtn;
 
-	switch(sizeof(long double)) {
-	case FLOAT_QUADRUPLE_BYTES:
-		return (decode_fp_to_long_double(p, len));
-	case FLOAT_EXTENDED_BYTES:
-		if (p == NULL || len == 0 || len % 2 != 0 ||
-		    len / 2 > FLOAT_QUADRUPLE_BYTES)
-			return (NULL);
-
-		memset(buf, 0, FLOAT_QUADRUPLE_BYTES);
-
-		for (i = 0; i < len / 2; ++i) {
-			byte = hex_to_dec(p[len - i * 2 - 1]) +
-			    hex_to_dec(p[len - i * 2 - 2]) * 16;
-			if (byte < 0 || byte > 255)
-				return (NULL);
-#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-			buf[i] = (unsigned char)(byte);
-#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-			buf[FLOAT_QUADRUPLE_BYTES - i -1] =
-			    (unsigned char)(byte);
-#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		}
-		memset(&f, 0, FLOAT_EXTENDED_BYTES);
-
-#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-		memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
-#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		memcpy(&f, buf + 6, FLOAT_EXTENDED_BYTES);
-#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-
-		rtn_len = 256;
-		limit = 0;
-again:
-		if ((rtn = malloc(sizeof(char) * rtn_len)) == NULL)
-			return (NULL);
-
-		if (snprintf(rtn, rtn_len, "%Lfd", f) >= (int)rtn_len) {
-			free(rtn);
-			if (limit++ > FLOAT_SPRINTF_TRY_LIMIT)
-				return (NULL);
-			rtn_len *= BUFFER_GROWFACTOR;
-			goto again;
-		}
-
-		return (rtn);
-	default:
+	if (p == NULL || len == 0 || len % 2 != 0 ||
+	    len / 2 > FLOAT_QUADRUPLE_BYTES)
 		return (NULL);
+
+	memset(buf, 0, FLOAT_QUADRUPLE_BYTES);
+
+	for (i = 0; i < len / 2; ++i) {
+		byte = hex_to_dec(p[len - i * 2 - 1]) +
+		    hex_to_dec(p[len - i * 2 - 2]) * 16;
+		if (byte < 0 || byte > 255)
+			return (NULL);
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
+		buf[i] = (unsigned char)(byte);
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+		buf[FLOAT_QUADRUPLE_BYTES - i -1] =
+		    (unsigned char)(byte);
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
+	memset(&f, 0, FLOAT_EXTENDED_BYTES);
+
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
+	memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+	memcpy(&f, buf + 6, FLOAT_EXTENDED_BYTES);
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+
+	rtn_len = 256;
+	limit = 0;
+again:
+	if ((rtn = malloc(sizeof(char) * rtn_len)) == NULL)
+		return (NULL);
+
+	if (snprintf(rtn, rtn_len, "%Lfd", f) >= (int)rtn_len) {
+		free(rtn);
+		if (limit++ > FLOAT_SPRINTF_TRY_LIMIT)
+			return (NULL);
+		rtn_len *= BUFFER_GROWFACTOR;
+		goto again;
+	}
+
+	return (rtn);
+#elif __SIZEOF_LONG_DOUBLE__ == __SIZEOF_DOUBLE__
+	/* Ticket: [#599] */
+	return (decode_fp_to_double(p, len));
+#endif
 }
 
 static char *
 decode_fp_to_float80(const char *p, size_t len)
 {
+#if __SIZEOF_LONG_DOUBLE__ == FLOAT_QUADRUPLE_BYTES
 	long double f;
 	size_t rtn_len, limit, i;
 	int byte;
 	unsigned char buf[FLOAT_EXTENDED_BYTES];
 	char *rtn;
 
-	switch(sizeof(long double)) {
-	case FLOAT_QUADRUPLE_BYTES:
-		if (p == NULL || len == 0 || len % 2 != 0 ||
-		    len / 2 > FLOAT_EXTENDED_BYTES)
-			return (NULL);
-
-		memset(buf, 0, FLOAT_EXTENDED_BYTES);
-
-		for (i = 0; i < len / 2; ++i) {
-			byte = hex_to_dec(p[len - i * 2 - 1]) +
-			    hex_to_dec(p[len - i * 2 - 2]) * 16;
-
-			if (byte < 0 || byte > 255)
-				return (NULL);
-
-#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-			buf[i] = (unsigned char)(byte);
-#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-			buf[FLOAT_EXTENDED_BYTES - i -1] =
-			    (unsigned char)(byte);
-#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		}
-
-		memset(&f, 0, FLOAT_QUADRUPLE_BYTES);
-
-#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
-		memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
-#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-		memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENDED_BYTES);
-#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
-
-		rtn_len = 256;
-		limit = 0;
-again:
-		if ((rtn = malloc(sizeof(char) * rtn_len)) == NULL)
-			return (NULL);
-
-		if (snprintf(rtn, rtn_len, "%Lfd", f) >= (int)rtn_len) {
-			free(rtn);
-			if (limit++ > FLOAT_SPRINTF_TRY_LIMIT)
-				return (NULL);
-			rtn_len *= BUFFER_GROWFACTOR;
-			goto again;
-		}
-
-		return (rtn);
-	case FLOAT_EXTENDED_BYTES:
-		return (decode_fp_to_long_double(p, len));
-	default:
+	if (p == NULL || len == 0 || len % 2 != 0 ||
+	    len / 2 > FLOAT_EXTENDED_BYTES)
 		return (NULL);
+
+	memset(buf, 0, FLOAT_EXTENDED_BYTES);
+
+	for (i = 0; i < len / 2; ++i) {
+		byte = hex_to_dec(p[len - i * 2 - 1]) +
+		    hex_to_dec(p[len - i * 2 - 2]) * 16;
+
+		if (byte < 0 || byte > 255)
+			return (NULL);
+
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
+		buf[i] = (unsigned char)(byte);
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+		buf[FLOAT_EXTENDED_BYTES - i -1] =
+		    (unsigned char)(byte);
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
 	}
+
+	memset(&f, 0, FLOAT_QUADRUPLE_BYTES);
+
+#if ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN
+	memcpy(&f, buf, FLOAT_EXTENDED_BYTES);
+#else /* ELFTC_BYTE_ORDER != ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+	memcpy((unsigned char *)(&f) + 6, buf, FLOAT_EXTENDED_BYTES);
+#endif /* ELFTC_BYTE_ORDER == ELFTC_BYTE_ORDER_LITTLE_ENDIAN */
+
+	rtn_len = 256;
+	limit = 0;
+again:
+	if ((rtn = malloc(sizeof(char) * rtn_len)) == NULL)
+		return (NULL);
+
+	if (snprintf(rtn, rtn_len, "%Lfd", f) >= (int)rtn_len) {
+		free(rtn);
+		if (limit++ > FLOAT_SPRINTF_TRY_LIMIT)
+			return (NULL);
+		rtn_len *= BUFFER_GROWFACTOR;
+		goto again;
+	}
+
+	return (rtn);
+#elif __SIZEOF_LONG_DOUBLE__ == FLOAT_EXTENDED_BYTES
+	return (decode_fp_to_long_double(p, len));
+#elif __SIZEOF_LONG_DOUBLE__ == __SIZEOF_DOUBLE__
+	/* Ticket: [#599] */
+	return (decode_fp_to_double(p, len));
+#endif
 }
 
+#if __SIZEOF_LONG_DOUBLE__ != __SIZEOF_DOUBLE__
 static char *
 decode_fp_to_long_double(const char *p, size_t len)
 {
@@ -3782,6 +3793,7 @@ again:
 
 	return (rtn);
 }
+#endif
 
 /* Simple hex to integer function used by decode_to_* function. */
 static int
