@@ -233,12 +233,12 @@ static void
 incct(const char *pathname)
 {
 	FILE *fp;
-	char buf[10];
+	char buf[16];
 
 	if ((fp = fopen(pathname, "r")) != NULL) {
 		if (fgets(buf, 10, fp) != buf)
 			perror("fgets");
-		snprintf(buf, 10, "%d\n", atoi(buf) + 1);
+		snprintf(buf, sizeof buf, "%d\n", atoi(buf) + 1);
 		fclose(fp);
 	}
 	if ((fp = fopen(pathname, "w")) != NULL) {

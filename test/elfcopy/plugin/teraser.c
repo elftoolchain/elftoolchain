@@ -16,9 +16,14 @@
 
 #define TSPOS	24		/* position of timestamp */
 #define TSLEN	10		/* length of timstamp string */
+#define BUFLEN	16		/* size of a temporary buffer */
 #define TDELAY	3		/* max delay allowed */
 #define COUNTER	"/tmp/bsdar-test-total"
 #define PASSED	"/tmp/bsdar-test-passed"
+
+#if BUFLEN < TSLEN
+#error Temporary buffer size too small
+#endif
 
 static void	usage(void);
 
@@ -28,7 +33,7 @@ main(int argc, char **argv)
 	int opt;
 	char checktime;
 	char erasetime;
-	char buf[TSLEN + 1];
+	char buf[BUFLEN];
 	char *tc;
 	int fd;
 	int ts;
@@ -87,7 +92,7 @@ main(int argc, char **argv)
 				if ((ps = fopen(PASSED, "r")) != NULL) {
 					if (fgets(buf, TSLEN, ps) != buf)
 						perror("fgets");
-					snprintf(buf, TSLEN, "%d\n",
+					snprintf(buf, sizeof buf, "%d\n",
 					    atoi(buf) + 1);
 					fclose(ps);
 				}
@@ -101,7 +106,8 @@ main(int argc, char **argv)
 			if ((ct = fopen(COUNTER, "r")) != NULL) {
 				if (fgets(buf, TSLEN, ct) != NULL)
 					perror("fgets");
-				snprintf(buf, TSLEN, "%d\n", atoi(buf) + 1);
+				snprintf(buf, sizeof buf, "%d\n",
+				    atoi(buf) + 1);
 				fclose(ct);
 			}
 			if ((ct = fopen(COUNTER, "w")) != NULL) {
