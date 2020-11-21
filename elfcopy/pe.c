@@ -176,15 +176,16 @@ create_pe(struct elfcopy *ecp, int ifd, int ofd)
 		memset(&psh, 0, sizeof(psh));
 
 		/*
-		 * Turn off GCC 9's '-Wstringop-truncation' warning, because
-		 * we require strncpy's non-null-terminating behavior here.
+		 * Turn off the '-Wstringop-truncation' warning in GCC 8 and
+		 * later, since we require strncpy's non-null-terminating
+		 * behavior here.
 		 */
-#if defined(__GNUC__) && __GNUC__ >= 9
+#if defined(__GNUC__) && __GNUC__ >= 8
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
 		strncpy(psh.sh_name, name, sizeof(psh.sh_name));
-#if defined(__GNUC__) && __GNUC__ >= 9
+#if defined(__GNUC__) && __GNUC__ >= 8
 #pragma GCC diagnostic pop
 #endif
 
