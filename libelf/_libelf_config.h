@@ -38,9 +38,7 @@
 #define	LIBELF_CLASS		ELFCLASS32
 #endif
 
-#endif	/* __DragonFly__ */
-
-#ifdef __FreeBSD__
+#elif defined(__FreeBSD__)
 
 /*
  * Define LIBELF_{ARCH,BYTEORDER,CLASS} based on the machine architecture.
@@ -128,20 +126,18 @@
 #else
 #error	Unknown FreeBSD architecture.
 #endif
-#endif  /* __FreeBSD__ */
+
+#elif defined(__minix)
 
 /*
  * Definitions for Minix3.
  */
-#ifdef __minix
 
 #define	LIBELF_ARCH		EM_386
 #define	LIBELF_BYTEORDER	ELFDATA2LSB
 #define	LIBELF_CLASS		ELFCLASS32
 
-#endif	/* __minix */
-
-#ifdef __NetBSD__
+#elif defined(__NetBSD__)
 
 #include <machine/elf_machdep.h>
 
@@ -161,9 +157,7 @@
 #define	Elf_Note		Elf64_Nhdr
 #endif
 
-#endif	/* __NetBSD__ */
-
-#if defined(__OpenBSD__)
+#elif defined(__OpenBSD__)
 
 #include <machine/exec.h>
 
@@ -171,7 +165,7 @@
 #define	LIBELF_BYTEORDER	ELF_TARG_DATA
 #define	LIBELF_CLASS		ELF_TARG_CLASS
 
-#endif
+#elif defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
 
 /*
  * GNU & Linux compatibility.
@@ -182,7 +176,6 @@
  *     kernel such as GNU/kFreeBSD.
  */
 
-#if defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
 
 #if defined(__linux__)
 
