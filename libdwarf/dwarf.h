@@ -489,6 +489,23 @@
 #define	DW_ATE_lo_user		 	0x80
 #define	DW_ATE_hi_user		 	0xff
 
+#define	DW_ATE_HP_float80		0x80	/* FP (80 bit) */
+#define	DW_ATE_HP_complex_float80	0x81	/* Complex FP (80 bit) */
+#define	DW_ATE_HP_float128		0x82	/* FP (128 bit) */
+#define	DW_ATE_HP_complex_float128	0x83	/* Complex FP (128 bit) */
+#define	DW_ATE_HP_floathpintel		0x84	/* FP (82 bit IA64) */
+#define	DW_ATE_HP_imaginary_float80	0x85
+#define	DW_ATE_HP_imaginary_float128	0x86
+#define	DW_ATE_HP_VAX_float		0x88	/* FP (F, G) */
+#define	DW_ATE_HP_VAX_float_d		0x89	/* FP (D) */
+#define	DW_ATE_HP_packed_decimal	0x8a	/* Cobol */
+#define	DW_ATE_HP_zoned_decimal		0x8b	/* Cobol */
+#define	DW_ATE_HP_edited		0x8c	/* Cobol */
+#define	DW_ATE_HP_signed_fixed		0x8d	/* Cobol */
+#define	DW_ATE_HP_unsigned_fixed	0x8e	/* Cobol */
+#define	DW_ATE_HP_VAX_complex_float	0x8f	/* Complex FP (F, G) */
+#define	DW_ATE_HP_VAX_complex_float_d	0x90	/* Complex FP (D) */
+
 #define	DW_ACCESS_public		0x01
 #define	DW_ACCESS_protected	 	0x02
 #define	DW_ACCESS_private	 	0x03
