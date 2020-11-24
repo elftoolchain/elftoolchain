@@ -590,7 +590,7 @@ _libelf_resync_elf(Elf *e, struct _Elf_Extent_List *extents)
 			(size_t) 1));					\
 		(E)->e_shentsize = (uint16_t) _libelf_fsize(ELF_T_SHDR,	\
 		    (EC), _version, (size_t) 1);			\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 
 	if (ec == ELFCLASS32)
 		INITIALIZE_EHDR(eh32, ec, eh_version);

@@ -268,7 +268,7 @@ _libelf_ar_open(Elf *e, int reporterror)
 		if (_libelf_ar_get_number((char *) (ARH).ar_size,	\
 		    sizeof((ARH).ar_size), 10, &(SZ)) == 0)		\
 			goto error;					\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 
 	READ_AR_HEADER(s, arh, sz, end);
 

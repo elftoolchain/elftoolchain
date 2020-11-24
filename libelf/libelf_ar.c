@@ -310,7 +310,7 @@ _libelf_ar_open_member(int fd, Elf_Cmd c, Elf *elf)
 #define	GET_LONG(P, V)do {				\
 		memcpy(&(V), (P), sizeof(long));	\
 		(P) += sizeof(long);			\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 
 Elf_Arsym *
 _libelf_ar_process_bsd_symtab(Elf *e, size_t *count)
@@ -421,7 +421,7 @@ symtaberror:
 		(V) += (P)[1]; (V) <<= 8;	\
 		(V) += (P)[2]; (V) <<= 8;	\
 		(V) += (P)[3];			\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 
 #define	INTSZ	4
 

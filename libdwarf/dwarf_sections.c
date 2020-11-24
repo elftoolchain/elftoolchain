@@ -32,7 +32,7 @@ ELFTC_VCSID("$Id$");
 	do {					\
 		if ((N) != NULL)		\
 			*(N) = (V);		\
-	} while (0)
+	} while (/* CONSTCOND */ 0)
 
 int
 dwarf_get_section_max_offsets_b(Dwarf_Debug dbg, Dwarf_Unsigned *debug_info,
