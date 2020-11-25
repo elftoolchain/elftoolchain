@@ -87,7 +87,7 @@ extern struct _libdwarf_globals _libdwarf;
 		ret = expr;						\
 		if (ret != DW_DLE_NONE)					\
 			goto gen_fail;					\
-	} while(0)
+	} while (/* CONSTCOND */ 0)
 
 typedef struct _Dwarf_CU *Dwarf_CU;
 
