@@ -97,7 +97,8 @@ ${DOC}.pdf:	${SRCS} ${IMAGES_MP:S/.mp$/.pdf/g} ${GENERATED_VERSION_TEX}
 CLEANFILES+=	${GENERATED_VERSION_TEX}
 
 ${GENERATED_VERSION_TEX}:	.PHONY
-	${TOP}/libelftc/make-toolchain-version -t ${TOP} -o ${.TARGET} -h '' -p
+	${.CURDIR}/${TOP}/libelftc/make-toolchain-version -t ${TOP} \
+		-o ${.TARGET} -h '' -p
 .endif
 
 CLEANFILES+=	${DOC}.pdf
