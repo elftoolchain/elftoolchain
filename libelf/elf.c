@@ -33,7 +33,6 @@ ELFTC_VCSID("$Id$");
 struct _libelf_globals _libelf = {
 	.libelf_arch		= LIBELF_ARCH,
 	.libelf_byteorder	= LIBELF_BYTEORDER,
-	.libelf_class		= LIBELF_CLASS,
 	.libelf_error		= 0,
 	.libelf_fillchar	= 0,
 	.libelf_version		= EV_NONE
