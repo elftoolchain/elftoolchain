@@ -30,10 +30,8 @@
 
 #if	defined(__amd64__)
 #define	LIBELF_ARCH		EM_X86_64
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 #elif	defined(__i386__)
 #define	LIBELF_ARCH		EM_386
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 #endif
 
 #elif defined(__FreeBSD__)
@@ -46,69 +44,46 @@
 #if	defined(__amd64__)
 
 #define	LIBELF_ARCH		EM_X86_64
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__aarch64__)
 
 #define	LIBELF_ARCH		EM_AARCH64
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__arm__)
 
 #define	LIBELF_ARCH		EM_ARM
-#if	defined(__ARMEB__)	/* Big-endian ARM. */
-#define	LIBELF_BYTEORDER	ELFDATA2MSB
-#else
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
-#endif
 
 #elif	defined(__i386__)
 
 #define	LIBELF_ARCH		EM_386
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__ia64__)
 
 #define	LIBELF_ARCH		EM_IA_64
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__mips__)
 
 #define	LIBELF_ARCH		EM_MIPS
-#if	defined(__MIPSEB__)
-#define	LIBELF_BYTEORDER	ELFDATA2MSB
-#else
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
-#endif
 
 #elif	defined(__powerpc__)
 
 #define	LIBELF_ARCH		EM_PPC
-#define	LIBELF_BYTEORDER	ELFDATA2MSB
 
 #elif	defined(__powerpc64__)
 
 #define	LIBELF_ARCH	EM_PPC64
-#if	__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
-#else
-#define	LIBELF_BYTEORDER	ELFDATA2MSB
-#endif
 
 #elif	defined(__riscv) && (__riscv_xlen == 64)
 
 #define	LIBELF_ARCH		EM_RISCV
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__riscv64)
 
 #define	LIBELF_ARCH		EM_RISCV
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif	defined(__sparc__)
 
 #define	LIBELF_ARCH		EM_SPARCV9
-#define	LIBELF_BYTEORDER	ELFDATA2MSB
 
 #else
 #error	Unknown FreeBSD architecture.
@@ -121,7 +96,6 @@
  */
 
 #define	LIBELF_ARCH		EM_386
-#define	LIBELF_BYTEORDER	ELFDATA2LSB
 
 #elif defined(__NetBSD__)
 
@@ -133,11 +107,9 @@
 
 #if	ARCH_ELFSIZE == 32
 #define	LIBELF_ARCH		ELF32_MACHDEP_ID
-#define	LIBELF_BYTEORDER	ELF32_MACHDEP_ENDIANNESS
 #define	Elf_Note		Elf32_Nhdr
 #else
 #define	LIBELF_ARCH		ELF64_MACHDEP_ID
-#define	LIBELF_BYTEORDER	ELF64_MACHDEP_ENDIANNESS
 #define	Elf_Note		Elf64_Nhdr
 #endif
 
@@ -146,7 +118,6 @@
 #include <machine/exec.h>
 
 #define	LIBELF_ARCH		ELF_TARG_MACH
-#define	LIBELF_BYTEORDER	ELF_TARG_DATA
 
 #elif defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
 
@@ -165,8 +136,35 @@
 #include "native-elf-format.h"
 
 #define	LIBELF_ARCH		ELFTC_ARCH
-#define	LIBELF_BYTEORDER	ELFTC_BYTEORDER
 
 #endif	/* defined(__linux__) */
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
+
+/*
+ * Downstream projects can replace the following marker with a custom
+ * definition of LIBELF_BYTEORDER.
+ */
+/* @LIBELF-BYTEORDER-MARKER@ */
+
+#if	!defined(LIBELF_BYTEORDER)
+
+/*
+ * Use the __BYTE_ORDER__ and __ORDER_{LITTLE|BIG}_ENDIAN__ macros to
+ * determine the host's byte order.  These macros are predefined by the
+ * GNU and CLANG C compilers.
+ */
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#else
+#define	LIBELF_BYTEORDER	ELFDATA2MSB
+#endif
+
+#else
+
+#error unknown host byte order
+
+#endif	/* defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) */
+#endif	/* !defined(LIBELF_BYTEORDER) */
