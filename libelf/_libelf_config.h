@@ -26,78 +26,7 @@
  * $Id$
  */
 
-#if defined(__APPLE__) || defined(__DragonFly__)
-
-#if	defined(__amd64__)
-#define	LIBELF_ARCH		EM_X86_64
-#elif	defined(__i386__)
-#define	LIBELF_ARCH		EM_386
-#endif
-
-#elif defined(__FreeBSD__)
-
-/*
- * Define LIBELF_{ARCH,BYTEORDER,CLASS} based on the machine architecture.
- * See also: <machine/elf.h>.
- */
-
-#if	defined(__amd64__)
-
-#define	LIBELF_ARCH		EM_X86_64
-
-#elif	defined(__aarch64__)
-
-#define	LIBELF_ARCH		EM_AARCH64
-
-#elif	defined(__arm__)
-
-#define	LIBELF_ARCH		EM_ARM
-
-#elif	defined(__i386__)
-
-#define	LIBELF_ARCH		EM_386
-
-#elif	defined(__ia64__)
-
-#define	LIBELF_ARCH		EM_IA_64
-
-#elif	defined(__mips__)
-
-#define	LIBELF_ARCH		EM_MIPS
-
-#elif	defined(__powerpc__)
-
-#define	LIBELF_ARCH		EM_PPC
-
-#elif	defined(__powerpc64__)
-
-#define	LIBELF_ARCH	EM_PPC64
-
-#elif	defined(__riscv) && (__riscv_xlen == 64)
-
-#define	LIBELF_ARCH		EM_RISCV
-
-#elif	defined(__riscv64)
-
-#define	LIBELF_ARCH		EM_RISCV
-
-#elif	defined(__sparc__)
-
-#define	LIBELF_ARCH		EM_SPARCV9
-
-#else
-#error	Unknown FreeBSD architecture.
-#endif
-
-#elif defined(__minix)
-
-/*
- * Definitions for Minix3.
- */
-
-#define	LIBELF_ARCH		EM_386
-
-#elif defined(__NetBSD__)
+#if defined(__NetBSD__)
 
 #include <machine/elf_machdep.h>
 
@@ -106,40 +35,12 @@
 #endif
 
 #if	ARCH_ELFSIZE == 32
-#define	LIBELF_ARCH		ELF32_MACHDEP_ID
 #define	Elf_Note		Elf32_Nhdr
 #else
-#define	LIBELF_ARCH		ELF64_MACHDEP_ID
 #define	Elf_Note		Elf64_Nhdr
 #endif
 
-#elif defined(__OpenBSD__)
-
-#include <machine/exec.h>
-
-#define	LIBELF_ARCH		ELF_TARG_MACH
-
-#elif defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
-
-/*
- * GNU & Linux compatibility.
- *
- * `__linux__' is defined in an environment runs the Linux kernel and glibc.
- * `__GNU__' is defined in an environment runs a GNU kernel (Hurd) and glibc.
- * `__GLIBC__' is defined for an environment that runs glibc over a non-GNU
- *     kernel such as GNU/kFreeBSD.
- */
-
-
-#if defined(__linux__)
-
-#include "native-elf-format.h"
-
-#define	LIBELF_ARCH		ELFTC_ARCH
-
-#endif	/* defined(__linux__) */
-
-#endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
+#endif
 
 /*
  * Downstream projects can replace the following marker with a custom
