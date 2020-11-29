@@ -8,8 +8,8 @@ all:
 
 # Some GNU/Linux distributions offer pre-built packages of BSD 'make':
 #
-# - On Debian-derived distributions, the "pmake" package provides an
-#   older version of BSD 'make' that should suffice.
+# - On Debian-derived distributions, the "bmake" package provides a
+#   version of NetBSD 'make' that should suffice.
 # - On Fedora, the 'bmake' package seems appropriate (untested).
 #
 # Portable source code for NetBSD 'make' may be found at:
