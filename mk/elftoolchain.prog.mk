@@ -15,7 +15,8 @@ LIBELFTC?=	${TOP}/libelftc
 
 BINDIR?=	/usr/bin
 
-CFLAGS+=	-I. -I${.CURDIR} -I${.CURDIR}/${TOP}/common
+_INCDIRS=	-I. -I${.CURDIR} -I${.CURDIR}/${TOP}/common
+
 CLEANFILES+=	.depend
 
 # TODO[#271]: Reduce the code duplication below.
@@ -23,7 +24,7 @@ CLEANFILES+=	.depend
 .if defined(LDADD)
 _LDADD_LIBDWARF=${LDADD:M-ldwarf}
 .if !empty(_LDADD_LIBDWARF)
-CFLAGS+= -I${.CURDIR}/${TOP}/libdwarf
+_INCDIRS+= -I${.CURDIR}/${TOP}/libdwarf
 .if exists(${.OBJDIR}/${TOP}/libdwarf)
 LDFLAGS+= -L${.OBJDIR}/${TOP}/libdwarf
 .elif exists(${TOP}/libdwarf/${.OBJDIR:S,${.CURDIR}/,,})
@@ -35,7 +36,7 @@ LDFLAGS+= -L${.CURDIR}/${TOP}/libdwarf/${.OBJDIR:S,${.CURDIR}/,,}
 
 _LDADD_LIBELF=${LDADD:M-lelf}
 .if !empty(_LDADD_LIBELF)
-CFLAGS+= -I${.CURDIR}/${TOP}/libelf
+_INCDIRS+= -I${.CURDIR}/${TOP}/libelf
 .if exists(${.OBJDIR}/${TOP}/libelf)
 LDFLAGS+= -L${.OBJDIR}/${TOP}/libelf
 .elif exists(${TOP}/libelf/${.OBJDIR:S,${.CURDIR}/,,})
@@ -47,7 +48,7 @@ LDFLAGS+= -L${.CURDIR}/${TOP}/libelf/${.OBJDIR:S,${.CURDIR}/,,}
 
 _LDADD_LIBELFTC=${LDADD:M-lelftc}
 .if !empty(_LDADD_LIBELFTC)
-CFLAGS+= -I${.CURDIR}/${TOP}/libelftc
+_INCDIRS+= -I${.CURDIR}/${TOP}/libelftc
 .if exists(${.OBJDIR}/${TOP}/libelftc)
 LDFLAGS+= -L${.OBJDIR}/${TOP}/libelftc
 .elif exists(${TOP}/libelftc/${.OBJDIR:S,${.CURDIR}/,,})
@@ -59,7 +60,7 @@ LDFLAGS+= -L${.CURDIR}/${TOP}/libelftc/${.OBJDIR:S,${.CURDIR}/,,}
 
 _LDADD_LIBPE=${LDADD:M-lpe}
 .if !empty(_LDADD_LIBPE)
-CFLAGS+= -I${.CURDIR}/${TOP}/libpe
+_INCDIRS+= -I${.CURDIR}/${TOP}/libpe
 .if exists(${.OBJDIR}/${TOP}/libpe)
 LDFLAGS+= -L${.OBJDIR}/${TOP}/libpe
 .elif exists(${TOP}/libpe/${.OBJDIR:S,${.CURDIR}/,,})
@@ -73,13 +74,17 @@ LDFLAGS+= -L${.CURDIR}/${TOP}/libpe/${.OBJDIR:S,${.CURDIR}/,,}
 _LDADD_LIBARCHIVE=${LDADD:M-larchive}
 .if !empty(_LDADD_LIBARCHIVE)
 .if ${OS_HOST} == NetBSD
-CFLAGS+=	-I/usr/pkg/include
+_INCDIRS+=	-I/usr/pkg/include
 LDFLAGS+=	-L/usr/pkg/lib
 .elif ${OS_HOST} == OpenBSD
-CFLAGS+=	-I/usr/local/include
+_INCDIRS+=	-I/usr/local/include
 LDFLAGS+=	-L/usr/local/lib
 .endif
 .endif
+
+# Set CFLAGS and LINTFLAGS.
+CFLAGS+=	${_INCDIRS}
+LINTFLAGS+=	${_INCDIRS}
 
 #
 # Handle lex(1) and yacc(1) in a portable fashion.

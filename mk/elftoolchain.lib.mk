@@ -16,25 +16,29 @@ clobber:	clean os-specific-clobber .PHONY
 # Remove '.depend' files on a "make clean".
 CLEANFILES+=	.depend
 
-# Adjust CFLAGS
-CFLAGS+=	-I.			# OBJDIR
-CFLAGS+=	-I${.CURDIR}		# Sources
-CFLAGS+=	-I${.CURDIR}/${TOP}/common	# Common code
+# Determine the include directories to use.
+_INCDIRS=	-I.			# OBJDIR
+_INCDIRS+=	-I${.CURDIR}		# Sources
+_INCDIRS+=	-I${.CURDIR}/${TOP}/common	# Common code
 .if defined(MAKEOBJDIRPREFIX)
-CFLAGS+=	-I${.OBJDIR}/${TOP}/common	# Generated common code.
+_INCDIRS+=	-I${.OBJDIR}/${TOP}/common	# Generated common code.
 .else
 .if ${.CURDIR} != ${.OBJDIR}
-CFLAGS+=	-I${.CURDIR}/${TOP}/common/${.OBJDIR:S/${.CURDIR}//}
+_INCDIRS+=	-I${.CURDIR}/${TOP}/common/${.OBJDIR:S/${.CURDIR}//}
 .endif
 .endif
 
 .if defined(LDADD)
 _LDADD_LIBELF=${LDADD:M-lelf}
 .if !empty(_LDADD_LIBELF)
-CFLAGS+=	-I${.CURDIR}/${TOP}/libelf
+_INCDIRS+=	-I${.CURDIR}/${TOP}/libelf
 LDFLAGS+=	-L${.OBJDIR}/${TOP}/libelf
 .endif
 .endif
+
+# Set CFLAGS and LINTFLAGS.
+CFLAGS+=	${_INCDIRS}
+LINTFLAGS+=	${_INCDIRS}
 
 # Note: include the M4 ruleset after bsd.lib.mk.
 .include "${TOP}/mk/elftoolchain.m4.mk"
