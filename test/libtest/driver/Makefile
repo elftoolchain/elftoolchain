@@ -4,7 +4,9 @@
 
 TOP=	../../..
 
-CFLAGS+=	-I${TOP}/test/libtest/lib
+INCDIR=		-I${TOP}/test/libtest/lib
+CFLAGS+=	${INCDIR}
+LINTFLAGS+=	${INCDIR}
 
 LIB=	driver
 SRCS=	driver.c \
