@@ -32,6 +32,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <libelftc.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -531,46 +532,99 @@ cleanup_tempfile(char *fn)
 	return 0;
 }
 
-/* Create a temporary file. */
-void
-create_tempfile(char **fn, int *fd)
+/*
+ * Determine the directory to write to.
+ *
+ * If 'src' is non-NULL, it is treated as a file name whose containing
+ * directory is returned.
+ *
+ * If 'src' is NULL and if the environment variable TMPDIR is non-empty,
+ * then the value of TMPDIR is used.
+ *
+ * If 'src' is NULL and if the environment variable TMPDIR is empty,
+ * then the string "/tmp" is returned.
+ *
+ * The returned pointer is owned by the caller.
+ */
+static char *
+get_directory_path(const char *src)
 {
-	const char	*tmpdir;
-	char		*cp, *tmpf;
-	size_t		 tlen, plen;
+	char	*tmpsrc, *tmpdir;
 
-#define	_TEMPFILE "ecp.XXXXXXXX"
-#define	_TEMPFILEPATH "/tmp/ecp.XXXXXXXX"
+	if (src == NULL) {
+		if ((tmpdir = getenv("TMPDIR")) == NULL || *tmpdir == '\0')
+			return strdup("/tmp");
+		return strdup(tmpdir);
+	}
+
+	/* Make a copy of 'src', so that dirname(3) can be used. */
+	tmpsrc = strdup(src);
+
+	tmpdir = strdup(dirname(tmpsrc));
+
+	free(tmpsrc);
+
+	return (tmpdir);
+}
+
+/*
+ * Create a temporary file.
+ *
+ * If 'src' is non-NULL, the temporary file is created in its containing
+ * directory.  Otherwise, the temporary file is created in the directory
+ * named by $TMPDIR if $TMPDIR is set, or in /tmp otherwise.
+ *
+ * The generated temporary file is stored in '*fn' and a file descriptor
+ * opened for reading and writing is stored in '*fd'.
+ */
+void
+create_tempfile(const char *src, char **fn, int *fd)
+{
+	static const char _TEMPLATE[] = "/ecp.XXXXXXXX";
+	char		*tmpdir;
+	char		*tmpfile;
+	size_t		 pathlen, retries;
 
 	if (fn == NULL || fd == NULL)
 		return;
-	/* Repect TMPDIR environment variable. */
-	tmpdir = getenv("TMPDIR");
-	if (tmpdir != NULL && *tmpdir != '\0') {
-		tlen = strlen(tmpdir);
-		plen = strlen(_TEMPFILE);
-		tmpf = malloc(tlen + plen + 2);
-		if (tmpf == NULL)
-			err(EXIT_FAILURE, "malloc failed");
-		memcpy(tmpf, tmpdir, tlen);
-		cp = &tmpf[tlen - 1];
-		if (*cp++ != '/')
-			*cp++ = '/';
-		memcpy(cp, _TEMPFILE, plen);
-		cp[plen] = '\0';
-	} else {
-		tmpf = strdup(_TEMPFILEPATH);
-		if (tmpf == NULL)
-			err(EXIT_FAILURE, "strdup failed");
-	}
-	if ((*fd = mkstemp(tmpf)) == -1)
-		err(EXIT_FAILURE, "mkstemp %s failed", tmpf);
-	if (fchmod(*fd, 0644) == -1)
-		err(EXIT_FAILURE, "fchmod %s failed", tmpf);
-	*fn = tmpf;
 
-#undef _TEMPFILE
-#undef _TEMPFILEPATH
+	/*
+	 * If src is not NULL, we first try to create the temporary file in
+	 * the containing directory for 'src'.  If that attempt fails, we
+	 * try again using ${TMPDIR:-/tmp}.
+	 *
+	 * If src is NULL, we only try once to create the file in
+	 * ${TMPDIR:-/tmp}.
+	 */
+	for (retries = (src == NULL); retries < 2; src = NULL, retries++) {
+		tmpdir = get_directory_path(src);
+
+		/*
+		 * Reserve space for the directory name and the template,
+		 * including its trailing NUL.
+		 */
+		pathlen = strlen(tmpdir) + sizeof(_TEMPLATE);
+		if ((tmpfile = malloc(pathlen)) == NULL)
+			err(EXIT_FAILURE, "malloc failed");
+
+		/* Construct the file path. */
+		stpcpy(stpcpy(tmpfile, tmpdir), _TEMPLATE);
+
+		free(tmpdir);
+
+		/* Try to create the file */
+		errno = 0;
+		if ((*fd = mkstemp(tmpfile)) != -1)
+			break;	/* Success. */
+
+		/* Otherwise, check if we should retry. */
+		if (errno != EACCES || retries != 0)
+			err(EXIT_FAILURE, "mkstemp %s failed", tmpfile);
+	}
+
+	if (fchmod(*fd, 0644) == -1)
+		err(EXIT_FAILURE, "fchmod %s failed", tmpfile);
+	*fn = tmpfile;
 }
 
 /*
@@ -651,7 +705,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 		err(EXIT_FAILURE, "fstat %s failed", src);
 
 	if (dst == NULL)
-		create_tempfile(&tempfile, &ofd);
+		create_tempfile(src, &tempfile, &ofd);
 	else
 		if ((ofd = open(dst, O_RDWR|O_CREAT, 0755)) == -1)
 			err(EXIT_FAILURE, "open %s failed", dst);
@@ -686,7 +740,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 			if (ecp->oed == ELFDATANONE)
 				ecp->oed = ELFDATA2LSB;
 		}
-		create_tempfile(&elftemp, &efd);
+		create_tempfile(src, &elftemp, &efd);
 		if ((ecp->eout = elf_begin(efd, ELF_C_WRITE, NULL)) == NULL) {
 			cleanup_tempfile(elftemp);
 			cleanup_tempfile(tempfile);
@@ -761,7 +815,7 @@ create_file(struct elfcopy *ecp, const char *src, const char *dst)
 				errx(EXIT_FAILURE, "unlink %s failed",
 				    tempfile);
 			free(tempfile);
-			create_tempfile(&tempfile, &ofd0);
+			create_tempfile(src, &tempfile, &ofd0);
 
 
 			/*
