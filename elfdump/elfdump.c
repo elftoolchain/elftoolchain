@@ -52,15 +52,6 @@
 
 ELFTC_VCSID("$Id$");
 
-#if defined(ELFTC_NEED_ELF_NOTE_DEFINITION)
-#include "native-elf-format.h"
-#if ELFTC_CLASS == ELFCLASS32
-typedef Elf32_Nhdr	Elf_Note;
-#else
-typedef Elf64_Nhdr	Elf_Note;
-#endif
-#endif
-
 /* elfdump(1) options. */
 #define	ED_DYN		(1<<0)
 #define	ED_EHDR		(1<<1)
