@@ -3,6 +3,21 @@ The Elftoolchain Project
 
 .. contents:: Table of Contents
 
+.. note::
+
+   If you are reading this README on a mirror site such as GitHub_,
+   please note that the primary development site for this project is at
+   `elftoolchain.sourceforge.net`_.
+
+   Please use the SourceForge project's `bug tracker`_
+   for reporting bugs and for sending in patches.  If you
+   have other project-related questions, please ask them on the
+   ``<elftoolchain-developers@lists.sourceforge.net>`` `mailing list`_.
+
+.. _GitHub: https://github.com/elftoolchain/elftoolchain
+.. _`elftoolchain.sourceforge.net`: http://elftoolchain.sourceforge.net/
+.. _`mailing list`: https://sourceforge.net/p/elftoolchain/mailman/elftoolchain-developers/
+
 Description
 -----------
 
