@@ -15,6 +15,7 @@ SRCS=	elf.c							\
 	elf_getarsym.c						\
 	elf_getbase.c						\
 	elf_getident.c						\
+	elf_getversion.c					\
 	elf_hash.c						\
 	elf_kind.c						\
 	elf_memory.c						\
@@ -89,6 +90,7 @@ MAN=	elf.3							\
 	elf_getshnum.3						\
 	elf_getshdrstrndx.3					\
 	elf_getshstrndx.3					\
+	elf_getversion.3					\
 	elf_hash.3						\
 	elf_kind.3						\
 	elf_memory.3						\

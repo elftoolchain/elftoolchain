@@ -206,6 +206,7 @@ int		elf_getshdrnum(Elf *_elf, size_t *_dst);
 int		elf_getshnum(Elf *_elf, size_t *_dst);	/* Deprecated */
 int		elf_getshdrstrndx(Elf *_elf, size_t *_dst);
 int		elf_getshstrndx(Elf *_elf, size_t *_dst); /* Deprecated */
+unsigned int	elf_getversion(Elf *_elf);
 unsigned long	elf_hash(const char *_name);
 Elf_Kind	elf_kind(Elf *_elf);
 Elf		*elf_memory(char *_image, size_t _size);
