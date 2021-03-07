@@ -56,8 +56,9 @@ descriptor.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_cie_of_fde
@@ -78,7 +79,8 @@ Either of arugments
 .Ar fde
 or
 .Ar ret_cie
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

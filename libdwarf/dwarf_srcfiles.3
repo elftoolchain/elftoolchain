@@ -60,8 +60,9 @@ Argument
 should point to a location that will hold the number of file names returned.
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Ss Memory Management
 The memory areas used for the file names and for array of pointers
 being returned are managed by the DWARF(3) library.
@@ -90,7 +91,8 @@ One of the arguments
 .Ar filenames
 or
 .Ar filenamecount
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The compilation unit referenced by argument
 .Ar die

@@ -81,8 +81,9 @@ specifies the size of the file in bytes.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_add_file_decl
@@ -103,7 +104,8 @@ Either arguments
 .Ar dbg
 or
 .Ar name
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 The length of the NUL-teminated string pointed to by argument
 .Ar name

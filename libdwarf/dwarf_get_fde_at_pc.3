@@ -76,8 +76,9 @@ covered by the returned FDE descriptor.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_fde_at_pc
@@ -105,7 +106,8 @@ One of the arguments
 .Va lopc ,
 or
 .Va hipc
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 These was no FDE descriptor covering the address specified by argument
 .Ar pc .

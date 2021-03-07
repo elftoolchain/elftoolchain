@@ -73,7 +73,9 @@ and stores it in the location pointed to by argument
 .Pp
 If argument
 .Ar err
-is not NULL, these functions will use it to store error information,
+is not
+.Dv NULL ,
+these functions will use it to store error information,
 in case of an error.
 .Sh RETURN VALUES
 On success, these functions returns
@@ -94,7 +96,8 @@ descriptor.
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar ret
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

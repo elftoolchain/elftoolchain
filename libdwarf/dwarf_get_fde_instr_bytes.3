@@ -64,8 +64,9 @@ bytes of the instructions returned in argument
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Applications can use the function
 .Xr dwarf_expand_frame_instructions 3
@@ -93,7 +94,8 @@ One of the arguments
 .Ar ret_inst
 or
 .Ar ret_len
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

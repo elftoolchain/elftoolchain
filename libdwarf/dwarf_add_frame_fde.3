@@ -150,8 +150,9 @@ and the relocation entry for the second symbol will have type
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Function
 .Fn dwarf_add_frame_fde
@@ -173,7 +174,8 @@ One of the arguments
 .Ar dbg
 or
 .Ar fde
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 The frame descriptor referenced by argument
 .Ar fde

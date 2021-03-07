@@ -184,7 +184,9 @@ except that it does not provide arguments
 and
 .Ar cu_extension_size .
 .Pp
-A value of NULL may be used for any of the arguments
+A value of
+.Dv NULL
+may be used for any of the arguments
 .Ar cu_length ,
 .Ar cu_version ,
 .Ar cu_abbrev_offset ,
@@ -277,7 +279,8 @@ These functions can fail with the following error:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Va dbg
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

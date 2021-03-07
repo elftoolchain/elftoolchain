@@ -80,8 +80,9 @@ an array of
 descriptors.
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 .Vt Dwarf_Macro_Details
 descriptors are defined in the header file
@@ -120,7 +121,9 @@ The
 .Va dmd_macro
 field points to a vendor defined string.
 .El
-The field is NULL for other values of
+The field is
+.Dv NULL
+for other values of
 .Va dmd_type .
 .El
 .Ss Memory Management
@@ -180,7 +183,8 @@ One of the arguments
 .Ar entry_cnt
 or
 .Ar details
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 There is no more macro information at the specified offset
 .Ar offset .

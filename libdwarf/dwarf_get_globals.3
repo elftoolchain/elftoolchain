@@ -179,7 +179,9 @@ function to indicate that the memory area may be freed.
 .Ss Error Returns
 If argument
 .Ar err
-is not NULL, these functions will use it to store error information,
+is not
+.Dv NULL ,
+these functions will use it to store error information,
 in case of an error.
 .Sh RETURN VALUES
 On success, these functions returns
@@ -202,7 +204,8 @@ One of the arguments
 .Va name ,
 or
 .Va nglobals
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

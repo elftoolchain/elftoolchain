@@ -78,8 +78,9 @@ specifies the second operand of the location expression operator.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_add_expr_gen
@@ -99,7 +100,8 @@ can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar expr
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_LOC_EXPR_BAD
 The operation code specified in argument
 .Ar opcode

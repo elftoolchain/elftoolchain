@@ -106,8 +106,9 @@ In this case it is always set to 1.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Function
 .Fn dwarf_loclist_from_expr_a
@@ -174,7 +175,8 @@ One of the arguments
 .Va llbuf
 or
 .Va listlen
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar bytes_len

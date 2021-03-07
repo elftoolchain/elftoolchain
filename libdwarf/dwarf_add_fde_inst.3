@@ -69,8 +69,9 @@ specifies the second operand of the frame instruction.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_add_fde_inst
@@ -90,7 +91,8 @@ can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar fde
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_FRAME_INSTR_EXEC_ERROR
 The frame instruction operator specified in argument
 .Ar op

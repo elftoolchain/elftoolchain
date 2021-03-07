@@ -142,11 +142,13 @@ Most library functions take a parameter of type
 that specifies a location to store an error descriptor in
 case of an error.
 If an error occurs during the execution on an API, and if this
-parameter is non-NULL, then an error descriptor is written to the
-location specified.
+parameter is
+.No non- Ns Dv NULL ,
+then an error descriptor is written to the location specified.
 .It
-Otherwise, if the error parameter was NULL, but if an error handler
-was defined for the debug context in use using
+Otherwise, if the error parameter was
+.Dv NULL ,
+but if an error handler was defined for the debug context in use using
 .Xr dwarf_init 3
 or
 .Xr dwarf_seterrhand 3 ,

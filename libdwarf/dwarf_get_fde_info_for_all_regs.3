@@ -70,8 +70,9 @@ counter address associated with the table row.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 The
 .Vt Dwarf_Regtable
@@ -134,7 +135,8 @@ One of the arguments
 .Ar reg_table
 or
 .Ar row_pc
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_PC_NOT_IN_FDE_RANGE
 The program counter value provided in argument
 .Ar pc

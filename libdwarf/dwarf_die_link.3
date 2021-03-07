@@ -74,15 +74,17 @@ Only one of arguments
 .Ar left
 and
 .Ar right
-is allowed to be non-NULL.
+is allowed to be
+.No non- Ns Dv NULL .
 Existing links to parent, child, left or right debugging information
 entries, if any, will be unlinked before the specified link is
 established.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_die_link
@@ -102,7 +104,8 @@ can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar die
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 More than one of the arguments
 .Ar parent ,
@@ -110,7 +113,8 @@ More than one of the arguments
 .Ar left
 and
 .Ar right
-were non-NULL.
+were
+.No non- Ns Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

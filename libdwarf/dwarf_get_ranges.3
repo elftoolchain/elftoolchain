@@ -100,15 +100,18 @@ should point to a location that will be set to the number of entries
 returned.
 If argument
 .Ar byte_cnt
-is not NULL, it will be set to the number of bytes occupied by the
+is not
+.Dv NULL ,
+it will be set to the number of bytes occupied by the
 returned entries in the
 .Dq ".debug_ranges"
 section.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 .Vt Dwarf_Ranges
 descriptors are defined in the header file
@@ -248,7 +251,8 @@ One of the arguments
 .Ar ranges
 or
 .Ar cnt
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 There is no address range list at the specified offset
 .Ar offset .

@@ -90,8 +90,9 @@ retrieved array of relocation entries.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 The retrieved relocation entries are described using structure
 .Vt Dwarf_Relocation_Data_s ,
@@ -205,7 +206,8 @@ One of the arguments
 .Ar reloc_entry_count
 or
 .Ar reloc_buf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 There were no more ELF relocation arrays to retrieve.
 .It Bq Er DW_DLE_NO_ENTRY

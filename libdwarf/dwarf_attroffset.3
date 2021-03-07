@@ -53,8 +53,9 @@ should point to a location that is to hold the returned
 section-relative offset.
 If argument
 .Ar err
-is non-NULL, it is used to return an error descriptor in case of an
-error.
+is
+.No non- Ns Dv NULL ,
+it is used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_attroffset
@@ -79,7 +80,8 @@ Either of the arguments
 .Ar at
 or
 .Ar ret_off
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

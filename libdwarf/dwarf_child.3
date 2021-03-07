@@ -102,7 +102,9 @@ and stores it in the location pointed to by argument
 .Ar ret_die .
 If argument
 .Ar die
-is NULL, the first debugging information entry descriptor for the
+is
+.Dv NULL ,
+the first debugging information entry descriptor for the
 current compilation unit will be returned.
 This function and function
 .Fn dwarf_child
@@ -196,7 +198,8 @@ The requested operation failed.
 Additional information about the error encountered will be recorded in
 argument
 .Ar err ,
-if it is not NULL.
+if it is not
+.Dv NULL .
 .It Bq Er DW_DLV_NO_ENTRY
 For functions
 .Fn dwarf_child ,
@@ -259,7 +262,8 @@ Arguments
 .Ar die
 or
 .Ar ret_die
-were NULL.
+were
+.Dv NULL .
 .It Bq Er DW_DLE_DIE_NO_CU_CONTEXT
 Argument
 .Ar dbg

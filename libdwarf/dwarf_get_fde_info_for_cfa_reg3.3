@@ -122,8 +122,9 @@ counter address associated with the register rule found.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_fde_info_for_cfa_reg3
@@ -149,7 +150,8 @@ One of the arguments
 .Ar row_pc ,
 or
 .Ar type
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_PC_NOT_IN_FDE_RANGE
 The program counter value provided in argument
 .Ar pc

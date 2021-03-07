@@ -92,8 +92,9 @@ location list entry.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_loclist_entry
@@ -143,7 +144,8 @@ One of the arguments
 .Ar entry_len
 or
 .Ar next_entry
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 There is no location list at the specified offset
 .Ar offset .

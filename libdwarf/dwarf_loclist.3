@@ -78,8 +78,9 @@ should point to a location which will be set to the number of
 elements contained in the returned array.
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Function
 .Fn dwarf_loclist
@@ -98,8 +99,9 @@ Argument
 should point to a location which will be always set to 1.
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 .Vt Dwarf_Locdesc
 descriptors are defined in the header file
@@ -215,7 +217,8 @@ One of the arguments
 .Ar llbuf
 or
 .Ar listlen
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 The attribute provided by argument
 .Ar at

@@ -97,7 +97,9 @@ The created attribute descriptor will have DWARF form
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used by these functions to store error
+is not
+.Dv NULL ,
+it will be used by these functions to store error
 information in case of an error.
 .Sh RETURN VALUES
 On success, these functions return the created attribute descriptor.
@@ -113,7 +115,8 @@ Either of the arguments
 .Ar die
 or
 .Ar str
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_MEMORY
 An out of memory condition was encountered during execution.
 .El

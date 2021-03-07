@@ -112,8 +112,9 @@ will be ignored and only one symbol is used for relocation.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Function
 .Fn dwarf_add_arange
@@ -133,7 +134,8 @@ These functions can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar dbg
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar end_symbol_index

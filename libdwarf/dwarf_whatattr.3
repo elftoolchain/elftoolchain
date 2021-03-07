@@ -50,8 +50,9 @@ and writes it to the location pointed to by argument
 .Ar retcode .
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_whatattr
@@ -71,7 +72,8 @@ Either of argument
 .Va attr
 or
 .Va retcode
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

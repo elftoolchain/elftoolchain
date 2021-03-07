@@ -65,8 +65,9 @@ should point to a location that will hold the number of descriptors
 returned.
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 The returned
 .Vt Dwarf_Line
@@ -140,7 +141,8 @@ One of the arguments
 .Ar lines
 or
 .Ar nlines
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The compilation unit referenced by argument
 .Ar die

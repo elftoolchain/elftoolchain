@@ -87,8 +87,9 @@ Argument
 should point to the location that is to hold the returned offset.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_die_CU_offset_range
@@ -104,8 +105,9 @@ should point to a location that will hold the returned length of the
 compilation unit.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_dieoffset
@@ -118,8 +120,9 @@ should point to a location that is to hold the returned
 section-relative offset.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_get_cu_die_offset_given_cu_header_offset
@@ -138,8 +141,9 @@ Argument
 points to a location that will hold the returned offset.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_get_cu_die_offset_given_cu_header_offset_b
@@ -160,8 +164,9 @@ Argument
 points to a location that will hold the returned offset.
 If the argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in case of
-an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 On success, these functions return
 .Dv DW_DLV_OK .
@@ -193,7 +198,8 @@ One of the arguments
 .Va out_cu_die_offset
 or
 .Va ret_offset
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar in_cu_header_offset

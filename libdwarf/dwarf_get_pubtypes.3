@@ -180,7 +180,9 @@ function.
 .Ss Error Returns
 If argument
 .Ar err
-is not NULL, these functions will use it to store error information,
+is not
+.Dv NULL ,
+these functions will use it to store error information,
 in case of an error.
 .Sh RETURN VALUES
 On success, these functions returns
@@ -230,7 +232,8 @@ One of the arguments
 .Va name ,
 or
 .Va ntypes
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The DWARF debugging context referenced by argument
 .Ar dbg

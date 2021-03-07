@@ -63,8 +63,9 @@ enumeration defined in the header file
 .Pp
 If the argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, the function
 .Fn dwarf_producer_set_isa
@@ -86,7 +87,8 @@ function can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 The argument
 .Ar dbg
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 The argument
 .Ar isa

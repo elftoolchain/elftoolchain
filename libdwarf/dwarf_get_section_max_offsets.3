@@ -79,7 +79,9 @@ pointed to by the argument corresponding to the section name.
 If a DWARF section does not exist, the location pointed to by the
 argument corresponding to that section will be set to zero.
 .Pp
-A value of NULL may be used for any of the arguments
+A value of
+.Dv NULL
+may be used for any of the arguments
 .Ar debug_info ,
 .Ar debug_abbrev ,
 .Ar debug_line ,
@@ -109,7 +111,9 @@ On success, these functions return
 .Dv DW_DLV_OK .
 If argument
 .Ar dbg
-is NULL, they return
+is
+.Dv NULL ,
+they return
 .Dv DW_DLV_ERROR .
 .Sh SEE ALSO
 .Xr dwarf 3 ,

@@ -67,8 +67,9 @@ argument
 is set to a non-zero value, otherwise it is set to zero.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in
-case of an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_whatform
@@ -83,8 +84,9 @@ has an indirect form attribute, this function will return the final
 form for the attribute.
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in
-case of an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Pp
 Function
 .Fn dwarf_whatform_direct
@@ -100,8 +102,9 @@ to
 .Dv DW_FORM_indirect .
 If argument
 .Ar err
-is non-NULL, it will be used to return an error descriptor in
-case of an error.
+is
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 These functions return
 .Dv DW_DLV_OK
@@ -119,7 +122,8 @@ Any of the arguments
 .Ar ret ,
 or
 .Ar retform
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

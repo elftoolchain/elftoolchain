@@ -65,8 +65,9 @@ the returned array.
 .Pp
 If argument
 .Ar err
-is non-NULL, it is used to return an error descriptor in case of an
-error.
+is
+.No non- Ns Dv NULL ,
+it is used to return an error descriptor in case of an error.
 .Ss Memory Management
 In the current implementation, the memory allocated for each DWARF
 attribute descriptor and for the returned array of descriptors is
@@ -128,7 +129,8 @@ Arguments
 .Ar attrbuf ,
 or
 .Ar attrcount
-were NULL.
+were
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 Argument
 .Ar die

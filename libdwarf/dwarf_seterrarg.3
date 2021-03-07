@@ -55,7 +55,9 @@ Argument
 .Ar dbg
 can be a debug context allocated by a prior call to
 .Xr dwarf_init 3 ,
-or can be NULL to indicate that the library-wide callback argument
+or can be
+.Dv NULL
+to indicate that the library-wide callback argument
 is to be set.
 .Pp
 Function
@@ -68,7 +70,9 @@ Argument
 .Ar dbg
 should be a debug context allocated by a prior call to
 .Xr dwarf_init 3 ,
-or may be NULL to indicate that the library-wide error handler
+or may be
+.Dv NULL
+to indicate that the library-wide error handler
 is to be set.
 .Sh RETURN VALUES
 Function
@@ -77,7 +81,9 @@ returns the previous error handler associated with argument
 .Ar dbg .
 If argument
 .Ar dbg
-is NULL, function
+is
+.Dv NULL ,
+function
 .Fn dwarf_seterrhand
 returns the previous library-wide error handler.
 .Pp
@@ -87,13 +93,17 @@ returns the previous callback argument associated with argument
 .Ar dbg .
 If argument
 .Ar dbg
-is NULL, function
+is
+.Dv NULL ,
+function
 .Fn dwarf_seterrarg
 returns the previous library-wide callback argument.
 .Sh COMPATIBILITY
 The behavior of these functions when argument
 .Ar dbg
-is NULL is a local extension.
+is
+.Dv NULL
+is a local extension.
 .Sh ERRORS
 These functions do not set an error code.
 .Sh SEE ALSO

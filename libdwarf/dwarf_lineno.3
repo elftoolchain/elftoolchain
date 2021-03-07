@@ -97,8 +97,9 @@ and stores it in the location pointed to by argument
 .Ar ret .
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Pp
 Function
 .Fn dwarf_lineaddr
@@ -188,7 +189,8 @@ Either of the arguments
 .Va ln
 or
 .Va ret
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_LINE_FILE_NUM_BAD
 The source file name associated with the line descriptor
 .Ar ln

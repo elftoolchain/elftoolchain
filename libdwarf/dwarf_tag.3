@@ -47,8 +47,9 @@ and stores it into the location pointed to by argument
 .Pp
 If argument
 .Ar err
-if non-NULL, it will be used to return an error descriptor in case of
-an error.
+if
+.No non- Ns Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_tag
@@ -68,7 +69,8 @@ Argument
 .Va die
 or
 .Va tag
-was NULL.
+was
+.Dv NULL .
 .El
 .Sh SEE ALSO
 .Xr dwarf 3 ,

@@ -74,8 +74,9 @@ descriptor that covers the given address.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_arange
@@ -102,7 +103,8 @@ One of the arguments
 .Ar ar_list
 or
 .Ar ret_ar
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 Value of argument
 .Ar ar_cnt

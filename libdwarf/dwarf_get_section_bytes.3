@@ -82,8 +82,9 @@ returned ELF section.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Ss Memory Management
 The memory areas used for the returned ELF section byte streams should
 be freed using the function
@@ -94,7 +95,9 @@ On success, function
 returns a pointer to a ELF section byte stream.
 In case of an error, function
 .Fn dwarf_get_section_bytes
-will return NULL and set the argument
+will return
+.Dv NULL
+and set the argument
 .Ar err .
 .Sh EXAMPLES
 To generate and retrieve ELF section byte streams, use:
@@ -142,7 +145,8 @@ One of the arguments
 .Ar elf_section_index ,
 or
 .Ar length
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 There were no more ELF sections to retrieve, or the function was
 called before a call to

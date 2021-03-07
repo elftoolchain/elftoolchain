@@ -73,8 +73,9 @@ defined in the header file
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_get_relocation_info_count
@@ -102,7 +103,8 @@ One of the arguments
 .Ar reloc_cnt
 or
 .Ar drd_buffer_version
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The
 .Dv DW_DLC_SYMBOLIC_RELOCATIONS

@@ -79,8 +79,9 @@ section, for the specified attribute.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Sh RETURN VALUES
 Function
 .Fn dwarf_get_abbrev_entry
@@ -148,7 +149,8 @@ One of the arguments
 .Ar form
 or
 .Ar offset
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The attribute index specified by argument
 .Ar ndx

@@ -57,8 +57,9 @@ or
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Ss Memory Management
 The memory area referenced by the returned pointer is managed by
 the DWARF(3) library.
@@ -84,7 +85,8 @@ Either of arguments
 .Ar attr
 or
 .Ar ret
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ATTR_FORM_BAD
 The attribute referenced by argument
 .Ar attr

@@ -70,8 +70,9 @@ descriptors returned.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case of an
-error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Ss Memory Management
 The memory area used for the array returned in argument
 .Ar ar_list
@@ -132,7 +133,8 @@ One of the arguments
 .Ar ar_list
 or
 .Ar ar_cnt
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_NO_ENTRY
 The debugging context
 .Ar dbg

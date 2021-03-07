@@ -98,8 +98,9 @@ counter address associated with the register rule found.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Ss COMPATIBILITY
 Function
 .Fn dwarf_get_fde_info_for_reg
@@ -130,7 +131,8 @@ One of the arguments
 .Ar offset
 or
 .Ar row_pc
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_FRAME_TABLE_COL_BAD
 The column number provided in argument
 .Ar table_column

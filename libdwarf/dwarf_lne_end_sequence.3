@@ -60,8 +60,9 @@ instruction sequence.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_lne_end_sequence
@@ -81,7 +82,8 @@ can fail with:
 .It Bq Er DW_DLE_ARGUMENT
 Argument
 .Ar dbg
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ARGUMENT
 The value in argument
 .Ar addr

@@ -57,8 +57,9 @@ the retrieved byte stream.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to store error information in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to store error information in case of an error.
 .Sh RETURN VALUES
 On success, function
 .Fn dwarf_expr_into_block
@@ -79,7 +80,8 @@ One of the arguments
 .Ar expr
 or
 .Ar length
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_MEMORY
 An out of memory condition was encountered during the execution of
 the function.

@@ -62,8 +62,9 @@ content of the location expression itself.
 .Pp
 If argument
 .Ar err
-is not NULL, it will be used to return an error descriptor in case
-of an error.
+is not
+.Dv NULL ,
+it will be used to return an error descriptor in case of an error.
 .Ss Memory Management
 The application should not attempt to free the memory
 area referenced by the pointer returned in argument
@@ -89,7 +90,8 @@ One of arguments
 .Ar retlen
 or
 .Ar retexpr
-was NULL.
+was
+.Dv NULL .
 .It Bq Er DW_DLE_ATTR_FORM_BAD
 The attribute referenced by argument
 .Ar attr
