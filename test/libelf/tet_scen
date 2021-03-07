@@ -40,6 +40,7 @@ all
 	^elf_getscn
 	^elf_getshnum
 	^elf_getshstrndx
+	^elf_getversion
 	^elf_hash
 	^elf_kind
 	^elf_memory
@@ -91,6 +92,7 @@ elf_getident	:include:/tset/elf_getident/tet_scen
 elf_getscn	:include:/tset/elf_getscn/tet_scen
 elf_getshnum	:include:/tset/elf_getshnum/tet_scen
 elf_getshstrndx	:include:/tset/elf_getshstrndx/tet_scen
+elf_getversion	:include:/tset/elf_getversion/tet_scen
 elf_hash	:include:/tset/elf_hash/tet_scen
 elf_kind	:include:/tset/elf_kind/tet_scen
 elf_memory	:include:/tset/elf_memory/tet_scen

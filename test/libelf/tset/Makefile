@@ -29,6 +29,7 @@ SUBDIR+=	elf_getident
 SUBDIR+=	elf_getscn
 SUBDIR+=	elf_getshnum
 SUBDIR+=	elf_getshstrndx
+SUBDIR+=	elf_getversion
 SUBDIR+=	elf_hash
 SUBDIR+=	elf_kind
 SUBDIR+=	elf_memory
