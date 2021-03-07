@@ -114,7 +114,9 @@ string table specified by argument
 .Ar table .
 If argument
 .Ar size
-is not NULL, the size of the ELF representation of the string table is
+is not
+.Dv NULL ,
+the size of the ELF representation of the string table is
 stored in the location pointed to by argument
 .Ar size .
 The function
@@ -200,12 +202,16 @@ and
 .Fn elftc_string_table_from_section
 return a valid pointer to an opaque structure of type
 .Vt Elftc_String_Table
-on success, or NULL in case of an error.
+on success, or
+.Dv NULL
+in case of an error.
 .Pp
 The function
 .Fn elftc_string_table_image
 returns a pointer to an in-memory representation of an ELF string
-table on success, or NULL in case of an error.
+table on success, or
+.Dv NULL
+in case of an error.
 .Pp
 Functions
 .Fn elftc_string_table_insert
@@ -219,7 +225,9 @@ returns a positive value on success, or zero in case of an error.
 .Pp
 Function
 .Fn elftc_string_table_to_string
-returns a valid pointer on success, or NULL in case of an error.
+returns a valid pointer on success, or
+.Dv NULL
+in case of an error.
 .Sh SEE ALSO
 .Xr dwarf 3 ,
 .Xr elf 3 ,
