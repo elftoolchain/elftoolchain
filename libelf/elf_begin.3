@@ -73,7 +73,8 @@ can have the following values:
 .It ELF_C_NULL
 Causes
 .Fn elf_begin
-to return NULL.
+to return
+.Dv NULL .
 Arguments
 .Ar fd
 and
@@ -91,7 +92,9 @@ archives and for ELF objects.
 .Pp
 If argument
 .Ar elf
-is NULL, the library will allocate a new ELF descriptor for the file
+is
+.Dv NULL ,
+the library will allocate a new ELF descriptor for the file
 being processed.
 The argument
 .Ar fd
@@ -99,7 +102,9 @@ should have been opened for reading.
 .Pp
 If argument
 .Ar elf
-is not NULL, and references a regular ELF file previously opened with
+is not
+.Dv NULL ,
+and references a regular ELF file previously opened with
 .Fn elf_begin ,
 then the activation count for the descriptor referenced by argument
 .Ar elf
@@ -111,7 +116,9 @@ should match that used to open the descriptor argument
 .Pp
 If argument
 .Ar elf
-is not NULL, and references a descriptor for an
+is not
+.Dv NULL ,
+and references a descriptor for an
 .Xr ar 1
 archive opened earlier with
 .Fn elf_begin ,
@@ -125,7 +132,9 @@ should match that used to open the archive earlier.
 .Pp
 If argument
 .Ar elf
-is not NULL, and references an
+is not
+.Dv NULL ,
+and references an
 .Xr ar 1
 archive opened earlier with
 .Fn elf_memory ,
@@ -143,7 +152,9 @@ Argument
 should have been opened for reading and writing.
 If argument
 .Ar elf
-is NULL, the library will allocate a new ELF descriptor for
+is
+.Dv NULL ,
+the library will allocate a new ELF descriptor for
 the file being processed.
 If the argument
 .Ar elf
@@ -201,7 +212,8 @@ The symbol table of the archive may be retrieved
 using
 .Xr elf_getarsym 3 .
 .Sh RETURN VALUES
-The function returns a pointer to a ELF descriptor if successful, or NULL
+The function returns a pointer to a ELF descriptor if successful, or
+.Dv NULL
 if an error occurred.
 .Sh EXAMPLES
 To iterate through the members of an

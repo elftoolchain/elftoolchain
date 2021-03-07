@@ -50,7 +50,9 @@ encountered.
 .Sh RETURN VALUES
 Function
 .Fn elf_rawfile
-returns a valid pointer if successful or NULL if an error occurs.
+returns a valid pointer if successful or
+.Dv NULL
+if an error occurs.
 .Sh ERRORS
 Function
 .Fn elf_rawfile
@@ -59,7 +61,8 @@ may fail with the following errors:
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_SEQUENCE
 Argument
 .Ar elf

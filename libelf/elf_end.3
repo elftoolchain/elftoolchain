@@ -45,7 +45,9 @@ This descriptor must have been allocated by a previous call to
 .Xr elf_begin 3
 or
 .Xr elf_memory 3 .
-For programming convenience, a NULL value is permitted for argument
+For programming convenience, a
+.Dv NULL
+value is permitted for argument
 .Ar elf .
 .Pp
 A call to
@@ -68,7 +70,8 @@ returns the current value of the ELF descriptor
 .Ar elf Ap s
 activation count, or zero if argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .Sh SEE ALSO
 .Xr elf 3 ,
 .Xr elf_begin 3 ,

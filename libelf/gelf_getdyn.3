@@ -90,7 +90,9 @@ Function
 .Fn gelf_getdyn
 returns the value of argument
 .Ar dyn
-if successful, or NULL in case of an error.
+if successful, or
+.Dv NULL
+in case of an error.
 Function
 .Fn gelf_update_dyn
 returns a non-zero value if successful, or zero in case of an error.
@@ -102,7 +104,8 @@ Arguments
 .Ar data
 or
 .Ar dyn
-were NULL.
+were
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar ndx

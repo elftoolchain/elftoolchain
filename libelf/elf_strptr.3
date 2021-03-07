@@ -57,14 +57,16 @@ table.
 .Sh RETURN VALUES
 Function
 .Fn elf_strptr
-returns a valid pointer on success or NULL in case an error was
-encountered.
+returns a valid pointer on success or
+.Dv NULL
+in case an error was encountered.
 .Sh ERRORS
 .Bl -tag -width "[ELF_E_RESOURCE]"
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf

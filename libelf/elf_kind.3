@@ -42,7 +42,8 @@ function identifies the kind of file associated with its argument
 .Ar elf .
 The argument
 .Ar elf
-is allowed to be NULL.
+is allowed to be
+.Dv NULL .
 .Sh RETURN VALUES
 The
 .Fn elf_kind
@@ -59,7 +60,9 @@ is an ELF file.
 .It Dv ELF_K_NONE
 The argument
 .Ar elf
-was NULL, or the ELF library could not determine the type of the file
+was
+.Dv NULL ,
+or the ELF library could not determine the type of the file
 associated with argument
 .Ar elf ,
 or an error occurred when processing.

@@ -74,7 +74,9 @@ name, as computed by
 .Xr elf_hash 3 .
 .El
 .Pp
-The last entry of the returned array will have a NULL value for member
+The last entry of the returned array will have a
+.Dv NULL
+value for member
 .Va as_name ,
 a zero value for member
 .Va as_off
@@ -92,7 +94,8 @@ Function
 .Fn elf_getarsym
 returns a pointer to an array of
 .Vt Elf_Arsym
-structures if successful, or a NULL
+structures if successful, or a
+.Dv NULL
 pointer if an error was encountered.
 .Pp
 If argument
@@ -112,7 +115,8 @@ may fail with the following errors:
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf

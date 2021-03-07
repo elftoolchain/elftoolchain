@@ -132,7 +132,9 @@ Function
 .Fn gelf_getsymshndx
 returns the value of argument
 .Ar sym
-if successful, or NULL in case of an error.
+if successful, or
+.Dv NULL
+in case of an error.
 .Pp
 Function
 .Fn gelf_update_symshndx
@@ -147,7 +149,8 @@ Arguments
 .Ar xndxptr
 or
 .Ar sym
-were NULL.
+were
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar ndx

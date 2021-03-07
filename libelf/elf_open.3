@@ -71,7 +71,8 @@ The argument
 specifies the size of the memory area in bytes.
 .Sh RETURN VALUES
 The function returns a pointer to a ELF descriptor if successful, or
-NULL if an error occurred.
+.Dv NULL
+if an error occurred.
 .Sh COMPATIBILITY
 These functions are non-standard extensions to the
 .Xr elf 3
@@ -98,7 +99,8 @@ The argument
 .Ar sz
 was zero, or the argument
 .Ar image
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_IO
 The file descriptor in argument
 .Ar fd

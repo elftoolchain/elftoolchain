@@ -57,7 +57,9 @@ with a command argument value of
 .Sh RETURN VALUES
 Function
 .Fn elf_memory
-returns a pointer to a new ELF descriptor if successful, or NULL if an
+returns a pointer to a new ELF descriptor if successful, or
+.Dv NULL
+if an
 error occurred.
 .Pp
 The return value may be queried for the file type using
@@ -88,7 +90,9 @@ Function
 can fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
 .It Bq Er ELF_E_ARGUMENT
-A NULL value was used for argument
+A
+.Dv NULL
+value was used for argument
 .Ar image
 or the value of argument
 .Ar sz

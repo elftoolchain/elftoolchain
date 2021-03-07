@@ -178,7 +178,9 @@ argument
 .Sh RETURN VALUES
 These functions return argument
 .Ar dst
-if successful, or NULL in case of an error.
+if successful, or
+.Dv NULL
+in case of an error.
 .Sh EXAMPLES
 To translate a
 .Vt GElf_Rel
@@ -216,7 +218,8 @@ One of arguments
 .Ar dst
 or
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Arguments
 .Ar src

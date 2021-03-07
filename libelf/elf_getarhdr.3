@@ -73,7 +73,9 @@ The size of the member in bytes.
 .Sh RETURN VALUES
 This function returns a valid pointer to an
 .Vt Elf_Arhdr
-structure if successful, or NULL if an error is encountered.
+structure if successful, or
+.Dv NULL
+if an error is encountered.
 .Sh ERRORS
 Function
 .Fn elf_getarhdr
@@ -82,7 +84,8 @@ may fail with the following errors:
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf

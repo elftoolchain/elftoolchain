@@ -92,11 +92,15 @@ will never return a pointer to the empty section at index zero
 .Dv ( SHN_UNDEF ) .
 Argument
 .Ar scn
-is allowed to be NULL, in which case this function will return a
-pointer to the section descriptor at index 1.
+is allowed to be
+.Dv NULL ,
+in which case this function will return a pointer to the section
+descriptor at index 1.
 If no further sections are present, function
 .Fn elf_nextscn
-will return a NULL pointer.
+will return a
+.Dv NULL
+pointer.
 .Sh RETURN VALUES
 Functions
 .Fn elf_getscn ,
@@ -104,7 +108,8 @@ Functions
 and
 .Fn elf_nextscn
 return a valid pointer to a section descriptor if successful, or
-NULL if an error occurs.
+.Dv NULL
+if an error occurs.
 .Pp
 Function
 .Fn elf_ndxscn
@@ -119,7 +124,8 @@ Arguments
 .Ar elf
 or
 .Ar scn
-were NULL.
+were
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar index

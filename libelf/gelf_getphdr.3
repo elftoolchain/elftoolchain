@@ -82,15 +82,17 @@ interface need to use the
 API to copy modifications to a program header entry back to the underlying
 ELF descriptor.
 .Sh RETURN VALUES
-The functions a valid pointer if successful, or NULL in case an error
-was encountered.
+The functions a valid pointer if successful, or
+.Dv NULL
+in case an error was encountered.
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
@@ -98,7 +100,8 @@ was not a descriptor for an ELF object.
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar dst
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Index
 .Ar index

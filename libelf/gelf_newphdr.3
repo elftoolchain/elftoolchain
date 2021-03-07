@@ -95,8 +95,9 @@ on the same descriptor
 .Ar elf
 will no longer be valid.
 .Sh RETURN VALUES
-The functions a valid pointer if successful, or NULL in case an error
-was encountered.
+The functions a valid pointer if successful, or
+.Dv NULL
+in case an error was encountered.
 .Sh COMPATIBILITY
 The
 .Fn gelf_newphdr
@@ -114,7 +115,8 @@ These functions may fail with the following errors:
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf
-was NULL.
+was
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar elf

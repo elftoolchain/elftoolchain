@@ -83,13 +83,17 @@ Functions
 and
 .Fn elf64_getshdr
 return a valid pointer to the appropriate section header on success
-or NULL if an error was encountered.
+or
+.Dv NULL
+if an error was encountered.
 .Pp
 Function
 .Fn gelf_getshdr
 returns argument
 .Ar dst
-if successful, or NULL if an error was encountered.
+if successful, or
+.Dv NULL
+if an error was encountered.
 .Sh ERRORS
 These functions may fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
@@ -98,7 +102,8 @@ Arguments
 .Ar scn
 or
 .Ar shdr
-were NULL.
+were
+.Dv NULL .
 .It Bq Er ELF_E_ARGUMENT
 Argument
 .Ar scn

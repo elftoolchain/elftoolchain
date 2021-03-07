@@ -50,15 +50,20 @@ This location is set to zero on errors.
 .Sh RETURN VALUES
 Function
 .Fn elf_getident
-will return a non-NULL pointer to the initial bytes of the file if
-successful, or NULL if an error condition is detected.
+will return a
+.No non- Ns Dv NULL
+pointer to the initial bytes of the file if successful, or
+.Dv NULL
+if an error condition is detected.
 .Sh ERRORS
 Function
 .Fn elf_getident
 can fail with the following errors:
 .Bl -tag -width "[ELF_E_RESOURCE]"
 .It Bq Er ELF_E_ARGUMENT
-A NULL value was passed in for argument
+A
+.Dv NULL
+value was passed in for argument
 .Ar elf .
 .It Bq Er ELF_E_SEQUENCE
 ELF descriptor

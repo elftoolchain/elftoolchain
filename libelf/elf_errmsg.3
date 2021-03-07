@@ -62,7 +62,9 @@ A zero value for argument
 retrieves the most recent error encountered by the ELF
 library.
 An argument value of -1 behaves identically, except that
-it guarantees a non-NULL return from
+it guarantees a
+.No non- Ns Dv NULL
+return from
 .Fn elf_errmsg .
 .Sh RETURN VALUES
 Function
@@ -75,7 +77,9 @@ Function
 returns a pointer to library local storage for non-zero values
 of argument
 .Ar error .
-With a zero argument, the function will return a NULL pointer if no
+With a zero argument, the function will return a
+.Dv NULL
+pointer if no
 error had been encountered by the library, or will return a pointer to
 library local storage containing an appropriate message otherwise.
 .Sh EXAMPLES
