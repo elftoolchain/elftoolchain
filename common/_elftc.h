@@ -380,6 +380,10 @@ extern const char *__progname;
 #include <sys/param.h>
 #include <sys/endian.h>
 
+#ifndef	roundup2
+#define	roundup2	roundup
+#endif
+
 #define	ELFTC_BYTE_ORDER			_BYTE_ORDER
 #define	ELFTC_BYTE_ORDER_LITTLE_ENDIAN		_LITTLE_ENDIAN
 #define	ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
