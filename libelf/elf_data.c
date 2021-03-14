@@ -34,6 +34,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf_Data *
 elf_getdata(Elf_Scn *s, Elf_Data *ed)
 {

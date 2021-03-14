@@ -34,6 +34,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf32_Shdr *
 elf32_getshdr(Elf_Scn *s)
 {

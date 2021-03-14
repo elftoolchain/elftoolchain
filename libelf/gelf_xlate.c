@@ -32,6 +32,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf_Data *
 elf32_xlatetof(Elf_Data *dst, const Elf_Data *src, unsigned int encoding)
 {

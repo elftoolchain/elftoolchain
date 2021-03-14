@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 /* WARNING: GENERATED FROM __file__. */
 
 /*

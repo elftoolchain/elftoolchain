@@ -38,6 +38,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 /*
  * Load an ELF section table and create a list of Elf_Scn structures.
  */

@@ -32,6 +32,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 /*
  * Retrieve a human readable translation for an error message.
  */

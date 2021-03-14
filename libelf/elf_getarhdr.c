@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf_Arhdr *
 elf_getarhdr(Elf *e)
 {

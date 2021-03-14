@@ -33,6 +33,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 GElf_Sym *
 gelf_getsym(Elf_Data *ed, int ndx, GElf_Sym *dst)
 {

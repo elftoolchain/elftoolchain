@@ -31,6 +31,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 static int
 _libelf_getphdrnum(Elf *e, size_t *phnum)
 {

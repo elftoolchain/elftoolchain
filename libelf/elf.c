@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 struct _libelf_globals _libelf = {
 	.libelf_byteorder	= LIBELF_BYTEORDER,
 	.libelf_error		= 0,

@@ -33,6 +33,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 /*
  * Convert an ELF section#,offset pair to a string pointer.
  */

@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 unsigned int
 elf_getversion(Elf *e)
 {

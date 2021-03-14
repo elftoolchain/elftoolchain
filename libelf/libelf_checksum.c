@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 static unsigned long
 _libelf_sum(unsigned long c, const unsigned char *s, size_t size)
 {

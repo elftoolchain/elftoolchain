@@ -32,6 +32,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 char *
 elf_getident(Elf *e, size_t *sz)
 {

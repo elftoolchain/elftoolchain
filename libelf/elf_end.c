@@ -36,6 +36,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 int
 elf_end(Elf *e)
 {

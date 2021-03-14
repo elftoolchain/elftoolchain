@@ -33,6 +33,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 /*
  * Retrieve counts for sections, phdrs and the section string table index
  * from section header #0 of the ELF object.

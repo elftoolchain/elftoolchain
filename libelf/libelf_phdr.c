@@ -33,6 +33,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 void *
 _libelf_getphdr(Elf *e, int ec)
 {

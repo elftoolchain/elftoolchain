@@ -38,6 +38,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf *
 _libelf_allocate_elf(void)
 {

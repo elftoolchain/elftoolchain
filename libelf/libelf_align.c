@@ -32,6 +32,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 struct align {
 	unsigned int a32;
 	unsigned int a64;

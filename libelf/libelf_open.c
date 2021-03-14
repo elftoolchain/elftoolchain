@@ -41,6 +41,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 #define	_LIBELF_INITSIZE	(64*1024)
 
 /*

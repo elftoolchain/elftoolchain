@@ -35,6 +35,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 #define	LIBELF_NALLOC_SIZE	16
 
 /*

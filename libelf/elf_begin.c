@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 Elf *
 elf_begin(int fd, Elf_Cmd c, Elf *a)
 {

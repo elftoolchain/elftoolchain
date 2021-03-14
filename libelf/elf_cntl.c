@@ -30,6 +30,8 @@
 
 ELFTC_VCSID("$Id$");
 
+/*@ELFTC-DOWNSTREAM-VCSID@*/
+
 int
 elf_cntl(Elf *e, Elf_Cmd c)
 {
