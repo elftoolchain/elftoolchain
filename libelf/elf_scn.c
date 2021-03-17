@@ -24,6 +24,7 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/cdefs.h>
 #include <sys/queue.h>
 
 #include <assert.h>

@@ -28,6 +28,8 @@
  * Internal APIs
  */
 
+#include <sys/cdefs.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <libelf.h>
