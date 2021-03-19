@@ -861,7 +861,7 @@ _ELF_DEFINE_EM(EM_BA1,              201, "Beyond BA1 CPU architecture")	\
 _ELF_DEFINE_EM(EM_BA2,              202, "Beyond BA2 CPU architecture")	\
 _ELF_DEFINE_EM(EM_XCORE,            203, "XMOS xCORE processor family") \
 _ELF_DEFINE_EM(EM_MCHP_PIC,         204, "Microchip 8-bit PIC(r) family") \
-_ELF_DEFINE_EM(EM_INTEL205,         205, "Reserved by Intel")           \
+_ELF_DEFINE_EM(EM_INTELGT,          205, "Intel Graphics Technology")	\
 _ELF_DEFINE_EM(EM_INTEL206,         206, "Reserved by Intel")           \
 _ELF_DEFINE_EM(EM_INTEL207,         207, "Reserved by Intel")           \
 _ELF_DEFINE_EM(EM_INTEL208,         208, "Reserved by Intel")           \
