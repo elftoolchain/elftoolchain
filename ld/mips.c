@@ -33,27 +33,6 @@
 #include "ld_utils.h"
 #include "mips.h"
 
-#define EF_MIPS_ABI2		0x00000020	/* n32 abi */
-#define EF_MIPS_ABI		0x00007000	/* Application binary interface */
-#define E_MIPS_ABI_O32		0x00001000	/* MIPS 32 bit ABI (UCODE) */
-#define E_MIPS_ABI_O64		0x00002000	/* UCODE MIPS 64 bit ABI */
-#define E_MIPS_ABI_EABI32	0x00003000	/* Embedded ABI for 32-bit */
-#define E_MIPS_ABI_EABI64	0x00004000	/* Embedded ABI for 64-bit */
-
-#define EF_MIPS_ASE_MDMX	0x08000000	/* MDMX multimedia extensions */
-#define EF_MIPS_ASE_M16		0x04000000	/* MIPS16e ISA extensions */
-#define EF_MIPS_ASE_MICROMIPS	0x02000000	/* MicroMIPS architecture */
-
-#define EF_MIPS_ARCH_1		0x00000000	/* MIPS I instruction set */
-#define EF_MIPS_ARCH_2		0x10000000	/* MIPS II instruction set */
-#define EF_MIPS_ARCH_3		0x20000000	/* MIPS III instruction set */
-#define EF_MIPS_ARCH_4		0x30000000	/* MIPS IV instruction set */
-#define EF_MIPS_ARCH_5		0x40000000	/* Never introduced */
-#define EF_MIPS_ARCH_32		0x50000000	/* Mips32 Revision 1 */
-#define EF_MIPS_ARCH_64		0x60000000	/* Mips64 Revision 1 */
-#define EF_MIPS_ARCH_32R2	0x70000000	/* Mips32 Revision 2 */
-#define EF_MIPS_ARCH_64R2	0x80000000	/* Mips64 Revision 2 */
-
 ELFTC_VCSID("$Id$");
 
 static void
@@ -268,10 +247,10 @@ _merge_abi(struct ld *ld, unsigned new_flags)
 static unsigned
 _merge_ase(struct ld *ld, unsigned new_flags)
 {
-	int old_micro = ld->ld_arch->flags & EF_MIPS_ASE_MICROMIPS;
-	int new_micro = new_flags & EF_MIPS_ASE_MICROMIPS;
-	int old_m16 = ld->ld_arch->flags & EF_MIPS_ASE_M16;
-	int new_m16 = new_flags & EF_MIPS_ASE_M16;
+	int old_micro = ld->ld_arch->flags & EF_MIPS_ARCH_ASE_MICROMIPS;
+	int new_micro = new_flags & EF_MIPS_ARCH_ASE_MICROMIPS;
+	int old_m16 = ld->ld_arch->flags & EF_MIPS_ARCH_ASE_M16;
+	int new_m16 = new_flags & EF_MIPS_ARCH_ASE_M16;
 
 	if ((old_m16 && new_micro) || (old_micro && new_m16))
 		ld_fatal(ld, "ASE mismatch: linking '%s' module with previous '%s' modules",
