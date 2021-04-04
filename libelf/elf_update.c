@@ -757,7 +757,6 @@ _libelf_write_scn(Elf *e, unsigned char *nf, struct _Elf_Extent *ex)
 	assert(sh_off % _libelf_falign(elftype, ec) == 0);
 
 	em = _libelf_elfmachine(e);
-	assert(em >= EM_NONE && em < EM__LAST__);
 
 	/*
 	 * If the section has a `rawdata' descriptor, and the section
