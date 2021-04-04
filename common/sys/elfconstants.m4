@@ -429,6 +429,8 @@ DEFINE_EHDR_FLAG(EF_MIPS_CPIC,        0x00000004UL,
 	`file code uses standard conventions for calling PIC')
 DEFINE_EHDR_FLAG(EF_MIPS_UCODE,       0x00000010UL,
 	`file contains UCODE (obsolete)')
+DEFINE_EHDR_FLAG(EF_MIPS_ABI,	      0x00007000UL,
+	`Application binary interface, see E_MIPS_* values')
 DEFINE_EHDR_FLAG(EF_MIPS_ABI2,        0x00000020UL,
 	`file follows MIPS III 32-bit ABI')
 DEFINE_EHDR_FLAG(EF_MIPS_OPTIONS_FIRST, 0x00000080UL,
@@ -439,8 +441,28 @@ DEFINE_EHDR_FLAG(EF_MIPS_ARCH_ASE_MDMX, 0x08000000UL,
 	`file uses MDMX multimedia extensions')
 DEFINE_EHDR_FLAG(EF_MIPS_ARCH_ASE_M16, 0x04000000UL,
 	`file uses MIPS-16 ISA extensions')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_ASE_MICROMIPS, 0x02000000UL,
+	`MicroMIPS architecture')
 DEFINE_EHDR_FLAG(EF_MIPS_ARCH,         0xF0000000UL,
 	`4-bit MIPS architecture field')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_1,	0x00000000UL,
+	`MIPS I instruction set')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_2,	0x10000000UL,
+	`MIPS II instruction set')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_3,	0x20000000UL,
+	`MIPS III instruction set')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_4,	0x30000000UL,
+	`MIPS IV instruction set')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_5,	0x40000000UL,
+	`Never introduced')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_32,	0x50000000UL,
+	`Mips32 Revision 1')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_64,	0x60000000UL,
+	`Mips64 Revision 1')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_32R2,	0x70000000UL,
+	`Mips32 Revision 2')
+DEFINE_EHDR_FLAG(EF_MIPS_ARCH_64R2,	0x80000000UL,
+	`Mips64 Revision 2')
 DEFINE_EHDR_FLAG(EF_PPC_EMB,          0x80000000UL,
 	`Embedded PowerPC flag')
 DEFINE_EHDR_FLAG(EF_PPC_RELOCATABLE,  0x00010000UL,
@@ -1070,21 +1092,21 @@ DEFINE_PHDR_FLAG(PF_ARM_ABS,          0x40000000,
 # Types of program header table entries.
 #
 define(`DEFINE_PHDR_TYPES',`
-DEFINE_PHDR_TYPE(PT_NULL,             0,
+DEFINE_PHDR_TYPE(PT_NULL,             0UL,
 	`ignored entry')
-DEFINE_PHDR_TYPE(PT_LOAD,             1,
+DEFINE_PHDR_TYPE(PT_LOAD,             1UL,
 	`loadable segment')
-DEFINE_PHDR_TYPE(PT_DYNAMIC,          2,
+DEFINE_PHDR_TYPE(PT_DYNAMIC,          2UL,
 	`contains dynamic linking information')
-DEFINE_PHDR_TYPE(PT_INTERP,           3,
+DEFINE_PHDR_TYPE(PT_INTERP,           3UL,
 	`names an interpreter')
-DEFINE_PHDR_TYPE(PT_NOTE,             4,
+DEFINE_PHDR_TYPE(PT_NOTE,             4UL,
 	`auxiliary information')
-DEFINE_PHDR_TYPE(PT_SHLIB,            5,
+DEFINE_PHDR_TYPE(PT_SHLIB,            5UL,
 	`reserved')
-DEFINE_PHDR_TYPE(PT_PHDR,             6,
+DEFINE_PHDR_TYPE(PT_PHDR,             6UL,
 	`describes the program header itself')
-DEFINE_PHDR_TYPE(PT_TLS,              7,
+DEFINE_PHDR_TYPE(PT_TLS,              7UL,
 	`thread local storage')
 DEFINE_PHDR_TYPE(PT_LOOS,             0x60000000UL,
 	`start of OS-specific range')
@@ -2555,4 +2577,16 @@ DEFINE_ODK_GP_MASK(OGP_GROUP,      0x0000FFFFUL,
 	`GP group number')
 DEFINE_ODK_GP_MASK(OGP_SELF,       0x00010000UL,
 	`GP group is self-contained')
+')
+
+# MIPS ABI related constants.
+define(`DEFINE_MIPS_ABIS',`
+DEFINE_MIPS_ABI(E_MIPS_ABI_O32,		0x00001000,
+	`MIPS 32 bit ABI (UCODE)')
+DEFINE_MIPS_ABI(E_MIPS_ABI_O64,		0x00002000,
+	`UCODE MIPS 64 bit ABI')
+DEFINE_MIPS_ABI(E_MIPS_ABI_EABI32,	0x00003000,
+	`Embedded ABI for 32-bit')
+DEFINE_MIPS_ABI(E_MIPS_ABI_EABI64,	0x00004000,
+	`Embedded ABI for 64-bit')
 ')
