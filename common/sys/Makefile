@@ -15,9 +15,9 @@ all:	${INCS}
 elfdefinitions.h:	elfdefinitions.m4 elfconstants.m4
 	m4 -D SRCDIR=${.CURDIR} ${M4FLAGS} elfdefinitions.m4 > ${.TARGET}
 
-depend:
+depend cleandepend:
 
-clean clobber cleandepend:
+clean clobber:
 	rm -f ${CLEANFILES}
 
 .include "${TOP}/mk/elftoolchain.inc.mk"
