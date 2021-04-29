@@ -1298,6 +1298,7 @@ insert_sections(struct elfcopy *ecp)
 	struct section	*s;
 	size_t		 off;
 	uint64_t	 stype;
+	uint64_t 	 align = 1;
 
 	/* Put these sections in the end of current list. */
 	off = 0;
@@ -1321,11 +1322,13 @@ insert_sections(struct elfcopy *ecp)
 		 */
 		stype = SHT_PROGBITS;
 		if (strcmp(sa->name, ".note") == 0 ||
-		    strncmp(sa->name, ".note.", strlen(".note.")) == 0)
-			stype = SHT_NOTE;
+		    strncmp(sa->name, ".note.", strlen(".note.")) == 0) {
+				stype = SHT_NOTE;
+				align = 4;
+			}
 
 		(void) create_external_section(ecp, sa->name, NULL, sa->content,
-		    sa->size, off, stype, ELF_T_BYTE, 0, 1, 0, 0);
+		    sa->size, off, stype, ELF_T_BYTE, 0, align, 0, 0);
 	}
 }
 
