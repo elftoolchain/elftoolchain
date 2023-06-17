@@ -83,9 +83,9 @@ pub fn build(b: *Build) void {
         .link_libc = true,
     });
     libelftc.addCSourceFiles(libelftc_srcs, &.{});
-    libelftc.linkLibrary(libelf);
     libelftc.addIncludePath("common");
     libelftc.addIncludePath("libelftc");
+    libelftc.linkLibrary(libelf);
     libelftc.installHeader("libelftc/libelftc.h", "libelftc.h");
     b.installArtifact(libelftc);
 
@@ -97,13 +97,27 @@ pub fn build(b: *Build) void {
         .link_libc = true,
     });
     libdwarf.addCSourceFiles(libdwarf_srcs, &.{});
-    libdwarf.linkLibrary(libelf);
     libdwarf.addIncludePath("common");
     libdwarf.addIncludePath("libdwarf");
+    libdwarf.linkLibrary(libelf);
     libdwarf.installHeader("libdwarf/dwarf.h", "dwarf.h");
     libdwarf.installHeader("libdwarf/libdwarf.h", "libdwarf.h");
     b.installArtifact(libdwarf);
 
+    // addr2line
+    const addr2line_exe = b.addExecutable(.{
+        .name = "addr2line",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    addr2line_exe.addCSourceFile("addr2line/addr2line.c", &.{});
+    addr2line_exe.addIncludePath("common");
+    addr2line_exe.linkLibrary(libdwarf);
+    addr2line_exe.linkLibrary(libelftc);
+    b.installArtifact(addr2line_exe);
+
+    // nm
     const nm_exe = b.addExecutable(.{
         .name = "nm",
         .target = target,
@@ -111,9 +125,9 @@ pub fn build(b: *Build) void {
         .link_libc = true,
     });
     nm_exe.addCSourceFile("nm/nm.c", &.{});
+    nm_exe.addIncludePath("common");
     nm_exe.linkLibrary(libdwarf);
     nm_exe.linkLibrary(libelftc);
-    nm_exe.addIncludePath("common");
     b.installArtifact(nm_exe);
 }
 
