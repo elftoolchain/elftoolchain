@@ -10,8 +10,7 @@ const Build = std.Build;
 const assert = std.debug.assert;
 
 // ar          Archive manager.
-// addr2line   Debug tool.
-// brandelf    Manage the ELF brand on executables.
+
 // c++filt     Translate encoded symbols.
 // elfcopy     Copy and translate between object formats.
 // elfdump     Diagnostic tool.
@@ -37,6 +36,30 @@ fn capture_stdout_with_basename(run: *Build.Step.Run, basename: []const u8) Buil
     };
     run.captured_stdout = output;
     return .{ .generated = &output.generated_file };
+}
+
+const ExeOptions = struct {
+    name: []const u8,
+    sources: []const []const u8,
+    libraries: []const *std.Build.Step.Compile,
+    target: std.zig.CrossTarget,
+    optimize: std.builtin.OptimizeMode,
+};
+
+fn add_elftoolchain_exe(b: *Build, options: ExeOptions) void {
+    const exe = b.addExecutable(.{
+        .name = options.name,
+        .target = options.target,
+        .optimize = options.optimize,
+        .link_libc = true,
+    });
+    exe.addCSourceFiles(options.sources, &.{});
+    exe.addIncludePath("common");
+
+    for (options.libraries) |lib|
+        exe.linkLibrary(lib);
+
+    b.installArtifact(exe);
 }
 
 pub fn build(b: *Build) void {
@@ -104,31 +127,29 @@ pub fn build(b: *Build) void {
     libdwarf.installHeader("libdwarf/libdwarf.h", "libdwarf.h");
     b.installArtifact(libdwarf);
 
-    // addr2line
-    const addr2line_exe = b.addExecutable(.{
+    add_elftoolchain_exe(b, .{
         .name = "addr2line",
+        .sources = &.{"addr2line/addr2line.c"},
+        .libraries = &.{ libdwarf, libelftc },
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
     });
-    addr2line_exe.addCSourceFile("addr2line/addr2line.c", &.{});
-    addr2line_exe.addIncludePath("common");
-    addr2line_exe.linkLibrary(libdwarf);
-    addr2line_exe.linkLibrary(libelftc);
-    b.installArtifact(addr2line_exe);
 
-    // nm
-    const nm_exe = b.addExecutable(.{
-        .name = "nm",
+    add_elftoolchain_exe(b, .{
+        .name = "brandelf",
+        .sources = &.{"brandelf/brandelf.c"},
+        .libraries = &.{ libelf, libelftc },
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
     });
-    nm_exe.addCSourceFile("nm/nm.c", &.{});
-    nm_exe.addIncludePath("common");
-    nm_exe.linkLibrary(libdwarf);
-    nm_exe.linkLibrary(libelftc);
-    b.installArtifact(nm_exe);
+
+    add_elftoolchain_exe(b, .{
+        .name = "nm",
+        .sources = &.{"nm/nm.c"},
+        .libraries = &.{ libdwarf, libelf, libelftc },
+        .target = target,
+        .optimize = optimize,
+    });
 }
 
 const libelf_srcs = &.{
