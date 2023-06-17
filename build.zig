@@ -44,17 +44,17 @@ pub fn build(b: *Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     // libelf
-    const libelf_convert_m4 = b.addSystemCommand(&.{ "m4", "libelf/libelf_convert.m4" });
+    const elf_types_m4 = b.addSystemCommand(&.{ "m4", "libelf/elf_types.m4" });
+    const elf_types = capture_stdout_with_basename(elf_types_m4, "elf_types.c");
+
+    const libelf_convert_m4 = b.addSystemCommand(&.{ "m4", "-D", "SRCDIR=./libelf", "libelf/libelf_convert.m4" });
     const libelf_convert = capture_stdout_with_basename(libelf_convert_m4, "libelf_convert.c");
 
-    const libelf_fsize_m4 = b.addSystemCommand(&.{ "m4", "libelf/libelf_fsize.m4" });
+    const libelf_fsize_m4 = b.addSystemCommand(&.{ "m4", "-D", "SRCDIR=./libelf", "libelf/libelf_fsize.m4" });
     const libelf_fsize = capture_stdout_with_basename(libelf_fsize_m4, "libelf_fsize.c");
 
     const libelf_msize_m4 = b.addSystemCommand(&.{ "m4", "-D", "SRCDIR=./libelf", "libelf/libelf_msize.m4" });
     const libelf_msize = capture_stdout_with_basename(libelf_msize_m4, "libelf_msize.c");
-
-    const elf_types_m4 = b.addSystemCommand(&.{ "m4", "libelf/elf_types.m4" });
-    const elf_types = capture_stdout_with_basename(elf_types_m4, "elf_types.c");
 
     const libelf = b.addStaticLibrary(.{
         .name = "elf",
@@ -77,6 +77,7 @@ pub fn build(b: *Build) void {
     // libelftc
     const libelftc = b.addStaticLibrary(.{
         .name = "elftc",
+        .root_source_file = .{ .path = "zig/elftc_version.zig" },
         .target = target,
         .optimize = optimize,
         .link_libc = true,
@@ -111,6 +112,7 @@ pub fn build(b: *Build) void {
     });
     nm_exe.addCSourceFile("nm/nm.c", &.{});
     nm_exe.linkLibrary(libdwarf);
+    nm_exe.linkLibrary(libelftc);
     nm_exe.addIncludePath("common");
     b.installArtifact(nm_exe);
 }
