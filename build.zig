@@ -33,6 +33,7 @@ pub fn build(b: *Build) void {
         .name = "elf",
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
     libelf.addCSourceFiles(libelf_srcs, &.{});
     libelf.addIncludePath("common");
