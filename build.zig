@@ -7,6 +7,7 @@
 //! - Ubuntu GNU/Linux
 const std = @import("std");
 const Build = std.Build;
+const assert = std.debug.assert;
 
 // ar          Archive manager.
 // addr2line   Debug tool.
@@ -18,16 +19,42 @@ const Build = std.Build;
 // libdwarf    DWARF access library.
 // libelf      ELF access library.
 // mcs         Manage comment sections.
-// nm          List symbols in an ELF object.
 // ranlib      Add archive symbol tables to an archive.
 // readelf     Display ELF information.
 // size        List object sizes.
 // strings     Extract printable strings.
 // strip       Discard information from ELF objects.
+fn capture_stdout_with_basename(run: *Build.Step.Run, basename: []const u8) Build.FileSource {
+    assert(run.stdio != .inherit);
+
+    if (run.captured_stdout) |output| return .{ .generated = &output.generated_file };
+
+    const output = run.step.owner.allocator.create(Build.Step.Run.Output) catch @panic("OOM");
+    output.* = .{
+        .prefix = "",
+        .basename = basename,
+        .generated_file = .{ .step = &run.step },
+    };
+    run.captured_stdout = output;
+    return .{ .generated = &output.generated_file };
+}
 
 pub fn build(b: *Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+
+    // libelf
+    const libelf_convert_m4 = b.addSystemCommand(&.{ "m4", "libelf/libelf_convert.m4" });
+    const libelf_convert = capture_stdout_with_basename(libelf_convert_m4, "libelf_convert.c");
+
+    const libelf_fsize_m4 = b.addSystemCommand(&.{ "m4", "libelf/libelf_fsize.m4" });
+    const libelf_fsize = capture_stdout_with_basename(libelf_fsize_m4, "libelf_fsize.c");
+
+    const libelf_msize_m4 = b.addSystemCommand(&.{ "m4", "-D", "SRCDIR=./libelf", "libelf/libelf_msize.m4" });
+    const libelf_msize = capture_stdout_with_basename(libelf_msize_m4, "libelf_msize.c");
+
+    const elf_types_m4 = b.addSystemCommand(&.{ "m4", "libelf/elf_types.m4" });
+    const elf_types = capture_stdout_with_basename(elf_types_m4, "elf_types.c");
 
     const libelf = b.addStaticLibrary(.{
         .name = "elf",
@@ -36,10 +63,56 @@ pub fn build(b: *Build) void {
         .link_libc = true,
     });
     libelf.addCSourceFiles(libelf_srcs, &.{});
+    libelf.addCSourceFileSource(.{ .source = libelf_convert, .args = &.{} });
+    libelf.addCSourceFileSource(.{ .source = libelf_fsize, .args = &.{} });
+    libelf.addCSourceFileSource(.{ .source = libelf_msize, .args = &.{} });
+    libelf.addCSourceFileSource(.{ .source = elf_types, .args = &.{} });
     libelf.addIncludePath("common");
     libelf.addIncludePath("libelf");
+    libelf.installHeader("common/sys/elfdefinitions.h", "sys/elfdefinitions.h");
     libelf.installHeader("libelf/libelf.h", "libelf.h");
+    libelf.installHeader("libelf/gelf.h", "gelf.h");
     b.installArtifact(libelf);
+
+    // libelftc
+    const libelftc = b.addStaticLibrary(.{
+        .name = "elftc",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    libelftc.addCSourceFiles(libelftc_srcs, &.{});
+    libelftc.linkLibrary(libelf);
+    libelftc.addIncludePath("common");
+    libelftc.addIncludePath("libelftc");
+    libelftc.installHeader("libelftc/libelftc.h", "libelftc.h");
+    b.installArtifact(libelftc);
+
+    // libdwarf
+    const libdwarf = b.addStaticLibrary(.{
+        .name = "dwarf",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    libdwarf.addCSourceFiles(libdwarf_srcs, &.{});
+    libdwarf.linkLibrary(libelf);
+    libdwarf.addIncludePath("common");
+    libdwarf.addIncludePath("libdwarf");
+    libdwarf.installHeader("libdwarf/dwarf.h", "dwarf.h");
+    libdwarf.installHeader("libdwarf/libdwarf.h", "libdwarf.h");
+    b.installArtifact(libdwarf);
+
+    const nm_exe = b.addExecutable(.{
+        .name = "nm",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    nm_exe.addCSourceFile("nm/nm.c", &.{});
+    nm_exe.linkLibrary(libdwarf);
+    nm_exe.addIncludePath("common");
+    b.installArtifact(nm_exe);
 }
 
 const libelf_srcs = &.{
@@ -100,4 +173,76 @@ const libelf_srcs = &.{
     "libelf/libelf_phdr.c",
     "libelf/libelf_shdr.c",
     "libelf/libelf_xlate.c",
+};
+
+const libdwarf_srcs = &.{
+    "libdwarf/dwarf_cu.c",
+    "libdwarf/dwarf_pro_die.c",
+    "libdwarf/dwarf_errmsg.c",
+    "libdwarf/dwarf_str.c",
+    "libdwarf/libdwarf_ranges.c",
+    "libdwarf/dwarf_init.c",
+    "libdwarf/dwarf_pro_expr.c",
+    "libdwarf/libdwarf_die.c",
+    "libdwarf/dwarf_arange.c",
+    "libdwarf/dwarf_lineno.c",
+    "libdwarf/libdwarf_abbrev.c",
+    "libdwarf/dwarf_pro_finish.c",
+    "libdwarf/dwarf_dealloc.c",
+    "libdwarf/dwarf_pro_macinfo.c",
+    "libdwarf/dwarf_pro_attr.c",
+    "libdwarf/dwarf_pro_reloc.c",
+    "libdwarf/libdwarf_info.c",
+    "libdwarf/dwarf_frame.c",
+    "libdwarf/libdwarf_init.c",
+    "libdwarf/libdwarf_reloc.c",
+    "libdwarf/dwarf_sections.c",
+    "libdwarf/libdwarf_rw.c",
+    "libdwarf/libdwarf_attr.c",
+    "libdwarf/dwarf_reloc.c",
+    "libdwarf/dwarf_pro_init.c",
+    "libdwarf/dwarf_pro_frame.c",
+    "libdwarf/dwarf_pro_sections.c",
+    "libdwarf/libdwarf_elf_access.c",
+    "libdwarf/libdwarf_sections.c",
+    "libdwarf/dwarf_pro_arange.c",
+    "libdwarf/dwarf_pro_lineno.c",
+    "libdwarf/libdwarf.c",
+    "libdwarf/dwarf_abbrev.c",
+    "libdwarf/libdwarf_frame.c",
+    "libdwarf/dwarf_macinfo.c",
+    "libdwarf/dwarf_attrval.c",
+    "libdwarf/libdwarf_loc.c",
+    "libdwarf/libdwarf_macinfo.c",
+    "libdwarf/libdwarf_nametbl.c",
+    "libdwarf/dwarf_die.c",
+    "libdwarf/dwarf_form.c",
+    "libdwarf/libdwarf_arange.c",
+    "libdwarf/libdwarf_lineno.c",
+    "libdwarf/libdwarf_elf_init.c",
+    "libdwarf/dwarf_attr.c",
+    "libdwarf/dwarf_finish.c",
+    "libdwarf/libdwarf_loclist.c",
+    "libdwarf/libdwarf_error.c",
+    "libdwarf/dwarf_seterror.c",
+    "libdwarf/dwarf_dump.c",
+    "libdwarf/libdwarf_str.c",
+    "libdwarf/dwarf_loclist.c",
+    "libdwarf/dwarf_ranges.c",
+};
+
+const libelftc_srcs = &.{
+    "libelftc/elftc_bfdtarget.c",
+    "libelftc/libelftc_hash.c",
+    "libelftc/libelftc_dem_gnu3.c",
+    "libelftc/libelftc_dem_arm.c",
+    "libelftc/libelftc_vstr.c",
+    "libelftc/libelftc_bfdtarget.c",
+    "libelftc/elftc_reloc_type_str.c",
+    "libelftc/elftc_demangle.c",
+    "libelftc/elftc_timestamp.c",
+    "libelftc/elftc_string_table.c",
+    "libelftc/elftc_set_timestamps.c",
+    "libelftc/elftc_copyfile.c",
+    "libelftc/libelftc_dem_gnu2.c",
 };
