@@ -138,7 +138,7 @@ pub fn build(b: *Build) void {
     libpe.addIncludePath("libpe");
     //libpe.linkLibrary(libelf);
     //libpe.installHeader("libpe/pe.h", "pe.h");
-    //libpe.installHeader("libpe/libpe.h", "libpe.h");
+    libpe.installHeader("libpe/libpe.h", "libpe.h");
     b.installArtifact(libpe);
 
     add_elftoolchain_exe(b, .{
