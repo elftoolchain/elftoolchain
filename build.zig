@@ -11,7 +11,6 @@ const assert = std.debug.assert;
 
 // ar          Archive manager.
 
-// c++filt     Translate encoded symbols.
 // elfcopy     Copy and translate between object formats.
 // elfdump     Diagnostic tool.
 // findtextrel Find undesired text relocations.
@@ -127,6 +126,21 @@ pub fn build(b: *Build) void {
     libdwarf.installHeader("libdwarf/libdwarf.h", "libdwarf.h");
     b.installArtifact(libdwarf);
 
+    // libpe
+    const libpe = b.addStaticLibrary(.{
+        .name = "pe",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    libpe.addCSourceFiles(libpe_srcs, &.{});
+    libpe.addIncludePath("common");
+    libpe.addIncludePath("libpe");
+    //libpe.linkLibrary(libelf);
+    //libpe.installHeader("libpe/pe.h", "pe.h");
+    //libpe.installHeader("libpe/libpe.h", "libpe.h");
+    b.installArtifact(libpe);
+
     add_elftoolchain_exe(b, .{
         .name = "addr2line",
         .sources = &.{"addr2line/addr2line.c"},
@@ -139,6 +153,31 @@ pub fn build(b: *Build) void {
         .name = "brandelf",
         .sources = &.{"brandelf/brandelf.c"},
         .libraries = &.{ libelf, libelftc },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    add_elftoolchain_exe(b, .{
+        .name = "c++filt",
+        .sources = &.{"cxxfilt/cxxfilt.c"},
+        .libraries = &.{libelftc},
+        .target = target,
+        .optimize = optimize,
+    });
+
+    add_elftoolchain_exe(b, .{
+        .name = "elfcopy",
+        .sources = &.{
+            "elfcopy/pe.c",
+            "elfcopy/segments.c",
+            "elfcopy/ascii.c",
+            "elfcopy/binary.c",
+            "elfcopy/archive.c",
+            "elfcopy/main.c",
+            "elfcopy/sections.c",
+            "elfcopy/symbols.c",
+        },
+        .libraries = &.{ libelf, libpe },
         .target = target,
         .optimize = optimize,
     });
@@ -282,4 +321,24 @@ const libelftc_srcs = &.{
     "libelftc/elftc_set_timestamps.c",
     "libelftc/elftc_copyfile.c",
     "libelftc/libelftc_dem_gnu2.c",
+};
+
+const libpe_srcs = &.{
+    "libpe/libpe_buffer.c",
+    "libpe/libpe_coff.c",
+    "libpe/libpe_dos.c",
+    "libpe/libpe_init.c",
+    "libpe/libpe_rich.c",
+    "libpe/libpe_section.c",
+    "libpe/libpe_utils.c",
+    "libpe/pe_buffer.c",
+    "libpe/pe_cntl.c",
+    "libpe/pe_coff.c",
+    "libpe/pe_dos.c",
+    "libpe/pe_flag.c",
+    "libpe/pe_init.c",
+    "libpe/pe_rich.c",
+    "libpe/pe_section.c",
+    "libpe/pe_symtab.c",
+    "libpe/pe_update.c",
 };
